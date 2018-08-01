@@ -1,0 +1,9 @@
+[package]
+name = "noodles"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+
+[dependencies]
+byteorder = "1.2.3"
+clap = "2.32.0"
+flate2 = "1.0.1"
