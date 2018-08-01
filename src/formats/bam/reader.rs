@@ -5,9 +5,8 @@ use std::path::Path;
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::read::MultiGzDecoder;
 
+use formats::bam::MAGIC_NUMBER;
 use formats::bam::{Cigar, Data, Flag, Quality, Record, Reference, Sequence};
-
-static MAGIC_NUMBER: &[u8] = b"BAM\x01";
 
 type BamHeader = String;
 
@@ -244,13 +243,13 @@ impl<'a, R: 'a + Read> Iterator for Records<'a, R> {
         let pos = self.reader.read_pos().unwrap();
         let l_read_name = self.reader.read_l_read_name().unwrap();
         let mapq = self.reader.read_mapq().unwrap();
-        let _bin = self.reader.read_bin().unwrap();
+        let bin = self.reader.read_bin().unwrap();
         let n_cigar_op = self.reader.read_n_cigar_op().unwrap();
         let flag = self.reader.read_flag().unwrap();
         let l_seq = self.reader.read_l_seq().unwrap();
         let next_ref_id = self.reader.read_next_ref_id().unwrap();
         let next_pos = self.reader.read_next_pos().unwrap();
-        let _tlen = self.reader.read_tlen().unwrap();
+        let tlen = self.reader.read_tlen().unwrap();
 
         let read_name = self.reader
             .read_read_name(l_read_name as usize)
@@ -275,9 +274,11 @@ impl<'a, R: 'a + Read> Iterator for Records<'a, R> {
             ref_id,
             pos,
             mapq,
+            bin,
             Flag::new(flag),
             next_ref_id,
             next_pos,
+            tlen,
             read_name,
             Cigar::new(cigar),
             Sequence::new(seq, l_seq as usize),

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Deref;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Op {
@@ -126,10 +127,6 @@ impl Cigar {
         Cigar { cigar }
     }
 
-    pub fn len(&self) -> usize {
-        self.cigar.len()
-    }
-
     pub fn ops(&self) -> Vec<Op> {
         self.cigar.iter().map(|&u| Op::from_u32(u)).collect()
     }
@@ -142,5 +139,13 @@ impl fmt::Display for Cigar {
         }
 
         Ok(())
+    }
+}
+
+impl Deref for Cigar {
+    type Target = [u32];
+
+    fn deref(&self) -> &[u32] {
+        &self.cigar
     }
 }

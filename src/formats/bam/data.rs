@@ -175,10 +175,18 @@ impl Data {
         Data(raw_data)
     }
 
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn parse(&self) -> Vec<Field> {
         let cursor = Cursor::new(&self.0);
         let mut reader = Reader::new(cursor);
         reader.fields().collect()
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
     }
 }
 

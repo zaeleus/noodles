@@ -8,25 +8,37 @@ static SEQ_CHARS: &[char] = &[
 #[derive(Debug)]
 pub struct Sequence {
     seq: Vec<u8>,
-    len: usize,
+    n_chars: usize,
 }
 
 impl Sequence {
-    pub fn new(seq: Vec<u8>, len: usize) -> Sequence {
-        Sequence { seq, len }
+    pub fn new(seq: Vec<u8>, n_chars: usize) -> Sequence {
+        Sequence { seq, n_chars }
     }
 
+    /// Returns the size of the sequence in bytes.
+    ///
+    /// This is not the number of characters in the sequence but the size of the encoded
+    /// representation.
     pub fn len(&self) -> usize {
-        self.len
+        self.seq.len()
+    }
+
+    pub fn n_chars(&self) -> usize {
+        self.n_chars
     }
 
     pub fn symbols(&self) -> Symbols {
         Symbols {
             sequence: self,
             head: 0,
-            tail: self.len() - 1,
-            remaining: self.len(),
+            tail: self.n_chars - 1,
+            remaining: self.n_chars,
         }
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.seq
     }
 }
 
