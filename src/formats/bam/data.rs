@@ -188,6 +188,24 @@ impl Data {
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
+
+    pub fn extend(&mut self, field: &Field) {
+        self.0.extend_from_slice(field.tag().as_bytes());
+
+        self.0.push(field.value().ty() as u8);
+
+        if let Some(subtype) = field.value().subtype() {
+            self.0.push(subtype as u8);
+        }
+
+        match field.value() {
+            Value::String(s) => {
+                self.0.extend_from_slice(s.as_bytes());
+                self.0.push(b'\0');
+            },
+            _ => unimplemented!(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -212,6 +230,41 @@ pub enum Value {
 }
 
 impl Value {
+    pub fn ty(&self) -> char {
+        match *self {
+            Value::Char(_) => 'A',
+            Value::Int8(_) => 'c',
+            Value::UInt8(_) => 'C',
+            Value::Int16(_) => 's',
+            Value::UInt16(_) => 'S',
+            Value::Int32(_) => 'i',
+            Value::UInt32(_) => 'I',
+            Value::Float(_) => 'f',
+            Value::String(_) => 'Z',
+            Value::Hex(_) => 'H',
+            Value::Int8Array(_) => 'B',
+            Value::UInt8Array(_) => 'B',
+            Value::Int16Array(_) => 'B',
+            Value::UInt16Array(_) => 'B',
+            Value::Int32Array(_) => 'B',
+            Value::UInt32Array(_) => 'B',
+            Value::FloatArray(_) => 'B',
+        }
+    }
+
+    pub fn subtype(&self) -> Option<char> {
+        match *self {
+            Value::Int8Array(_) => Some('c'),
+            Value::UInt8Array(_) => Some('C'),
+            Value::Int16Array(_) => Some('s'),
+            Value::UInt16Array(_) => Some('S'),
+            Value::Int32Array(_) => Some('i'),
+            Value::UInt32Array(_) => Some('I'),
+            Value::FloatArray(_) => Some('f'),
+            _ => None,
+        }
+    }
+
     pub fn as_char(&self) -> Option<char> {
         match *self {
             Value::Char(c) => Some(c),
