@@ -1,27 +1,27 @@
 use std::fs::File;
-use std::io::{self, BufWriter, Write};
+use std::io::{self, Write};
 use std::path::Path;
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use formats::bam::MAGIC_NUMBER;
 use formats::bam::{Record, Reference};
+use formats::bgzf::BgzfEncoder;
 
-pub struct Writer<W> {
-    writer: W,
+pub struct Writer<W: Write> {
+    writer: BgzfEncoder<W>,
 }
 
 impl<W: Write> Writer<W> {
-    pub fn create<P>(dst: P) -> io::Result<Writer<BufWriter<File>>>
+    pub fn create<P>(dst: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
-        let file = File::create(dst)?;
-        let writer = BufWriter::new(file);
-        Ok(Writer::new(writer))
+        let encoder = BgzfEncoder::<File>::create(dst)?;
+        Ok(Writer::new(encoder))
     }
 
-    pub fn new(writer: W) -> Writer<W> {
+    pub fn new(writer: BgzfEncoder<W>) -> Writer<W> {
         Writer { writer }
     }
 
@@ -32,6 +32,10 @@ impl<W: Write> Writer<W> {
         self.writer.write_all(text.as_bytes())?;
 
         Ok(())
+    }
+
+    pub fn write_footer(&mut self) -> io::Result<()> {
+        self.writer.write_footer()
     }
 
     pub fn write_references(&mut self, references: &[Reference]) -> io::Result<()> {
@@ -77,5 +81,19 @@ impl<W: Write> Writer<W> {
         self.writer.write_all(record.data().as_bytes())?;
 
         Ok(())
+    }
+
+    pub fn finish_block(&mut self) -> io::Result<()> {
+        self.writer.finish_block()
+    }
+}
+
+impl<W: Write> Write for Writer<W> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.writer.write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.writer.flush()
     }
 }
