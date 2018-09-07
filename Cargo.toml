@@ -6,4 +6,5 @@ authors = ["Michael Macias <zaeleus@gmail.com>"]
 [dependencies]
 byteorder = "1.2.3"
 clap = "2.32.0"
+csv = "1.0.1"
 flate2 = "1.0.1"
