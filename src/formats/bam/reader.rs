@@ -251,11 +251,7 @@ impl<'a, R: 'a + Read> Iterator for Records<'a, R> {
         let next_pos = self.reader.read_next_pos().unwrap();
         let tlen = self.reader.read_tlen().unwrap();
 
-        let read_name = self.reader
-            .read_read_name(l_read_name as usize)
-            .map(|n| String::from_utf8(n).unwrap())
-            .unwrap();
-
+        let read_name = self.reader.read_read_name(l_read_name as usize).unwrap();
         let cigar = self.reader.read_cigar(n_cigar_op as usize).unwrap();
         let seq = self.reader.read_seq(l_seq as usize).unwrap();
         let qual = self.reader.read_qual(l_seq as usize).unwrap();

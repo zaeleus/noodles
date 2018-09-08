@@ -71,7 +71,7 @@ pub struct Record {
     next_ref_id: i32,
     next_ref_pos: i32,
     tlen: i32,
-    read_name: String,
+    read_name: Vec<u8>,
     cigar: Cigar,
     sequence: Sequence,
     quality: Quality,
@@ -88,7 +88,7 @@ impl Record {
         next_ref_id: i32,
         next_ref_pos: i32,
         tlen: i32,
-        read_name: String,
+        read_name: Vec<u8>,
         cigar: Cigar,
         sequence: Sequence,
         quality: Quality,
@@ -182,7 +182,7 @@ impl Record {
         self.tlen
     }
 
-    pub fn read_name(&self) -> &str {
+    pub fn read_name(&self) -> &[u8] {
         &self.read_name
     }
 

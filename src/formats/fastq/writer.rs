@@ -32,7 +32,7 @@ impl<W: Write> Writer<W> {
         };
 
         self.writer.write(b"@")?;
-        self.writer.write(name.as_bytes())?;
+        self.writer.write(name)?;
         self.writer.write(b"\n")?;
         self.writer.write(seq.as_bytes())?;
         self.writer.write(b"\n")?;

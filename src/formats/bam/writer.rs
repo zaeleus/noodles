@@ -69,7 +69,7 @@ impl<W: Write> Writer<W> {
         self.writer.write_i32::<LittleEndian>(record.next_ref_pos())?;
         self.writer.write_i32::<LittleEndian>(record.tlen())?;
 
-        self.writer.write_all(record.read_name().as_bytes())?;
+        self.writer.write_all(record.read_name())?;
         self.writer.write_all(b"\0")?;
 
         for &u in record.cigar().iter() {
