@@ -153,40 +153,28 @@ impl<R: Read> Reader<R> {
     }
 
     /// Reads the raw read name
-    fn read_read_name(&mut self, l_read_name: usize) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; l_read_name];
-        self.reader.read_exact(&mut buf)?;
-        buf.pop();
-        Ok(buf)
+    fn read_read_name(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        self.reader.read_exact(buf)
     }
 
     /// Reads the raw CIGAR
-    fn read_cigar(&mut self, n_cigar_op: usize) -> io::Result<Vec<u32>> {
-        let mut buf = vec![0; n_cigar_op];
-        self.reader.read_u32_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
+    fn read_cigar(&mut self, buf: &mut [u32]) -> io::Result<()> {
+        self.reader.read_u32_into::<LittleEndian>(buf)
     }
 
     /// Reads the raw sequence
-    fn read_seq(&mut self, l_seq: usize) -> io::Result<Vec<u8>> {
-        let len = (l_seq + 1) / 2;
-        let mut buf = vec![0; len];
-        self.reader.read_exact(&mut buf)?;
-        Ok(buf)
+    fn read_seq(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        self.reader.read_exact(buf)
     }
 
     /// Reads the raw quality
-    fn read_qual(&mut self, l_seq: usize) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; l_seq];
-        self.reader.read_exact(&mut buf)?;
-        Ok(buf)
+    fn read_qual(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        self.reader.read_exact(buf)
     }
 
     /// Reads the raw auxiliary data
-    fn read_data(&mut self, len: usize) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; len as usize];
-        self.reader.read_exact(&mut buf).unwrap();
-        Ok(buf)
+    fn read_data(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        self.reader.read_exact(buf)
     }
 }
 
@@ -251,20 +239,29 @@ impl<'a, R: 'a + Read> Iterator for Records<'a, R> {
         let next_pos = self.reader.read_next_pos().unwrap();
         let tlen = self.reader.read_tlen().unwrap();
 
-        let read_name = self.reader.read_read_name(l_read_name as usize).unwrap();
-        let cigar = self.reader.read_cigar(n_cigar_op as usize).unwrap();
-        let seq = self.reader.read_seq(l_seq as usize).unwrap();
-        let qual = self.reader.read_qual(l_seq as usize).unwrap();
+        let mut read_name = vec![0; l_read_name as usize];
+        self.reader.read_read_name(&mut read_name).unwrap();
+
+        let mut cigar = vec![0; n_cigar_op as usize];
+        self.reader.read_cigar(&mut cigar).unwrap();
+
+        let seq_len = (l_seq as usize + 1) / 2;
+        let mut seq = vec![0; seq_len];
+        self.reader.read_seq(&mut seq).unwrap();
+
+        let mut qual = vec![0; l_seq as usize];
+        self.reader.read_qual(&mut qual).unwrap();
 
         // aux data
         let bytes_read = 32
             + l_read_name as i32
             + 4 * n_cigar_op as i32
-            + (l_seq as i32 + 1) / 2
+            + seq_len as i32
             + l_seq;
 
-        let len = block_size - bytes_read;
-        let data = self.reader.read_data(len as usize).unwrap();
+        let len = (block_size - bytes_read) as usize;
+        let mut data = vec![0; len];
+        self.reader.read_data(&mut data).unwrap();
 
         Some(Record::new(
             ref_id,
