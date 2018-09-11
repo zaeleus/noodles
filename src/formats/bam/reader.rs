@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::read::MultiGzDecoder;
 
 use formats::bam::MAGIC_NUMBER;
-use formats::bam::{Cigar, Data, Flag, Quality, Record, Reference, Sequence};
+use formats::bam::{ByteRecord, Cigar, Data, Flag, Quality, Record, Reference, Sequence};
 
 type BamHeader = String;
 
@@ -48,6 +48,19 @@ impl<R: Read> Reader<R> {
 
     pub fn records(&mut self) -> Records<R> {
         Records::new(self)
+    }
+
+    pub fn read_byte_record(&mut self, record: &mut ByteRecord) -> io::Result<usize> {
+        let block_size = match self.read_block_size() {
+            Ok(bs) => bs as usize,
+            Err(_) => return Ok(0),
+        };
+
+        let buf = record.inner_mut();
+        buf.resize(block_size, Default::default());
+        self.reader.read_exact(buf)?;
+
+        Ok(block_size)
     }
 
     fn read_reference(&mut self) -> io::Result<Reference> {
