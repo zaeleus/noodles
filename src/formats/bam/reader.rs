@@ -50,6 +50,13 @@ impl<R: Read> Reader<R> {
         Records::new(self)
     }
 
+    fn read_reference(&mut self) -> io::Result<Reference> {
+        let l_name = self.read_l_name()?;
+        let name = self.read_name(l_name as usize)?;
+        let l_ref = self.read_l_ref()?;
+        Ok(Reference::new(name, l_ref))
+    }
+
     /// Reads the BAM magic string
     fn read_magic(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![0; 4];
@@ -191,20 +198,16 @@ impl<'a, R: 'a + Read> References<'a, R> {
 }
 
 impl<'a, R: 'a + Read> Iterator for References<'a, R> {
-    type Item = Reference;
+    type Item = io::Result<Reference>;
 
-    fn next(&mut self) -> Option<Reference> {
+    fn next(&mut self) -> Option<Self::Item> {
         if self.i >= self.len {
-            return None
+            return None;
         }
 
-        let l_name = self.reader.read_l_name().unwrap();
-        let name = self.reader.read_name(l_name as usize).unwrap();
-        let l_ref = self.reader.read_l_ref().unwrap();
-
+        let result = self.reader.read_reference();
         self.i += 1;
-
-        Some(Reference::new(name, l_ref))
+        Some(result)
     }
 }
 
