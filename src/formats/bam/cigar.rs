@@ -127,8 +127,8 @@ impl Cigar {
         Cigar { cigar }
     }
 
-    pub fn ops(&self) -> Vec<Op> {
-        self.cigar.iter().map(|&u| Op::from_u32(u)).collect()
+    pub fn ops<'a>(&'a self) -> Ops<impl Iterator<Item = &'a u32>> {
+        Ops(self.cigar.iter())
     }
 }
 
@@ -147,5 +147,15 @@ impl Deref for Cigar {
 
     fn deref(&self) -> &[u32] {
         &self.cigar
+    }
+}
+
+pub struct Ops<I>(I);
+
+impl<'a, I: Iterator<Item = &'a u32>> Iterator for Ops<I> {
+    type Item = Op;
+
+    fn next(&mut self) -> Option<Op> {
+        self.0.next().map(|&u| Op::from_u32(u))
     }
 }
