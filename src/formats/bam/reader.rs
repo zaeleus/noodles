@@ -1,27 +1,28 @@
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, BufReader, Read};
 use std::path::Path;
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use flate2::read::MultiGzDecoder;
 
 use formats::bam::MAGIC_NUMBER;
 use formats::bam::{ByteRecord, Cigar, Data, Flag, Quality, Record, Reference, Sequence};
+use formats::gz::MultiGzDecoder;
 
 type BamHeader = String;
 
 pub struct Reader<R> {
-    reader: MultiGzDecoder<R>,
+    reader: MultiGzDecoder<BufReader<R>>,
 }
 
 impl<R: Read> Reader<R> {
     pub fn open<P>(path: P) -> io::Result<Reader<File>> where P: AsRef<Path> {
         let file = File::open(path)?;
-        let decoder = MultiGzDecoder::new(file);
+        let reader = BufReader::new(file);
+        let decoder = MultiGzDecoder::new(reader);
         Ok(Reader::new(decoder))
     }
 
-    pub fn new(reader: MultiGzDecoder<R>) -> Reader<R> {
+    pub fn new(reader: MultiGzDecoder<BufReader<R>>) -> Reader<R> {
         Reader { reader }
     }
 
