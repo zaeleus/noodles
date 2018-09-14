@@ -56,9 +56,8 @@ impl<R: Read> Reader<R> {
             Err(_) => return Ok(0),
         };
 
-        let buf = record.inner_mut();
-        buf.resize(block_size, Default::default());
-        self.reader.read_exact(buf)?;
+        record.resize(block_size);
+        self.reader.read_exact(record)?;
 
         Ok(block_size)
     }

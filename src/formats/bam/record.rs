@@ -1,4 +1,5 @@
 use std::mem;
+use std::ops::{Deref, DerefMut};
 
 use byteorder::{ByteOrder, LittleEndian};
 
@@ -8,12 +9,16 @@ use formats::bam::{Cigar, Data, Flag, Quality, Sequence};
 pub struct ByteRecord(Vec<u8>);
 
 impl ByteRecord {
-    pub fn new(buf: Vec<u8>) -> ByteRecord {
-        ByteRecord(buf)
+    pub fn new() -> ByteRecord {
+        ByteRecord(Vec::new())
     }
 
-    pub fn inner_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.0
+    pub fn with_capacity(capacity: usize) -> ByteRecord {
+        ByteRecord(Vec::with_capacity(capacity))
+    }
+
+    pub fn resize(&mut self, new_len: usize) {
+        self.0.resize(new_len, Default::default());
     }
 
     pub fn block_size(&self) -> i32 {
@@ -127,6 +132,26 @@ impl ByteRecord {
         let len = self.block_size() as usize;
 
         &self.0[offset..offset + len]
+    }
+}
+
+impl Deref for ByteRecord {
+    type Target = [u8];
+
+    fn deref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl DerefMut for ByteRecord {
+    fn deref_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
+impl From<Vec<u8>> for ByteRecord {
+    fn from(bytes: Vec<u8>) -> ByteRecord {
+        ByteRecord(bytes)
     }
 }
 
