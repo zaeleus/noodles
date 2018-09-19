@@ -163,7 +163,7 @@ pub struct Record {
     bin: u16,
     flag: Flag,
     next_ref_id: i32,
-    next_ref_pos: i32,
+    next_pos: i32,
     tlen: i32,
     read_name: Vec<u8>,
     cigar: Cigar,
@@ -180,7 +180,7 @@ impl Record {
         bin: u16,
         flag: Flag,
         next_ref_id: i32,
-        next_ref_pos: i32,
+        next_pos: i32,
         tlen: i32,
         read_name: Vec<u8>,
         cigar: Cigar,
@@ -195,7 +195,7 @@ impl Record {
             bin,
             flag,
             next_ref_id,
-            next_ref_pos,
+            next_pos,
             tlen,
             read_name,
             cigar,
@@ -218,7 +218,7 @@ impl Record {
             + size_of::<u16>() // flag
             + size_of::<i32>() // l_seq
             + size_of::<i32>() // next_ref_id
-            + size_of::<i32>() // next_ref_pos
+            + size_of::<i32>() // next_pos
             + size_of::<i32>() // tlen
             + self.l_read_name() as usize // read_name
             + size_of::<u32>() * self.cigar.len() // cigar
@@ -268,8 +268,8 @@ impl Record {
         self.next_ref_id
     }
 
-    pub fn next_ref_pos(&self) -> i32 {
-        self.next_ref_pos
+    pub fn next_pos(&self) -> i32 {
+        self.next_pos
     }
 
     pub fn tlen(&self) -> i32 {
@@ -298,5 +298,35 @@ impl Record {
 
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
+    }
+}
+
+impl<'a> From<&'a ByteRecord> for Record {
+    fn from(record: &'a ByteRecord) -> Record {
+        let flag = Flag::new(record.flag());
+        let read_name = record.read_name().to_vec();
+        let cigar = Cigar::from_bytes(record.cigar());
+        let sequence = Sequence::new(
+            record.seq().to_vec(),
+            record.l_seq() as usize,
+        );
+        let quality = Quality::new(record.qual().to_vec());
+        let data = Data::new(record.data().to_vec());
+
+        Record::new(
+            record.ref_id(),
+            record.pos(),
+            record.mapq(),
+            record.bin(),
+            flag,
+            record.next_ref_id(),
+            record.next_pos(),
+            record.tlen(),
+            read_name,
+            cigar,
+            sequence,
+            quality,
+            data,
+        )
     }
 }

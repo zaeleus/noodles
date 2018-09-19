@@ -15,7 +15,7 @@ where
     let _header = reader.header()?;
     let _references = reader.references()?.count();
 
-    for record in reader.records() {
+    for record in reader.records().filter_map(Result::ok) {
         writer.write_bam_record(&record)?;
     }
 

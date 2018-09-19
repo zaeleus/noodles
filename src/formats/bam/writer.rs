@@ -66,7 +66,7 @@ impl<W: Write> Writer<W> {
         self.writer.write_u16::<LittleEndian>(record.flag().inner())?;
         self.writer.write_i32::<LittleEndian>(record.l_seq())?;
         self.writer.write_i32::<LittleEndian>(record.next_ref_id())?;
-        self.writer.write_i32::<LittleEndian>(record.next_ref_pos())?;
+        self.writer.write_i32::<LittleEndian>(record.next_pos())?;
         self.writer.write_i32::<LittleEndian>(record.tlen())?;
 
         self.writer.write_all(record.read_name())?;
