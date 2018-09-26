@@ -131,7 +131,7 @@ impl ByteRecord {
             + l_seq as usize;
         let len = self.block_size() as usize;
 
-        &self.0[offset..offset + len]
+        &self.0[offset..len]
     }
 }
 
