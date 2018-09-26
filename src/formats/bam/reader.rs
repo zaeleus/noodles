@@ -8,7 +8,7 @@ use formats::bam::MAGIC_NUMBER;
 use formats::bam::{ByteRecord, Record, Reference};
 use formats::gz::MultiGzDecoder;
 
-type BamHeader = String;
+type BamHeader = Vec<u8>;
 
 pub struct Reader<R> {
     reader: MultiGzDecoder<BufReader<R>>,
@@ -27,7 +27,8 @@ impl<R: Read> Reader<R> {
     }
 
     pub fn header(&mut self) -> io::Result<BamHeader> {
-        let magic = self.read_magic()?;
+        let mut magic = [0; 4];
+        self.reader.read_exact(&mut magic)?;
 
         if magic != MAGIC_NUMBER {
             return Err(io::Error::new(
@@ -37,9 +38,11 @@ impl<R: Read> Reader<R> {
         }
 
         let l_text = self.read_l_text()?;
-        let text = self.read_text(l_text as usize)?;
 
-        Ok(String::from_utf8(text).unwrap())
+        let mut text = vec![0; l_text as usize];
+        self.reader.read_exact(&mut text)?;
+
+        Ok(text)
     }
 
     pub fn references(&mut self) -> io::Result<References<R>> {
@@ -70,20 +73,8 @@ impl<R: Read> Reader<R> {
         Ok(block_size)
     }
 
-    fn read_magic(&mut self) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; 4];
-        self.reader.read_exact(&mut buf)?;
-        Ok(buf)
-    }
-
     fn read_l_text(&mut self) -> io::Result<i32> {
         self.reader.read_i32::<LittleEndian>()
-    }
-
-    fn read_text(&mut self, l_text: usize) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; l_text];
-        self.reader.read_exact(&mut buf)?;
-        Ok(buf)
     }
 
     fn read_n_ref(&mut self) -> io::Result<i32> {
