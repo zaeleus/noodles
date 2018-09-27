@@ -10,19 +10,22 @@ use formats::gz::MultiGzDecoder;
 
 type BamHeader = Vec<u8>;
 
-pub struct Reader<R> {
-    reader: MultiGzDecoder<BufReader<R>>,
+pub struct Reader<R: Read> {
+    reader: R,
 }
 
 impl<R: Read> Reader<R> {
-    pub fn open<P>(path: P) -> io::Result<Reader<File>> where P: AsRef<Path> {
+    pub fn open<P>(path: P) -> io::Result<Reader<MultiGzDecoder<BufReader<File>>>>
+    where
+        P: AsRef<Path>,
+    {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
         let decoder = MultiGzDecoder::new(reader);
         Ok(Reader::new(decoder))
     }
 
-    pub fn new(reader: MultiGzDecoder<BufReader<R>>) -> Reader<R> {
+    pub fn new(reader: R) -> Reader<R> {
         Reader { reader }
     }
 
@@ -101,7 +104,7 @@ impl<R: Read> Reader<R> {
     }
 }
 
-pub struct References<'a, R: 'a> {
+pub struct References<'a, R: 'a + Read> {
     reader: &'a mut Reader<R>,
     i: usize,
     len: usize,
@@ -127,7 +130,7 @@ impl<'a, R: 'a + Read> Iterator for References<'a, R> {
     }
 }
 
-pub struct Records<'a, R: 'a> {
+pub struct Records<'a, R: 'a + Read> {
     reader: &'a mut Reader<R>,
     buf: ByteRecord,
 }
