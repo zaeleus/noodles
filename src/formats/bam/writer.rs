@@ -78,7 +78,7 @@ impl<W: Write> Writer<W> {
 
         self.writer.write_all(record.sequence().as_bytes())?;
         self.writer.write_all(record.quality().as_bytes())?;
-        self.writer.write_all(record.data().as_bytes())?;
+        self.writer.write_all(&record.data())?;
 
         Ok(())
     }
