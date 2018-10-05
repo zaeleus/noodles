@@ -5,7 +5,7 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use formats::bam::{Cigar, Data, Flag, Quality, Sequence};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct ByteRecord(Vec<u8>);
 
 impl ByteRecord {
