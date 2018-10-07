@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Deref, Index};
 
 static SEQ_CHARS: &[char] = &[
     '=', 'A', 'C', 'M', 'G', 'R', 'S', 'V',
@@ -16,14 +16,6 @@ impl Sequence {
         Sequence { seq, n_chars }
     }
 
-    /// Returns the size of the sequence in bytes.
-    ///
-    /// This is not the number of characters in the sequence but the size of the encoded
-    /// representation.
-    pub fn len(&self) -> usize {
-        self.seq.len()
-    }
-
     pub fn n_chars(&self) -> usize {
         self.n_chars
     }
@@ -36,8 +28,12 @@ impl Sequence {
             remaining: self.n_chars,
         }
     }
+}
 
-    pub fn as_bytes(&self) -> &[u8] {
+impl Deref for Sequence {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
         &self.seq
     }
 }

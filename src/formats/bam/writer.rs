@@ -76,8 +76,8 @@ impl<W: Write> Writer<W> {
             self.writer.write_u32::<LittleEndian>(u)?;
         }
 
-        self.writer.write_all(record.sequence().as_bytes())?;
-        self.writer.write_all(record.quality().as_bytes())?;
+        self.writer.write_all(&record.sequence())?;
+        self.writer.write_all(&record.quality())?;
         self.writer.write_all(&record.data())?;
 
         Ok(())

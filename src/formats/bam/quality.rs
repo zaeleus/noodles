@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::slice;
 
 const QUALITY_OFFSET: u8 = b'!';
@@ -12,15 +13,15 @@ impl Quality {
         Quality { qual }
     }
 
-    pub fn len(&self) -> usize {
-        self.qual.len()
-    }
-
     pub fn chars(&self) -> Chars<slice::Iter<u8>> {
         Chars { chars: self.qual.iter() }
     }
+}
 
-    pub fn as_bytes(&self) -> &[u8] {
+impl Deref for Quality {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
         &self.qual
     }
 }
