@@ -47,3 +47,16 @@ impl<'a, I: Iterator<Item=&'a u8> + DoubleEndedIterator> DoubleEndedIterator for
         self.chars.next_back().map(|b| (b + QUALITY_OFFSET) as char)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{QUALITY_OFFSET, Quality};
+
+    #[test]
+    fn test_chars() {
+        let data = b"><>=@>;".iter().map(|b| b - QUALITY_OFFSET).collect();
+        let quality = Quality::new(data);
+        let actual: Vec<char> = quality.chars().collect();
+        assert_eq!(actual, vec!['>', '<', '>', '=', '@', '>', ';']);
+    }
+}
