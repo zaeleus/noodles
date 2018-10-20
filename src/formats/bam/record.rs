@@ -155,6 +155,158 @@ impl From<Vec<u8>> for ByteRecord {
     }
 }
 
+#[cfg(test)]
+mod byte_record_tests {
+    use super::ByteRecord;
+
+    fn build_record() -> ByteRecord {
+        ByteRecord::from(vec![
+            // ref_id
+            0x0a, 0x00, 0x00, 0x00,
+            // pos
+            0x85, 0xee, 0x00, 0x00,
+            // l_read_name
+            0x0a,
+            // mapq
+            0x0c,
+            // bin
+            0x4c, 0x12,
+            // n_ciar_op
+            0x01, 0x00,
+            // flag
+            0xa3, 0x00,
+            // l_seq
+            0x04, 0x00, 0x00, 0x00,
+            // next_ref_id
+            0x0a, 0x00, 0x00, 0x00,
+            // next_pos
+            0xe0, 0xee, 0x00, 0x00,
+            // tlen
+            0xa6, 0x00, 0x00, 0x00,
+            // read_name
+            0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00,
+            // cigar
+            0x40, 0x00, 0x00, 0x00,
+            // seq
+            0x18, 0x42,
+            // qual
+            0x1f, 0x1d, 0x1e, 0x20,
+            // data
+            0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,
+        ])
+    }
+
+    #[test]
+    fn test_block_size() {
+        let r = ByteRecord::new();
+        assert_eq!(r.block_size(), 0);
+
+        let r = build_record();
+        assert_eq!(r.block_size(), 64);
+    }
+
+    #[test]
+    fn test_ref_id() {
+        let r = build_record();
+        assert_eq!(r.ref_id(), 10);
+    }
+
+    #[test]
+    fn test_pos() {
+        let r = build_record();
+        assert_eq!(r.pos(), 61061);
+    }
+
+    #[test]
+    fn test_l_read_name() {
+        let r = build_record();
+        assert_eq!(r.l_read_name(), 10);
+    }
+
+    #[test]
+    fn test_mapq() {
+        let r = build_record();
+        assert_eq!(r.mapq(), 12);
+    }
+
+    #[test]
+    fn test_bin() {
+        let r = build_record();
+        assert_eq!(r.bin(), 4684);
+    }
+
+    #[test]
+    fn test_n_cigar_op() {
+        let r = build_record();
+        assert_eq!(r.n_cigar_op(), 1);
+    }
+
+    #[test]
+    fn test_flag() {
+        let r = build_record();
+        assert_eq!(r.flag(), 0xa3);
+    }
+
+    #[test]
+    fn test_l_seq() {
+        let r = build_record();
+        assert_eq!(r.l_seq(), 4);
+    }
+
+    #[test]
+    fn test_next_ref_id() {
+        let r = build_record();
+        assert_eq!(r.next_ref_id(), 10);
+    }
+
+    #[test]
+    fn test_next_pos() {
+        let r = build_record();
+        assert_eq!(r.next_pos(), 61152);
+    }
+
+    #[test]
+    fn test_tlen() {
+        let r = build_record();
+        assert_eq!(r.tlen(), 166);
+    }
+
+    #[test]
+    fn test_read_name() {
+        let r = build_record();
+        let expected = [0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00];
+        assert_eq!(r.read_name(), expected);
+    }
+
+    #[test]
+    fn test_cigar() {
+        let r = build_record();
+        let expected = [0x40, 0x00, 0x00, 0x00];
+        assert_eq!(r.cigar(), expected);
+    }
+
+    #[test]
+    fn test_seq() {
+        let r = build_record();
+        let expected = [0x18, 0x42];
+        assert_eq!(r.seq(), expected);
+    }
+
+    #[test]
+    fn test_qual() {
+        let r = build_record();
+        let expected = [0x1f, 0x1d, 0x1e, 0x20];
+        assert_eq!(r.qual(), expected);
+    }
+
+    #[test]
+    fn test_data() {
+        let r = build_record();
+        let expected = [0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00];
+        assert_eq!(r.data(), expected);
+    }
+}
+
 #[derive(Debug)]
 pub struct Record {
     ref_id: i32,
