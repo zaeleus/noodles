@@ -1,8 +1,10 @@
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, BufRead, BufReader, Read};
 use std::path::Path;
 
 use csv;
+
+use formats::gz::MultiGzDecoder;
 
 pub struct Reader<R: Read> {
     reader: csv::Reader<R>,
@@ -29,5 +31,25 @@ impl<R: Read> Reader<R> {
 
     pub fn records(&mut self) -> csv::StringRecordsIter<R> {
         self.reader.records()
+    }
+}
+
+pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn BufRead>>>
+where
+    P: AsRef<Path>,
+{
+    let path = src.as_ref();
+    let extension = path.extension();
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    match extension.and_then(|ext| ext.to_str()) {
+        Some("gz") => {
+            let decoder = MultiGzDecoder::new(reader);
+            Ok(Reader::new(Box::new(BufReader::new(decoder))))
+        },
+        _ => {
+            Ok(Reader::new(Box::new(reader)))
+        }
     }
 }
