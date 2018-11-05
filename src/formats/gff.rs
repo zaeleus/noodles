@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, BufRead, BufReader, Read};
+use std::io::{self, BufReader, Read};
 use std::path::Path;
 
 use csv;
@@ -34,22 +34,22 @@ impl<R: Read> Reader<R> {
     }
 }
 
-pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn BufRead>>>
+pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn Read>>>
 where
     P: AsRef<Path>,
 {
     let path = src.as_ref();
     let extension = path.extension();
     let file = File::open(path)?;
-    let reader = BufReader::new(file);
 
     match extension.and_then(|ext| ext.to_str()) {
         Some("gz") => {
+            let reader = BufReader::new(file);
             let decoder = MultiGzDecoder::new(reader);
-            Ok(Reader::new(Box::new(BufReader::new(decoder))))
+            Ok(Reader::new(Box::new(decoder)))
         },
         _ => {
-            Ok(Reader::new(Box::new(reader)))
+            Ok(Reader::new(Box::new(file)))
         }
     }
 }
