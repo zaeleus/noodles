@@ -7,8 +7,24 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn new() -> Record {
-        Record::default()
+    pub fn new<S, T, U, V>(
+        name: S,
+        sequence: T,
+        plus_line: U,
+        quality: V,
+    ) -> Record
+    where
+        S: Into<Vec<u8>>,
+        T: Into<Vec<u8>>,
+        U: Into<Vec<u8>>,
+        V: Into<Vec<u8>>,
+    {
+        Record {
+            name: name.into(),
+            sequence: sequence.into(),
+            plus_line: plus_line.into(),
+            quality: quality.into(),
+        }
     }
 
     pub fn name(&self) -> &[u8] {
