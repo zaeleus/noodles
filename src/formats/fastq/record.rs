@@ -1,3 +1,4 @@
+/// A FASTQ record containing a name, sequence, plus line, and quality.
 #[derive(Default, Debug)]
 pub struct Record {
     name: Vec<u8>,
@@ -7,6 +8,20 @@ pub struct Record {
 }
 
 impl Record {
+    /// Creates a new FASTQ record with the given lines.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles::formats::fastq::Record;
+    ///
+    /// let record = Record::new("@noodles/1", "AGCT", "+", "abcd");
+    ///
+    /// assert_eq!(record.name(), b"@noodles/1");
+    /// assert_eq!(record.sequence(), b"AGCT");
+    /// assert_eq!(record.plus_line(), b"+");
+    /// assert_eq!(record.quality(), b"abcd");
+    /// ```
     pub fn new<S, T, U, V>(
         name: S,
         sequence: T,
@@ -59,6 +74,21 @@ impl Record {
         &mut self.quality
     }
 
+    /// Truncates all line buffers to 0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles::formats::fastq::Record;
+    ///
+    /// let mut record = Record::new("@noodles/1", "AGCT", "+", "abcd");
+    /// record.clear();
+    ///
+    /// assert!(record.name().is_empty());
+    /// assert!(record.sequence().is_empty());
+    /// assert!(record.plus_line().is_empty());
+    /// assert!(record.quality().is_empty());
+    /// ```
     pub fn clear(&mut self) {
         self.name.clear();
         self.sequence.clear();
