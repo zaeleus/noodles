@@ -5,7 +5,7 @@ use std::path::Path;
 use flate2::Compression;
 use flate2::write::GzEncoder;
 
-use formats::bam::Record;
+use formats::{bam, fastq};
 use formats::bam::sequence::Complement;
 
 pub struct Writer<W> {
@@ -23,7 +23,7 @@ impl<W: Write> Writer<W> {
         Writer { writer }
     }
 
-    pub fn write_bam_record(&mut self, record: &Record) -> io::Result<()> {
+    pub fn write_bam_record(&mut self, record: &bam::Record) -> io::Result<()> {
         let name = record.read_name();
 
         let (seq, qual): (String, String) = if record.flag().is_reverse() {
@@ -42,6 +42,19 @@ impl<W: Write> Writer<W> {
         self.writer.write(b"+\n")?;
         self.writer.write(qual.as_bytes())?;
         self.writer.write(b"\n")?;
+
+        Ok(())
+    }
+
+    pub fn write_record(&mut self, record: &fastq::Record) -> io::Result<()> {
+        self.writer.write_all(record.name())?;
+        self.writer.write_all(b"\n")?;
+        self.writer.write_all(record.sequence())?;
+        self.writer.write_all(b"\n")?;
+        self.writer.write_all(record.plus_line())?;
+        self.writer.write_all(b"\n")?;
+        self.writer.write_all(record.quality())?;
+        self.writer.write_all(b"\n")?;
 
         Ok(())
     }
