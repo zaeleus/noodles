@@ -68,7 +68,36 @@ fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 mod tests {
     use std::io::BufReader;
 
-    use super::read_line;
+    use formats::fastq::Record;
+    use super::{read_line, Reader};
+
+    #[test]
+    fn test_read_record() {
+        let data = "\
+@noodles:1/1
+AGCT
++
+abcd
+@noodles:2/1
+TCGA
++
+dcba
+";
+
+        let mut reader = Reader::new(data.as_bytes());
+        let mut record = Record::default();
+
+        let len = reader.read_record(&mut record).unwrap();
+        assert_eq!(len, 25);
+        assert_eq!(record, Record::new("@noodles:1/1", "AGCT", "+", "abcd"));
+
+        let len = reader.read_record(&mut record).unwrap();
+        assert_eq!(len, 25);
+        assert_eq!(record, Record::new("@noodles:2/1", "TCGA", "+", "dcba"));
+
+        let len = reader.read_record(&mut record).unwrap();
+        assert_eq!(len, 0);
+    }
 
     #[test]
     fn test_read_line() {

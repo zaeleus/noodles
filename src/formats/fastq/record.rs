@@ -1,5 +1,5 @@
 /// A FASTQ record containing a name, sequence, plus line, and quality.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Eq, PartialEq)]
 pub struct Record {
     name: Vec<u8>,
     sequence: Vec<u8>,
