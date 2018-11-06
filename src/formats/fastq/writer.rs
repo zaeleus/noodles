@@ -2,6 +2,9 @@ use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::Path;
 
+use flate2::Compression;
+use flate2::write::GzEncoder;
+
 use formats::bam::Record;
 use formats::bam::sequence::Complement;
 
@@ -41,5 +44,26 @@ impl<W: Write> Writer<W> {
         self.writer.write(b"\n")?;
 
         Ok(())
+    }
+}
+
+pub fn create<P>(dst: P) -> io::Result<Writer<Box<dyn Write>>>
+where
+    P: AsRef<Path>,
+{
+    let path = dst.as_ref();
+    let extension = path.extension();
+    let file = File::create(path)?;
+    let writer = BufWriter::new(file);
+
+    match extension.and_then(|ext| ext.to_str()) {
+        Some("gz") => {
+            let level = Compression::default();
+            let encoder = GzEncoder::new(writer, level);
+            Ok(Writer::new(Box::new(encoder)))
+        },
+        _ => {
+            Ok(Writer::new(Box::new(writer)))
+        },
     }
 }
