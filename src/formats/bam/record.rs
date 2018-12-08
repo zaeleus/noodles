@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 
 use byteorder::{ByteOrder, LittleEndian};
 
-use formats::bam::{Cigar, Data, Flag, Quality, Sequence};
+use crate::formats::bam::{Cigar, Data, Flag, Quality, Sequence};
 
 #[derive(Clone, Default)]
 pub struct ByteRecord(Vec<u8>);

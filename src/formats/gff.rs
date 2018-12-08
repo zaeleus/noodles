@@ -4,7 +4,7 @@ use std::path::Path;
 
 use csv;
 
-use formats::gz::MultiGzDecoder;
+use crate::formats::gz::MultiGzDecoder;
 
 pub struct Reader<R: Read> {
     reader: csv::Reader<R>,

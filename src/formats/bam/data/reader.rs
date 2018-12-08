@@ -188,7 +188,7 @@ impl<'a, R: 'a + BufRead> Iterator for Fields<'a, R> {
 #[cfg(test)]
 mod tests {
     use super::Reader;
-    use formats::bam::data::Field;
+    use crate::formats::bam::data::Field;
 
     #[test]
     fn test_read_field() {

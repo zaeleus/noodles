@@ -4,9 +4,9 @@ use std::path::Path;
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use formats::bam::MAGIC_NUMBER;
-use formats::bam::{Record, Reference};
-use formats::bgzf::BgzfEncoder;
+use crate::formats::bam::MAGIC_NUMBER;
+use crate::formats::bam::{Record, Reference};
+use crate::formats::bgzf::BgzfEncoder;
 
 pub struct Writer<W: Write> {
     writer: BgzfEncoder<W>,

@@ -4,9 +4,9 @@ use std::path::Path;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use formats::bam::MAGIC_NUMBER;
-use formats::bam::{ByteRecord, Record, Reference};
-use formats::gz::MultiGzDecoder;
+use crate::formats::bam::MAGIC_NUMBER;
+use crate::formats::bam::{ByteRecord, Record, Reference};
+use crate::formats::gz::MultiGzDecoder;
 
 type BamHeader = Vec<u8>;
 

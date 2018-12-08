@@ -2,8 +2,8 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
-use formats::fastq::Record;
-use formats::gz::MultiGzDecoder;
+use crate::formats::fastq::Record;
+use crate::formats::gz::MultiGzDecoder;
 
 pub struct Reader<R: BufRead> {
     reader: R,
@@ -68,7 +68,7 @@ fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 mod tests {
     use std::io::BufReader;
 
-    use formats::fastq::Record;
+    use crate::formats::fastq::Record;
     use super::{read_line, Reader};
 
     #[test]

@@ -5,8 +5,8 @@ use std::path::Path;
 use flate2::Compression;
 use flate2::write::GzEncoder;
 
-use formats::{bam, fastq};
-use formats::bam::sequence::Complement;
+use crate::formats::{bam, fastq};
+use crate::formats::bam::sequence::Complement;
 
 pub struct Writer<W> {
     writer: W,
