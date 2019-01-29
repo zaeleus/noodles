@@ -34,14 +34,14 @@ impl<W: Write> Writer<W> {
                 record.quality().chars().collect())
         };
 
-        self.writer.write(b"@")?;
-        self.writer.write(name)?;
-        self.writer.write(b"\n")?;
-        self.writer.write(seq.as_bytes())?;
-        self.writer.write(b"\n")?;
-        self.writer.write(b"+\n")?;
-        self.writer.write(qual.as_bytes())?;
-        self.writer.write(b"\n")?;
+        self.writer.write_all(b"@")?;
+        self.writer.write_all(name)?;
+        self.writer.write_all(b"\n")?;
+        self.writer.write_all(seq.as_bytes())?;
+        self.writer.write_all(b"\n")?;
+        self.writer.write_all(b"+\n")?;
+        self.writer.write_all(qual.as_bytes())?;
+        self.writer.write_all(b"\n")?;
 
         Ok(())
     }
