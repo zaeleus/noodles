@@ -1,3 +1,7 @@
+pub use self::attributes::Attributes;
+
+pub mod attributes;
+
 use std::fs::File;
 use std::io::{self, BufReader, Read};
 use std::path::Path;
