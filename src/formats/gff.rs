@@ -1,10 +1,8 @@
-pub use self::{
-    attributes::Attributes,
-    reader::Reader,
-};
+pub use self::{attributes::Attributes, reader::Reader, record::Record};
 
 pub mod attributes;
 pub mod reader;
+pub mod record;
 
 use std::{
     fs::File,
