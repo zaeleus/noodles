@@ -21,6 +21,28 @@ impl<'a> Attributes<'a> {
         Attributes { attrs }
     }
 
+    /// Returns the value corresponding to the key.
+    ///
+    /// This uses a linear search, which is only really useful for a single
+    /// lookup. For multiple lookups, consider converting the attribute pairs
+    /// to a map first.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles::formats::gff;
+    ///
+    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
+    /// let attributes = gff::Attributes::new(data);
+    ///
+    /// assert_eq!(attributes.get("gene_name"), Some("DDX11L1"));
+    /// assert_eq!(attributes.get("level"), Some("2"));
+    /// assert_eq!(attributes.get("gene_type"), None);
+    /// ```
+    pub fn get(&self, key: &str) -> Option<&str> {
+        self.iter().find(|&(k, _)| k == key).map(|(_, v)| v)
+    }
+
     /// Returns an iterator that parses over all attribute pairs.
     ///
     /// # Example
