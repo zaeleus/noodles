@@ -1,20 +1,62 @@
-use std::str::Split;
+use std::{iter::IntoIterator, str::Split};
 
 const DELIMITER: char  = ';';
 
 pub struct Attributes<'a> {
-    split: Split<'a, char>,
+    attrs: &'a str,
 }
 
 impl<'a> Attributes<'a> {
-    pub fn new(inner: &str) -> Attributes {
-        Attributes {
-            split: inner.split(DELIMITER),
+    /// Wraps a GFFv2 attribute string for parsing.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles::formats::gff;
+    ///
+    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
+    /// let _attributes = gff::Attributes::new(data);
+    /// ```
+    pub fn new(attrs: &str) -> Attributes {
+        Attributes { attrs }
+    }
+
+    /// Returns an iterator that parses over all attribute pairs.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles::formats::gff;
+    ///
+    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
+    /// let attributes = gff::Attributes::new(data);
+    /// let mut it = attributes.iter();
+    ///
+    /// assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));
+    /// assert_eq!(it.next(), Some(("level", "2")));
+    /// assert_eq!(it.next(), None)
+    /// ```
+    pub fn iter(&self) -> AttributesIter {
+        self.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Attributes<'a> {
+    type Item = (&'a str, &'a str);
+    type IntoIter = AttributesIter<'a>;
+
+    fn into_iter(self) -> AttributesIter<'a> {
+        AttributesIter {
+            split: self.attrs.split(DELIMITER),
         }
     }
 }
 
-impl<'a> Iterator for Attributes<'a> {
+pub struct AttributesIter<'a> {
+    split: Split<'a, char>,
+}
+
+impl<'a> Iterator for AttributesIter<'a> {
     type Item = (&'a str, &'a str);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -40,22 +82,27 @@ fn trim_quotes(s: &str) -> &str {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod attributes_iter_tests {
+    use super::Attributes;
 
     #[test]
     fn test_next() {
         let data = r#"gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";"#;
-        let mut reader = Attributes::new(data);
+        let attributes = Attributes::new(data);
+        let mut it = attributes.iter();
 
-        assert_eq!(reader.next(), Some(("gene_id", "ENSG00000223972.5")));
-        assert_eq!(reader.next(), Some(("gene_type", "transcribed_unprocessed_pseudogene")));
-        assert_eq!(reader.next(), Some(("gene_name", "DDX11L1")));
-        assert_eq!(reader.next(), Some(("level", "2")));
-        assert_eq!(reader.next(), Some(("havana_gene", "OTTHUMG00000000961.2")));
-
-        assert_eq!(reader.next(), None);
+        assert_eq!(it.next(), Some(("gene_id", "ENSG00000223972.5")));
+        assert_eq!(it.next(), Some(("gene_type", "transcribed_unprocessed_pseudogene")));
+        assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));
+        assert_eq!(it.next(), Some(("level", "2")));
+        assert_eq!(it.next(), Some(("havana_gene", "OTTHUMG00000000961.2")));
+        assert_eq!(it.next(), None);
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::trim_quotes;
 
     #[test]
     fn test_trim_quotes() {
