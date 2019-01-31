@@ -1,3 +1,5 @@
+use std::{error, fmt};
+
 use csv::StringRecord;
 
 use super::Attributes;
@@ -22,6 +24,14 @@ pub enum Error {
     Missing(Header),
     Empty(Header),
     Parse(Header, String),
+}
+
+impl error::Error for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
