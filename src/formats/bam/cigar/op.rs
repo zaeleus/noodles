@@ -114,4 +114,12 @@ mod tests {
         assert_eq!(Op::SeqMatch(1).op(), '=');
         assert_eq!(Op::SeqMismatch(1).op(), 'X');
     }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(format!("{}", Op::Match(32)), "32M");
+        assert_eq!(format!("{}", Op::Deletion(7)), "7D");
+        assert_eq!(format!("{}", Op::Skip(11)), "11N");
+        assert_eq!(format!("{}", Op::Pad(188)), "188P");
+    }
 }
