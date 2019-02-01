@@ -5,6 +5,7 @@ pub mod op;
 use std::fmt;
 use std::mem;
 use std::ops::Deref;
+use std::slice::Iter;
 
 use byteorder::{ByteOrder, LittleEndian};
 
@@ -26,7 +27,7 @@ impl Cigar {
         Cigar { cigar }
     }
 
-    pub fn ops<'a>(&'a self) -> Ops<impl Iterator<Item = &'a u32>> {
+    pub fn ops(&self) -> Ops {
         Ops(self.cigar.iter())
     }
 }
@@ -49,9 +50,9 @@ impl Deref for Cigar {
     }
 }
 
-pub struct Ops<I>(I);
+pub struct Ops<'a>(Iter<'a, u32>);
 
-impl<'a, I: Iterator<Item = &'a u32>> Iterator for Ops<I> {
+impl<'a> Iterator for Ops<'a> {
     type Item = Op;
 
     fn next(&mut self) -> Option<Op> {
