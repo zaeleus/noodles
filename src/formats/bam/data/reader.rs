@@ -21,58 +21,13 @@ impl<R: BufRead> Reader<R> {
         let tag = match self.read_tag() {
             Ok(s) => {
                 String::from_utf8(s).map_err(|e| {
-                    io::Error::new(io::ErrorKind::InvalidInput, format!("{}", e))
+                    io::Error::new(io::ErrorKind::InvalidData, e)
                 })?
             },
             Err(_) => return Ok(None),
         };
 
-        let ty = self.read_char()?;
-
-        let value = match ty {
-            'A' => Value::Char(self.read_char()?),
-            'c' => Value::Int8(self.read_i8()?),
-            'C' => Value::UInt8(self.read_u8()?),
-            's' => Value::Int16(self.read_i16()?),
-            'S' => Value::UInt16(self.read_u16()?),
-            'i' => Value::Int32(self.read_i32()?),
-            'I' => Value::UInt32(self.read_u32()?),
-            'f' => Value::Float(self.read_f32()?),
-            'Z' => {
-                self.read_string()
-                    .and_then(|v| {
-                        String::from_utf8(v).map_err(|e| {
-                            io::Error::new(io::ErrorKind::InvalidInput, format!("{}", e))
-                        })
-                    })
-                    .map(|v| Value::String(v))?
-            },
-            'H' => {
-                self.read_hex()
-                    .and_then(|v| {
-                        String::from_utf8(v).map_err(|e| {
-                            io::Error::new(io::ErrorKind::InvalidInput, format!("{}", e))
-                        })
-                    })
-                    .map(|v| Value::Hex(v))?
-            },
-            'B' => {
-                let ty = self.read_char()?;
-                let len = self.read_i32()? as usize;
-
-                match ty {
-                    'c' => Value::Int8Array(self.read_i8_array(len)?),
-                    'C' => Value::UInt8Array(self.read_u8_array(len)?),
-                    's' => Value::Int16Array(self.read_i16_array(len)?),
-                    'S' => Value::UInt16Array(self.read_u16_array(len)?),
-                    'i' => Value::Int32Array(self.read_i32_array(len)?),
-                    'I' => Value::UInt32Array(self.read_u32_array(len)?),
-                    'f' => Value::FloatArray(self.read_f32_array(len)?),
-                    _ => panic!("invalid field type 'B{}'", ty),
-                }
-            },
-            _ => panic!("invalid field type '{}'", ty),
-        };
+        let value = self.read_value()?;
 
         Ok(Some(Field::new(tag, value)))
     }
@@ -81,6 +36,65 @@ impl<R: BufRead> Reader<R> {
         let mut buf = vec![0; 2];
         self.reader.read_exact(&mut buf)?;
         Ok(buf)
+    }
+
+    fn read_value(&mut self) -> io::Result<Value> {
+        let ty = self.read_char()?;
+
+        match ty {
+            'A' => self.read_char().map(Value::Char),
+            'c' => self.read_i8().map(Value::Int8),
+            'C' => self.read_u8().map(Value::UInt8),
+            's' => self.read_i16().map(Value::Int16),
+            'S' => self.read_u16().map(Value::UInt16),
+            'i' => self.read_i32().map(Value::Int32),
+            'I' => self.read_u32().map(Value::UInt32),
+            'f' => self.read_f32().map(Value::Float),
+            'Z' => {
+                self.read_string()
+                    .and_then(|v| {
+                        String::from_utf8(v).map_err(|e| {
+                            io::Error::new(io::ErrorKind::InvalidData, e)
+                        })
+                    })
+                    .map(Value::String)
+            },
+            'H' => {
+                self.read_hex()
+                    .and_then(|v| {
+                        String::from_utf8(v).map_err(|e| {
+                            io::Error::new(io::ErrorKind::InvalidData, e)
+                        })
+                    })
+                    .map(Value::Hex)
+            },
+            'B' => {
+                let ty = self.read_char()?;
+                let len = self.read_i32()? as usize;
+
+                match ty {
+                    'c' => self.read_i8_array(len).map(Value::Int8Array),
+                    'C' => self.read_u8_array(len).map(Value::UInt8Array),
+                    's' => self.read_i16_array(len).map(Value::Int16Array),
+                    'S' => self.read_u16_array(len).map(Value::UInt16Array),
+                    'i' => self.read_i32_array(len).map(Value::Int32Array),
+                    'I' => self.read_u32_array(len).map(Value::UInt32Array),
+                    'f' => self.read_f32_array(len).map(Value::FloatArray),
+                    _ => {
+                        Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("invalid field type 'B{}'", ty),
+                        ))
+                    }
+                }
+            },
+            _ => {
+                Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid field type '{}'", ty),
+                ))
+            },
+        }
     }
 
     fn read_char(&mut self) -> io::Result<char> {
