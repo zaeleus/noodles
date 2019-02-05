@@ -24,4 +24,4 @@ on it.
   * [noodles-fpkm]: Calculates FPKM values from feature counts.
 
 [noodles-count-features]: https://github.com/zaeleus/noodles-count-features
-[noodles-fpkm]: https://github.com/zaeleus/noodles-fpkm)
+[noodles-fpkm]: https://github.com/zaeleus/noodles-fpkm
