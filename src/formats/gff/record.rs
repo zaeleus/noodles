@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use csv::StringRecord;
 
-use super::Attributes;
+use super::{Attributes, Strand};
 
 static EMPTY_VALUE: &str = ".";
 
@@ -67,8 +67,12 @@ impl Record {
         self.parse_f64(Header::Score)
     }
 
-    pub fn strand(&self) -> self::Result<&str> {
-        self.parse(Header::Strand)
+    pub fn strand(&self) -> self::Result<Strand> {
+        self.parse(Header::Strand).and_then(|s| {
+            s.parse().map_err(|e| {
+                Error::Parse(Header::Strand, e)
+            })
+        })
     }
 
     pub fn frame(&self) -> self::Result<u8> {
@@ -129,6 +133,8 @@ fn is_empty(s: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use crate::formats::gff::Strand;
+
     use super::*;
 
     fn build_string_record() -> StringRecord {
@@ -225,7 +231,7 @@ mod tests {
     fn test_strand() {
         let r = build_string_record();
         let record = Record::new(r);
-        assert_eq!(record.strand(), Ok("+"));
+        assert_eq!(record.strand(), Ok(Strand::Forward));
 
         let r = build_empty_string_record();
         let record = Record::new(r);
