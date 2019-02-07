@@ -455,7 +455,7 @@ impl Record {
 
 impl<'a> From<&'a ByteRecord> for Record {
     fn from(record: &'a ByteRecord) -> Record {
-        let flag = Flag::new(record.flag());
+        let flag = Flag::from(record.flag());
         let read_name = record.read_name().to_vec();
         let cigar = Cigar::from_bytes(record.cigar());
         let sequence = Sequence::new(
