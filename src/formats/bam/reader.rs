@@ -90,7 +90,7 @@ impl<R: Read> Reader<R> {
         let mut buf = vec![0; l_name];
         self.reader.read_exact(&mut buf)?;
         buf.pop();
-        Ok(String::from_utf8(buf).unwrap())
+        String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn read_l_ref(&mut self) -> io::Result<i32> {
