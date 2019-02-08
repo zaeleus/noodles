@@ -72,12 +72,9 @@ impl<W: Write> Writer<W> {
         self.writer.write_all(record.read_name())?;
         self.writer.write_all(b"\0")?;
 
-        for &u in record.cigar().iter() {
-            self.writer.write_u32::<LittleEndian>(u)?;
-        }
-
-        self.writer.write_all(&record.sequence())?;
-        self.writer.write_all(&record.quality())?;
+        self.writer.write_all(&record.cigar())?;
+        self.writer.write_all(&record.seq())?;
+        self.writer.write_all(&record.qual())?;
         self.writer.write_all(&record.data())?;
 
         Ok(())

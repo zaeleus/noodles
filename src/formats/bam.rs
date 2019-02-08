@@ -4,7 +4,7 @@ pub use self::flag::Flag;
 pub use self::quality::Quality;
 pub use self::sequence::Sequence;
 pub use self::reader::{Reader, Records, References};
-pub use self::record::{ByteRecord, Record};
+pub use self::record::Record;
 pub use self::reference::Reference;
 pub use self::writer::Writer;
 

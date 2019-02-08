@@ -1,15 +1,14 @@
-use std::ops::Deref;
-use std::slice;
+use std::{ops::Deref, slice};
 
 const QUALITY_OFFSET: u8 = b'!';
 
 #[derive(Debug)]
-pub struct Quality {
-    qual: Vec<u8>,
+pub struct Quality<'a> {
+    qual: &'a [u8],
 }
 
-impl Quality {
-    pub fn new(qual: Vec<u8>) -> Quality {
+impl<'a> Quality<'a> {
+    pub fn new(qual: &[u8]) -> Quality {
         Quality { qual }
     }
 
@@ -18,11 +17,11 @@ impl Quality {
     }
 }
 
-impl Deref for Quality {
+impl<'a> Deref for Quality<'a> {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &self.qual
+        self.qual
     }
 }
 
@@ -54,8 +53,8 @@ mod tests {
 
     #[test]
     fn test_chars() {
-        let data = b"><>=@>;".iter().map(|b| b - QUALITY_OFFSET).collect();
-        let quality = Quality::new(data);
+        let data: Vec<_> = b"><>=@>;".iter().map(|b| b - QUALITY_OFFSET).collect();
+        let quality = Quality::new(&data);
         let actual: Vec<char> = quality.chars().collect();
         assert_eq!(actual, vec!['>', '<', '>', '=', '@', '>', ';']);
     }

@@ -1,12 +1,10 @@
-use std::fs::File;
-use std::io::{self, BufReader, Read};
-use std::path::Path;
+use std::{fs::File, io::{self, BufReader, Read}, path::Path};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::formats::bam::MAGIC_NUMBER;
-use crate::formats::bam::{ByteRecord, Record, Reference};
 use crate::formats::gz::MultiGzDecoder;
+
+use super::{MAGIC_NUMBER, Record, Reference};
 
 type BamHeader = Vec<u8>;
 
@@ -64,7 +62,7 @@ impl<R: Read> Reader<R> {
         Ok(Reference::new(name, l_ref))
     }
 
-    pub fn read_byte_record(&mut self, record: &mut ByteRecord) -> io::Result<usize> {
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let block_size = match self.read_block_size() {
             Ok(bs) => bs as usize,
             Err(_) => return Ok(0),
@@ -104,13 +102,13 @@ impl<R: Read> Reader<R> {
     }
 }
 
-pub struct References<'a, R: 'a + Read> {
+pub struct References<'a, R: Read> {
     reader: &'a mut Reader<R>,
     i: usize,
     len: usize,
 }
 
-impl<'a, R: 'a + Read> References<'a, R> {
+impl<'a, R: Read> References<'a, R> {
     fn new(reader: &'a mut Reader<R>, len: usize) -> References<R> {
         References { reader, i: 0, len }
     }
@@ -130,27 +128,27 @@ impl<'a, R: 'a + Read> Iterator for References<'a, R> {
     }
 }
 
-pub struct Records<'a, R: 'a + Read> {
+pub struct Records<'a, R: Read> {
     reader: &'a mut Reader<R>,
-    buf: ByteRecord,
+    record: Record,
 }
 
-impl<'a, R: 'a + Read> Records<'a, R> {
+impl<'a, R: Read> Records<'a, R> {
     fn new(reader: &'a mut Reader<R>) -> Records<R> {
         Records {
             reader,
-            buf: ByteRecord::new(),
+            record: Record::new(),
         }
     }
 }
 
-impl<'a, R: 'a + Read> Iterator for Records<'a, R> {
+impl<'a, R: Read> Iterator for Records<'a, R> {
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_byte_record(&mut self.buf) {
+        match self.reader.read_record(&mut self.record) {
             Ok(0) => None,
-            Ok(_) => Some(Ok(Record::from(&self.buf))),
+            Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
         }
     }

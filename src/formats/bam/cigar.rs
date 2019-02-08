@@ -2,37 +2,25 @@ pub use self::op::Op;
 
 pub mod op;
 
-use std::fmt;
-use std::mem;
-use std::ops::Deref;
-use std::slice::Iter;
-
-use byteorder::{ByteOrder, LittleEndian};
+use std::{fmt, mem, ops::Deref};
 
 #[derive(Debug)]
-pub struct Cigar {
-    cigar: Vec<u32>,
-}
+pub struct Cigar<'a>(&'a [u8]);
 
-impl Cigar {
-    pub fn from_bytes(bytes: &[u8]) -> Cigar {
-        let cigar = bytes.chunks(mem::size_of::<u32>())
-            .map(|c| LittleEndian::read_u32(c))
-            .collect();
-
-        Cigar::new(cigar)
-    }
-
-    pub fn new(cigar: Vec<u32>) -> Cigar {
-        Cigar { cigar }
+impl<'a> Cigar<'a> {
+    pub fn new(bytes: &[u8]) -> Cigar {
+        Cigar(bytes)
     }
 
     pub fn ops(&self) -> Ops {
-        Ops(self.cigar.iter())
+        Ops {
+            cigar: self.0,
+            i: 0,
+        }
     }
 }
 
-impl fmt::Display for Cigar {
+impl<'a> fmt::Display for Cigar<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for op in self.ops() {
             write!(f, "{}", op)?;
@@ -42,21 +30,34 @@ impl fmt::Display for Cigar {
     }
 }
 
-impl Deref for Cigar {
-    type Target = [u32];
+impl<'a> Deref for Cigar<'a> {
+    type Target = [u8];
 
-    fn deref(&self) -> &[u32] {
-        &self.cigar
+    fn deref(&self) -> &[u8] {
+        self.0
     }
 }
 
-pub struct Ops<'a>(Iter<'a, u32>);
+pub struct Ops<'a> {
+    cigar: &'a [u8],
+    i: usize,
+}
 
 impl<'a> Iterator for Ops<'a> {
     type Item = Op;
 
-    fn next(&mut self) -> Option<Op> {
-        self.0.next().map(|&u| Op::from_u32(u))
+    fn next(&mut self) -> Option<Self::Item> {
+        let size = mem::size_of::<u32>();
+        let start = self.i * size;
+
+        if start < self.cigar.len() {
+            let end = start + size;
+            let op = Op::from_bytes(&self.cigar[start..end]);
+            self.i += 1;
+            Some(op)
+        } else {
+            None
+        }
     }
 }
 
@@ -67,9 +68,10 @@ mod tests {
     #[test]
     fn test_from_bytes() {
         let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
-        let cigar =  Cigar::from_bytes(&bytes);
-        assert_eq!(cigar.cigar.len(), 2);
-        assert_eq!(&cigar.cigar[0], &0x240);
-        assert_eq!(&cigar.cigar[1], &0x362);
+        let cigar =  Cigar::new(&bytes);
+        let mut ops = cigar.ops();
+        assert_eq!(ops.next(), Some(Op::from_u32(0x240)));
+        assert_eq!(ops.next(), Some(Op::from_u32(0x362)));
+        assert_eq!(ops.next(), None);
     }
 }

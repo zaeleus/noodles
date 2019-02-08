@@ -1,5 +1,7 @@
 use std::fmt;
 
+use byteorder::{ByteOrder, LittleEndian};
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum Op {
     Match(u32),
@@ -14,6 +16,10 @@ pub enum Op {
 }
 
 impl Op {
+    pub fn from_bytes(bytes: &[u8]) -> Op {
+        Op::from_u32(LittleEndian::read_u32(bytes))
+    }
+
     pub fn from_u32(u: u32) -> Op {
         let len = u >> 4;
 

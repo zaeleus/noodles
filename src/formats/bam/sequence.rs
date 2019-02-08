@@ -6,13 +6,13 @@ static SEQ_CHARS: &[char] = &[
 ];
 
 #[derive(Debug)]
-pub struct Sequence {
-    seq: Vec<u8>,
+pub struct Sequence<'a> {
+    seq: &'a [u8],
     n_chars: usize,
 }
 
-impl Sequence {
-    pub fn new(seq: Vec<u8>, n_chars: usize) -> Sequence {
+impl<'a> Sequence<'a> {
+    pub fn new(seq: &[u8], n_chars: usize) -> Sequence {
         Sequence { seq, n_chars }
     }
 
@@ -30,16 +30,16 @@ impl Sequence {
     }
 }
 
-impl Deref for Sequence {
+impl<'a> Deref for Sequence<'a> {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &self.seq
+        self.seq
     }
 }
 
 pub struct Symbols<'a> {
-    sequence: &'a Sequence,
+    sequence: &'a Sequence<'a>,
     head: usize,
     tail: usize,
     remaining: usize,
@@ -95,10 +95,10 @@ impl<I: Iterator<Item=char>> Iterator for Complement<I> {
     }
 }
 
-impl Index<usize> for Sequence {
+impl<'a> Index<usize> for Sequence<'a> {
     type Output = char;
 
-    fn index(&self, i: usize) -> &char {
+    fn index(&self, i: usize) -> &Self::Output {
         let j = i / 2;
         let b = self.seq[j];
 
