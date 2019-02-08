@@ -13,7 +13,7 @@ impl<R: BufRead> Reader<R> {
         Reader { reader }
     }
 
-    pub fn fields(&mut self) -> Fields<R> {
+    pub fn fields(self) -> Fields<R> {
         Fields { reader: self }
     }
 
@@ -183,11 +183,11 @@ impl<R: BufRead> Reader<R> {
     }
 }
 
-pub struct Fields<'a, R: 'a + BufRead> {
-    reader: &'a mut Reader<R>,
+pub struct Fields<R: BufRead> {
+    reader: Reader<R>,
 }
 
-impl<'a, R: 'a + BufRead> Iterator for Fields<'a, R> {
+impl<R: BufRead> Iterator for Fields<R> {
     type Item = io::Result<Field>;
 
     fn next(&mut self) -> Option<Self::Item> {
