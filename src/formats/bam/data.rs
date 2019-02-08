@@ -8,12 +8,19 @@ pub mod value;
 
 use std::ops::Deref;
 
+use self::reader::Fields;
+
 #[derive(Debug)]
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {
     pub fn new(bytes: &[u8]) -> Data {
         Data(bytes)
+    }
+
+    pub fn fields(&self) -> Fields<&[u8]> {
+        let reader = Reader::new(self.0);
+        reader.fields()
     }
 }
 
