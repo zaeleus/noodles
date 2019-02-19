@@ -72,6 +72,24 @@ impl fmt::Display for Op {
     }
 }
 
+impl From<Op> for u32 {
+    fn from(op: Op) -> u32 {
+        let (i, len) = match op {
+            Op::Match(len) => (0, len),
+            Op::Insertion(len) => (1, len),
+            Op::Deletion(len) => (2, len),
+            Op::Skip(len) => (3, len),
+            Op::SoftClip(len) => (4, len),
+            Op::HardClip(len) => (5, len),
+            Op::Pad(len) => (6, len),
+            Op::SeqMatch(len) => (7, len),
+            Op::SeqMismatch(len) => (8, len),
+        };
+
+        len << 4 | i
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Op;
@@ -127,5 +145,18 @@ mod tests {
         assert_eq!(format!("{}", Op::Deletion(7)), "7D");
         assert_eq!(format!("{}", Op::Skip(11)), "11N");
         assert_eq!(format!("{}", Op::Pad(188)), "188P");
+    }
+
+    #[test]
+    fn test_from_op_for_u32() {
+        assert_eq!(u32::from(Op::Match(1)), 1 << 4 | 0);
+        assert_eq!(u32::from(Op::Insertion(2)), 2 << 4 | 1);
+        assert_eq!(u32::from(Op::Deletion(3)), 3 << 4 | 2);
+        assert_eq!(u32::from(Op::Skip(4)), 4 << 4 | 3);
+        assert_eq!(u32::from(Op::SoftClip(5)), 5 << 4 | 4);
+        assert_eq!(u32::from(Op::HardClip(6)), 6 << 4 | 5);
+        assert_eq!(u32::from(Op::Pad(7)), 7 << 4 | 6);
+        assert_eq!(u32::from(Op::SeqMatch(8)), 8 << 4 | 7);
+        assert_eq!(u32::from(Op::SeqMismatch(9)), 9 << 4 | 8);
     }
 }
