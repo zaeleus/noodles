@@ -2,7 +2,7 @@ use std::fmt;
 
 use byteorder::{ByteOrder, LittleEndian};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Op {
     Match(u32),
     Insertion(u32),
