@@ -20,10 +20,8 @@ impl<R: BufRead> Reader<R> {
     fn read_field(&mut self) -> io::Result<Option<Field>> {
         let tag = match self.read_tag() {
             Ok(s) => {
-                String::from_utf8(s).map_err(|e| {
-                    io::Error::new(io::ErrorKind::InvalidData, e)
-                })?
-            },
+                String::from_utf8(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+            }
             Err(_) => return Ok(None),
         };
 
@@ -50,24 +48,18 @@ impl<R: BufRead> Reader<R> {
             'i' => self.read_i32().map(Value::Int32),
             'I' => self.read_u32().map(Value::UInt32),
             'f' => self.read_f32().map(Value::Float),
-            'Z' => {
-                self.read_string()
-                    .and_then(|v| {
-                        String::from_utf8(v).map_err(|e| {
-                            io::Error::new(io::ErrorKind::InvalidData, e)
-                        })
-                    })
-                    .map(Value::String)
-            },
-            'H' => {
-                self.read_hex()
-                    .and_then(|v| {
-                        String::from_utf8(v).map_err(|e| {
-                            io::Error::new(io::ErrorKind::InvalidData, e)
-                        })
-                    })
-                    .map(Value::Hex)
-            },
+            'Z' => self
+                .read_string()
+                .and_then(|v| {
+                    String::from_utf8(v).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+                .map(Value::String),
+            'H' => self
+                .read_hex()
+                .and_then(|v| {
+                    String::from_utf8(v).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+                .map(Value::Hex),
             'B' => {
                 let ty = self.read_char()?;
                 let len = self.read_i32()? as usize;
@@ -80,20 +72,16 @@ impl<R: BufRead> Reader<R> {
                     'i' => self.read_i32_array(len).map(Value::Int32Array),
                     'I' => self.read_u32_array(len).map(Value::UInt32Array),
                     'f' => self.read_f32_array(len).map(Value::FloatArray),
-                    _ => {
-                        Err(io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            format!("invalid field type 'B{}'", ty),
-                        ))
-                    }
+                    _ => Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("invalid field type 'B{}'", ty),
+                    )),
                 }
-            },
-            _ => {
-                Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("invalid field type '{}'", ty),
-                ))
-            },
+            }
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("invalid field type '{}'", ty),
+            )),
         }
     }
 
@@ -194,7 +182,7 @@ impl<R: BufRead> Iterator for Fields<R> {
         match self.reader.read_field() {
             Ok(Some(field)) => Some(Ok(field)),
             Ok(None) => None,
-            Err(e) => Some(Err(e))
+            Err(e) => Some(Err(e)),
         }
     }
 }

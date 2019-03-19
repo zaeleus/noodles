@@ -1,6 +1,6 @@
 use std::{iter::IntoIterator, str::Split};
 
-const DELIMITER: char  = ';';
+const DELIMITER: char = ';';
 
 pub struct Attributes<'a> {
     attrs: &'a str,
@@ -82,20 +82,17 @@ impl<'a> Iterator for AttributesIter<'a> {
     type Item = (&'a str, &'a str);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.split
-            .next()
-            .map(str::trim_left)
-            .and_then(|p| {
-                let mut pieces = p.splitn(2, ' ');
+        self.split.next().map(str::trim_left).and_then(|p| {
+            let mut pieces = p.splitn(2, ' ');
 
-                if let Some(key) = pieces.next() {
-                    if let Some(value) = pieces.next() {
-                        return Some((key, trim_quotes(value)))
-                    }
+            if let Some(key) = pieces.next() {
+                if let Some(value) = pieces.next() {
+                    return Some((key, trim_quotes(value)));
                 }
+            }
 
-                None
-            })
+            None
+        })
     }
 }
 
@@ -114,7 +111,10 @@ mod attributes_iter_tests {
         let mut it = attributes.iter();
 
         assert_eq!(it.next(), Some(("gene_id", "ENSG00000223972.5")));
-        assert_eq!(it.next(), Some(("gene_type", "transcribed_unprocessed_pseudogene")));
+        assert_eq!(
+            it.next(),
+            Some(("gene_type", "transcribed_unprocessed_pseudogene"))
+        );
         assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));
         assert_eq!(it.next(), Some(("level", "2")));
         assert_eq!(it.next(), Some(("havana_gene", "OTTHUMG00000000961.2")));

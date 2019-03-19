@@ -1,19 +1,24 @@
-use std::fs::File;
-use std::io::{self, BufWriter, Write};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{self, BufWriter, Write},
+    path::Path,
+};
 
-use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 
-use crate::formats::{bam, fastq};
 use crate::formats::bam::sequence::Complement;
+use crate::formats::{bam, fastq};
 
 pub struct Writer<W> {
     writer: W,
 }
 
 impl<W: Write> Writer<W> {
-    pub fn create<P>(dst: P) -> io::Result<Writer<BufWriter<File>>> where P: AsRef<Path> {
+    pub fn create<P>(dst: P) -> io::Result<Writer<BufWriter<File>>>
+    where
+        P: AsRef<Path>,
+    {
         let file = File::create(dst)?;
         let writer = BufWriter::new(file);
         Ok(Writer::new(writer))
@@ -27,11 +32,15 @@ impl<W: Write> Writer<W> {
         let name = record.read_name();
 
         let (seq, qual): (String, String) = if record.flag().is_reverse() {
-            (Complement::new(record.seq().symbols().rev()).collect(),
-                record.qual().chars().rev().collect())
+            (
+                Complement::new(record.seq().symbols().rev()).collect(),
+                record.qual().chars().rev().collect(),
+            )
         } else {
-            (record.seq().symbols().collect(),
-                record.qual().chars().collect())
+            (
+                record.seq().symbols().collect(),
+                record.qual().chars().collect(),
+            )
         };
 
         self.writer.write_all(b"@")?;
@@ -74,9 +83,7 @@ where
             let level = Compression::default();
             let encoder = GzEncoder::new(writer, level);
             Ok(Writer::new(Box::new(encoder)))
-        },
-        _ => {
-            Ok(Writer::new(Box::new(writer)))
-        },
+        }
+        _ => Ok(Writer::new(Box::new(writer))),
     }
 }

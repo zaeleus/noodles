@@ -1,12 +1,14 @@
-use std::fs::File;
-use std::io::{self, Write};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::formats::bam::MAGIC_NUMBER;
-use crate::formats::bam::{Record, Reference};
 use crate::formats::bgzf::BgzfEncoder;
+
+use super::{Record, Reference, MAGIC_NUMBER};
 
 pub struct Writer<W: Write> {
     writer: BgzfEncoder<W>,
@@ -39,7 +41,8 @@ impl<W: Write> Writer<W> {
     }
 
     pub fn write_references(&mut self, references: &[Reference]) -> io::Result<()> {
-        self.writer.write_i32::<LittleEndian>(references.len() as i32)?;
+        self.writer
+            .write_i32::<LittleEndian>(references.len() as i32)?;
 
         for reference in references {
             let len = reference.name().len() + 1;
@@ -63,9 +66,11 @@ impl<W: Write> Writer<W> {
         self.writer.write_u8(record.mapq())?;
         self.writer.write_u16::<LittleEndian>(record.bin())?;
         self.writer.write_u16::<LittleEndian>(record.n_cigar_op())?;
-        self.writer.write_u16::<LittleEndian>(record.flag().inner())?;
+        self.writer
+            .write_u16::<LittleEndian>(record.flag().inner())?;
         self.writer.write_i32::<LittleEndian>(record.l_seq())?;
-        self.writer.write_i32::<LittleEndian>(record.next_ref_id())?;
+        self.writer
+            .write_i32::<LittleEndian>(record.next_ref_id())?;
         self.writer.write_i32::<LittleEndian>(record.next_pos())?;
         self.writer.write_i32::<LittleEndian>(record.tlen())?;
 

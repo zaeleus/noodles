@@ -1,10 +1,12 @@
-use std::io::{self, Write};
-use std::fs::File;
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::Path,
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use flate2::{Crc, Compression};
 use flate2::write::DeflateEncoder;
+use flate2::{Compression, Crc};
 
 const DEFAULT_COMPRESSION_METHOD: u8 = 8; // DEFLATE
 const FEXTRA: u8 = 1 << 2;
@@ -20,10 +22,8 @@ static GZIP_MAGIC_NUMBER: &[u8] = &[0x1f, 0x8b];
 static BGZF_SUBFIELD_ID: &[u8] = b"BC";
 
 static EOF: &[u8] = &[
-    0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0xff, 0x06, 0x00, 0x42, 0x43, 0x02, 0x00,
-    0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00,
+    0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43, 0x02, 0x00,
+    0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
 
 #[derive(Debug)]
@@ -34,7 +34,10 @@ pub struct BgzfEncoder<W: Write> {
 }
 
 impl<W: Write> BgzfEncoder<W> {
-    pub fn create<P>(dst: P) -> io::Result<BgzfEncoder<File>> where P: AsRef<Path> {
+    pub fn create<P>(dst: P) -> io::Result<BgzfEncoder<File>>
+    where
+        P: AsRef<Path>,
+    {
         let file = File::create(dst)?;
         Ok(BgzfEncoder::new(file))
     }
@@ -45,7 +48,11 @@ impl<W: Write> BgzfEncoder<W> {
         let buf = Vec::with_capacity(MAX_BLOCK_SIZE as usize);
         let encoder = DeflateEncoder::new(buf, Compression::default());
 
-        BgzfEncoder { crc, encoder, writer }
+        BgzfEncoder {
+            crc,
+            encoder,
+            writer,
+        }
     }
 
     fn block_header(&self, block_size: u16) -> Vec<u8> {
@@ -56,14 +63,18 @@ impl<W: Write> BgzfEncoder<W> {
         header.write_all(GZIP_MAGIC_NUMBER).unwrap();
         header.write_u8(DEFAULT_COMPRESSION_METHOD).unwrap();
         header.write_u8(DEFAULT_FLAGS).unwrap();
-        header.write_u32::<LittleEndian>(DEFAULT_MODIFICATION_TIME).unwrap();
+        header
+            .write_u32::<LittleEndian>(DEFAULT_MODIFICATION_TIME)
+            .unwrap();
         header.write_u8(DEFAULT_EXTRA_FLAGS).unwrap();
         header.write_u8(DEFAULT_OPERATING_SYSTEM).unwrap();
 
         let mut extra = Vec::new();
 
         extra.write_all(BGZF_SUBFIELD_ID).unwrap();
-        extra.write_u16::<LittleEndian>(BGZF_SUBFIELD_LENGTH).unwrap();
+        extra
+            .write_u16::<LittleEndian>(BGZF_SUBFIELD_LENGTH)
+            .unwrap();
         extra.write_u16::<LittleEndian>(block_size - 1).unwrap();
 
         let xlen = extra.len() as u16;

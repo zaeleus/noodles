@@ -1,10 +1,14 @@
-use std::{fs::File, io::{self, BufReader, Read}, path::Path};
+use std::{
+    fs::File,
+    io::{self, BufReader, Read},
+    path::Path,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::formats::gz::MultiGzDecoder;
 
-use super::{MAGIC_NUMBER, Record, Reference};
+use super::{Record, Reference, MAGIC_NUMBER};
 
 type BamHeader = Vec<u8>;
 

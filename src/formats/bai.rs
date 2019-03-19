@@ -63,7 +63,10 @@ impl<R: Read> Reader<R> {
 
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
 
-        Ok(Index { references, n_no_coor })
+        Ok(Index {
+            references,
+            n_no_coor,
+        })
     }
 
     pub fn read_references(&mut self, references: &mut Vec<Reference>) -> io::Result<()> {
@@ -106,12 +109,14 @@ impl<R: Read> Reader<R> {
         for _ in 0..n_chunks {
             let chunk_beg = self.inner.read_u64::<LittleEndian>()?;
             let chunk_end = self.inner.read_u64::<LittleEndian>()?;
-            chunks.push(Chunk { chunk_beg, chunk_end });
+            chunks.push(Chunk {
+                chunk_beg,
+                chunk_end,
+            });
         }
 
         Ok(())
     }
-
 
     pub fn read_intervals(&mut self, intervals: &mut Vec<Interval>) -> io::Result<()> {
         let n_intervals = intervals.capacity();

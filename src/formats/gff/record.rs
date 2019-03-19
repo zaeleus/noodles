@@ -68,11 +68,8 @@ impl Record {
     }
 
     pub fn strand(&self) -> self::Result<Strand> {
-        self.parse(Header::Strand).and_then(|s| {
-            s.parse().map_err(|e| {
-                Error::Parse(Header::Strand, e)
-            })
-        })
+        self.parse(Header::Strand)
+            .and_then(|s| s.parse().map_err(|e| Error::Parse(Header::Strand, e)))
     }
 
     pub fn frame(&self) -> self::Result<u8> {
@@ -96,25 +93,22 @@ impl Record {
 
     fn parse_u64(&self, header: Header) -> self::Result<u64> {
         self.parse(header).and_then(|s| {
-            s.parse().map_err(|e| {
-                Error::Parse(header, format!("{}", e))
-            })
+            s.parse()
+                .map_err(|e| Error::Parse(header, format!("{}", e)))
         })
     }
 
     fn parse_f64(&self, header: Header) -> self::Result<f64> {
         self.parse(header).and_then(|s| {
-            s.parse().map_err(|e| {
-                Error::Parse(header, format!("{}", e))
-            })
+            s.parse()
+                .map_err(|e| Error::Parse(header, format!("{}", e)))
         })
     }
 
     fn parse_u8(&self, header: Header) -> self::Result<u8> {
         self.parse(header).and_then(|s| {
-            s.parse().map_err(|e| {
-                Error::Parse(header, format!("{}", e))
-            })
+            s.parse()
+                .map_err(|e| Error::Parse(header, format!("{}", e)))
         })
     }
 }
@@ -264,7 +258,10 @@ mod tests {
 
     #[test]
     fn test_validate_empty() {
-        assert_eq!(validate_empty(Header::SeqName, "."), Err(Error::Empty(Header::SeqName)));
+        assert_eq!(
+            validate_empty(Header::SeqName, "."),
+            Err(Error::Empty(Header::SeqName))
+        );
         assert_eq!(validate_empty(Header::Feature, "gene"), Ok("gene"));
         assert_eq!(validate_empty(Header::Start, "11869"), Ok("11869"));
         assert_eq!(validate_empty(Header::Score, "0.448"), Ok("0.448"));

@@ -75,7 +75,7 @@ fn read_gz_header<R: BufRead>(reader: &mut R) -> io::Result<()> {
     if id != GZIP_MAGIC_NUMBER {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            String::from("gz: invalid gzip header")
+            String::from("gz: invalid gzip header"),
         ));
     }
 

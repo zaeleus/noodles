@@ -1,6 +1,8 @@
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{self, BufRead, BufReader},
+    path::Path,
+};
 
 use crate::formats::fastq::Record;
 use crate::formats::gz::MultiGzDecoder;
@@ -42,10 +44,8 @@ where
         Some("gz") => {
             let decoder = MultiGzDecoder::new(reader);
             Ok(Reader::new(Box::new(BufReader::new(decoder))))
-        },
-        _ => {
-            Ok(Reader::new(Box::new(reader)))
         }
+        _ => Ok(Reader::new(Box::new(reader))),
     }
 }
 
@@ -68,8 +68,8 @@ fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 mod tests {
     use std::io::BufReader;
 
-    use crate::formats::fastq::Record;
     use super::{read_line, Reader};
+    use crate::formats::fastq::Record;
 
     #[test]
     fn test_read_record() {

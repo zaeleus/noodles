@@ -26,9 +26,7 @@ where
             let reader = BufReader::new(file);
             let decoder = MultiGzDecoder::new(reader);
             Ok(Reader::new(Box::new(decoder)))
-        },
-        _ => {
-            Ok(Reader::new(Box::new(file)))
         }
+        _ => Ok(Reader::new(Box::new(file))),
     }
 }

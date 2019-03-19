@@ -1,8 +1,7 @@
 use std::ops::{Deref, Index};
 
 static SEQ_CHARS: &[char] = &[
-    '=', 'A', 'C', 'M', 'G', 'R', 'S', 'V',
-    'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N',
+    '=', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N',
 ];
 
 #[derive(Debug)]
@@ -81,13 +80,13 @@ pub struct Complement<I> {
     iter: I,
 }
 
-impl<I: Iterator<Item=char>> Complement<I> {
+impl<I: Iterator<Item = char>> Complement<I> {
     pub fn new(iter: I) -> Complement<I> {
         Complement { iter }
     }
 }
 
-impl<I: Iterator<Item=char>> Iterator for Complement<I> {
+impl<I: Iterator<Item = char>> Iterator for Complement<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {

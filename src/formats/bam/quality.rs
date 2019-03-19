@@ -13,7 +13,9 @@ impl<'a> Quality<'a> {
     }
 
     pub fn chars(&self) -> Chars<slice::Iter<u8>> {
-        Chars { chars: self.qual.iter() }
+        Chars {
+            chars: self.qual.iter(),
+        }
     }
 }
 
@@ -29,7 +31,7 @@ pub struct Chars<I> {
     chars: I,
 }
 
-impl<'a, I: Iterator<Item=&'a u8>> Iterator for Chars<I> {
+impl<'a, I: Iterator<Item = &'a u8>> Iterator for Chars<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
@@ -41,7 +43,7 @@ impl<'a, I: Iterator<Item=&'a u8>> Iterator for Chars<I> {
     }
 }
 
-impl<'a, I: Iterator<Item=&'a u8> + DoubleEndedIterator> DoubleEndedIterator for Chars<I> {
+impl<'a, I: Iterator<Item = &'a u8> + DoubleEndedIterator> DoubleEndedIterator for Chars<I> {
     fn next_back(&mut self) -> Option<char> {
         self.chars.next_back().map(|b| (b + QUALITY_OFFSET) as char)
     }
@@ -49,7 +51,7 @@ impl<'a, I: Iterator<Item=&'a u8> + DoubleEndedIterator> DoubleEndedIterator for
 
 #[cfg(test)]
 mod tests {
-    use super::{QUALITY_OFFSET, Quality};
+    use super::{Quality, QUALITY_OFFSET};
 
     #[test]
     fn test_chars() {

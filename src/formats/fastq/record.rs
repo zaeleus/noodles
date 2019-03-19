@@ -22,12 +22,7 @@ impl Record {
     /// assert_eq!(record.plus_line(), b"+");
     /// assert_eq!(record.quality(), b"abcd");
     /// ```
-    pub fn new<S, T, U, V>(
-        name: S,
-        sequence: T,
-        plus_line: U,
-        quality: V,
-    ) -> Record
+    pub fn new<S, T, U, V>(name: S, sequence: T, plus_line: U, quality: V) -> Record
     where
         S: Into<Vec<u8>>,
         T: Into<Vec<u8>>,

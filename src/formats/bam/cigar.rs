@@ -68,7 +68,7 @@ mod tests {
     #[test]
     fn test_from_bytes() {
         let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
-        let cigar =  Cigar::new(&bytes);
+        let cigar = Cigar::new(&bytes);
         let mut ops = cigar.ops();
         assert_eq!(ops.next(), Some(Op::from_u32(0x240)));
         assert_eq!(ops.next(), Some(Op::from_u32(0x362)));
