@@ -82,7 +82,7 @@ impl<'a> Iterator for AttributesIter<'a> {
     type Item = (&'a str, &'a str);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.split.next().map(str::trim_left).and_then(|p| {
+        self.split.next().map(str::trim_start).and_then(|p| {
             let mut pieces = p.splitn(2, ' ');
 
             if let Some(key) = pieces.next() {
