@@ -90,7 +90,7 @@ impl<I: Iterator<Item = char>> Iterator for Complement<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        self.iter.next().map(|b| complement(b))
+        self.iter.next().map(complement)
     }
 }
 

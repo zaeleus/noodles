@@ -37,8 +37,8 @@ impl Op {
         }
     }
 
-    pub fn len(&self) -> u32 {
-        match *self {
+    pub fn len(self) -> u32 {
+        match self {
             Op::Match(len) => len,
             Op::Insertion(len) => len,
             Op::Deletion(len) => len,
@@ -51,8 +51,8 @@ impl Op {
         }
     }
 
-    pub fn op(&self) -> char {
-        match *self {
+    pub fn op(self) -> char {
+        match self {
             Op::Match(_) => 'M',
             Op::Insertion(_) => 'I',
             Op::Deletion(_) => 'D',
