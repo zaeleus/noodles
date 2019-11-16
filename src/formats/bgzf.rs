@@ -1,3 +1,9 @@
+pub use self::block::Block;
+pub use self::reader::Reader;
+
+pub mod block;
+pub mod reader;
+
 use std::{
     fs::File,
     io::{self, Write},
