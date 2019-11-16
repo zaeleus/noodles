@@ -1,4 +1,4 @@
-use std::io::{self, Read, Seek};
+use std::io::{self, Read, Seek, SeekFrom};
 
 use byteorder::{ByteOrder, LittleEndian};
 use flate2::read::DeflateDecoder;
@@ -55,4 +55,25 @@ impl<R: Read + Seek> Reader<R> {
 
         Ok(block_size as usize)
     }
+
+    pub fn seek(&mut self, pos: u64, block: &mut Block) -> io::Result<u64> {
+        let c_offset = compressed_offset(pos);
+        let u_offset = uncompressed_offset(pos);
+
+        self.inner.seek(SeekFrom::Start(c_offset))?;
+
+        self.read_block(block)?;
+        block.seek(SeekFrom::Start(u_offset))?;
+
+        Ok(pos)
+    }
+}
+
+fn compressed_offset(offset: u64) -> u64 {
+    // is the mask necessary?
+    (offset >> 16) & 0xffffffffffff
+}
+
+fn uncompressed_offset(offset: u64) -> u64 {
+    offset & 0xffff
 }
