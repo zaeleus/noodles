@@ -6,6 +6,7 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
+bit-vec = "0.6.1"
 byteorder = "1.2.3"
 csv = "1.0.1"
 flate2 = "1.0.1"
