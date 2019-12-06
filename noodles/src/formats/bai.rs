@@ -16,10 +16,26 @@ pub struct Chunk {
     chunk_end: u64,
 }
 
+impl Chunk {
+    pub fn start(&self) -> u64 {
+        self.chunk_beg
+    }
+
+    pub fn end(&self) -> u64 {
+        self.chunk_end
+    }
+}
+
 #[derive(Debug)]
 pub struct Bin {
     bin: u32,
     chunks: Vec<Chunk>,
+}
+
+impl Bin {
+    pub fn chunks(&self) -> &[Chunk] {
+        &self.chunks
+    }
 }
 
 #[derive(Debug)]
