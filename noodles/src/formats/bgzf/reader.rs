@@ -49,6 +49,7 @@ impl<R: Read + Seek> Reader<R> {
 
         decoder.read_to_end(block_buf)?;
 
+        block.set_c_offset(self.position);
         block.set_position(0);
 
         self.position += header.len() as u64 + self.buf.len() as u64 + trailer.len() as u64;
