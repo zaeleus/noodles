@@ -82,6 +82,10 @@ impl<R: Read + Seek> Reader2<R> {
 
         Ok(block_size)
     }
+
+    pub fn seek(&mut self, pos: u64, block: &mut bgzf::Block) -> io::Result<u64> {
+        self.inner.seek(pos, block)
+    }
 }
 
 fn read_magic<R>(reader: &mut R) -> io::Result<[u8; 4]>
