@@ -11,7 +11,7 @@ use std::{
     path::Path,
 };
 
-use crate::formats::gz::MultiGzDecoder;
+use noodles::formats::gz::MultiGzDecoder;
 
 pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn Read>>>
 where

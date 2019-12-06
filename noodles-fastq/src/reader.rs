@@ -4,8 +4,9 @@ use std::{
     path::Path,
 };
 
-use crate::formats::fastq::Record;
-use crate::formats::gz::MultiGzDecoder;
+use noodles::formats::gz::MultiGzDecoder;
+
+use super::Record;
 
 pub struct Reader<R: BufRead> {
     reader: R,
@@ -68,8 +69,9 @@ fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 mod tests {
     use std::io::BufReader;
 
+    use crate::Record;
+
     use super::{read_line, Reader};
-    use crate::formats::fastq::Record;
 
     #[test]
     fn test_read_record() {

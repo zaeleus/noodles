@@ -1,0 +1,11 @@
+[package]
+name = "noodles-bam"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+byteorder = "1.2.3"
+flate2 = "1.0.1"
+noodles = { path = "../noodles" }

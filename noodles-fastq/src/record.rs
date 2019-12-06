@@ -13,7 +13,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles::formats::fastq::Record;
+    /// use noodles_fastq::Record;
     ///
     /// let record = Record::new("@noodles/1", "AGCT", "+", "abcd");
     ///
@@ -74,7 +74,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles::formats::fastq::Record;
+    /// use noodles_fastq::Record;
     ///
     /// let mut record = Record::new("@noodles/1", "AGCT", "+", "abcd");
     /// record.clear();

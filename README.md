@@ -5,14 +5,6 @@ currently includes readers (and some writers) for BAM, FASTQ, and GFF/GTFv2.
 
 Notably, the BAM parser is a pure Rust implementation.
 
-## Install
-
-Add `noodles` to `Cargo.toml`.
-
-```toml
-noodles = { git = "https://github.com/zaeleus/noodles.git" }
-```
-
 ## Related tools
 
 noodles itself does not provide any applications, but related tools do depend

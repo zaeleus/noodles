@@ -1,0 +1,10 @@
+[package]
+name = "noodles-gff"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+csv = "1.0.1"
+noodles = { path = "../noodles" }

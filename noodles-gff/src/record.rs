@@ -127,7 +127,7 @@ fn is_empty(s: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::formats::gff::Strand;
+    use crate::Strand;
 
     use super::*;
 

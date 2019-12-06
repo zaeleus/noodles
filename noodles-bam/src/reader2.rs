@@ -5,8 +5,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-
-use crate::formats::bgzf;
+use noodles::formats::bgzf;
 
 use super::{Record, Reference, MAGIC_NUMBER};
 

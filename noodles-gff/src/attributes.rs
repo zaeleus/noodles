@@ -12,10 +12,10 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles::formats::gff;
+    /// use noodles_gff::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let _attributes = gff::Attributes::new(data);
+    /// let _attributes = Attributes::new(data);
     /// ```
     pub fn new(attrs: &str) -> Attributes {
         Attributes { attrs }
@@ -30,10 +30,10 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles::formats::gff;
+    /// use noodles_gff::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let attributes = gff::Attributes::new(data);
+    /// let attributes = Attributes::new(data);
     ///
     /// assert_eq!(attributes.get("gene_name"), Some("DDX11L1"));
     /// assert_eq!(attributes.get("level"), Some("2"));
@@ -48,10 +48,10 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles::formats::gff;
+    /// use noodles_gff::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let attributes = gff::Attributes::new(data);
+    /// let attributes = Attributes::new(data);
     /// let mut it = attributes.iter();
     ///
     /// assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));

@@ -1,12 +1,7 @@
-[package]
-name = "noodles"
-version = "0.1.0"
-authors = ["Michael Macias <zaeleus@gmail.com>"]
-license = "MIT"
-edition = "2018"
-
-[dependencies]
-bit-vec = "0.6.1"
-byteorder = "1.2.3"
-csv = "1.0.1"
-flate2 = "1.0.1"
+[workspace]
+members = [
+  "noodles",
+  "noodles-bam",
+  "noodles-fastq",
+  "noodles-gff",
+]
