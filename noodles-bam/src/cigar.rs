@@ -18,6 +18,19 @@ impl<'a> Cigar<'a> {
             i: 0,
         }
     }
+
+    pub fn mapped_len(&self) -> u32 {
+        self.ops()
+            .filter_map(|op| match op {
+                Op::Match(len)
+                | Op::Deletion(len)
+                | Op::Skip(len)
+                | Op::SeqMatch(len)
+                | Op::SeqMismatch(len) => Some(len),
+                _ => None,
+            })
+            .sum()
+    }
 }
 
 impl<'a> fmt::Display for Cigar<'a> {
