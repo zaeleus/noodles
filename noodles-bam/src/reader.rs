@@ -49,38 +49,55 @@ impl<R: Read + Seek> Reader<R> {
         block: &mut bgzf::Block,
         record: &mut Record,
     ) -> io::Result<usize> {
-        if block.is_eof() {
-            self.inner.read_block(block)?;
-        }
+        let mut buf = [0; 4];
+        let mut bytes_read = 0;
 
-        let block_size = match block.read_block_size() {
-            Ok(bs) => bs as usize,
-            Err(_) => return Ok(0),
-        };
+        loop {
+            match block.read(&mut buf[bytes_read..]) {
+                Ok(0) => match self.inner.read_block(block) {
+                    Ok(0) => return Ok(0),
+                    Ok(_) => {}
+                    Err(e) => return Err(e),
+                },
+                Ok(len) => {
+                    bytes_read += len;
 
-        record.resize(block_size);
-        let mut buf = record.deref_mut();
-
-        while !buf.is_empty() {
-            match block.read_record(buf) {
-                Ok(0) => break,
-                Ok(n) => {
-                    if block.is_eof() {
-                        match self.inner.read_block(block) {
-                            Ok(0) => return Ok(0),
-                            Ok(_) => {}
-                            Err(e) => return Err(e),
-                        }
+                    if bytes_read == buf.len() {
+                        break;
                     }
-
-                    let tmp = buf;
-                    buf = &mut tmp[n..];
                 }
                 Err(e) => return Err(e),
             }
         }
 
-        Ok(block_size)
+        let block_size = u32::from_le_bytes(buf) as usize;
+
+        record.resize(block_size);
+        let buf = record.deref_mut();
+
+        let mut bytes_read = 0;
+
+        loop {
+            match block.read_record(&mut buf[bytes_read..]) {
+                Ok(0) => match self.inner.read_block(block) {
+                    Ok(0) => return Ok(0),
+                    Ok(_) => {}
+                    Err(e) => return Err(e),
+                },
+                Ok(len) => {
+                    bytes_read += len;
+
+                    if bytes_read == block_size {
+                        return Ok(block_size);
+                    }
+
+                    if bytes_read >= block_size {
+                        panic!("this shouldn't happen: {} >= {}", bytes_read, block_size);
+                    }
+                }
+                Err(e) => return Err(e),
+            }
+        }
     }
 
     pub fn seek(&mut self, pos: u64, block: &mut bgzf::Block) -> io::Result<u64> {
