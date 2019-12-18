@@ -62,6 +62,7 @@ impl<R: Read + Seek> Reader<R> {
         let u_offset = uncompressed_offset(pos);
 
         self.inner.seek(SeekFrom::Start(c_offset))?;
+        self.position = c_offset;
 
         self.read_block(block)?;
         block.seek(SeekFrom::Start(u_offset))?;
