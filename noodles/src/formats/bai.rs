@@ -10,7 +10,7 @@ pub struct Interval {
     ioffset: u64,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Chunk {
     chunk_beg: u64,
     chunk_end: u64,
@@ -21,8 +21,16 @@ impl Chunk {
         self.chunk_beg
     }
 
+    pub fn start_mut(&mut self) -> &mut u64 {
+        &mut self.chunk_beg
+    }
+
     pub fn end(&self) -> u64 {
         self.chunk_end
+    }
+
+    pub fn end_mut(&mut self) -> &mut u64 {
+        &mut self.chunk_end
     }
 }
 
@@ -186,4 +194,29 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
     }
 
     query_bins
+}
+
+pub fn merge_chunks(chunks: &[&Chunk]) -> Vec<Chunk> {
+    assert!(!chunks.is_empty());
+
+    let mut chunks: Vec<Chunk> = chunks.iter().map(|c| **c).collect();
+    chunks.sort_unstable_by_key(|c| c.start());
+
+    let mut merged_chunks = Vec::with_capacity(chunks.len());
+    merged_chunks.push(chunks[0].clone());
+
+    for b in chunks {
+        let a = merged_chunks.last_mut().expect("list cannot be empty");
+
+        if b.start() > a.end() {
+            merged_chunks.push(b);
+            continue;
+        }
+
+        if a.end() < b.end() {
+            *a.end_mut() = b.end();
+        }
+    }
+
+    merged_chunks
 }
