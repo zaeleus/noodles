@@ -86,6 +86,10 @@ impl<R: Read + Seek> Reader2<R> {
     pub fn seek(&mut self, pos: u64, block: &mut bgzf::Block) -> io::Result<u64> {
         self.inner.seek(pos, block)
     }
+
+    pub fn records(&mut self, block: bgzf::Block) -> Records<R> {
+        Records::new(self, block)
+    }
 }
 
 fn read_magic<R>(reader: &mut R) -> io::Result<[u8; 4]>
@@ -213,4 +217,32 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
                 .map(|s| s.to_string())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
+}
+
+pub struct Records<'a, R: Read + Seek> {
+    reader: &'a mut Reader2<R>,
+    block: bgzf::Block,
+    record: Record,
+}
+
+impl<'a, R: Read + Seek> Records<'a, R> {
+    pub fn new(reader: &'a mut Reader2<R>, block: bgzf::Block) -> Records<R> {
+        Self {
+            reader,
+            block,
+            record: Record::new(),
+        }
+    }
+}
+
+impl<'a, R: Read + Seek> Iterator for Records<'a, R> {
+    type Item = io::Result<Record>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.reader.read_record(&mut self.block, &mut self.record) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(self.record.clone())),
+            Err(e) => Some(Err(e)),
+        }
+    }
 }
