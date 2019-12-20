@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use noodles::formats::gz::MultiGzDecoder;
+use flate2::bufread::MultiGzDecoder;
 
 use super::Record;
 

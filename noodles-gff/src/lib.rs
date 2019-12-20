@@ -11,7 +11,7 @@ use std::{
     path::Path,
 };
 
-use noodles::formats::gz::MultiGzDecoder;
+use flate2::bufread::MultiGzDecoder;
 
 pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn Read>>>
 where

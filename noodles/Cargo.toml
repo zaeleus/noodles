@@ -8,4 +8,3 @@ edition = "2018"
 [dependencies]
 bit-vec = "0.6.1"
 byteorder = "1.2.3"
-flate2 = "1.0.1"

@@ -7,5 +7,4 @@ edition = "2018"
 
 [dependencies]
 flate2 = "1.0.1"
-noodles = { path = "../noodles" }
 noodles-bam = { path = "../noodles-bam" }
