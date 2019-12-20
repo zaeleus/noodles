@@ -5,7 +5,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles::formats::bgzf;
+use noodles_bgzf as bgzf;
 
 use super::{Record, Reference, MAGIC_NUMBER};
 
