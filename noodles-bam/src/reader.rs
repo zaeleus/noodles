@@ -10,24 +10,27 @@ use noodles_bgzf as bgzf;
 use super::{Record, Reference, MAGIC_NUMBER};
 
 pub type Header = String;
-pub type Meta = (Header, Vec<Reference>, bgzf::Block);
+pub type Meta = (Header, Vec<Reference>);
+
+const BLOCK_SIZE_LEN: usize = 4;
 
 pub struct Reader<R: Read + Seek> {
     inner: bgzf::Reader<R>,
+    block: bgzf::Block,
 }
 
 impl<R: Read + Seek> Reader<R> {
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
+            block: bgzf::Block::default(),
         }
     }
 
     pub fn meta(&mut self) -> io::Result<Meta> {
-        let mut block = bgzf::Block::new();
-        self.inner.read_block(&mut block)?;
+        self.inner.read_block(&mut self.block)?;
 
-        let mut reader = block.deref_mut();
+        let mut reader = self.block.deref_mut();
 
         let magic = read_magic(&mut reader)?;
 
@@ -41,21 +44,48 @@ impl<R: Read + Seek> Reader<R> {
         let header = read_header(&mut reader)?;
         let references = read_references(&mut reader)?;
 
-        Ok((header, references, block))
+        Ok((header, references))
     }
 
-    pub fn read_record(
-        &mut self,
-        block: &mut bgzf::Block,
-        record: &mut Record,
-    ) -> io::Result<usize> {
-        let mut buf = [0; 4];
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        let mut buf = [0; BLOCK_SIZE_LEN];
+
+        if let Err(e) = self.read_exact(&mut buf) {
+            match e.kind() {
+                io::ErrorKind::UnexpectedEof => return Ok(0),
+                _ => return Err(e),
+            }
+        }
+
+        let block_size = u32::from_le_bytes(buf) as usize;
+
+        record.resize(block_size);
+        let buf = record.deref_mut();
+
+        self.read_exact(buf)?;
+
+        Ok(block_size)
+    }
+
+    pub fn seek(&mut self, pos: u64) -> io::Result<u64> {
+        self.inner.seek(pos, &mut self.block)
+    }
+
+    pub fn records(&mut self) -> Records<R> {
+        Records::new(self)
+    }
+
+    pub fn virtual_position(&self) -> u64 {
+        self.block.virtual_position()
+    }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
         let mut bytes_read = 0;
 
         loop {
-            match block.read(&mut buf[bytes_read..]) {
-                Ok(0) => match self.inner.read_block(block) {
-                    Ok(0) => return Ok(0),
+            match self.block.read(&mut buf[bytes_read..]) {
+                Ok(0) => match self.inner.read_block(&mut self.block) {
+                    Ok(0) => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
                     Ok(_) => {}
                     Err(e) => return Err(e),
                 },
@@ -70,42 +100,7 @@ impl<R: Read + Seek> Reader<R> {
             }
         }
 
-        let block_size = u32::from_le_bytes(buf) as usize;
-
-        record.resize(block_size);
-        let buf = record.deref_mut();
-
-        let mut bytes_read = 0;
-
-        loop {
-            match block.read_record(&mut buf[bytes_read..]) {
-                Ok(0) => match self.inner.read_block(block) {
-                    Ok(0) => return Ok(0),
-                    Ok(_) => {}
-                    Err(e) => return Err(e),
-                },
-                Ok(len) => {
-                    bytes_read += len;
-
-                    if bytes_read == block_size {
-                        return Ok(block_size);
-                    }
-
-                    if bytes_read >= block_size {
-                        panic!("this shouldn't happen: {} >= {}", bytes_read, block_size);
-                    }
-                }
-                Err(e) => return Err(e),
-            }
-        }
-    }
-
-    pub fn seek(&mut self, pos: u64, block: &mut bgzf::Block) -> io::Result<u64> {
-        self.inner.seek(pos, block)
-    }
-
-    pub fn records(&mut self, block: bgzf::Block) -> Records<R> {
-        Records::new(self, block)
+        Ok(())
     }
 }
 
@@ -238,15 +233,13 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
 
 pub struct Records<'a, R: Read + Seek> {
     reader: &'a mut Reader<R>,
-    block: bgzf::Block,
     record: Record,
 }
 
 impl<'a, R: Read + Seek> Records<'a, R> {
-    pub fn new(reader: &'a mut Reader<R>, block: bgzf::Block) -> Records<R> {
+    pub fn new(reader: &'a mut Reader<R>) -> Records<R> {
         Self {
             reader,
-            block,
             record: Record::new(),
         }
     }
@@ -256,7 +249,7 @@ impl<'a, R: Read + Seek> Iterator for Records<'a, R> {
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(&mut self.block, &mut self.record) {
+        match self.reader.read_record(&mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
