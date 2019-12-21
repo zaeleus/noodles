@@ -5,10 +5,14 @@ use flate2::read::DeflateDecoder;
 
 use super::Block;
 
+const HEADER_LEN: usize = 18;
+const TRAILER_LEN: usize = 8;
+const XLEN: usize = 6;
+
 pub struct Reader<R: Read + Seek> {
     inner: R,
     position: u64,
-    buf: Vec<u8>,
+    cdata: Vec<u8>,
 }
 
 impl<R: Read + Seek> Reader<R> {
@@ -16,7 +20,7 @@ impl<R: Read + Seek> Reader<R> {
         Self {
             inner,
             position: 0,
-            buf: Vec::new(),
+            cdata: Vec::new(),
         }
     }
 
@@ -26,23 +30,24 @@ impl<R: Read + Seek> Reader<R> {
 
     pub fn read_block(&mut self, block: &mut Block) -> io::Result<usize> {
         // gzip header
-        let mut header = [0; 18];
+        let mut header = [0; HEADER_LEN];
+
         if let Err(_) = self.inner.read_exact(&mut header) {
             return Ok(0);
         }
 
         let bsize = &header[16..18];
-        let block_size = LittleEndian::read_u16(bsize);
+        let block_size = LittleEndian::read_u16(bsize) as usize;
 
-        let buf_size = block_size as usize - 6 - 18 - 1;
+        let cdata_len = block_size - XLEN - header.len();
 
-        self.buf.resize(buf_size, Default::default());
-        self.inner.read_exact(&mut self.buf)?;
+        self.cdata.resize(cdata_len - 1, Default::default());
+        self.inner.read_exact(&mut self.cdata)?;
 
-        let mut trailer = [0; 8];
+        let mut trailer = [0; TRAILER_LEN];
         self.inner.read_exact(&mut trailer)?;
 
-        let mut decoder = DeflateDecoder::new(&self.buf[..]);
+        let mut decoder = DeflateDecoder::new(&self.cdata[..]);
 
         let block_buf = block.get_mut();
         block_buf.clear();
@@ -52,9 +57,9 @@ impl<R: Read + Seek> Reader<R> {
         block.set_c_offset(self.position);
         block.set_position(0);
 
-        self.position += header.len() as u64 + self.buf.len() as u64 + trailer.len() as u64;
+        self.position += HEADER_LEN as u64 + self.cdata.len() as u64 + TRAILER_LEN as u64;
 
-        Ok(block_size as usize)
+        Ok(block_size)
     }
 
     pub fn seek(&mut self, pos: u64, block: &mut Block) -> io::Result<u64> {
