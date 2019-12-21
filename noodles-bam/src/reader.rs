@@ -1,3 +1,8 @@
+pub use self::{records::Records, references::References};
+
+mod records;
+mod references;
+
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
@@ -155,71 +160,6 @@ where
     reader.read_i32::<LittleEndian>()
 }
 
-pub struct References<'a, R: Read> {
-    reader: &'a mut R,
-    i: usize,
-    len: usize,
-}
-
-impl<'a, R: Read> References<'a, R> {
-    fn new(reader: &'a mut R, len: usize) -> References<R> {
-        References { reader, i: 0, len }
-    }
-}
-
-impl<'a, R: 'a + Read> Iterator for References<'a, R> {
-    type Item = io::Result<Reference>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.i >= self.len {
-            return None;
-        }
-
-        let result = read_reference(self.reader);
-
-        self.i += 1;
-
-        Some(result)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.len, Some(self.len))
-    }
-}
-
-fn read_reference<R>(reader: &mut R) -> io::Result<Reference>
-where
-    R: Read,
-{
-    let l_name = read_l_name(reader)?;
-    let name = read_name(reader, l_name as usize)?;
-    let l_ref = read_l_ref(reader)?;
-    Ok(Reference::new(name, l_ref))
-}
-
-fn read_l_name<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
-}
-
-fn read_name<R>(reader: &mut R, l_name: usize) -> io::Result<String>
-where
-    R: Read,
-{
-    let mut buf = vec![0; l_name];
-    reader.read_exact(&mut buf)?;
-    bytes_with_nul_to_string(&buf)
-}
-
-fn read_l_ref<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
-}
-
 fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
     CStr::from_bytes_with_nul(buf)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -229,30 +169,4 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
                 .map(|s| s.to_string())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
-}
-
-pub struct Records<'a, R: Read + Seek> {
-    reader: &'a mut Reader<R>,
-    record: Record,
-}
-
-impl<'a, R: Read + Seek> Records<'a, R> {
-    pub fn new(reader: &'a mut Reader<R>) -> Records<R> {
-        Self {
-            reader,
-            record: Record::new(),
-        }
-    }
-}
-
-impl<'a, R: Read + Seek> Iterator for Records<'a, R> {
-    type Item = io::Result<Record>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(&mut self.record) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(self.record.clone())),
-            Err(e) => Some(Err(e)),
-        }
-    }
 }
