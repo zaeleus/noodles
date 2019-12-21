@@ -79,3 +79,22 @@ fn compressed_offset(offset: u64) -> u64 {
 fn uncompressed_offset(offset: u64) -> u64 {
     offset & 0xffff
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compressed_offset() {
+        assert_eq!(compressed_offset(88384945211), 1348647);
+        assert_eq!(compressed_offset(188049630896), 2869409);
+        assert_eq!(compressed_offset(26155658182977), 399103671);
+    }
+
+    #[test]
+    fn test_uncompressed_offset() {
+        assert_eq!(uncompressed_offset(88384945211), 15419);
+        assert_eq!(uncompressed_offset(188049630896), 42672);
+        assert_eq!(uncompressed_offset(26155658182977), 321);
+    }
+}
