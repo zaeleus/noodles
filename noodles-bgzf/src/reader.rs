@@ -9,13 +9,13 @@ const HEADER_LEN: usize = 18;
 const TRAILER_LEN: usize = 8;
 const XLEN: usize = 6;
 
-pub struct Reader<R: Read + Seek> {
+pub struct Reader<R: Read> {
     inner: R,
     position: u64,
     cdata: Vec<u8>,
 }
 
-impl<R: Read + Seek> Reader<R> {
+impl<R: Read> Reader<R> {
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -61,7 +61,9 @@ impl<R: Read + Seek> Reader<R> {
 
         Ok(block_size)
     }
+}
 
+impl<R: Read + Seek> Reader<R> {
     pub fn seek(&mut self, pos: u64, block: &mut Block) -> io::Result<u64> {
         let c_offset = compressed_offset(pos);
         let u_offset = uncompressed_offset(pos);

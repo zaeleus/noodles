@@ -21,12 +21,12 @@ pub type Meta = (Header, Vec<Reference>);
 
 const BLOCK_SIZE_LEN: usize = 4;
 
-pub struct Reader<R: Read + Seek> {
+pub struct Reader<R: Read> {
     inner: bgzf::Reader<R>,
     block: bgzf::Block,
 }
 
-impl<R: Read + Seek> Reader<R> {
+impl<R: Read> Reader<R> {
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
@@ -74,19 +74,8 @@ impl<R: Read + Seek> Reader<R> {
         Ok(block_size)
     }
 
-    pub fn seek(&mut self, pos: u64) -> io::Result<u64> {
-        self.inner.seek(pos, &mut self.block)
-    }
-
     pub fn records(&mut self) -> Records<R> {
         Records::new(self)
-    }
-
-    pub fn query(&mut self, index_ref: &bai::Reference, start: i32, end: i32) -> Query<R> {
-        let query_bins = bai::query(&index_ref.bins, start as u64, end as u64);
-        let chunks: Vec<&bai::Chunk> = query_bins.iter().flat_map(|bin| bin.chunks()).collect();
-        let merged_chunks = bai::merge_chunks(&chunks);
-        Query::new(self, merged_chunks)
     }
 
     pub fn virtual_position(&self) -> u64 {
@@ -115,6 +104,19 @@ impl<R: Read + Seek> Reader<R> {
         }
 
         Ok(())
+    }
+}
+
+impl<R: Read + Seek> Reader<R> {
+    pub fn seek(&mut self, pos: u64) -> io::Result<u64> {
+        self.inner.seek(pos, &mut self.block)
+    }
+
+    pub fn query(&mut self, index_ref: &bai::Reference, start: i32, end: i32) -> Query<R> {
+        let query_bins = bai::query(&index_ref.bins, start as u64, end as u64);
+        let chunks: Vec<&bai::Chunk> = query_bins.iter().flat_map(|bin| bin.chunks()).collect();
+        let merged_chunks = bai::merge_chunks(&chunks);
+        Query::new(self, merged_chunks)
     }
 }
 

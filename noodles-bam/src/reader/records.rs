@@ -1,15 +1,15 @@
-use std::io::{self, Read, Seek};
+use std::io::{self, Read};
 
 use crate::Record;
 
 use super::Reader;
 
-pub struct Records<'a, R: Read + Seek> {
+pub struct Records<'a, R: Read> {
     reader: &'a mut Reader<R>,
     record: Record,
 }
 
-impl<'a, R: Read + Seek> Records<'a, R> {
+impl<'a, R: Read> Records<'a, R> {
     pub fn new(reader: &'a mut Reader<R>) -> Records<R> {
         Self {
             reader,
@@ -18,7 +18,7 @@ impl<'a, R: Read + Seek> Records<'a, R> {
     }
 }
 
-impl<'a, R: Read + Seek> Iterator for Records<'a, R> {
+impl<'a, R: Read> Iterator for Records<'a, R> {
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
