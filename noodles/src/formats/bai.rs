@@ -197,7 +197,9 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
 }
 
 pub fn merge_chunks(chunks: &[&Chunk]) -> Vec<Chunk> {
-    assert!(!chunks.is_empty());
+    if chunks.is_empty() {
+        return Vec::new();
+    }
 
     let mut chunks: Vec<Chunk> = chunks.iter().map(|c| **c).collect();
     chunks.sort_unstable_by_key(|c| c.start());
