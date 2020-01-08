@@ -10,13 +10,20 @@ pub struct Interval {
     ioffset: u64,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
     chunk_beg: u64,
     chunk_end: u64,
 }
 
 impl Chunk {
+    pub fn new(start: u64, end: u64) -> Self {
+        Self {
+            chunk_beg: start,
+            chunk_end: end,
+        }
+    }
+
     pub fn start(&self) -> u64 {
         self.chunk_beg
     }
@@ -196,12 +203,12 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
     query_bins
 }
 
-pub fn merge_chunks(chunks: &[&Chunk]) -> Vec<Chunk> {
+pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
     if chunks.is_empty() {
         return Vec::new();
     }
 
-    let mut chunks: Vec<Chunk> = chunks.iter().map(|c| **c).collect();
+    let mut chunks = chunks.to_vec();
     chunks.sort_unstable_by_key(|c| c.start());
 
     let mut merged_chunks = Vec::with_capacity(chunks.len());
@@ -221,4 +228,33 @@ pub fn merge_chunks(chunks: &[&Chunk]) -> Vec<Chunk> {
     }
 
     merged_chunks
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_merge_chunks() {
+        let chunks = [
+            Chunk::new(2, 5),
+            Chunk::new(3, 4),
+            Chunk::new(5, 7),
+            Chunk::new(9, 12),
+            Chunk::new(10, 15),
+            Chunk::new(16, 21),
+        ];
+
+        let actual = merge_chunks(&chunks);
+        let expected = [Chunk::new(2, 7), Chunk::new(9, 15), Chunk::new(16, 21)];
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_merge_chunks_with_empty_list() {
+        let chunks = Vec::new();
+        let merged_chunks = merge_chunks(&chunks);
+        assert!(merged_chunks.is_empty());
+    }
 }
