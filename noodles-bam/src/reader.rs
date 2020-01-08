@@ -114,8 +114,15 @@ impl<R: Read + Seek> Reader<R> {
 
     pub fn query(&mut self, index_ref: &bai::Reference, start: i32, end: i32) -> Query<R> {
         let query_bins = bai::query(&index_ref.bins, start as u64, end as u64);
-        let chunks: Vec<&bai::Chunk> = query_bins.iter().flat_map(|bin| bin.chunks()).collect();
+
+        let chunks: Vec<_> = query_bins
+            .iter()
+            .flat_map(|bin| bin.chunks())
+            .cloned()
+            .collect();
+
         let merged_chunks = bai::merge_chunks(&chunks);
+
         Query::new(self, merged_chunks)
     }
 }
