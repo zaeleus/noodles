@@ -133,15 +133,15 @@ mod tests {
 
     fn build_string_record() -> StringRecord {
         StringRecord::from(vec![
-           "chr1",
-           "HAVANA",
-           "gene",
-           "11869",
-           "14409",
-           "0.448",
-           "+",
-           "1",
-           r#"gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";"#
+            "chr1",
+            "HAVANA",
+            "gene",
+            "11869",
+            "14409",
+            "0.448",
+            "+",
+            "1",
+            r#"gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";"#,
         ])
     }
 
