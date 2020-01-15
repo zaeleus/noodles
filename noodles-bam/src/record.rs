@@ -1,5 +1,5 @@
 use std::{
-    mem,
+    fmt, mem,
     ops::{Deref, DerefMut},
 };
 
@@ -155,6 +155,25 @@ impl Deref for Record {
 impl DerefMut for Record {
     fn deref_mut(&mut self) -> &mut [u8] {
         &mut self.0
+    }
+}
+
+impl fmt::Debug for Record {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("Record")
+            .field("block_size", &self.block_size())
+            .field("ref_id", &self.ref_id())
+            .field("pos", &self.pos())
+            .field("l_read_name", &self.l_read_name())
+            .field("mapq", &self.mapq())
+            .field("bin", &self.bin())
+            .field("n_cigar_op", &self.n_cigar_op())
+            .field("flag", &self.flag())
+            .field("l_seq", &self.l_seq())
+            .field("next_ref_id", &self.next_ref_id())
+            .field("next_pos", &self.next_pos())
+            .field("tlen", &self.tlen())
+            .finish()
     }
 }
 
