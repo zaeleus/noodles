@@ -51,6 +51,10 @@ impl Op {
         }
     }
 
+    pub fn is_empty(self) -> bool {
+        self.len() == 0
+    }
+
     pub fn op(self) -> char {
         match self {
             Op::Match(_) => 'M',

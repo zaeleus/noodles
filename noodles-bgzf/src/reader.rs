@@ -32,7 +32,7 @@ impl<R: Read> Reader<R> {
         // gzip header
         let mut header = [0; HEADER_LEN];
 
-        if let Err(_) = self.inner.read_exact(&mut header) {
+        if self.inner.read_exact(&mut header).is_err() {
             return Ok(0);
         }
 
@@ -80,7 +80,7 @@ impl<R: Read + Seek> Reader<R> {
 
 fn compressed_offset(offset: u64) -> u64 {
     // is the mask necessary?
-    (offset >> 16) & 0xffffffffffff
+    (offset >> 16) & 0xffff_ffff_ffff
 }
 
 fn uncompressed_offset(offset: u64) -> u64 {
