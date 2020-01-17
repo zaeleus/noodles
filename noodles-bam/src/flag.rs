@@ -46,7 +46,12 @@ impl Flag {
         self.0 & 0x0200 != 0
     }
 
+    #[deprecated(note = "Use Flag.is_duplicate instead.")]
     pub fn is_dup(self) -> bool {
+        self.is_duplicate()
+    }
+
+    pub fn is_duplicate(self) -> bool {
         self.0 & 0x0400 != 0
     }
 
@@ -79,7 +84,7 @@ mod tests {
         assert!(!flag.is_read_2());
         assert!(!flag.is_secondary());
         assert!(!flag.is_qc_fail());
-        assert!(!flag.is_dup());
+        assert!(!flag.is_duplicate());
         assert!(!flag.is_supplementary());
     }
 
@@ -95,7 +100,7 @@ mod tests {
         assert!(Flag::from(0x80).is_read_2());
         assert!(Flag::from(0x0100).is_secondary());
         assert!(Flag::from(0x0200).is_qc_fail());
-        assert!(Flag::from(0x0400).is_dup());
+        assert!(Flag::from(0x0400).is_duplicate());
         assert!(Flag::from(0x0800).is_supplementary());
     }
 }
