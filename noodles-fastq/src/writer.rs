@@ -6,8 +6,6 @@ use std::{
 
 use flate2::{write::GzEncoder, Compression};
 
-use noodles_bam::{sequence::Complement, Record as BamRecord};
-
 use super::Record;
 
 pub struct Writer<W> {
@@ -26,33 +24,6 @@ impl<W: Write> Writer<W> {
 
     pub fn new(writer: W) -> Writer<W> {
         Writer { writer }
-    }
-
-    pub fn write_bam_record(&mut self, record: &BamRecord) -> io::Result<()> {
-        let name = record.read_name();
-
-        let (seq, qual): (String, String) = if record.flag().is_reverse() {
-            (
-                Complement::new(record.seq().symbols().rev()).collect(),
-                record.qual().chars().rev().collect(),
-            )
-        } else {
-            (
-                record.seq().symbols().collect(),
-                record.qual().chars().collect(),
-            )
-        };
-
-        self.writer.write_all(b"@")?;
-        self.writer.write_all(name)?;
-        self.writer.write_all(b"\n")?;
-        self.writer.write_all(seq.as_bytes())?;
-        self.writer.write_all(b"\n")?;
-        self.writer.write_all(b"+\n")?;
-        self.writer.write_all(qual.as_bytes())?;
-        self.writer.write_all(b"\n")?;
-
-        Ok(())
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {

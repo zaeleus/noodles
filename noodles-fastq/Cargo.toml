@@ -7,4 +7,3 @@ edition = "2018"
 
 [dependencies]
 flate2 = "1.0.1"
-noodles-bam = { path = "../noodles-bam" }
