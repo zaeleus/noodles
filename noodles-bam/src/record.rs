@@ -1,4 +1,5 @@
 use std::{
+    ffi::CStr,
     fmt, mem,
     ops::{Deref, DerefMut},
 };
@@ -160,6 +161,8 @@ impl DerefMut for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let read_name = CStr::from_bytes_with_nul(self.read_name());
+
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
             .field("ref_id", &self.ref_id())
@@ -173,6 +176,7 @@ impl fmt::Debug for Record {
             .field("next_ref_id", &self.next_ref_id())
             .field("next_pos", &self.next_pos())
             .field("tlen", &self.tlen())
+            .field("read_name", &read_name)
             .finish()
     }
 }
