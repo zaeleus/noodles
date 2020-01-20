@@ -15,15 +15,15 @@ impl Op {
         Self { kind, len }
     }
 
-    pub fn kind(&self) -> Kind {
+    pub fn kind(self) -> Kind {
         self.kind
     }
 
-    pub fn len(&self) -> u32 {
+    pub fn len(self) -> u32 {
         self.len
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub fn is_empty(self) -> bool {
         self.len == 0
     }
 }
