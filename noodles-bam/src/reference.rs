@@ -5,8 +5,8 @@ pub struct Reference {
 }
 
 impl Reference {
-    pub fn new(name: String, len: i32) -> Reference {
-        Reference { name, len }
+    pub fn new(name: String, len: i32) -> Self {
+        Self { name, len }
     }
 
     pub fn name(&self) -> &str {

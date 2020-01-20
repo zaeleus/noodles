@@ -62,7 +62,7 @@ impl Flag {
 
 impl From<u16> for Flag {
     fn from(value: u16) -> Self {
-        Flag(value)
+        Self(value)
     }
 }
 

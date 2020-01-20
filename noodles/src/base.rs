@@ -8,44 +8,44 @@ pub enum Base {
 }
 
 impl Base {
-    pub fn from_char(c: char) -> Result<Base, ()> {
+    pub fn from_char(c: char) -> Result<Self, ()> {
         match c {
-            'A' => Ok(Base::A),
-            'C' => Ok(Base::C),
-            'G' => Ok(Base::G),
-            'T' => Ok(Base::T),
-            'U' => Ok(Base::U),
+            'A' => Ok(Self::A),
+            'C' => Ok(Self::C),
+            'G' => Ok(Self::G),
+            'T' => Ok(Self::T),
+            'U' => Ok(Self::U),
             _ => Err(()),
         }
     }
 
-    pub fn complement(&self) -> Base {
+    pub fn complement(&self) -> Self {
         match self {
-            Base::A => Base::T,
-            Base::C => Base::G,
-            Base::G => Base::C,
-            Base::T => Base::A,
-            Base::U => Base::A,
+            Self::A => Self::T,
+            Self::C => Self::G,
+            Self::G => Self::C,
+            Self::T => Self::A,
+            Self::U => Self::A,
         }
     }
 
     pub fn description(&self) -> &'static str {
         match self {
-            Base::A => "adenine",
-            Base::C => "cytosine",
-            Base::G => "guanine",
-            Base::T => "thymine",
-            Base::U => "uracil",
+            Self::A => "adenine",
+            Self::C => "cytosine",
+            Self::G => "guanine",
+            Self::T => "thymine",
+            Self::U => "uracil",
         }
     }
 
     pub fn symbol(&self) -> char {
         match self {
-            Base::A => 'A',
-            Base::C => 'C',
-            Base::G => 'G',
-            Base::T => 'T',
-            Base::U => 'U',
+            Self::A => 'A',
+            Self::C => 'C',
+            Self::G => 'G',
+            Self::T => 'T',
+            Self::U => 'U',
         }
     }
 }

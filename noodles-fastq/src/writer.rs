@@ -22,8 +22,8 @@ impl<W: Write> Writer<W> {
         Ok(Writer::new(writer))
     }
 
-    pub fn new(writer: W) -> Writer<W> {
-        Writer { writer }
+    pub fn new(writer: W) -> Self {
+        Self { writer }
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {

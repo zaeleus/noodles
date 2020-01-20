@@ -39,8 +39,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct Record(StringRecord);
 
 impl Record {
-    pub fn new(inner: StringRecord) -> Record {
-        Record(inner)
+    pub fn new(inner: StringRecord) -> Self {
+        Self(inner)
     }
 
     pub fn seq_name(&self) -> self::Result<&str> {

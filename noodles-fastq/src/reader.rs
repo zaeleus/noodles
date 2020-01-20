@@ -13,8 +13,8 @@ pub struct Reader<R: BufRead> {
 }
 
 impl<R: BufRead> Reader<R> {
-    pub fn new(reader: R) -> Reader<R> {
-        Reader { reader }
+    pub fn new(reader: R) -> Self {
+        Self { reader }
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {

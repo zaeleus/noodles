@@ -70,8 +70,8 @@ pub struct Reader<R: Read> {
 }
 
 impl<R: Read> Reader<R> {
-    pub fn new(inner: R) -> Reader<R> {
-        Reader { inner }
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     pub fn header(&mut self) -> io::Result<()> {

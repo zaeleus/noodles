@@ -9,18 +9,18 @@ pub enum Strand {
 }
 
 impl Default for Strand {
-    fn default() -> Strand {
-        Strand::Irrelevant
+    fn default() -> Self {
+        Self::Irrelevant
     }
 }
 
 impl fmt::Display for Strand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
-            Strand::Forward => '+',
-            Strand::Reverse => '-',
-            Strand::Irrelevant => '.',
-            Strand::Unknown => '?',
+            Self::Forward => '+',
+            Self::Reverse => '-',
+            Self::Irrelevant => '.',
+            Self::Unknown => '?',
         };
 
         write!(f, "{}", s)
@@ -32,10 +32,10 @@ impl FromStr for Strand {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "+" => Ok(Strand::Forward),
-            "-" => Ok(Strand::Reverse),
-            "." => Ok(Strand::Irrelevant),
-            "?" => Ok(Strand::Unknown),
+            "+" => Ok(Self::Forward),
+            "-" => Ok(Self::Reverse),
+            "." => Ok(Self::Irrelevant),
+            "?" => Ok(Self::Unknown),
             _ => Err(format!("invalid strand '{}'", s)),
         }
     }

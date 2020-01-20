@@ -22,42 +22,42 @@ pub enum Value {
 impl Value {
     pub fn ty(&self) -> char {
         match *self {
-            Value::Char(_) => 'A',
-            Value::Int8(_) => 'c',
-            Value::UInt8(_) => 'C',
-            Value::Int16(_) => 's',
-            Value::UInt16(_) => 'S',
-            Value::Int32(_) => 'i',
-            Value::UInt32(_) => 'I',
-            Value::Float(_) => 'f',
-            Value::String(_) => 'Z',
-            Value::Hex(_) => 'H',
-            Value::Int8Array(_) => 'B',
-            Value::UInt8Array(_) => 'B',
-            Value::Int16Array(_) => 'B',
-            Value::UInt16Array(_) => 'B',
-            Value::Int32Array(_) => 'B',
-            Value::UInt32Array(_) => 'B',
-            Value::FloatArray(_) => 'B',
+            Self::Char(_) => 'A',
+            Self::Int8(_) => 'c',
+            Self::UInt8(_) => 'C',
+            Self::Int16(_) => 's',
+            Self::UInt16(_) => 'S',
+            Self::Int32(_) => 'i',
+            Self::UInt32(_) => 'I',
+            Self::Float(_) => 'f',
+            Self::String(_) => 'Z',
+            Self::Hex(_) => 'H',
+            Self::Int8Array(_) => 'B',
+            Self::UInt8Array(_) => 'B',
+            Self::Int16Array(_) => 'B',
+            Self::UInt16Array(_) => 'B',
+            Self::Int32Array(_) => 'B',
+            Self::UInt32Array(_) => 'B',
+            Self::FloatArray(_) => 'B',
         }
     }
 
     pub fn subtype(&self) -> Option<char> {
         match *self {
-            Value::Int8Array(_) => Some('c'),
-            Value::UInt8Array(_) => Some('C'),
-            Value::Int16Array(_) => Some('s'),
-            Value::UInt16Array(_) => Some('S'),
-            Value::Int32Array(_) => Some('i'),
-            Value::UInt32Array(_) => Some('I'),
-            Value::FloatArray(_) => Some('f'),
+            Self::Int8Array(_) => Some('c'),
+            Self::UInt8Array(_) => Some('C'),
+            Self::Int16Array(_) => Some('s'),
+            Self::UInt16Array(_) => Some('S'),
+            Self::Int32Array(_) => Some('i'),
+            Self::UInt32Array(_) => Some('I'),
+            Self::FloatArray(_) => Some('f'),
             _ => None,
         }
     }
 
     pub fn as_char(&self) -> Option<char> {
         match *self {
-            Value::Char(c) => Some(c),
+            Self::Char(c) => Some(c),
             _ => None,
         }
     }
@@ -68,7 +68,7 @@ impl Value {
 
     pub fn as_int8(&self) -> Option<i8> {
         match *self {
-            Value::Int8(b) => Some(b),
+            Self::Int8(b) => Some(b),
             _ => None,
         }
     }
@@ -79,7 +79,7 @@ impl Value {
 
     pub fn as_uint8(&self) -> Option<u8> {
         match *self {
-            Value::UInt8(b) => Some(b),
+            Self::UInt8(b) => Some(b),
             _ => None,
         }
     }
@@ -90,7 +90,7 @@ impl Value {
 
     pub fn as_int16(&self) -> Option<i16> {
         match *self {
-            Value::Int16(s) => Some(s),
+            Self::Int16(s) => Some(s),
             _ => None,
         }
     }
@@ -101,7 +101,7 @@ impl Value {
 
     pub fn as_uint16(&self) -> Option<u16> {
         match *self {
-            Value::UInt16(s) => Some(s),
+            Self::UInt16(s) => Some(s),
             _ => None,
         }
     }
@@ -112,7 +112,7 @@ impl Value {
 
     pub fn as_int32(&self) -> Option<i32> {
         match *self {
-            Value::Int32(i) => Some(i),
+            Self::Int32(i) => Some(i),
             _ => None,
         }
     }
@@ -123,7 +123,7 @@ impl Value {
 
     pub fn as_uint32(&self) -> Option<u32> {
         match *self {
-            Value::UInt32(i) => Some(i),
+            Self::UInt32(i) => Some(i),
             _ => None,
         }
     }
@@ -134,7 +134,7 @@ impl Value {
 
     pub fn as_float(&self) -> Option<f32> {
         match *self {
-            Value::Float(s) => Some(s),
+            Self::Float(s) => Some(s),
             _ => None,
         }
     }
@@ -145,7 +145,7 @@ impl Value {
 
     pub fn as_str(&self) -> Option<&str> {
         match *self {
-            Value::String(ref s) => Some(s),
+            Self::String(ref s) => Some(s),
             _ => None,
         }
     }
@@ -156,7 +156,7 @@ impl Value {
 
     pub fn as_hex(&self) -> Option<&str> {
         match *self {
-            Value::Hex(ref h) => Some(h),
+            Self::Hex(ref h) => Some(h),
             _ => None,
         }
     }
@@ -167,7 +167,7 @@ impl Value {
 
     pub fn as_int8_array(&self) -> Option<&[i8]> {
         match *self {
-            Value::Int8Array(ref a) => Some(a),
+            Self::Int8Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -178,7 +178,7 @@ impl Value {
 
     pub fn as_uint8_array(&self) -> Option<&[u8]> {
         match *self {
-            Value::UInt8Array(ref a) => Some(a),
+            Self::UInt8Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -189,7 +189,7 @@ impl Value {
 
     pub fn as_int16_array(&self) -> Option<&[i16]> {
         match *self {
-            Value::Int16Array(ref a) => Some(a),
+            Self::Int16Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -200,7 +200,7 @@ impl Value {
 
     pub fn as_uint16_array(&self) -> Option<&[u16]> {
         match *self {
-            Value::UInt16Array(ref a) => Some(a),
+            Self::UInt16Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -211,7 +211,7 @@ impl Value {
 
     pub fn as_int32_array(&self) -> Option<&[i32]> {
         match *self {
-            Value::Int32Array(ref a) => Some(a),
+            Self::Int32Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -222,7 +222,7 @@ impl Value {
 
     pub fn as_uint32_array(&self) -> Option<&[u32]> {
         match *self {
-            Value::UInt32Array(ref a) => Some(a),
+            Self::UInt32Array(ref a) => Some(a),
             _ => None,
         }
     }
@@ -233,7 +233,7 @@ impl Value {
 
     pub fn as_float_array(&self) -> Option<&[f32]> {
         match *self {
-            Value::FloatArray(ref a) => Some(a),
+            Self::FloatArray(ref a) => Some(a),
             _ => None,
         }
     }

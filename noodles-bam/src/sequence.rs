@@ -24,43 +24,43 @@ impl Base {
     // https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation
     pub fn complement(self) -> Self {
         match self {
-            Base::Eq => Base::Eq,
-            Base::A => Base::T,
-            Base::C => Base::G,
-            Base::G => Base::C,
-            Base::T => Base::A,
-            Base::W => Base::W,
-            Base::S => Base::S,
-            Base::M => Base::K,
-            Base::K => Base::M,
-            Base::R => Base::Y,
-            Base::Y => Base::R,
-            Base::B => Base::V,
-            Base::D => Base::H,
-            Base::H => Base::D,
-            Base::V => Base::B,
-            Base::N => Base::N,
+            Self::Eq => Self::Eq,
+            Self::A => Self::T,
+            Self::C => Self::G,
+            Self::G => Self::C,
+            Self::T => Self::A,
+            Self::W => Self::W,
+            Self::S => Self::S,
+            Self::M => Self::K,
+            Self::K => Self::M,
+            Self::R => Self::Y,
+            Self::Y => Self::R,
+            Self::B => Self::V,
+            Self::D => Self::H,
+            Self::H => Self::D,
+            Self::V => Self::B,
+            Self::N => Self::N,
         }
     }
 
     pub fn symbol(self) -> char {
         match self {
-            Base::Eq => '=',
-            Base::A => 'A',
-            Base::C => 'C',
-            Base::G => 'G',
-            Base::T => 'T',
-            Base::W => 'W',
-            Base::S => 'S',
-            Base::M => 'M',
-            Base::K => 'K',
-            Base::R => 'R',
-            Base::Y => 'Y',
-            Base::B => 'B',
-            Base::D => 'D',
-            Base::H => 'H',
-            Base::V => 'V',
-            Base::N => 'N',
+            Self::Eq => '=',
+            Self::A => 'A',
+            Self::C => 'C',
+            Self::G => 'G',
+            Self::T => 'T',
+            Self::W => 'W',
+            Self::S => 'S',
+            Self::M => 'M',
+            Self::K => 'K',
+            Self::R => 'R',
+            Self::Y => 'Y',
+            Self::B => 'B',
+            Self::D => 'D',
+            Self::H => 'H',
+            Self::V => 'V',
+            Self::N => 'N',
         }
     }
 }
@@ -97,8 +97,8 @@ pub struct Sequence<'a> {
 }
 
 impl<'a> Sequence<'a> {
-    pub fn new(seq: &[u8], n_chars: usize) -> Sequence {
-        Sequence { seq, n_chars }
+    pub fn new(seq: &'a [u8], n_chars: usize) -> Self {
+        Self { seq, n_chars }
     }
 
     pub fn n_chars(&self) -> usize {
@@ -183,8 +183,8 @@ pub struct Complement<I> {
 }
 
 impl<I: Iterator<Item = Base>> Complement<I> {
-    pub fn new(iter: I) -> Complement<I> {
-        Complement { iter }
+    pub fn new(iter: I) -> Self {
+        Self { iter }
     }
 }
 

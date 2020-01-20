@@ -7,11 +7,11 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new<T>(tag: T, value: Value) -> Field
+    pub fn new<T>(tag: T, value: Value) -> Self
     where
         T: Into<String>,
     {
-        Field {
+        Self {
             tag: tag.into(),
             value,
         }

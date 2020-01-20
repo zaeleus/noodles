@@ -11,12 +11,12 @@ use super::{Cigar, Data, Flag, Quality, Sequence};
 pub struct Record(Vec<u8>);
 
 impl Record {
-    pub fn new() -> Record {
-        Record::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    pub fn with_capacity(capacity: usize) -> Record {
-        Record(Vec::with_capacity(capacity))
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self(Vec::with_capacity(capacity))
     }
 
     pub fn resize(&mut self, new_len: usize) {
@@ -178,8 +178,8 @@ impl fmt::Debug for Record {
 }
 
 impl From<Vec<u8>> for Record {
-    fn from(bytes: Vec<u8>) -> Record {
-        Record(bytes)
+    fn from(bytes: Vec<u8>) -> Self {
+        Self(bytes)
     }
 }
 
