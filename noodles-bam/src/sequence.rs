@@ -65,9 +65,9 @@ impl Base {
     }
 }
 
-impl Into<char> for Base {
-    fn into(self) -> char {
-        self.symbol()
+impl From<Base> for char {
+    fn from(base: Base) -> Self {
+        base.symbol()
     }
 }
 
