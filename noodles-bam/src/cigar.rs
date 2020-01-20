@@ -1,8 +1,10 @@
+pub use self::kind::Kind;
 pub use self::op::Op;
 
+pub mod kind;
 pub mod op;
 
-use std::{fmt, mem, ops::Deref};
+use std::{convert::TryFrom, fmt, mem, ops::Deref};
 
 #[derive(Debug)]
 pub struct Cigar<'a>(&'a [u8]);
@@ -21,12 +23,10 @@ impl<'a> Cigar<'a> {
 
     pub fn mapped_len(&self) -> u32 {
         self.ops()
-            .filter_map(|op| match op {
-                Op::Match(len)
-                | Op::Deletion(len)
-                | Op::Skip(len)
-                | Op::SeqMatch(len)
-                | Op::SeqMismatch(len) => Some(len),
+            .filter_map(|op| match op.kind() {
+                Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
+                    Some(op.len())
+                }
                 _ => None,
             })
             .sum()
@@ -65,8 +65,12 @@ impl<'a> Iterator for Ops<'a> {
 
         if start < self.cigar.len() {
             let end = start + size;
-            let op = Op::from_bytes(&self.cigar[start..end]);
+
+            let data = &self.cigar[start..end];
+            let op = Op::try_from(data).unwrap();
+
             self.i += 1;
+
             Some(op)
         } else {
             None
@@ -76,6 +80,8 @@ impl<'a> Iterator for Ops<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use super::*;
 
     #[test]
@@ -83,8 +89,8 @@ mod tests {
         let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
         let cigar = Cigar::new(&bytes);
         let mut ops = cigar.ops();
-        assert_eq!(ops.next(), Some(Op::from_u32(0x240)));
-        assert_eq!(ops.next(), Some(Op::from_u32(0x362)));
+        assert_eq!(ops.next(), Some(Op::try_from(0x240).unwrap()));
+        assert_eq!(ops.next(), Some(Op::try_from(0x362).unwrap()));
         assert_eq!(ops.next(), None);
     }
 }

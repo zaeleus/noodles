@@ -1,166 +1,152 @@
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 
 use byteorder::{ByteOrder, LittleEndian};
 
+use super::Kind;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Op {
-    Match(u32),
-    Insertion(u32),
-    Deletion(u32),
-    Skip(u32),
-    SoftClip(u32),
-    HardClip(u32),
-    Pad(u32),
-    SeqMatch(u32),
-    SeqMismatch(u32),
+pub struct Op {
+    kind: Kind,
+    len: u32,
 }
 
 impl Op {
-    pub fn from_bytes(bytes: &[u8]) -> Op {
-        Op::from_u32(LittleEndian::read_u32(bytes))
+    pub fn new(kind: Kind, len: u32) -> Self {
+        Self { kind, len }
     }
 
-    pub fn from_u32(u: u32) -> Op {
+    pub fn kind(&self) -> Kind {
+        self.kind
+    }
+
+    pub fn len(&self) -> u32 {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+
+impl TryFrom<u32> for Op {
+    type Error = ();
+
+    fn try_from(u: u32) -> Result<Self, Self::Error> {
         let len = u >> 4;
 
-        match u & 0x0f {
-            0 => Op::Match(len),
-            1 => Op::Insertion(len),
-            2 => Op::Deletion(len),
-            3 => Op::Skip(len),
-            4 => Op::SoftClip(len),
-            5 => Op::HardClip(len),
-            6 => Op::Pad(len),
-            7 => Op::SeqMatch(len),
-            8 => Op::SeqMismatch(len),
-            _ => panic!("invalid CIGAR op"),
-        }
-    }
+        let kind = match u & 0x0f {
+            0 => Kind::Match,
+            1 => Kind::Insertion,
+            2 => Kind::Deletion,
+            3 => Kind::Skip,
+            4 => Kind::SoftClip,
+            5 => Kind::HardClip,
+            6 => Kind::Pad,
+            7 => Kind::SeqMatch,
+            8 => Kind::SeqMismatch,
+            _ => return Err(()),
+        };
 
-    pub fn len(self) -> u32 {
-        match self {
-            Op::Match(len) => len,
-            Op::Insertion(len) => len,
-            Op::Deletion(len) => len,
-            Op::Skip(len) => len,
-            Op::SoftClip(len) => len,
-            Op::HardClip(len) => len,
-            Op::Pad(len) => len,
-            Op::SeqMatch(len) => len,
-            Op::SeqMismatch(len) => len,
-        }
+        Ok(Self::new(kind, len))
     }
+}
 
-    pub fn is_empty(self) -> bool {
-        self.len() == 0
-    }
+impl TryFrom<&[u8]> for Op {
+    type Error = ();
 
-    pub fn op(self) -> char {
-        match self {
-            Op::Match(_) => 'M',
-            Op::Insertion(_) => 'I',
-            Op::Deletion(_) => 'D',
-            Op::Skip(_) => 'N',
-            Op::SoftClip(_) => 'S',
-            Op::HardClip(_) => 'H',
-            Op::Pad(_) => 'P',
-            Op::SeqMatch(_) => '=',
-            Op::SeqMismatch(_) => 'X',
-        }
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        let u = LittleEndian::read_u32(bytes);
+        Self::try_from(u)
     }
 }
 
 impl fmt::Display for Op {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}", self.len(), self.op())
+        write!(f, "{}{}", self.len(), self.kind())
     }
 }
 
 impl From<Op> for u32 {
     fn from(op: Op) -> u32 {
-        let (i, len) = match op {
-            Op::Match(len) => (0, len),
-            Op::Insertion(len) => (1, len),
-            Op::Deletion(len) => (2, len),
-            Op::Skip(len) => (3, len),
-            Op::SoftClip(len) => (4, len),
-            Op::HardClip(len) => (5, len),
-            Op::Pad(len) => (6, len),
-            Op::SeqMatch(len) => (7, len),
-            Op::SeqMismatch(len) => (8, len),
-        };
-
-        len << 4 | i
+        let i = op.kind() as u32;
+        op.len() << 4 | i
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use crate::cigar::Kind;
+
     use super::Op;
 
     #[test]
-    fn test_from_u32() {
-        assert_eq!(Op::from_u32(1 << 4 | 0), Op::Match(1));
-        assert_eq!(Op::from_u32(2 << 4 | 1), Op::Insertion(2));
-        assert_eq!(Op::from_u32(3 << 4 | 2), Op::Deletion(3));
-        assert_eq!(Op::from_u32(4 << 4 | 3), Op::Skip(4));
-        assert_eq!(Op::from_u32(5 << 4 | 4), Op::SoftClip(5));
-        assert_eq!(Op::from_u32(6 << 4 | 5), Op::HardClip(6));
-        assert_eq!(Op::from_u32(7 << 4 | 6), Op::Pad(7));
-        assert_eq!(Op::from_u32(8 << 4 | 7), Op::SeqMatch(8));
-        assert_eq!(Op::from_u32(9 << 4 | 8), Op::SeqMismatch(9));
+    fn test_new() {
+        let op = Op::new(Kind::Match, 13);
+        assert_eq!(op.kind, Kind::Match);
+        assert_eq!(op.len, 13);
     }
 
     #[test]
-    #[should_panic]
-    fn test_from_u32_with_invalid_op() {
-        Op::from_u32(1 << 4 | 9);
+    fn test_kind() {
+        let op = Op::new(Kind::SoftClip, 13);
+        assert_eq!(op.kind(), Kind::SoftClip);
     }
 
     #[test]
     fn test_len() {
-        assert_eq!(Op::Match(1).len(), 1);
-        assert_eq!(Op::Insertion(2).len(), 2);
-        assert_eq!(Op::Deletion(3).len(), 3);
-        assert_eq!(Op::Skip(4).len(), 4);
-        assert_eq!(Op::SoftClip(5).len(), 5);
-        assert_eq!(Op::HardClip(6).len(), 6);
-        assert_eq!(Op::Pad(7).len(), 7);
-        assert_eq!(Op::SeqMatch(8).len(), 8);
-        assert_eq!(Op::SeqMismatch(9).len(), 9);
+        let op = Op::new(Kind::Match, 1);
+        assert_eq!(op.len(), 1);
     }
 
     #[test]
-    fn test_op() {
-        assert_eq!(Op::Match(1).op(), 'M');
-        assert_eq!(Op::Insertion(1).op(), 'I');
-        assert_eq!(Op::Deletion(1).op(), 'D');
-        assert_eq!(Op::Skip(1).op(), 'N');
-        assert_eq!(Op::SoftClip(1).op(), 'S');
-        assert_eq!(Op::HardClip(1).op(), 'H');
-        assert_eq!(Op::Pad(1).op(), 'P');
-        assert_eq!(Op::SeqMatch(1).op(), '=');
-        assert_eq!(Op::SeqMismatch(1).op(), 'X');
+    fn test_is_empty() {
+        let op = Op::new(Kind::Match, 0);
+        assert!(op.is_empty());
+
+        let op = Op::new(Kind::Match, 1);
+        assert!(!op.is_empty());
+    }
+
+    #[test]
+    fn test_try_from_u32() {
+        assert_eq!(Op::try_from(1 << 4 | 0), Ok(Op::new(Kind::Match, 1)));
+        assert_eq!(Op::try_from(2 << 4 | 1), Ok(Op::new(Kind::Insertion, 2)));
+        assert_eq!(Op::try_from(3 << 4 | 2), Ok(Op::new(Kind::Deletion, 3)));
+        assert_eq!(Op::try_from(4 << 4 | 3), Ok(Op::new(Kind::Skip, 4)));
+        assert_eq!(Op::try_from(5 << 4 | 4), Ok(Op::new(Kind::SoftClip, 5)));
+        assert_eq!(Op::try_from(6 << 4 | 5), Ok(Op::new(Kind::HardClip, 6)));
+        assert_eq!(Op::try_from(7 << 4 | 6), Ok(Op::new(Kind::Pad, 7)));
+        assert_eq!(Op::try_from(8 << 4 | 7), Ok(Op::new(Kind::SeqMatch, 8)));
+        assert_eq!(Op::try_from(9 << 4 | 8), Ok(Op::new(Kind::SeqMismatch, 9)));
+        assert!(Op::try_from(10 << 4 | 9).is_err());
+    }
+
+    #[test]
+    fn test_try_from_u8_slice() {
+        let bytes = [0x40, 0x02, 0x00, 0x00];
+        assert_eq!(Op::try_from(&bytes[..]), Ok(Op::new(Kind::Match, 36)));
     }
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Op::Match(32)), "32M");
-        assert_eq!(format!("{}", Op::Deletion(7)), "7D");
-        assert_eq!(format!("{}", Op::Skip(11)), "11N");
-        assert_eq!(format!("{}", Op::Pad(188)), "188P");
+        assert_eq!(format!("{}", Op::new(Kind::Match, 32)), "32M");
+        assert_eq!(format!("{}", Op::new(Kind::Deletion, 7)), "7D");
+        assert_eq!(format!("{}", Op::new(Kind::Skip, 11)), "11N");
+        assert_eq!(format!("{}", Op::new(Kind::Pad, 188)), "188P");
     }
 
     #[test]
     fn test_from_op_for_u32() {
-        assert_eq!(u32::from(Op::Match(1)), 1 << 4 | 0);
-        assert_eq!(u32::from(Op::Insertion(2)), 2 << 4 | 1);
-        assert_eq!(u32::from(Op::Deletion(3)), 3 << 4 | 2);
-        assert_eq!(u32::from(Op::Skip(4)), 4 << 4 | 3);
-        assert_eq!(u32::from(Op::SoftClip(5)), 5 << 4 | 4);
-        assert_eq!(u32::from(Op::HardClip(6)), 6 << 4 | 5);
-        assert_eq!(u32::from(Op::Pad(7)), 7 << 4 | 6);
-        assert_eq!(u32::from(Op::SeqMatch(8)), 8 << 4 | 7);
-        assert_eq!(u32::from(Op::SeqMismatch(9)), 9 << 4 | 8);
+        assert_eq!(u32::from(Op::new(Kind::Match, 1)), 1 << 4 | 0);
+        assert_eq!(u32::from(Op::new(Kind::Insertion, 2)), 2 << 4 | 1);
+        assert_eq!(u32::from(Op::new(Kind::Deletion, 3)), 3 << 4 | 2);
+        assert_eq!(u32::from(Op::new(Kind::Skip, 4)), 4 << 4 | 3);
+        assert_eq!(u32::from(Op::new(Kind::SoftClip, 5)), 5 << 4 | 4);
+        assert_eq!(u32::from(Op::new(Kind::HardClip, 6)), 6 << 4 | 5);
+        assert_eq!(u32::from(Op::new(Kind::Pad, 7)), 7 << 4 | 6);
+        assert_eq!(u32::from(Op::new(Kind::SeqMatch, 8)), 8 << 4 | 7);
+        assert_eq!(u32::from(Op::new(Kind::SeqMismatch, 9)), 9 << 4 | 8);
     }
 }
