@@ -35,7 +35,7 @@ impl<'a, I: Iterator<Item = &'a u8>> Iterator for Chars<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        self.chars.next().map(|b| (b + QUALITY_OFFSET) as char)
+        self.chars.next().map(|&b| byte_to_char(b))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -45,8 +45,12 @@ impl<'a, I: Iterator<Item = &'a u8>> Iterator for Chars<I> {
 
 impl<'a, I: Iterator<Item = &'a u8> + DoubleEndedIterator> DoubleEndedIterator for Chars<I> {
     fn next_back(&mut self) -> Option<char> {
-        self.chars.next_back().map(|b| (b + QUALITY_OFFSET) as char)
+        self.chars.next_back().map(|&b| byte_to_char(b))
     }
+}
+
+fn byte_to_char(b: u8) -> char {
+    (b + QUALITY_OFFSET) as char
 }
 
 #[cfg(test)]
