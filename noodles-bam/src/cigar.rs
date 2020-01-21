@@ -1,10 +1,10 @@
-pub use self::kind::Kind;
 pub use self::op::Op;
 
-pub mod kind;
 pub mod op;
 
 use std::{convert::TryFrom, fmt, mem, ops::Deref};
+
+use crate::cigar::op::Kind;
 
 #[derive(Debug)]
 pub struct Cigar<'a>(&'a [u8]);

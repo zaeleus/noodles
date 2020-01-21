@@ -1,8 +1,10 @@
+pub use self::kind::Kind;
+
+pub mod kind;
+
 use std::{convert::TryFrom, fmt};
 
 use byteorder::{ByteOrder, LittleEndian};
-
-use super::Kind;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {
