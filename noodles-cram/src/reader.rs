@@ -1,3 +1,4 @@
+pub mod block;
 mod container;
 
 use std::io::{self, Read};
@@ -37,7 +38,12 @@ where
     }
 
     pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
-        let _header = dbg!(container::read_header(&mut self.inner)?);
+        let header = container::read_header(&mut self.inner)?;
+
+        let blocks = container.blocks_mut();
+        blocks.resize(header.len() as usize, Default::default());
+        self.inner.read_exact(blocks)?;
+
         Ok(())
     }
 }

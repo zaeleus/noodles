@@ -11,8 +11,7 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: Read,
 {
-    let _length = read_length(reader)?;
-
+    let length = read_length(reader)?;
     let reference_sequence_id = read_reference_sequence_id(reader)?;
     let start_pos = read_starting_position_on_the_reference(reader)?;
     let alignment_span = read_alignment_span(reader)?;
@@ -21,10 +20,10 @@ where
     let bases = read_bases(reader)?;
     let n_blocks = read_number_of_blocks(reader)?;
     let landmarks = read_landmarks(reader)?;
-
     let _crc = read_crc32(reader)?;
 
     Ok(Header::new(
+        length,
         reference_sequence_id,
         start_pos,
         alignment_span,
