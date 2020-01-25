@@ -1,4 +1,8 @@
+mod container;
+
 use std::io::{self, Read};
+
+use crate::Container;
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
@@ -30,6 +34,11 @@ where
         read_format(&mut self.inner)?;
 
         read_file_id(&mut self.inner)
+    }
+
+    pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
+        let _header = dbg!(container::read_header(&mut self.inner)?);
+        Ok(())
     }
 }
 
