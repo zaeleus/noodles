@@ -15,68 +15,60 @@ where
 {
     let b0 = read_u8_as_i64(reader)?;
 
-    let n = b0.count_ones();
-
-    let value = match n {
-        0 => b0,
-        1 => read_u8_as_i64(reader)?,
-        2 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            b1 << 8 | b2
-        }
-        3 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            b1 << 16 | b2 << 8 | b3
-        }
-        4 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            let b4 = read_u8_as_i64(reader)?;
-            b1 << 24 | b2 << 16 | b3 << 8 | b4
-        }
-        5 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            let b4 = read_u8_as_i64(reader)?;
-            let b5 = read_u8_as_i64(reader)?;
-            b1 << 32 | b2 << 24 | b3 << 16 | b4 << 8 | b5
-        }
-        6 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            let b4 = read_u8_as_i64(reader)?;
-            let b5 = read_u8_as_i64(reader)?;
-            let b6 = read_u8_as_i64(reader)?;
-            b1 << 40 | b2 << 32 | b3 << 24 | b4 << 16 | b5 << 8 | b6
-        }
-        7 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            let b4 = read_u8_as_i64(reader)?;
-            let b5 = read_u8_as_i64(reader)?;
-            let b6 = read_u8_as_i64(reader)?;
-            let b7 = read_u8_as_i64(reader)?;
-            b1 << 48 | b2 << 40 | b3 << 32 | b4 << 24 | b5 << 16 | b6 << 8 | b7
-        }
-        8 => {
-            let b1 = read_u8_as_i64(reader)?;
-            let b2 = read_u8_as_i64(reader)?;
-            let b3 = read_u8_as_i64(reader)?;
-            let b4 = read_u8_as_i64(reader)?;
-            let b5 = read_u8_as_i64(reader)?;
-            let b6 = read_u8_as_i64(reader)?;
-            let b7 = read_u8_as_i64(reader)?;
-            let b8 = read_u8_as_i64(reader)?;
-            b1 << 54 | b2 << 48 | b3 << 40 | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8
-        }
-        _ => unreachable!(),
+    let value = if b0 & 0x80 == 0 {
+        b0
+    } else if b0 & 0x40 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        (b0 & 0x7f) << 8 | b1
+    } else if b0 & 0x20 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        (b0 & 0x3f) << 16 | b1 << 8 | b2
+    } else if b0 & 0x10 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        (b0 & 0x1f) << 24 | b1 << 16 | b2 << 8 | b3
+    } else if b0 & 0x08 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        let b4 = read_u8_as_i64(reader)?;
+        (b0 & 0x0f) << 32 | b1 << 24 | b2 << 16 | b3 << 8 | b4
+    } else if b0 & 0x04 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        let b4 = read_u8_as_i64(reader)?;
+        let b5 = read_u8_as_i64(reader)?;
+        (b0 & 0x07) << 40 | b1 << 32 | b2 << 24 | b3 << 16 | b4 << 8 | b5
+    } else if b0 & 0x02 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        let b4 = read_u8_as_i64(reader)?;
+        let b5 = read_u8_as_i64(reader)?;
+        let b6 = read_u8_as_i64(reader)?;
+        (b0 & 0x03) << 48 | b1 << 40 | b2 << 32 | b3 << 24 | b4 << 16 | b5 << 8 | b6
+    } else if b0 & 0x01 == 0 {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        let b4 = read_u8_as_i64(reader)?;
+        let b5 = read_u8_as_i64(reader)?;
+        let b6 = read_u8_as_i64(reader)?;
+        let b7 = read_u8_as_i64(reader)?;
+        b1 << 48 | b2 << 40 | b3 << 32 | b4 << 24 | b5 << 16 | b6 << 8 | b7
+    } else {
+        let b1 = read_u8_as_i64(reader)?;
+        let b2 = read_u8_as_i64(reader)?;
+        let b3 = read_u8_as_i64(reader)?;
+        let b4 = read_u8_as_i64(reader)?;
+        let b5 = read_u8_as_i64(reader)?;
+        let b6 = read_u8_as_i64(reader)?;
+        let b7 = read_u8_as_i64(reader)?;
+        let b8 = read_u8_as_i64(reader)?;
+        b1 << 54 | b2 << 48 | b3 << 40 | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8
     };
 
     Ok(value)
