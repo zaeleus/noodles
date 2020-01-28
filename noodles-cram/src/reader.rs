@@ -1,5 +1,6 @@
 pub mod block;
 mod container;
+mod slice;
 
 use std::io::{self, Read};
 
