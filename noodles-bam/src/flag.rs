@@ -2,6 +2,7 @@
 pub struct Flag(u16);
 
 impl Flag {
+    #[deprecated(note = "Use u16::from(flag) instead.")]
     pub fn inner(self) -> u16 {
         self.0
     }
@@ -66,6 +67,12 @@ impl From<u16> for Flag {
     }
 }
 
+impl From<Flag> for u16 {
+    fn from(flag: Flag) -> Self {
+        flag.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Flag;
@@ -102,5 +109,10 @@ mod tests {
         assert!(Flag::from(0x0200).is_qc_fail());
         assert!(Flag::from(0x0400).is_duplicate());
         assert!(Flag::from(0x0800).is_supplementary());
+    }
+
+    #[test]
+    fn test_from_flag_for_u16() {
+        assert_eq!(u16::from(Flag::from(0x40)), 0x40);
     }
 }
