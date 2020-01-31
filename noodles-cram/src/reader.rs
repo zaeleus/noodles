@@ -1,4 +1,5 @@
 pub mod block;
+mod compression_header;
 mod container;
 mod slice;
 
