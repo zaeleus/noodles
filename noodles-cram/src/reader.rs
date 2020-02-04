@@ -46,6 +46,8 @@ where
         blocks.resize(header.len() as usize, Default::default());
         self.inner.read_exact(blocks)?;
 
+        *container.header_mut() = header;
+
         Ok(())
     }
 }

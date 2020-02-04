@@ -58,6 +58,10 @@ impl Container {
         &self.header
     }
 
+    pub fn header_mut(&mut self) -> &mut Header {
+        &mut self.header
+    }
+
     pub fn blocks(&self) -> &[u8] {
         &self.blocks
     }
