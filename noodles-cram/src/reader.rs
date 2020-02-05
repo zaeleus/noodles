@@ -5,9 +5,9 @@ mod slice;
 
 use std::io::{self, Read};
 
-use crate::Container;
+use crate::{Container, Slice};
 
-use self::{compression_header::read_compression_header, slice::read_slice};
+use self::compression_header::read_compression_header;
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
@@ -48,7 +48,8 @@ where
         container.slices_mut().clear();
 
         for _ in 0..header.landmarks().len() {
-            let slice = read_slice(&mut self.inner)?;
+            let slice_header = slice::read_header(&mut self.inner)?;
+            let slice = Slice::new(slice_header);
             container.add_slice(slice);
         }
 

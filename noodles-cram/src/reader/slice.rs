@@ -2,10 +2,10 @@ use std::io::{self, Read};
 
 use crate::{
     num::{read_itf8, Itf8},
-    Slice,
+    slice,
 };
 
-pub fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
+pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
     R: Read,
 {
@@ -20,7 +20,7 @@ where
     let reference_md5 = read_reference_md5(reader)?;
     let optional_tags = read_optional_tags(reader)?;
 
-    Ok(Slice::new(
+    Ok(slice::Header::new(
         reference_sequence_id,
         alignment_start,
         alignment_span,

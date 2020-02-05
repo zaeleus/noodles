@@ -1,7 +1,7 @@
 use crate::num::Itf8;
 
 #[derive(Debug)]
-pub struct Slice {
+pub struct Header {
     reference_sequence_id: Itf8,
     alignment_start: Itf8,
     alignment_span: Itf8,
@@ -14,7 +14,7 @@ pub struct Slice {
     optional_tags: Vec<u8>,
 }
 
-impl Slice {
+impl Header {
     pub fn new(
         reference_sequence_id: Itf8,
         alignment_start: Itf8,
@@ -39,5 +39,16 @@ impl Slice {
             reference_md5,
             optional_tags,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct Slice {
+    header: Header,
+}
+
+impl Slice {
+    pub fn new(header: Header) -> Self {
+        Self { header }
     }
 }
