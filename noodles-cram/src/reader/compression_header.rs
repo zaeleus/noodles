@@ -9,12 +9,19 @@ use self::{
     tag_encodings::read_tag_encodings,
 };
 
-pub fn read_compression_header<R>(reader: &mut R) -> io::Result<()>
+use crate::CompressionHeader;
+
+pub fn read_compression_header<R>(reader: &mut R) -> io::Result<CompressionHeader>
 where
     R: Read,
 {
-    read_preservation_map(reader)?;
-    read_data_series_encodings(reader)?;
-    read_tag_encodings(reader)?;
-    Ok(())
+    let preservation_map = read_preservation_map(reader)?;
+    let data_series_encodings = read_data_series_encodings(reader)?;
+    let tag_encodings = read_tag_encodings(reader)?;
+
+    Ok(CompressionHeader::new(
+        preservation_map,
+        data_series_encodings,
+        tag_encodings,
+    ))
 }

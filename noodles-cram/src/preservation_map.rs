@@ -1,6 +1,7 @@
 pub type SubstitutionMatrix = [u8; 5];
 pub type TagIdsDictionary = Vec<u8>;
 
+#[derive(Debug)]
 pub struct PreservationMap {
     read_names_included: bool,
     ap_data_series_delta: bool,

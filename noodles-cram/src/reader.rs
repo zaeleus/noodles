@@ -7,6 +7,8 @@ use std::io::{self, Read};
 
 use crate::Container;
 
+use self::compression_header::read_compression_header;
+
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
 pub struct Reader<R>
@@ -41,12 +43,14 @@ where
 
     pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
         let header = container::read_header(&mut self.inner)?;
+        let compression_header = read_compression_header(&mut self.inner)?;
 
         let blocks = container.blocks_mut();
         blocks.resize(header.len() as usize, Default::default());
         self.inner.read_exact(blocks)?;
 
         *container.header_mut() = header;
+        *container.compression_header_mut() = compression_header;
 
         Ok(())
     }

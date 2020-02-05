@@ -1,4 +1,7 @@
-use crate::num::{Itf8, Ltf8};
+use crate::{
+    num::{Itf8, Ltf8},
+    CompressionHeader,
+};
 
 #[derive(Debug, Default)]
 pub struct Header {
@@ -46,20 +49,25 @@ impl Header {
 #[derive(Debug, Default)]
 pub struct Container {
     header: Header,
+    compression_header: CompressionHeader,
     blocks: Vec<u8>,
 }
 
 impl Container {
-    pub fn new(header: Header, blocks: Vec<u8>) -> Self {
-        Self { header, blocks }
-    }
-
     pub fn header(&self) -> &Header {
         &self.header
     }
 
     pub fn header_mut(&mut self) -> &mut Header {
         &mut self.header
+    }
+
+    pub fn compression_header(&self) -> &CompressionHeader {
+        &self.compression_header
+    }
+
+    pub fn compression_header_mut(&mut self) -> &mut CompressionHeader {
+        &mut self.compression_header
     }
 
     pub fn blocks(&self) -> &[u8] {
