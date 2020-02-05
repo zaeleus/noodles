@@ -1,9 +1,15 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use crate::{
+    block::ContentType,
     num::{read_itf8, Itf8},
-    slice,
+    slice, Block, Slice,
 };
+
+use super::block::read_block;
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
@@ -32,6 +38,31 @@ where
         reference_md5,
         optional_tags,
     ))
+}
+
+pub fn read_blocks<R>(reader: &mut R, slice: &mut Slice) -> io::Result<()>
+where
+    R: Read,
+{
+    for _ in 0..slice.header().n_blocks() {
+        let mut block = Block::default();
+        read_block(reader, &mut block)?;
+
+        let content_type =
+            ContentType::try_from(block.content_type()).expect("invalid content type");
+
+        match content_type {
+            ContentType::CoreData => {
+                *slice.core_block_mut() = block;
+            }
+            ContentType::ExternalData => {
+                slice.add_external_block(block);
+            }
+            _ => todo!(),
+        }
+    }
+
+    Ok(())
 }
 
 fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

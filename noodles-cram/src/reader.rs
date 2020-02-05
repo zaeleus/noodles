@@ -49,7 +49,8 @@ where
 
         for _ in 0..header.landmarks().len() {
             let slice_header = slice::read_header(&mut self.inner)?;
-            let slice = Slice::new(slice_header);
+            let mut slice = Slice::new(slice_header);
+            slice::read_blocks(&mut self.inner, &mut slice)?;
             container.add_slice(slice);
         }
 

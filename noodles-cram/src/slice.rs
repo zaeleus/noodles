@@ -1,4 +1,4 @@
-use crate::num::Itf8;
+use crate::{num::Itf8, Block};
 
 #[derive(Debug)]
 pub struct Header {
@@ -42,13 +42,37 @@ impl Header {
     }
 }
 
+impl Header {
+    pub fn n_blocks(&self) -> Itf8 {
+        self.n_blocks
+    }
+}
+
 #[derive(Debug)]
 pub struct Slice {
     header: Header,
+    core_block: Block,
+    external_blocks: Vec<Block>,
 }
 
 impl Slice {
     pub fn new(header: Header) -> Self {
-        Self { header }
+        Self {
+            header,
+            core_block: Block::default(),
+            external_blocks: Vec::new(),
+        }
+    }
+
+    pub fn header(&self) -> &Header {
+        &self.header
+    }
+
+    pub fn core_block_mut(&mut self) -> &mut Block {
+        &mut self.core_block
+    }
+
+    pub fn add_external_block(&mut self, block: Block) {
+        self.external_blocks.push(block);
     }
 }
