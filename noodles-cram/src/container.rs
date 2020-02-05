@@ -1,6 +1,6 @@
 use crate::{
     num::{Itf8, Ltf8},
-    CompressionHeader,
+    CompressionHeader, Slice,
 };
 
 #[derive(Debug, Default)]
@@ -44,13 +44,17 @@ impl Header {
     pub fn len(&self) -> i32 {
         self.length
     }
+
+    pub fn landmarks(&self) -> &[Itf8] {
+        &self.landmarks
+    }
 }
 
 #[derive(Debug, Default)]
 pub struct Container {
     header: Header,
     compression_header: CompressionHeader,
-    blocks: Vec<u8>,
+    slices: Vec<Slice>,
 }
 
 impl Container {
@@ -70,11 +74,15 @@ impl Container {
         &mut self.compression_header
     }
 
-    pub fn blocks(&self) -> &[u8] {
-        &self.blocks
+    pub fn slices(&self) -> &[Slice] {
+        &self.slices
     }
 
-    pub fn blocks_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.blocks
+    pub fn slices_mut(&mut self) -> &mut Vec<Slice> {
+        &mut self.slices
+    }
+
+    pub fn add_slice(&mut self, slice: Slice) {
+        self.slices.push(slice);
     }
 }

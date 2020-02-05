@@ -1,5 +1,6 @@
 use crate::num::Itf8;
 
+#[derive(Debug)]
 pub struct Slice {
     reference_sequence_id: Itf8,
     alignment_start: Itf8,

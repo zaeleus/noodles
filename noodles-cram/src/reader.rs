@@ -7,7 +7,7 @@ use std::io::{self, Read};
 
 use crate::Container;
 
-use self::compression_header::read_compression_header;
+use self::{compression_header::read_compression_header, slice::read_slice};
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
@@ -45,9 +45,12 @@ where
         let header = container::read_header(&mut self.inner)?;
         let compression_header = read_compression_header(&mut self.inner)?;
 
-        let blocks = container.blocks_mut();
-        blocks.resize(header.len() as usize, Default::default());
-        self.inner.read_exact(blocks)?;
+        container.slices_mut().clear();
+
+        for _ in 0..header.landmarks().len() {
+            let slice = read_slice(&mut self.inner)?;
+            container.add_slice(slice);
+        }
 
         *container.header_mut() = header;
         *container.compression_header_mut() = compression_header;
