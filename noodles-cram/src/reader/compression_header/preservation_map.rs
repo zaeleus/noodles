@@ -34,13 +34,13 @@ where
             }
             b"SM" => {
                 let buf = map.substitution_matrix_mut();
-                reader.read_exact(&mut buf[..])?;
+                buf_reader.read_exact(&mut buf[..])?;
             }
             b"TD" => {
-                let td_len = read_itf8(reader)?;
+                let td_len = read_itf8(&mut buf_reader)?;
                 let buf = map.tag_ids_dictionary_mut();
                 buf.resize(td_len as usize, Default::default());
-                reader.read_exact(buf)?;
+                buf_reader.read_exact(buf)?;
             }
             _ => {
                 return Err(io::Error::new(
