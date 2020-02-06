@@ -5,9 +5,9 @@ mod slice;
 
 use std::io::{self, Read};
 
-use crate::{Container, Slice};
+use crate::{Block, Container, Slice};
 
-use self::compression_header::read_compression_header;
+use self::{block::read_block, compression_header::read_compression_header};
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
@@ -39,6 +39,21 @@ where
         read_format(&mut self.inner)?;
 
         read_file_id(&mut self.inner)
+    }
+
+    pub fn read_file_header(&mut self) -> io::Result<String> {
+        let header = container::read_header(&mut self.inner)?;
+
+        let mut buf = vec![0; header.len() as usize];
+        self.inner.read_exact(&mut buf)?;
+
+        let mut reader = &buf[..];
+        let mut block = Block::default();
+        read_block(&mut reader, &mut block)?;
+
+        let header = String::from_utf8(block.decompressed_data()).expect("invalid file header");
+
+        Ok(header)
     }
 
     pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
