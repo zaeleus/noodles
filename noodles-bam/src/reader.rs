@@ -34,7 +34,12 @@ impl<R: Read> Reader<R> {
         }
     }
 
+    #[deprecated(note = "Use reader.header() instead.")]
     pub fn meta(&mut self) -> io::Result<Meta> {
+        self.header()
+    }
+
+    pub fn header(&mut self) -> io::Result<Meta> {
         self.inner.read_block(&mut self.block)?;
 
         let mut reader = self.block.deref_mut();

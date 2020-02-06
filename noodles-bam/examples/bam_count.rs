@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file = File::open(src)?;
     let mut reader = bam::Reader::new(file);
-    reader.meta()?;
+    reader.header()?;
 
     let count = reader.records().count();
     println!("{}", count);
