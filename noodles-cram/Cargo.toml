@@ -7,3 +7,4 @@ edition = "2018"
 
 [dependencies]
 byteorder = "1.2.3"
+flate2 = "1.0.1"

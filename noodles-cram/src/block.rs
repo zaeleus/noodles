@@ -1,4 +1,6 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, io::Read};
+
+use flate2::read::GzDecoder;
 
 use crate::num::Itf8;
 
@@ -94,5 +96,21 @@ impl Block {
 
     pub fn data_mut(&mut self) -> &mut Vec<u8> {
         &mut self.data
+    }
+
+    pub fn decompressed_data(&self) -> Vec<u8> {
+        let compression_method = CompressionMethod::try_from(self.compression_method())
+            .expect("invalid compression method");
+
+        match compression_method {
+            CompressionMethod::None => self.data().to_vec(),
+            CompressionMethod::Gzip => {
+                let mut reader = GzDecoder::new(self.data());
+                let mut buf = Vec::new();
+                reader.read_to_end(&mut buf).expect("invalid gzip data");
+                buf
+            }
+            _ => todo!(),
+        }
     }
 }
