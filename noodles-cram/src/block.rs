@@ -61,6 +61,7 @@ pub struct Block {
     compression_method: u8,
     content_type: u8,
     content_id: Itf8,
+    uncompressed_len: Itf8,
     data: Vec<u8>,
     crc32: [u8; 4],
 }
@@ -90,6 +91,14 @@ impl Block {
         &mut self.content_id
     }
 
+    pub fn uncompressed_len(&self) -> Itf8 {
+        self.uncompressed_len
+    }
+
+    pub fn uncompressed_len_mut(&mut self) -> &mut Itf8 {
+        &mut self.uncompressed_len
+    }
+
     pub fn data(&self) -> &[u8] {
         &self.data
     }
@@ -106,7 +115,7 @@ impl Block {
             CompressionMethod::None => self.data().to_vec(),
             CompressionMethod::Gzip => {
                 let mut reader = GzDecoder::new(self.data());
-                let mut buf = Vec::new();
+                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid gzip data");
                 buf
             }

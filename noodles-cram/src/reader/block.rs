@@ -15,11 +15,12 @@ where
     let content_type_id = read_block_content_type_id(reader)?;
     let content_id = read_block_content_id(reader)?;
     let compressed_len = read_size_in_bytes(reader)?;
-    let _uncompressed_len = read_raw_size_in_bytes(reader)?;
+    let uncompressed_len = read_raw_size_in_bytes(reader)?;
 
     *block.compression_method_mut() = method;
     *block.content_type_mut() = content_type_id;
     *block.content_id_mut() = content_id;
+    *block.uncompressed_len_mut() = uncompressed_len;
 
     let data = block.data_mut();
     data.resize(compressed_len as usize, Default::default());
