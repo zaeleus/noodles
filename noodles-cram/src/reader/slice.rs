@@ -15,16 +15,22 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
     R: Read,
 {
-    let reference_sequence_id = read_itf8(reader)?;
-    let alignment_start = read_itf8(reader)?;
-    let alignment_span = read_itf8(reader)?;
-    let n_records = read_itf8(reader)?;
-    let record_counter = read_itf8(reader)?;
-    let n_blocks = read_itf8(reader)?;
-    let block_content_ids = read_block_content_ids(reader)?;
-    let embedded_reference_bases_block_content_id = read_itf8(reader)?;
-    let reference_md5 = read_reference_md5(reader)?;
-    let optional_tags = read_optional_tags(reader)?;
+    let mut block = Block::default();
+    read_block(reader, &mut block)?;
+
+    let data = block.decompressed_data();
+    let mut data_reader = &data[..];
+
+    let reference_sequence_id = read_itf8(&mut data_reader)?;
+    let alignment_start = read_itf8(&mut data_reader)?;
+    let alignment_span = read_itf8(&mut data_reader)?;
+    let n_records = read_itf8(&mut data_reader)?;
+    let record_counter = read_itf8(&mut data_reader)?;
+    let n_blocks = read_itf8(&mut data_reader)?;
+    let block_content_ids = read_block_content_ids(&mut data_reader)?;
+    let embedded_reference_bases_block_content_id = read_itf8(&mut data_reader)?;
+    let reference_md5 = read_reference_md5(&mut data_reader)?;
+    let optional_tags = read_optional_tags(&mut data_reader)?;
 
     Ok(slice::Header::new(
         reference_sequence_id,
