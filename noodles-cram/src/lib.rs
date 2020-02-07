@@ -17,4 +17,7 @@ mod slice;
 
 use std::collections::HashMap;
 
+use crate::num::Itf8;
+
 pub type DataSeriesEncodings = HashMap<DataSeries, Encoding>;
+pub type TagEncodings = HashMap<Itf8, Encoding>;
