@@ -3,9 +3,9 @@ use std::{
     io::{self, Read},
 };
 
-use crate::{encoding, num::read_itf8, Encoding, TagEncodings};
+use crate::{encoding, num::read_itf8, Encoding, TagEncodingMap};
 
-pub fn read_tag_encodings<R>(reader: &mut R) -> io::Result<TagEncodings>
+pub fn read_tag_encoding_map<R>(reader: &mut R) -> io::Result<TagEncodingMap>
 where
     R: Read,
 {
@@ -16,7 +16,7 @@ where
     let mut buf_reader = &buf[..];
     let map_len = read_itf8(&mut buf_reader)?;
 
-    let mut encodings = TagEncodings::with_capacity(map_len as usize);
+    let mut encodings = TagEncodingMap::with_capacity(map_len as usize);
 
     for _ in 0..map_len {
         let key = read_itf8(&mut buf_reader)?;

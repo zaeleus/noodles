@@ -20,4 +20,4 @@ use std::collections::HashMap;
 use crate::num::Itf8;
 
 pub type DataSeriesEncodingMap = HashMap<DataSeries, Encoding>;
-pub type TagEncodings = HashMap<Itf8, Encoding>;
+pub type TagEncodingMap = HashMap<Itf8, Encoding>;
