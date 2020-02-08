@@ -1,12 +1,12 @@
-mod data_series_encodings;
+mod data_series_encoding_map;
 mod preservation_map;
 mod tag_encodings;
 
 use std::io::{self, Read};
 
 use self::{
-    data_series_encodings::read_data_series_encodings, preservation_map::read_preservation_map,
-    tag_encodings::read_tag_encodings,
+    data_series_encoding_map::read_data_series_encoding_map,
+    preservation_map::read_preservation_map, tag_encodings::read_tag_encodings,
 };
 
 use crate::{Block, CompressionHeader};
@@ -24,12 +24,12 @@ where
     let mut data_reader = &data[..];
 
     let preservation_map = read_preservation_map(&mut data_reader)?;
-    let data_series_encodings = read_data_series_encodings(&mut data_reader)?;
+    let data_series_encoding_map = read_data_series_encoding_map(&mut data_reader)?;
     let tag_encodings = read_tag_encodings(&mut data_reader)?;
 
     Ok(CompressionHeader::new(
         preservation_map,
-        data_series_encodings,
+        data_series_encoding_map,
         tag_encodings,
     ))
 }
