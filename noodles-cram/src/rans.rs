@@ -18,7 +18,7 @@ where
     if order == 0 {
         rans_decode_0(reader, &mut buf)?;
     } else if order == 1 {
-        todo!("rans_decode_1");
+        rans_decode_1(reader, &mut buf)?;
     } else {
         panic!("invalid order {}", order);
     }
@@ -127,6 +127,103 @@ where
         }
 
         i += 4;
+    }
+
+    Ok(())
+}
+
+fn read_frequencies_1<R>(
+    reader: &mut R,
+    F: &mut Vec<Vec<i32>>,
+    C: &mut Vec<Vec<i32>>,
+) -> io::Result<()>
+where
+    R: Read,
+{
+    let mut sym = reader.read_u8()?;
+    let mut last_sym = sym;
+    let mut rle = 0;
+
+    loop {
+        read_frequencies_0(reader, &mut F[sym as usize], &mut C[sym as usize])?;
+
+        if rle > 0 {
+            rle = rle - 1;
+            sym = sym + 1;
+        } else {
+            sym = reader.read_u8()?;
+
+            if sym == last_sym + 1 {
+                rle = reader.read_u8()?;
+            }
+        }
+
+        last_sym = sym;
+
+        if sym == 0 {
+            break;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn rans_decode_1<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
+where
+    R: Read,
+{
+    let mut F = vec![vec![0i32; 256]; 256];
+    let mut C = vec![vec![0i32; 256]; 256];
+    let mut big_r = vec![0i32; 4096];
+    let mut L = vec![0i32; 4096];
+
+    read_frequencies_1(reader, &mut F, &mut C)?;
+
+    for j in 0..4 {
+        big_r[j] = reader.read_u32::<LittleEndian>()? as i32;
+        L[j] = 0;
+    }
+
+    let mut i = 0;
+
+    while i < output.len() / 4 {
+        for j in 0..4 {
+            let f = rans_get_cumulative_freq(big_r[j]);
+            let s = rans_get_symbol_from_freq(&C[L[j] as usize], f);
+
+            output[i + j * (output.len() / 4)] = s as u8;
+
+            big_r[j] = rans_advance_step(
+                big_r[j],
+                C[L[j] as usize][s as usize],
+                F[L[j] as usize][s as usize],
+            );
+            big_r[j] = rans_renorm(reader, big_r[j])?;
+
+            L[j] = s;
+        }
+
+        i += 1;
+    }
+
+    i *= 4;
+
+    while i < output.len() {
+        let f = rans_get_cumulative_freq(big_r[3]);
+        let s = rans_get_symbol_from_freq(&C[L[3] as usize], f);
+
+        output[i + 3 * (output.len() / 4)] = s as u8;
+
+        big_r[3] = rans_advance_step(
+            big_r[3],
+            C[L[3] as usize][s as usize],
+            F[L[3] as usize][s as usize],
+        );
+        big_r[3] = rans_renorm(reader, big_r[3])?;
+
+        L[3] = s;
+
+        i += 1;
     }
 
     Ok(())
