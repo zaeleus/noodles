@@ -1,26 +1,62 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    error, fmt,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::num::read_itf8;
 
+#[derive(Debug, Eq, PartialEq)]
+struct TryFromByteError(u8);
+
+impl fmt::Display for TryFromByteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid rANS context: expected 0 or 1, got {}", self.0)
+    }
+}
+
+impl error::Error for TryFromByteError {}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Context {
+    Order0,
+    Order1,
+}
+
+impl TryFrom<u8> for Context {
+    type Error = TryFromByteError;
+
+    fn try_from(b: u8) -> Result<Self, Self::Error> {
+        match b {
+            0 => Ok(Self::Order0),
+            1 => Ok(Self::Order1),
+            _ => Err(TryFromByteError(b)),
+        }
+    }
+}
+
 pub fn rans_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let order = reader.read_u8()?;
+    let context = reader.read_u8().and_then(|order| {
+        Context::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let _compressed_len = reader.read_u32::<LittleEndian>()?;
     let data_len = reader.read_u32::<LittleEndian>()?;
 
     let mut buf = vec![0; data_len as usize];
 
-    if order == 0 {
-        rans_decode_0(reader, &mut buf)?;
-    } else if order == 1 {
-        rans_decode_1(reader, &mut buf)?;
-    } else {
-        panic!("invalid order {}", order);
+    match context {
+        Context::Order0 => {
+            rans_decode_0(reader, &mut buf)?;
+        }
+        Context::Order1 => {
+            rans_decode_1(reader, &mut buf)?;
+        }
     }
 
     Ok(buf)
@@ -227,4 +263,20 @@ where
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    mod context {
+        use std::convert::TryFrom;
+
+        use super::super::{Context, TryFromByteError};
+
+        #[test]
+        fn test_try_from() {
+            assert_eq!(Context::try_from(0), Ok(Context::Order0));
+            assert_eq!(Context::try_from(1), Ok(Context::Order1));
+            assert_eq!(Context::try_from(2), Err(TryFromByteError(2)));
+        }
+    }
 }
