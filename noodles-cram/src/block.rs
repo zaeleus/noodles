@@ -1,33 +1,12 @@
+mod compression_method;
+
+pub use self::compression_method::CompressionMethod;
+
 use std::{convert::TryFrom, io::Read};
 
 use flate2::read::GzDecoder;
 
 use crate::{num::Itf8, rans::rans_decode};
-
-#[derive(Clone, Copy, Debug)]
-#[non_exhaustive]
-pub enum CompressionMethod {
-    None,
-    Gzip,
-    Bzip2,
-    Lzma,
-    Rans,
-}
-
-impl TryFrom<u8> for CompressionMethod {
-    type Error = ();
-
-    fn try_from(b: u8) -> Result<Self, Self::Error> {
-        match b {
-            0 => Ok(Self::None),
-            1 => Ok(Self::Gzip),
-            2 => Ok(Self::Bzip2),
-            3 => Ok(Self::Lzma),
-            4 => Ok(Self::Rans),
-            _ => Err(()),
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
