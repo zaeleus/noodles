@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
     container::Header,
-    num::{read_itf8, read_ltf8, Itf8, Ltf8},
+    num::{read_itf8, read_ltf8, Itf8},
 };
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<Header>
