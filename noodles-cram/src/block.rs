@@ -2,7 +2,7 @@ use std::{convert::TryFrom, io::Read};
 
 use flate2::read::GzDecoder;
 
-use crate::num::Itf8;
+use crate::{num::Itf8, rans::rans_decode};
 
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
@@ -118,6 +118,10 @@ impl Block {
                 let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid gzip data");
                 buf
+            }
+            CompressionMethod::Rans => {
+                let mut buf = self.data();
+                rans_decode(&mut buf).expect("invalid rans data")
             }
             _ => todo!(),
         }

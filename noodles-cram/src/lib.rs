@@ -2,7 +2,7 @@ pub use self::reader::block::read_block;
 pub use self::{
     block::Block, compression_header::CompressionHeader, container::Container,
     data_series::DataSeries, encoding::Encoding, preservation_map::PreservationMap, reader::Reader,
-    slice::Slice,
+    record::Record, slice::Slice,
 };
 
 mod block;
@@ -12,7 +12,9 @@ mod data_series;
 mod encoding;
 mod num;
 mod preservation_map;
+mod rans;
 mod reader;
+mod record;
 mod slice;
 
 use std::collections::HashMap;

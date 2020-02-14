@@ -1,6 +1,7 @@
 pub mod block;
 mod compression_header;
 mod container;
+pub mod record;
 mod slice;
 
 use std::io::{self, Read};

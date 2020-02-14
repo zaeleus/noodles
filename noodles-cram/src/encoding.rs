@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use crate::num::Itf8;
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Kind {
     Null,
     External,
@@ -45,5 +45,13 @@ pub struct Encoding {
 impl Encoding {
     pub fn new(kind: Kind, args: Vec<u8>) -> Self {
         Self { kind, args }
+    }
+
+    pub fn kind(&self) -> Kind {
+        self.kind
+    }
+
+    pub fn args(&self) -> &[u8] {
+        &self.args
     }
 }

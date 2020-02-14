@@ -19,4 +19,8 @@ impl CompressionHeader {
             tag_encoding_map,
         }
     }
+
+    pub fn data_series_encoding_map(&self) -> &DataSeriesEncodingMap {
+        &self.data_series_encoding_map
+    }
 }

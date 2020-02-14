@@ -1,4 +1,4 @@
-use crate::{num::Itf8, Block};
+use crate::{num::Itf8, reader::record, Block, CompressionHeader};
 
 #[derive(Debug)]
 pub struct Header {
@@ -74,5 +74,9 @@ impl Slice {
 
     pub fn add_external_block(&mut self, block: Block) {
         self.external_blocks.push(block);
+    }
+
+    pub fn records<'a>(&'a self, compression_header: &'a CompressionHeader) -> record::Reader<'a> {
+        record::Reader::new(compression_header, &self.external_blocks)
     }
 }
