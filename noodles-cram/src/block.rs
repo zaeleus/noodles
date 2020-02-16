@@ -79,4 +79,12 @@ impl Block {
             _ => todo!(),
         }
     }
+
+    pub fn crc32(&self) -> &[u8; 4] {
+        &self.crc32
+    }
+
+    pub fn crc32_mut(&mut self) -> &mut [u8; 4] {
+        &mut self.crc32
+    }
 }

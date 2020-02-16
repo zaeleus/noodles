@@ -23,16 +23,7 @@ where
     data.resize(size_in_bytes as usize, Default::default());
     reader.read_exact(data)?;
 
-    let _crc32 = read_crc32(reader)?;
+    reader.read_exact(block.crc32_mut())?;
 
     Ok(())
-}
-
-fn read_crc32<R>(reader: &mut R) -> io::Result<[u8; 4]>
-where
-    R: Read,
-{
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf)?;
-    Ok(buf)
 }
