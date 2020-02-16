@@ -64,8 +64,8 @@ where
 
 fn read_frequencies_0<R>(
     reader: &mut R,
-    freqs: &mut [i32],
-    cumulative_freqs: &mut [i32],
+    freqs: &mut [u32],
+    cumulative_freqs: &mut [u32],
 ) -> io::Result<()>
 where
     R: Read,
@@ -75,7 +75,7 @@ where
     let mut rle = 0;
 
     loop {
-        let f = read_itf8(reader)?;
+        let f = read_itf8(reader)? as u32;
 
         freqs[sym as usize] = f;
 
@@ -106,30 +106,30 @@ where
     Ok(())
 }
 
-pub fn rans_get_cumulative_freq(r: i32) -> i32 {
+pub fn rans_get_cumulative_freq(r: u32) -> u32 {
     r & 0x0fff
 }
 
-pub fn rans_get_symbol_from_freq(cumulative_freqs: &[i32], freq: i32) -> i32 {
+pub fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u32 {
     let mut sym = 0;
 
-    while freq >= cumulative_freqs[sym + 1] {
+    while freq >= cumulative_freqs[(sym + 1) as usize] {
         sym += 1;
     }
 
-    sym as i32
+    sym
 }
 
-pub fn rans_advance_step(r: i32, c: i32, f: i32) -> i32 {
+pub fn rans_advance_step(r: u32, c: u32, f: u32) -> u32 {
     f * (r >> 12) + (r & 0x0fff) - c
 }
 
-pub fn rans_renorm<R>(reader: &mut R, mut r: i32) -> io::Result<i32>
+pub fn rans_renorm<R>(reader: &mut R, mut r: u32) -> io::Result<u32>
 where
     R: Read,
 {
     while r < (1 << 23) {
-        r = (r << 8) + reader.read_u8()? as i32;
+        r = (r << 8) + reader.read_u8()? as u32;
     }
 
     Ok(r)
@@ -146,7 +146,7 @@ where
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
     for j in 0..4 {
-        state[j] = reader.read_u32::<LittleEndian>()? as i32;
+        state[j] = reader.read_u32::<LittleEndian>()?;
     }
 
     let mut i = 0;
@@ -174,8 +174,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    freqs: &mut Vec<Vec<i32>>,
-    cumulative_freqs: &mut Vec<Vec<i32>>,
+    freqs: &mut Vec<Vec<u32>>,
+    cumulative_freqs: &mut Vec<Vec<u32>>,
 ) -> io::Result<()>
 where
     R: Read,
@@ -224,7 +224,7 @@ where
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
     for j in 0..4 {
-        state[j] = reader.read_u32::<LittleEndian>()? as i32;
+        state[j] = reader.read_u32::<LittleEndian>()?;
         last_syms[j] = 0;
     }
 
