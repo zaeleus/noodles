@@ -62,7 +62,11 @@ where
     Ok(buf)
 }
 
-fn read_frequencies_0<R>(reader: &mut R, F: &mut [i32], C: &mut [i32]) -> io::Result<()>
+fn read_frequencies_0<R>(
+    reader: &mut R,
+    freqs: &mut [i32],
+    cumulative_freqs: &mut [i32],
+) -> io::Result<()>
 where
     R: Read,
 {
@@ -73,7 +77,7 @@ where
     loop {
         let f = read_itf8(reader)?;
 
-        F[sym as usize] = f;
+        freqs[sym as usize] = f;
 
         if rle > 0 {
             rle = rle - 1;
@@ -93,56 +97,56 @@ where
         }
     }
 
-    C[0] = 0;
+    cumulative_freqs[0] = 0;
 
     for i in 0..255 {
-        C[i + 1] = C[i] + F[i];
+        cumulative_freqs[i + 1] = cumulative_freqs[i] + freqs[i];
     }
 
     Ok(())
 }
 
-pub fn rans_get_cumulative_freq(R: i32) -> i32 {
-    R & 0x0fff
+pub fn rans_get_cumulative_freq(r: i32) -> i32 {
+    r & 0x0fff
 }
 
-pub fn rans_get_symbol_from_freq(C: &[i32], f: i32) -> i32 {
-    let mut s = 0;
+pub fn rans_get_symbol_from_freq(cumulative_freqs: &[i32], freq: i32) -> i32 {
+    let mut sym = 0;
 
-    while f >= C[s + 1] {
-        s = s + 1;
+    while freq >= cumulative_freqs[sym + 1] {
+        sym += 1;
     }
 
-    s as i32
+    sym as i32
 }
 
-pub fn rans_advance_step(R: i32, c: i32, f: i32) -> i32 {
-    f * (R >> 12) + (R & 0x0fff) - c
+pub fn rans_advance_step(r: i32, c: i32, f: i32) -> i32 {
+    f * (r >> 12) + (r & 0x0fff) - c
 }
 
-pub fn rans_renorm<R>(reader: &mut R, mut big_r: i32) -> io::Result<i32>
+pub fn rans_renorm<R>(reader: &mut R, mut r: i32) -> io::Result<i32>
 where
     R: Read,
 {
-    while big_r < (1 << 23) {
-        big_r = (big_r << 8) + reader.read_u8()? as i32;
+    while r < (1 << 23) {
+        r = (r << 8) + reader.read_u8()? as i32;
     }
 
-    Ok(big_r)
+    Ok(r)
 }
 
 pub fn rans_decode_0<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut F = vec![0i32; 256];
-    let mut C = vec![0i32; 256];
-    let mut big_r = vec![0i32; 4096];
+    let mut freqs = vec![0; 256];
+    let mut cumulative_freqs = vec![0; 256];
+    let mut state = vec![0; 4096];
 
-    read_frequencies_0(reader, &mut F, &mut C)?;
+    read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
     for j in 0..4 {
-        big_r[j] = reader.read_u32::<LittleEndian>()? as i32;
+        state[j] = reader.read_u32::<LittleEndian>()? as i32;
     }
 
     let mut i = 0;
@@ -153,13 +157,13 @@ where
                 return Ok(());
             }
 
-            let f = rans_get_cumulative_freq(big_r[j]);
-            let s = rans_get_symbol_from_freq(&C, f);
+            let f = rans_get_cumulative_freq(state[j]);
+            let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
 
             output[i + j] = s as u8;
 
-            big_r[j] = rans_advance_step(big_r[j], C[s as usize], F[s as usize]);
-            big_r[j] = rans_renorm(reader, big_r[j])?;
+            state[j] = rans_advance_step(state[j], cumulative_freqs[s as usize], freqs[s as usize]);
+            state[j] = rans_renorm(reader, state[j])?;
         }
 
         i += 4;
@@ -170,8 +174,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    F: &mut Vec<Vec<i32>>,
-    C: &mut Vec<Vec<i32>>,
+    freqs: &mut Vec<Vec<i32>>,
+    cumulative_freqs: &mut Vec<Vec<i32>>,
 ) -> io::Result<()>
 where
     R: Read,
@@ -181,7 +185,11 @@ where
     let mut rle = 0;
 
     loop {
-        read_frequencies_0(reader, &mut F[sym as usize], &mut C[sym as usize])?;
+        read_frequencies_0(
+            reader,
+            &mut freqs[sym as usize],
+            &mut cumulative_freqs[sym as usize],
+        )?;
 
         if rle > 0 {
             rle = rle - 1;
@@ -208,35 +216,35 @@ pub fn rans_decode_1<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut F = vec![vec![0i32; 256]; 256];
-    let mut C = vec![vec![0i32; 256]; 256];
-    let mut big_r = vec![0i32; 4096];
-    let mut L = vec![0i32; 4096];
+    let mut freqs = vec![vec![0; 256]; 256];
+    let mut cumulative_freqs = vec![vec![0; 256]; 256];
+    let mut state = vec![0; 4096];
+    let mut last_syms = vec![0; 4];
 
-    read_frequencies_1(reader, &mut F, &mut C)?;
+    read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
     for j in 0..4 {
-        big_r[j] = reader.read_u32::<LittleEndian>()? as i32;
-        L[j] = 0;
+        state[j] = reader.read_u32::<LittleEndian>()? as i32;
+        last_syms[j] = 0;
     }
 
     let mut i = 0;
 
     while i < output.len() / 4 {
         for j in 0..4 {
-            let f = rans_get_cumulative_freq(big_r[j]);
-            let s = rans_get_symbol_from_freq(&C[L[j] as usize], f);
+            let f = rans_get_cumulative_freq(state[j]);
+            let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j] as usize], f);
 
             output[i + j * (output.len() / 4)] = s as u8;
 
-            big_r[j] = rans_advance_step(
-                big_r[j],
-                C[L[j] as usize][s as usize],
-                F[L[j] as usize][s as usize],
+            state[j] = rans_advance_step(
+                state[j],
+                cumulative_freqs[last_syms[j] as usize][s as usize],
+                freqs[last_syms[j] as usize][s as usize],
             );
-            big_r[j] = rans_renorm(reader, big_r[j])?;
+            state[j] = rans_renorm(reader, state[j])?;
 
-            L[j] = s;
+            last_syms[j] = s;
         }
 
         i += 1;
@@ -245,19 +253,19 @@ where
     i *= 4;
 
     while i < output.len() {
-        let f = rans_get_cumulative_freq(big_r[3]);
-        let s = rans_get_symbol_from_freq(&C[L[3] as usize], f);
+        let f = rans_get_cumulative_freq(state[3]);
+        let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[3] as usize], f);
 
         output[i + 3 * (output.len() / 4)] = s as u8;
 
-        big_r[3] = rans_advance_step(
-            big_r[3],
-            C[L[3] as usize][s as usize],
-            F[L[3] as usize][s as usize],
+        state[3] = rans_advance_step(
+            state[3],
+            cumulative_freqs[last_syms[3] as usize][s as usize],
+            freqs[last_syms[3] as usize][s as usize],
         );
-        big_r[3] = rans_renorm(reader, big_r[3])?;
+        state[3] = rans_renorm(reader, state[3])?;
 
-        L[3] = s;
+        last_syms[3] = s;
 
         i += 1;
     }
