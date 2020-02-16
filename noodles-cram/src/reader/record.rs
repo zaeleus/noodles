@@ -20,7 +20,8 @@ impl<'a> Reader<'a> {
     }
 
     pub fn read_record(&self, record: &mut Record) -> io::Result<()> {
-        record.bam_bit_flags = dbg!(self.read_bam_bit_flags())?;
+        record.bam_bit_flags = self.read_bam_bit_flags()?;
+        record.cram_bit_flags = self.read_cram_bit_flags()?;
         Ok(())
     }
 
@@ -32,7 +33,28 @@ impl<'a> Reader<'a> {
             .expect("missing BF");
 
         let mut reader = encoding.args();
-        let block_content_id = dbg!(read_itf8(&mut reader))?;
+        let block_content_id = read_itf8(&mut reader)?;
+
+        let block = self
+            .external_blocks
+            .iter()
+            .find(|b| b.content_id() == block_content_id)
+            .expect("could not find block");
+
+        let data = block.decompressed_data();
+        let mut reader = &data[..];
+        read_itf8(&mut reader)
+    }
+
+    fn read_cram_bit_flags(&self) -> io::Result<Itf8> {
+        let data_series_encoding_map = self.compression_header.data_series_encoding_map();
+
+        let encoding = data_series_encoding_map
+            .get(&DataSeries::CramBitFlags)
+            .expect("missing CF");
+
+        let mut reader = encoding.args();
+        let block_content_id = read_itf8(&mut reader)?;
 
         let block = self
             .external_blocks
