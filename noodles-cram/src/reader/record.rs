@@ -2,6 +2,7 @@ use std::io;
 
 use crate::{
     data_series::DataSeries,
+    encoding::{self, Encoding},
     num::{read_itf8, Itf8},
     Block, CompressionHeader, Record,
 };
@@ -26,44 +27,41 @@ impl<'a> Reader<'a> {
     }
 
     fn read_bam_bit_flags(&self) -> io::Result<Itf8> {
-        let data_series_encoding_map = self.compression_header.data_series_encoding_map();
-
-        let encoding = data_series_encoding_map
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
             .get(&DataSeries::BamBitFlags)
             .expect("missing BF");
 
-        let mut reader = encoding.args();
-        let block_content_id = read_itf8(&mut reader)?;
-
-        let block = self
-            .external_blocks
-            .iter()
-            .find(|b| b.content_id() == block_content_id)
-            .expect("could not find block");
-
-        let data = block.decompressed_data();
-        let mut reader = &data[..];
-        read_itf8(&mut reader)
+        decode_itf8(&encoding, &self.external_blocks)
     }
 
     fn read_cram_bit_flags(&self) -> io::Result<Itf8> {
-        let data_series_encoding_map = self.compression_header.data_series_encoding_map();
-
-        let encoding = data_series_encoding_map
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
             .get(&DataSeries::CramBitFlags)
             .expect("missing CF");
 
-        let mut reader = encoding.args();
-        let block_content_id = read_itf8(&mut reader)?;
+        decode_itf8(&encoding, &self.external_blocks)
+    }
+}
 
-        let block = self
-            .external_blocks
-            .iter()
-            .find(|b| b.content_id() == block_content_id)
-            .expect("could not find block");
+fn decode_itf8(encoding: &Encoding, external_blocks: &[Block]) -> io::Result<Itf8> {
+    match encoding.kind() {
+        encoding::Kind::External => {
+            let mut reader = encoding.args();
+            let block_content_id = read_itf8(&mut reader)?;
 
-        let data = block.decompressed_data();
-        let mut reader = &data[..];
-        read_itf8(&mut reader)
+            let block = external_blocks
+                .iter()
+                .find(|b| b.content_id() == block_content_id)
+                .expect("could not find block");
+
+            let data = block.decompressed_data();
+            let mut reader = &data[..];
+            read_itf8(&mut reader)
+        }
+        _ => todo!(),
     }
 }
