@@ -20,6 +20,10 @@ impl CompressionHeader {
         }
     }
 
+    pub fn preservation_map(&self) -> &PreservationMap {
+        &self.preservation_map
+    }
+
     pub fn data_series_encoding_map(&self) -> &DataSeriesEncodingMap {
         &self.data_series_encoding_map
     }

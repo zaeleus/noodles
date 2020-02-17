@@ -77,6 +77,11 @@ impl Slice {
     }
 
     pub fn records<'a>(&'a self, compression_header: &'a CompressionHeader) -> record::Reader<'a> {
-        record::Reader::new(compression_header, &self.external_blocks)
+        record::Reader::new(
+            compression_header,
+            &self.external_blocks,
+            self.header.reference_sequence_id,
+            self.header.alignment_start,
+        )
     }
 }
