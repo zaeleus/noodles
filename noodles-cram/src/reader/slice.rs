@@ -64,7 +64,15 @@ where
             ContentType::ExternalData => {
                 slice.add_external_block(block);
             }
-            _ => todo!(),
+            ty => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "invalid block content type: expected CoreData or ExternalData, got {:?}",
+                        ty
+                    ),
+                ))
+            }
         }
     }
 
