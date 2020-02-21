@@ -11,6 +11,7 @@ mod compression_header;
 mod container;
 mod data_series;
 mod encoding;
+mod huffman;
 mod num;
 mod preservation_map;
 mod rans;
