@@ -59,7 +59,7 @@ where
 
         match content_type {
             ContentType::CoreData => {
-                *slice.core_block_mut() = block;
+                *slice.core_data_block_mut() = block;
             }
             ContentType::ExternalData => {
                 slice.add_external_block(block);

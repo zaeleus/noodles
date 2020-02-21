@@ -51,7 +51,7 @@ impl Header {
 #[derive(Debug)]
 pub struct Slice {
     header: Header,
-    core_block: Block,
+    core_data_block: Block,
     external_blocks: Vec<Block>,
 }
 
@@ -59,7 +59,7 @@ impl Slice {
     pub fn new(header: Header) -> Self {
         Self {
             header,
-            core_block: Block::default(),
+            core_data_block: Block::default(),
             external_blocks: Vec::new(),
         }
     }
@@ -68,8 +68,8 @@ impl Slice {
         &self.header
     }
 
-    pub fn core_block_mut(&mut self) -> &mut Block {
-        &mut self.core_block
+    pub fn core_data_block_mut(&mut self) -> &mut Block {
+        &mut self.core_data_block
     }
 
     pub fn add_external_block(&mut self, block: Block) {
@@ -79,7 +79,7 @@ impl Slice {
     pub fn records<'a>(&'a self, compression_header: &'a CompressionHeader) -> record::Reader<'a> {
         record::Reader::new(
             compression_header,
-            &self.core_block,
+            &self.core_data_block,
             &self.external_blocks,
             self.header.reference_sequence_id,
             self.header.alignment_start,
