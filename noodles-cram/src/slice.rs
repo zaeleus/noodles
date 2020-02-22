@@ -1,3 +1,5 @@
+use std::{collections::HashMap, io::Cursor};
+
 use crate::{num::Itf8, reader::record, Block, CompressionHeader};
 
 #[derive(Debug)]
@@ -76,11 +78,22 @@ impl Slice {
         self.external_blocks.push(block);
     }
 
-    pub fn records<'a>(&'a self, compression_header: &'a CompressionHeader) -> record::Reader<'a> {
+    pub fn records<'a>(
+        &'a self,
+        compression_header: &'a CompressionHeader,
+    ) -> record::Reader<'a, Cursor<Vec<u8>>, Cursor<Vec<u8>>> {
+        let core_data = Cursor::new(self.core_data_block.decompressed_data());
+
+        let external_data: HashMap<_, _> = self
+            .external_blocks
+            .iter()
+            .map(|block| (block.content_id(), Cursor::new(block.decompressed_data())))
+            .collect();
+
         record::Reader::new(
             compression_header,
-            &self.core_data_block,
-            &self.external_blocks,
+            core_data,
+            external_data,
             self.header.reference_sequence_id,
             self.header.alignment_start,
         )
