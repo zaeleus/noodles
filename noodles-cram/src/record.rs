@@ -6,4 +6,5 @@ pub struct Record {
     pub read_length: i32,
     pub alignment_start: i32,
     pub read_group: i32,
+    pub read_name: Vec<u8>,
 }

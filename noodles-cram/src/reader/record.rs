@@ -1,4 +1,6 @@
-use std::io;
+use std::io::{self, BufRead};
+
+use byteorder::ReadBytesExt;
 
 use crate::{
     data_series::DataSeries,
@@ -38,6 +40,14 @@ impl<'a> Reader<'a> {
         record.cram_bit_flags = self.read_cram_bit_flags()?;
 
         self.read_positional_data(record)?;
+
+        let preservation_map = self.compression_header.preservation_map();
+
+        if preservation_map.read_names_included() {
+            record.read_name = self.read_read_name()?;
+        } else {
+            todo!("generate name");
+        }
 
         Ok(())
     }
@@ -128,6 +138,16 @@ impl<'a> Reader<'a> {
 
         decode_itf8(&encoding, &self.core_data_block, &self.external_blocks)
     }
+
+    pub fn read_read_name(&self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReadNames)
+            .expect("missing RN");
+
+        decode_byte_array(&encoding, &self.external_blocks)
+    }
 }
 
 fn decode_itf8(
@@ -172,6 +192,29 @@ fn decode_itf8(
             let data = core_data_block.decompressed_data();
             let mut reader = BitReader::new(&data[..]);
             decoder.read(&mut reader)
+        }
+        _ => todo!(),
+    }
+}
+
+fn decode_byte_array(encoding: &Encoding, external_blocks: &[Block]) -> io::Result<Vec<u8>> {
+    match encoding.kind() {
+        encoding::Kind::ByteArrayStop => {
+            let mut reader = encoding.args();
+            let stop_byte = reader.read_u8()?;
+            let block_content_id = read_itf8(&mut reader)?;
+
+            let block = external_blocks
+                .iter()
+                .find(|b| b.content_id() == block_content_id)
+                .expect("could not find block");
+
+            let data = block.decompressed_data();
+            let mut reader = &data[..];
+            let mut buf = Vec::new();
+            reader.read_until(stop_byte, &mut buf)?;
+
+            Ok(buf)
         }
         _ => todo!(),
     }
