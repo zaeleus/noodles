@@ -18,7 +18,7 @@ where
     R: Read,
     S: BufRead,
 {
-    pub compression_header: &'a CompressionHeader,
+    compression_header: &'a CompressionHeader,
     core_data_reader: R,
     external_data_readers: HashMap<Itf8, S>,
     reference_sequence_id: Itf8,
