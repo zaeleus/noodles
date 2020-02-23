@@ -60,6 +60,8 @@ where
             todo!("generate name");
         }
 
+        self.read_mate_data(record)?;
+
         Ok(())
     }
 
@@ -182,6 +184,99 @@ where
             .expect("missing RN");
 
         decode_byte_array(&encoding, &mut self.external_data_readers)
+    }
+
+    pub fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
+        let cram_bit_flags = record.cram_bit_flags();
+
+        if cram_bit_flags.is_detached() {
+            record.next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+
+            let preservation_map = self.compression_header.preservation_map();
+
+            if !preservation_map.read_names_included() {
+                record.read_name = self.read_read_name()?;
+            }
+
+            record.next_fragment_reference_sequence_id =
+                self.read_next_fragment_reference_sequence_id()?;
+            record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
+            record.template_size = self.read_template_size()?;
+        } else if cram_bit_flags.has_mate_downstream() {
+            record.distance_to_next_fragment = self.read_distance_to_next_fragment()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn read_next_mate_bit_flags(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextMateBitFlags)
+            .expect("missing MF");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    pub fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextFragmentReferenceSequenceId)
+            .expect("missing NS");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    pub fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextMateAlignmentStart)
+            .expect("missing NP");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    pub fn read_template_size(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::TemplateSize)
+            .expect("missing TS");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    pub fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::DistanceToNextFragment)
+            .expect("missing NF");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
     }
 }
 
