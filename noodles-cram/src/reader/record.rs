@@ -348,6 +348,20 @@ where
 
         record.mapping_quality = self.read_mapping_quality()?;
 
+        let cram_bit_flags = record.cram_bit_flags();
+
+        if cram_bit_flags.are_quality_scores_stored_as_array() {
+            let read_len = record.read_length;
+            let mut scores = Vec::with_capacity(read_len as usize);
+
+            for _ in 0..read_len {
+                let score = self.read_quality_score()?;
+                scores.push(score);
+            }
+
+            record.quality_scores = scores;
+        }
+
         Ok(())
     }
 

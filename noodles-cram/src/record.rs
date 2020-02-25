@@ -39,6 +39,7 @@ pub struct Record {
 
     pub features: Vec<Feature>,
     pub mapping_quality: i32,
+    pub quality_scores: Vec<u8>,
 }
 
 impl Record {
