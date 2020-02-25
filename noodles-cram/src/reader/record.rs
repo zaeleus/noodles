@@ -10,7 +10,7 @@ use crate::{
     encoding::{self, Encoding},
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    BitReader, CompressionHeader, Record,
+    BitReader, CompressionHeader, Record, Tag,
 };
 
 pub struct Reader<'a, R, S>
@@ -61,6 +61,7 @@ where
         }
 
         self.read_mate_data(record)?;
+        self.read_tag_data(record)?;
 
         Ok(())
     }
@@ -271,6 +272,44 @@ where
             .data_series_encoding_map()
             .get(&DataSeries::DistanceToNextFragment)
             .expect("missing NF");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_tag_data(&mut self, record: &mut Record) -> io::Result<()> {
+        let tag_line = self.read_tag_line()?;
+
+        let preservation_map = self.compression_header.preservation_map();
+        let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
+        let tag_keys = &tag_ids_dictionary[tag_line as usize];
+
+        let tag_encoding_map = self.compression_header.tag_encoding_map();
+
+        record.tags.clear();
+
+        for key in tag_keys {
+            let id = (key[0] as i32) << 16 | (key[1] as i32) << 8 | (key[2] as i32);
+            let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
+
+            let data = decode_byte_array(encoding, &mut self.external_data_readers)?;
+
+            let tag = Tag::new([key[0], key[1]], data);
+            record.add_tag(tag);
+        }
+
+        Ok(())
+    }
+
+    pub fn read_tag_line(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::TagIds)
+            .expect("missing TL");
 
         decode_itf8(
             &encoding,

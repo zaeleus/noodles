@@ -1,3 +1,5 @@
+use crate::Tag;
+
 #[derive(Clone, Copy, Debug)]
 pub struct CramBitFlags(i32);
 
@@ -33,10 +35,15 @@ pub struct Record {
     pub next_mate_alignment_start: i32,
     pub template_size: i32,
     pub distance_to_next_fragment: i32,
+    pub tags: Vec<Tag>,
 }
 
 impl Record {
     pub fn cram_bit_flags(&self) -> CramBitFlags {
         CramBitFlags(self.cram_bit_flags)
+    }
+
+    pub fn add_tag(&mut self, tag: Tag) {
+        self.tags.push(tag);
     }
 }
