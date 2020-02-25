@@ -431,6 +431,9 @@ where
             let mut buf = Vec::new();
             reader.read_until(stop_byte, &mut buf)?;
 
+            // Remove stop byte.
+            buf.pop();
+
             Ok(buf)
         }
         _ => todo!(),
