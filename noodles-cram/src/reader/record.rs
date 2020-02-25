@@ -189,6 +189,7 @@ where
             &encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
+            None,
         )
     }
 
@@ -304,6 +305,7 @@ where
                 encoding,
                 &mut self.core_data_reader,
                 &mut self.external_data_readers,
+                None,
             )?;
 
             let tag = Tag::new([key[0], key[1]], data);
@@ -379,12 +381,26 @@ fn decode_byte_array<R, S>(
     encoding: &Encoding,
     core_data_reader: &mut R,
     external_data_readers: &mut HashMap<Itf8, S>,
+    buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
 where
     R: Read,
     S: BufRead,
 {
     match encoding.kind() {
+        encoding::Kind::External => {
+            let mut reader = encoding.args();
+            let block_content_id = read_itf8(&mut reader)?;
+
+            let reader = external_data_readers
+                .get_mut(&block_content_id)
+                .expect("could not find block");
+
+            let mut buf = buf.expect("missing buf");
+            reader.read_exact(&mut buf)?;
+
+            Ok(buf)
+        }
         encoding::Kind::ByteArrayLen => {
             let mut reader = encoding.args();
 
@@ -392,8 +408,14 @@ where
             let value_encoding = read_encoding(&mut reader)?;
 
             let len = decode_itf8(&len_encoding, core_data_reader, external_data_readers)?;
-            let value =
-                decode_byte_array(&value_encoding, core_data_reader, external_data_readers)?;
+
+            let buf = vec![0; len as usize];
+            let value = decode_byte_array(
+                &value_encoding,
+                core_data_reader,
+                external_data_readers,
+                Some(buf),
+            )?;
 
             Ok(value)
         }
