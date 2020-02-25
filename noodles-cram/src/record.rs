@@ -1,4 +1,4 @@
-use crate::Tag;
+use crate::{Feature, Tag};
 
 #[derive(Clone, Copy, Debug)]
 pub struct CramBitFlags(i32);
@@ -36,6 +36,8 @@ pub struct Record {
     pub template_size: i32,
     pub distance_to_next_fragment: i32,
     pub tags: Vec<Tag>,
+
+    pub features: Vec<Feature>,
 }
 
 impl Record {
@@ -45,5 +47,9 @@ impl Record {
 
     pub fn add_tag(&mut self, tag: Tag) {
         self.tags.push(tag);
+    }
+
+    pub fn add_feature(&mut self, feature: Feature) {
+        self.features.push(feature);
     }
 }

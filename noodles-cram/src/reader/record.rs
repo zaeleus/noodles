@@ -10,7 +10,7 @@ use crate::{
     encoding::{self, Encoding},
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    BitReader, CompressionHeader, Record, Tag,
+    BitReader, CompressionHeader, Feature, Record, Tag,
 };
 
 use super::encoding::read_encoding;
@@ -64,6 +64,12 @@ where
 
         self.read_mate_data(record)?;
         self.read_tag_data(record)?;
+
+        if is_record_unmapped(record) {
+            todo!("unmapped record");
+        } else {
+            self.read_mapped_read(record)?;
+        }
 
         Ok(())
     }
@@ -329,6 +335,304 @@ where
             &mut self.external_data_readers,
         )
     }
+
+    fn read_mapped_read(&mut self, record: &mut Record) -> io::Result<()> {
+        let read_features_len = self.read_number_of_read_features()?;
+
+        record.features.clear();
+
+        for _ in 0..read_features_len {
+            let feature = self.read_feature()?;
+            record.add_feature(feature);
+        }
+
+        Ok(())
+    }
+
+    fn read_number_of_read_features(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NumberOfReadFeatures)
+            .expect("missing FN");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_feature(&mut self) -> io::Result<Feature> {
+        let code = self.read_feature_code()? as u8 as char;
+        let position = self.read_feature_position()?;
+
+        match code {
+            'b' => {
+                let bases = self.read_stretches_of_bases()?;
+                Ok(Feature::Bases(position, bases))
+            }
+            'q' => {
+                let quality_scores = self.read_stretches_of_quality_scores()?;
+                Ok(Feature::Scores(position, quality_scores))
+            }
+            'B' => {
+                let base = self.read_base()?;
+                let quality_score = self.read_quality_score()?;
+                Ok(Feature::ReadBase(position, base, quality_score))
+            }
+            'X' => {
+                let code = self.read_base_substitution_code()?;
+                Ok(Feature::Substitution(position, code))
+            }
+            'I' => {
+                let bases = self.read_insertion()?;
+                Ok(Feature::Insertion(position, bases))
+            }
+            'D' => {
+                let len = self.read_deletion_length()?;
+                Ok(Feature::Deletion(position, len))
+            }
+            'i' => {
+                let base = self.read_base()?;
+                Ok(Feature::InsertBase(position, base))
+            }
+            'Q' => {
+                let score = self.read_quality_score()?;
+                Ok(Feature::QualityScore(position, score))
+            }
+            'N' => {
+                let len = self.read_reference_skip_length()?;
+                Ok(Feature::ReferenceSkip(position, len))
+            }
+            'S' => {
+                let bases = self.read_soft_clip()?;
+                Ok(Feature::SoftClip(position, bases))
+            }
+            'P' => {
+                let len = self.read_padding()?;
+                Ok(Feature::Padding(position, len))
+            }
+            'H' => {
+                let len = self.read_hard_clip()?;
+                Ok(Feature::HardClip(position, len))
+            }
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("invalid feature code: {}", code),
+            )),
+        }
+    }
+
+    fn read_feature_code(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReadFeaturesCodes)
+            .expect("missing FC");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_feature_position(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::InReadPositions)
+            .expect("missing FP");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Bases)
+            .expect("missing BB");
+
+        decode_byte_array(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )
+    }
+
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::QualityScores)
+            .expect("missing QQ");
+
+        decode_byte_array(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )
+    }
+
+    fn read_base(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Bases)
+            .expect("missing BA");
+
+        decode_byte(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_quality_score(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::QualityScores)
+            .expect("missing QS");
+
+        decode_byte(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_base_substitution_code(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::BaseSubstitutionCodes)
+            .expect("missing BS");
+
+        decode_byte(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_insertion(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Insertion)
+            .expect("missing IN");
+
+        decode_byte_array(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )
+    }
+
+    fn read_deletion_length(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::DeletionLengths)
+            .expect("missing DL");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_reference_skip_length(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReferenceSkipLength)
+            .expect("missing RS");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::SoftClip)
+            .expect("missing SC");
+
+        decode_byte_array(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )
+    }
+
+    fn read_padding(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Padding)
+            .expect("missing PD");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_hard_clip(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::HardClip)
+            .expect("missing HC");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+}
+
+fn decode_byte<R, S>(
+    encoding: &Encoding,
+    _core_data_reader: &mut R,
+    external_data_readers: &mut HashMap<Itf8, S>,
+) -> io::Result<u8>
+where
+    R: Read,
+    S: Read,
+{
+    match encoding.kind() {
+        encoding::Kind::External => {
+            let mut reader = encoding.args();
+            let block_content_id = read_itf8(&mut reader)?;
+
+            let reader = external_data_readers
+                .get_mut(&block_content_id)
+                .expect("could not find block");
+
+            reader.read_u8()
+        }
+        _ => todo!("{:?}", encoding.kind()),
+    }
 }
 
 fn decode_itf8<R, S>(
@@ -439,4 +743,8 @@ where
         }
         _ => todo!(),
     }
+}
+
+fn is_record_unmapped(record: &Record) -> bool {
+    (record.bam_bit_flags & 0x04) != 0
 }
