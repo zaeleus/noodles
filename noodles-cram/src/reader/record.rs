@@ -346,6 +346,8 @@ where
             record.add_feature(feature);
         }
 
+        record.mapping_quality = self.read_mapping_quality()?;
+
         Ok(())
     }
 
@@ -602,6 +604,20 @@ where
             .data_series_encoding_map()
             .get(&DataSeries::HardClip)
             .expect("missing HC");
+
+        decode_itf8(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+    }
+
+    fn read_mapping_quality(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::MappingQualities)
+            .expect("missing MQ");
 
         decode_itf8(
             &encoding,
