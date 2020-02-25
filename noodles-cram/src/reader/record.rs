@@ -66,7 +66,7 @@ where
         self.read_tag_data(record)?;
 
         if is_record_unmapped(record) {
-            todo!("unmapped record");
+            self.read_unmapped_read(record)?;
         } else {
             self.read_mapped_read(record)?;
         }
@@ -638,6 +638,33 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+    }
+
+    fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
+        let read_len = record.read_length;
+
+        let mut bases = Vec::with_capacity(read_len as usize);
+
+        for _ in 0..read_len {
+            let base = self.read_base()?;
+            bases.push(base);
+        }
+
+        let cram_bit_flags = record.cram_bit_flags();
+
+        if cram_bit_flags.are_quality_scores_stored_as_array() {
+            let read_len = record.read_length;
+            let mut scores = Vec::with_capacity(read_len as usize);
+
+            for _ in 0..read_len {
+                let score = self.read_quality_score()?;
+                scores.push(score);
+            }
+
+            record.quality_scores = scores;
+        }
+
+        Ok(())
     }
 }
 

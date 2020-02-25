@@ -36,7 +36,7 @@ pub struct Record {
     pub template_size: i32,
     pub distance_to_next_fragment: i32,
     pub tags: Vec<Tag>,
-
+    pub bases: Vec<u8>,
     pub features: Vec<Feature>,
     pub mapping_quality: i32,
     pub quality_scores: Vec<u8>,
