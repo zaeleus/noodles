@@ -256,7 +256,7 @@ where
         let f = rans_get_cumulative_freq(state[3]);
         let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[3] as usize], f);
 
-        output[i + 3 * (output.len() / 4)] = s as u8;
+        output[i] = s as u8;
 
         state[3] = rans_advance_step(
             state[3],
