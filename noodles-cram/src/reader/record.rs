@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    convert::TryFrom,
     io::{self, BufRead, Read},
 };
 
@@ -184,7 +185,11 @@ where
             .get(&DataSeries::ReadNames)
             .expect("missing RN");
 
-        decode_byte_array(&encoding, &mut self.external_data_readers)
+        decode_byte_array(
+            &encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
     }
 
     pub fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
@@ -295,7 +300,11 @@ where
             let id = (key[0] as i32) << 16 | (key[1] as i32) << 8 | (key[2] as i32);
             let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
 
-            let data = decode_byte_array(encoding, &mut self.external_data_readers)?;
+            let data = decode_byte_array(
+                encoding,
+                &mut self.core_data_reader,
+                &mut self.external_data_readers,
+            )?;
 
             let tag = Tag::new([key[0], key[1]], data);
             record.add_tag(tag);
@@ -366,14 +375,28 @@ where
     }
 }
 
-fn decode_byte_array<R>(
+fn decode_byte_array<R, S>(
     encoding: &Encoding,
-    external_data_readers: &mut HashMap<Itf8, R>,
+    core_data_reader: &mut R,
+    external_data_readers: &mut HashMap<Itf8, S>,
 ) -> io::Result<Vec<u8>>
 where
-    R: BufRead,
+    R: Read,
+    S: BufRead,
 {
     match encoding.kind() {
+        encoding::Kind::ByteArrayLen => {
+            let mut reader = encoding.args();
+
+            let len_encoding = read_encoding(&mut reader)?;
+            let value_encoding = read_encoding(&mut reader)?;
+
+            let len = decode_itf8(&len_encoding, core_data_reader, external_data_readers)?;
+            let value =
+                decode_byte_array(&value_encoding, core_data_reader, external_data_readers)?;
+
+            Ok(value)
+        }
         encoding::Kind::ByteArrayStop => {
             let mut reader = encoding.args();
             let stop_byte = reader.read_u8()?;
@@ -390,4 +413,18 @@ where
         }
         _ => todo!(),
     }
+}
+
+fn read_encoding<R>(reader: &mut R) -> io::Result<Encoding>
+where
+    R: Read,
+{
+    let kind = read_itf8(reader)
+        .map(|codec_id| encoding::Kind::try_from(codec_id).expect("invalid codec id"))?;
+
+    let args_len = read_itf8(reader)?;
+    let mut args_buf = vec![0; args_len as usize];
+    reader.read_exact(&mut args_buf)?;
+
+    Ok(Encoding::new(kind, args_buf))
 }
