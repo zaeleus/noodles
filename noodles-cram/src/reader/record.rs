@@ -1,6 +1,5 @@
 use std::{
     collections::HashMap,
-    convert::TryFrom,
     io::{self, BufRead, Read},
 };
 
@@ -13,6 +12,8 @@ use crate::{
     num::{read_itf8, Itf8},
     BitReader, CompressionHeader, Record, Tag,
 };
+
+use super::encoding::read_encoding;
 
 pub struct Reader<'a, R, S>
 where
@@ -438,18 +439,4 @@ where
         }
         _ => todo!(),
     }
-}
-
-fn read_encoding<R>(reader: &mut R) -> io::Result<Encoding>
-where
-    R: Read,
-{
-    let kind = read_itf8(reader)
-        .map(|codec_id| encoding::Kind::try_from(codec_id).expect("invalid codec id"))?;
-
-    let args_len = read_itf8(reader)?;
-    let mut args_buf = vec![0; args_len as usize];
-    reader.read_exact(&mut args_buf)?;
-
-    Ok(Encoding::new(kind, args_buf))
 }
