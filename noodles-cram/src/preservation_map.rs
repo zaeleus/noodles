@@ -1,5 +1,5 @@
 pub type SubstitutionMatrix = [u8; 5];
-pub type TagIdsDictionary = Vec<u8>;
+pub type TagIdsDictionary = Vec<Vec<Vec<u8>>>;
 
 #[derive(Debug)]
 pub struct PreservationMap {

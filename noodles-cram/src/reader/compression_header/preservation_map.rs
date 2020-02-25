@@ -1,8 +1,11 @@
-use std::io::{self, Read};
+use std::io::{self, BufRead, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::{num::read_itf8, preservation_map::PreservationMap};
+use crate::{
+    num::read_itf8,
+    preservation_map::{PreservationMap, TagIdsDictionary},
+};
 
 pub fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
 where
@@ -37,10 +40,7 @@ where
                 buf_reader.read_exact(&mut buf[..])?;
             }
             b"TD" => {
-                let td_len = read_itf8(&mut buf_reader)?;
-                let buf = map.tag_ids_dictionary_mut();
-                buf.resize(td_len as usize, Default::default());
-                buf_reader.read_exact(buf)?;
+                *map.tag_ids_dictionary_mut() = read_tag_ids_dictionary(&mut buf_reader)?;
             }
             _ => {
                 return Err(io::Error::new(
@@ -67,4 +67,34 @@ where
         )),
         Err(e) => Err(e),
     }
+}
+
+fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>
+where
+    R: Read,
+{
+    let data_len = read_itf8(reader)?;
+    let mut buf = vec![0; data_len as usize];
+    reader.read_exact(&mut buf)?;
+
+    let mut buf_reader = &buf[..];
+
+    let mut dictionary = TagIdsDictionary::new();
+    let mut keys_buf = Vec::new();
+
+    loop {
+        keys_buf.clear();
+
+        match buf_reader.read_until(0x00, &mut keys_buf) {
+            Ok(0) => break,
+            Ok(_) => {}
+            Err(e) => return Err(e),
+        }
+
+        let keys: Vec<_> = keys_buf.chunks_exact(3).map(|k| k.to_vec()).collect();
+
+        dictionary.push(keys);
+    }
+
+    Ok(dictionary)
 }
