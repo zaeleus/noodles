@@ -185,7 +185,7 @@ where
         )
     }
 
-    pub fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
+    fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -200,7 +200,7 @@ where
         )
     }
 
-    pub fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
         let cram_bit_flags = record.cram_bit_flags();
 
         if cram_bit_flags.is_detached() {
@@ -223,7 +223,7 @@ where
         Ok(())
     }
 
-    pub fn read_next_mate_bit_flags(&mut self) -> io::Result<Itf8> {
+    fn read_next_mate_bit_flags(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -237,7 +237,7 @@ where
         )
     }
 
-    pub fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Itf8> {
+    fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -251,7 +251,7 @@ where
         )
     }
 
-    pub fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
+    fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -265,7 +265,7 @@ where
         )
     }
 
-    pub fn read_template_size(&mut self) -> io::Result<Itf8> {
+    fn read_template_size(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -279,7 +279,7 @@ where
         )
     }
 
-    pub fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
+    fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -322,7 +322,7 @@ where
         Ok(())
     }
 
-    pub fn read_tag_line(&mut self) -> io::Result<Itf8> {
+    fn read_tag_line(&mut self) -> io::Result<Itf8> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
