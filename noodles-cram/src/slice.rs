@@ -45,6 +45,10 @@ impl Header {
 }
 
 impl Header {
+    pub fn n_records(&self) -> Itf8 {
+        self.n_records
+    }
+
     pub fn n_blocks(&self) -> Itf8 {
         self.n_blocks
     }
