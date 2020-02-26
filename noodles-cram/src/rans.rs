@@ -85,7 +85,7 @@ where
         } else {
             sym = reader.read_u8()?;
 
-            if sym == last_sym + 1 {
+            if last_sym < 255 && sym == last_sym + 1 {
                 rle = reader.read_u8()?;
             }
         }
@@ -113,7 +113,7 @@ pub fn rans_get_cumulative_freq(r: u32) -> u32 {
 pub fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u8 {
     let mut sym = 0;
 
-    while freq >= cumulative_freqs[(sym + 1) as usize] {
+    while sym < 255 && freq >= cumulative_freqs[(sym + 1) as usize] {
         sym += 1;
     }
 
@@ -197,7 +197,7 @@ where
         } else {
             sym = reader.read_u8()?;
 
-            if sym == last_sym + 1 {
+            if sym < 255 && sym == last_sym + 1 {
                 rle = reader.read_u8()?;
             }
         }
