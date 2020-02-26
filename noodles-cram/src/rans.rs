@@ -110,7 +110,7 @@ pub fn rans_get_cumulative_freq(r: u32) -> u32 {
     r & 0x0fff
 }
 
-pub fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u32 {
+pub fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u8 {
     let mut sym = 0;
 
     while freq >= cumulative_freqs[(sym + 1) as usize] {
@@ -160,7 +160,7 @@ where
             let f = rans_get_cumulative_freq(state[j]);
             let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
 
-            output[i + j] = s as u8;
+            output[i + j] = s;
 
             state[j] = rans_advance_step(state[j], cumulative_freqs[s as usize], freqs[s as usize]);
             state[j] = rans_renorm(reader, state[j])?;
@@ -235,7 +235,7 @@ where
             let f = rans_get_cumulative_freq(state[j]);
             let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j] as usize], f);
 
-            output[i + j * (output.len() / 4)] = s as u8;
+            output[i + j * (output.len() / 4)] = s;
 
             state[j] = rans_advance_step(
                 state[j],
@@ -256,7 +256,7 @@ where
         let f = rans_get_cumulative_freq(state[3]);
         let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[3] as usize], f);
 
-        output[i] = s as u8;
+        output[i] = s;
 
         state[3] = rans_advance_step(
             state[3],
