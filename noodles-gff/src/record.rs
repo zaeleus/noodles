@@ -68,8 +68,10 @@ impl Record {
     }
 
     pub fn strand(&self) -> self::Result<Strand> {
-        self.parse(Header::Strand)
-            .and_then(|s| s.parse().map_err(|e| Error::Parse(Header::Strand, e)))
+        self.parse(Header::Strand).and_then(|s| {
+            s.parse()
+                .map_err(|e| Error::Parse(Header::Strand, format!("{}", e)))
+        })
     }
 
     pub fn frame(&self) -> self::Result<u8> {

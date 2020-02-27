@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Strand {
@@ -27,8 +27,19 @@ impl fmt::Display for Strand {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "invalid strand: expected {{+, -, ., ?}}, got {}", self.0)
+    }
+}
+
 impl FromStr for Strand {
-    type Err = String;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -36,14 +47,14 @@ impl FromStr for Strand {
             "-" => Ok(Self::Reverse),
             "." => Ok(Self::Irrelevant),
             "?" => Ok(Self::Unknown),
-            _ => Err(format!("invalid strand '{}'", s)),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Strand;
+    use super::*;
 
     #[test]
     fn test_default() {
@@ -64,6 +75,6 @@ mod tests {
         assert_eq!("-".parse(), Ok(Strand::Reverse));
         assert_eq!(".".parse(), Ok(Strand::Irrelevant));
         assert_eq!("?".parse(), Ok(Strand::Unknown));
-        assert!("!".parse::<Strand>().is_err());
+        assert_eq!("!".parse::<Strand>(), Err(ParseError(String::from("!"))));
     }
 }
