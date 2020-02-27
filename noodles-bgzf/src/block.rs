@@ -3,8 +3,6 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 #[derive(Debug)]
 pub struct Block {
     c_offset: u64,
@@ -38,14 +36,6 @@ impl Block {
 
     pub fn read_record(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         self.inner.read(buf)
-    }
-
-    pub fn is_eof(&self) -> bool {
-        self.inner.position() >= self.inner.get_ref().len() as u64
-    }
-
-    pub fn read_block_size(&mut self) -> io::Result<i32> {
-        self.inner.read_i32::<LittleEndian>()
     }
 }
 
