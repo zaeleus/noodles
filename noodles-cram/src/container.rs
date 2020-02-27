@@ -85,4 +85,10 @@ impl Container {
     pub fn add_slice(&mut self, slice: Slice) {
         self.slices.push(slice);
     }
+
+    pub fn clear(&mut self) {
+        self.header = Default::default();
+        self.compression_header = Default::default();
+        self.slices.clear();
+    }
 }
