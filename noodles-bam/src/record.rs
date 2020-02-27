@@ -277,7 +277,7 @@ mod tests {
     #[test]
     fn test_flag() {
         let r = build_record();
-        assert_eq!(r.flag().inner(), 0xa3);
+        assert_eq!(u16::from(r.flag()), 0xa3);
     }
 
     #[test]
