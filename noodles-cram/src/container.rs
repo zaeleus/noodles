@@ -14,6 +14,7 @@ pub struct Header {
     bases: Ltf8,
     n_blocks: Itf8,
     landmarks: Vec<Itf8>,
+    crc32: u32,
 }
 
 impl Header {
@@ -27,6 +28,7 @@ impl Header {
         bases: Ltf8,
         n_blocks: Itf8,
         landmarks: Vec<Itf8>,
+        crc32: u32,
     ) -> Self {
         Self {
             length,
@@ -38,6 +40,7 @@ impl Header {
             bases,
             n_blocks,
             landmarks,
+            crc32,
         }
     }
 

@@ -20,7 +20,7 @@ where
     let bases = read_ltf8(reader)?;
     let number_of_blocks = read_itf8(reader)?;
     let landmarks = read_landmarks(reader)?;
-    let _crc = read_crc32(reader)?;
+    let crc32 = reader.read_u32::<LittleEndian>()?;
 
     Ok(Header::new(
         length,
@@ -32,6 +32,7 @@ where
         bases,
         number_of_blocks,
         landmarks,
+        crc32,
     ))
 }
 
@@ -47,14 +48,5 @@ where
         buf.push(pos);
     }
 
-    Ok(buf)
-}
-
-fn read_crc32<R>(reader: &mut R) -> io::Result<[u8; 4]>
-where
-    R: Read,
-{
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf)?;
     Ok(buf)
 }
