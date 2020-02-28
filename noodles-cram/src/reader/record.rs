@@ -758,6 +758,17 @@ where
             let mut reader = BitReader::new(core_data_reader);
             decoder.read(&mut reader)
         }
+        encoding::Kind::Beta => {
+            let mut reader = encoding.args();
+
+            let offset = read_itf8(&mut reader)?;
+            let len = read_itf8(&mut reader)?;
+
+            let mut bit_reader = BitReader::new(core_data_reader);
+            bit_reader
+                .read_u32(len as usize)
+                .map(|i| (i as i32 - offset))
+        }
         _ => todo!("{:?}", encoding.kind()),
     }
 }
