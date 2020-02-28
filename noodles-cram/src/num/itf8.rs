@@ -34,7 +34,7 @@ where
         let b2 = read_u8_as_i32(reader)?;
         let b3 = read_u8_as_i32(reader)?;
         let b4 = read_u8_as_i32(reader)?;
-        (b0 & 0x07) << 28 | b1 << 20 | b2 << 12 | b3 << 4 | b4 & 0x07
+        (b0 & 0x0f) << 28 | b1 << 20 | b2 << 12 | b3 << 4 | b4 & 0x0f
     };
 
     Ok(value)
@@ -72,5 +72,10 @@ mod tests {
         let mut reader = BufReader::new(&data[..]);
         let i = read_itf8(&mut reader).unwrap();
         assert_eq!(i, 1968805474);
+
+        let data = [0xff, 0xff, 0xff, 0xff, 0x0f];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_itf8(&mut reader).unwrap();
+        assert_eq!(i, -1);
     }
 }
