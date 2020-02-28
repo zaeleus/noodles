@@ -48,6 +48,19 @@ impl Header {
         self.length
     }
 
+    pub fn is_eof(&self) -> bool {
+        self.length == 15
+            && self.reference_sequence_id == -1
+            && self.start_position == 4542278
+            && self.alignment_span == 0
+            && self.n_records == 0
+            && self.record_counter == 0
+            && self.bases == 0
+            && self.n_blocks == 1
+            && self.landmarks.is_empty()
+            && self.crc32 == 1339669765
+    }
+
     pub fn landmarks(&self) -> &[Itf8] {
         &self.landmarks
     }
@@ -93,5 +106,9 @@ impl Container {
         self.header = Default::default();
         self.compression_header = Default::default();
         self.slices.clear();
+    }
+
+    pub fn is_eof(&self) -> bool {
+        self.header.is_eof()
     }
 }
