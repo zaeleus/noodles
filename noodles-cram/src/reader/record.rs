@@ -670,7 +670,7 @@ where
 
 fn decode_byte<R, S>(
     encoding: &Encoding,
-    _core_data_reader: &mut R,
+    core_data_reader: &mut R,
     external_data_readers: &mut HashMap<Itf8, S>,
 ) -> io::Result<u8>
 where
@@ -687,6 +687,29 @@ where
                 .expect("could not find block");
 
             reader.read_u8()
+        }
+        encoding::Kind::Huffman => {
+            let mut reader = encoding.args();
+
+            let alphabet_len = read_itf8(&mut reader)? as usize;
+            let mut alphabet = Vec::with_capacity(alphabet_len);
+
+            for _ in 0..alphabet_len {
+                let symbol = read_itf8(&mut reader)?;
+                alphabet.push(symbol);
+            }
+
+            let bit_lens_len = read_itf8(&mut reader)? as usize;
+            let mut bit_lens = Vec::with_capacity(bit_lens_len);
+
+            for _ in 0..bit_lens_len {
+                let len = read_itf8(&mut reader)?;
+                bit_lens.push(len);
+            }
+
+            let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
+            let mut reader = BitReader::new(core_data_reader);
+            decoder.read(&mut reader).map(|i| i as u8)
         }
         _ => todo!("{:?}", encoding.kind()),
     }
