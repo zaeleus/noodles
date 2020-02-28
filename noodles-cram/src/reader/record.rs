@@ -758,7 +758,7 @@ where
             let mut reader = BitReader::new(core_data_reader);
             decoder.read(&mut reader)
         }
-        _ => todo!(),
+        _ => todo!("{:?}", encoding.kind()),
     }
 }
 
@@ -821,7 +821,7 @@ where
 
             Ok(buf)
         }
-        _ => todo!(),
+        _ => todo!("{:?}", encoding.kind()),
     }
 }
 
