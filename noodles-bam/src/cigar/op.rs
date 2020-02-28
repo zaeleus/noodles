@@ -2,7 +2,7 @@ pub use self::kind::Kind;
 
 pub mod kind;
 
-use std::{convert::TryFrom, fmt};
+use std::{convert::TryFrom, error, fmt};
 
 use byteorder::{ByteOrder, LittleEndian};
 
@@ -30,8 +30,19 @@ impl Op {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct TryFromUintError(u32);
+
+impl fmt::Display for TryFromUintError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid op: expected 0..=8, got {}", self.0)
+    }
+}
+
+impl error::Error for TryFromUintError {}
+
 impl TryFrom<u32> for Op {
-    type Error = ();
+    type Error = TryFromUintError;
 
     fn try_from(u: u32) -> Result<Self, Self::Error> {
         let len = u >> 4;
@@ -46,7 +57,7 @@ impl TryFrom<u32> for Op {
             6 => Kind::Pad,
             7 => Kind::SeqMatch,
             8 => Kind::SeqMismatch,
-            _ => return Err(()),
+            n => return Err(TryFromUintError(n)),
         };
 
         Ok(Self::new(kind, len))
@@ -58,7 +69,7 @@ impl TryFrom<&[u8]> for Op {
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
         let u = LittleEndian::read_u32(bytes);
-        Self::try_from(u)
+        Self::try_from(u).map_err(|_| ())
     }
 }
 
@@ -81,7 +92,7 @@ mod tests {
 
     use crate::cigar::Kind;
 
-    use super::Op;
+    use super::*;
 
     #[test]
     fn test_new() {
@@ -122,7 +133,7 @@ mod tests {
         assert_eq!(Op::try_from(7 << 4 | 6), Ok(Op::new(Kind::Pad, 7)));
         assert_eq!(Op::try_from(8 << 4 | 7), Ok(Op::new(Kind::SeqMatch, 8)));
         assert_eq!(Op::try_from(9 << 4 | 8), Ok(Op::new(Kind::SeqMismatch, 9)));
-        assert!(Op::try_from(10 << 4 | 9).is_err());
+        assert_eq!(Op::try_from(10 << 4 | 9), Err(TryFromUintError(9)));
     }
 
     #[test]
