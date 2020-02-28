@@ -1,6 +1,6 @@
 use std::{collections::HashMap, io::Cursor};
 
-use crate::{num::Itf8, reader::record, Block, CompressionHeader};
+use crate::{num::Itf8, reader::record, BitReader, Block, CompressionHeader};
 
 #[derive(Debug)]
 pub struct Header {
@@ -86,7 +86,7 @@ impl Slice {
         &'a self,
         compression_header: &'a CompressionHeader,
     ) -> record::Reader<'a, Cursor<Vec<u8>>, Cursor<Vec<u8>>> {
-        let core_data = Cursor::new(self.core_data_block.decompressed_data());
+        let core_data = BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
 
         let external_data: HashMap<_, _> = self
             .external_blocks

@@ -21,7 +21,7 @@ where
     S: BufRead,
 {
     compression_header: &'a CompressionHeader,
-    core_data_reader: R,
+    core_data_reader: BitReader<R>,
     external_data_readers: HashMap<Itf8, S>,
     reference_sequence_id: Itf8,
     prev_alignment_start: Itf8,
@@ -34,7 +34,7 @@ where
 {
     pub fn new(
         compression_header: &'a CompressionHeader,
-        core_data_reader: R,
+        core_data_reader: BitReader<R>,
         external_data_readers: HashMap<Itf8, S>,
         reference_sequence_id: Itf8,
         initial_alignment_start: Itf8,
@@ -670,7 +670,7 @@ where
 
 fn decode_byte<R, S>(
     encoding: &Encoding,
-    core_data_reader: &mut R,
+    core_data_reader: &mut BitReader<R>,
     external_data_readers: &mut HashMap<Itf8, S>,
 ) -> io::Result<u8>
 where
@@ -708,8 +708,7 @@ where
             }
 
             let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
-            let mut reader = BitReader::new(core_data_reader);
-            decoder.read(&mut reader).map(|i| i as u8)
+            decoder.read(core_data_reader).map(|i| i as u8)
         }
         _ => todo!("{:?}", encoding.kind()),
     }
@@ -717,7 +716,7 @@ where
 
 fn decode_itf8<R, S>(
     encoding: &Encoding,
-    core_data_reader: &mut R,
+    core_data_reader: &mut BitReader<R>,
     external_data_readers: &mut HashMap<Itf8, S>,
 ) -> io::Result<Itf8>
 where
@@ -755,8 +754,7 @@ where
             }
 
             let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
-            let mut reader = BitReader::new(core_data_reader);
-            decoder.read(&mut reader)
+            decoder.read(core_data_reader)
         }
         encoding::Kind::Beta => {
             let mut reader = encoding.args();
@@ -764,8 +762,7 @@ where
             let offset = read_itf8(&mut reader)?;
             let len = read_itf8(&mut reader)?;
 
-            let mut bit_reader = BitReader::new(core_data_reader);
-            bit_reader
+            core_data_reader
                 .read_u32(len as usize)
                 .map(|i| (i as i32 - offset))
         }
@@ -775,7 +772,7 @@ where
 
 fn decode_byte_array<R, S>(
     encoding: &Encoding,
-    core_data_reader: &mut R,
+    core_data_reader: &mut BitReader<R>,
     external_data_readers: &mut HashMap<Itf8, S>,
     buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
