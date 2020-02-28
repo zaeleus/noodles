@@ -80,8 +80,8 @@ where
         freqs[sym as usize] = f;
 
         if rle > 0 {
-            rle = rle - 1;
-            sym = sym + 1;
+            rle -= 1;
+            sym += 1;
         } else {
             sym = reader.read_u8()?;
 
@@ -192,8 +192,8 @@ where
         )?;
 
         if rle > 0 {
-            rle = rle - 1;
-            sym = sym + 1;
+            rle -= 1;
+            sym += 1;
         } else {
             sym = reader.read_u8()?;
 

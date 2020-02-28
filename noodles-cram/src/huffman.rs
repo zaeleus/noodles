@@ -24,7 +24,7 @@ impl CanonicalHuffmanDecoder {
         let mut code_book_by_len = HashMap::new();
 
         for (symbol, (code, len)) in &self.code_book {
-            let entries = code_book_by_len.entry(len).or_insert(Vec::new());
+            let entries = code_book_by_len.entry(len).or_insert_with(Vec::new);
             entries.push((symbol, code));
         }
 
