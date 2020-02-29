@@ -3,8 +3,8 @@ use std::io::{self, BufRead, Read};
 use byteorder::ReadBytesExt;
 
 use crate::{
+    compression_header::{PreservationMap, TagIdsDictionary},
     num::read_itf8,
-    preservation_map::{PreservationMap, TagIdsDictionary},
 };
 
 pub fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
