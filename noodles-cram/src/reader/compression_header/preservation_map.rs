@@ -23,7 +23,7 @@ where
     let map_len = read_itf8(&mut buf_reader)?;
 
     let mut map = PreservationMap::default();
-    let mut key_buf = vec![0; 2];
+    let mut key_buf = [0; 2];
 
     for _ in 0..map_len {
         buf_reader.read_exact(&mut key_buf)?;
