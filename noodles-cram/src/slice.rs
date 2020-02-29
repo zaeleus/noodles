@@ -17,6 +17,7 @@ pub struct Header {
 }
 
 impl Header {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         reference_sequence_id: Itf8,
         alignment_start: Itf8,

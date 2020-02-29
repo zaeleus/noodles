@@ -24,6 +24,7 @@ pub struct Header {
 }
 
 impl Header {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         length: i32,
         reference_sequence_id: Itf8,

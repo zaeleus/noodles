@@ -145,8 +145,8 @@ where
 
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    for j in 0..4 {
-        state[j] = reader.read_u32::<LittleEndian>()?;
+    for r in state.iter_mut().take(4) {
+        *r = reader.read_u32::<LittleEndian>()?;
     }
 
     let mut i = 0;
@@ -223,8 +223,8 @@ where
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    for j in 0..4 {
-        state[j] = reader.read_u32::<LittleEndian>()?;
+    for (j, r) in state.iter_mut().enumerate().take(4) {
+        *r = reader.read_u32::<LittleEndian>()?;
         last_syms[j] = 0;
     }
 

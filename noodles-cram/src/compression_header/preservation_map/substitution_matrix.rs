@@ -103,7 +103,7 @@ fn set_substitutions(
     s[((codes >> 6) & 0x03) as usize] = read_bases[0];
     s[((codes >> 4) & 0x03) as usize] = read_bases[1];
     s[((codes >> 2) & 0x03) as usize] = read_bases[2];
-    s[((codes >> 0) & 0x03) as usize] = read_bases[3];
+    s[((codes) & 0x03) as usize] = read_bases[3];
 }
 
 #[cfg(test)]
