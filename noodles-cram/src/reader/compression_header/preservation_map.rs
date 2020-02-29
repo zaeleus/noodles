@@ -1,9 +1,12 @@
-use std::io::{self, BufRead, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, BufRead, Read},
+};
 
 use byteorder::ReadBytesExt;
 
 use crate::{
-    compression_header::{PreservationMap, TagIdsDictionary},
+    compression_header::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
     num::read_itf8,
 };
 
@@ -36,8 +39,13 @@ where
                 *map.read_names_included_mut() = read_bool(&mut buf_reader)?;
             }
             b"SM" => {
-                let buf = map.substitution_matrix_mut();
+                let mut buf = [0; 5];
                 buf_reader.read_exact(&mut buf[..])?;
+
+                let matrix = SubstitutionMatrix::try_from(&buf[..])
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                *map.substitution_matrix_mut() = matrix;
             }
             b"TD" => {
                 *map.tag_ids_dictionary_mut() = read_tag_ids_dictionary(&mut buf_reader)?;

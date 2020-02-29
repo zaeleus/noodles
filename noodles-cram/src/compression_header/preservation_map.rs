@@ -1,4 +1,7 @@
-pub type SubstitutionMatrix = [u8; 5];
+mod substitution_matrix;
+
+pub use substitution_matrix::SubstitutionMatrix;
+
 pub type TagIdsDictionary = Vec<Vec<Vec<u8>>>;
 
 #[derive(Debug)]
@@ -70,6 +73,6 @@ impl PreservationMap {
 
 impl Default for PreservationMap {
     fn default() -> Self {
-        Self::new(true, true, true, [0, 0, 0, 0, 0], Vec::new())
+        Self::new(true, true, true, SubstitutionMatrix::default(), Vec::new())
     }
 }
