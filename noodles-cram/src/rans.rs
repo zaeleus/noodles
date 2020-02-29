@@ -223,9 +223,8 @@ where
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    for (j, r) in state.iter_mut().enumerate().take(4) {
+    for r in state.iter_mut().take(4) {
         *r = reader.read_u32::<LittleEndian>()?;
-        last_syms[j] = 0;
     }
 
     let mut i = 0;
