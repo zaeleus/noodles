@@ -12,10 +12,7 @@ Notably, the BAM parser is a pure Rust implementation.
 noodles itself does not provide any applications, but related tools do depend
 on it.
 
-  * [noodles-squab]: Counts the number of aligned records that intersects a set
-    of features.
-
-  * [noodles-fpkm]: Calculates FPKM values from feature counts.
+  * [noodles-squab]: Gene expression quantification by counting aligned record
+    intersections on reference gene annotations.
 
 [noodles-squab]: https://github.com/zaeleus/noodles-squab
-[noodles-fpkm]: https://github.com/zaeleus/noodles-fpkm
