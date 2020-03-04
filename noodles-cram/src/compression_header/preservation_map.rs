@@ -1,4 +1,4 @@
-mod substitution_matrix;
+pub mod substitution_matrix;
 
 pub use substitution_matrix::SubstitutionMatrix;
 

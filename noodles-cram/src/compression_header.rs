@@ -1,4 +1,4 @@
-mod preservation_map;
+pub mod preservation_map;
 
 pub use self::preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary};
 

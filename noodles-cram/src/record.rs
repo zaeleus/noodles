@@ -1,3 +1,5 @@
+pub mod resolve;
+
 use crate::{Feature, Tag};
 
 #[derive(Clone, Copy, Debug)]
@@ -47,8 +49,20 @@ impl Record {
         CramBitFlags(self.cram_bit_flags)
     }
 
+    pub fn read_length(&self) -> i32 {
+        self.read_length
+    }
+
+    pub fn alignment_start(&self) -> i32 {
+        self.alignment_start
+    }
+
     pub fn add_tag(&mut self, tag: Tag) {
         self.tags.push(tag);
+    }
+
+    pub fn features(&self) -> &[Feature] {
+        &self.features
     }
 
     pub fn add_feature(&mut self, feature: Feature) {

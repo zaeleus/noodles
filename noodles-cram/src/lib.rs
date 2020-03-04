@@ -16,7 +16,7 @@ mod huffman;
 mod num;
 mod rans;
 mod reader;
-mod record;
+pub mod record;
 mod slice;
 mod tag;
 
