@@ -71,6 +71,8 @@ where
             self.read_mapped_read(record)?;
         }
 
+        self.prev_alignment_start = record.alignment_start();
+
         Ok(())
     }
 
