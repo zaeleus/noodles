@@ -52,6 +52,21 @@ pub fn resolve_bases(
                 ref_pos += 1;
                 read_pos += 1;
             }
+            Feature::SoftClip(position, bases) => {
+                let reference_sequence = reference_sequence_record.sequence();
+
+                for _ in 0..(*position - 1) {
+                    buf[read_pos] = reference_sequence[ref_pos];
+                    ref_pos += 1;
+                    read_pos += 1;
+                }
+
+                let start = read_pos;
+                let end = start + bases.len();
+                buf.splice(start..end, bases.iter().cloned());
+
+                read_pos += bases.len();
+            }
             _ => todo!("resolve_bases: {:?}", feature),
         }
     }
