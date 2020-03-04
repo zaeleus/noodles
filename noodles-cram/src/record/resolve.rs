@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use noodles_fasta as fasta;
 
 use crate::{
@@ -28,19 +30,11 @@ pub fn resolve_bases(
                     read_pos += 1;
                 }
 
-                let base = reference_sequence[ref_pos];
-
-                let reference_base = match base {
-                    b'A' => Base::A,
-                    b'C' => Base::C,
-                    b'G' => Base::G,
-                    b'T' => Base::T,
-                    b'N' => Base::N,
-                    _ => panic!("unknown base value: {:?}", base),
-                };
+                let base = reference_sequence[ref_pos] as char;
+                let reference_base =
+                    Base::try_from(base).expect("invalid substitution matrix base");
 
                 let read_base = substitution_matrix.get(reference_base, *code);
-
                 buf[read_pos] = char::from(read_base) as u8;
 
                 ref_pos += 1;

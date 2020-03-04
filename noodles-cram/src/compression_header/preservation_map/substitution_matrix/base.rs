@@ -1,3 +1,5 @@
+use std::{convert::TryFrom, error, fmt};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
     A,
@@ -10,6 +12,36 @@ pub enum Base {
 impl Default for Base {
     fn default() -> Self {
         Self::N
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct TryFromCharError(char);
+
+impl fmt::Display for TryFromCharError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid substitution matrix base: expected {{A, C, G, T, N}}, got {}",
+            self.0
+        )
+    }
+}
+
+impl error::Error for TryFromCharError {}
+
+impl TryFrom<char> for Base {
+    type Error = TryFromCharError;
+
+    fn try_from(c: char) -> Result<Self, Self::Error> {
+        match c {
+            'A' => Ok(Self::A),
+            'C' => Ok(Self::C),
+            'G' => Ok(Self::G),
+            'T' => Ok(Self::T),
+            'N' => Ok(Self::N),
+            _ => Err(TryFromCharError(c)),
+        }
     }
 }
 
@@ -32,6 +64,16 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(Base::default(), Base::N);
+    }
+
+    #[test]
+    fn test_try_from_char() {
+        assert_eq!(Base::try_from('A'), Ok(Base::A));
+        assert_eq!(Base::try_from('C'), Ok(Base::C));
+        assert_eq!(Base::try_from('G'), Ok(Base::G));
+        assert_eq!(Base::try_from('T'), Ok(Base::T));
+        assert_eq!(Base::try_from('N'), Ok(Base::N));
+        assert_eq!(Base::try_from('U'), Err(TryFromCharError('U')));
     }
 
     #[test]
