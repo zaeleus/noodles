@@ -3,7 +3,7 @@ use std::{convert::TryFrom, error, fmt};
 type Substitutions = [[Base; 4]; 5];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Base {
+pub enum Base {
     A,
     C,
     G,
@@ -20,6 +20,12 @@ impl Default for Base {
 #[derive(Debug, Default)]
 pub struct SubstitutionMatrix {
     substitutions: Substitutions,
+}
+
+impl SubstitutionMatrix {
+    pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
+        self.substitutions[reference_base as usize][substitution_code as usize]
+    }
 }
 
 #[derive(Debug)]
