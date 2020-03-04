@@ -39,15 +39,9 @@ pub fn resolve_bases(
                     _ => panic!("unknown base value: {:?}", base),
                 };
 
-                let read_base = match substitution_matrix.get(reference_base, *code) {
-                    Base::A => b'A',
-                    Base::C => b'C',
-                    Base::G => b'G',
-                    Base::T => b'T',
-                    Base::N => b'N',
-                };
+                let read_base = substitution_matrix.get(reference_base, *code);
 
-                buf[read_pos] = read_base;
+                buf[read_pos] = char::from(read_base) as u8;
 
                 ref_pos += 1;
                 read_pos += 1;

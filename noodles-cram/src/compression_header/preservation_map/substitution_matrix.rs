@@ -1,21 +1,10 @@
+mod base;
+
+pub use self::base::Base;
+
 use std::{convert::TryFrom, error, fmt};
 
 type Substitutions = [[Base; 4]; 5];
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Base {
-    A,
-    C,
-    G,
-    T,
-    N,
-}
-
-impl Default for Base {
-    fn default() -> Self {
-        Self::N
-    }
-}
 
 #[derive(Debug, Default)]
 pub struct SubstitutionMatrix {
@@ -131,14 +120,5 @@ mod tests {
         ];
 
         assert_eq!(actual, expected);
-    }
-
-    mod base {
-        use super::*;
-
-        #[test]
-        fn test_default() {
-            assert_eq!(Base::default(), Base::N);
-        }
     }
 }
