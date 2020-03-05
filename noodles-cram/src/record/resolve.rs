@@ -52,5 +52,10 @@ pub fn resolve_bases(
         }
     }
 
+    for base in buf.iter_mut().skip(read_pos) {
+        *base = reference_sequence[ref_pos];
+        ref_pos += 1;
+    }
+
     buf
 }
