@@ -19,17 +19,17 @@ pub fn resolve_bases(
     let mut ref_pos = (alignment_start - 1) as usize;
     let mut read_pos = 0;
 
+    let reference_sequence = reference_sequence_record.sequence();
+
     for feature in features {
+        for _ in 0..(feature.position() - 1) {
+            buf[read_pos] = reference_sequence[ref_pos];
+            ref_pos += 1;
+            read_pos += 1;
+        }
+
         match feature {
-            Feature::Substitution(position, code) => {
-                let reference_sequence = reference_sequence_record.sequence();
-
-                for _ in 0..(*position - 1) {
-                    buf[read_pos] = reference_sequence[ref_pos];
-                    ref_pos += 1;
-                    read_pos += 1;
-                }
-
+            Feature::Substitution(_, code) => {
                 let base = reference_sequence[ref_pos] as char;
                 let reference_base =
                     Base::try_from(base).expect("invalid substitution matrix base");
@@ -40,30 +40,14 @@ pub fn resolve_bases(
                 ref_pos += 1;
                 read_pos += 1;
             }
-            Feature::SoftClip(position, bases) => {
-                let reference_sequence = reference_sequence_record.sequence();
-
-                for _ in 0..(*position - 1) {
-                    buf[read_pos] = reference_sequence[ref_pos];
-                    ref_pos += 1;
-                    read_pos += 1;
-                }
-
+            Feature::SoftClip(_, bases) => {
                 let start = read_pos;
                 let end = start + bases.len();
                 buf.splice(start..end, bases.iter().cloned());
 
                 read_pos += bases.len();
             }
-            Feature::HardClip(position, _) => {
-                let reference_sequence = reference_sequence_record.sequence();
-
-                for _ in 0..(*position - 1) {
-                    buf[read_pos] = reference_sequence[ref_pos];
-                    ref_pos += 1;
-                    read_pos += 1;
-                }
-            }
+            Feature::HardClip(..) => {}
             _ => todo!("resolve_bases: {:?}", feature),
         }
     }
