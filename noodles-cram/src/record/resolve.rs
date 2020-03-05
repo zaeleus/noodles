@@ -55,6 +55,15 @@ pub fn resolve_bases(
 
                 read_pos += bases.len();
             }
+            Feature::HardClip(position, _) => {
+                let reference_sequence = reference_sequence_record.sequence();
+
+                for _ in 0..(*position - 1) {
+                    buf[read_pos] = reference_sequence[ref_pos];
+                    ref_pos += 1;
+                    read_pos += 1;
+                }
+            }
             _ => todo!("resolve_bases: {:?}", feature),
         }
     }
