@@ -40,6 +40,15 @@ pub fn resolve_bases(
                 ref_pos += 1;
                 read_pos += 1;
             }
+            Feature::Deletion(_, len) => {
+                ref_pos += *len as usize;
+
+                for _ in 0..*len {
+                    buf[read_pos] = reference_sequence[ref_pos];
+                    ref_pos += 1;
+                    read_pos += 1;
+                }
+            }
             Feature::SoftClip(_, bases) => {
                 let start = read_pos;
                 let end = start + bases.len();
