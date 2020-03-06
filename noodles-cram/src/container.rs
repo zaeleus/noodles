@@ -55,6 +55,10 @@ impl Header {
         self.length
     }
 
+    pub fn reference_sequence_id(&self) -> Itf8 {
+        self.reference_sequence_id
+    }
+
     pub fn is_eof(&self) -> bool {
         self.length == EOF_LEN
             && self.reference_sequence_id == EOF_REFERENCE_SEQUENCE_ID
