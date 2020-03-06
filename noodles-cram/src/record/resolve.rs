@@ -34,8 +34,7 @@ pub fn resolve_bases(
         match feature {
             Feature::Substitution(_, code) => {
                 let base = reference_sequence[ref_pos] as char;
-                let reference_base =
-                    Base::try_from(base).expect("invalid substitution matrix base");
+                let reference_base = Base::try_from(base).unwrap_or_default();
 
                 let read_base = substitution_matrix.get(reference_base, *code);
                 buf[read_pos] = char::from(read_base) as u8;
