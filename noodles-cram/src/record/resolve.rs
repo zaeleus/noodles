@@ -43,6 +43,12 @@ pub fn resolve_bases(
                 ref_pos += 1;
                 read_pos += 1;
             }
+            Feature::Insertion(_, bases) => {
+                for &base in bases {
+                    buf[read_pos] = base;
+                    read_pos += 1;
+                }
+            }
             Feature::Deletion(_, len) => {
                 ref_pos += *len as usize;
             }
