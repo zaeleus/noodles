@@ -643,13 +643,11 @@ where
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
-        let read_len = record.read_length;
+        record.bases.clear();
 
-        let mut bases = Vec::with_capacity(read_len as usize);
-
-        for _ in 0..read_len {
+        for _ in 0..record.read_length {
             let base = self.read_base()?;
-            bases.push(base);
+            record.bases.push(base);
         }
 
         let cram_bit_flags = record.cram_bit_flags();
