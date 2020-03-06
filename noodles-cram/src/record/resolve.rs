@@ -47,11 +47,10 @@ pub fn resolve_bases(
                 ref_pos += *len as usize;
             }
             Feature::SoftClip(_, bases) => {
-                let start = read_pos;
-                let end = start + bases.len();
-                buf.splice(start..end, bases.iter().cloned());
-
-                read_pos += bases.len();
+                for &base in bases {
+                    buf[read_pos] = base;
+                    read_pos += 1;
+                }
             }
             Feature::HardClip(..) => {}
             _ => todo!("resolve_bases: {:?}", feature),
