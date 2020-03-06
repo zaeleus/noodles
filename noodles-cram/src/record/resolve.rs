@@ -52,6 +52,10 @@ pub fn resolve_bases(
             Feature::Deletion(_, len) => {
                 ref_pos += *len as usize;
             }
+            Feature::InsertBase(_, base) => {
+                buf[read_pos] = *base;
+                read_pos += 1;
+            }
             Feature::SoftClip(_, bases) => {
                 for &base in bases {
                     buf[read_pos] = base;
