@@ -161,12 +161,7 @@ where
     R: Read,
 {
     let n_ref = reader.read_i32::<LittleEndian>()?;
-
-    let references = References::new(reader, n_ref as usize)
-        .map(|r| r.unwrap())
-        .collect();
-
-    Ok(references)
+    References::new(reader, n_ref as usize).collect()
 }
 
 fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
