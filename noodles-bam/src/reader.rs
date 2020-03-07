@@ -145,7 +145,7 @@ fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: Read,
 {
-    let l_text = read_l_text(reader)?;
+    let l_text = reader.read_i32::<LittleEndian>()?;
 
     let mut c_text = vec![0; l_text as usize];
     reader.read_exact(&mut c_text)?;
@@ -160,27 +160,13 @@ fn read_references<R>(reader: &mut R) -> io::Result<Vec<Reference>>
 where
     R: Read,
 {
-    let n_ref = read_n_ref(reader)?;
+    let n_ref = reader.read_i32::<LittleEndian>()?;
 
     let references = References::new(reader, n_ref as usize)
         .map(|r| r.unwrap())
         .collect();
 
     Ok(references)
-}
-
-fn read_l_text<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
-}
-
-fn read_n_ref<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
 }
 
 fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
