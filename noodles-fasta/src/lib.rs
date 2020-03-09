@@ -1,3 +1,4 @@
+pub mod fai;
 mod reader;
 mod record;
 

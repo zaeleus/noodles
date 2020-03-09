@@ -6,3 +6,4 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
+csv = "1.0.1"
