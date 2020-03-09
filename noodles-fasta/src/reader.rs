@@ -1,5 +1,5 @@
 use std::{
-    io::{self, BufRead},
+    io::{self, BufRead, Seek, SeekFrom},
     str,
 };
 
@@ -68,6 +68,15 @@ where
     }
 }
 
+impl<R> Seek for Reader<R>
+where
+    R: BufRead + Seek,
+{
+    fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        self.inner.seek(pos)
+    }
+}
+
 fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
@@ -80,13 +89,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
     use crate::Record;
 
     use super::*;
 
-    #[test]
-    fn test_read_sequence() {
-        let data = b"\
+    static FASTA: &[u8] = b"\
 >chr1
 ATCG
 >chr2
@@ -94,7 +103,9 @@ NNNN
 NNNNNN
 ";
 
-        let mut reader = Reader::new(&data[..]);
+    #[test]
+    fn test_read_sequence() {
+        let mut reader = Reader::new(&FASTA[..]);
         let mut record = Record::default();
 
         reader.read_record(&mut record).unwrap();
@@ -104,6 +115,19 @@ NNNNNN
         reader.read_record(&mut record).unwrap();
         assert_eq!(record.name(), "chr2");
         assert_eq!(record.sequence(), b"NNNNNNNNNN");
+    }
+
+    #[test]
+    fn test_read_sequence_after_seek() {
+        let cursor = Cursor::new(&FASTA[..]);
+        let mut reader = Reader::new(cursor);
+
+        reader.seek(SeekFrom::Start(17)).unwrap();
+
+        let mut buf = Vec::new();
+        reader.read_sequence(&mut buf).unwrap();
+
+        assert_eq!(buf, b"NNNNNNNNNN");
     }
 
     #[test]
