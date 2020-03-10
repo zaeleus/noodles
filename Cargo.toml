@@ -7,4 +7,5 @@ members = [
   "noodles-fasta",
   "noodles-fastq",
   "noodles-gff",
+  "noodles-sam",
 ]

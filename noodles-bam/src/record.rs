@@ -4,9 +4,11 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use noodles_sam as sam;
+
 use byteorder::{ByteOrder, LittleEndian};
 
-use super::{Cigar, Data, Flag, Quality, Sequence};
+use super::{Cigar, Data, Quality, Sequence};
 
 #[derive(Clone, Default)]
 pub struct Record(Vec<u8>);
@@ -62,11 +64,11 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..offset + len])
     }
 
-    pub fn flag(&self) -> Flag {
+    pub fn flag(&self) -> sam::Flags {
         let offset = 14;
         let len = mem::size_of::<u16>();
         let value = LittleEndian::read_u16(&self.0[offset..offset + len]);
-        Flag::from(value)
+        sam::Flags::from(value)
     }
 
     pub fn l_seq(&self) -> i32 {

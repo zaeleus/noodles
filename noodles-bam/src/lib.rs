@@ -1,6 +1,5 @@
 pub use self::cigar::Cigar;
 pub use self::data::Data;
-pub use self::flag::Flag;
 pub use self::quality::Quality;
 pub use self::reader::{Reader, Records, References};
 pub use self::record::Record;
@@ -9,7 +8,6 @@ pub use self::sequence::Sequence;
 
 pub mod cigar;
 pub mod data;
-pub mod flag;
 pub mod quality;
 pub mod reader;
 pub mod record;
