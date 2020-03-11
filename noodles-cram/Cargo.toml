@@ -9,3 +9,4 @@ edition = "2018"
 byteorder = "1.2.3"
 flate2 = "1.0.1"
 noodles-fasta = { path = "../noodles-fasta" }
+noodles-sam = { path = "../noodles-sam" }

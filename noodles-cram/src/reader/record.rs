@@ -65,7 +65,7 @@ where
         self.read_mate_data(record)?;
         self.read_tag_data(record)?;
 
-        if is_record_unmapped(record) {
+        if record.bam_bit_flags().is_unmapped() {
             self.read_unmapped_read(record)?;
         } else {
             self.read_mapped_read(record)?;
@@ -831,8 +831,4 @@ where
         }
         _ => todo!("{:?}", encoding.kind()),
     }
-}
-
-fn is_record_unmapped(record: &Record) -> bool {
-    (record.bam_bit_flags & 0x04) != 0
 }

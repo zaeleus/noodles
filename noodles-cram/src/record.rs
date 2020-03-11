@@ -1,5 +1,7 @@
 pub mod resolve;
 
+use noodles_sam as sam;
+
 use crate::{Feature, Tag};
 
 #[derive(Clone, Copy, Debug)]
@@ -45,6 +47,12 @@ pub struct Record {
 }
 
 impl Record {
+    pub fn bam_bit_flags(&self) -> sam::Flags {
+        // `bam_bit_flags` can safely be casted to a u16 because it is the same range as specified
+        // in the SAM specification, i.e., [0, 2^16 - 1].
+        sam::Flags::from(self.bam_bit_flags as u16)
+    }
+
     pub fn cram_bit_flags(&self) -> CramBitFlags {
         CramBitFlags(self.cram_bit_flags)
     }
