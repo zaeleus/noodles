@@ -2,28 +2,7 @@ pub mod resolve;
 
 use noodles_sam as sam;
 
-use crate::{Feature, Tag};
-
-#[derive(Clone, Copy, Debug)]
-pub struct CramBitFlags(i32);
-
-impl CramBitFlags {
-    pub fn are_quality_scores_stored_as_array(self) -> bool {
-        self.0 & 0x01 != 0
-    }
-
-    pub fn is_detached(self) -> bool {
-        self.0 & 0x02 != 0
-    }
-
-    pub fn has_mate_downstream(self) -> bool {
-        self.0 & 0x04 != 0
-    }
-
-    pub fn decode_sequence_as_unknown(self) -> bool {
-        self.0 & 0x08 != 0
-    }
-}
+use crate::{Feature, Flags, Tag};
 
 #[derive(Clone, Debug, Default)]
 pub struct Record {
@@ -53,8 +32,10 @@ impl Record {
         sam::Flags::from(self.bam_bit_flags as u16)
     }
 
-    pub fn cram_bit_flags(&self) -> CramBitFlags {
-        CramBitFlags(self.cram_bit_flags)
+    pub fn cram_bit_flags(&self) -> Flags {
+        // `cram_bit_flags` can safely be casted to to a u8 because CRAM currently only has 4 bit
+        // flags, i.e., the largest value is 2^4 - 1.
+        Flags::from(self.cram_bit_flags as u8)
     }
 
     pub fn read_length(&self) -> i32 {

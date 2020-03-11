@@ -2,7 +2,7 @@ pub use self::reader::block::read_block;
 pub use self::{
     bit_reader::BitReader, block::Block, compression_header::CompressionHeader,
     container::Container, data_series::DataSeries, encoding::Encoding, feature::Feature,
-    reader::Reader, record::Record, slice::Slice, tag::Tag,
+    flags::Flags, reader::Reader, record::Record, slice::Slice, tag::Tag,
 };
 
 mod bit_reader;
@@ -12,6 +12,7 @@ mod container;
 mod data_series;
 mod encoding;
 mod feature;
+mod flags;
 mod huffman;
 mod num;
 mod rans;
