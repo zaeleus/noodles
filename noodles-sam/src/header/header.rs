@@ -10,17 +10,27 @@ pub use self::{
 };
 
 #[derive(Debug)]
-pub struct Header(HashMap<Tag, String>);
+pub struct Header {
+    version: String,
+    fields: HashMap<Tag, String>,
+}
 
 impl Header {
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
     pub fn get(&self, tag: &Tag) -> Option<&String> {
-        self.0.get(tag)
+        self.fields.get(tag)
     }
 }
 
 impl Default for Header {
     fn default() -> Self {
-        Self(HashMap::new())
+        Header {
+            version: String::new(),
+            fields: HashMap::new(),
+        }
     }
 }
 
@@ -28,13 +38,36 @@ impl TryFrom<&[(String, String)]> for Header {
     type Error = ();
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut fields = HashMap::new();
+        let mut header = Header::default();
+
+        let mut has_version = false;
 
         for (raw_tag, value) in raw_fields {
             let tag = raw_tag.parse()?;
-            fields.insert(tag, value.into());
+
+            if let Tag::Version = tag {
+                header.version = value.into();
+                has_version = true;
+            }
+
+            header.fields.insert(tag, value.into());
         }
 
-        Ok(Header(fields))
+        if !has_version {
+            return Err(());
+        }
+
+        Ok(header)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_with_no_version() {
+        let fields = [(String::from("SO"), String::from("coordinate"))];
+        assert!(Header::try_from(&fields[..]).is_err());
     }
 }
