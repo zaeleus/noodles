@@ -1,13 +1,9 @@
-use std::{
-    io::{self, BufRead, Seek, SeekFrom},
-    str,
-};
+use std::io::{self, BufRead, Seek, SeekFrom};
 
 use crate::Record;
 
 pub struct Reader<R> {
     inner: R,
-    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -15,53 +11,66 @@ where
     R: BufRead,
 {
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: Vec::new(),
-        }
+        Self { inner }
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
-        *record.name_mut() = self.read_name()?;
-        self.read_sequence(record.sequence_mut())
+
+        let mut bytes_read = match self.read_description(record.name_mut()) {
+            Ok(0) => return Ok(0),
+            Ok(len) => len,
+            Err(e) => return Err(e),
+        };
+
+        bytes_read += self.read_sequence(record.sequence_mut())?;
+
+        Ok(bytes_read)
     }
 
-    pub fn read_name(&mut self) -> io::Result<String> {
-        if self.buf.is_empty() {
-            match read_line(&mut self.inner, &mut self.buf) {
-                Ok(0) => return Ok(String::new()),
-                Ok(_) => {}
-                Err(e) => return Err(e),
+    pub fn read_description(&mut self, buf: &mut String) -> io::Result<usize> {
+        match self.inner.read_line(buf) {
+            Ok(0) => Ok(0),
+            Ok(len) => {
+                if !buf.starts_with('>') {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "line does not start with a '>'",
+                    ));
+                }
+
+                buf.pop();
+
+                Ok(len)
             }
+            Err(e) => Err(e),
         }
-
-        let description = str::from_utf8(&self.buf[1..])
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        description
-            .split_whitespace()
-            .next()
-            .map(|name| name.into())
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing sequence name"))
     }
 
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut bytes_read = 0;
 
         loop {
-            match read_line(&mut self.inner, &mut self.buf) {
-                Ok(0) => return Ok(bytes_read),
-                Ok(n) => bytes_read += n,
-                Err(e) => return Err(e),
-            }
+            let reader_buf = self.inner.fill_buf()?;
 
-            if self.buf[0] == b'>' {
-                bytes_read -= buf.len();
+            if reader_buf.is_empty() || reader_buf[0] == b'>' {
                 break;
             }
 
-            buf.extend(&self.buf);
+            let len = match reader_buf.iter().position(|&b| b == b'\n') {
+                Some(i) => {
+                    buf.extend(&reader_buf[..i]);
+                    i + 1
+                }
+                None => {
+                    buf.extend(reader_buf);
+                    reader_buf.len()
+                }
+            };
+
+            self.inner.consume(len);
+
+            bytes_read += len;
         }
 
         Ok(bytes_read)
@@ -77,16 +86,6 @@ where
     }
 }
 
-fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    buf.clear();
-    let result = reader.read_until(b'\n', buf);
-    buf.pop();
-    result
-}
-
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
@@ -95,7 +94,7 @@ mod tests {
 
     use super::*;
 
-    static FASTA: &[u8] = b"\
+    static DATA: &[u8] = b"\
 >chr1
 ATCG
 >chr2
@@ -104,22 +103,22 @@ NNNNNN
 ";
 
     #[test]
-    fn test_read_sequence() {
-        let mut reader = Reader::new(&FASTA[..]);
+    fn test_read_record() {
+        let mut reader = Reader::new(&DATA[..]);
         let mut record = Record::default();
 
         reader.read_record(&mut record).unwrap();
-        assert_eq!(record.name(), "chr1");
+        assert_eq!(record.name(), ">chr1");
         assert_eq!(record.sequence(), b"ATCG");
 
         reader.read_record(&mut record).unwrap();
-        assert_eq!(record.name(), "chr2");
+        assert_eq!(record.name(), ">chr2");
         assert_eq!(record.sequence(), b"NNNNNNNNNN");
     }
 
     #[test]
     fn test_read_sequence_after_seek() {
-        let cursor = Cursor::new(&FASTA[..]);
+        let cursor = Cursor::new(&DATA[..]);
         let mut reader = Reader::new(cursor);
 
         reader.seek(SeekFrom::Start(17)).unwrap();
@@ -128,13 +127,5 @@ NNNNNN
         reader.read_sequence(&mut buf).unwrap();
 
         assert_eq!(buf, b"NNNNNNNNNN");
-    }
-
-    #[test]
-    fn test_read_sequence_with_empty_description() {
-        let data = b">\nATCG";
-        let mut reader = Reader::new(&data[..]);
-        let mut record = Record::default();
-        assert!(reader.read_record(&mut record).is_err());
     }
 }
