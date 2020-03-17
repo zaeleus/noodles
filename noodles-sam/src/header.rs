@@ -61,7 +61,7 @@ impl FromStr for Header {
                     header.reference_sequences.push(reference_sequence);
                 }
                 Record::ReadGroup(fields) => {
-                    let read_group = ReadGroup::try_from(&fields[..])?;
+                    let read_group = ReadGroup::try_from(&fields[..]).map_err(|_| ())?;
                     header.read_groups.push(read_group);
                 }
                 Record::Program(fields) => {

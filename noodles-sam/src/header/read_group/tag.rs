@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
@@ -19,8 +19,19 @@ pub enum Tag {
     Other(String),
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid read group tag: '{}'", self.0)
+    }
+}
+
 impl FromStr for Tag {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -42,7 +53,7 @@ impl FromStr for Tag {
                 if s.len() == 2 {
                     Ok(Self::Other(s.into()))
                 } else {
-                    Err(())
+                    Err(ParseError(s.into()))
                 }
             }
         }
@@ -54,7 +65,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ()> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("ID".parse::<Tag>()?, Tag::Id);
         assert_eq!("BC".parse::<Tag>()?, Tag::Barcode);
         assert_eq!("CN".parse::<Tag>()?, Tag::SequencingCenter);
