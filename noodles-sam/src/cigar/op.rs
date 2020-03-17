@@ -10,6 +10,7 @@ pub struct Op {
     len: u32,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Op {
     pub fn new(kind: Kind, len: u32) -> Self {
         Self { kind, len }

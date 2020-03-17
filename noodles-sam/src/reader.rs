@@ -20,7 +20,7 @@ where
         loop {
             let buf = self.inner.fill_buf()?;
 
-            if eol && buf.len() > 0 && buf[0] != b'@' {
+            if eol && !buf.is_empty() && buf[0] != b'@' {
                 break;
             }
 
