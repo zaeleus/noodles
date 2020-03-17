@@ -1,6 +1,6 @@
 mod tag;
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::tag::Tag;
 
@@ -29,8 +29,25 @@ impl Default for Program {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    MissingRequiredTag(Tag),
+    InvalidTag(tag::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
+            Self::InvalidTag(e) => write!(f, "{}", e),
+        }
+    }
+}
+
 impl TryFrom<&[(String, String)]> for Program {
-    type Error = ();
+    type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
         let mut program = Program::default();
@@ -38,7 +55,7 @@ impl TryFrom<&[(String, String)]> for Program {
         let mut has_id = false;
 
         for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse()?;
+            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             if let Tag::Id = tag {
                 program.id = value.into();
@@ -49,7 +66,7 @@ impl TryFrom<&[(String, String)]> for Program {
         }
 
         if !has_id {
-            return Err(());
+            return Err(ParseError::MissingRequiredTag(Tag::Id));
         }
 
         Ok(program)
