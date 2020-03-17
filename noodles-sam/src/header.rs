@@ -53,7 +53,7 @@ impl FromStr for Header {
 
             match record {
                 Record::Header(fields) => {
-                    header.header = header::Header::try_from(&fields[..])?;
+                    header.header = header::Header::try_from(&fields[..]).map_err(|_| ())?;
                 }
                 Record::ReferenceSequence(fields) => {
                     let reference_sequence =

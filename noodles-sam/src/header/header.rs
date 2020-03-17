@@ -3,7 +3,7 @@ mod sort_order;
 mod subsort_order;
 mod tag;
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{
     group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
@@ -34,8 +34,25 @@ impl Default for Header {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    MissingRequiredTag(Tag),
+    InvalidTag(tag::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
+            Self::InvalidTag(e) => write!(f, "{}", e),
+        }
+    }
+}
+
 impl TryFrom<&[(String, String)]> for Header {
-    type Error = ();
+    type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
         let mut header = Header::default();
@@ -43,7 +60,7 @@ impl TryFrom<&[(String, String)]> for Header {
         let mut has_version = false;
 
         for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse()?;
+            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             if let Tag::Version = tag {
                 header.version = value.into();
@@ -54,7 +71,7 @@ impl TryFrom<&[(String, String)]> for Header {
         }
 
         if !has_version {
-            return Err(());
+            return Err(ParseError::MissingRequiredTag(Tag::Version));
         }
 
         Ok(header)
