@@ -42,17 +42,10 @@ fn read_reference<R>(reader: &mut R) -> io::Result<Reference>
 where
     R: Read,
 {
-    let l_name = read_l_name(reader)?;
+    let l_name = reader.read_i32::<LittleEndian>()?;
     let name = read_name(reader, l_name as usize)?;
-    let l_ref = read_l_ref(reader)?;
+    let l_ref = reader.read_i32::<LittleEndian>()?;
     Ok(Reference::new(name, l_ref))
-}
-
-fn read_l_name<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
 }
 
 fn read_name<R>(reader: &mut R, l_name: usize) -> io::Result<String>
@@ -62,11 +55,4 @@ where
     let mut buf = vec![0; l_name];
     reader.read_exact(&mut buf)?;
     bytes_with_nul_to_string(&buf)
-}
-
-fn read_l_ref<R>(reader: &mut R) -> io::Result<i32>
-where
-    R: Read,
-{
-    reader.read_i32::<LittleEndian>()
 }
