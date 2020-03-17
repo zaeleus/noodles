@@ -1,6 +1,6 @@
 mod kind;
 
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 pub use self::kind::Kind;
 
@@ -18,8 +18,19 @@ pub enum Record {
     Comment(String),
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid record: {}", self.0)
+    }
+}
+
 impl FromStr for Record {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut pieces = s.split(DELIMITER);
@@ -27,7 +38,7 @@ impl FromStr for Record {
         let kind = pieces
             .next()
             .and_then(|s| s.parse().ok())
-            .ok_or_else(|| ())?;
+            .ok_or_else(|| ParseError(s.into()))?;
 
         let record = if let Kind::Comment = kind {
             let comment = pieces.next().unwrap();
@@ -36,8 +47,8 @@ impl FromStr for Record {
             let fields = pieces
                 .map(|field| {
                     let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
-                    let tag = field_pieces.next().ok_or_else(|| ())?;
-                    let value = field_pieces.next().ok_or_else(|| ())?;
+                    let tag = field_pieces.next().ok_or_else(|| ParseError(s.into()))?;
+                    let value = field_pieces.next().ok_or_else(|| ParseError(s.into()))?;
                     Ok((tag.into(), value.into()))
                 })
                 .collect::<Result<_, _>>()?;
