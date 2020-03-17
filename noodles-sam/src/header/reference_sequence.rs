@@ -1,7 +1,7 @@
 mod molecule_topology;
 mod tag;
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
@@ -36,8 +36,27 @@ impl Default for ReferenceSequence {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    MissingRequiredTag(Tag),
+    InvalidTag(tag::ParseError),
+    InvalidValue(Tag, Box<dyn error::Error>),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
+            Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::InvalidValue(tag, e) => write!(f, "invalid value for tag {:?}: {}", tag, e),
+        }
+    }
+}
+
 impl TryFrom<&[(String, String)]> for ReferenceSequence {
-    type Error = ();
+    type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
         let mut reference_sequence = ReferenceSequence::default();
@@ -46,7 +65,7 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
         let mut has_len = false;
 
         for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse()?;
+            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
                 Tag::Name => {
@@ -54,7 +73,10 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
                     has_name = true;
                 }
                 Tag::Len => {
-                    reference_sequence.len = value.parse().map_err(|_| ())?;
+                    reference_sequence.len = value
+                        .parse()
+                        .map_err(|e| ParseError::InvalidValue(Tag::Len, Box::new(e)))?;
+
                     has_len = true;
                 }
                 _ => {}
@@ -64,9 +86,9 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
         }
 
         if !has_name {
-            return Err(());
+            return Err(ParseError::MissingRequiredTag(Tag::Name));
         } else if !has_len {
-            return Err(());
+            return Err(ParseError::MissingRequiredTag(Tag::Len));
         }
 
         Ok(reference_sequence)

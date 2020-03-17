@@ -55,7 +55,8 @@ impl FromStr for Header {
                     header.header = header::Header::try_from(&fields[..])?;
                 }
                 Record::ReferenceSequence(fields) => {
-                    let reference_sequence = ReferenceSequence::try_from(&fields[..])?;
+                    let reference_sequence =
+                        ReferenceSequence::try_from(&fields[..]).map_err(|_| ())?;
                     header.reference_sequences.push(reference_sequence);
                 }
                 Record::ReadGroup(fields) => {
