@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -9,8 +9,23 @@ pub enum Kind {
     Comment,
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid record kind: expected @{{HD, SQ, RG, PG, CO}}, got {}",
+            self.0
+        )
+    }
+}
+
 impl FromStr for Kind {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -19,7 +34,7 @@ impl FromStr for Kind {
             "@RG" => Ok(Self::ReadGroup),
             "@PG" => Ok(Self::Program),
             "@CO" => Ok(Self::Comment),
-            _ => Err(()),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
@@ -29,7 +44,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ()> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("@HD".parse::<Kind>()?, Kind::Header);
         assert_eq!("@SQ".parse::<Kind>()?, Kind::ReferenceSequence);
         assert_eq!("@RG".parse::<Kind>()?, Kind::ReadGroup);
