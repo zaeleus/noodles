@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -35,8 +35,19 @@ impl fmt::Display for Kind {
     }
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid cigar op kind: {}", self.0)
+    }
+}
+
 impl FromStr for Kind {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -49,14 +60,14 @@ impl FromStr for Kind {
             "P" => Ok(Self::Pad),
             "=" => Ok(Self::SeqMismatch),
             "X" => Ok(Self::SeqMismatch),
-            _ => Err(()),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Kind;
+    use super::*;
 
     #[test]
     fn test_symbol() {
@@ -76,5 +87,23 @@ mod tests {
         assert_eq!(format!("{}", Kind::Match), "M");
         assert_eq!(format!("{}", Kind::Insertion), "I");
         assert_eq!(format!("{}", Kind::Deletion), "D");
+    }
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!("M".parse::<Kind>()?, Kind::Match);
+        assert_eq!("I".parse::<Kind>()?, Kind::Insertion);
+        assert_eq!("D".parse::<Kind>()?, Kind::Deletion);
+        assert_eq!("N".parse::<Kind>()?, Kind::Skip);
+        assert_eq!("S".parse::<Kind>()?, Kind::SoftClip);
+        assert_eq!("H".parse::<Kind>()?, Kind::HardClip);
+        assert_eq!("P".parse::<Kind>()?, Kind::Pad);
+        assert_eq!("=".parse::<Kind>()?, Kind::SeqMatch);
+        assert_eq!("X".parse::<Kind>()?, Kind::SeqMismatch);
+
+        assert!("".parse::<Kind>().is_err());
+        assert!("O".parse::<Kind>().is_err());
+
+        Ok(())
     }
 }

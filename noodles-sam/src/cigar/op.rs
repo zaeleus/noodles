@@ -31,7 +31,7 @@ impl FromStr for Op {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (raw_len, raw_kind) = s.split_at(s.len() - 1);
         let len = raw_len.parse().map_err(|_| ())?;
-        let kind = raw_kind.parse()?;
+        let kind = raw_kind.parse().map_err(|_| ())?;
         Ok(Self::new(kind, len))
     }
 }
