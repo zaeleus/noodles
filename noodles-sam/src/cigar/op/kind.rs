@@ -58,7 +58,7 @@ impl FromStr for Kind {
             "S" => Ok(Self::SoftClip),
             "H" => Ok(Self::HardClip),
             "P" => Ok(Self::Pad),
-            "=" => Ok(Self::SeqMismatch),
+            "=" => Ok(Self::SeqMatch),
             "X" => Ok(Self::SeqMismatch),
             _ => Err(ParseError(s.into())),
         }
