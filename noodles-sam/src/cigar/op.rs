@@ -1,6 +1,6 @@
 mod kind;
 
-use std::str::FromStr;
+use std::{error, fmt, num, str::FromStr};
 
 pub use self::kind::Kind;
 
@@ -25,13 +25,30 @@ impl Op {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    InvalidLength(num::ParseIntError),
+    InvalidKind(kind::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidLength(e) => write!(f, "invalid op length: {}", e),
+            Self::InvalidKind(e) => write!(f, "invalid op kind: {}", e),
+        }
+    }
+}
+
 impl FromStr for Op {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (raw_len, raw_kind) = s.split_at(s.len() - 1);
-        let len = raw_len.parse().map_err(|_| ())?;
-        let kind = raw_kind.parse().map_err(|_| ())?;
+        let len = raw_len.parse().map_err(ParseError::InvalidLength)?;
+        let kind = raw_kind.parse().map_err(ParseError::InvalidKind)?;
         Ok(Self::new(kind, len))
     }
 }

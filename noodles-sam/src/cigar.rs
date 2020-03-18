@@ -28,7 +28,7 @@ impl FromStr for Cigar {
         let mut start = 0;
 
         for (end, raw_kind) in matches {
-            let op = s[start..=end].parse()?;
+            let op = s[start..=end].parse().map_err(|_| ())?;
             ops.push(op);
             start = end + raw_kind.len();
         }
