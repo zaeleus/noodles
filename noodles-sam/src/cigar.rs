@@ -19,7 +19,7 @@ impl Cigar {
 }
 
 impl FromStr for Cigar {
-    type Err = ();
+    type Err = op::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut ops = Vec::new();
@@ -28,7 +28,7 @@ impl FromStr for Cigar {
         let mut start = 0;
 
         for (end, raw_kind) in matches {
-            let op = s[start..=end].parse().map_err(|_| ())?;
+            let op = s[start..=end].parse()?;
             ops.push(op);
             start = end + raw_kind.len();
         }
