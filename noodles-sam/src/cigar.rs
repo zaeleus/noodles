@@ -22,6 +22,10 @@ impl FromStr for Cigar {
     type Err = op::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(op::ParseError::Empty);
+        }
+
         let mut ops = Vec::new();
 
         let matches = s.match_indices(|c: char| !c.is_digit(10));
@@ -52,5 +56,7 @@ mod tests {
         ];
 
         assert_eq!(actual.ops(), &expected_ops[..]);
+
+        assert!("".parse::<Cigar>().is_err());
     }
 }
