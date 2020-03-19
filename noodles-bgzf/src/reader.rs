@@ -89,7 +89,30 @@ fn uncompressed_offset(offset: u64) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+
     use super::*;
+
+    #[test]
+    fn test_read_block() -> io::Result<()> {
+        let file = File::open("tests/fixtures/sample.gz")?;
+        let mut reader = Reader::new(file);
+
+        let mut block = Block::default();
+
+        reader.read_block(&mut block)?;
+        assert_eq!(&block.get_ref()[..], &b"noodles"[..]);
+
+        reader.read_block(&mut block)?;
+        assert_eq!(&block.get_ref()[..], &b"bgzf"[..]);
+
+        reader.read_block(&mut block)?;
+        assert!(block.get_ref().is_empty());
+
+        assert_eq!(reader.read_block(&mut block)?, 0);
+
+        Ok(())
+    }
 
     #[test]
     fn test_compressed_offset() {
