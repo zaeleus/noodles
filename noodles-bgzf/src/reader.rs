@@ -39,9 +39,9 @@ impl<R: Read> Reader<R> {
         let bsize = &header[16..18];
         let block_size = LittleEndian::read_u16(bsize) as usize;
 
-        let cdata_len = block_size - XLEN - header.len();
+        let cdata_len = block_size - XLEN - HEADER_LEN - 1;
 
-        self.cdata.resize(cdata_len - 1, Default::default());
+        self.cdata.resize(cdata_len, Default::default());
         self.inner.read_exact(&mut self.cdata)?;
 
         let mut trailer = [0; TRAILER_LEN];
@@ -57,7 +57,7 @@ impl<R: Read> Reader<R> {
         block.set_c_offset(self.position);
         block.set_position(0);
 
-        self.position += HEADER_LEN as u64 + self.cdata.len() as u64 + TRAILER_LEN as u64;
+        self.position += HEADER_LEN as u64 + cdata_len as u64 + TRAILER_LEN as u64;
 
         Ok(block_size)
     }
