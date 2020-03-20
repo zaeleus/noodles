@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Cursor, Read},
+    io::Cursor,
     ops::{Deref, DerefMut},
 };
 
@@ -32,10 +32,6 @@ impl Block {
 
     pub fn u_offset(&self) -> u64 {
         self.position()
-    }
-
-    pub fn read_record(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.inner.read(buf)
     }
 }
 
