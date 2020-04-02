@@ -53,10 +53,19 @@ impl Bin {
     }
 }
 
+const WINDOW_SIZE: u64 = 16384;
+
 #[derive(Debug)]
 pub struct Reference {
     pub bins: Vec<Bin>,
     pub intervals: Vec<Interval>,
+}
+
+impl Reference {
+    pub fn min_offset(&self, start: u64) -> u64 {
+        let i = (start / WINDOW_SIZE) as usize;
+        self.intervals[i].ioffset
+    }
 }
 
 #[derive(Debug)]
@@ -203,12 +212,30 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
     query_bins
 }
 
+const MIN_OFFSET: u64 = 0;
+
+/// Merges a list of chunks into a list of non-overlapping chunks.
+///
+/// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
+    optimize_chunks(chunks, MIN_OFFSET)
+}
+
+/// Optimizes a list of chunks into a list of non-overlapping chunks.
+///
+/// Unlike [`merge_chunks`], `min_offset` (typically from the linear index) is given to remove
+/// chunks that cannot be in the query.
+pub fn optimize_chunks(chunks: &[Chunk], min_offset: u64) -> Vec<Chunk> {
+    let mut chunks: Vec<_> = chunks
+        .iter()
+        .filter(|c| c.end() > min_offset)
+        .cloned()
+        .collect();
+
     if chunks.is_empty() {
-        return Vec::new();
+        return chunks;
     }
 
-    let mut chunks = chunks.to_vec();
     chunks.sort_unstable_by_key(|c| c.start());
 
     let mut merged_chunks = Vec::with_capacity(chunks.len());
@@ -256,5 +283,22 @@ mod tests {
         let chunks = Vec::new();
         let merged_chunks = merge_chunks(&chunks);
         assert!(merged_chunks.is_empty());
+    }
+
+    #[test]
+    fn test_optimize_chunks() {
+        let chunks = [
+            Chunk::new(2, 5),
+            Chunk::new(3, 4),
+            Chunk::new(5, 7),
+            Chunk::new(9, 12),
+            Chunk::new(10, 15),
+            Chunk::new(16, 21),
+        ];
+
+        let actual = optimize_chunks(&chunks, 10);
+        let expected = [Chunk::new(9, 15), Chunk::new(16, 21)];
+
+        assert_eq!(actual, expected);
     }
 }
