@@ -2,7 +2,7 @@ use std::io::{self, Read, Seek};
 
 pub use crate::Record;
 
-use noodles::formats::bai;
+use crate::bai;
 
 use super::Reader;
 

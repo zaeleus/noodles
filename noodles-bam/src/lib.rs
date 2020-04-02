@@ -6,6 +6,7 @@ pub use self::record::Record;
 pub use self::reference::Reference;
 pub use self::sequence::Sequence;
 
+pub mod bai;
 pub mod cigar;
 pub mod data;
 pub mod quality;

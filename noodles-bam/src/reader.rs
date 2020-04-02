@@ -11,10 +11,9 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles::formats::bai;
 use noodles_bgzf as bgzf;
 
-use super::{Record, Reference, MAGIC_NUMBER};
+use super::{bai, Record, Reference, MAGIC_NUMBER};
 
 pub type Header = String;
 pub type Meta = (Header, Vec<Reference>);
