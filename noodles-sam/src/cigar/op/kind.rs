@@ -87,6 +87,12 @@ mod tests {
         assert_eq!(format!("{}", Kind::Match), "M");
         assert_eq!(format!("{}", Kind::Insertion), "I");
         assert_eq!(format!("{}", Kind::Deletion), "D");
+        assert_eq!(format!("{}", Kind::Skip), "N");
+        assert_eq!(format!("{}", Kind::SoftClip), "S");
+        assert_eq!(format!("{}", Kind::HardClip), "H");
+        assert_eq!(format!("{}", Kind::Pad), "P");
+        assert_eq!(format!("{}", Kind::SeqMatch), "=");
+        assert_eq!(format!("{}", Kind::SeqMismatch), "X");
     }
 
     #[test]
