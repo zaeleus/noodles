@@ -1,10 +1,7 @@
-pub use self::kind::Kind;
-
-pub mod kind;
-
 use std::{convert::TryFrom, error, fmt};
 
 use byteorder::{ByteOrder, LittleEndian};
+use noodles_sam::cigar::op::Kind;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {
@@ -89,8 +86,6 @@ impl From<Op> for u32 {
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
-
-    use crate::cigar::Kind;
 
     use super::*;
 

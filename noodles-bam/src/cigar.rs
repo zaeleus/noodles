@@ -4,7 +4,7 @@ pub mod op;
 
 use std::{convert::TryFrom, fmt, mem, ops::Deref};
 
-use crate::cigar::op::Kind;
+use noodles_sam::cigar::op::Kind;
 
 #[derive(Debug)]
 pub struct Cigar<'a>(&'a [u8]);
