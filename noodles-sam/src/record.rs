@@ -5,6 +5,7 @@ use super::{Cigar, Flags};
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
 
+#[derive(Debug)]
 pub struct Record {
     qname: String,
     flag: Flags,
