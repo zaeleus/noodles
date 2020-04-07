@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 pub use self::op::Op;
 
+#[derive(Debug)]
 pub struct Cigar {
     ops: Vec<Op>,
 }
