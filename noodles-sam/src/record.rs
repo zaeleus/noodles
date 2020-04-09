@@ -1,6 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
-use super::{Cigar, Flags};
+use super::{Cigar, Data, Flags};
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
@@ -18,6 +18,7 @@ pub struct Record {
     tlen: i32,
     seq: String,
     qual: String,
+    data: Data,
 }
 
 impl Record {
@@ -79,6 +80,7 @@ pub enum Field {
     TemplateLength,
     Sequence,
     QualityScores,
+    Data,
 }
 
 impl Field {
@@ -95,6 +97,7 @@ impl Field {
             Self::TemplateLength => "TLEN",
             Self::Sequence => "SEQ",
             Self::QualityScores => "QUAL",
+            Self::Data => "DATA",
         }
     }
 }
@@ -141,6 +144,13 @@ impl FromStr for Record {
         let seq = parse_string(&mut fields, Field::Sequence)?;
         let qual = parse_string(&mut fields, Field::QualityScores)?;
 
+        let data = match fields.next() {
+            Some(s) => s
+                .parse()
+                .map_err(|e| ParseError::Invalid(Field::Data, format!("{}", e)))?,
+            None => Data::default(),
+        };
+
         Ok(Record {
             qname,
             flag,
@@ -153,6 +163,7 @@ impl FromStr for Record {
             tlen,
             seq,
             qual,
+            data,
         })
     }
 }
