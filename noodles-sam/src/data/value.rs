@@ -1,0 +1,344 @@
+use std::str::FromStr;
+
+use super::{
+    field::{self, Component, ParseError},
+    Subtype, Type,
+};
+
+const ARRAY_VALUE_DELIMITER: char = ',';
+
+#[derive(Clone, Debug)]
+pub enum Value {
+    Char(char),
+    Int32(i32),
+    Float(f32),
+    String(String),
+    Hex(String),
+    Int8Array(Vec<i8>),
+    UInt8Array(Vec<u8>),
+    Int16Array(Vec<i16>),
+    UInt16Array(Vec<u16>),
+    Int32Array(Vec<i32>),
+    UInt32Array(Vec<u32>),
+    FloatArray(Vec<f32>),
+}
+
+impl Value {
+    pub fn ty(&self) -> Type {
+        match *self {
+            Self::Char(_) => Type::Char,
+            Self::Int32(_) => Type::Int32,
+            Self::Float(_) => Type::Float,
+            Self::String(_) => Type::String,
+            Self::Hex(_) => Type::Hex,
+            Self::Int8Array(_) => Type::Array,
+            Self::UInt8Array(_) => Type::Array,
+            Self::Int16Array(_) => Type::Array,
+            Self::UInt16Array(_) => Type::Array,
+            Self::Int32Array(_) => Type::Array,
+            Self::UInt32Array(_) => Type::Array,
+            Self::FloatArray(_) => Type::Array,
+        }
+    }
+
+    pub fn subtype(&self) -> Option<Subtype> {
+        match *self {
+            Self::Int8Array(_) => Some(Subtype::Int8),
+            Self::UInt8Array(_) => Some(Subtype::UInt8),
+            Self::Int16Array(_) => Some(Subtype::Int16),
+            Self::UInt16Array(_) => Some(Subtype::UInt16),
+            Self::Int32Array(_) => Some(Subtype::Int32),
+            Self::UInt32Array(_) => Some(Subtype::UInt32),
+            Self::FloatArray(_) => Some(Subtype::Float),
+            _ => None,
+        }
+    }
+
+    pub fn as_char(&self) -> Option<char> {
+        match *self {
+            Self::Char(c) => Some(c),
+            _ => None,
+        }
+    }
+
+    pub fn is_char(&self) -> bool {
+        self.as_char().is_some()
+    }
+
+    pub fn as_int32(&self) -> Option<i32> {
+        match *self {
+            Self::Int32(i) => Some(i),
+            _ => None,
+        }
+    }
+
+    pub fn is_int32(&self) -> bool {
+        self.as_int32().is_some()
+    }
+
+    pub fn as_float(&self) -> Option<f32> {
+        match *self {
+            Self::Float(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn is_float(&self) -> bool {
+        self.as_float().is_some()
+    }
+
+    pub fn as_str(&self) -> Option<&str> {
+        match *self {
+            Self::String(ref s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn is_str(&self) -> bool {
+        self.as_str().is_some()
+    }
+
+    pub fn as_hex(&self) -> Option<&str> {
+        match *self {
+            Self::Hex(ref h) => Some(h),
+            _ => None,
+        }
+    }
+
+    pub fn is_hex(&self) -> bool {
+        self.as_hex().is_some()
+    }
+
+    pub fn as_int8_array(&self) -> Option<&[i8]> {
+        match *self {
+            Self::Int8Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_int8_array(&self) -> bool {
+        self.as_int8_array().is_some()
+    }
+
+    pub fn as_uint8_array(&self) -> Option<&[u8]> {
+        match *self {
+            Self::UInt8Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_uint8_array(&self) -> bool {
+        self.as_uint8_array().is_some()
+    }
+
+    pub fn as_int16_array(&self) -> Option<&[i16]> {
+        match *self {
+            Self::Int16Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_int16_array(&self) -> bool {
+        self.as_int16_array().is_some()
+    }
+
+    pub fn as_uint16_array(&self) -> Option<&[u16]> {
+        match *self {
+            Self::UInt16Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_uint16_array(&self) -> bool {
+        self.as_uint16_array().is_some()
+    }
+
+    pub fn as_int32_array(&self) -> Option<&[i32]> {
+        match *self {
+            Self::Int32Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_int32_array(&self) -> bool {
+        self.as_int32_array().is_some()
+    }
+
+    pub fn as_uint32_array(&self) -> Option<&[u32]> {
+        match *self {
+            Self::UInt32Array(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_uint32_array(&self) -> bool {
+        self.as_uint32_array().is_some()
+    }
+
+    pub fn as_float_array(&self) -> Option<&[f32]> {
+        match *self {
+            Self::FloatArray(ref a) => Some(a),
+            _ => None,
+        }
+    }
+
+    pub fn is_float_array(&self) -> bool {
+        self.as_float_array().is_some()
+    }
+}
+
+impl FromStr for Value {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut components = s.splitn(2, field::DELIMITER);
+
+        let ty = components
+            .next()
+            .ok_or_else(|| ParseError::Missing(Component::Type))
+            .and_then(|t| {
+                t.parse()
+                    .map_err(|e| ParseError::Invalid(Component::Type, Box::new(e)))
+            })?;
+
+        let value = components
+            .next()
+            .ok_or_else(|| ParseError::Missing(Component::Value))?;
+
+        match ty {
+            Type::Char => parse_char(value).map(Value::Char),
+            Type::Int32 => parse_i32(value).map(Value::Int32),
+            Type::Float => parse_f32(value).map(Value::Float),
+            Type::String => Ok(Value::String(value.into())),
+            Type::Hex => Ok(Value::Hex(value.into())),
+            Type::Array => parse_array(value),
+        }
+    }
+}
+
+fn invalid_value_error<E>(e: E) -> ParseError
+where
+    E: Into<Box<dyn std::error::Error>>,
+{
+    ParseError::Invalid(Component::Value, e.into())
+}
+
+fn parse_char(s: &str) -> Result<char, ParseError> {
+    s.chars()
+        .next()
+        .ok_or_else(|| ParseError::Invalid(Component::Value, String::new().into()))
+}
+
+fn parse_i8(s: &str) -> Result<i8, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_u8(s: &str) -> Result<u8, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_i16(s: &str) -> Result<i16, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_u16(s: &str) -> Result<u16, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_i32(s: &str) -> Result<i32, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_u32(s: &str) -> Result<u32, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_f32(s: &str) -> Result<f32, ParseError> {
+    s.parse().map_err(invalid_value_error)
+}
+
+fn parse_array(s: &str) -> Result<Value, ParseError> {
+    let mut raw_values = s.split(ARRAY_VALUE_DELIMITER);
+
+    let subtype = raw_values
+        .next()
+        .ok_or_else(|| ParseError::Missing(Component::Subtype))
+        .and_then(|t| {
+            t.parse()
+                .map_err(|e| ParseError::Invalid(Component::Subtype, Box::new(e)))
+        })?;
+
+    match subtype {
+        Subtype::Int8 => raw_values
+            .map(parse_i8)
+            .collect::<Result<_, _>>()
+            .map(Value::Int8Array),
+
+        Subtype::UInt8 => raw_values
+            .map(parse_u8)
+            .collect::<Result<_, _>>()
+            .map(Value::UInt8Array),
+
+        Subtype::Int16 => raw_values
+            .map(parse_i16)
+            .collect::<Result<_, _>>()
+            .map(Value::Int16Array),
+
+        Subtype::UInt16 => raw_values
+            .map(parse_u16)
+            .collect::<Result<_, _>>()
+            .map(Value::UInt16Array),
+
+        Subtype::Int32 => raw_values
+            .map(parse_i32)
+            .collect::<Result<_, _>>()
+            .map(Value::Int32Array),
+
+        Subtype::UInt32 => raw_values
+            .map(parse_u32)
+            .collect::<Result<_, _>>()
+            .map(Value::UInt32Array),
+
+        Subtype::Float => raw_values
+            .map(parse_f32)
+            .collect::<Result<_, _>>()
+            .map(Value::FloatArray),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ty() {
+        assert_eq!(Value::Char('n').ty(), Type::Char);
+        assert_eq!(Value::Int32(0).ty(), Type::Int32);
+        assert_eq!(Value::Float(0.0).ty(), Type::Float);
+        assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
+        assert_eq!(Value::Hex(String::from("cafe")).ty(), Type::Hex);
+        assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt16Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::Int32Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt32Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::FloatArray(vec![0.0]).ty(), Type::Array);
+    }
+
+    #[test]
+    fn test_subtype() {
+        assert_eq!(Value::Char('n').subtype(), None);
+        assert_eq!(Value::Int32(0).subtype(), None);
+        assert_eq!(Value::Float(0.0).subtype(), None);
+        assert_eq!(Value::String(String::from("noodles")).subtype(), None);
+        assert_eq!(Value::Hex(String::from("cafe")).subtype(), None);
+        assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
+        assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
+        assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
+        assert_eq!(Value::UInt16Array(vec![0]).subtype(), Some(Subtype::UInt16));
+        assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
+        assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
+        assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+    }
+}
