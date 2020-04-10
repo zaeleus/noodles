@@ -4,7 +4,9 @@ use std::str::FromStr;
 
 pub use self::op::Op;
 
-#[derive(Debug)]
+use super::record;
+
+#[derive(Debug, Default)]
 pub struct Cigar {
     ops: Vec<Op>,
 }
@@ -25,6 +27,8 @@ impl FromStr for Cigar {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(op::ParseError::Empty);
+        } else if s == record::NULL_FIELD {
+            return Ok(Cigar::default());
         }
 
         let mut ops = Vec::new();
@@ -59,5 +63,11 @@ mod tests {
         assert_eq!(actual.ops(), &expected_ops[..]);
 
         assert!("".parse::<Cigar>().is_err());
+    }
+
+    #[test]
+    fn test_from_str_with_null_cigar() {
+        let cigar = "*".parse::<Cigar>().unwrap();
+        assert!(cigar.ops().is_empty());
     }
 }

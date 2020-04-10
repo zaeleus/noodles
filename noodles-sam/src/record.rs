@@ -2,6 +2,7 @@ use std::{error, fmt, str::FromStr};
 
 use super::{Cigar, Data, Flags};
 
+pub(crate) const NULL_FIELD: &str = "*";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
 
