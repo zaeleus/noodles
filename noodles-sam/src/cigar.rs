@@ -1,6 +1,6 @@
 pub mod op;
 
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 pub use self::op::Op;
 
@@ -18,6 +18,16 @@ impl Cigar {
 
     pub fn ops(&self) -> &[Op] {
         &self.ops
+    }
+}
+
+impl fmt::Display for Cigar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for op in self.ops() {
+            write!(f, "{}", op)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -49,6 +59,17 @@ impl FromStr for Cigar {
 #[cfg(test)]
 mod tests {
     use super::{op::Kind, *};
+
+    #[test]
+    fn test_fmt() {
+        let cigar = Cigar::new(vec![
+            Op::new(Kind::Match, 1),
+            Op::new(Kind::Skip, 13),
+            Op::new(Kind::SoftClip, 144),
+        ]);
+
+        assert_eq!(format!("{}", cigar), "1M13N144S");
+    }
 
     #[test]
     fn test_from_str() {
