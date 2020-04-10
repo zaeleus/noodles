@@ -25,6 +25,12 @@ impl Op {
     }
 }
 
+impl fmt::Display for Op {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}", self.len(), self.kind())
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     Empty,
@@ -64,6 +70,15 @@ impl FromStr for Op {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let op = Op::new(Kind::Match, 5);
+        assert_eq!(format!("{}", op), "5M");
+
+        let op = Op::new(Kind::SoftClip, 13);
+        assert_eq!(format!("{}", op), "13S");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
