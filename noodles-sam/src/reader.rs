@@ -1,3 +1,7 @@
+mod records;
+
+pub use self::records::Records;
+
 use std::io::{self, BufRead};
 
 #[derive(Debug)]
@@ -51,6 +55,10 @@ where
         }
 
         result
+    }
+
+    pub fn records(&mut self) -> Records<R> {
+        Records::new(self)
     }
 }
 

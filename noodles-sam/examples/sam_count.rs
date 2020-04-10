@@ -12,22 +12,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
     reader.read_header()?;
 
-    let mut buf = String::new();
-    let mut n = 0;
-
-    loop {
-        buf.clear();
-
-        let bytes_read = reader.read_record(&mut buf)?;
-
-        if bytes_read == 0 {
-            break;
-        }
-
-        n += 1;
-    }
-
-    println!("{}", n);
+    let count = reader.records().count();
+    println!("{}", count);
 
     Ok(())
 }
