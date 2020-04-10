@@ -13,25 +13,9 @@ pub enum Kind {
     SeqMismatch,
 }
 
-impl Kind {
-    pub fn symbol(self) -> char {
-        match self {
-            Self::Match => 'M',
-            Self::Insertion => 'I',
-            Self::Deletion => 'D',
-            Self::Skip => 'N',
-            Self::SoftClip => 'S',
-            Self::HardClip => 'H',
-            Self::Pad => 'P',
-            Self::SeqMatch => '=',
-            Self::SeqMismatch => 'X',
-        }
-    }
-}
-
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.symbol())
+        write!(f, "{}", char::from(*self))
     }
 }
 
@@ -65,22 +49,25 @@ impl FromStr for Kind {
     }
 }
 
+impl From<Kind> for char {
+    fn from(kind: Kind) -> Self {
+        match kind {
+            Kind::Match => 'M',
+            Kind::Insertion => 'I',
+            Kind::Deletion => 'D',
+            Kind::Skip => 'N',
+            Kind::SoftClip => 'S',
+            Kind::HardClip => 'H',
+            Kind::Pad => 'P',
+            Kind::SeqMatch => '=',
+            Kind::SeqMismatch => 'X',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_symbol() {
-        assert_eq!(Kind::Match.symbol(), 'M');
-        assert_eq!(Kind::Insertion.symbol(), 'I');
-        assert_eq!(Kind::Deletion.symbol(), 'D');
-        assert_eq!(Kind::Skip.symbol(), 'N');
-        assert_eq!(Kind::SoftClip.symbol(), 'S');
-        assert_eq!(Kind::HardClip.symbol(), 'H');
-        assert_eq!(Kind::Pad.symbol(), 'P');
-        assert_eq!(Kind::SeqMatch.symbol(), '=');
-        assert_eq!(Kind::SeqMismatch.symbol(), 'X');
-    }
 
     #[test]
     fn test_fmt() {
@@ -111,5 +98,18 @@ mod tests {
         assert!("O".parse::<Kind>().is_err());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_kind_for_char() {
+        assert_eq!(char::from(Kind::Match), 'M');
+        assert_eq!(char::from(Kind::Insertion), 'I');
+        assert_eq!(char::from(Kind::Deletion), 'D');
+        assert_eq!(char::from(Kind::Skip), 'N');
+        assert_eq!(char::from(Kind::SoftClip), 'S');
+        assert_eq!(char::from(Kind::HardClip), 'H');
+        assert_eq!(char::from(Kind::Pad), 'P');
+        assert_eq!(char::from(Kind::SeqMatch), '=');
+        assert_eq!(char::from(Kind::SeqMismatch), 'X');
     }
 }
