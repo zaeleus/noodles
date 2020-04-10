@@ -23,11 +23,17 @@ impl Cigar {
 
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for op in self.ops() {
-            write!(f, "{}", op)?;
-        }
+        let ops = self.ops();
 
-        Ok(())
+        if ops.is_empty() {
+            write!(f, "{}", record::NULL_FIELD)
+        } else {
+            for op in ops {
+                write!(f, "{}", op)?;
+            }
+
+            Ok(())
+        }
     }
 }
 
@@ -69,6 +75,12 @@ mod tests {
         ]);
 
         assert_eq!(format!("{}", cigar), "1M13N144S");
+    }
+
+    #[test]
+    fn test_fmt_when_cigar_has_no_ops() {
+        let cigar = Cigar::new(vec![]);
+        assert_eq!(format!("{}", cigar), "*");
     }
 
     #[test]
