@@ -2,6 +2,8 @@ mod reader;
 
 pub use self::reader::Reader;
 
+use std::{fs::File, io, path::Path};
+
 use bit_vec::BitVec;
 
 pub static MAGIC_NUMBER: &[u8] = b"BAI\x01";
@@ -73,6 +75,15 @@ impl Reference {
 pub struct Index {
     pub references: Vec<Reference>,
     pub n_no_coor: Option<u64>,
+}
+
+pub fn read<P>(src: P) -> io::Result<Index>
+where
+    P: AsRef<Path>,
+{
+    let mut reader = File::open(src).map(Reader::new)?;
+    reader.header()?;
+    reader.read_index()
 }
 
 const MAX_BINS: usize = ((1 << 18) - 1) / 7 + 1;
