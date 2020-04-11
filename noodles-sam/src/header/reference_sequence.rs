@@ -12,6 +12,7 @@ pub struct ReferenceSequence {
     fields: HashMap<Tag, String>,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl ReferenceSequence {
     pub fn name(&self) -> &str {
         &self.name
