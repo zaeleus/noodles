@@ -16,7 +16,7 @@ where
         Self { inner }
     }
 
-    pub fn header(&mut self) -> io::Result<()> {
+    pub fn read_header(&mut self) -> io::Result<()> {
         let mut magic = [0; 4];
         self.inner.read_exact(&mut magic)?;
 

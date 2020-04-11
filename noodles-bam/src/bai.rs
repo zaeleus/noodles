@@ -82,7 +82,7 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(Reader::new)?;
-    reader.header()?;
+    reader.read_header()?;
     reader.read_index()
 }
 
