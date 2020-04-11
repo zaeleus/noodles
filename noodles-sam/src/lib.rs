@@ -1,7 +1,7 @@
 pub mod cigar;
 pub mod data;
 mod flags;
-mod header;
+pub mod header;
 mod reader;
 mod record;
 
