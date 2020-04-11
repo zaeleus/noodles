@@ -15,6 +15,9 @@ enum State {
 pub struct Query<'a, R: Read + Seek> {
     reader: &'a mut Reader<R>,
     chunks: Vec<bai::Chunk>,
+    reference_sequence_id: usize,
+    start: u64,
+    end: u64,
     i: usize,
     current_chunk: bai::Chunk,
     state: State,
@@ -22,12 +25,21 @@ pub struct Query<'a, R: Read + Seek> {
 }
 
 impl<'a, R: Read + Seek> Query<'a, R> {
-    pub fn new(reader: &'a mut Reader<R>, chunks: Vec<bai::Chunk>) -> Self {
+    pub fn new(
+        reader: &'a mut Reader<R>,
+        chunks: Vec<bai::Chunk>,
+        reference_sequence_id: usize,
+        start: u64,
+        end: u64,
+    ) -> Self {
         let current_chunk = bai::Chunk::new(0, 1);
 
         Self {
             reader,
             chunks,
+            reference_sequence_id,
+            start,
+            end,
             i: 0,
             current_chunk,
             state: State::Seek,
@@ -79,10 +91,26 @@ impl<'a, R: Read + Seek> Iterator for Query<'a, R> {
                         self.state = State::Seek;
                     }
 
-                    return result;
+                    if let Some(Ok(record)) = result {
+                        let ref_id = record.ref_id() as usize;
+
+                        let record_start = (record.pos() + 1) as u64;
+                        let record_mapped_len = record.cigar().mapped_len() as u64;
+                        let record_end = record_start + record_mapped_len + 1;
+
+                        if ref_id == self.reference_sequence_id
+                            && in_interval(record_start, record_end, self.start, self.end)
+                        {
+                            return Some(Ok(record));
+                        }
+                    }
                 }
                 State::End => return None,
             }
         }
     }
+}
+
+fn in_interval(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bool {
+    a_start <= b_end && b_start <= a_end
 }

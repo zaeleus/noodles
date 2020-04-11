@@ -119,11 +119,11 @@ impl<R: Read + Seek> Reader<R> {
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<R>> {
-        let (index_reference, reference_sequence) = reference_sequences
+        let (i, index_reference, reference_sequence) = reference_sequences
             .iter()
             .enumerate()
             .find(|(_, s)| s.name() == region.name())
-            .map(|(j, s)| (&index.references[j], s))
+            .map(|(j, s)| (j, &index.references[j], s))
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -131,7 +131,7 @@ impl<R: Read + Seek> Reader<R> {
                 )
             })?;
 
-        let query_bins = match region {
+        let (query_bins, start, end) = match region {
             Region::Mapped { start, end, .. } => {
                 let resolved_end = match *end {
                     Bound::Included(e) => e,
@@ -139,7 +139,8 @@ impl<R: Read + Seek> Reader<R> {
                     Bound::Unbounded => reference_sequence.len() as u64,
                 };
 
-                bai::query(&index_reference.bins, *start, resolved_end)
+                let bins = bai::query(&index_reference.bins, *start, resolved_end);
+                (bins, *start, resolved_end)
             }
             _ => {
                 return Err(io::Error::new(
@@ -157,7 +158,7 @@ impl<R: Read + Seek> Reader<R> {
 
         let merged_chunks = bai::merge_chunks(&chunks);
 
-        Ok(Query::new(self, merged_chunks))
+        Ok(Query::new(self, merged_chunks, i, start, end))
     }
 }
 
