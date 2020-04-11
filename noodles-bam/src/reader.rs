@@ -7,11 +7,13 @@ mod references;
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::DerefMut,
+    ops::{Bound, DerefMut},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles::Region;
 use noodles_bgzf as bgzf;
+use noodles_sam::header::ReferenceSequence;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
 
@@ -111,8 +113,41 @@ impl<R: Read + Seek> Reader<R> {
         self.inner.seek(pos, &mut self.block)
     }
 
-    pub fn query(&mut self, index_ref: &bai::Reference, start: i32, end: i32) -> Query<R> {
-        let query_bins = bai::query(&index_ref.bins, start as u64, end as u64);
+    pub fn query(
+        &mut self,
+        reference_sequences: &[ReferenceSequence],
+        index: &bai::Index,
+        region: &Region,
+    ) -> io::Result<Query<R>> {
+        let (index_reference, reference_sequence) = reference_sequences
+            .iter()
+            .enumerate()
+            .find(|(_, s)| s.name() == region.name())
+            .map(|(j, s)| (&index.references[j], s))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "reference sequence name not in reference sequence dictionary",
+                )
+            })?;
+
+        let query_bins = match region {
+            Region::Mapped { start, end, .. } => {
+                let resolved_end = match *end {
+                    Bound::Included(e) => e,
+                    Bound::Excluded(_) => unimplemented!(),
+                    Bound::Unbounded => reference_sequence.len() as u64,
+                };
+
+                bai::query(&index_reference.bins, *start, resolved_end)
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "given region is not mapped",
+                ))
+            }
+        };
 
         let chunks: Vec<_> = query_bins
             .iter()
@@ -122,7 +157,7 @@ impl<R: Read + Seek> Reader<R> {
 
         let merged_chunks = bai::merge_chunks(&chunks);
 
-        Query::new(self, merged_chunks)
+        Ok(Query::new(self, merged_chunks))
     }
 }
 
