@@ -6,13 +6,13 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::{write::DeflateEncoder, Compression, Crc};
 
-use super::gz;
+use super::{gz, BGZF_HEADER_SIZE};
 
 const MAX_BGZF_BLOCK_SIZE: u32 = 65536; // bytes
 
-const GZIP_FLG_FEXTRA: u8 = 0x04;
-const GZIP_XFL_NONE: u8 = 0x00;
-const GZIP_XLEN_BGZF: u16 = 6;
+const BGZF_FLG: u8 = 0x04; // FEXTRA
+const BGZF_XFL: u8 = 0x00; // none
+const BGZF_XLEN: u16 = 6;
 
 const BGZF_SI1: u8 = 0x42;
 const BGZF_SI2: u8 = 0x43;
@@ -108,17 +108,17 @@ where
 {
     writer.write_all(&gz::MAGIC_NUMBER)?;
     writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
-    writer.write_u8(GZIP_FLG_FEXTRA)?;
+    writer.write_u8(BGZF_FLG)?;
     writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
-    writer.write_u8(GZIP_XFL_NONE)?;
+    writer.write_u8(BGZF_XFL)?;
     writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
-    writer.write_u16::<LittleEndian>(GZIP_XLEN_BGZF)?;
+    writer.write_u16::<LittleEndian>(BGZF_XLEN)?;
 
     writer.write_u8(BGZF_SI1)?;
     writer.write_u8(BGZF_SI2)?;
     writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
-    let bsize = (block_size as u16) + 18 + 8 - 1;
+    let bsize = (block_size as usize + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1) as u16;
     writer.write_u16::<LittleEndian>(bsize)?;
 
     Ok(())

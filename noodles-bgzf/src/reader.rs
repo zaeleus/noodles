@@ -3,11 +3,7 @@ use std::io::{self, Read, Seek, SeekFrom};
 use byteorder::{ByteOrder, LittleEndian};
 use flate2::read::DeflateDecoder;
 
-use super::Block;
-
-const HEADER_LEN: usize = 18;
-const TRAILER_LEN: usize = 8;
-const XLEN: usize = 6;
+use super::{gz, Block, BGZF_HEADER_SIZE};
 
 pub struct Reader<R: Read> {
     inner: R,
@@ -30,7 +26,7 @@ impl<R: Read> Reader<R> {
 
     pub fn read_block(&mut self, block: &mut Block) -> io::Result<usize> {
         // gzip header
-        let mut header = [0; HEADER_LEN];
+        let mut header = [0; BGZF_HEADER_SIZE];
 
         if self.inner.read_exact(&mut header).is_err() {
             return Ok(0);
@@ -39,12 +35,13 @@ impl<R: Read> Reader<R> {
         let bsize = &header[16..18];
         let block_size = LittleEndian::read_u16(bsize) as usize;
 
-        let cdata_len = block_size - XLEN - HEADER_LEN - 1;
+        // Add 1 because BSIZE is "total Block SIZE minus 1".
+        let cdata_len = block_size - BGZF_HEADER_SIZE - gz::TRAILER_SIZE + 1;
 
         self.cdata.resize(cdata_len, Default::default());
         self.inner.read_exact(&mut self.cdata)?;
 
-        let mut trailer = [0; TRAILER_LEN];
+        let mut trailer = [0; gz::TRAILER_SIZE];
         self.inner.read_exact(&mut trailer)?;
 
         let mut decoder = DeflateDecoder::new(&self.cdata[..]);
@@ -57,7 +54,7 @@ impl<R: Read> Reader<R> {
         block.set_c_offset(self.position);
         block.set_position(0);
 
-        self.position += HEADER_LEN as u64 + cdata_len as u64 + TRAILER_LEN as u64;
+        self.position += BGZF_HEADER_SIZE as u64 + cdata_len as u64 + gz::TRAILER_SIZE as u64;
 
         Ok(block_size)
     }
