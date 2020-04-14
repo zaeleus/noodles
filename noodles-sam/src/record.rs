@@ -1,6 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
-use super::{Cigar, Data, Flags};
+use super::{Cigar, Data, Flags, MappingQuality};
 
 pub(crate) const NULL_FIELD: &str = "*";
 const FIELD_DELIMITER: char = '\t';
@@ -12,7 +12,7 @@ pub struct Record {
     flag: Flags,
     rname: String,
     pos: u32,
-    mapq: u8,
+    mapq: MappingQuality,
     cigar: Cigar,
     rnext: String,
     pnext: u32,
@@ -39,7 +39,7 @@ impl Record {
         self.pos
     }
 
-    pub fn mapping_quality(&self) -> u8 {
+    pub fn mapping_quality(&self) -> MappingQuality {
         self.mapq
     }
 
@@ -132,7 +132,7 @@ impl FromStr for Record {
         let flag = parse_u16(&mut fields, Field::Flags).map(Flags::from)?;
         let rname = parse_string(&mut fields, Field::ReferenceSequenceName)?;
         let pos = parse_u32(&mut fields, Field::Position)?;
-        let mapq = parse_u8(&mut fields, Field::MappingQuality)?;
+        let mapq = parse_u8(&mut fields, Field::MappingQuality).map(MappingQuality::from)?;
 
         let cigar = parse_string(&mut fields, Field::Cigar).and_then(|s| {
             s.parse()
