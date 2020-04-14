@@ -3,9 +3,10 @@
 [![GitHub Actions status](https://github.com/zaeleus/noodles/workflows/CI/badge.svg)](https://github.com/zaeleus/noodles/actions)
 
 **noodles** is a library for handling various bioinformatics file formats. It
-currently includes readers (and some writers) for BAM, FASTQ, and GFF/GTFv2.
+currently includes readers (and some writers) for BAM, BGZF, CRAM 3.0, FASTA,
+FASTQ, GFF/GTFv2, and SAM.
 
-Notably, the BAM parser is a pure Rust implementation.
+Notably, the BAM and CRAM parsers are pure Rust implementations.
 
 ## Related tools
 
