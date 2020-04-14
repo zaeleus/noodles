@@ -4,25 +4,13 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-
 use flate2::{write::DeflateEncoder, Compression, Crc};
+
+use super::gz;
 
 const MAX_BGZF_BLOCK_SIZE: u32 = 65536; // bytes
 
-#[non_exhaustive]
-enum CompressionMethod {
-    Deflate = 8,
-}
-
-#[non_exhaustive]
-enum OperatingSystem {
-    Unknown = 255,
-}
-
-const GZIP_ID1: u8 = 0x1f;
-const GZIP_ID2: u8 = 0x8b;
 const GZIP_FLG_FEXTRA: u8 = 0x04;
-const GZIP_MTIME_NONE: u32 = 0;
 const GZIP_XFL_NONE: u8 = 0x00;
 const GZIP_XLEN_BGZF: u16 = 6;
 
@@ -118,13 +106,12 @@ pub fn write_header<W>(writer: &mut W, block_size: u64) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u8(GZIP_ID1)?;
-    writer.write_u8(GZIP_ID2)?;
-    writer.write_u8(CompressionMethod::Deflate as u8)?;
+    writer.write_all(&gz::MAGIC_NUMBER)?;
+    writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
     writer.write_u8(GZIP_FLG_FEXTRA)?;
-    writer.write_u32::<LittleEndian>(GZIP_MTIME_NONE)?;
+    writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
     writer.write_u8(GZIP_XFL_NONE)?;
-    writer.write_u8(OperatingSystem::Unknown as u8)?;
+    writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
     writer.write_u16::<LittleEndian>(GZIP_XLEN_BGZF)?;
 
     writer.write_u8(BGZF_SI1)?;
