@@ -33,10 +33,10 @@ impl<R: Read> Reader<R> {
         }
 
         let bsize = &header[16..18];
-        let block_size = LittleEndian::read_u16(bsize) as usize;
-
         // Add 1 because BSIZE is "total Block SIZE minus 1".
-        let cdata_len = block_size - BGZF_HEADER_SIZE - gz::TRAILER_SIZE + 1;
+        let block_size = (LittleEndian::read_u16(bsize) + 1) as usize;
+
+        let cdata_len = block_size - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
 
         self.cdata.resize(cdata_len, Default::default());
         self.inner.read_exact(&mut self.cdata)?;
@@ -54,7 +54,7 @@ impl<R: Read> Reader<R> {
         block.set_c_offset(self.position);
         block.set_position(0);
 
-        self.position += BGZF_HEADER_SIZE as u64 + cdata_len as u64 + gz::TRAILER_SIZE as u64;
+        self.position += block_size as u64;
 
         Ok(block_size)
     }
