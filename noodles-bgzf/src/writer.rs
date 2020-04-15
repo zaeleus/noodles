@@ -48,7 +48,7 @@ where
         self.encoder.try_finish()?;
         let data = self.encoder.get_ref();
 
-        write_header(&mut self.inner, data.len() as u64)?;
+        write_header(&mut self.inner, data.len())?;
         self.inner.write_all(&data[..])?;
         write_trailer(&mut self.inner, self.crc.sum(), self.crc.amount())?;
 
@@ -102,7 +102,7 @@ where
     }
 }
 
-pub fn write_header<W>(writer: &mut W, block_size: u64) -> io::Result<()>
+pub fn write_header<W>(writer: &mut W, cdata_len: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -118,7 +118,7 @@ where
     writer.write_u8(BGZF_SI2)?;
     writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
-    let bsize = (block_size as usize + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1) as u16;
+    let bsize = (cdata_len + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1) as u16;
     writer.write_u16::<LittleEndian>(bsize)?;
 
     Ok(())
