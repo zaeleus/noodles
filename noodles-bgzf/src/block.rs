@@ -10,10 +10,6 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn position(&self) -> u64 {
         self.inner.position()
     }
