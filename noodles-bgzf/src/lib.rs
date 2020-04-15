@@ -22,6 +22,8 @@ mod tests {
 
         writer.write_all(b"noodles")?;
         writer.flush()?;
+        writer.write_all(b"-")?;
+        writer.flush()?;
         writer.write_all(b"bgzf")?;
         writer.flush()?;
 
@@ -31,7 +33,7 @@ mod tests {
         let mut buf = Vec::new();
         reader.read_to_end(&mut buf)?;
 
-        assert_eq!(buf, b"noodlesbgzf");
+        assert_eq!(buf, b"noodles-bgzf");
 
         Ok(())
     }
