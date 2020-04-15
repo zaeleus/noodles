@@ -1,8 +1,9 @@
-pub use self::{block::Block, reader::Reader, writer::Writer};
+pub use self::{block::Block, reader::Reader, virtual_position::VirtualPosition, writer::Writer};
 
 mod block;
 mod gz;
 mod reader;
+mod virtual_position;
 mod writer;
 
 const GZIP_XLEN_SIZE: usize = 2;

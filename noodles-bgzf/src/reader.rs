@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek, SeekFrom};
 use byteorder::{ByteOrder, LittleEndian};
 use flate2::read::DeflateDecoder;
 
-use super::{gz, Block, BGZF_HEADER_SIZE};
+use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
 pub struct Reader<R: Read> {
     inner: R,
@@ -40,15 +40,15 @@ impl<R: Read> Reader<R> {
 }
 
 impl<R: Read + Seek> Reader<R> {
-    pub fn seek(&mut self, pos: u64, block: &mut Block) -> io::Result<u64> {
-        let c_offset = compressed_offset(pos);
-        let u_offset = uncompressed_offset(pos);
+    pub fn seek(&mut self, pos: VirtualPosition, block: &mut Block) -> io::Result<VirtualPosition> {
+        let compressed_offset = pos.compressed();
+        let uncompressed_offset = pos.uncompressed();
 
-        self.inner.seek(SeekFrom::Start(c_offset))?;
-        self.position = c_offset;
+        self.inner.seek(SeekFrom::Start(compressed_offset))?;
+        self.position = compressed_offset;
 
         self.read_block(block)?;
-        block.seek(SeekFrom::Start(u_offset))?;
+        block.seek(SeekFrom::Start(uncompressed_offset))?;
 
         Ok(pos)
     }
@@ -133,15 +133,6 @@ where
     Ok(block_size)
 }
 
-fn compressed_offset(offset: u64) -> u64 {
-    // is the mask necessary?
-    (offset >> 16) & 0xffff_ffff_ffff
-}
-
-fn uncompressed_offset(offset: u64) -> u64 {
-    offset & 0xffff
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs::File;
@@ -167,19 +158,5 @@ mod tests {
         assert_eq!(reader.read_block(&mut block)?, 0);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_compressed_offset() {
-        assert_eq!(compressed_offset(88384945211), 1348647);
-        assert_eq!(compressed_offset(188049630896), 2869409);
-        assert_eq!(compressed_offset(26155658182977), 399103671);
-    }
-
-    #[test]
-    fn test_uncompressed_offset() {
-        assert_eq!(uncompressed_offset(88384945211), 15419);
-        assert_eq!(uncompressed_offset(188049630896), 42672);
-        assert_eq!(uncompressed_offset(26155658182977), 321);
     }
 }
