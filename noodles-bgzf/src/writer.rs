@@ -64,9 +64,10 @@ where
         Ok(())
     }
 
-    pub fn finish(&mut self) -> io::Result<()> {
+    pub fn finish(mut self) -> io::Result<W> {
         self.flush()?;
-        self.inner.write_all(BGZF_EOF)
+        self.inner.write_all(BGZF_EOF)?;
+        Ok(self.inner)
     }
 }
 
@@ -98,18 +99,6 @@ where
         } else {
             Ok(())
         }
-    }
-}
-
-impl<W> Drop for Writer<W>
-where
-    W: Write,
-{
-    fn drop(&mut self) {
-        // Ignore a failed flush and final write of the EOF marker.
-        //
-        // Interestingly, this matches the behavior of `std::io::BufWriter`.
-        let _r = self.finish();
     }
 }
 
@@ -152,9 +141,8 @@ mod tests {
     fn test_finish() -> io::Result<()> {
         let mut writer = Writer::new(Vec::new());
         writer.write_all(b"noodles")?;
-        writer.finish()?;
 
-        let data = writer.get_ref();
+        let data = writer.finish()?;
         let eof_start = data.len() - BGZF_EOF.len();
 
         assert_eq!(&data[eof_start..], BGZF_EOF);

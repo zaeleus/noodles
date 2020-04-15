@@ -25,9 +25,8 @@ mod tests {
         writer.write_all(b"-")?;
         writer.flush()?;
         writer.write_all(b"bgzf")?;
-        writer.finish()?;
 
-        let data = writer.get_ref();
+        let data = writer.finish()?;
         let mut reader = Reader::new(&data[..]);
 
         let mut buf = Vec::new();
