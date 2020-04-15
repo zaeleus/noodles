@@ -25,7 +25,7 @@ mod tests {
         writer.write_all(b"-")?;
         writer.flush()?;
         writer.write_all(b"bgzf")?;
-        writer.flush()?;
+        writer.finish()?;
 
         let data = writer.get_ref();
         let mut reader = Reader::new(&data[..]);

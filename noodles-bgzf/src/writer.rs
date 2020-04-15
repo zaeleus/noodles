@@ -18,6 +18,12 @@ const BGZF_SI1: u8 = 0x42;
 const BGZF_SI2: u8 = 0x43;
 const BGZF_SLEN: u16 = 2;
 
+// Sequence Alignment/Map Format Specification § 4.1.2 (accessed 2020-04-15)
+static BGZF_EOF: &[u8] = &[
+    0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43, 0x02, 0x00,
+    0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+];
+
 #[derive(Debug)]
 pub struct Writer<W>
 where
@@ -57,6 +63,11 @@ where
 
         Ok(())
     }
+
+    pub fn finish(&mut self) -> io::Result<()> {
+        self.flush()?;
+        self.inner.write_all(BGZF_EOF)
+    }
 }
 
 impl<W> Write for Writer<W>
@@ -95,10 +106,10 @@ where
     W: Write,
 {
     fn drop(&mut self) {
-        // Ignore a failed flush.
+        // Ignore a failed flush and final write of the EOF marker.
         //
         // Interestingly, this matches the behavior of `std::io::BufWriter`.
-        let _r = self.flush();
+        let _r = self.finish();
     }
 }
 
@@ -131,4 +142,23 @@ where
     writer.write_u32::<LittleEndian>(checksum)?;
     writer.write_u32::<LittleEndian>(uncompressed_size)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_finish() -> io::Result<()> {
+        let mut writer = Writer::new(Vec::new());
+        writer.write_all(b"noodles")?;
+        writer.finish()?;
+
+        let data = writer.get_ref();
+        let eof_start = data.len() - BGZF_EOF.len();
+
+        assert_eq!(&data[eof_start..], BGZF_EOF);
+
+        Ok(())
+    }
 }
