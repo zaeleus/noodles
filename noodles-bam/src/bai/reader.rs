@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_bgzf::VirtualPosition;
 
 use super::{Bin, Chunk, Index, Interval, Reference, MAGIC_NUMBER};
 
@@ -81,8 +82,15 @@ where
         let n_chunks = chunks.capacity();
 
         for _ in 0..n_chunks {
-            let chunk_beg = self.inner.read_u64::<LittleEndian>()?;
-            let chunk_end = self.inner.read_u64::<LittleEndian>()?;
+            let chunk_beg = self
+                .inner
+                .read_u64::<LittleEndian>()
+                .map(VirtualPosition::from)?;
+
+            let chunk_end = self
+                .inner
+                .read_u64::<LittleEndian>()
+                .map(VirtualPosition::from)?;
 
             chunks.push(Chunk {
                 chunk_beg,
@@ -97,7 +105,11 @@ where
         let n_intervals = intervals.capacity();
 
         for _ in 0..n_intervals {
-            let ioffset = self.inner.read_u64::<LittleEndian>()?;
+            let ioffset = self
+                .inner
+                .read_u64::<LittleEndian>()
+                .map(VirtualPosition::from)?;
+
             intervals.push(Interval { ioffset });
         }
 

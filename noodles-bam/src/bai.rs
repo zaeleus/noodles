@@ -5,41 +5,42 @@ pub use self::reader::Reader;
 use std::{fs::File, io, path::Path};
 
 use bit_vec::BitVec;
+use noodles_bgzf::VirtualPosition;
 
 pub static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 #[derive(Debug)]
 pub struct Interval {
-    ioffset: u64,
+    ioffset: VirtualPosition,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
-    chunk_beg: u64,
-    chunk_end: u64,
+    chunk_beg: VirtualPosition,
+    chunk_end: VirtualPosition,
 }
 
 impl Chunk {
-    pub fn new(start: u64, end: u64) -> Self {
+    pub fn new(start: VirtualPosition, end: VirtualPosition) -> Self {
         Self {
             chunk_beg: start,
             chunk_end: end,
         }
     }
 
-    pub fn start(&self) -> u64 {
+    pub fn start(&self) -> VirtualPosition {
         self.chunk_beg
     }
 
-    pub fn start_mut(&mut self) -> &mut u64 {
+    pub fn start_mut(&mut self) -> &mut VirtualPosition {
         &mut self.chunk_beg
     }
 
-    pub fn end(&self) -> u64 {
+    pub fn end(&self) -> VirtualPosition {
         self.chunk_end
     }
 
-    pub fn end_mut(&mut self) -> &mut u64 {
+    pub fn end_mut(&mut self) -> &mut VirtualPosition {
         &mut self.chunk_end
     }
 }
@@ -65,7 +66,7 @@ pub struct Reference {
 }
 
 impl Reference {
-    pub fn min_offset(&self, start: u64) -> u64 {
+    pub fn min_offset(&self, start: u64) -> VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;
         self.intervals[i].ioffset
     }
@@ -127,20 +128,18 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
     query_bins
 }
 
-const MIN_OFFSET: u64 = 0;
-
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
-    optimize_chunks(chunks, MIN_OFFSET)
+    optimize_chunks(chunks, VirtualPosition::default())
 }
 
 /// Optimizes a list of chunks into a list of non-overlapping chunks.
 ///
 /// Unlike [`merge_chunks`], `min_offset` (typically from the linear index) is given to remove
 /// chunks that cannot be in the query.
-pub fn optimize_chunks(chunks: &[Chunk], min_offset: u64) -> Vec<Chunk> {
+pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chunk> {
     let mut chunks: Vec<_> = chunks
         .iter()
         .filter(|c| c.end() > min_offset)
@@ -176,19 +175,27 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: u64) -> Vec<Chunk> {
 mod tests {
     use super::*;
 
+    fn build_chunks() -> Vec<Chunk> {
+        vec![
+            Chunk::new(VirtualPosition::from(2), VirtualPosition::from(5)),
+            Chunk::new(VirtualPosition::from(3), VirtualPosition::from(4)),
+            Chunk::new(VirtualPosition::from(5), VirtualPosition::from(7)),
+            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(12)),
+            Chunk::new(VirtualPosition::from(10), VirtualPosition::from(15)),
+            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+        ]
+    }
+
     #[test]
     fn test_merge_chunks() {
-        let chunks = [
-            Chunk::new(2, 5),
-            Chunk::new(3, 4),
-            Chunk::new(5, 7),
-            Chunk::new(9, 12),
-            Chunk::new(10, 15),
-            Chunk::new(16, 21),
-        ];
-
+        let chunks = build_chunks();
         let actual = merge_chunks(&chunks);
-        let expected = [Chunk::new(2, 7), Chunk::new(9, 15), Chunk::new(16, 21)];
+
+        let expected = [
+            Chunk::new(VirtualPosition::from(2), VirtualPosition::from(7)),
+            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(15)),
+            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+        ];
 
         assert_eq!(actual, expected);
     }
@@ -202,17 +209,13 @@ mod tests {
 
     #[test]
     fn test_optimize_chunks() {
-        let chunks = [
-            Chunk::new(2, 5),
-            Chunk::new(3, 4),
-            Chunk::new(5, 7),
-            Chunk::new(9, 12),
-            Chunk::new(10, 15),
-            Chunk::new(16, 21),
-        ];
+        let chunks = build_chunks();
+        let actual = optimize_chunks(&chunks, VirtualPosition::from(10));
 
-        let actual = optimize_chunks(&chunks, 10);
-        let expected = [Chunk::new(9, 15), Chunk::new(16, 21)];
+        let expected = [
+            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(15)),
+            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+        ];
 
         assert_eq!(actual, expected);
     }

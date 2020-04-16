@@ -2,6 +2,8 @@ use std::io::{self, Read, Seek};
 
 pub use crate::Record;
 
+use noodles_bgzf::VirtualPosition;
+
 use crate::bai;
 
 use super::Reader;
@@ -32,7 +34,7 @@ impl<'a, R: Read + Seek> Query<'a, R> {
         start: u64,
         end: u64,
     ) -> Self {
-        let current_chunk = bai::Chunk::new(0, 1);
+        let current_chunk = bai::Chunk::new(VirtualPosition::from(0), VirtualPosition::from(1));
 
         Self {
             reader,

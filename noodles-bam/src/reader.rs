@@ -12,7 +12,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles::Region;
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_sam::header::ReferenceSequence;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
@@ -79,8 +79,8 @@ impl<R: Read> Reader<R> {
         Records::new(self)
     }
 
-    pub fn virtual_position(&self) -> u64 {
-        self.block.virtual_position()
+    pub fn virtual_position(&self) -> VirtualPosition {
+        VirtualPosition::from(self.block.virtual_position())
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
@@ -109,8 +109,8 @@ impl<R: Read> Reader<R> {
 }
 
 impl<R: Read + Seek> Reader<R> {
-    pub fn seek(&mut self, pos: u64) -> io::Result<u64> {
-        self.inner.seek(pos.into(), &mut self.block).map(u64::from)
+    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        self.inner.seek(pos, &mut self.block)
     }
 
     pub fn query(
