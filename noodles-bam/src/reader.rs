@@ -7,7 +7,7 @@ mod references;
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::{Bound, DerefMut},
+    ops::DerefMut,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -93,36 +93,15 @@ impl<R: Read + Seek> Reader<R> {
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<R>> {
-        let (i, index_reference, reference_sequence) = reference_sequences
-            .iter()
-            .enumerate()
-            .find(|(_, s)| s.name() == region.name())
-            .map(|(j, s)| (j, &index.references[j], s))
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "reference sequence name not in reference sequence dictionary",
-                )
-            })?;
+        let (i, _, start, end) = region.resolve(reference_sequences).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("could not resolve region: {:?}", region),
+            )
+        })?;
 
-        let (query_bins, start, end) = match region {
-            Region::Mapped { start, end, .. } => {
-                let resolved_end = match *end {
-                    Bound::Included(e) => e,
-                    Bound::Excluded(_) => unimplemented!(),
-                    Bound::Unbounded => reference_sequence.len() as u64,
-                };
-
-                let bins = bai::query(&index_reference.bins, *start, resolved_end);
-                (bins, *start, resolved_end)
-            }
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "given region is not mapped",
-                ))
-            }
-        };
+        let index_reference = &index.references[i];
+        let query_bins = bai::query(&index_reference.bins, start, end);
 
         let chunks: Vec<_> = query_bins
             .iter()

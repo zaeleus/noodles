@@ -1,5 +1,7 @@
 use std::{error, fmt, ops::Bound, str::FromStr};
 
+use noodles_sam::header::ReferenceSequence;
+
 // Position coordinates are 1-based.
 const MIN_POSITION: u64 = 1;
 
@@ -61,6 +63,30 @@ impl Region {
             Self::Mapped { name, .. } => name,
             Self::Unmapped => UNMAPPED_NAME,
             Self::All => ALL_NAME,
+        }
+    }
+
+    pub fn resolve<'a>(
+        &self,
+        reference_sequences: &'a [ReferenceSequence],
+    ) -> Option<(usize, &'a ReferenceSequence, u64, u64)> {
+        match self {
+            Self::Mapped { name, start, end } => {
+                let (i, reference_sequence) = reference_sequences
+                    .iter()
+                    .enumerate()
+                    .find(|(_, s)| s.name() == name)
+                    .unwrap();
+
+                let resolved_end = match end {
+                    Bound::Included(e) => *e,
+                    Bound::Excluded(_) => unimplemented!(),
+                    Bound::Unbounded => reference_sequence.len() as u64,
+                };
+
+                Some((i, reference_sequence, *start, resolved_end))
+            }
+            Self::Unmapped | Self::All => None,
         }
     }
 }
