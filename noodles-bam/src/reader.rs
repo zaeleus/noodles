@@ -17,9 +17,6 @@ use noodles_sam::header::ReferenceSequence;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
 
-pub type Header = String;
-pub type Meta = (Header, Vec<Reference>);
-
 const BLOCK_SIZE_LEN: usize = 4;
 
 pub struct Reader<R: Read> {
@@ -33,7 +30,7 @@ impl<R: Read> Reader<R> {
         }
     }
 
-    pub fn read_header(&mut self) -> io::Result<Meta> {
+    pub fn read_header(&mut self) -> io::Result<String> {
         let magic = read_magic(&mut self.inner)?;
 
         if magic != MAGIC_NUMBER {
@@ -44,9 +41,16 @@ impl<R: Read> Reader<R> {
         }
 
         let header = read_header(&mut self.inner)?;
-        let references = read_references(&mut self.inner)?;
 
-        Ok((header, references))
+        // I'm actually not sure what the BAM references are used for since the reference sequence
+        // dictionary in the SAM header should have or has the same information plus, commonly,
+        // more (e.g., the M5 tag).
+        //
+        // In this case, the BAM references are discarded in favor of the dictionary in the SAM
+        // header.
+        read_references(&mut self.inner)?;
+
+        Ok(header)
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
@@ -141,7 +145,7 @@ where
     Ok(magic)
 }
 
-fn read_header<R>(reader: &mut R) -> io::Result<Header>
+fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: Read,
 {
