@@ -2,11 +2,11 @@
 pub struct VirtualPosition(u64);
 
 impl VirtualPosition {
-    pub fn compressed(&self) -> u64 {
+    pub fn compressed(self) -> u64 {
         self.0 >> 16
     }
 
-    pub fn uncompressed(&self) -> u64 {
+    pub fn uncompressed(self) -> u64 {
         self.0 & 0xffff
     }
 }
