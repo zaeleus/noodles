@@ -110,7 +110,7 @@ impl<R: Read> Reader<R> {
 
 impl<R: Read + Seek> Reader<R> {
     pub fn seek(&mut self, pos: u64) -> io::Result<u64> {
-        self.inner.seek(pos, &mut self.block)
+        self.inner.seek(pos.into(), &mut self.block).map(u64::from)
     }
 
     pub fn query(
