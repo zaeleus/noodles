@@ -1,4 +1,4 @@
-use std::{ops::Bound, str::FromStr};
+use std::{error, fmt, ops::Bound, str::FromStr};
 
 // Position coordinates are 1-based.
 const MIN_POSITION: u64 = 1;
@@ -70,6 +70,18 @@ pub enum ParseError {
     MissingReferenceSequenceName,
     InvalidStartPosition(Box<dyn std::error::Error>),
     InvalidEndPosition(Box<dyn std::error::Error>),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingReferenceSequenceName => write!(f, "invalid region"),
+            Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
+            Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
+        }
+    }
 }
 
 impl FromStr for Region {
