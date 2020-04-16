@@ -26,30 +26,22 @@ impl<R: Read> Reader<R> {
         self.position
     }
 
-    pub fn read_block(&mut self, block: &mut Block) -> io::Result<usize> {
-        match read_block(&mut self.inner, &mut self.cdata, block) {
-            Ok(0) => Ok(0),
-            Ok(bs) => {
-                block.set_position(self.position);
-                self.position += bs as u64;
-                Ok(bs)
-            }
-            Err(e) => Err(e),
-        }
+    pub fn virtual_position(&self) -> VirtualPosition {
+        self.block.virtual_position()
     }
 }
 
 impl<R: Read + Seek> Reader<R> {
-    pub fn seek(&mut self, pos: VirtualPosition, block: &mut Block) -> io::Result<VirtualPosition> {
+    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let compressed_offset = pos.compressed();
         let uncompressed_offset = pos.uncompressed();
 
         self.inner.seek(SeekFrom::Start(compressed_offset))?;
         self.position = compressed_offset;
 
-        self.read_block(block)?;
+        read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
 
-        block
+        self.block
             .data_mut()
             .seek(SeekFrom::Start(uncompressed_offset))?;
 
@@ -135,32 +127,4 @@ where
     udata.set_position(0);
 
     Ok(block_size)
-}
-
-#[cfg(test)]
-mod tests {
-    use std::fs::File;
-
-    use super::*;
-
-    #[test]
-    fn test_read_block() -> io::Result<()> {
-        let file = File::open("tests/fixtures/sample.gz")?;
-        let mut reader = Reader::new(file);
-
-        let mut block = Block::default();
-
-        reader.read_block(&mut block)?;
-        assert_eq!(&block.data().get_ref()[..], &b"noodles"[..]);
-
-        reader.read_block(&mut block)?;
-        assert_eq!(&block.data().get_ref()[..], &b"bgzf"[..]);
-
-        reader.read_block(&mut block)?;
-        assert!(block.data().get_ref().is_empty());
-
-        assert_eq!(reader.read_block(&mut block)?, 0);
-
-        Ok(())
-    }
 }

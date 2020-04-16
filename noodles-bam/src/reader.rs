@@ -24,23 +24,17 @@ const BLOCK_SIZE_LEN: usize = 4;
 
 pub struct Reader<R: Read> {
     inner: bgzf::Reader<R>,
-    block: bgzf::Block,
 }
 
 impl<R: Read> Reader<R> {
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
-            block: bgzf::Block::default(),
         }
     }
 
     pub fn read_header(&mut self) -> io::Result<Meta> {
-        self.inner.read_block(&mut self.block)?;
-
-        let mut reader = self.block.data_mut();
-
-        let magic = read_magic(&mut reader)?;
+        let magic = read_magic(&mut self.inner)?;
 
         if magic != MAGIC_NUMBER {
             return Err(io::Error::new(
@@ -49,8 +43,8 @@ impl<R: Read> Reader<R> {
             ));
         }
 
-        let header = read_header(&mut reader)?;
-        let references = read_references(&mut reader)?;
+        let header = read_header(&mut self.inner)?;
+        let references = read_references(&mut self.inner)?;
 
         Ok((header, references))
     }
@@ -58,7 +52,7 @@ impl<R: Read> Reader<R> {
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let mut buf = [0; BLOCK_SIZE_LEN];
 
-        if let Err(e) = self.read_exact(&mut buf) {
+        if let Err(e) = self.inner.read_exact(&mut buf) {
             match e.kind() {
                 io::ErrorKind::UnexpectedEof => return Ok(0),
                 _ => return Err(e),
@@ -70,7 +64,7 @@ impl<R: Read> Reader<R> {
         record.resize(block_size);
         let buf = record.deref_mut();
 
-        self.read_exact(buf)?;
+        self.inner.read_exact(buf)?;
 
         Ok(block_size)
     }
@@ -80,37 +74,13 @@ impl<R: Read> Reader<R> {
     }
 
     pub fn virtual_position(&self) -> VirtualPosition {
-        VirtualPosition::from(self.block.virtual_position())
-    }
-
-    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        let mut bytes_read = 0;
-
-        loop {
-            match self.block.data_mut().read(&mut buf[bytes_read..]) {
-                Ok(0) => match self.inner.read_block(&mut self.block) {
-                    Ok(0) => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
-                    Ok(_) => {}
-                    Err(e) => return Err(e),
-                },
-                Ok(len) => {
-                    bytes_read += len;
-
-                    if bytes_read == buf.len() {
-                        break;
-                    }
-                }
-                Err(e) => return Err(e),
-            }
-        }
-
-        Ok(())
+        self.inner.virtual_position()
     }
 }
 
 impl<R: Read + Seek> Reader<R> {
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
-        self.inner.seek(pos, &mut self.block)
+        self.inner.seek(pos)
     }
 
     pub fn query(
