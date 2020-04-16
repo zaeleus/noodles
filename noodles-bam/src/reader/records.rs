@@ -13,7 +13,7 @@ impl<'a, R: Read> Records<'a, R> {
     pub fn new(reader: &'a mut Reader<R>) -> Records<R> {
         Self {
             reader,
-            record: Record::new(),
+            record: Record::default(),
         }
     }
 }

@@ -14,10 +14,6 @@ use super::{Cigar, Data, Quality, Sequence};
 pub struct Record(Vec<u8>);
 
 impl Record {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn with_capacity(capacity: usize) -> Self {
         Self(Vec::with_capacity(capacity))
     }
@@ -233,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_block_size() {
-        let r = Record::new();
+        let r = Record::default();
         assert_eq!(r.block_size(), 0);
 
         let r = build_record();

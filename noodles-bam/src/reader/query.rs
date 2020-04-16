@@ -45,7 +45,7 @@ impl<'a, R: Read + Seek> Query<'a, R> {
             i: 0,
             current_chunk,
             state: State::Seek,
-            record: Record::new(),
+            record: Record::default(),
         }
     }
 
