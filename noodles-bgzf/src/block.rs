@@ -1,55 +1,31 @@
-use std::{
-    io::Cursor,
-    ops::{Deref, DerefMut},
-};
+use std::io::Cursor;
 
-#[derive(Debug)]
+use super::VirtualPosition;
+
+#[derive(Debug, Default)]
 pub struct Block {
-    c_offset: u64,
-    inner: Cursor<Vec<u8>>,
+    position: u64,
+    data: Cursor<Vec<u8>>,
 }
 
 impl Block {
     pub fn position(&self) -> u64 {
-        self.inner.position()
+        self.position
     }
 
-    pub fn virtual_position(&self) -> u64 {
-        self.c_offset() << 16 | self.u_offset()
+    pub fn set_position(&mut self, pos: u64) {
+        self.position = pos;
     }
 
-    pub fn c_offset(&self) -> u64 {
-        self.c_offset
+    pub fn virtual_position(&self) -> VirtualPosition {
+        VirtualPosition::from((self.position, self.data.position()))
     }
 
-    pub fn set_c_offset(&mut self, c_offset: u64) {
-        self.c_offset = c_offset;
+    pub fn data(&self) -> &Cursor<Vec<u8>> {
+        &self.data
     }
 
-    pub fn u_offset(&self) -> u64 {
-        self.position()
-    }
-}
-
-impl Default for Block {
-    fn default() -> Self {
-        Self {
-            c_offset: 0,
-            inner: Cursor::new(Vec::new()),
-        }
-    }
-}
-
-impl Deref for Block {
-    type Target = Cursor<Vec<u8>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Block {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
+    pub fn data_mut(&mut self) -> &mut Cursor<Vec<u8>> {
+        &mut self.data
     }
 }

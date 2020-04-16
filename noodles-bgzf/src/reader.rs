@@ -30,7 +30,7 @@ impl<R: Read> Reader<R> {
         match read_block(&mut self.inner, &mut self.cdata, block) {
             Ok(0) => Ok(0),
             Ok(bs) => {
-                block.set_c_offset(self.position);
+                block.set_position(self.position);
                 self.position += bs as u64;
                 Ok(bs)
             }
@@ -48,7 +48,10 @@ impl<R: Read + Seek> Reader<R> {
         self.position = compressed_offset;
 
         self.read_block(block)?;
-        block.seek(SeekFrom::Start(uncompressed_offset))?;
+
+        block
+            .data_mut()
+            .seek(SeekFrom::Start(uncompressed_offset))?;
 
         Ok(pos)
     }
@@ -59,11 +62,11 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match self.block.read(buf) {
+        match self.block.data_mut().read(buf) {
             Ok(0) => match read_block(&mut self.inner, &mut self.cdata, &mut self.block) {
                 Ok(0) => Ok(0),
                 Ok(bs) => {
-                    self.block.set_c_offset(self.position);
+                    self.block.set_position(self.position);
                     self.position += bs as u64;
                     Err(io::Error::from(io::ErrorKind::Interrupted))
                 }
@@ -123,12 +126,13 @@ where
 
     read_trailer(reader)?;
 
-    let block_buf = block.get_mut();
-    block_buf.clear();
+    let udata = block.data_mut();
+    let udata_buf = udata.get_mut();
+    udata_buf.clear();
 
-    inflate_data(&cdata[..], block_buf)?;
+    inflate_data(&cdata[..], udata_buf)?;
 
-    block.set_position(0);
+    udata.set_position(0);
 
     Ok(block_size)
 }
@@ -147,13 +151,13 @@ mod tests {
         let mut block = Block::default();
 
         reader.read_block(&mut block)?;
-        assert_eq!(&block.get_ref()[..], &b"noodles"[..]);
+        assert_eq!(&block.data().get_ref()[..], &b"noodles"[..]);
 
         reader.read_block(&mut block)?;
-        assert_eq!(&block.get_ref()[..], &b"bgzf"[..]);
+        assert_eq!(&block.data().get_ref()[..], &b"bgzf"[..]);
 
         reader.read_block(&mut block)?;
-        assert!(block.get_ref().is_empty());
+        assert!(block.data().get_ref().is_empty());
 
         assert_eq!(reader.read_block(&mut block)?, 0);
 

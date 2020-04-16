@@ -17,6 +17,12 @@ impl From<u64> for VirtualPosition {
     }
 }
 
+impl From<(u64, u64)> for VirtualPosition {
+    fn from(pos: (u64, u64)) -> Self {
+        Self(pos.0 << 16 | pos.1)
+    }
+}
+
 impl From<VirtualPosition> for u64 {
     fn from(pos: VirtualPosition) -> Self {
         pos.0
@@ -40,6 +46,24 @@ mod tests {
         let pos = VirtualPosition::from(26155658182977);
         assert_eq!(pos.compressed(), 399103671);
         assert_eq!(pos.uncompressed(), 321);
+    }
+
+    #[test]
+    fn test_from_u64_u64_tuple_for_virtual_position() {
+        assert_eq!(
+            VirtualPosition::from((1348647, 15419)),
+            VirtualPosition::from(88384945211)
+        );
+
+        assert_eq!(
+            VirtualPosition::from((2869409, 42672)),
+            VirtualPosition::from(188049630896)
+        );
+
+        assert_eq!(
+            VirtualPosition::from((399103671, 321)),
+            VirtualPosition::from(26155658182977)
+        );
     }
 
     #[test]

@@ -38,7 +38,7 @@ impl<R: Read> Reader<R> {
     pub fn read_header(&mut self) -> io::Result<Meta> {
         self.inner.read_block(&mut self.block)?;
 
-        let mut reader = self.block.deref_mut();
+        let mut reader = self.block.data_mut();
 
         let magic = read_magic(&mut reader)?;
 
@@ -87,7 +87,7 @@ impl<R: Read> Reader<R> {
         let mut bytes_read = 0;
 
         loop {
-            match self.block.read(&mut buf[bytes_read..]) {
+            match self.block.data_mut().read(&mut buf[bytes_read..]) {
                 Ok(0) => match self.inner.read_block(&mut self.block) {
                     Ok(0) => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
                     Ok(_) => {}
