@@ -5,7 +5,7 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ReferenceSequence {
     name: String,
     len: i32,
