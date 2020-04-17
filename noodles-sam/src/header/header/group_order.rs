@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GroupOrder {
@@ -13,15 +13,30 @@ impl Default for GroupOrder {
     }
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid group order: expected {{none, query, reference}}, got {}",
+            self.0
+        )
+    }
+}
+
 impl FromStr for GroupOrder {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "none" => Ok(Self::None),
             "query" => Ok(Self::Query),
             "reference" => Ok(Self::Reference),
-            _ => Err(()),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
@@ -36,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ()> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("none".parse::<GroupOrder>()?, GroupOrder::None);
         assert_eq!("query".parse::<GroupOrder>()?, GroupOrder::Query);
         assert_eq!("reference".parse::<GroupOrder>()?, GroupOrder::Reference);
