@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SortOrder {
@@ -14,8 +14,23 @@ impl Default for SortOrder {
     }
 }
 
+#[derive(Debug)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid sort order: expected {{unknown, unsorted, queryname, coordinate}}, got {}",
+            self.0
+        )
+    }
+}
+
 impl FromStr for SortOrder {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -23,7 +38,7 @@ impl FromStr for SortOrder {
             "unsorted" => Ok(Self::Unsorted),
             "queryname" => Ok(Self::QueryName),
             "coordinate" => Ok(Self::Coordinate),
-            _ => Err(()),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
@@ -38,7 +53,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ()> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("unknown".parse::<SortOrder>()?, SortOrder::Unknown);
         assert_eq!("unsorted".parse::<SortOrder>()?, SortOrder::Unsorted);
         assert_eq!("queryname".parse::<SortOrder>()?, SortOrder::QueryName);
