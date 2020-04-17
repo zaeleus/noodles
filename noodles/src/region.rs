@@ -91,6 +91,24 @@ impl Region {
     }
 }
 
+impl fmt::Display for Region {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Mapped { name, start, end } => {
+                write!(f, "{}:{}", name, start)?;
+
+                if let Bound::Included(e) = end {
+                    write!(f, "-{}", e)?;
+                }
+
+                Ok(())
+            }
+            Self::Unmapped => write!(f, "{}", UNMAPPED_NAME),
+            Self::All => write!(f, "{}", ALL_NAME),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     MissingReferenceSequenceName,
@@ -161,6 +179,19 @@ impl FromStr for Region {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let region = Region::mapped(String::from("sn2"), 3, Bound::Included(5));
+        assert_eq!(format!("{}", region), "sn2:3-5");
+
+        let region = Region::mapped(String::from("sn2"), 3, Bound::Unbounded);
+        assert_eq!(format!("{}", region), "sn2:3");
+
+        assert_eq!(format!("{}", Region::Unmapped), "*");
+
+        assert_eq!(format!("{}", Region::All), ".");
+    }
 
     #[test]
     fn test_from_str_reference_sequences() {
