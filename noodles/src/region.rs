@@ -1,4 +1,4 @@
-use std::{error, fmt, ops::Bound, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 use noodles_sam::header::ReferenceSequence;
 
@@ -13,7 +13,7 @@ pub enum Region {
     Mapped {
         name: String,
         start: u64,
-        end: Bound<u64>,
+        end: Option<u64>,
     },
     Unmapped,
     All,
@@ -25,19 +25,18 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use std::ops::Bound;
     /// use noodles::Region;
     ///
     /// let name = String::from("sn1");
-    /// let region = Region::mapped(name, 1, Bound::Included(5));
+    /// let region = Region::mapped(name, 1, Some(5));
     ///
     /// assert!(matches!(region, Region::Mapped {
     ///     name,
     ///     start: 1,
-    ///     end: Bound::Included(5),
+    ///     end: Some(5),
     /// }));
     /// ```
-    pub fn mapped(name: String, start: u64, end: Bound<u64>) -> Region {
+    pub fn mapped(name: String, start: u64, end: Option<u64>) -> Region {
         Region::Mapped { name, start, end }
     }
 
@@ -49,10 +48,9 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use std::ops::Bound;
     /// use noodles::Region;
     ///
-    /// let region = Region::mapped("sn1".into(), 1, Bound::Included(5));
+    /// let region = Region::mapped(String::from("sn1"), 1, Some(5));
     /// assert_eq!(region.name(), "sn1");
     ///
     /// assert_eq!(Region::Unmapped.name(), "*");
@@ -78,11 +76,7 @@ impl Region {
                     .find(|(_, s)| s.name() == name)
                     .unwrap();
 
-                let resolved_end = match end {
-                    Bound::Included(e) => *e,
-                    Bound::Excluded(_) => unimplemented!(),
-                    Bound::Unbounded => reference_sequence.len() as u64,
-                };
+                let resolved_end = end.unwrap_or(MIN_POSITION);
 
                 Some((i, reference_sequence, *start, resolved_end))
             }
@@ -97,7 +91,7 @@ impl fmt::Display for Region {
             Self::Mapped { name, start, end } => {
                 write!(f, "{}:{}", name, start)?;
 
-                if let Bound::Included(e) = end {
+                if let Some(e) = end {
                     write!(f, "-{}", e)?;
                 }
 
@@ -167,9 +161,9 @@ impl FromStr for Region {
         let end = match components.next() {
             Some(t) => t
                 .parse()
-                .map(Bound::Included)
+                .map(Some)
                 .map_err(|e| ParseError::InvalidEndPosition(Box::new(e)))?,
-            None => Bound::Unbounded,
+            None => None,
         };
 
         Ok(Self::Mapped { name, start, end })
@@ -182,10 +176,10 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let region = Region::mapped(String::from("sn2"), 3, Bound::Included(5));
+        let region = Region::mapped(String::from("sn2"), 3, Some(5));
         assert_eq!(format!("{}", region), "sn2:3-5");
 
-        let region = Region::mapped(String::from("sn2"), 3, Bound::Unbounded);
+        let region = Region::mapped(String::from("sn2"), 3, None);
         assert_eq!(format!("{}", region), "sn2:3");
 
         assert_eq!(format!("{}", Region::Unmapped), "*");
@@ -199,7 +193,7 @@ mod tests {
             Ok(Region::Mapped { name, start, end }) => {
                 assert_eq!(name, "sn2");
                 assert_eq!(start, 3);
-                assert_eq!(end, Bound::Included(5));
+                assert_eq!(end, Some(5));
             }
             _ => panic!(),
         }
@@ -211,7 +205,7 @@ mod tests {
             Ok(Region::Mapped { name, start, end }) => {
                 assert_eq!(name, "sn2");
                 assert_eq!(start, 3);
-                assert_eq!(end, Bound::Unbounded);
+                assert_eq!(end, None);
             }
             _ => panic!(),
         }
@@ -223,7 +217,7 @@ mod tests {
             Ok(Region::Mapped { name, start, end }) => {
                 assert_eq!(name, "sn2");
                 assert_eq!(start, 1);
-                assert_eq!(end, Bound::Unbounded);
+                assert_eq!(end, None);
             }
             _ => panic!(),
         }
