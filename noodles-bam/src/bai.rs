@@ -82,8 +82,18 @@ impl Reference {
 
 #[derive(Debug)]
 pub struct Index {
-    pub references: Vec<Reference>,
-    pub n_no_coor: Option<u64>,
+    references: Vec<Reference>,
+    n_no_coor: Option<u64>,
+}
+
+impl Index {
+    pub fn references(&self) -> &[Reference] {
+        &self.references
+    }
+
+    pub fn unplaced_unmapped_read_count(&self) -> Option<u64> {
+        self.n_no_coor
+    }
 }
 
 pub fn read<P>(src: P) -> io::Result<Index>

@@ -100,7 +100,17 @@ impl<R: Read + Seek> Reader<R> {
             )
         })?;
 
-        let index_reference = &index.references[i];
+        let index_reference = index.references().get(i).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "could not find reference in index: {} >= {}",
+                    i,
+                    reference_sequences.len()
+                ),
+            )
+        })?;
+
         let query_bins = bai::query(index_reference.bins(), start, end);
 
         let chunks: Vec<_> = query_bins
