@@ -14,6 +14,14 @@ pub struct ReferenceSequence {
 
 #[allow(clippy::len_without_is_empty)]
 impl ReferenceSequence {
+    pub fn new(name: String, len: i32) -> Self {
+        Self {
+            name,
+            len,
+            ..Default::default()
+        }
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
