@@ -119,7 +119,8 @@ impl<R: Read + Seek> Reader<R> {
             .cloned()
             .collect();
 
-        let merged_chunks = bai::merge_chunks(&chunks);
+        let min_offset = index_reference.min_offset(start);
+        let merged_chunks = bai::optimize_chunks(&chunks, min_offset);
 
         Ok(Query::new(self, merged_chunks, i, start, end))
     }
