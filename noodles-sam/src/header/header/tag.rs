@@ -9,6 +9,20 @@ pub enum Tag {
     Other(String),
 }
 
+impl fmt::Display for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let tag = match self {
+            Self::Version => "VN",
+            Self::SortOrder => "SO",
+            Self::GroupOrder => "GO",
+            Self::SubsortOrder => "SS",
+            Self::Other(s) => s,
+        };
+
+        write!(f, "{}", tag)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -43,6 +57,15 @@ impl FromStr for Tag {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(format!("{}", Tag::Version), "VN");
+        assert_eq!(format!("{}", Tag::SortOrder), "SO");
+        assert_eq!(format!("{}", Tag::GroupOrder), "GO");
+        assert_eq!(format!("{}", Tag::SubsortOrder), "SS");
+        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

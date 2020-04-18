@@ -9,6 +9,8 @@ pub use self::{
     group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
 };
 
+use super::record;
+
 #[derive(Debug)]
 pub struct Header {
     version: String,
@@ -16,6 +18,13 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn new(version: String) -> Self {
+        Self {
+            version,
+            ..Default::default()
+        }
+    }
+
     pub fn version(&self) -> &str {
         &self.version
     }
@@ -31,6 +40,19 @@ impl Default for Header {
             version: String::new(),
             fields: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for Header {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", record::Kind::Header)?;
+        write!(f, "\t{}:{}", Tag::Version, self.version)?;
+
+        for (tag, value) in &self.fields {
+            write!(f, "\t{}:{}", tag, value)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -81,6 +103,20 @@ impl TryFrom<&[(String, String)]> for Header {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let mut header = Header::new(String::from("1.6"));
+
+        header
+            .fields
+            .insert(Tag::SortOrder, String::from("unknown"));
+
+        let actual = format!("{}", header);
+        let expected = "@HD\tVN:1.6\tSO:unknown";
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str_with_no_version() {
