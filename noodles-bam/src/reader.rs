@@ -101,7 +101,7 @@ impl<R: Read + Seek> Reader<R> {
         })?;
 
         let index_reference = &index.references[i];
-        let query_bins = bai::query(&index_reference.bins, start, end);
+        let query_bins = bai::query(index_reference.bins(), start, end);
 
         let chunks: Vec<_> = query_bins
             .iter()

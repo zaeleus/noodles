@@ -61,11 +61,19 @@ const WINDOW_SIZE: u64 = 16384;
 
 #[derive(Debug)]
 pub struct Reference {
-    pub bins: Vec<Bin>,
-    pub intervals: Vec<Interval>,
+    bins: Vec<Bin>,
+    intervals: Vec<Interval>,
 }
 
 impl Reference {
+    pub fn bins(&self) -> &[Bin] {
+        &self.bins
+    }
+
+    pub fn intervals(&self) -> &[Interval] {
+        &self.intervals
+    }
+
     pub fn min_offset(&self, start: u64) -> VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;
         self.intervals[i].ioffset
