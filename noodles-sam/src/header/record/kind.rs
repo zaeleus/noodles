@@ -9,6 +9,20 @@ pub enum Kind {
     Comment,
 }
 
+impl fmt::Display for Kind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Self::Header => "HD",
+            Self::ReferenceSequence => "SQ",
+            Self::ReadGroup => "RG",
+            Self::Program => "PG",
+            Self::Comment => "CO",
+        };
+
+        write!(f, "@{}", s)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
