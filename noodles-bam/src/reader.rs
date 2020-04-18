@@ -17,8 +17,6 @@ use noodles_sam::header::ReferenceSequence;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
 
-const BLOCK_SIZE_LEN: usize = 4;
-
 pub struct Reader<R: Read> {
     inner: bgzf::Reader<R>,
 }
@@ -54,16 +52,13 @@ impl<R: Read> Reader<R> {
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let mut buf = [0; BLOCK_SIZE_LEN];
-
-        if let Err(e) = self.inner.read_exact(&mut buf) {
-            match e.kind() {
+        let block_size = match self.inner.read_i32::<LittleEndian>() {
+            Ok(bs) => bs as usize,
+            Err(e) => match e.kind() {
                 io::ErrorKind::UnexpectedEof => return Ok(0),
                 _ => return Err(e),
-            }
-        }
-
-        let block_size = u32::from_le_bytes(buf) as usize;
+            },
+        };
 
         record.resize(block_size);
         let buf = record.deref_mut();
