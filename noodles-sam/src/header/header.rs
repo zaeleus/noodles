@@ -87,6 +87,7 @@ impl TryFrom<&[(String, String)]> for Header {
             if let Tag::Version = tag {
                 header.version = value.into();
                 has_version = true;
+                continue;
             }
 
             header.fields.insert(tag, value.into());

@@ -60,6 +60,7 @@ impl TryFrom<&[(String, String)]> for Program {
             if let Tag::Id = tag {
                 program.id = value.into();
                 has_id = true;
+                continue;
             }
 
             program.fields.insert(tag, value.into());

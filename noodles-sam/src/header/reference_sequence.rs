@@ -80,6 +80,7 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
                 Tag::Name => {
                     reference_sequence.name = value.into();
                     has_name = true;
+                    continue;
                 }
                 Tag::Len => {
                     reference_sequence.len = value
@@ -87,6 +88,8 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
                         .map_err(|e| ParseError::InvalidValue(Tag::Len, Box::new(e)))?;
 
                     has_len = true;
+
+                    continue;
                 }
                 _ => {}
             }

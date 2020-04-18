@@ -61,6 +61,7 @@ impl TryFrom<&[(String, String)]> for ReadGroup {
             if let Tag::Id = tag {
                 read_group.id = value.into();
                 has_id = true;
+                continue;
             }
 
             read_group.fields.insert(tag, value.into());
