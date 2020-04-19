@@ -8,7 +8,7 @@
 use std::{env, fs::File, path::PathBuf, str};
 
 use noodles_bam::{self as bam, bai};
-use noodles_sam::Header;
+use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = args.next().expect("missing region").parse()?;
 
     let mut reader = File::open(&src).map(bam::Reader::new)?;
-    let header: Header = reader.read_header()?.parse()?;
+    let header: sam::Header = reader.read_header()?.parse()?;
     let reference_sequences = header.reference_sequences();
 
     let index = bai::read(src.with_extension("bam.bai"))?;
