@@ -5,6 +5,8 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
+use super::record;
+
 #[derive(Clone, Debug)]
 pub struct ReferenceSequence {
     name: String,
@@ -42,6 +44,20 @@ impl Default for ReferenceSequence {
             len: 0,
             fields: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for ReferenceSequence {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", record::Kind::ReferenceSequence)?;
+        write!(f, "\t{}:{}", Tag::Name, self.name)?;
+        write!(f, "\t{}:{}", Tag::Len, self.len)?;
+
+        for (tag, value) in &self.fields {
+            write!(f, "\t{}:{}", tag, value)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -110,6 +126,21 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+
+        reference_sequence.fields.insert(
+            Tag::Md5Checksum,
+            String::from("d7eba311421bbc9d3ada44709dd61534"),
+        );
+
+        let actual = format!("{}", reference_sequence);
+        let expected = "@SQ\tSN:sq0\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534";
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str_with_missing_name() {

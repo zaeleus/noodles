@@ -15,6 +15,26 @@ pub enum Tag {
     Other(String),
 }
 
+impl fmt::Display for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let tag = match self {
+            Self::Name => "SN",
+            Self::Len => "LN",
+            Self::AlternativeLocus => "AH",
+            Self::AlternativeNames => "AN",
+            Self::AssemblyId => "AS",
+            Self::Description => "DS",
+            Self::Md5Checksum => "M5",
+            Self::Species => "SP",
+            Self::MoleculeTopology => "TP",
+            Self::Uri => "UR",
+            Self::Other(s) => s,
+        };
+
+        write!(f, "{}", tag)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -55,6 +75,21 @@ impl FromStr for Tag {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(format!("{}", Tag::Name), "SN");
+        assert_eq!(format!("{}", Tag::Len), "LN");
+        assert_eq!(format!("{}", Tag::AlternativeLocus), "AH");
+        assert_eq!(format!("{}", Tag::AlternativeNames), "AN");
+        assert_eq!(format!("{}", Tag::AssemblyId), "AS");
+        assert_eq!(format!("{}", Tag::Description), "DS");
+        assert_eq!(format!("{}", Tag::Md5Checksum), "M5");
+        assert_eq!(format!("{}", Tag::Species), "SP");
+        assert_eq!(format!("{}", Tag::MoleculeTopology), "TP");
+        assert_eq!(format!("{}", Tag::Uri), "UR");
+        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
