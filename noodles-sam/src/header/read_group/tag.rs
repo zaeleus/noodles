@@ -19,6 +19,30 @@ pub enum Tag {
     Other(String),
 }
 
+impl fmt::Display for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let tag = match self {
+            Self::Id => "ID",
+            Self::Barcode => "BC",
+            Self::SequencingCenter => "CN",
+            Self::Description => "DS",
+            Self::ProducedAt => "DT",
+            Self::FlowOrder => "FO",
+            Self::KeySequence => "KS",
+            Self::Library => "LB",
+            Self::Program => "PG",
+            Self::PredictedMedianInsertSize => "PI",
+            Self::Platform => "PL",
+            Self::PlatformModel => "PM",
+            Self::PlatformUnit => "PU",
+            Self::Sample => "SM",
+            Self::Other(s) => s,
+        };
+
+        write!(f, "{}", tag)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -63,6 +87,25 @@ impl FromStr for Tag {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(format!("{}", Tag::Id), "ID");
+        assert_eq!(format!("{}", Tag::Barcode), "BC");
+        assert_eq!(format!("{}", Tag::SequencingCenter), "CN");
+        assert_eq!(format!("{}", Tag::Description), "DS");
+        assert_eq!(format!("{}", Tag::ProducedAt), "DT");
+        assert_eq!(format!("{}", Tag::FlowOrder), "FO");
+        assert_eq!(format!("{}", Tag::KeySequence), "KS");
+        assert_eq!(format!("{}", Tag::Library), "LB");
+        assert_eq!(format!("{}", Tag::Program), "PG");
+        assert_eq!(format!("{}", Tag::PredictedMedianInsertSize), "PI");
+        assert_eq!(format!("{}", Tag::Platform), "PL");
+        assert_eq!(format!("{}", Tag::PlatformModel), "PM");
+        assert_eq!(format!("{}", Tag::PlatformUnit), "PU");
+        assert_eq!(format!("{}", Tag::Sample), "SM");
+        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

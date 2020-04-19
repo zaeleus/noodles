@@ -5,6 +5,8 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{platform::Platform, tag::Tag};
 
+use super::record;
+
 #[derive(Debug)]
 pub struct ReadGroup {
     id: String,
@@ -12,6 +14,13 @@ pub struct ReadGroup {
 }
 
 impl ReadGroup {
+    pub fn new(id: String) -> Self {
+        Self {
+            id,
+            ..Default::default()
+        }
+    }
+
     pub fn id(&self) -> &str {
         &self.id
     }
@@ -27,6 +36,19 @@ impl Default for ReadGroup {
             id: String::new(),
             fields: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for ReadGroup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", record::Kind::ReadGroup)?;
+        write!(f, "\t{}:{}", Tag::Id, self.id)?;
+
+        for (tag, value) in &self.fields {
+            write!(f, "\t{}:{}", tag, value)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -78,6 +100,20 @@ impl TryFrom<&[(String, String)]> for ReadGroup {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let mut read_group = ReadGroup::new(String::from("rg0"));
+
+        read_group
+            .fields
+            .insert(Tag::Program, String::from("noodles"));
+
+        let actual = format!("{}", read_group);
+        let expected = "@RG\tID:rg0\tPG:noodles";
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str_with_no_version() {
