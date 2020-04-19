@@ -42,6 +42,30 @@ impl Header {
     }
 }
 
+impl fmt::Display for Header {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.header)?;
+
+        for reference_sequence in &self.reference_sequences {
+            writeln!(f, "{}", reference_sequence)?;
+        }
+
+        for read_group in &self.read_groups {
+            writeln!(f, "{}", read_group)?;
+        }
+
+        for program in &self.programs {
+            writeln!(f, "{}", program)?;
+        }
+
+        for comment in &self.comments {
+            writeln!(f, "{}\t{}", record::Kind::Comment, comment)?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     InvalidRecord(record::ParseError),
@@ -107,6 +131,41 @@ impl FromStr for Header {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let header = Header {
+            header: header::Header::new(String::from("1.6")),
+            reference_sequences: vec![
+                ReferenceSequence::new(String::from("sq0"), 8),
+                ReferenceSequence::new(String::from("sq1"), 13),
+            ],
+            read_groups: vec![
+                ReadGroup::new(String::from("rg0")),
+                ReadGroup::new(String::from("rg1")),
+            ],
+            programs: vec![
+                Program::new(String::from("pg0")),
+                Program::new(String::from("pg1")),
+            ],
+            comments: vec![String::from("noodles"), String::from("sam")],
+        };
+
+        let actual = format!("{}", header);
+        let expected = "\
+@HD\tVN:1.6
+@SQ\tSN:sq0\tLN:8
+@SQ\tSN:sq1\tLN:13
+@RG\tID:rg0
+@RG\tID:rg1
+@PG\tID:pg0
+@PG\tID:pg1
+@CO\tnoodles
+@CO\tsam
+";
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str() {
