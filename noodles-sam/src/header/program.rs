@@ -4,6 +4,8 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::tag::Tag;
 
+use super::record;
+
 #[derive(Debug)]
 pub struct Program {
     id: String,
@@ -11,6 +13,13 @@ pub struct Program {
 }
 
 impl Program {
+    pub fn new(id: String) -> Self {
+        Self {
+            id,
+            ..Default::default()
+        }
+    }
+
     pub fn id(&self) -> &str {
         &self.id
     }
@@ -26,6 +35,19 @@ impl Default for Program {
             id: String::new(),
             fields: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for Program {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", record::Kind::Program)?;
+        write!(f, "\t{}:{}", Tag::Id, self.id)?;
+
+        for (tag, value) in &self.fields {
+            write!(f, "\t{}:{}", tag, value)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -77,6 +99,18 @@ impl TryFrom<&[(String, String)]> for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let mut program = Program::new(String::from("pg0"));
+
+        program.fields.insert(Tag::Name, String::from("noodles"));
+
+        let actual = format!("{}", program);
+        let expected = "@PG\tID:pg0\tPN:noodles";
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str_with_no_id() {
