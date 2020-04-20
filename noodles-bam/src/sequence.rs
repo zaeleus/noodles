@@ -1,75 +1,8 @@
+mod base;
+
+pub use self::base::Base;
+
 use std::ops::{Deref, Index};
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Base {
-    Eq,
-    A,
-    C,
-    M,
-    G,
-    R,
-    S,
-    V,
-    T,
-    W,
-    Y,
-    H,
-    K,
-    D,
-    B,
-    N,
-}
-
-impl Base {
-    // https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation
-    pub fn complement(self) -> Self {
-        match self {
-            Self::Eq => Self::Eq,
-            Self::A => Self::T,
-            Self::C => Self::G,
-            Self::G => Self::C,
-            Self::T => Self::A,
-            Self::W => Self::W,
-            Self::S => Self::S,
-            Self::M => Self::K,
-            Self::K => Self::M,
-            Self::R => Self::Y,
-            Self::Y => Self::R,
-            Self::B => Self::V,
-            Self::D => Self::H,
-            Self::H => Self::D,
-            Self::V => Self::B,
-            Self::N => Self::N,
-        }
-    }
-
-    pub fn symbol(self) -> char {
-        match self {
-            Self::Eq => '=',
-            Self::A => 'A',
-            Self::C => 'C',
-            Self::G => 'G',
-            Self::T => 'T',
-            Self::W => 'W',
-            Self::S => 'S',
-            Self::M => 'M',
-            Self::K => 'K',
-            Self::R => 'R',
-            Self::Y => 'Y',
-            Self::B => 'B',
-            Self::D => 'D',
-            Self::H => 'H',
-            Self::V => 'V',
-            Self::N => 'N',
-        }
-    }
-}
-
-impl From<Base> for char {
-    fn from(base: Base) -> Self {
-        base.symbol()
-    }
-}
 
 static BASES: &[Base] = &[
     Base::Eq,
