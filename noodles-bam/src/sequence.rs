@@ -2,7 +2,10 @@ mod base;
 
 pub use self::base::Base;
 
-use std::ops::{Deref, Index};
+use std::{
+    fmt,
+    ops::{Deref, Index},
+};
 
 static BASES: &[Base] = &[
     Base::Eq,
@@ -57,6 +60,16 @@ impl<'a> Deref for Sequence<'a> {
 
     fn deref(&self) -> &Self::Target {
         self.seq
+    }
+}
+
+impl<'a> fmt::Display for Sequence<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for symbol in self.symbols() {
+            write!(f, "{}", symbol)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -221,5 +234,12 @@ mod sequence_tests {
         assert_eq!(bases.next(), Some('G'));
         assert_eq!(bases.next(), Some('C'));
         assert_eq!(bases.next(), None);
+    }
+
+    #[test]
+    fn test_fmt() {
+        let data = [0x18, 0x42];
+        let sequence = Sequence::new(&data, 4);
+        assert_eq!(sequence.to_string(), "ATGC");
     }
 }
