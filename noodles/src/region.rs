@@ -8,6 +8,10 @@ const MIN_POSITION: u64 = 1;
 static UNMAPPED_NAME: &str = "*";
 static ALL_NAME: &str = ".";
 
+/// A genomic region.
+///
+/// Genomic regions can either be mapped to a reference sequence, unmapped (*), or an inclusion of
+/// all reads (.).
 #[derive(Clone, Debug)]
 pub enum Region {
     Mapped {
@@ -21,6 +25,12 @@ pub enum Region {
 
 impl Region {
     /// Creates a new mapped region.
+    ///
+    /// `start` and `end` are the start and (optional) end positions of the region in the given
+    /// reference sequence `name`. When `end` is `None`, most analyses will assume the end to be
+    /// unbounded, i.e., until the end of the reference sequence.
+    ///
+    /// Positions are assumed to be 1-based.
     ///
     /// # Examples
     ///
@@ -64,6 +74,12 @@ impl Region {
         }
     }
 
+    /// Resolves the region by finding it in a given list of reference sequences.
+    ///
+    /// If the region name exists in `reference_sequences`, this returns `(<index in the list>,
+    /// <the matched reference sequence>, <start position>, <end position>)`; otherwise, `None`.
+    ///
+    /// The start and end positions are assumed to be 1-based.
     pub fn resolve<'a>(
         &self,
         reference_sequences: &'a [ReferenceSequence],
