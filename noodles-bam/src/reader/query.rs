@@ -49,19 +49,19 @@ impl<'a, R: Read + Seek> Query<'a, R> {
         }
     }
 
-    fn next_chunk(&mut self) -> bool {
+    fn next_chunk(&mut self) -> io::Result<bool> {
         if self.i >= self.chunks.len() {
-            return false;
+            return Ok(false);
         }
 
         self.current_chunk = self.chunks[self.i];
 
         let pos = self.current_chunk.start();
-        self.reader.seek(pos).unwrap();
+        self.reader.seek(pos)?;
 
         self.i += 1;
 
-        true
+        Ok(true)
     }
 
     fn read_record(&mut self) -> Option<io::Result<Record>> {
@@ -80,11 +80,16 @@ impl<'a, R: Read + Seek> Iterator for Query<'a, R> {
         loop {
             match self.state {
                 State::Seek => {
-                    self.state = if self.next_chunk() {
-                        State::Read
-                    } else {
-                        State::End
-                    };
+                    self.state = match self.next_chunk() {
+                        Ok(has_next_chunk) => {
+                            if has_next_chunk {
+                                State::Read
+                            } else {
+                                State::End
+                            }
+                        }
+                        Err(e) => return Some(Err(e)),
+                    }
                 }
                 State::Read => {
                     let result = self.read_record();
