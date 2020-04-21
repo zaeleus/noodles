@@ -1,3 +1,7 @@
+mod field;
+
+pub use self::field::Field;
+
 use std::{error, fmt, str::FromStr};
 
 use super::{Cigar, Data, Flags, MappingQuality};
@@ -65,41 +69,6 @@ impl Record {
 
     pub fn quality_scores(&self) -> &str {
         &self.qual
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Field {
-    Name,
-    Flags,
-    ReferenceSequenceName,
-    Position,
-    MappingQuality,
-    Cigar,
-    MateReferenceSequenceName,
-    MatePosition,
-    TemplateLength,
-    Sequence,
-    QualityScores,
-    Data,
-}
-
-impl Field {
-    pub fn name(&self) -> &str {
-        match self {
-            Self::Name => "QNAME",
-            Self::Flags => "FLAG",
-            Self::ReferenceSequenceName => "RNAME",
-            Self::Position => "POS",
-            Self::MappingQuality => "MAPQ",
-            Self::Cigar => "CIGAR",
-            Self::MateReferenceSequenceName => "RNEXT",
-            Self::MatePosition => "PNEXT",
-            Self::TemplateLength => "TLEN",
-            Self::Sequence => "SEQ",
-            Self::QualityScores => "QUAL",
-            Self::Data => "DATA",
-        }
     }
 }
 
