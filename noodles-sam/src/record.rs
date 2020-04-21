@@ -1,6 +1,7 @@
+mod builder;
 mod field;
 
-pub use self::field::Field;
+pub use self::{builder::Builder, field::Field};
 
 use std::{error, fmt, str::FromStr};
 
@@ -27,6 +28,10 @@ pub struct Record {
 }
 
 impl Record {
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
     pub fn name(&self) -> &str {
         &self.qname
     }
