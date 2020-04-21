@@ -52,11 +52,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_u32() {
+    fn test_read_u32() -> io::Result<()> {
         let data = [0b11001111, 0b01000000];
         let mut reader = BitReader::new(&data[..]);
-        assert_eq!(reader.read_u32(4).unwrap(), 0x0c);
-        assert_eq!(reader.read_u32(2).unwrap(), 0x03);
-        assert_eq!(reader.read_u32(6).unwrap(), 0x34);
+        assert_eq!(reader.read_u32(4)?, 0x0c);
+        assert_eq!(reader.read_u32(2)?, 0x03);
+        assert_eq!(reader.read_u32(6)?, 0x34);
+        Ok(())
     }
 }

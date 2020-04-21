@@ -277,7 +277,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rans_decode_with_order_0() {
+    fn test_rans_decode_with_order_0() -> io::Result<()> {
         let expected = b"noodles";
 
         let data = vec![
@@ -288,13 +288,15 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = rans_decode(&mut reader).unwrap();
+        let actual = rans_decode(&mut reader)?;
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn test_rans_decode_with_order_1() {
+    fn test_rans_decode_with_order_1() -> io::Result<()> {
         let expected = b"noodles";
 
         let data = vec![
@@ -306,9 +308,11 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let actual = rans_decode(&mut reader).unwrap();
+        let actual = rans_decode(&mut reader)?;
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     mod context {

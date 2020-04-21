@@ -81,50 +81,52 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_ltf8() {
+    fn test_read_ltf8() -> io::Result<()> {
         let data = [0x00];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 0);
 
         let data = [0x80, 0xaa];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 170);
 
         let data = [0xc0, 0xaa, 0x55];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 43605);
 
         let data = [0xe0, 0xaa, 0x55, 0xcc];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 11163084);
 
         let data = [0xf0, 0xaa, 0x55, 0xcc, 0x33];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 2857749555);
 
         let data = [0xf8, 0xaa, 0x55, 0xcc, 0x33, 0xe3];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 731583886307);
 
         let data = [0xfc, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 187285474894620);
 
         let data = [0xfe, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c, 0xf0];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 47945081573022960);
 
         let data = [0xff, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_ltf8(&mut reader).unwrap();
+        let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 3086597642858065935);
+
+        Ok(())
     }
 }

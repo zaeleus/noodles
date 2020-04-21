@@ -125,10 +125,10 @@ mod tests {
     }
 
     #[test]
-    fn test_read_file_definition() {
+    fn test_read_file_definition() -> io::Result<()> {
         let data = build_file_definition();
         let mut reader = Reader::new(&data[..]);
-        let file_id = reader.read_file_definition().unwrap();
+        let file_id = reader.read_file_definition()?;
 
         let expected = [
             0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
@@ -136,6 +136,8 @@ mod tests {
         ];
 
         assert_eq!(file_id, expected);
+
+        Ok(())
     }
 
     #[test]

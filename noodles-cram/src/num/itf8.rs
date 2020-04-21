@@ -47,35 +47,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_itf8() {
+    fn test_read_itf8() -> io::Result<()> {
         let data = [0x00];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, 0);
 
         let data = [0x87, 0x55];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, 1877);
 
         let data = [0xc7, 0x55, 0x99];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, 480665);
 
         let data = [0xe7, 0x55, 0x99, 0x66];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, 123050342);
 
         let data = [0xf7, 0x55, 0x99, 0x66, 0xd2];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, 1968805474);
 
         let data = [0xff, 0xff, 0xff, 0xff, 0x0f];
         let mut reader = BufReader::new(&data[..]);
-        let i = read_itf8(&mut reader).unwrap();
+        let i = read_itf8(&mut reader)?;
         assert_eq!(i, -1);
+
+        Ok(())
     }
 }

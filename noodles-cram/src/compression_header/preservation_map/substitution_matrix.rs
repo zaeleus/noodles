@@ -106,9 +106,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_u8_slice() {
+    fn test_try_from_u8_slice() -> Result<(), TryFromByteSliceError> {
         let codes = [0x93, 0x1b, 0x6c, 0xb1, 0xc6];
-        let matrix = SubstitutionMatrix::try_from(&codes[..]).unwrap();
+        let matrix = SubstitutionMatrix::try_from(&codes[..])?;
 
         let actual = &matrix.substitutions;
         let expected = &[
@@ -120,5 +120,7 @@ mod tests {
         ];
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
