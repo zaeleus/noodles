@@ -19,13 +19,25 @@ pub enum Record {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    MissingKind,
+    InvalidKind(kind::ParseError),
+    MissingTag,
+    MissingValue(String),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid record: {}", self.0)
+        write!(f, "invalid record: ")?;
+
+        match self {
+            Self::MissingKind => write!(f, "missing kind"),
+            Self::InvalidKind(e) => write!(f, "{}", e),
+            Self::MissingTag => write!(f, "missing field tag"),
+            Self::MissingValue(tag) => write!(f, "missing value for {}", tag),
+        }
     }
 }
 
@@ -37,8 +49,8 @@ impl FromStr for Record {
 
         let kind = pieces
             .next()
-            .and_then(|s| s.parse().ok())
-            .ok_or_else(|| ParseError(s.into()))?;
+            .ok_or_else(|| ParseError::MissingKind)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
         let record = if let Kind::Comment = kind {
             let comment = pieces.next().unwrap();
@@ -47,8 +59,12 @@ impl FromStr for Record {
             let fields = pieces
                 .map(|field| {
                     let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
-                    let tag = field_pieces.next().ok_or_else(|| ParseError(s.into()))?;
-                    let value = field_pieces.next().ok_or_else(|| ParseError(s.into()))?;
+
+                    let tag = field_pieces.next().ok_or_else(|| ParseError::MissingTag)?;
+                    let value = field_pieces
+                        .next()
+                        .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
+
                     Ok((tag.into(), value.into()))
                 })
                 .collect::<Result<_, _>>()?;
