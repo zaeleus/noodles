@@ -15,6 +15,10 @@ pub struct Data {
 }
 
 impl Data {
+    pub fn new(fields: Vec<Field>) -> Self {
+        Self { fields }
+    }
+
     pub fn fields(&self) -> &[Field] {
         &self.fields
     }
