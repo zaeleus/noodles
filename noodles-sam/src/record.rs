@@ -70,6 +70,10 @@ impl Record {
     pub fn quality_scores(&self) -> &str {
         &self.qual
     }
+
+    pub fn data(&self) -> &Data {
+        &self.data
+    }
 }
 
 #[derive(Debug)]
