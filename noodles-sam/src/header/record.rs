@@ -53,8 +53,10 @@ impl FromStr for Record {
             .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
         let record = if let Kind::Comment = kind {
-            let comment = pieces.next().unwrap();
-            Self::Comment(comment.into())
+            pieces
+                .next()
+                .map(|s| Self::Comment(s.into()))
+                .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))?
         } else {
             let fields = pieces
                 .map(|field| {
@@ -111,5 +113,10 @@ mod tests {
         assert!(matches!(record, Record::Comment(c) if c == "noodles"));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_when_comment_has_no_message() {
+        assert!("@CO".parse::<Record>().is_err());
     }
 }
