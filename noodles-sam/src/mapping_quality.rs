@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 const NULL_QUALITY: u8 = 255;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct MappingQuality(Option<u8>);
 
 impl From<u8> for MappingQuality {
