@@ -9,7 +9,7 @@ type Field = (String, String);
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Record {
     Header(Vec<Field>),
     ReferenceSequence(Vec<Field>),
@@ -63,5 +63,37 @@ impl FromStr for Record {
         };
 
         Ok(record)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        let record = "@HD\tVN:1.6".parse()?;
+        let fields = vec![(String::from("VN"), String::from("1.6"))];
+        assert!(matches!(record, Record::Header(f) if f == fields));
+
+        let record = "@SQ\tSN:sq0\tLN:8".parse()?;
+        let fields = vec![
+            (String::from("SN"), String::from("sq0")),
+            (String::from("LN"), String::from("8")),
+        ];
+        assert!(matches!(record, Record::ReferenceSequence(f) if f == fields));
+
+        let record = "@RG\tID:rg0".parse()?;
+        let fields = vec![(String::from("ID"), String::from("rg0"))];
+        assert!(matches!(record, Record::ReadGroup(f) if f == fields));
+
+        let record = "@PG\tID:pg0".parse()?;
+        let fields = vec![(String::from("ID"), String::from("pg0"))];
+        assert!(matches!(record, Record::Program(f) if f == fields));
+
+        let record = "@CO\tnoodles".parse()?;
+        assert!(matches!(record, Record::Comment(c) if c == "noodles"));
+
+        Ok(())
     }
 }
