@@ -1,3 +1,7 @@
+mod fields;
+
+pub use self::fields::Fields;
+
 use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -5,16 +9,16 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use super::{Field, Value};
 
 pub struct Reader<R: BufRead> {
-    reader: R,
+    inner: R,
 }
 
 impl<R: BufRead> Reader<R> {
-    pub fn new(reader: R) -> Self {
-        Self { reader }
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     pub fn fields(self) -> Fields<R> {
-        Fields { reader: self }
+        Fields::new(self)
     }
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
@@ -32,7 +36,7 @@ impl<R: BufRead> Reader<R> {
 
     fn read_tag(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![0; 2];
-        self.reader.read_exact(&mut buf)?;
+        self.inner.read_exact(&mut buf)?;
         Ok(buf)
     }
 
@@ -86,40 +90,40 @@ impl<R: BufRead> Reader<R> {
     }
 
     fn read_char(&mut self) -> io::Result<char> {
-        self.reader.read_u8().map(|b| b as char)
+        self.inner.read_u8().map(|b| b as char)
     }
 
     fn read_i8(&mut self) -> io::Result<i8> {
-        self.reader.read_i8()
+        self.inner.read_i8()
     }
 
     fn read_u8(&mut self) -> io::Result<u8> {
-        self.reader.read_u8()
+        self.inner.read_u8()
     }
 
     fn read_i16(&mut self) -> io::Result<i16> {
-        self.reader.read_i16::<LittleEndian>()
+        self.inner.read_i16::<LittleEndian>()
     }
 
     fn read_u16(&mut self) -> io::Result<u16> {
-        self.reader.read_u16::<LittleEndian>()
+        self.inner.read_u16::<LittleEndian>()
     }
 
     fn read_i32(&mut self) -> io::Result<i32> {
-        self.reader.read_i32::<LittleEndian>()
+        self.inner.read_i32::<LittleEndian>()
     }
 
     fn read_u32(&mut self) -> io::Result<u32> {
-        self.reader.read_u32::<LittleEndian>()
+        self.inner.read_u32::<LittleEndian>()
     }
 
     fn read_f32(&mut self) -> io::Result<f32> {
-        self.reader.read_f32::<LittleEndian>()
+        self.inner.read_f32::<LittleEndian>()
     }
 
     fn read_string(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = Vec::new();
-        self.reader.read_until(b'\0', &mut buf)?;
+        self.inner.read_until(b'\0', &mut buf)?;
         buf.pop();
         Ok(buf)
     }
@@ -130,60 +134,44 @@ impl<R: BufRead> Reader<R> {
 
     fn read_i8_array(&mut self, len: usize) -> io::Result<Vec<i8>> {
         let mut buf = vec![0; len];
-        self.reader.read_exact(&mut buf)?;
+        self.inner.read_exact(&mut buf)?;
         Ok(buf.iter().map(|&b| b as i8).collect())
     }
 
     fn read_u8_array(&mut self, len: usize) -> io::Result<Vec<u8>> {
         let mut buf = vec![0; len];
-        self.reader.read_exact(&mut buf)?;
+        self.inner.read_exact(&mut buf)?;
         Ok(buf)
     }
 
     fn read_i16_array(&mut self, len: usize) -> io::Result<Vec<i16>> {
         let mut buf = vec![0; len];
-        self.reader.read_i16_into::<LittleEndian>(&mut buf)?;
+        self.inner.read_i16_into::<LittleEndian>(&mut buf)?;
         Ok(buf)
     }
 
     fn read_u16_array(&mut self, len: usize) -> io::Result<Vec<u16>> {
         let mut buf = vec![0; len];
-        self.reader.read_u16_into::<LittleEndian>(&mut buf)?;
+        self.inner.read_u16_into::<LittleEndian>(&mut buf)?;
         Ok(buf)
     }
 
     fn read_i32_array(&mut self, len: usize) -> io::Result<Vec<i32>> {
         let mut buf = vec![0; len];
-        self.reader.read_i32_into::<LittleEndian>(&mut buf)?;
+        self.inner.read_i32_into::<LittleEndian>(&mut buf)?;
         Ok(buf)
     }
 
     fn read_u32_array(&mut self, len: usize) -> io::Result<Vec<u32>> {
         let mut buf = vec![0; len];
-        self.reader.read_u32_into::<LittleEndian>(&mut buf)?;
+        self.inner.read_u32_into::<LittleEndian>(&mut buf)?;
         Ok(buf)
     }
 
     fn read_f32_array(&mut self, len: usize) -> io::Result<Vec<f32>> {
         let mut buf = vec![0.0; len];
-        self.reader.read_f32_into::<LittleEndian>(&mut buf)?;
+        self.inner.read_f32_into::<LittleEndian>(&mut buf)?;
         Ok(buf)
-    }
-}
-
-pub struct Fields<R: BufRead> {
-    reader: Reader<R>,
-}
-
-impl<R: BufRead> Iterator for Fields<R> {
-    type Item = io::Result<Field>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_field() {
-            Ok(Some(field)) => Some(Ok(field)),
-            Ok(None) => None,
-            Err(e) => Some(Err(e)),
-        }
     }
 }
 
