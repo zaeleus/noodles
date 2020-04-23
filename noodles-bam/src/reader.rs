@@ -2,7 +2,7 @@ mod query;
 mod records;
 mod references;
 
-pub use self::{query::Query, records::Records, references::References};
+pub use self::{query::Query, records::Records};
 
 use std::{
     ffi::CStr,
@@ -16,6 +16,8 @@ use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_sam::header::ReferenceSequences;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
+
+use self::references::References;
 
 pub struct Reader<R: Read> {
     inner: bgzf::Reader<R>,

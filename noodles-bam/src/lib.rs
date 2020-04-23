@@ -11,7 +11,7 @@ pub use self::{
     cigar::Cigar,
     data::Data,
     quality::Quality,
-    reader::{Reader, Records, References},
+    reader::{Reader, Records},
     record::Record,
     reference::Reference,
     sequence::Sequence,
