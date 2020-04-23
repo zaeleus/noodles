@@ -245,7 +245,7 @@ impl Value {
 
 #[cfg(test)]
 mod tests {
-    use super::Value;
+    use super::*;
 
     #[test]
     fn test_ty() {

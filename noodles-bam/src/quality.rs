@@ -55,7 +55,7 @@ fn byte_to_char(b: u8) -> char {
 
 #[cfg(test)]
 mod tests {
-    use super::{Quality, QUALITY_OFFSET};
+    use super::*;
 
     #[test]
     fn test_chars() {

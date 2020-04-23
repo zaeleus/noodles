@@ -1,6 +1,6 @@
-pub use self::op::Op;
+mod op;
 
-pub mod op;
+pub use self::op::Op;
 
 use std::{convert::TryFrom, fmt, mem, ops::Deref};
 
@@ -80,8 +80,6 @@ impl<'a> Iterator for Ops<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

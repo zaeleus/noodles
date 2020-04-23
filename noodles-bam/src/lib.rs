@@ -1,18 +1,20 @@
-pub use self::cigar::Cigar;
-pub use self::data::Data;
-pub use self::quality::Quality;
-pub use self::reader::{Reader, Records, References};
-pub use self::record::Record;
-pub use self::reference::Reference;
-pub use self::sequence::Sequence;
-
 pub mod bai;
 pub mod cigar;
 pub mod data;
-pub mod quality;
+mod quality;
 pub mod reader;
-pub mod record;
-pub mod reference;
+mod record;
+mod reference;
 pub mod sequence;
+
+pub use self::{
+    cigar::Cigar,
+    data::Data,
+    quality::Quality,
+    reader::{Reader, Records, References},
+    record::Record,
+    reference::Reference,
+    sequence::Sequence,
+};
 
 pub static MAGIC_NUMBER: &[u8] = b"BAM\x01";

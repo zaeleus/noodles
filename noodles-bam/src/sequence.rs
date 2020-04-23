@@ -161,7 +161,7 @@ impl<'a> Index<usize> for Sequence<'a> {
 
 #[cfg(test)]
 mod base_tests {
-    use super::Base;
+    use super::*;
 
     #[test]
     fn test_complement() {

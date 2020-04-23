@@ -1,8 +1,8 @@
-pub use self::{query::Query, records::Records, references::References};
-
 mod query;
 mod records;
 mod references;
+
+pub use self::{query::Query, records::Records, references::References};
 
 use std::{
     ffi::CStr,

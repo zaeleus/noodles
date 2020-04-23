@@ -85,8 +85,6 @@ impl From<Op> for u32 {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

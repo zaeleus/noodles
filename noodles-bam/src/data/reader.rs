@@ -189,9 +189,7 @@ impl<R: BufRead> Iterator for Fields<R> {
 
 #[cfg(test)]
 mod tests {
-    use crate::data::Field;
-
-    use super::Reader;
+    use super::*;
 
     #[test]
     fn test_read_field() {

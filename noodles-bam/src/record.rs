@@ -4,9 +4,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use noodles_sam as sam;
-
 use byteorder::{ByteOrder, LittleEndian};
+use noodles_sam as sam;
 
 use super::{Cigar, Data, Quality, Sequence};
 
@@ -187,7 +186,7 @@ impl From<Vec<u8>> for Record {
 
 #[cfg(test)]
 mod tests {
-    use super::Record;
+    use super::*;
 
     #[rustfmt::skip]
     fn build_record() -> Record {

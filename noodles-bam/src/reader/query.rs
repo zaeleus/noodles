@@ -1,10 +1,8 @@
 use std::io::{self, Read, Seek};
 
-pub use crate::Record;
-
 use noodles_bgzf::VirtualPosition;
 
-use crate::bai;
+use crate::{bai, Record};
 
 use super::Reader;
 
