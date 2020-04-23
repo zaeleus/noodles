@@ -160,52 +160,7 @@ impl<'a> Index<usize> for Sequence<'a> {
 }
 
 #[cfg(test)]
-mod base_tests {
-    use super::*;
-
-    #[test]
-    fn test_complement() {
-        assert_eq!(Base::Eq.complement(), Base::Eq);
-        assert_eq!(Base::A.complement(), Base::T);
-        assert_eq!(Base::C.complement(), Base::G);
-        assert_eq!(Base::G.complement(), Base::C);
-        assert_eq!(Base::T.complement(), Base::A);
-        assert_eq!(Base::W.complement(), Base::W);
-        assert_eq!(Base::S.complement(), Base::S);
-        assert_eq!(Base::M.complement(), Base::K);
-        assert_eq!(Base::K.complement(), Base::M);
-        assert_eq!(Base::R.complement(), Base::Y);
-        assert_eq!(Base::Y.complement(), Base::R);
-        assert_eq!(Base::B.complement(), Base::V);
-        assert_eq!(Base::D.complement(), Base::H);
-        assert_eq!(Base::H.complement(), Base::D);
-        assert_eq!(Base::V.complement(), Base::B);
-        assert_eq!(Base::N.complement(), Base::N);
-    }
-
-    #[test]
-    fn test_symbol() {
-        assert_eq!(Base::Eq.symbol(), '=');
-        assert_eq!(Base::A.symbol(), 'A');
-        assert_eq!(Base::C.symbol(), 'C');
-        assert_eq!(Base::G.symbol(), 'G');
-        assert_eq!(Base::T.symbol(), 'T');
-        assert_eq!(Base::W.symbol(), 'W');
-        assert_eq!(Base::S.symbol(), 'S');
-        assert_eq!(Base::M.symbol(), 'M');
-        assert_eq!(Base::K.symbol(), 'K');
-        assert_eq!(Base::R.symbol(), 'R');
-        assert_eq!(Base::Y.symbol(), 'Y');
-        assert_eq!(Base::B.symbol(), 'B');
-        assert_eq!(Base::D.symbol(), 'D');
-        assert_eq!(Base::H.symbol(), 'H');
-        assert_eq!(Base::V.symbol(), 'V');
-        assert_eq!(Base::N.symbol(), 'N');
-    }
-}
-
-#[cfg(test)]
-mod sequence_tests {
+mod tests {
     use super::*;
 
     #[test]
