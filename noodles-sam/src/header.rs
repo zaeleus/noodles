@@ -7,14 +7,18 @@ mod reference_sequence;
 
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
+use indexmap::IndexMap;
+
 pub use self::{program::Program, read_group::ReadGroup, reference_sequence::ReferenceSequence};
 
 pub use self::record::Record;
 
+pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
+
 #[derive(Debug, Default)]
 pub struct Header {
     header: header::Header,
-    reference_sequences: Vec<ReferenceSequence>,
+    reference_sequences: ReferenceSequences,
     read_groups: Vec<ReadGroup>,
     programs: Vec<Program>,
     comments: Vec<String>,
@@ -25,7 +29,7 @@ impl Header {
         &self.header
     }
 
-    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
+    pub fn reference_sequences(&self) -> &ReferenceSequences {
         &self.reference_sequences
     }
 
@@ -46,7 +50,7 @@ impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.header)?;
 
-        for reference_sequence in &self.reference_sequences {
+        for reference_sequence in self.reference_sequences.values() {
             writeln!(f, "{}", reference_sequence)?;
         }
 
@@ -106,7 +110,12 @@ impl FromStr for Header {
                 Record::ReferenceSequence(fields) => {
                     let reference_sequence = ReferenceSequence::try_from(&fields[..])
                         .map_err(ParseError::InvalidReferenceSequence)?;
-                    header.reference_sequences.push(reference_sequence);
+
+                    let name = reference_sequence.name();
+
+                    header
+                        .reference_sequences
+                        .insert(name.into(), reference_sequence);
                 }
                 Record::ReadGroup(fields) => {
                     let read_group =
@@ -134,12 +143,22 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        let reference_sequences = vec![
+            (
+                String::from("sq0"),
+                ReferenceSequence::new(String::from("sq0"), 8),
+            ),
+            (
+                String::from("sq1"),
+                ReferenceSequence::new(String::from("sq1"), 13),
+            ),
+        ]
+        .into_iter()
+        .collect();
+
         let header = Header {
             header: header::Header::new(String::from("1.6")),
-            reference_sequences: vec![
-                ReferenceSequence::new(String::from("sq0"), 8),
-                ReferenceSequence::new(String::from("sq1"), 13),
-            ],
+            reference_sequences,
             read_groups: vec![
                 ReadGroup::new(String::from("rg0")),
                 ReadGroup::new(String::from("rg1")),

@@ -13,7 +13,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles::Region;
 use noodles_bgzf::{self as bgzf, VirtualPosition};
-use noodles_sam::header::ReferenceSequence;
+use noodles_sam::header::ReferenceSequences;
 
 use super::{bai, Record, Reference, MAGIC_NUMBER};
 
@@ -84,7 +84,7 @@ impl<R: Read + Seek> Reader<R> {
 
     pub fn query(
         &mut self,
-        reference_sequences: &[ReferenceSequence],
+        reference_sequences: &ReferenceSequences,
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<R>> {
