@@ -81,6 +81,12 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        Builder::new().build()
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     Missing(Field),
