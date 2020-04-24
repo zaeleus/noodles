@@ -24,8 +24,20 @@ impl Program {
         &self.id
     }
 
+    pub fn fields(&self) -> &HashMap<Tag, String> {
+        &self.fields
+    }
+
+    pub fn id_mut(&mut self) -> &mut String {
+        &mut self.id
+    }
+
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
+    }
+
+    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
+        self.fields.insert(tag, value)
     }
 }
 

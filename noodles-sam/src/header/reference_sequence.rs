@@ -28,12 +28,28 @@ impl ReferenceSequence {
         &self.name
     }
 
+    pub fn name_mut(&mut self) -> &mut String {
+        &mut self.name
+    }
+
     pub fn len(&self) -> i32 {
         self.len
     }
 
+    pub fn len_mut(&mut self) -> &mut String {
+        &mut self.name
+    }
+
+    pub fn fields(&self) -> &HashMap<Tag, String> {
+        &self.fields
+    }
+
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
+    }
+
+    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
+        self.fields.insert(tag, value)
     }
 }
 
