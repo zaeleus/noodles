@@ -27,14 +27,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in query {
         let record = result?;
 
-        let name = str::from_utf8(record.read_name())?;
+        let name = str::from_utf8(record.name())?;
 
-        let ref_id = record.ref_id() as usize;
+        let reference_sequence_id = record.reference_sequence_id() as usize;
         let (_, reference_sequence) = reference_sequences
-            .get_index(ref_id)
+            .get_index(reference_sequence_id)
             .ok_or_else(|| "invalid reference sequence id")?;
 
-        let start = record.pos() + 1;
+        let start = record.position() + 1;
         let len = record.cigar().mapped_len() as i32;
         let end = start + len - 1;
 

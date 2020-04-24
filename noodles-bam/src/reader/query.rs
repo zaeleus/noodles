@@ -97,13 +97,13 @@ impl<'a, R: Read + Seek> Iterator for Query<'a, R> {
                     }
 
                     if let Some(Ok(record)) = result {
-                        let ref_id = record.ref_id() as usize;
+                        let reference_sequence_id = record.reference_sequence_id() as usize;
 
-                        let record_start = (record.pos() + 1) as u64;
+                        let record_start = (record.position() + 1) as u64;
                         let record_mapped_len = record.cigar().mapped_len() as u64;
                         let record_end = record_start + record_mapped_len + 1;
 
-                        if ref_id == self.reference_sequence_id
+                        if reference_sequence_id == self.reference_sequence_id
                             && in_interval(record_start, record_end, self.start, self.end)
                         {
                             return Some(Ok(record));

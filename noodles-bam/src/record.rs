@@ -25,13 +25,13 @@ impl Record {
         self.0.len() as i32
     }
 
-    pub fn ref_id(&self) -> i32 {
+    pub fn reference_sequence_id(&self) -> i32 {
         let offset = 0;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn pos(&self) -> i32 {
+    pub fn position(&self) -> i32 {
         let offset = 4;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
@@ -42,7 +42,7 @@ impl Record {
         self.0[offset]
     }
 
-    pub fn mapq(&self) -> u8 {
+    pub fn mapping_quality(&self) -> u8 {
         let offset = 9;
         self.0[offset]
     }
@@ -59,7 +59,7 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..offset + len])
     }
 
-    pub fn flag(&self) -> sam::Flags {
+    pub fn flags(&self) -> sam::Flags {
         let offset = 14;
         let len = mem::size_of::<u16>();
         let value = LittleEndian::read_u16(&self.0[offset..offset + len]);
@@ -72,25 +72,25 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn next_ref_id(&self) -> i32 {
+    pub fn mate_reference_sequence_id(&self) -> i32 {
         let offset = 20;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn next_pos(&self) -> i32 {
+    pub fn mate_position(&self) -> i32 {
         let offset = 24;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn tlen(&self) -> i32 {
+    pub fn template_len(&self) -> i32 {
         let offset = 28;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn read_name(&self) -> &[u8] {
+    pub fn name(&self) -> &[u8] {
         let offset = 32;
         let len = self.l_read_name() as usize;
         &self.0[offset..offset + len]
@@ -103,7 +103,7 @@ impl Record {
         Cigar::new(bytes)
     }
 
-    pub fn seq(&self) -> Sequence {
+    pub fn sequence(&self) -> Sequence {
         let offset = 32
             + (self.l_read_name() as usize)
             + mem::size_of::<u32>() * (self.n_cigar_op() as usize);
@@ -114,7 +114,7 @@ impl Record {
         Sequence::new(bytes, n_chars)
     }
 
-    pub fn qual(&self) -> Quality {
+    pub fn quality_scores(&self) -> Quality {
         let l_seq = self.l_seq();
 
         let offset = 32
@@ -158,21 +158,21 @@ impl DerefMut for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        let read_name = CStr::from_bytes_with_nul(self.read_name());
+        let read_name = CStr::from_bytes_with_nul(self.name());
 
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
-            .field("ref_id", &self.ref_id())
-            .field("pos", &self.pos())
+            .field("ref_id", &self.reference_sequence_id())
+            .field("pos", &self.position())
             .field("l_read_name", &self.l_read_name())
-            .field("mapq", &self.mapq())
+            .field("mapq", &self.mapping_quality())
             .field("bin", &self.bin())
             .field("n_cigar_op", &self.n_cigar_op())
-            .field("flag", &self.flag())
+            .field("flag", &self.flags())
             .field("l_seq", &self.l_seq())
-            .field("next_ref_id", &self.next_ref_id())
-            .field("next_pos", &self.next_pos())
-            .field("tlen", &self.tlen())
+            .field("next_ref_id", &self.mate_reference_sequence_id())
+            .field("next_pos", &self.mate_position())
+            .field("tlen", &self.template_len())
             .field("read_name", &read_name)
             .finish()
     }
@@ -236,15 +236,15 @@ mod tests {
     }
 
     #[test]
-    fn test_ref_id() {
+    fn test_reference_sequence_id() {
         let r = build_record();
-        assert_eq!(r.ref_id(), 10);
+        assert_eq!(r.reference_sequence_id(), 10);
     }
 
     #[test]
-    fn test_pos() {
+    fn test_position() {
         let r = build_record();
-        assert_eq!(r.pos(), 61061);
+        assert_eq!(r.position(), 61061);
     }
 
     #[test]
@@ -254,9 +254,9 @@ mod tests {
     }
 
     #[test]
-    fn test_mapq() {
+    fn test_mapping_quality() {
         let r = build_record();
-        assert_eq!(r.mapq(), 12);
+        assert_eq!(r.mapping_quality(), 12);
     }
 
     #[test]
@@ -272,9 +272,9 @@ mod tests {
     }
 
     #[test]
-    fn test_flag() {
+    fn test_flags() {
         let r = build_record();
-        assert_eq!(u16::from(r.flag()), 0xa3);
+        assert_eq!(u16::from(r.flags()), 0xa3);
     }
 
     #[test]
@@ -284,28 +284,28 @@ mod tests {
     }
 
     #[test]
-    fn test_next_ref_id() {
+    fn test_mate_reference_sequence_id() {
         let r = build_record();
-        assert_eq!(r.next_ref_id(), 10);
+        assert_eq!(r.mate_reference_sequence_id(), 10);
     }
 
     #[test]
-    fn test_next_pos() {
+    fn test_mate_position() {
         let r = build_record();
-        assert_eq!(r.next_pos(), 61152);
+        assert_eq!(r.mate_position(), 61152);
     }
 
     #[test]
-    fn test_tlen() {
+    fn test_template_len() {
         let r = build_record();
-        assert_eq!(r.tlen(), 166);
+        assert_eq!(r.template_len(), 166);
     }
 
     #[test]
-    fn test_read_name() {
+    fn test_name() {
         let r = build_record();
         let expected = [0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00];
-        assert_eq!(r.read_name(), expected);
+        assert_eq!(r.name(), expected);
     }
 
     #[test]
@@ -316,17 +316,17 @@ mod tests {
     }
 
     #[test]
-    fn test_seq() {
+    fn test_sequence() {
         let r = build_record();
         let expected = [0x18, 0x42];
-        assert_eq!(*r.seq(), expected);
+        assert_eq!(*r.sequence(), expected);
     }
 
     #[test]
-    fn test_qual() {
+    fn test_quality_scores() {
         let r = build_record();
         let expected = [0x1f, 0x1d, 0x1e, 0x20];
-        assert_eq!(*r.qual(), expected);
+        assert_eq!(*r.quality_scores(), expected);
     }
 
     #[test]
