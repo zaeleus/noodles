@@ -1,9 +1,9 @@
 #[allow(clippy::module_inception)]
 pub mod header;
-mod program;
-mod read_group;
+pub mod program;
+pub mod read_group;
 mod record;
-mod reference_sequence;
+pub mod reference_sequence;
 
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
