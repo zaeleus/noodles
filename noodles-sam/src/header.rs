@@ -29,20 +29,40 @@ impl Header {
         &self.header
     }
 
+    pub fn header_mut(&mut self) -> &mut header::Header {
+        &mut self.header
+    }
+
     pub fn reference_sequences(&self) -> &ReferenceSequences {
         &self.reference_sequences
+    }
+
+    pub fn reference_sequences_mut(&mut self) -> &mut ReferenceSequences {
+        &mut self.reference_sequences
     }
 
     pub fn read_groups(&self) -> &[ReadGroup] {
         &self.read_groups
     }
 
+    pub fn read_groups_mut(&mut self) -> &mut Vec<ReadGroup> {
+        &mut self.read_groups
+    }
+
     pub fn programs(&self) -> &[Program] {
         &self.programs
     }
 
+    pub fn programs_mut(&mut self) -> &mut Vec<Program> {
+        &mut self.programs
+    }
+
     pub fn comments(&self) -> &[String] {
         &self.comments
+    }
+
+    pub fn comments_mut(&mut self) -> &mut Vec<String> {
+        &mut self.comments
     }
 }
 
