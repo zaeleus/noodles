@@ -37,7 +37,7 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..offset + len])
     }
 
-    pub fn l_read_name(&self) -> u8 {
+    fn l_read_name(&self) -> u8 {
         let offset = 8;
         self.0[offset]
     }
@@ -53,7 +53,7 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..offset + len])
     }
 
-    pub fn n_cigar_op(&self) -> u16 {
+    fn n_cigar_op(&self) -> u16 {
         let offset = 12;
         let len = mem::size_of::<u16>();
         LittleEndian::read_u16(&self.0[offset..offset + len])
@@ -66,7 +66,7 @@ impl Record {
         sam::Flags::from(value)
     }
 
-    pub fn l_seq(&self) -> i32 {
+    fn l_seq(&self) -> i32 {
         let offset = 16;
         let len = mem::size_of::<i32>();
         LittleEndian::read_i32(&self.0[offset..offset + len])
