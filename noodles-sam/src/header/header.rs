@@ -11,6 +11,8 @@ pub use self::{
 
 use super::record;
 
+static VERSION: &str = "1.6";
+
 #[derive(Debug)]
 pub struct Header {
     version: String,
@@ -37,7 +39,7 @@ impl Header {
 impl Default for Header {
     fn default() -> Self {
         Header {
-            version: String::new(),
+            version: VERSION.into(),
             fields: HashMap::new(),
         }
     }
@@ -104,6 +106,13 @@ impl TryFrom<&[(String, String)]> for Header {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        let header = Header::default();
+        assert_eq!(header.version(), "1.6");
+        assert!(header.fields.is_empty());
+    }
 
     #[test]
     fn test_fmt() {
