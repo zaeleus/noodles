@@ -46,7 +46,7 @@ impl FromStr for Data {
         s.split(DELIMITER)
             .map(|t| t.parse().map_err(|e| ParseError(Box::new(e))))
             .collect::<Result<_, _>>()
-            .map(|fields| Self { fields })
+            .map(Self::new)
     }
 }
 
