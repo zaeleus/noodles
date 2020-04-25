@@ -114,7 +114,7 @@ mod tests {
         let record = Builder::new().build();
 
         assert_eq!(record.name(), "*");
-        assert_eq!(u16::from(record.flags()), 0);
+        assert!(record.flags().is_empty());
         assert_eq!(record.reference_sequence_name(), "*");
         assert_eq!(record.position(), 0);
         assert_eq!(u8::from(record.mapping_quality()), 255);

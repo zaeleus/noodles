@@ -2,6 +2,10 @@
 pub struct Flags(u16);
 
 impl Flags {
+    pub fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+
     pub fn is_paired(self) -> bool {
         self.0 & 0x01 != 0
     }
@@ -70,6 +74,8 @@ mod tests {
     #[test]
     fn test_empty_flags() {
         let flags = Flags::default();
+
+        assert!(flags.is_empty());
 
         assert!(!flags.is_paired());
         assert!(!flags.is_proper_pair());
