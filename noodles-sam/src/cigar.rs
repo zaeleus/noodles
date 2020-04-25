@@ -6,6 +6,8 @@ pub use self::op::Op;
 
 use super::record;
 
+use self::op::Kind;
+
 #[derive(Debug, Default)]
 pub struct Cigar {
     ops: Vec<Op>,
@@ -18,6 +20,18 @@ impl Cigar {
 
     pub fn ops(&self) -> &[Op] {
         &self.ops
+    }
+
+    pub fn mapped_len(&self) -> u32 {
+        self.ops()
+            .iter()
+            .filter_map(|op| match op.kind() {
+                Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
+                    Some(op.len())
+                }
+                _ => None,
+            })
+            .sum()
     }
 }
 
