@@ -1,6 +1,6 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
-use super::{Record, NULL_FIELD};
+use super::{Record, Sequence, NULL_FIELD};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -13,7 +13,7 @@ pub struct Builder {
     mate_reference_sequence_name: Option<String>,
     mate_position: u32,
     template_len: i32,
-    sequence: Option<String>,
+    sequence: Sequence,
     quality_scores: Option<String>,
     data: Option<Data>,
 }
@@ -68,8 +68,8 @@ impl Builder {
         self
     }
 
-    pub fn set_sequence(mut self, sequence: &str) -> Self {
-        self.sequence = Some(sequence.into());
+    pub fn set_sequence(mut self, sequence: Sequence) -> Self {
+        self.sequence = sequence;
         self
     }
 
@@ -96,7 +96,7 @@ impl Builder {
             rnext: self.mate_reference_sequence_name.unwrap_or_else(null_field),
             pnext: self.mate_position,
             tlen: self.template_len,
-            seq: self.sequence.unwrap_or_else(null_field),
+            seq: self.sequence,
             qual: self.quality_scores.unwrap_or_else(null_field),
             data: self.data.unwrap_or_default(),
         }
@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(record.mate_reference_sequence_name(), "*");
         assert_eq!(record.mate_position(), 0);
         assert_eq!(record.template_len(), 0);
-        assert_eq!(record.sequence(), "*");
+        assert_eq!(record.sequence(), &Sequence::default());
         assert_eq!(record.quality_scores(), "*");
         assert!(record.data().fields().is_empty());
     }
@@ -136,6 +136,8 @@ mod tests {
             data::Value::Int32(1),
         )]);
 
+        let sequence: Sequence = "ATCGATC".parse().unwrap();
+
         let record = Builder::new()
             .set_name("r0")
             .set_flags(Flags::from(65))
@@ -146,7 +148,7 @@ mod tests {
             .set_mate_reference_sequence_name("sq1")
             .set_mate_position(17)
             .set_template_len(4)
-            .set_sequence("ATCGATC")
+            .set_sequence(sequence.clone())
             .set_quality_scores("NOODLES")
             .set_data(data)
             .build();
@@ -160,7 +162,7 @@ mod tests {
         assert_eq!(record.mate_reference_sequence_name(), "sq1");
         assert_eq!(record.mate_position(), 17);
         assert_eq!(record.template_len(), 4);
-        assert_eq!(record.sequence(), "ATCGATC");
+        assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), "NOODLES");
         assert_eq!(record.data().fields().len(), 1);
     }

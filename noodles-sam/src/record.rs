@@ -1,7 +1,8 @@
 mod builder;
 mod field;
+mod sequence;
 
-pub use self::{builder::Builder, field::Field};
+pub use self::{builder::Builder, field::Field, sequence::Sequence};
 
 use std::{error, fmt, str::FromStr};
 
@@ -22,7 +23,7 @@ pub struct Record {
     rnext: String,
     pnext: u32,
     tlen: i32,
-    seq: String,
+    seq: Sequence,
     qual: String,
     data: Data,
 }
@@ -68,7 +69,7 @@ impl Record {
         self.tlen
     }
 
-    pub fn sequence(&self) -> &str {
+    pub fn sequence(&self) -> &Sequence {
         &self.seq
     }
 
@@ -126,7 +127,12 @@ impl FromStr for Record {
         let rnext = parse_string(&mut fields, Field::MateReferenceSequenceName)?;
         let pnext = parse_u32(&mut fields, Field::MatePosition)?;
         let tlen = parse_i32(&mut fields, Field::TemplateLength)?;
-        let seq = parse_string(&mut fields, Field::Sequence)?;
+
+        let seq = parse_string(&mut fields, Field::Sequence).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Sequence, format!("{}", e)))
+        })?;
+
         let qual = parse_string(&mut fields, Field::QualityScores)?;
 
         let data = match fields.next() {
