@@ -64,9 +64,13 @@ where
         Ok(())
     }
 
-    pub fn finish(mut self) -> io::Result<W> {
+    pub fn try_finish(&mut self) -> io::Result<()> {
         self.flush()?;
-        self.inner.write_all(BGZF_EOF)?;
+        self.inner.write_all(BGZF_EOF)
+    }
+
+    pub fn finish(mut self) -> io::Result<W> {
+        self.try_finish()?;
         Ok(self.inner)
     }
 }
