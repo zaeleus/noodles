@@ -9,13 +9,13 @@ pub struct Builder {
     reference_sequence_name: Option<String>,
     position: u32,
     mapping_quality: MappingQuality,
-    cigar: Option<Cigar>,
+    cigar: Cigar,
     mate_reference_sequence_name: Option<String>,
     mate_position: u32,
     template_len: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: Option<Data>,
+    data: Data,
 }
 
 impl Builder {
@@ -49,7 +49,7 @@ impl Builder {
     }
 
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
-        self.cigar = Some(cigar);
+        self.cigar = cigar;
         self
     }
 
@@ -79,7 +79,7 @@ impl Builder {
     }
 
     pub fn set_data(mut self, data: Data) -> Self {
-        self.data = Some(data);
+        self.data = data;
         self
     }
 
@@ -92,13 +92,13 @@ impl Builder {
             rname: self.reference_sequence_name.unwrap_or_else(null_field),
             pos: self.position,
             mapq: self.mapping_quality,
-            cigar: self.cigar.unwrap_or_default(),
+            cigar: self.cigar,
             rnext: self.mate_reference_sequence_name.unwrap_or_else(null_field),
             pnext: self.mate_position,
             tlen: self.template_len,
             seq: self.sequence,
             qual: self.quality_scores,
-            data: self.data.unwrap_or_default(),
+            data: self.data,
         }
     }
 }
