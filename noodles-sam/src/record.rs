@@ -1,8 +1,9 @@
 mod builder;
 mod field;
+mod quality_scores;
 mod sequence;
 
-pub use self::{builder::Builder, field::Field, sequence::Sequence};
+pub use self::{builder::Builder, field::Field, quality_scores::QualityScores, sequence::Sequence};
 
 use std::{error, fmt, str::FromStr};
 
@@ -24,7 +25,7 @@ pub struct Record {
     pnext: u32,
     tlen: i32,
     seq: Sequence,
-    qual: String,
+    qual: QualityScores,
     data: Data,
 }
 
@@ -73,7 +74,7 @@ impl Record {
         &self.seq
     }
 
-    pub fn quality_scores(&self) -> &str {
+    pub fn quality_scores(&self) -> &QualityScores {
         &self.qual
     }
 
@@ -133,7 +134,10 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::Sequence, format!("{}", e)))
         })?;
 
-        let qual = parse_string(&mut fields, Field::QualityScores)?;
+        let qual = parse_string(&mut fields, Field::QualityScores).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::QualityScores, format!("{}", e)))
+        })?;
 
         let data = match fields.next() {
             Some(s) => s

@@ -1,6 +1,6 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
-use super::{Record, Sequence, NULL_FIELD};
+use super::{QualityScores, Record, Sequence, NULL_FIELD};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -14,7 +14,7 @@ pub struct Builder {
     mate_position: u32,
     template_len: i32,
     sequence: Sequence,
-    quality_scores: Option<String>,
+    quality_scores: QualityScores,
     data: Option<Data>,
 }
 
@@ -73,8 +73,8 @@ impl Builder {
         self
     }
 
-    pub fn set_quality_scores(mut self, quality_scores: &str) -> Self {
-        self.quality_scores = Some(quality_scores.into());
+    pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
+        self.quality_scores = quality_scores;
         self
     }
 
@@ -97,7 +97,7 @@ impl Builder {
             pnext: self.mate_position,
             tlen: self.template_len,
             seq: self.sequence,
-            qual: self.quality_scores.unwrap_or_else(null_field),
+            qual: self.quality_scores,
             data: self.data.unwrap_or_default(),
         }
     }
@@ -122,13 +122,13 @@ mod tests {
         assert_eq!(record.mate_reference_sequence_name(), "*");
         assert_eq!(record.mate_position(), 0);
         assert_eq!(record.template_len(), 0);
-        assert_eq!(record.sequence(), &Sequence::default());
-        assert_eq!(record.quality_scores(), "*");
+        assert!(record.sequence().is_empty());
+        assert!(record.quality_scores().is_empty());
         assert!(record.data().fields().is_empty());
     }
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let cigar = Cigar::new(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
 
         let data = Data::new(vec![data::Field::new(
@@ -136,7 +136,8 @@ mod tests {
             data::Value::Int32(1),
         )]);
 
-        let sequence: Sequence = "ATCGATC".parse().unwrap();
+        let sequence: Sequence = "ATCGATC".parse()?;
+        let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let record = Builder::new()
             .set_name("r0")
@@ -149,7 +150,7 @@ mod tests {
             .set_mate_position(17)
             .set_template_len(4)
             .set_sequence(sequence.clone())
-            .set_quality_scores("NOODLES")
+            .set_quality_scores(quality_scores.clone())
             .set_data(data)
             .build();
 
@@ -163,7 +164,9 @@ mod tests {
         assert_eq!(record.mate_position(), 17);
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
-        assert_eq!(record.quality_scores(), "NOODLES");
+        assert_eq!(record.quality_scores(), &quality_scores);
         assert_eq!(record.data().fields().len(), 1);
+
+        Ok(())
     }
 }
