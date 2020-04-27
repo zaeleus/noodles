@@ -14,7 +14,7 @@ pub struct Builder {
     mapping_quality: MappingQuality,
     cigar: Cigar,
     mate_reference_sequence_name: MateReferenceSequenceName,
-    mate_position: u32,
+    mate_position: Position,
     template_len: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -67,7 +67,7 @@ impl Builder {
         self
     }
 
-    pub fn set_mate_position(mut self, mate_position: u32) -> Self {
+    pub fn set_mate_position(mut self, mate_position: Position) -> Self {
         self.mate_position = mate_position;
         self
     }
@@ -127,7 +127,7 @@ mod tests {
         assert_eq!(u8::from(record.mapping_quality()), 255);
         assert!(record.cigar().ops().is_empty());
         assert!(record.mate_reference_sequence_name().is_none());
-        assert_eq!(record.mate_position(), 0);
+        assert!(record.mate_position().is_none());
         assert_eq!(record.template_len(), 0);
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
@@ -156,7 +156,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::from(37))
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
-            .set_mate_position(17)
+            .set_mate_position(Position::from(17))
             .set_template_len(4)
             .set_sequence(sequence.clone())
             .set_quality_scores(quality_scores.clone())
@@ -175,7 +175,7 @@ mod tests {
             &mate_reference_sequence_name
         );
 
-        assert_eq!(record.mate_position(), 17);
+        assert_eq!(u32::from(record.mate_position()), 17);
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);

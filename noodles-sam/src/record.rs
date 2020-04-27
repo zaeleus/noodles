@@ -30,7 +30,7 @@ pub struct Record {
     mapq: MappingQuality,
     cigar: Cigar,
     rnext: MateReferenceSequenceName,
-    pnext: u32,
+    pnext: Position,
     tlen: i32,
     seq: Sequence,
     qual: QualityScores,
@@ -70,7 +70,7 @@ impl Record {
         &self.rnext
     }
 
-    pub fn mate_position(&self) -> u32 {
+    pub fn mate_position(&self) -> Position {
         self.pnext
     }
 
@@ -147,7 +147,7 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
         })?;
 
-        let pnext = parse_u32(&mut fields, Field::MatePosition)?;
+        let pnext = parse_u32(&mut fields, Field::MatePosition).map(Position::from)?;
         let tlen = parse_i32(&mut fields, Field::TemplateLength)?;
 
         let seq = parse_string(&mut fields, Field::Sequence).and_then(|s| {
