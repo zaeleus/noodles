@@ -75,3 +75,34 @@ impl From<Score> for char {
         char::from(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from_char_for_score() -> Result<(), TryFromCharError> {
+        assert_eq!(Score::try_from('N').map(u8::from)?, 45);
+        assert!(Score::try_from(' ').is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_u8_for_score() -> Result<(), TryFromUByteError> {
+        assert_eq!(Score::try_from(8).map(u8::from)?, 8);
+        assert!(Score::try_from(144).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_score_for_u8() -> Result<(), TryFromUByteError> {
+        assert_eq!(Score::try_from(8).map(u8::from)?, 8);
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_score_for_char() -> Result<(), TryFromCharError> {
+        assert_eq!(Score::try_from('N').map(char::from)?, 'N');
+        Ok(())
+    }
+}
