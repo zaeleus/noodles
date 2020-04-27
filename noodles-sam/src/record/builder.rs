@@ -1,7 +1,8 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
 use super::{
-    MateReferenceSequenceName, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence,
+    MateReferenceSequenceName, Position, QualityScores, ReadName, Record, ReferenceSequenceName,
+    Sequence,
 };
 
 #[derive(Debug, Default)]
@@ -9,7 +10,7 @@ pub struct Builder {
     name: ReadName,
     flags: Flags,
     reference_sequence_name: ReferenceSequenceName,
-    position: u32,
+    position: Position,
     mapping_quality: MappingQuality,
     cigar: Cigar,
     mate_reference_sequence_name: MateReferenceSequenceName,
@@ -43,7 +44,7 @@ impl Builder {
         self
     }
 
-    pub fn set_position(mut self, position: u32) -> Self {
+    pub fn set_position(mut self, position: Position) -> Self {
         self.position = position;
         self
     }
@@ -122,7 +123,7 @@ mod tests {
         assert!(record.name().is_none());
         assert!(record.flags().is_empty());
         assert!(record.reference_sequence_name().is_none());
-        assert_eq!(record.position(), 0);
+        assert!(record.position().is_none());
         assert_eq!(u8::from(record.mapping_quality()), 255);
         assert!(record.cigar().ops().is_empty());
         assert!(record.mate_reference_sequence_name().is_none());
@@ -151,7 +152,7 @@ mod tests {
             .set_name(name.clone())
             .set_flags(Flags::from(65))
             .set_reference_sequence_name(reference_sequence_name.clone())
-            .set_position(13)
+            .set_position(Position::from(13))
             .set_mapping_quality(MappingQuality::from(37))
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
@@ -165,7 +166,7 @@ mod tests {
         assert_eq!(record.name(), &name);
         assert_eq!(u16::from(record.flags()), 65);
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
-        assert_eq!(record.position(), 13);
+        assert_eq!(u32::from(record.position()), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().ops().len(), 1);
 
