@@ -124,7 +124,7 @@ mod tests {
         assert!(record.flags().is_empty());
         assert!(record.reference_sequence_name().is_none());
         assert!(record.position().is_none());
-        assert_eq!(u8::from(record.mapping_quality()), 255);
+        assert!(record.mapping_quality().is_none());
         assert!(record.cigar().ops().is_empty());
         assert!(record.mate_reference_sequence_name().is_none());
         assert!(record.mate_position().is_none());
