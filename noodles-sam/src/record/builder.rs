@@ -1,10 +1,10 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
-use super::{QualityScores, Record, ReferenceSequenceName, Sequence, NULL_FIELD};
+use super::{QualityScores, ReadName, Record, ReferenceSequenceName, Sequence, NULL_FIELD};
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    name: Option<String>,
+    name: ReadName,
     flags: Flags,
     reference_sequence_name: ReferenceSequenceName,
     position: u32,
@@ -23,8 +23,8 @@ impl Builder {
         Self::default()
     }
 
-    pub fn set_name(mut self, name: &str) -> Self {
-        self.name = Some(name.into());
+    pub fn set_name(mut self, name: ReadName) -> Self {
+        self.name = name;
         self
     }
 
@@ -90,7 +90,7 @@ impl Builder {
         let null_field = || NULL_FIELD.into();
 
         Record {
-            qname: self.name.unwrap_or_else(null_field),
+            qname: self.name,
             flag: self.flags,
             rname: self.reference_sequence_name,
             pos: self.position,
@@ -116,7 +116,7 @@ mod tests {
     fn test_default() {
         let record = Builder::new().build();
 
-        assert_eq!(record.name(), "*");
+        assert!(record.name().is_none());
         assert!(record.flags().is_empty());
         assert!(record.reference_sequence_name().is_none());
         assert_eq!(record.position(), 0);
@@ -139,12 +139,13 @@ mod tests {
             data::Value::Int32(1),
         )]);
 
+        let name: ReadName = "r0".parse()?;
         let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let sequence: Sequence = "ATCGATC".parse()?;
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let record = Builder::new()
-            .set_name("r0")
+            .set_name(name.clone())
             .set_flags(Flags::from(65))
             .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(13)
@@ -158,7 +159,7 @@ mod tests {
             .set_data(data)
             .build();
 
-        assert_eq!(record.name(), "r0");
+        assert_eq!(record.name(), &name);
         assert_eq!(u16::from(record.flags()), 65);
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
         assert_eq!(record.position(), 13);

@@ -1,11 +1,12 @@
 mod builder;
 mod field;
 mod quality_scores;
+mod read_name;
 mod reference_sequence_name;
 mod sequence;
 
 pub use self::{
-    builder::Builder, field::Field, quality_scores::QualityScores,
+    builder::Builder, field::Field, quality_scores::QualityScores, read_name::ReadName,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
@@ -19,7 +20,7 @@ const MAX_FIELDS: usize = 12;
 
 #[derive(Debug)]
 pub struct Record {
-    qname: String,
+    qname: ReadName,
     flag: Flags,
     rname: ReferenceSequenceName,
     pos: u32,
@@ -38,7 +39,7 @@ impl Record {
         Builder::new()
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &ReadName {
         &self.qname
     }
 
@@ -118,7 +119,11 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let qname = parse_string(&mut fields, Field::Name)?;
+        let qname = parse_string(&mut fields, Field::Name).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Name, format!("{}", e)))
+        })?;
+
         let flag = parse_u16(&mut fields, Field::Flags).map(Flags::from)?;
 
         let rname = parse_string(&mut fields, Field::ReferenceSequenceName).and_then(|s| {
