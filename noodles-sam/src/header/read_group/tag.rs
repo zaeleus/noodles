@@ -19,9 +19,9 @@ pub enum Tag {
     Other(String),
 }
 
-impl fmt::Display for Tag {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let tag = match self {
+impl AsRef<str> for Tag {
+    fn as_ref(&self) -> &str {
+        match self {
             Self::Id => "ID",
             Self::Barcode => "BC",
             Self::SequencingCenter => "CN",
@@ -37,9 +37,13 @@ impl fmt::Display for Tag {
             Self::PlatformUnit => "PU",
             Self::Sample => "SM",
             Self::Other(s) => s,
-        };
+        }
+    }
+}
 
-        write!(f, "{}", tag)
+impl fmt::Display for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
     }
 }
 
