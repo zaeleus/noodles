@@ -1,12 +1,14 @@
 mod builder;
 mod field;
+mod mate_reference_sequence_name;
 mod quality_scores;
 mod read_name;
 mod reference_sequence_name;
 mod sequence;
 
 pub use self::{
-    builder::Builder, field::Field, quality_scores::QualityScores, read_name::ReadName,
+    builder::Builder, field::Field, mate_reference_sequence_name::MateReferenceSequenceName,
+    quality_scores::QualityScores, read_name::ReadName,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
@@ -26,7 +28,7 @@ pub struct Record {
     pos: u32,
     mapq: MappingQuality,
     cigar: Cigar,
-    rnext: String,
+    rnext: MateReferenceSequenceName,
     pnext: u32,
     tlen: i32,
     seq: Sequence,
@@ -63,7 +65,7 @@ impl Record {
         &self.cigar
     }
 
-    pub fn mate_reference_sequence_name(&self) -> &str {
+    pub fn mate_reference_sequence_name(&self) -> &MateReferenceSequenceName {
         &self.rnext
     }
 
@@ -139,7 +141,11 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
         })?;
 
-        let rnext = parse_string(&mut fields, Field::MateReferenceSequenceName)?;
+        let rnext = parse_string(&mut fields, Field::MateReferenceSequenceName).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
+        })?;
+
         let pnext = parse_u32(&mut fields, Field::MatePosition)?;
         let tlen = parse_i32(&mut fields, Field::TemplateLength)?;
 

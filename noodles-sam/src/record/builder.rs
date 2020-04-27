@@ -1,6 +1,8 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
-use super::{QualityScores, ReadName, Record, ReferenceSequenceName, Sequence, NULL_FIELD};
+use super::{
+    MateReferenceSequenceName, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence,
+};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -10,7 +12,7 @@ pub struct Builder {
     position: u32,
     mapping_quality: MappingQuality,
     cigar: Cigar,
-    mate_reference_sequence_name: Option<String>,
+    mate_reference_sequence_name: MateReferenceSequenceName,
     mate_position: u32,
     template_len: i32,
     sequence: Sequence,
@@ -56,8 +58,11 @@ impl Builder {
         self
     }
 
-    pub fn set_mate_reference_sequence_name(mut self, mate_reference_sequence_name: &str) -> Self {
-        self.mate_reference_sequence_name = Some(mate_reference_sequence_name.into());
+    pub fn set_mate_reference_sequence_name(
+        mut self,
+        mate_reference_sequence_name: MateReferenceSequenceName,
+    ) -> Self {
+        self.mate_reference_sequence_name = mate_reference_sequence_name;
         self
     }
 
@@ -87,8 +92,6 @@ impl Builder {
     }
 
     pub fn build(self) -> Record {
-        let null_field = || NULL_FIELD.into();
-
         Record {
             qname: self.name,
             flag: self.flags,
@@ -96,7 +99,7 @@ impl Builder {
             pos: self.position,
             mapq: self.mapping_quality,
             cigar: self.cigar,
-            rnext: self.mate_reference_sequence_name.unwrap_or_else(null_field),
+            rnext: self.mate_reference_sequence_name,
             pnext: self.mate_position,
             tlen: self.template_len,
             seq: self.sequence,
@@ -122,7 +125,7 @@ mod tests {
         assert_eq!(record.position(), 0);
         assert_eq!(u8::from(record.mapping_quality()), 255);
         assert!(record.cigar().ops().is_empty());
-        assert_eq!(record.mate_reference_sequence_name(), "*");
+        assert!(record.mate_reference_sequence_name().is_none());
         assert_eq!(record.mate_position(), 0);
         assert_eq!(record.template_len(), 0);
         assert!(record.sequence().is_empty());
@@ -132,17 +135,17 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+        let name: ReadName = "r0".parse()?;
+        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let cigar = Cigar::new(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
+        let mate_reference_sequence_name: MateReferenceSequenceName = MateReferenceSequenceName::Eq;
+        let sequence: Sequence = "ATCGATC".parse()?;
+        let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let data = Data::new(vec![data::Field::new(
             String::from("NH"),
             data::Value::Int32(1),
         )]);
-
-        let name: ReadName = "r0".parse()?;
-        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
-        let sequence: Sequence = "ATCGATC".parse()?;
-        let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let record = Builder::new()
             .set_name(name.clone())
@@ -151,7 +154,7 @@ mod tests {
             .set_position(13)
             .set_mapping_quality(MappingQuality::from(37))
             .set_cigar(cigar)
-            .set_mate_reference_sequence_name("sq1")
+            .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
             .set_mate_position(17)
             .set_template_len(4)
             .set_sequence(sequence.clone())
@@ -165,7 +168,12 @@ mod tests {
         assert_eq!(record.position(), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().ops().len(), 1);
-        assert_eq!(record.mate_reference_sequence_name(), "sq1");
+
+        assert_eq!(
+            record.mate_reference_sequence_name(),
+            &mate_reference_sequence_name
+        );
+
         assert_eq!(record.mate_position(), 17);
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
