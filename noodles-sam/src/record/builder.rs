@@ -1,12 +1,12 @@
 use crate::{Cigar, Data, Flags, MappingQuality};
 
-use super::{QualityScores, Record, Sequence, NULL_FIELD};
+use super::{QualityScores, Record, ReferenceSequenceName, Sequence, NULL_FIELD};
 
 #[derive(Debug, Default)]
 pub struct Builder {
     name: Option<String>,
     flags: Flags,
-    reference_sequence_name: Option<String>,
+    reference_sequence_name: ReferenceSequenceName,
     position: u32,
     mapping_quality: MappingQuality,
     cigar: Cigar,
@@ -33,8 +33,11 @@ impl Builder {
         self
     }
 
-    pub fn set_reference_sequence_name(mut self, reference_sequence_name: &str) -> Self {
-        self.reference_sequence_name = Some(reference_sequence_name.into());
+    pub fn set_reference_sequence_name(
+        mut self,
+        reference_sequence_name: ReferenceSequenceName,
+    ) -> Self {
+        self.reference_sequence_name = reference_sequence_name;
         self
     }
 
@@ -89,7 +92,7 @@ impl Builder {
         Record {
             qname: self.name.unwrap_or_else(null_field),
             flag: self.flags,
-            rname: self.reference_sequence_name.unwrap_or_else(null_field),
+            rname: self.reference_sequence_name,
             pos: self.position,
             mapq: self.mapping_quality,
             cigar: self.cigar,
@@ -115,7 +118,7 @@ mod tests {
 
         assert_eq!(record.name(), "*");
         assert!(record.flags().is_empty());
-        assert_eq!(record.reference_sequence_name(), "*");
+        assert!(record.reference_sequence_name().is_none());
         assert_eq!(record.position(), 0);
         assert_eq!(u8::from(record.mapping_quality()), 255);
         assert!(record.cigar().ops().is_empty());
@@ -136,13 +139,14 @@ mod tests {
             data::Value::Int32(1),
         )]);
 
+        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let sequence: Sequence = "ATCGATC".parse()?;
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let record = Builder::new()
             .set_name("r0")
             .set_flags(Flags::from(65))
-            .set_reference_sequence_name("sq0")
+            .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(13)
             .set_mapping_quality(MappingQuality::from(37))
             .set_cigar(cigar)
@@ -156,7 +160,7 @@ mod tests {
 
         assert_eq!(record.name(), "r0");
         assert_eq!(u16::from(record.flags()), 65);
-        assert_eq!(record.reference_sequence_name(), "sq0");
+        assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
         assert_eq!(record.position(), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().ops().len(), 1);

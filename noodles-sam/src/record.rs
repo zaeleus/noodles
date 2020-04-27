@@ -1,9 +1,13 @@
 mod builder;
 mod field;
 mod quality_scores;
+mod reference_sequence_name;
 mod sequence;
 
-pub use self::{builder::Builder, field::Field, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    builder::Builder, field::Field, quality_scores::QualityScores,
+    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+};
 
 use std::{error, fmt, str::FromStr};
 
@@ -17,7 +21,7 @@ const MAX_FIELDS: usize = 12;
 pub struct Record {
     qname: String,
     flag: Flags,
-    rname: String,
+    rname: ReferenceSequenceName,
     pos: u32,
     mapq: MappingQuality,
     cigar: Cigar,
@@ -42,7 +46,7 @@ impl Record {
         self.flag
     }
 
-    pub fn reference_sequence_name(&self) -> &str {
+    pub fn reference_sequence_name(&self) -> &ReferenceSequenceName {
         &self.rname
     }
 
@@ -116,7 +120,12 @@ impl FromStr for Record {
 
         let qname = parse_string(&mut fields, Field::Name)?;
         let flag = parse_u16(&mut fields, Field::Flags).map(Flags::from)?;
-        let rname = parse_string(&mut fields, Field::ReferenceSequenceName)?;
+
+        let rname = parse_string(&mut fields, Field::ReferenceSequenceName).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::ReferenceSequenceName, format!("{}", e)))
+        })?;
+
         let pos = parse_u32(&mut fields, Field::Position)?;
         let mapq = parse_u8(&mut fields, Field::MappingQuality).map(MappingQuality::from)?;
 
