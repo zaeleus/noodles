@@ -4,6 +4,8 @@ pub use self::score::Score;
 
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
+use super::NULL_FIELD;
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QualityScores {
     scores: Vec<Score>,
@@ -24,6 +26,20 @@ impl QualityScores {
 
     pub fn len(&self) -> usize {
         self.scores.len()
+    }
+}
+
+impl fmt::Display for QualityScores {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.scores.is_empty() {
+            write!(f, "{}", NULL_FIELD)
+        } else {
+            for score in &self.scores {
+                write!(f, "{}", score)?;
+            }
+
+            Ok(())
+        }
     }
 }
 
@@ -70,6 +86,20 @@ mod tests {
             .map(QualityScores::new)?;
 
         assert_eq!(sequence.len(), 5);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_fmt() -> Result<(), score::TryFromUByteError> {
+        let quality_scores = [45, 35, 43, 50, 0]
+            .iter()
+            .cloned()
+            .map(Score::try_from)
+            .collect::<Result<_, _>>()
+            .map(QualityScores::new)?;
+
+        assert_eq!(quality_scores.to_string(), "NDLS!");
 
         Ok(())
     }

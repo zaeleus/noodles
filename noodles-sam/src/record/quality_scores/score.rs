@@ -10,6 +10,12 @@ const MAX_SCORE: u8 = 93;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Score(u8);
 
+impl fmt::Display for Score {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", char::from(*self))
+    }
+}
+
 #[derive(Debug)]
 pub struct TryFromCharError(char);
 
