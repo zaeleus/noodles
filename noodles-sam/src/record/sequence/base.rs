@@ -28,6 +28,7 @@ pub enum Base {
     X,
     Y,
     Z,
+    Eq,
 }
 
 impl fmt::Display for Base {
@@ -43,7 +44,7 @@ impl error::Error for TryFromCharError {}
 
 impl fmt::Display for TryFromCharError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid base: expected {{A..=Z}}, got {}", self.0)
+        write!(f, "invalid base: expected {{A..=Z, =}}, got {}", self.0)
     }
 }
 
@@ -78,6 +79,7 @@ impl TryFrom<char> for Base {
             'X' => Ok(Self::X),
             'Y' => Ok(Self::Y),
             'Z' => Ok(Self::Z),
+            '=' => Ok(Self::Eq),
             _ => Err(TryFromCharError(c)),
         }
     }
@@ -112,6 +114,7 @@ impl From<Base> for char {
             Base::X => 'X',
             Base::Y => 'Y',
             Base::Z => 'Z',
+            Base::Eq => '=',
         }
     }
 }
@@ -148,6 +151,7 @@ mod tests {
         assert_eq!(Base::try_from('X')?, Base::X);
         assert_eq!(Base::try_from('Y')?, Base::Y);
         assert_eq!(Base::try_from('Z')?, Base::Z);
+        assert_eq!(Base::try_from('=')?, Base::Eq);
 
         assert!(Base::try_from('*').is_err());
 
