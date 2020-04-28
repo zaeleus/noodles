@@ -4,7 +4,7 @@ mod flags;
 pub mod header;
 mod mapping_quality;
 mod reader;
-mod record;
+pub mod record;
 mod writer;
 
 pub use self::{

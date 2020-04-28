@@ -2,10 +2,10 @@ mod builder;
 mod field;
 mod mate_reference_sequence_name;
 mod position;
-mod quality_scores;
+pub mod quality_scores;
 mod read_name;
 mod reference_sequence_name;
-mod sequence;
+pub mod sequence;
 
 pub use self::{
     builder::Builder, field::Field, mate_reference_sequence_name::MateReferenceSequenceName,
