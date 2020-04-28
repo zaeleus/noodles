@@ -11,6 +11,12 @@ pub enum Subtype {
     Float,
 }
 
+impl fmt::Display for Subtype {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", char::from(*self))
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
@@ -60,6 +66,17 @@ impl From<Subtype> for char {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Subtype::Int8.to_string(), "c");
+        assert_eq!(Subtype::UInt8.to_string(), "C");
+        assert_eq!(Subtype::Int16.to_string(), "s");
+        assert_eq!(Subtype::UInt16.to_string(), "S");
+        assert_eq!(Subtype::Int32.to_string(), "i");
+        assert_eq!(Subtype::UInt32.to_string(), "I");
+        assert_eq!(Subtype::Float.to_string(), "f");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

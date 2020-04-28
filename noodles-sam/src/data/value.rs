@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use super::{
     field::{self, Component, ParseError},
@@ -187,6 +187,81 @@ impl Value {
     }
 }
 
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Char(c) => write!(f, "{}", c),
+            Self::Int32(n) => write!(f, "{}", n),
+            Self::Float(n) => write!(f, "{}", n),
+            Self::String(s) => f.write_str(s),
+            Self::Hex(s) => f.write_str(s),
+            Self::Int8Array(values) => {
+                f.write_str("c")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::UInt8Array(values) => {
+                f.write_str("C")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::Int16Array(values) => {
+                f.write_str("s")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::UInt16Array(values) => {
+                f.write_str("S")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::Int32Array(values) => {
+                f.write_str("i")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::UInt32Array(values) => {
+                f.write_str("I")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+            Self::FloatArray(values) => {
+                f.write_str("f")?;
+
+                for value in values {
+                    write!(f, ",{}", value)?
+                }
+
+                Ok(())
+            }
+        }
+    }
+}
+
 impl FromStr for Value {
     type Err = ParseError;
 
@@ -340,5 +415,30 @@ mod tests {
         assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
         assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
         assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Value::Char('n').to_string(), "n");
+        assert_eq!(Value::Int32(13).to_string(), "13");
+        assert_eq!(Value::Float(3.14).to_string(), "3.14");
+
+        assert_eq!(
+            Value::String(String::from("noodles")).to_string(),
+            "noodles"
+        );
+
+        assert_eq!(Value::Hex(String::from("cafe")).to_string(), "cafe");
+        assert_eq!(Value::Int8Array(vec![1, -2]).to_string(), "c,1,-2");
+        assert_eq!(Value::UInt8Array(vec![3, 5]).to_string(), "C,3,5");
+        assert_eq!(Value::Int16Array(vec![8, -13]).to_string(), "s,8,-13");
+        assert_eq!(Value::UInt16Array(vec![21, 34]).to_string(), "S,21,34");
+        assert_eq!(Value::Int32Array(vec![55, -89]).to_string(), "i,55,-89");
+        assert_eq!(Value::UInt32Array(vec![144, 233]).to_string(), "I,144,233");
+
+        assert_eq!(
+            Value::FloatArray(vec![2.71, 3.14]).to_string(),
+            "f,2.71,3.14"
+        );
     }
 }

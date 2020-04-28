@@ -22,6 +22,28 @@ impl Data {
     pub fn fields(&self) -> &[Field] {
         &self.fields
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.fields.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.fields.len()
+    }
+}
+
+impl fmt::Display for Data {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (i, field) in self.fields.iter().enumerate() {
+            if i > 0 {
+                f.write_str("\t")?;
+            }
+
+            write!(f, "{}", field)?;
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -53,6 +75,18 @@ impl FromStr for Data {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let data = Data::new(vec![
+            Field::new(String::from("RG"), Value::String(String::from("rg0"))),
+            Field::new(String::from("NH"), Value::Int32(1)),
+        ]);
+
+        let expected = "RG:Z:rg0\tNH:i:1";
+
+        assert_eq!(data.to_string(), expected);
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

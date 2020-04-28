@@ -10,6 +10,12 @@ pub enum Type {
     Array,
 }
 
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", char::from(*self))
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
@@ -57,6 +63,16 @@ impl From<Type> for char {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Type::Char.to_string(), "A");
+        assert_eq!(Type::Int32.to_string(), "i");
+        assert_eq!(Type::Float.to_string(), "f");
+        assert_eq!(Type::String.to_string(), "Z");
+        assert_eq!(Type::Hex.to_string(), "H");
+        assert_eq!(Type::Array.to_string(), "B");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

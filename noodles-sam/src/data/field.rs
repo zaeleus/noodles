@@ -25,6 +25,20 @@ impl Field {
     }
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}{}{}{}",
+            self.tag,
+            DELIMITER,
+            self.value.ty(),
+            DELIMITER,
+            self.value
+        )
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum Component {
     Tag,
@@ -86,6 +100,12 @@ fn parse_tag(s: &str) -> Result<&str, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let field = Field::new(String::from("RG"), Value::String(String::from("rg0")));
+        assert_eq!(field.to_string(), "RG:Z:rg0");
+    }
 
     #[test]
     fn test_parse_tag() {
