@@ -134,7 +134,7 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::ReferenceSequenceName, format!("{}", e)))
         })?;
 
-        let pos = parse_u32(&mut fields, Field::Position).map(Position::from)?;
+        let pos = parse_i32(&mut fields, Field::Position).map(Position::from)?;
         let mapq = parse_u8(&mut fields, Field::MappingQuality).map(MappingQuality::from)?;
 
         let cigar = parse_string(&mut fields, Field::Cigar).and_then(|s| {
@@ -147,7 +147,7 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
         })?;
 
-        let pnext = parse_u32(&mut fields, Field::MatePosition).map(Position::from)?;
+        let pnext = parse_i32(&mut fields, Field::MatePosition).map(Position::from)?;
         let tlen = parse_i32(&mut fields, Field::TemplateLength)?;
 
         let seq = parse_string(&mut fields, Field::Sequence).and_then(|s| {
@@ -221,19 +221,6 @@ where
 }
 
 fn parse_i32<'a, I>(fields: &mut I, field: Field) -> Result<i32, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    fields
-        .next()
-        .ok_or_else(|| ParseError::Missing(field))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-        })
-}
-
-fn parse_u32<'a, I>(fields: &mut I, field: Field) -> Result<u32, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {

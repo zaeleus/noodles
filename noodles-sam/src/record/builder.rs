@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(record.name(), &name);
         assert_eq!(u16::from(record.flags()), 65);
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
-        assert_eq!(u32::from(record.position()), 13);
+        assert_eq!(i32::from(record.position()), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().ops().len(), 1);
 
@@ -175,7 +175,7 @@ mod tests {
             &mate_reference_sequence_name
         );
 
-        assert_eq!(u32::from(record.mate_position()), 17);
+        assert_eq!(i32::from(record.mate_position()), 17);
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
