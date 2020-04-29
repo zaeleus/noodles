@@ -4,10 +4,10 @@ use crate::{
 };
 
 const EOF_LEN: i32 = 15;
-const EOF_REFERENCE_SEQUENCE_ID: i32 = -1;
-const EOF_START_POSITION: i32 = 4_542_278;
-const EOF_N_BLOCKS: i32 = 1;
-const EOF_CRC32: u32 = 0x4fd9_bd05;
+const EOF_REFERENCE_SEQUENCE_ID: Itf8 = -1;
+const EOF_START_POSITION: Itf8 = 4_542_278;
+const EOF_N_BLOCKS: Itf8 = 1;
+const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
 #[derive(Debug, Default)]
 pub struct Header {
