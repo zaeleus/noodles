@@ -3,23 +3,23 @@ use std::io::{self, BufRead};
 use super::Record;
 
 pub struct Reader<R: BufRead> {
-    reader: R,
+    inner: R,
 }
 
 impl<R: BufRead> Reader<R> {
-    pub fn new(reader: R) -> Self {
-        Self { reader }
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
 
-        let mut len = read_line(&mut self.reader, record.name_mut())?;
+        let mut len = read_line(&mut self.inner, record.name_mut())?;
 
         if len > 0 {
-            len += read_line(&mut self.reader, record.sequence_mut())?;
-            len += read_line(&mut self.reader, record.plus_line_mut())?;
-            len += read_line(&mut self.reader, record.quality_mut())?;
+            len += read_line(&mut self.inner, record.sequence_mut())?;
+            len += read_line(&mut self.inner, record.plus_line_mut())?;
+            len += read_line(&mut self.inner, record.quality_mut())?;
         }
 
         Ok(len)
