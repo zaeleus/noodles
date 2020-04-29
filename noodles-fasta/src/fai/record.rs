@@ -1,103 +1,126 @@
-use csv::StringRecord;
+mod field;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Header {
-    Name,
-    Length,
-    Offset,
-    LineBases,
-    LineWidth,
+use std::{error, fmt, str::FromStr};
+
+use self::field::Field;
+
+const FIELD_DELIMITER: char = '\t';
+const MAX_FIELDS: usize = 5;
+
+#[derive(Debug, Default)]
+pub struct Record {
+    name: String,
+    len: u64,
+    offset: u64,
+    line_bases: u64,
+    line_width: u64,
 }
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum Error {
-    Missing(Header),
-    Parse(Header, String),
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
-
-pub struct Record(StringRecord);
 
 impl Record {
-    pub fn new(inner: StringRecord) -> Self {
-        Self(inner)
+    pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
+        Self {
+            name,
+            len,
+            offset,
+            line_bases,
+            line_width,
+        }
     }
 
-    pub fn name(&self) -> self::Result<&str> {
-        self.parse(Header::Name)
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
-    pub fn length(&self) -> self::Result<u64> {
-        self.parse_u64(Header::Length)
+    pub fn len(&self) -> u64 {
+        self.len
     }
 
-    pub fn offset(&self) -> self::Result<u64> {
-        self.parse_u64(Header::Offset)
+    pub fn offset(&self) -> u64 {
+        self.offset
     }
 
-    pub fn line_bases(&self) -> self::Result<u64> {
-        self.parse_u64(Header::LineBases)
+    pub fn line_bases(&self) -> u64 {
+        self.line_bases
     }
 
-    pub fn line_width(&self) -> self::Result<u64> {
-        self.parse_u64(Header::LineWidth)
+    pub fn line_width(&self) -> u64 {
+        self.line_width
     }
+}
 
-    fn parse(&self, header: Header) -> self::Result<&str> {
-        self.0
-            .get(header as usize)
-            .ok_or_else(|| Error::Missing(header))
+#[derive(Debug)]
+pub enum ParseError {
+    Missing(Field),
+    Invalid(Field, std::num::ParseIntError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Missing(field) => write!(f, "missing field: {:?}", field),
+            Self::Invalid(field, message) => write!(f, "invalid {:?} field: {}", field, message),
+        }
     }
+}
 
-    fn parse_u64(&self, header: Header) -> self::Result<u64> {
-        self.parse(header).and_then(|s| {
-            s.parse()
-                .map_err(|e| Error::Parse(header, format!("{}", e)))
+impl FromStr for Record {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
+
+        let name = parse_string(&mut fields, Field::Name)?;
+        let len = parse_u64(&mut fields, Field::Length)?;
+        let offset = parse_u64(&mut fields, Field::Offset)?;
+        let line_bases = parse_u64(&mut fields, Field::LineBases)?;
+        let line_width = parse_u64(&mut fields, Field::LineWidth)?;
+
+        Ok(Record {
+            name,
+            len,
+            offset,
+            line_bases,
+            line_width,
         })
     }
+}
+
+fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<String, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or_else(|| ParseError::Missing(field))
+        .map(|s| s.into())
+}
+
+fn parse_u64<'a, I>(fields: &mut I, field: Field) -> Result<u64, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or_else(|| ParseError::Missing(field))
+        .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_string_record() -> StringRecord {
-        StringRecord::from(vec!["chr1", "248956422", "112", "70", "71"])
-    }
-
     #[test]
-    fn test_name() {
-        let r = build_string_record();
-        let record = Record::new(r);
-        assert_eq!(record.name(), Ok("chr1"));
-    }
+    fn test_from_str() -> Result<(), ParseError> {
+        let record: Record = "sq0\t10946\t4\t80\t81".parse()?;
 
-    #[test]
-    fn test_length() {
-        let r = build_string_record();
-        let record = Record::new(r);
-        assert_eq!(record.length(), Ok(248956422));
-    }
+        assert_eq!(record.name(), "sq0");
+        assert_eq!(record.len(), 10946);
+        assert_eq!(record.offset(), 4);
+        assert_eq!(record.line_bases(), 80);
+        assert_eq!(record.line_width(), 81);
 
-    #[test]
-    fn test_offset() {
-        let r = build_string_record();
-        let record = Record::new(r);
-        assert_eq!(record.offset(), Ok(112));
-    }
-
-    #[test]
-    fn test_line_bases() {
-        let r = build_string_record();
-        let record = Record::new(r);
-        assert_eq!(record.line_bases(), Ok(70));
-    }
-
-    #[test]
-    fn test_line_width() {
-        let r = build_string_record();
-        let record = Record::new(r);
-        assert_eq!(record.line_width(), Ok(71));
+        Ok(())
     }
 }
