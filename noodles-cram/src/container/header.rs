@@ -21,6 +21,17 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn eof() -> Self {
+        Self {
+            length: EOF_LEN,
+            reference_sequence_id: EOF_REFERENCE_SEQUENCE_ID,
+            start_position: EOF_START_POSITION,
+            n_blocks: EOF_N_BLOCKS,
+            crc32: EOF_CRC32,
+            ..Default::default()
+        }
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         length: i32,
@@ -71,5 +82,16 @@ impl Header {
 
     pub fn landmarks(&self) -> &[Itf8] {
         &self.landmarks
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_eof() {
+        let header = Header::eof();
+        assert!(header.is_eof());
     }
 }
