@@ -28,16 +28,7 @@ impl<R: BufRead> Reader<R> {
 
 fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize> {
     let result = reader.read_until(b'\n', buf);
-
-    // Chomp newline.
-    if result.is_ok() {
-        let len = buf.len();
-
-        if len > 0 {
-            buf.truncate(len - 1);
-        }
-    }
-
+    buf.pop();
     result
 }
 
