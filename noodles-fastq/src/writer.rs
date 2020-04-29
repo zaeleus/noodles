@@ -3,23 +3,45 @@ use std::io::{self, Write};
 use super::Record;
 
 pub struct Writer<W> {
-    writer: W,
+    inner: W,
 }
 
 impl<W: Write> Writer<W> {
-    pub fn new(writer: W) -> Self {
-        Self { writer }
+    pub fn new(inner: W) -> Self {
+        Self { inner }
+    }
+
+    pub fn get_ref(&self) -> &W {
+        &self.inner
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.writer.write_all(record.name())?;
-        self.writer.write_all(b"\n")?;
-        self.writer.write_all(record.sequence())?;
-        self.writer.write_all(b"\n")?;
-        self.writer.write_all(record.plus_line())?;
-        self.writer.write_all(b"\n")?;
-        self.writer.write_all(record.quality())?;
-        self.writer.write_all(b"\n")?;
+        self.inner.write_all(record.name())?;
+        self.inner.write_all(b"\n")?;
+        self.inner.write_all(record.sequence())?;
+        self.inner.write_all(b"\n")?;
+        self.inner.write_all(record.plus_line())?;
+        self.inner.write_all(b"\n")?;
+        self.inner.write_all(record.quality())?;
+        self.inner.write_all(b"\n")?;
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_record() -> io::Result<()> {
+        let mut writer = Writer::new(Vec::new());
+
+        let record = Record::new("r0", "ATCG", "+", "NDLS");
+        writer.write_record(&record)?;
+
+        let expected = b"r0\nATCG\n+\nNDLS\n";
+        assert_eq!(writer.get_ref(), expected);
 
         Ok(())
     }
