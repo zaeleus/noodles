@@ -6,6 +6,7 @@ pub mod reader;
 mod record;
 mod reference;
 pub mod sequence;
+mod writer;
 
 pub use self::{
     cigar::Cigar,
@@ -15,6 +16,7 @@ pub use self::{
     record::Record,
     reference::Reference,
     sequence::Sequence,
+    writer::Writer,
 };
 
 pub static MAGIC_NUMBER: &[u8] = b"BAM\x01";
