@@ -220,7 +220,7 @@ where
             SamBase::K => 12,
             SamBase::D => 13,
             SamBase::B => 14,
-            SamBase::N | _ => 15,
+            _ => 15,
         }
     }
 
@@ -254,6 +254,7 @@ where
 }
 
 // See § 5.3 in SAMv1.pdf (accessed 2020-04-24).
+#[allow(clippy::eq_op)]
 fn region_to_bin(start: i32, mut end: i32) -> i32 {
     end -= 1;
 

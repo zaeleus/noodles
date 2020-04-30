@@ -16,6 +16,7 @@ pub struct Record {
     line_width: u64,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Record {
     pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
         Self {
