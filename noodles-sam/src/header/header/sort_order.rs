@@ -8,9 +8,26 @@ pub enum SortOrder {
     Coordinate,
 }
 
+impl AsRef<str> for SortOrder {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Unknown => "unknown",
+            Self::Unsorted => "unsorted",
+            Self::QueryName => "queryname",
+            Self::Coordinate => "coordinate",
+        }
+    }
+}
+
 impl Default for SortOrder {
     fn default() -> Self {
         Self::Unknown
+    }
+}
+
+impl fmt::Display for SortOrder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
     }
 }
 
@@ -50,6 +67,14 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(SortOrder::default(), SortOrder::Unknown);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(SortOrder::Unknown.to_string(), "unknown");
+        assert_eq!(SortOrder::Unsorted.to_string(), "unsorted");
+        assert_eq!(SortOrder::QueryName.to_string(), "queryname");
+        assert_eq!(SortOrder::Coordinate.to_string(), "coordinate");
     }
 
     #[test]

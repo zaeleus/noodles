@@ -7,6 +7,16 @@ pub enum SubsortOrder {
     Coordinate(String),
 }
 
+impl fmt::Display for SubsortOrder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unsorted(subsort) => write!(f, "unsorted:{}", subsort),
+            Self::QueryName(subsort) => write!(f, "queryname:{}", subsort),
+            Self::Coordinate(subsort) => write!(f, "coordinate:{}", subsort),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     MissingOrder,
@@ -55,6 +65,24 @@ impl FromStr for SubsortOrder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(
+            SubsortOrder::Unsorted(String::from("MI")).to_string(),
+            "unsorted:MI"
+        );
+
+        assert_eq!(
+            SubsortOrder::QueryName(String::from("MI")).to_string(),
+            "queryname:MI"
+        );
+
+        assert_eq!(
+            SubsortOrder::Coordinate(String::from("MI")).to_string(),
+            "coordinate:MI"
+        );
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

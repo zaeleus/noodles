@@ -7,9 +7,25 @@ pub enum GroupOrder {
     Reference,
 }
 
+impl AsRef<str> for GroupOrder {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::None => "none",
+            Self::Query => "query",
+            Self::Reference => "reference",
+        }
+    }
+}
+
 impl Default for GroupOrder {
     fn default() -> Self {
         Self::None
+    }
+}
+
+impl fmt::Display for GroupOrder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
     }
 }
 
@@ -48,6 +64,13 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(GroupOrder::default(), GroupOrder::None);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(GroupOrder::None.to_string(), "none");
+        assert_eq!(GroupOrder::Query.to_string(), "query");
+        assert_eq!(GroupOrder::Reference.to_string(), "reference");
     }
 
     #[test]
