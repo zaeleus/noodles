@@ -4,6 +4,9 @@ pub use self::records::Records;
 
 use std::io::{self, BufRead};
 
+const HEADER_PREFIX: u8 = b'@';
+const NEWLINE: u8 = b'\n';
+
 #[derive(Debug)]
 pub struct Reader<R> {
     inner: R,
@@ -24,11 +27,11 @@ where
         loop {
             let buf = self.inner.fill_buf()?;
 
-            if eol && !buf.is_empty() && buf[0] != b'@' {
+            if eol && !buf.is_empty() && buf[0] != HEADER_PREFIX {
                 break;
             }
 
-            let (read_eol, len) = match buf.iter().position(|&b| b == b'\n') {
+            let (read_eol, len) = match buf.iter().position(|&b| b == NEWLINE) {
                 Some(i) => {
                     header_buf.extend(&buf[..=i]);
                     (true, i + 1)
