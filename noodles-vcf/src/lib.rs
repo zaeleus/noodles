@@ -1,3 +1,4 @@
+mod header;
 mod reader;
 
-pub use self::reader::Reader;
+pub use self::{header::Header, reader::Reader};
