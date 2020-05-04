@@ -1,18 +1,9 @@
 use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Kind {
-    Info,
-    Filter,
-}
-
-impl AsRef<str> for Kind {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Info => "INFO",
-            Self::Filter => "FILTER",
-        }
-    }
+pub enum Key {
+    Id,
+    Description,
 }
 
 #[derive(Debug)]
@@ -24,19 +15,19 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid record kind: expected {{INFO, FILTER}}, got {}",
+            "invalid filter key: expected {{ID, Description}}, got {}",
             self.0
         )
     }
 }
 
-impl FromStr for Kind {
+impl FromStr for Key {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "INFO" => Ok(Self::Info),
-            "FILTER" => Ok(Self::Filter),
+            "ID" => Ok(Self::Id),
+            "Description" => Ok(Self::Description),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -48,11 +39,11 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("INFO".parse::<Kind>()?, Kind::Info);
-        assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
+        assert_eq!("ID".parse::<Key>()?, Key::Id);
+        assert_eq!("Description".parse::<Key>()?, Key::Description);
 
-        assert!("".parse::<Kind>().is_err());
-        assert!("##INFO".parse::<Kind>().is_err());
+        assert!("".parse::<Key>().is_err());
+        assert!("Noodles".parse::<Key>().is_err());
 
         Ok(())
     }

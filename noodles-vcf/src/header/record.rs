@@ -10,6 +10,7 @@ type Field = (String, String);
 #[derive(Debug)]
 pub enum Record {
     Info(Vec<Field>),
+    Filter(Vec<Field>),
 }
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ impl FromStr for Record {
 
         match kind {
             Kind::Info => Ok(Self::Info(values)),
+            Kind::Filter => Ok(Self::Filter(values)),
         }
     }
 }
