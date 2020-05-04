@@ -38,7 +38,6 @@ impl FromStr for Header {
         let mut header = Header::default();
 
         for line in s.lines() {
-            println!("{}", line);
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match record {
