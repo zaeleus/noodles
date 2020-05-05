@@ -4,6 +4,7 @@ use std::{error, fmt, str::FromStr};
 pub enum Kind {
     Info,
     Filter,
+    Format,
 }
 
 impl AsRef<str> for Kind {
@@ -11,6 +12,7 @@ impl AsRef<str> for Kind {
         match self {
             Self::Info => "INFO",
             Self::Filter => "FILTER",
+            Self::Format => "FORMAT",
         }
     }
 }
@@ -24,7 +26,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid record kind: expected {{INFO, FILTER}}, got {}",
+            "invalid record kind: expected {{INFO, FILTER, FORMAT}}, got {}",
             self.0
         )
     }
@@ -37,6 +39,7 @@ impl FromStr for Kind {
         match s {
             "INFO" => Ok(Self::Info),
             "FILTER" => Ok(Self::Filter),
+            "FORMAT" => Ok(Self::Format),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -50,6 +53,7 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("INFO".parse::<Kind>()?, Kind::Info);
         assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
+        assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);
 
         assert!("".parse::<Kind>().is_err());
         assert!("##INFO".parse::<Kind>().is_err());
