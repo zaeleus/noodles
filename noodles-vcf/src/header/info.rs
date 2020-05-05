@@ -1,10 +1,11 @@
 mod key;
-mod number;
 mod ty;
 
-pub use self::{number::Number, ty::Type};
+pub use self::ty::Type;
 
 use std::convert::TryFrom;
+
+use super::{number, Number};
 
 use self::key::Key;
 

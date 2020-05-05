@@ -1,8 +1,9 @@
 mod filter;
 mod info;
+mod number;
 mod record;
 
-pub use self::{filter::Filter, info::Info};
+pub use self::{filter::Filter, info::Info, number::Number};
 
 use std::{convert::TryFrom, str::FromStr};
 
