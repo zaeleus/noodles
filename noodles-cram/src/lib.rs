@@ -9,6 +9,7 @@ mod bit_reader;
 mod block;
 mod compression_header;
 mod container;
+pub mod crai;
 mod data_series;
 mod encoding;
 mod feature;
