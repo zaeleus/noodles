@@ -1,3 +1,4 @@
+mod builder;
 #[allow(clippy::module_inception)]
 pub mod header;
 pub mod program;
@@ -9,7 +10,10 @@ use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
-pub use self::{program::Program, read_group::ReadGroup, reference_sequence::ReferenceSequence};
+pub use self::{
+    builder::Builder, program::Program, read_group::ReadGroup,
+    reference_sequence::ReferenceSequence,
+};
 
 pub use self::record::Record;
 
@@ -25,6 +29,10 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
     pub fn header(&self) -> &header::Header {
         &self.header
     }
