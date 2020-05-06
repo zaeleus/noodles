@@ -5,6 +5,7 @@ pub enum Kind {
     Info,
     Filter,
     Format,
+    AlternativeAllele,
 }
 
 impl AsRef<str> for Kind {
@@ -13,6 +14,7 @@ impl AsRef<str> for Kind {
             Self::Info => "INFO",
             Self::Filter => "FILTER",
             Self::Format => "FORMAT",
+            Self::AlternativeAllele => "ALT",
         }
     }
 }
@@ -40,6 +42,7 @@ impl FromStr for Kind {
             "INFO" => Ok(Self::Info),
             "FILTER" => Ok(Self::Filter),
             "FORMAT" => Ok(Self::Format),
+            "ALT" => Ok(Self::AlternativeAllele),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -54,6 +57,7 @@ mod tests {
         assert_eq!("INFO".parse::<Kind>()?, Kind::Info);
         assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
         assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);
+        assert_eq!("ALT".parse::<Kind>()?, Kind::AlternativeAllele);
 
         assert!("".parse::<Kind>().is_err());
         assert!("##INFO".parse::<Kind>().is_err());

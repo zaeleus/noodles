@@ -12,6 +12,7 @@ pub enum Record {
     Info(Vec<Field>),
     Filter(Vec<Field>),
     Format(Vec<Field>),
+    AlternativeAllele(Vec<Field>),
 }
 
 #[derive(Debug)]
@@ -45,6 +46,7 @@ impl FromStr for Record {
             Kind::Info => Ok(Self::Info(values)),
             Kind::Filter => Ok(Self::Filter(values)),
             Kind::Format => Ok(Self::Format(values)),
+            Kind::AlternativeAllele => Ok(Self::AlternativeAllele(values)),
         }
     }
 }
