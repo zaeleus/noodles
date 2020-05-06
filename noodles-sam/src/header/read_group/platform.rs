@@ -3,6 +3,7 @@ use std::str::FromStr;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Platform {
     Capillary,
+    DnbSeq,
     LS454,
     Illumina,
     Solid,
@@ -18,6 +19,7 @@ impl FromStr for Platform {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "CAPILLARY" => Ok(Self::Capillary),
+            "DNBSEQ" => Ok(Self::DnbSeq),
             "LS454" => Ok(Self::LS454),
             "ILLUMINA" => Ok(Self::Illumina),
             "SOLID" => Ok(Self::Solid),
@@ -37,6 +39,7 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), ()> {
         assert_eq!("CAPILLARY".parse::<Platform>()?, Platform::Capillary);
+        assert_eq!("DNBSEQ".parse::<Platform>()?, Platform::DnbSeq);
         assert_eq!("LS454".parse::<Platform>()?, Platform::LS454);
         assert_eq!("ILLUMINA".parse::<Platform>()?, Platform::Illumina);
         assert_eq!("SOLID".parse::<Platform>()?, Platform::Solid);
