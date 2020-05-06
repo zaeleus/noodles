@@ -54,7 +54,7 @@ impl<R: Read> Reader<R> {
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let block_size = match self.inner.read_i32::<LittleEndian>() {
+        let block_size = match self.inner.read_u32::<LittleEndian>() {
             Ok(bs) => bs as usize,
             Err(e) => match e.kind() {
                 io::ErrorKind::UnexpectedEof => return Ok(0),
@@ -136,7 +136,7 @@ fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: Read,
 {
-    let l_text = reader.read_i32::<LittleEndian>()?;
+    let l_text = reader.read_u32::<LittleEndian>()?;
 
     let mut c_text = vec![0; l_text as usize];
     reader.read_exact(&mut c_text)?;
@@ -151,7 +151,7 @@ fn read_references<R>(reader: &mut R) -> io::Result<Vec<Reference>>
 where
     R: Read,
 {
-    let n_ref = reader.read_i32::<LittleEndian>()?;
+    let n_ref = reader.read_u32::<LittleEndian>()?;
     References::new(reader, n_ref as usize).collect()
 }
 

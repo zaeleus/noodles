@@ -1,11 +1,11 @@
 #[derive(Clone, Debug)]
 pub struct Reference {
     name: String,
-    len: i32,
+    len: u32,
 }
 
 impl Reference {
-    pub fn new(name: String, len: i32) -> Self {
+    pub fn new(name: String, len: u32) -> Self {
         Self { name, len }
     }
 
@@ -13,7 +13,7 @@ impl Reference {
         &self.name
     }
 
-    pub fn len(&self) -> i32 {
+    pub fn len(&self) -> u32 {
         self.len
     }
 

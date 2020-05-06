@@ -21,8 +21,8 @@ impl Record {
         self.0.resize(new_len, Default::default());
     }
 
-    pub fn block_size(&self) -> i32 {
-        self.0.len() as i32
+    pub fn block_size(&self) -> u32 {
+        self.0.len() as u32
     }
 
     pub fn reference_sequence_id(&self) -> i32 {
@@ -66,10 +66,10 @@ impl Record {
         sam::Flags::from(value)
     }
 
-    fn l_seq(&self) -> i32 {
+    fn l_seq(&self) -> u32 {
         let offset = 16;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        let len = mem::size_of::<u32>();
+        LittleEndian::read_u32(&self.0[offset..offset + len])
     }
 
     pub fn mate_reference_sequence_id(&self) -> i32 {

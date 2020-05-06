@@ -42,9 +42,9 @@ fn read_reference<R>(reader: &mut R) -> io::Result<Reference>
 where
     R: Read,
 {
-    let l_name = reader.read_i32::<LittleEndian>()?;
+    let l_name = reader.read_u32::<LittleEndian>()?;
     let name = read_name(reader, l_name as usize)?;
-    let l_ref = reader.read_i32::<LittleEndian>()?;
+    let l_ref = reader.read_u32::<LittleEndian>()?;
     Ok(Reference::new(name, l_ref))
 }
 
