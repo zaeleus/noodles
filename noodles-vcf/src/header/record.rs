@@ -3,7 +3,7 @@ mod parser;
 
 use std::{error, fmt, str::FromStr};
 
-use self::kind::Kind;
+use self::{kind::Kind, parser::Value};
 
 type Field = (String, String);
 
@@ -38,15 +38,20 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, (key, values)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
+        let (_, (key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
         let kind = key.parse().map_err(ParseError::InvalidKind)?;
 
+        let fields = match value {
+            Value::Struct(f) => f,
+            Value::String(_) => return Err(ParseError::Invalid),
+        };
+
         match kind {
-            Kind::Info => Ok(Self::Info(values)),
-            Kind::Filter => Ok(Self::Filter(values)),
-            Kind::Format => Ok(Self::Format(values)),
-            Kind::AlternativeAllele => Ok(Self::AlternativeAllele(values)),
+            Kind::Info => Ok(Self::Info(fields)),
+            Kind::Filter => Ok(Self::Filter(fields)),
+            Kind::Format => Ok(Self::Format(fields)),
+            Kind::AlternativeAllele => Ok(Self::AlternativeAllele(fields)),
         }
     }
 }

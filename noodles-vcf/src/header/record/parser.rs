@@ -8,6 +8,12 @@ use nom::{
     IResult,
 };
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum Value {
+    String(String),
+    Struct(Vec<(String, String)>),
+}
+
 fn string(input: &str) -> IResult<&str, String> {
     delimited(
         tag("\""),
@@ -27,22 +33,19 @@ fn field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
-fn structure(input: &str) -> IResult<&str, Vec<(String, String)>> {
-    delimited(tag("<"), separated_nonempty_list(tag(","), field), tag(">"))(input)
+fn structure(input: &str) -> IResult<&str, Value> {
+    map(
+        delimited(tag("<"), separated_nonempty_list(tag(","), field), tag(">")),
+        |fields| Value::Struct(fields),
+    )(input)
 }
 
-pub fn parse(input: &str) -> IResult<&str, (String, Vec<(String, String)>)> {
+pub fn parse(input: &str) -> IResult<&str, (String, Value)> {
     let (input, _) = tag("##")(input)?;
     let (input, key) = take_until("=")(input)?;
     let (input, _) = tag("=")(input)?;
-
-    let (input, values) = if input.starts_with("<") {
-        structure(input)?
-    } else {
-        map(rest, |s: &str| vec![(key.into(), s.into())])(input)?
-    };
-
-    Ok((input, (key.into(), values)))
+    let (input, value) = alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?;
+    Ok((input, (key.into(), value)))
 }
 
 #[cfg(test)]
@@ -51,37 +54,25 @@ mod tests {
 
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
-        let (_, (key, values)) = parse("##fileformat=VCFv4.3")?;
+        let (_, (key, value)) = parse("##fileformat=VCFv4.3")?;
         assert_eq!(key, "fileformat");
-        assert_eq!(
-            values,
-            vec![(String::from("fileformat"), String::from("VCFv4.3"))]
-        );
+        assert_eq!(value, Value::String(String::from("VCFv4.3")));
 
-        let (_, (key, values)) = parse("##fileDate=20200502")?;
+        let (_, (key, value)) = parse("##fileDate=20200502")?;
         assert_eq!(key, "fileDate");
-        assert_eq!(
-            values,
-            vec![(String::from("fileDate"), String::from("20200502"))]
-        );
+        assert_eq!(value, Value::String(String::from("20200502")));
 
-        let (_, (key, values)) = parse("##reference=file:///tmp/ref.fasta")?;
+        let (_, (key, value)) = parse("##reference=file:///tmp/ref.fasta")?;
         assert_eq!(key, "reference");
-        assert_eq!(
-            values,
-            vec![(
-                String::from("reference"),
-                String::from("file:///tmp/ref.fasta")
-            )]
-        );
+        assert_eq!(value, Value::String(String::from("file:///tmp/ref.fasta")));
 
-        let (_, (key, values)) = parse(
+        let (_, (key, value)) = parse(
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#,
         )?;
         assert_eq!(key, "INFO");
         assert_eq!(
-            values,
-            vec![
+            value,
+            Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("Integer")),
@@ -89,7 +80,7 @@ mod tests {
                     String::from("Description"),
                     String::from("Number of samples with data")
                 ),
-            ]
+            ])
         );
 
         assert!(parse("").is_err());
