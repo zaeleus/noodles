@@ -7,6 +7,7 @@ pub enum Kind {
     Filter,
     Format,
     AlternativeAllele,
+    Contig,
     Other(String),
 }
 
@@ -18,6 +19,7 @@ impl AsRef<str> for Kind {
             Self::Filter => "FILTER",
             Self::Format => "FORMAT",
             Self::AlternativeAllele => "ALT",
+            Self::Contig => "contig",
             Self::Other(s) => s,
         }
     }
@@ -49,6 +51,7 @@ impl FromStr for Kind {
             "FILTER" => Ok(Self::Filter),
             "FORMAT" => Ok(Self::Format),
             "ALT" => Ok(Self::AlternativeAllele),
+            "contig" => Ok(Self::Contig),
             _ => Ok(Self::Other(s.into())),
         }
     }
@@ -65,6 +68,7 @@ mod tests {
         assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
         assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);
         assert_eq!("ALT".parse::<Kind>()?, Kind::AlternativeAllele);
+        assert_eq!("contig".parse::<Kind>()?, Kind::Contig);
         assert_eq!(
             "fileDate".parse::<Kind>()?,
             Kind::Other(String::from("fileDate"))

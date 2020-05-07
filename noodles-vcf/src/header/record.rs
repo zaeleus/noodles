@@ -15,6 +15,7 @@ pub enum Record {
     Filter(Vec<Field>),
     Format(Vec<Field>),
     AlternativeAllele(Vec<Field>),
+    Contig(Vec<Field>),
     Other(String, String),
 }
 
@@ -53,6 +54,7 @@ impl FromStr for Record {
             Kind::Filter => Ok(parse_struct(value).map(Self::Filter)?),
             Kind::Format => Ok(parse_struct(value).map(Self::Format)?),
             Kind::AlternativeAllele => Ok(parse_struct(value).map(Self::AlternativeAllele)?),
+            Kind::Contig => Ok(parse_struct(value).map(Self::Contig)?),
             Kind::Other(k) => {
                 let v = parse_string(value)?;
                 Ok(Self::Other(k, v))

@@ -1,4 +1,5 @@
 mod alternative_allele;
+mod contig;
 mod filter;
 mod format;
 mod info;
@@ -6,8 +7,8 @@ mod number;
 mod record;
 
 pub use self::{
-    alternative_allele::AlternativeAllele, filter::Filter, format::Format, info::Info,
-    number::Number,
+    alternative_allele::AlternativeAllele, contig::Contig, filter::Filter, format::Format,
+    info::Info, number::Number,
 };
 
 use std::{collections::HashMap, convert::TryFrom, str::FromStr};
@@ -21,6 +22,7 @@ pub struct Header {
     filters: Vec<Filter>,
     formats: Vec<Format>,
     alternative_alleles: Vec<AlternativeAllele>,
+    contigs: Vec<Contig>,
     map: HashMap<String, String>,
 }
 
@@ -45,6 +47,10 @@ impl Header {
         &self.alternative_alleles
     }
 
+    pub fn contigs(&self) -> &[Contig] {
+        &self.contigs
+    }
+
     pub fn get(&self, key: &str) -> Option<&String> {
         self.map.get(key)
     }
@@ -58,6 +64,7 @@ pub enum ParseError {
     InvalidFilter(filter::ParseError),
     InvalidFormat(format::ParseError),
     InvalidAlternativeAllele(alternative_allele::ParseError),
+    InvalidContig(contig::ParseError),
 }
 
 impl FromStr for Header {
@@ -101,6 +108,11 @@ impl FromStr for Header {
                         .map_err(ParseError::InvalidAlternativeAllele)?;
                     header.alternative_alleles.push(alternative_allele);
                 }
+                Record::Contig(fields) => {
+                    let contig =
+                        Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
+                    header.contigs.push(contig);
+                }
                 Record::Other(key, value) => {
                     header.map.insert(key, value);
                 }
@@ -120,6 +132,9 @@ mod tests {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
 ##source=noodles-vcf
+##contig=<ID=sq0,length=8>
+##contig=<ID=sq1,length=13>
+##contig=<ID=sq2,length=21>
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
@@ -133,6 +148,7 @@ mod tests {
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
         assert_eq!(header.alternative_alleles().len(), 1);
+        assert_eq!(header.contigs().len(), 3);
 
         assert_eq!(header.get("fileDate"), Some(&String::from("20200506")));
         assert_eq!(header.get("source"), Some(&String::from("noodles-vcf")));
