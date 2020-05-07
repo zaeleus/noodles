@@ -16,7 +16,7 @@ where
         Self { inner }
     }
 
-    pub fn read_meta(&mut self) -> io::Result<Vec<u8>> {
+    pub fn read_meta(&mut self) -> io::Result<String> {
         let mut meta_buf = Vec::new();
         let mut eol = false;
 
@@ -42,7 +42,7 @@ where
             self.inner.consume(len);
         }
 
-        Ok(meta_buf)
+        String::from_utf8(meta_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
@@ -61,12 +61,12 @@ mod tests {
         let mut reader = Reader::new(&data[..]);
 
         let actual = reader.read_meta()?;
-        let expected = b"\
+        let expected = "\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
 ";
 
-        assert_eq!(actual, &expected[..]);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
