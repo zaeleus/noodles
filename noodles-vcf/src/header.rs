@@ -10,7 +10,7 @@ pub use self::{
     number::Number,
 };
 
-use std::{convert::TryFrom, str::FromStr};
+use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
 use self::record::Record;
 
@@ -21,6 +21,7 @@ pub struct Header {
     filters: Vec<Filter>,
     formats: Vec<Format>,
     alternative_alleles: Vec<AlternativeAllele>,
+    map: HashMap<String, String>,
 }
 
 impl Header {
@@ -42,6 +43,10 @@ impl Header {
 
     pub fn alternative_alleles(&self) -> &[AlternativeAllele] {
         &self.alternative_alleles
+    }
+
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.map.get(key)
     }
 }
 
@@ -96,6 +101,9 @@ impl FromStr for Header {
                         .map_err(ParseError::InvalidAlternativeAllele)?;
                     header.alternative_alleles.push(alternative_allele);
                 }
+                Record::Other(key, value) => {
+                    header.map.insert(key, value);
+                }
             }
         }
 
@@ -110,6 +118,8 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         let s = r#"##fileformat=VCFv4.3
+##fileDate=20200506
+##source=noodles-vcf
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
@@ -123,6 +133,9 @@ mod tests {
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
         assert_eq!(header.alternative_alleles().len(), 1);
+
+        assert_eq!(header.get("fileDate"), Some(&String::from("20200506")));
+        assert_eq!(header.get("source"), Some(&String::from("noodles-vcf")));
 
         Ok(())
     }

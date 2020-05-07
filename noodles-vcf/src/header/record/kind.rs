@@ -1,12 +1,13 @@
 use std::{error, fmt, str::FromStr};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Kind {
     FileFormat,
     Info,
     Filter,
     Format,
     AlternativeAllele,
+    Other(String),
 }
 
 impl AsRef<str> for Kind {
@@ -17,6 +18,7 @@ impl AsRef<str> for Kind {
             Self::Filter => "FILTER",
             Self::Format => "FORMAT",
             Self::AlternativeAllele => "ALT",
+            Self::Other(s) => s,
         }
     }
 }
@@ -41,12 +43,13 @@ impl FromStr for Kind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError(s.into())),
             "fileformat" => Ok(Self::FileFormat),
             "INFO" => Ok(Self::Info),
             "FILTER" => Ok(Self::Filter),
             "FORMAT" => Ok(Self::Format),
             "ALT" => Ok(Self::AlternativeAllele),
-            _ => Err(ParseError(s.into())),
+            _ => Ok(Self::Other(s.into())),
         }
     }
 }
@@ -62,9 +65,12 @@ mod tests {
         assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
         assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);
         assert_eq!("ALT".parse::<Kind>()?, Kind::AlternativeAllele);
+        assert_eq!(
+            "fileDate".parse::<Kind>()?,
+            Kind::Other(String::from("fileDate"))
+        );
 
         assert!("".parse::<Kind>().is_err());
-        assert!("##INFO".parse::<Kind>().is_err());
 
         Ok(())
     }
