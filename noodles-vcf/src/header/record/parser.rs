@@ -8,11 +8,7 @@ use nom::{
     IResult,
 };
 
-#[derive(Debug, Eq, PartialEq)]
-pub enum Value {
-    String(String),
-    Struct(Vec<(String, String)>),
-}
+use super::Value;
 
 fn string(input: &str) -> IResult<&str, String> {
     delimited(

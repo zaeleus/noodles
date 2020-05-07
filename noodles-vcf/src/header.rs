@@ -16,6 +16,7 @@ use self::record::Record;
 
 #[derive(Debug, Default)]
 pub struct Header {
+    file_format: String,
     infos: Vec<Info>,
     filters: Vec<Filter>,
     formats: Vec<Format>,
@@ -23,6 +24,10 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn file_format(&self) -> &str {
+        &self.file_format
+    }
+
     pub fn infos(&self) -> &[Info] {
         &self.infos
     }
@@ -42,6 +47,7 @@ impl Header {
 
 #[derive(Debug)]
 pub enum ParseError {
+    MissingFileFormat,
     InvalidRecord(record::ParseError),
     InvalidInfo(info::ParseError),
     InvalidFilter(filter::ParseError),
@@ -54,11 +60,23 @@ impl FromStr for Header {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut header = Header::default();
+        let mut lines = s.lines();
 
-        for line in s.lines() {
+        let record = lines
+            .next()
+            .ok_or_else(|| ParseError::MissingFileFormat)
+            .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
+
+        match record {
+            Record::FileFormat(value) => header.file_format = value,
+            _ => return Err(ParseError::MissingFileFormat),
+        }
+
+        for line in lines {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match record {
+                Record::FileFormat(_) => todo!("unexpected fileformat"),
                 Record::Info(fields) => {
                     let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
                     header.infos.push(info);
@@ -91,7 +109,8 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let s = r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
+        let s = r#"##fileformat=VCFv4.3
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
@@ -99,11 +118,23 @@ mod tests {
 
         let header: Header = s.parse()?;
 
+        assert_eq!(header.file_format(), "VCFv4.3");
         assert_eq!(header.infos().len(), 1);
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
         assert_eq!(header.alternative_alleles().len(), 1);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_without_file_format() {
+        let s = r#"##ALT=<ID=DEL,Description="Deletion">
+"#;
+
+        assert!(matches!(
+            s.parse::<Header>(),
+            Err(ParseError::MissingFileFormat)
+        ));
     }
 }

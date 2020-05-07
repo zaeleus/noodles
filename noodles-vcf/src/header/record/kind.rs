@@ -2,6 +2,7 @@ use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
+    FileFormat,
     Info,
     Filter,
     Format,
@@ -11,6 +12,7 @@ pub enum Kind {
 impl AsRef<str> for Kind {
     fn as_ref(&self) -> &str {
         match self {
+            Self::FileFormat => "fileformat",
             Self::Info => "INFO",
             Self::Filter => "FILTER",
             Self::Format => "FORMAT",
@@ -28,7 +30,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid record kind: expected {{INFO, FILTER, FORMAT}}, got {}",
+            "invalid record kind: expected {{fileformat, INFO, FILTER, FORMAT}}, got {}",
             self.0
         )
     }
@@ -39,6 +41,7 @@ impl FromStr for Kind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "fileformat" => Ok(Self::FileFormat),
             "INFO" => Ok(Self::Info),
             "FILTER" => Ok(Self::Filter),
             "FORMAT" => Ok(Self::Format),
@@ -54,6 +57,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!("fileformat".parse::<Kind>()?, Kind::FileFormat);
         assert_eq!("INFO".parse::<Kind>()?, Kind::Info);
         assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
         assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);

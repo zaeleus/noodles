@@ -1,14 +1,16 @@
 mod kind;
 mod parser;
+mod value;
 
 use std::{error, fmt, str::FromStr};
 
-use self::{kind::Kind, parser::Value};
+use self::{kind::Kind, value::Value};
 
 type Field = (String, String);
 
 #[derive(Debug)]
 pub enum Record {
+    FileFormat(String),
     Info(Vec<Field>),
     Filter(Vec<Field>),
     Format(Vec<Field>),
@@ -19,6 +21,7 @@ pub enum Record {
 pub enum ParseError {
     Invalid,
     InvalidKind(kind::ParseError),
+    InvalidType,
 }
 
 impl error::Error for ParseError {}
@@ -30,6 +33,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid => f.write_str("could not parse record"),
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
+            Self::InvalidType => f.write_str("invalid type"),
         }
     }
 }
@@ -42,17 +46,27 @@ impl FromStr for Record {
 
         let kind = key.parse().map_err(ParseError::InvalidKind)?;
 
-        let fields = match value {
-            Value::Struct(f) => f,
-            Value::String(_) => return Err(ParseError::Invalid),
-        };
-
         match kind {
-            Kind::Info => Ok(Self::Info(fields)),
-            Kind::Filter => Ok(Self::Filter(fields)),
-            Kind::Format => Ok(Self::Format(fields)),
-            Kind::AlternativeAllele => Ok(Self::AlternativeAllele(fields)),
+            Kind::FileFormat => Ok(parse_string(value).map(Self::FileFormat)?),
+            Kind::Info => Ok(parse_struct(value).map(Self::Info)?),
+            Kind::Filter => Ok(parse_struct(value).map(Self::Filter)?),
+            Kind::Format => Ok(parse_struct(value).map(Self::Format)?),
+            Kind::AlternativeAllele => Ok(parse_struct(value).map(Self::AlternativeAllele)?),
         }
+    }
+}
+
+fn parse_string(value: Value) -> Result<String, ParseError> {
+    match value {
+        Value::String(v) => Ok(v),
+        _ => Err(ParseError::InvalidType),
+    }
+}
+
+fn parse_struct(value: Value) -> Result<Vec<(String, String)>, ParseError> {
+    match value {
+        Value::Struct(v) => Ok(v),
+        _ => Err(ParseError::InvalidType),
     }
 }
 
