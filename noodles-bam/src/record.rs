@@ -26,15 +26,12 @@ impl Record {
     }
 
     pub fn reference_sequence_id(&self) -> i32 {
-        let offset = 0;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        LittleEndian::read_i32(&self.0)
     }
 
     pub fn position(&self) -> i32 {
         let offset = 4;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        LittleEndian::read_i32(&self.0[offset..])
     }
 
     fn l_read_name(&self) -> u8 {
@@ -49,45 +46,38 @@ impl Record {
 
     pub fn bin(&self) -> u16 {
         let offset = 10;
-        let len = mem::size_of::<u16>();
-        LittleEndian::read_u16(&self.0[offset..offset + len])
+        LittleEndian::read_u16(&self.0[offset..])
     }
 
     fn n_cigar_op(&self) -> u16 {
         let offset = 12;
-        let len = mem::size_of::<u16>();
-        LittleEndian::read_u16(&self.0[offset..offset + len])
+        LittleEndian::read_u16(&self.0[offset..])
     }
 
     pub fn flags(&self) -> sam::Flags {
         let offset = 14;
-        let len = mem::size_of::<u16>();
-        let value = LittleEndian::read_u16(&self.0[offset..offset + len]);
+        let value = LittleEndian::read_u16(&self.0[offset..]);
         sam::Flags::from(value)
     }
 
     fn l_seq(&self) -> u32 {
         let offset = 16;
-        let len = mem::size_of::<u32>();
-        LittleEndian::read_u32(&self.0[offset..offset + len])
+        LittleEndian::read_u32(&self.0[offset..])
     }
 
     pub fn mate_reference_sequence_id(&self) -> i32 {
         let offset = 20;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        LittleEndian::read_i32(&self.0[offset..])
     }
 
     pub fn mate_position(&self) -> i32 {
         let offset = 24;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        LittleEndian::read_i32(&self.0[offset..])
     }
 
     pub fn template_len(&self) -> i32 {
         let offset = 28;
-        let len = mem::size_of::<i32>();
-        LittleEndian::read_i32(&self.0[offset..offset + len])
+        LittleEndian::read_i32(&self.0[offset..])
     }
 
     pub fn name(&self) -> &[u8] {
