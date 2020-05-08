@@ -120,7 +120,7 @@ impl<I: Iterator<Item = Base>> Iterator for Symbols<I> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|b| b.symbol())
+        self.iter.next().map(char::from)
     }
 }
 

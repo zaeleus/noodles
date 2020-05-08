@@ -40,32 +40,28 @@ impl Base {
             Self::N => Self::N,
         }
     }
-
-    pub fn symbol(self) -> char {
-        match self {
-            Self::Eq => '=',
-            Self::A => 'A',
-            Self::C => 'C',
-            Self::G => 'G',
-            Self::T => 'T',
-            Self::W => 'W',
-            Self::S => 'S',
-            Self::M => 'M',
-            Self::K => 'K',
-            Self::R => 'R',
-            Self::Y => 'Y',
-            Self::B => 'B',
-            Self::D => 'D',
-            Self::H => 'H',
-            Self::V => 'V',
-            Self::N => 'N',
-        }
-    }
 }
 
 impl From<Base> for char {
     fn from(base: Base) -> Self {
-        base.symbol()
+        match base {
+            Base::Eq => '=',
+            Base::A => 'A',
+            Base::C => 'C',
+            Base::G => 'G',
+            Base::T => 'T',
+            Base::W => 'W',
+            Base::S => 'S',
+            Base::M => 'M',
+            Base::K => 'K',
+            Base::R => 'R',
+            Base::Y => 'Y',
+            Base::B => 'B',
+            Base::D => 'D',
+            Base::H => 'H',
+            Base::V => 'V',
+            Base::N => 'N',
+        }
     }
 }
 
