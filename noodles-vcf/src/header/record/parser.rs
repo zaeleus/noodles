@@ -37,9 +37,7 @@ fn structure(input: &str) -> IResult<&str, Value> {
 }
 
 pub fn parse(input: &str) -> IResult<&str, (String, Value)> {
-    let (input, _) = tag("##")(input)?;
-    let (input, key) = take_until("=")(input)?;
-    let (input, _) = tag("=")(input)?;
+    let (input, key) = delimited(tag("##"), take_until("="), tag("="))(input)?;
     let (input, value) = alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?;
     Ok((input, (key.into(), value)))
 }
