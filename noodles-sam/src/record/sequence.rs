@@ -63,6 +63,7 @@ impl FromStr for Sequence {
         }
 
         s.chars()
+            .map(|c| c.to_ascii_uppercase())
             .map(Base::try_from)
             .collect::<Result<_, _>>()
             .map(Self::new)
@@ -106,9 +107,17 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let sequence = "ATCG".parse::<Sequence>()?;
         let expected = [Base::A, Base::T, Base::C, Base::G];
+
+        let sequence = "ATCG".parse::<Sequence>()?;
         assert_eq!(sequence.bases(), &expected);
+
+        let sequence = "atcg".parse::<Sequence>()?;
+        assert_eq!(sequence.bases(), &expected);
+
+        let sequence = "aTcG".parse::<Sequence>()?;
+        assert_eq!(sequence.bases(), &expected);
+
         Ok(())
     }
 }
