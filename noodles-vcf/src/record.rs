@@ -1,8 +1,12 @@
+mod chromosome;
 mod field;
 mod filter_status;
 mod reference_bases;
 
-pub use self::{field::Field, filter_status::FilterStatus, reference_bases::ReferenceBases};
+pub use self::{
+    chromosome::Chromosome, field::Field, filter_status::FilterStatus,
+    reference_bases::ReferenceBases,
+};
 
 use std::{error, fmt, str::FromStr};
 
@@ -11,7 +15,7 @@ const FIELD_DELIMITER: char = '\t';
 
 #[derive(Debug)]
 pub struct Record {
-    chromosome: String,
+    chromosome: Chromosome,
     position: i32,
     id: String,
     reference_bases: ReferenceBases,
@@ -22,7 +26,7 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn chromosome(&self) -> &str {
+    pub fn chromosome(&self) -> &Chromosome {
         &self.chromosome
     }
 
@@ -78,7 +82,11 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(FIELD_DELIMITER);
 
-        let chrom = parse_string(&mut fields, Field::Chromosome)?;
+        let chrom = parse_string(&mut fields, Field::Chromosome).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Chromosome, Box::new(e)))
+        })?;
+
         let pos = parse_i32(&mut fields, Field::Position)?;
         let id = parse_string(&mut fields, Field::Id)?;
 
@@ -98,7 +106,7 @@ impl FromStr for Record {
         let info = parse_string(&mut fields, Field::Information)?;
 
         Ok(Self {
-            chromosome: chrom.into(),
+            chromosome: chrom,
             position: pos,
             id: id.into(),
             reference_bases: r#ref,
@@ -148,7 +156,8 @@ mod tests {
         let s = "chr1\t13\tr0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
         let record: Record = s.parse()?;
 
-        assert_eq!(record.chromosome(), "chr1");
+        assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
+
         assert_eq!(record.position(), 13);
         assert_eq!(record.id(), "r0");
 
