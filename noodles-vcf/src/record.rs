@@ -1,10 +1,12 @@
 mod field;
+mod filter_status;
 mod reference_bases;
 
-pub use self::{field::Field, reference_bases::ReferenceBases};
+pub use self::{field::Field, filter_status::FilterStatus, reference_bases::ReferenceBases};
 
 use std::{error, fmt, str::FromStr};
 
+pub(crate) const MISSING_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 
 #[derive(Debug)]
@@ -15,7 +17,7 @@ pub struct Record {
     reference_bases: ReferenceBases,
     alternate_bases: String,
     quality_score: f32,
-    filter_status: String,
+    filter_status: FilterStatus,
     information: String,
 }
 
@@ -44,7 +46,7 @@ impl Record {
         self.quality_score
     }
 
-    pub fn filter_status(&self) -> &str {
+    pub fn filter_status(&self) -> &FilterStatus {
         &self.filter_status
     }
 
@@ -87,7 +89,12 @@ impl FromStr for Record {
 
         let alt = parse_string(&mut fields, Field::AlternateBases)?;
         let qual = parse_f32(&mut fields, Field::QualityScore)?;
-        let filter = parse_string(&mut fields, Field::FilterStatus)?;
+
+        let filter = parse_string(&mut fields, Field::FilterStatus).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::FilterStatus, Box::new(e)))
+        })?;
+
         let info = parse_string(&mut fields, Field::Information)?;
 
         Ok(Self {
@@ -97,7 +104,7 @@ impl FromStr for Record {
             reference_bases: r#ref,
             alternate_bases: alt.into(),
             quality_score: qual,
-            filter_status: filter.into(),
+            filter_status: filter,
             information: info.into(),
         })
     }
@@ -150,7 +157,7 @@ mod tests {
 
         assert_eq!(record.alternate_bases(), "A");
         assert_eq!(record.quality_score(), 5.8);
-        assert_eq!(record.filter_status(), "PASS");
+        assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.information(), "SVTYPE=DEL");
 
         Ok(())
