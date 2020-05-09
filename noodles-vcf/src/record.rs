@@ -1,11 +1,12 @@
+mod alternate_bases;
 mod chromosome;
 mod field;
 mod filter_status;
 mod reference_bases;
 
 pub use self::{
-    chromosome::Chromosome, field::Field, filter_status::FilterStatus,
-    reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases, chromosome::Chromosome, field::Field,
+    filter_status::FilterStatus, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -19,7 +20,7 @@ pub struct Record {
     position: i32,
     id: String,
     reference_bases: ReferenceBases,
-    alternate_bases: String,
+    alternate_bases: AlternateBases,
     quality_score: f32,
     filter_status: FilterStatus,
     information: String,
@@ -42,7 +43,7 @@ impl Record {
         &self.reference_bases
     }
 
-    pub fn alternate_bases(&self) -> &str {
+    pub fn alternate_bases(&self) -> &AlternateBases {
         &self.alternate_bases
     }
 
@@ -95,7 +96,11 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::ReferenceBases, Box::new(e)))
         })?;
 
-        let alt = parse_string(&mut fields, Field::AlternateBases)?;
+        let alt = parse_string(&mut fields, Field::AlternateBases).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::ReferenceBases, Box::new(e)))
+        })?;
+
         let qual = parse_f32(&mut fields, Field::QualityScore)?;
 
         let filter = parse_string(&mut fields, Field::FilterStatus).and_then(|s| {
@@ -110,7 +115,7 @@ impl FromStr for Record {
             position: pos,
             id: id.into(),
             reference_bases: r#ref,
-            alternate_bases: alt.into(),
+            alternate_bases: alt,
             quality_score: qual,
             filter_status: filter,
             information: info.into(),
@@ -164,7 +169,9 @@ mod tests {
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);
 
-        assert_eq!(record.alternate_bases(), "A");
+        let alternate_bases = [String::from("A")];
+        assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
+
         assert_eq!(record.quality_score(), 5.8);
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.information(), "SVTYPE=DEL");
