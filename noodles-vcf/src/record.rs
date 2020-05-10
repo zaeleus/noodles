@@ -2,11 +2,12 @@ mod alternate_bases;
 mod chromosome;
 mod field;
 mod filter_status;
+mod info;
 mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, reference_bases::ReferenceBases,
+    filter_status::FilterStatus, info::Info, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -23,7 +24,7 @@ pub struct Record {
     alternate_bases: AlternateBases,
     quality_score: f32,
     filter_status: FilterStatus,
-    information: String,
+    info: Info,
 }
 
 impl Record {
@@ -55,8 +56,8 @@ impl Record {
         &self.filter_status
     }
 
-    pub fn information(&self) -> &str {
-        &self.information
+    pub fn info(&self) -> &Info {
+        &self.info
     }
 }
 
@@ -108,7 +109,10 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::FilterStatus, Box::new(e)))
         })?;
 
-        let info = parse_string(&mut fields, Field::Information)?;
+        let info = parse_string(&mut fields, Field::Info).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Info, Box::new(e)))
+        })?;
 
         Ok(Self {
             chromosome: chrom,
@@ -118,7 +122,7 @@ impl FromStr for Record {
             alternate_bases: alt,
             quality_score: qual,
             filter_status: filter,
-            information: info.into(),
+            info,
         })
     }
 }
@@ -174,7 +178,7 @@ mod tests {
 
         assert_eq!(record.quality_score(), 5.8);
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
-        assert_eq!(record.information(), "SVTYPE=DEL");
+        assert_eq!(record.info().len(), 1);
 
         Ok(())
     }
