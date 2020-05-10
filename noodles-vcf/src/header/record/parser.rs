@@ -32,7 +32,7 @@ fn field(input: &str) -> IResult<&str, (String, String)> {
 fn structure(input: &str) -> IResult<&str, Value> {
     map(
         delimited(tag("<"), separated_nonempty_list(tag(","), field), tag(">")),
-        |fields| Value::Struct(fields),
+        Value::Struct,
     )(input)
 }
 

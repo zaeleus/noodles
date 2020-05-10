@@ -53,23 +53,23 @@ impl TryFrom<&[(String, String)]> for Info {
             .ok_or_else(|| ParseError::MissingField(Key::Id))
             .and_then(|(k, v)| match k.parse() {
                 Ok(Key::Id) => Ok(v.into()),
-                _ => return Err(ParseError::MissingField(Key::Id)),
+                _ => Err(ParseError::MissingField(Key::Id)),
             })?;
 
         let number = it
             .next()
             .ok_or_else(|| ParseError::MissingField(Key::Number))
             .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Number) => v.parse().map_err(|e| ParseError::InvalidNumber(e)),
-                _ => return Err(ParseError::MissingField(Key::Id)),
+                Ok(Key::Number) => v.parse().map_err(ParseError::InvalidNumber),
+                _ => Err(ParseError::MissingField(Key::Id)),
             })?;
 
         let ty = it
             .next()
             .ok_or_else(|| ParseError::MissingField(Key::Type))
             .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Type) => v.parse().map_err(|e| ParseError::InvalidType(e)),
-                _ => return Err(ParseError::MissingField(Key::Type)),
+                Ok(Key::Type) => v.parse().map_err(ParseError::InvalidType),
+                _ => Err(ParseError::MissingField(Key::Type)),
             })?;
 
         let description = it
@@ -77,7 +77,7 @@ impl TryFrom<&[(String, String)]> for Info {
             .ok_or_else(|| ParseError::MissingField(Key::Description))
             .and_then(|(k, v)| match k.parse() {
                 Ok(Key::Description) => Ok(v.into()),
-                _ => return Err(ParseError::MissingField(Key::Description)),
+                _ => Err(ParseError::MissingField(Key::Description)),
             })?;
 
         Ok(Self {

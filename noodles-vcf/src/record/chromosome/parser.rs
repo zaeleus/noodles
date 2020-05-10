@@ -13,13 +13,14 @@ pub(crate) enum Value<'a> {
 }
 
 fn name(input: &str) -> IResult<&str, Value> {
-    map(rest, |s| Value::Name(s))(input)
+    map(rest, Value::Name)(input)
 }
 
 fn reference(input: &str) -> IResult<&str, Value> {
-    map(delimited(tag("<"), take_until(">"), tag(">")), |s| {
-        Value::Reference(s)
-    })(input)
+    map(
+        delimited(tag("<"), take_until(">"), tag(">")),
+        Value::Reference,
+    )(input)
 }
 
 pub(crate) fn parse(input: &str) -> IResult<&str, Value> {

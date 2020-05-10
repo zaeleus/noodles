@@ -40,7 +40,7 @@ impl TryFrom<&[(String, String)]> for AlternativeAllele {
             .ok_or_else(|| ParseError::MissingField(Key::Id))
             .and_then(|(k, v)| match k.parse() {
                 Ok(Key::Id) => v.parse().map_err(ParseError::InvalidId),
-                _ => return Err(ParseError::MissingField(Key::Id)),
+                _ => Err(ParseError::MissingField(Key::Id)),
             })?;
 
         let description = it
@@ -48,7 +48,7 @@ impl TryFrom<&[(String, String)]> for AlternativeAllele {
             .ok_or_else(|| ParseError::MissingField(Key::Description))
             .and_then(|(k, v)| match k.parse() {
                 Ok(Key::Description) => Ok(v.into()),
-                _ => return Err(ParseError::MissingField(Key::Description)),
+                _ => Err(ParseError::MissingField(Key::Description)),
             })?;
 
         Ok(Self { id, description })
