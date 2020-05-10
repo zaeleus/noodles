@@ -2,12 +2,13 @@ mod alternate_bases;
 mod chromosome;
 mod field;
 mod filter_status;
+mod id;
 mod info;
 mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, info::Info, reference_bases::ReferenceBases,
+    filter_status::FilterStatus, id::Id, info::Info, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -19,7 +20,7 @@ const FIELD_DELIMITER: char = '\t';
 pub struct Record {
     chromosome: Chromosome,
     position: i32,
-    id: String,
+    id: Id,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
     quality_score: f32,
@@ -36,7 +37,7 @@ impl Record {
         self.position
     }
 
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> &Id {
         &self.id
     }
 
@@ -90,7 +91,11 @@ impl FromStr for Record {
         })?;
 
         let pos = parse_i32(&mut fields, Field::Position)?;
-        let id = parse_string(&mut fields, Field::Id)?;
+
+        let id = parse_string(&mut fields, Field::Id).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::Id, Box::new(e)))
+        })?;
 
         let r#ref = parse_string(&mut fields, Field::ReferenceBases).and_then(|s| {
             s.parse()
@@ -117,7 +122,7 @@ impl FromStr for Record {
         Ok(Self {
             chromosome: chrom,
             position: pos,
-            id: id.into(),
+            id,
             reference_bases: r#ref,
             alternate_bases: alt,
             quality_score: qual,
@@ -168,7 +173,7 @@ mod tests {
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
         assert_eq!(record.position(), 13);
-        assert_eq!(record.id(), "r0");
+        assert!(record.id().is_some());
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);
