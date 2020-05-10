@@ -100,6 +100,8 @@ impl fmt::Display for Header {
 
 #[derive(Debug)]
 pub enum ParseError {
+    MissingHeader,
+    UnexpectedHeader,
     InvalidRecord(record::ParseError),
     InvalidHeader(header::ParseError),
     InvalidReferenceSequence(reference_sequence::ParseError),
@@ -112,6 +114,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::MissingHeader => f.write_str("@HD missing"),
+            Self::UnexpectedHeader => f.write_str("unexpected @HD"),
             Self::InvalidRecord(e) => write!(f, "{}", e),
             Self::InvalidHeader(e) => write!(f, "{}", e),
             Self::InvalidReferenceSequence(e) => write!(f, "{}", e),
@@ -126,14 +130,27 @@ impl FromStr for Header {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut header = Header::default();
+        let mut lines = s.lines();
 
-        for line in s.lines() {
+        let record: Record = lines
+            .next()
+            .ok_or_else(|| ParseError::MissingHeader)
+            .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
+
+        match record {
+            Record::Header(fields) => {
+                header.header =
+                    header::Header::try_from(&fields[..]).map_err(ParseError::InvalidHeader)?;
+            }
+            _ => return Err(ParseError::MissingHeader),
+        }
+
+        for line in lines {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match record {
-                Record::Header(fields) => {
-                    header.header =
-                        header::Header::try_from(&fields[..]).map_err(ParseError::InvalidHeader)?;
+                Record::Header(_) => {
+                    return Err(ParseError::UnexpectedHeader);
                 }
                 Record::ReferenceSequence(fields) => {
                     let reference_sequence = ReferenceSequence::try_from(&fields[..])
@@ -238,5 +255,21 @@ mod tests {
             &header.comments[0],
             "noodles_sam::header::tests::test_from_str"
         );
+    }
+
+    #[test]
+    fn test_from_str_without_hd() {
+        let s = "@SQ\tSN:sq0\t:LN:8\n";
+        assert!(s.parse::<Header>().is_err());
+    }
+
+    #[test]
+    fn test_from_str_with_multiple_hd() {
+        let s = "\
+@HD\tVN:1.6\tSO:coordinate
+@HD\tVN:1.6\tSO:coordinate
+";
+
+        assert!(s.parse::<Header>().is_err());
     }
 }
