@@ -4,7 +4,7 @@ pub use self::base::Base;
 
 use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ReferenceBases(Vec<Base>);
 
 impl Deref for ReferenceBases {
