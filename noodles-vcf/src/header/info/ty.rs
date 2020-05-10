@@ -9,6 +9,12 @@ pub enum Type {
     String,
 }
 
+impl Default for Type {
+    fn default() -> Self {
+        Self::String
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -42,6 +48,11 @@ impl FromStr for Type {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        assert_eq!(Type::default(), Type::String);
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
