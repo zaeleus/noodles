@@ -5,11 +5,13 @@ mod field;
 mod filter_status;
 mod id;
 mod info;
+mod quality_score;
 mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, id::Id, info::Info, reference_bases::ReferenceBases,
+    filter_status::FilterStatus, id::Id, info::Info, quality_score::QualityScore,
+    reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -24,7 +26,7 @@ pub struct Record {
     id: Id,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
-    quality_score: f32,
+    quality_score: QualityScore,
     filter_status: FilterStatus,
     info: Info,
 }
@@ -54,8 +56,8 @@ impl Record {
         &self.alternate_bases
     }
 
-    pub fn quality_score(&self) -> f32 {
-        self.quality_score
+    pub fn quality_score(&self) -> &QualityScore {
+        &self.quality_score
     }
 
     pub fn filter_status(&self) -> &FilterStatus {
@@ -112,7 +114,10 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::ReferenceBases, Box::new(e)))
         })?;
 
-        let qual = parse_f32(&mut fields, Field::QualityScore)?;
+        let qual = parse_string(&mut fields, Field::QualityScore).and_then(|s| {
+            s.parse()
+                .map_err(|e| ParseError::Invalid(Field::QualityScore, Box::new(e)))
+        })?;
 
         let filter = parse_string(&mut fields, Field::FilterStatus).and_then(|s| {
             s.parse()
@@ -154,16 +159,6 @@ where
     })
 }
 
-fn parse_f32<'a, I>(fields: &mut I, field: Field) -> Result<f32, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    parse_string(fields, field).and_then(|s| {
-        s.parse()
-            .map_err(|e| ParseError::Invalid(field, Box::new(e)))
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,7 +181,7 @@ mod tests {
         let alternate_bases = [String::from("A")];
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
-        assert_eq!(record.quality_score(), 5.8);
+        assert_eq!(**record.quality_score(), Some(5.8));
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.info().len(), 1);
 

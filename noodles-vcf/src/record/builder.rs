@@ -1,6 +1,8 @@
 use std::{error, fmt};
 
-use super::{AlternateBases, Chromosome, FilterStatus, Id, Info, Record, ReferenceBases};
+use super::{
+    AlternateBases, Chromosome, FilterStatus, Id, Info, QualityScore, Record, ReferenceBases,
+};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -9,7 +11,7 @@ pub struct Builder {
     id: Id,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
-    quality_score: f32,
+    quality_score: QualityScore,
     filter_status: FilterStatus,
     info: Info,
 }
@@ -54,7 +56,7 @@ impl Builder {
         self
     }
 
-    pub fn set_quality_score(mut self, quality_score: f32) -> Self {
+    pub fn set_quality_score(mut self, quality_score: QualityScore) -> Self {
         self.quality_score = quality_score;
         self
     }
@@ -97,7 +99,7 @@ mod tests {
         assert!(record.id().is_none());
         assert!(record.reference_bases().is_empty());
         assert!(record.alternate_bases().is_empty());
-        assert_eq!(record.quality_score(), 0.0);
+        assert!(record.quality_score().is_none());
         assert_eq!(record.filter_status(), &FilterStatus::Missing);
         assert!(record.info().is_empty());
 
