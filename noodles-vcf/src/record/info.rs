@@ -6,7 +6,7 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 const DELIMITER: char = ';';
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Info(Vec<Field>);
 
 impl Deref for Info {
