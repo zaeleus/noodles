@@ -1,4 +1,5 @@
 mod alternate_bases;
+mod builder;
 mod chromosome;
 mod field;
 mod filter_status;
@@ -7,7 +8,7 @@ mod info;
 mod reference_bases;
 
 pub use self::{
-    alternate_bases::AlternateBases, chromosome::Chromosome, field::Field,
+    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
     filter_status::FilterStatus, id::Id, info::Info, reference_bases::ReferenceBases,
 };
 
@@ -29,6 +30,10 @@ pub struct Record {
 }
 
 impl Record {
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
     pub fn chromosome(&self) -> &Chromosome {
         &self.chromosome
     }
