@@ -1,9 +1,6 @@
-mod field;
-mod subtype;
-mod ty;
-mod value;
+pub mod field;
 
-pub use self::{field::Field, subtype::Subtype, ty::Type, value::Value};
+pub use self::field::Field;
 
 use std::{error, fmt, str::FromStr};
 
@@ -74,6 +71,8 @@ impl FromStr for Data {
 
 #[cfg(test)]
 mod tests {
+    use super::field::Value;
+
     use super::*;
 
     #[test]

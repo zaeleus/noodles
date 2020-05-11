@@ -53,7 +53,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        data::{Field, Value},
+        data::{self, Field},
         Data,
     };
 
@@ -93,7 +93,7 @@ mod tests {
 
         let data = Data::new(vec![Field::new(
             String::from("RG"),
-            Value::String(String::from("rg0")),
+            data::field::Value::String(String::from("rg0")),
         )]);
 
         let record = Record::builder().set_data(data).build();

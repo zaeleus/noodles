@@ -1,6 +1,8 @@
-use std::{error, fmt, str::FromStr};
+mod value;
 
-use super::Value;
+pub use value::Value;
+
+use std::{error, fmt, str::FromStr};
 
 pub(crate) const DELIMITER: char = ':';
 const TAG_LEN: usize = 2;

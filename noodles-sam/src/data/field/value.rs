@@ -1,9 +1,11 @@
+mod subtype;
+mod ty;
+
 use std::{fmt, str::FromStr};
 
-use super::{
-    field::{self, Component, ParseError},
-    Subtype, Type,
-};
+use crate::data::field::{self, Component, ParseError};
+
+use self::{subtype::Subtype, ty::Type};
 
 const ARRAY_VALUE_DELIMITER: char = ',';
 

@@ -145,7 +145,7 @@ mod tests {
 
         let data = Data::new(vec![data::Field::new(
             String::from("NH"),
-            data::Value::Int32(1),
+            data::field::Value::Int32(1),
         )]);
 
         let record = Builder::new()
