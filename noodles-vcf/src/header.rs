@@ -15,7 +15,9 @@ use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
 use self::record::Record;
 
-#[derive(Debug, Default)]
+static FILE_FORMAT: &str = "VCFv4.3";
+
+#[derive(Debug)]
 pub struct Header {
     file_format: String,
     infos: Vec<Info>,
@@ -58,6 +60,21 @@ impl Header {
 
     pub fn get(&self, key: &str) -> Option<&String> {
         self.map.get(key)
+    }
+}
+
+impl Default for Header {
+    fn default() -> Self {
+        Self {
+            file_format: FILE_FORMAT.into(),
+            infos: Vec::new(),
+            filters: Vec::new(),
+            formats: Vec::new(),
+            alternative_alleles: Vec::new(),
+            assembly: None,
+            contigs: Vec::new(),
+            map: HashMap::new(),
+        }
     }
 }
 
@@ -134,6 +151,12 @@ impl FromStr for Header {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        let header = Header::default();
+        assert_eq!(header.file_format(), FILE_FORMAT);
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
