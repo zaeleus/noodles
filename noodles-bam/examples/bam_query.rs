@@ -5,7 +5,7 @@
 //! While the results are not formatted the same, the records printed match the output of `samtools
 //! view <src> <region>`.
 
-use std::{env, fs::File, path::PathBuf, str};
+use std::{env, ffi::CStr, fs::File, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
 use noodles_sam as sam;
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in query {
         let record = result?;
 
-        let name = str::from_utf8(record.name())?;
+        let name = CStr::from_bytes_with_nul(record.name())?.to_str()?;
 
         let reference_sequence_id = record.reference_sequence_id() as usize;
         let (_, reference_sequence) = reference_sequences
