@@ -144,7 +144,7 @@ mod tests {
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
         let data = Data::new(vec![data::Field::new(
-            String::from("NH"),
+            data::field::Tag::AlignmentHitCount,
             data::field::Value::Int32(1),
         )]);
 

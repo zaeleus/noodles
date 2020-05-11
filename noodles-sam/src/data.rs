@@ -71,15 +71,15 @@ impl FromStr for Data {
 
 #[cfg(test)]
 mod tests {
-    use super::field::Value;
+    use super::field::{Tag, Value};
 
     use super::*;
 
     #[test]
     fn test_fmt() {
         let data = Data::new(vec![
-            Field::new(String::from("RG"), Value::String(String::from("rg0"))),
-            Field::new(String::from("NH"), Value::Int32(1)),
+            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+            Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
         ]);
 
         let expected = "RG:Z:rg0\tNH:i:1";

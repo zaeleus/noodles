@@ -92,7 +92,7 @@ mod tests {
         let mut writer = Writer::new(vec![]);
 
         let data = Data::new(vec![Field::new(
-            String::from("RG"),
+            data::field::Tag::ReadGroup,
             data::field::Value::String(String::from("rg0")),
         )]);
 
