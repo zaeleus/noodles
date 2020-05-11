@@ -7,7 +7,7 @@ use super::{
 
 const ARRAY_VALUE_DELIMITER: char = ',';
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Char(char),
     Int32(i32),
