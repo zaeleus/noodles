@@ -11,7 +11,11 @@ pub use self::{
     info::Info, number::Number,
 };
 
-use std::{collections::HashMap, convert::TryFrom, str::FromStr};
+use std::{
+    collections::HashMap,
+    convert::TryFrom,
+    str::{FromStr, Lines},
+};
 
 use self::record::Record;
 
@@ -96,15 +100,7 @@ impl FromStr for Header {
         let mut header = Header::default();
         let mut lines = s.lines();
 
-        let record = lines
-            .next()
-            .ok_or_else(|| ParseError::MissingFileFormat)
-            .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
-
-        match record {
-            Record::FileFormat(value) => header.file_format = value,
-            _ => return Err(ParseError::MissingFileFormat),
-        }
+        header.file_format = parse_file_format(&mut lines)?;
 
         for line in lines {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
@@ -145,6 +141,18 @@ impl FromStr for Header {
         }
 
         Ok(header)
+    }
+}
+
+fn parse_file_format(lines: &mut Lines) -> Result<String, ParseError> {
+    let record = lines
+        .next()
+        .ok_or_else(|| ParseError::MissingFileFormat)
+        .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
+
+    match record {
+        Record::FileFormat(value) => Ok(value),
+        _ => return Err(ParseError::MissingFileFormat),
     }
 }
 
