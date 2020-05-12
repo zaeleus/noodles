@@ -31,6 +31,7 @@ impl FromStr for ReferenceBases {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         s.chars()
+            .map(|c| c.to_ascii_uppercase())
             .map(Base::try_from)
             .collect::<Result<_, _>>()
             .map(ReferenceBases)
@@ -44,9 +45,17 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let bases: ReferenceBases = "ATCGN".parse()?;
         let expected = [Base::A, Base::T, Base::C, Base::G, Base::N];
+
+        let bases: ReferenceBases = "ATCGN".parse()?;
         assert_eq!(&bases[..], &expected[..]);
+
+        let bases: ReferenceBases = "atcgn".parse()?;
+        assert_eq!(&bases[..], &expected[..]);
+
+        let bases: ReferenceBases = "AtCgN".parse()?;
+        assert_eq!(&bases[..], &expected[..]);
+
         Ok(())
     }
 }
