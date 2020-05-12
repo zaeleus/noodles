@@ -1,7 +1,8 @@
 use std::{error, fmt};
 
 use super::{
-    AlternateBases, Chromosome, FilterStatus, Id, Info, QualityScore, Record, ReferenceBases,
+    AlternateBases, Chromosome, FilterStatus, Format, Id, Info, QualityScore, Record,
+    ReferenceBases,
 };
 
 #[derive(Debug, Default)]
@@ -14,6 +15,7 @@ pub struct Builder {
     quality_score: QualityScore,
     filter_status: FilterStatus,
     info: Info,
+    format: Option<Format>,
 }
 
 #[derive(Debug)]
@@ -71,6 +73,11 @@ impl Builder {
         self
     }
 
+    pub fn set_format(mut self, format: Format) -> Self {
+        self.format = Some(format);
+        self
+    }
+
     pub fn build(self) -> Result<Record, BuildError> {
         Ok(Record {
             chromosome: self.chromosome.ok_or_else(|| BuildError)?,
@@ -81,6 +88,7 @@ impl Builder {
             quality_score: self.quality_score,
             filter_status: self.filter_status,
             info: self.info,
+            format: self.format,
         })
     }
 }
@@ -102,6 +110,7 @@ mod tests {
         assert!(record.quality_score().is_none());
         assert_eq!(record.filter_status(), &FilterStatus::Missing);
         assert!(record.info().is_empty());
+        assert!(record.format().is_none());
 
         Ok(())
     }

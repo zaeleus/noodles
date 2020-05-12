@@ -1,8 +1,8 @@
 mod key;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+pub use self::key::Key;
 
-use self::key::Key;
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 const DELIMITER: char = ':';
 

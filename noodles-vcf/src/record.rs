@@ -11,7 +11,7 @@ mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, id::Id, info::Info, quality_score::QualityScore,
+    filter_status::FilterStatus, format::Format, id::Id, info::Info, quality_score::QualityScore,
     reference_bases::ReferenceBases,
 };
 
@@ -30,6 +30,7 @@ pub struct Record {
     quality_score: QualityScore,
     filter_status: FilterStatus,
     info: Info,
+    format: Option<Format>,
 }
 
 impl Record {
@@ -67,6 +68,10 @@ impl Record {
 
     pub fn info(&self) -> &Info {
         &self.info
+    }
+
+    pub fn format(&self) -> Option<&Format> {
+        self.format.as_ref()
     }
 }
 
@@ -130,6 +135,14 @@ impl FromStr for Record {
                 .map_err(|e| ParseError::Invalid(Field::Info, Box::new(e)))
         })?;
 
+        let format = match fields.next() {
+            Some(s) => s
+                .parse()
+                .map(Some)
+                .map_err(|e| ParseError::Invalid(Field::Format, Box::new(e)))?,
+            None => None,
+        };
+
         Ok(Self {
             chromosome: chrom,
             position: pos,
@@ -139,6 +152,7 @@ impl FromStr for Record {
             quality_score: qual,
             filter_status: filter,
             info,
+            format,
         })
     }
 }
@@ -185,6 +199,22 @@ mod tests {
         assert_eq!(**record.quality_score(), Some(5.8));
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.info().len(), 1);
+        assert!(record.format().is_none());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_genotype_info() -> Result<(), ParseError> {
+        let s = "chr1\t13\tr0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
+        let record: Record = s.parse()?;
+
+        let expected = [
+            format::Key::Genotype,
+            format::Key::ConditionalGenotypeQuality,
+        ];
+
+        assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
 
         Ok(())
     }
