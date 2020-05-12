@@ -1,7 +1,7 @@
 mod alternative_allele;
 mod contig;
 mod filter;
-mod format;
+pub mod format;
 pub mod info;
 mod number;
 mod record;
