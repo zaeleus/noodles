@@ -3,7 +3,7 @@ mod ty;
 
 pub use self::ty::Type;
 
-use std::convert::TryFrom;
+use std::{collections::HashMap, convert::TryFrom};
 
 use super::{number, Number};
 
@@ -15,6 +15,7 @@ pub struct Info {
     number: Number,
     ty: Type,
     description: String,
+    fields: HashMap<String, String>,
 }
 
 impl Info {
@@ -32,6 +33,10 @@ impl Info {
 
     pub fn description(&self) -> &str {
         &self.description
+    }
+
+    pub fn fields(&self) -> &HashMap<String, String> {
+        &self.fields
     }
 }
 
@@ -85,6 +90,7 @@ impl TryFrom<&[(String, String)]> for Info {
             number,
             ty,
             description,
+            fields: it.cloned().collect(),
         })
     }
 }
@@ -93,9 +99,8 @@ impl TryFrom<&[(String, String)]> for Info {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_try_from_fields_for_info() -> Result<(), ParseError> {
-        let fields = vec![
+    fn build_fields() -> Vec<(String, String)> {
+        vec![
             (String::from("ID"), String::from("NS")),
             (String::from("Number"), String::from("1")),
             (String::from("Type"), String::from("Integer")),
@@ -103,14 +108,34 @@ mod tests {
                 String::from("Description"),
                 String::from("Number of samples with data"),
             ),
-        ];
+        ]
+    }
 
+    #[test]
+    fn test_try_from_fields_for_info() -> Result<(), ParseError> {
+        let fields = build_fields();
         let info = Info::try_from(&fields[..])?;
 
         assert_eq!(info.id(), "NS");
         assert_eq!(*info.number(), Number::Count(1));
         assert_eq!(*info.ty(), Type::Integer);
         assert_eq!(info.description(), "Number of samples with data");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_info_with_extra_fields() -> Result<(), ParseError> {
+        let mut fields = build_fields();
+        fields.push((String::from("Source"), String::from("dbsnp")));
+        fields.push((String::from("Version"), String::from("138")));
+
+        let info = Info::try_from(&fields[..])?;
+
+        let fields = info.fields();
+        assert_eq!(fields.len(), 2);
+        assert_eq!(fields["Source"], "dbsnp");
+        assert_eq!(fields["Version"], "138");
 
         Ok(())
     }
