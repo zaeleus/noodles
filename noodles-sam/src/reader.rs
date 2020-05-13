@@ -51,12 +51,7 @@ where
 
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         let result = self.inner.read_line(buf);
-
-        if result.is_ok() {
-            // Remove new line.
-            buf.pop();
-        }
-
+        buf.pop();
         result
     }
 
