@@ -60,6 +60,12 @@ where
             Ok(buf)
         }
     }
+
+    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
+        let result = self.inner.read_line(buf);
+        buf.pop();
+        result
+    }
 }
 
 #[cfg(test)]
@@ -70,6 +76,8 @@ mod tests {
 ##fileformat=VCFv4.3
 ##fileDate=20200501
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+sq0\t8
+sq0\t13
 ";
 
     #[test]
@@ -104,5 +112,26 @@ mod tests {
         let data = b"CHROM";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_header().is_err());
+    }
+
+    #[test]
+    fn test_read_record() -> io::Result<()> {
+        let mut reader = Reader::new(DATA);
+        reader.read_meta()?;
+        reader.read_header()?;
+
+        let mut buf = String::new();
+        reader.read_record(&mut buf)?;
+        assert_eq!(buf, "sq0\t8");
+
+        buf.clear();
+        reader.read_record(&mut buf)?;
+        assert_eq!(buf, "sq0\t13");
+
+        buf.clear();
+        let len = reader.read_record(&mut buf)?;
+        assert_eq!(len, 0);
+
+        Ok(())
     }
 }
