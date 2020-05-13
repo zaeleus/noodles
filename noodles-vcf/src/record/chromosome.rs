@@ -5,7 +5,7 @@ use std::{error, fmt, str::FromStr};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Chromosome {
     Name(String),
-    Reference(String),
+    Symbol(String),
 }
 
 #[derive(Debug)]
@@ -31,7 +31,7 @@ impl FromStr for Chromosome {
 
         match value {
             parser::Value::Name(s) => Ok(Self::Name(s.into())),
-            parser::Value::Reference(s) => Ok(Self::Reference(s.into())),
+            parser::Value::Symbol(s) => Ok(Self::Symbol(s.into())),
         }
     }
 }
@@ -49,7 +49,7 @@ mod tests {
 
         assert_eq!(
             "<sq0>".parse::<Chromosome>()?,
-            Chromosome::Reference(String::from("sq0"))
+            Chromosome::Symbol(String::from("sq0"))
         );
 
         assert!("".parse::<Chromosome>().is_err());

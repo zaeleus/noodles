@@ -9,22 +9,22 @@ use nom::{
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) enum Value<'a> {
     Name(&'a str),
-    Reference(&'a str),
+    Symbol(&'a str),
 }
 
 fn name(input: &str) -> IResult<&str, Value> {
     map(rest, Value::Name)(input)
 }
 
-fn reference(input: &str) -> IResult<&str, Value> {
+fn symbol(input: &str) -> IResult<&str, Value> {
     map(
         delimited(tag("<"), take_until(">"), tag(">")),
-        Value::Reference,
+        Value::Symbol,
     )(input)
 }
 
 pub(crate) fn parse(input: &str) -> IResult<&str, Value> {
-    alt((reference, name))(input)
+    alt((symbol, name))(input)
 }
 
 #[cfg(test)]
@@ -34,6 +34,6 @@ mod tests {
     #[test]
     fn test_parse() {
         assert_eq!(parse("sq0"), Ok(("", Value::Name("sq0"))));
-        assert_eq!(parse("<sq0>"), Ok(("", Value::Reference("sq0"))));
+        assert_eq!(parse("<sq0>"), Ok(("", Value::Symbol("sq0"))));
     }
 }
