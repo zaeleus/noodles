@@ -1,3 +1,7 @@
+mod records;
+
+pub use self::records::Records;
+
 use std::io::{self, BufRead};
 
 const NEWLINE: u8 = b'\n';
@@ -65,6 +69,10 @@ where
         let result = self.inner.read_line(buf);
         buf.pop();
         result
+    }
+
+    pub fn records(&mut self) -> Records<R> {
+        Records::new(self)
     }
 }
 
