@@ -280,6 +280,8 @@ mod tests {
         assert_eq!("VALIDATED".parse::<Key>()?, Key::IsValidated);
         assert_eq!("1000G".parse::<Key>()?, Key::IsIn1000Genomes);
 
+        assert!("".parse::<Key>().is_err());
+
         Ok(())
     }
 }
