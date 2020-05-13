@@ -78,7 +78,7 @@ impl Record {
 #[derive(Debug)]
 pub enum ParseError {
     Missing(Field),
-    Invalid(Field, Box<dyn error::Error>),
+    Invalid(Field, Box<dyn error::Error + Send + Sync>),
 }
 
 impl error::Error for ParseError {}
