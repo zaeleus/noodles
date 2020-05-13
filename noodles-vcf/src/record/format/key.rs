@@ -244,6 +244,8 @@ mod tests {
         assert_eq!("PQ".parse::<Key>()?, Key::PhasingQuality);
         assert_eq!("PS".parse::<Key>()?, Key::PhaseSet);
 
+        assert!("".parse::<Key>().is_err());
+
         Ok(())
     }
 }
