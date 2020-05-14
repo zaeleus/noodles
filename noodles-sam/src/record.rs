@@ -1,5 +1,9 @@
 mod builder;
+pub mod cigar;
+pub mod data;
 mod field;
+mod flags;
+mod mapping_quality;
 mod mate_reference_sequence_name;
 mod position;
 pub mod quality_scores;
@@ -8,14 +12,13 @@ mod reference_sequence_name;
 pub mod sequence;
 
 pub use self::{
-    builder::Builder, field::Field, mate_reference_sequence_name::MateReferenceSequenceName,
+    builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
+    mapping_quality::MappingQuality, mate_reference_sequence_name::MateReferenceSequenceName,
     position::Position, quality_scores::QualityScores, read_name::ReadName,
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
 use std::{error, fmt, str::FromStr};
-
-use super::{Cigar, Data, Flags, MappingQuality};
 
 pub(crate) const NULL_FIELD: &str = "*";
 const FIELD_DELIMITER: char = '\t';

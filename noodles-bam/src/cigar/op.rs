@@ -1,7 +1,7 @@
 use std::{convert::TryFrom, error, fmt};
 
 use byteorder::{ByteOrder, LittleEndian};
-use noodles_sam::cigar::op::Kind;
+use noodles_sam::record::cigar::op::Kind;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {

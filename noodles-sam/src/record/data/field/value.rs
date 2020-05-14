@@ -3,7 +3,7 @@ mod ty;
 
 use std::{fmt, str::FromStr};
 
-use crate::data::field::{self, Component, ParseError};
+use super::{Component, ParseError, DELIMITER};
 
 use self::{subtype::Subtype, ty::Type};
 
@@ -268,7 +268,7 @@ impl FromStr for Value {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut components = s.splitn(2, field::DELIMITER);
+        let mut components = s.splitn(2, DELIMITER);
 
         let ty = components
             .next()

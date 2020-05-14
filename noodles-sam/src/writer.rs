@@ -52,7 +52,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use crate::record::{
         data::{self, Field},
         Data,
     };

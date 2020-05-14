@@ -1,8 +1,6 @@
-use crate::{Cigar, Data, Flags, MappingQuality};
-
 use super::{
-    MateReferenceSequenceName, Position, QualityScores, ReadName, Record, ReferenceSequenceName,
-    Sequence,
+    Cigar, Data, Flags, MappingQuality, MateReferenceSequenceName, Position, QualityScores,
+    ReadName, Record, ReferenceSequenceName, Sequence,
 };
 
 #[derive(Debug, Default)]
@@ -112,7 +110,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{cigar, data};
+    use crate::record::{cigar, data};
 
     use super::*;
 

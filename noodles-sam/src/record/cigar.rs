@@ -4,7 +4,7 @@ use std::{fmt, str::FromStr};
 
 pub use self::op::Op;
 
-use super::record;
+use super::NULL_FIELD;
 
 use self::op::Kind;
 
@@ -40,7 +40,7 @@ impl fmt::Display for Cigar {
         let ops = self.ops();
 
         if ops.is_empty() {
-            write!(f, "{}", record::NULL_FIELD)
+            write!(f, "{}", NULL_FIELD)
         } else {
             for op in ops {
                 write!(f, "{}", op)?;
@@ -57,7 +57,7 @@ impl FromStr for Cigar {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(op::ParseError::Empty);
-        } else if s == record::NULL_FIELD {
+        } else if s == NULL_FIELD {
             return Ok(Cigar::default());
         }
 

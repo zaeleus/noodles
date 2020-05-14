@@ -54,10 +54,10 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..])
     }
 
-    pub fn flags(&self) -> sam::Flags {
+    pub fn flags(&self) -> sam::record::Flags {
         let offset = 14;
         let value = LittleEndian::read_u16(&self.0[offset..]);
-        sam::Flags::from(value)
+        sam::record::Flags::from(value)
     }
 
     fn l_seq(&self) -> u32 {

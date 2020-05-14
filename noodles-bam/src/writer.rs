@@ -8,7 +8,7 @@ use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
-    record::{MateReferenceSequenceName, QualityScores, Sequence},
+    record::{Cigar, MateReferenceSequenceName, QualityScores, Sequence},
 };
 
 use super::MAGIC_NUMBER;
@@ -183,7 +183,7 @@ where
     Ok(())
 }
 
-fn write_cigar<W>(writer: &mut W, cigar: &sam::Cigar) -> io::Result<()>
+fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
 where
     W: Write,
 {
@@ -312,7 +312,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         assert_eq!(record.name(), b"\0");
-        assert_eq!(record.flags(), sam::Flags::default());
+        assert_eq!(record.flags(), sam::record::Flags::default());
         assert_eq!(record.reference_sequence_id(), -1);
         assert_eq!(record.position(), -1);
         assert_eq!(record.mapping_quality(), 255);
