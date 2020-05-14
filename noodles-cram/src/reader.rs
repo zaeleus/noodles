@@ -53,9 +53,8 @@ where
         let mut block = Block::default();
         read_block(&mut reader, &mut block)?;
 
-        let header = String::from_utf8(block.decompressed_data()).expect("invalid file header");
-
-        Ok(header)
+        String::from_utf8(block.decompressed_data())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
