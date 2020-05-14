@@ -5,7 +5,12 @@ mod encoding;
 pub mod record;
 mod slice;
 
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    str,
+};
+
+use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{Block, Container, Slice};
 
@@ -44,16 +49,20 @@ where
     }
 
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let header = container::read_header(&mut self.inner)?;
+        let container_header = container::read_header(&mut self.inner)?;
 
-        let mut buf = vec![0; header.len() as usize];
+        let mut buf = vec![0; container_header.len() as usize];
         self.inner.read_exact(&mut buf)?;
 
         let mut reader = &buf[..];
         let mut block = Block::default();
         read_block(&mut reader, &mut block)?;
 
-        String::from_utf8(block.decompressed_data())
+        let mut data = &block.decompressed_data()[..];
+        let _header_len = data.read_i32::<LittleEndian>()?;
+
+        str::from_utf8(data)
+            .map(|s| s.into())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
