@@ -1,4 +1,4 @@
-mod field;
+pub mod field;
 
 pub use self::field::Field;
 

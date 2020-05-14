@@ -5,13 +5,15 @@ pub use self::ty::Type;
 
 use std::{collections::HashMap, convert::TryFrom};
 
+use crate::record::info;
+
 use super::{number, Number};
 
 use self::key::Key;
 
 #[derive(Clone, Debug)]
 pub struct Info {
-    id: String,
+    id: info::field::Key,
     number: Number,
     ty: Type,
     description: String,
@@ -19,7 +21,7 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> &info::field::Key {
         &self.id
     }
 
@@ -43,6 +45,7 @@ impl Info {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Key),
+    InvalidId(info::field::key::ParseError),
     InvalidNumber(number::ParseError),
     InvalidType(ty::ParseError),
 }
@@ -57,7 +60,7 @@ impl TryFrom<&[(String, String)]> for Info {
             .next()
             .ok_or_else(|| ParseError::MissingField(Key::Id))
             .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Id) => Ok(v.into()),
+                Ok(Key::Id) => v.parse().map_err(ParseError::InvalidId),
                 _ => Err(ParseError::MissingField(Key::Id)),
             })?;
 
@@ -116,7 +119,7 @@ mod tests {
         let fields = build_fields();
         let info = Info::try_from(&fields[..])?;
 
-        assert_eq!(info.id(), "NS");
+        assert_eq!(info.id(), &info::field::Key::SamplesWithDataCount);
         assert_eq!(*info.number(), Number::Count(1));
         assert_eq!(*info.ty(), Type::Integer);
         assert_eq!(info.description(), "Number of samples with data");

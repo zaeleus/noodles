@@ -5,7 +5,7 @@ mod field;
 mod filter_status;
 mod format;
 mod id;
-mod info;
+pub mod info;
 mod quality_score;
 mod reference_bases;
 

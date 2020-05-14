@@ -1,11 +1,13 @@
-mod key;
+pub mod key;
 mod value;
+
+pub use self::key::Key;
 
 use std::{error, fmt, str::FromStr};
 
 use crate::header::info::Type;
 
-use self::{key::Key, value::Value};
+use self::value::Value;
 
 const SEPARATOR: char = '=';
 const MAX_COMPONENTS: usize = 2;
