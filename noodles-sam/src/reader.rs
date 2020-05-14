@@ -20,7 +20,7 @@ where
         Self { inner }
     }
 
-    pub fn read_header(&mut self) -> io::Result<Vec<u8>> {
+    pub fn read_header(&mut self) -> io::Result<String> {
         let mut header_buf = Vec::new();
         let mut eol = false;
 
@@ -46,7 +46,7 @@ where
             self.inner.consume(len);
         }
 
-        Ok(header_buf)
+        String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
@@ -76,11 +76,11 @@ r002
         let mut reader = Reader::new(&DATA[..]);
 
         let actual = reader.read_header()?;
-        let expected = b"\
+        let expected = "\
 @HD\tVN:1.6\tSO:coordinate
 @SQ\tSN:ref0\tLN:13
 ";
-        assert_eq!(actual, &expected[..]);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
