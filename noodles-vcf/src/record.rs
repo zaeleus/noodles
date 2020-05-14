@@ -3,7 +3,7 @@ mod builder;
 mod chromosome;
 mod field;
 mod filter_status;
-mod format;
+pub mod format;
 mod id;
 pub mod info;
 mod quality_score;

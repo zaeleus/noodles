@@ -1,4 +1,4 @@
-mod key;
+pub mod key;
 
 pub use self::key::Key;
 
