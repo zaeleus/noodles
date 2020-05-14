@@ -180,6 +180,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
+        use alternate_bases::Allele;
         use reference_bases::Base;
 
         let s = "chr1\t13\tr0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
@@ -193,7 +194,7 @@ mod tests {
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);
 
-        let alternate_bases = [String::from("A")];
+        let alternate_bases = [Allele::Bases(vec![Base::A])];
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
         assert_eq!(**record.quality_score(), Some(5.8));

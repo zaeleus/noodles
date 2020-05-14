@@ -1,3 +1,7 @@
+mod allele;
+
+pub use self::allele::Allele;
+
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
@@ -5,10 +9,10 @@ use super::MISSING_FIELD;
 const DELIMITER: char = ',';
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct AlternateBases(Vec<String>);
+pub struct AlternateBases(Vec<Allele>);
 
 impl Deref for AlternateBases {
-    type Target = [String];
+    type Target = [Allele];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -33,9 +37,11 @@ impl FromStr for AlternateBases {
         match s {
             "" => Err(ParseError(s.into())),
             MISSING_FIELD => Ok(AlternateBases::default()),
-            _ => Ok(AlternateBases(
-                s.split(DELIMITER).map(|s| s.into()).collect(),
-            )),
+            _ => s
+                .split(DELIMITER)
+                .map(|s| s.parse().map_err(|_| ParseError(s.into())))
+                .collect::<Result<_, _>>()
+                .map(AlternateBases),
         }
     }
 }
@@ -48,20 +54,11 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         assert!(".".parse::<AlternateBases>()?.is_empty());
 
-        let expected = AlternateBases(vec![String::from("G")]);
-        assert_eq!("G".parse::<AlternateBases>()?, expected);
+        let alternate_baes = "G".parse::<AlternateBases>()?;
+        assert_eq!(alternate_baes.len(), 1);
 
-        let expected = AlternateBases(vec![String::from("G"), String::from("T")]);
-        assert_eq!("G,T".parse::<AlternateBases>()?, expected);
-
-        let expected = AlternateBases(vec![String::from("<DUP>")]);
-        assert_eq!("<DUP>".parse::<AlternateBases>()?, expected);
-
-        let expected = AlternateBases(vec![String::from("]sq0:5]A")]);
-        assert_eq!("]sq0:5]A".parse::<AlternateBases>()?, expected);
-
-        let expected = AlternateBases(vec![String::from("C[sq1:13[")]);
-        assert_eq!("C[sq1:13[".parse::<AlternateBases>()?, expected);
+        let alternate_baes = "G,T".parse::<AlternateBases>()?;
+        assert_eq!(alternate_baes.len(), 2);
 
         assert!("".parse::<AlternateBases>().is_err());
 
