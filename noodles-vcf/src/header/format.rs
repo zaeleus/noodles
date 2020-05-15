@@ -20,6 +20,15 @@ pub struct Format {
 }
 
 impl Format {
+    pub fn new(id: format::Key, number: Number, ty: Type, description: String) -> Self {
+        Self {
+            id,
+            number,
+            ty,
+            description,
+        }
+    }
+
     pub fn id(&self) -> &format::Key {
         &self.id
     }

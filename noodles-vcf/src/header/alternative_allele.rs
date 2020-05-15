@@ -16,6 +16,10 @@ pub struct AlternativeAllele {
 }
 
 impl AlternativeAllele {
+    pub fn new(id: Id, description: String) -> Self {
+        Self { id, description }
+    }
+
     pub fn id(&self) -> Id {
         self.id
     }

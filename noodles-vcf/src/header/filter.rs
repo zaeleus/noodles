@@ -13,6 +13,10 @@ pub struct Filter {
 }
 
 impl Filter {
+    pub fn new(id: String, description: String) -> Self {
+        Self { id, description }
+    }
+
     pub fn id(&self) -> &str {
         &self.id
     }

@@ -21,6 +21,16 @@ pub struct Info {
 }
 
 impl Info {
+    pub fn new(id: info::field::Key, number: Number, ty: Type, description: String) -> Self {
+        Self {
+            id,
+            number,
+            ty,
+            description,
+            fields: HashMap::new(),
+        }
+    }
+
     pub fn id(&self) -> &info::field::Key {
         &self.id
     }

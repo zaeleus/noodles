@@ -13,6 +13,13 @@ pub struct Contig {
 }
 
 impl Contig {
+    pub fn new(id: String) -> Self {
+        Self {
+            id,
+            fields: HashMap::new(),
+        }
+    }
+
     pub fn id(&self) -> &str {
         &self.id
     }

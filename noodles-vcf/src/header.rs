@@ -1,4 +1,5 @@
 mod alternative_allele;
+mod builder;
 mod contig;
 mod filter;
 pub mod format;
@@ -7,8 +8,8 @@ mod number;
 mod record;
 
 pub use self::{
-    alternative_allele::AlternativeAllele, contig::Contig, filter::Filter, format::Format,
-    info::Info, number::Number,
+    alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
+    format::Format, info::Info, number::Number,
 };
 
 use std::{
@@ -35,6 +36,10 @@ pub struct Header {
 }
 
 impl Header {
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
     pub fn file_format(&self) -> &str {
         &self.file_format
     }
@@ -70,16 +75,7 @@ impl Header {
 
 impl Default for Header {
     fn default() -> Self {
-        Self {
-            file_format: FILE_FORMAT.into(),
-            infos: Vec::new(),
-            filters: Vec::new(),
-            formats: Vec::new(),
-            alternative_alleles: Vec::new(),
-            assembly: None,
-            contigs: Vec::new(),
-            map: HashMap::new(),
-        }
+        Builder::new().build()
     }
 }
 
