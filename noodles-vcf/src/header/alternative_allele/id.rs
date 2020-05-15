@@ -18,7 +18,7 @@ impl AsRef<str> for Id {
             Self::Duplication => "DUP",
             Self::Inversion => "INV",
             Self::CopyNumberVariation => "CNV",
-            Self::Breakend => "BDN",
+            Self::Breakend => "BND",
         }
     }
 }
@@ -54,7 +54,7 @@ impl FromStr for Id {
             "DUP" => Ok(Self::Duplication),
             "INV" => Ok(Self::Inversion),
             "CNV" => Ok(Self::CopyNumberVariation),
-            "BDN" => Ok(Self::Breakend),
+            "BND" => Ok(Self::Breakend),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -71,7 +71,7 @@ mod tests {
         assert_eq!(Id::Duplication.to_string(), "DUP");
         assert_eq!(Id::Inversion.to_string(), "INV");
         assert_eq!(Id::CopyNumberVariation.to_string(), "CNV");
-        assert_eq!(Id::Breakend.to_string(), "BDN");
+        assert_eq!(Id::Breakend.to_string(), "BND");
     }
 
     #[test]
@@ -81,7 +81,7 @@ mod tests {
         assert_eq!("DUP".parse::<Id>()?, Id::Duplication);
         assert_eq!("INV".parse::<Id>()?, Id::Inversion);
         assert_eq!("CNV".parse::<Id>()?, Id::CopyNumberVariation);
-        assert_eq!("BDN".parse::<Id>()?, Id::Breakend);
+        assert_eq!("BND".parse::<Id>()?, Id::Breakend);
 
         assert!("".parse::<Id>().is_err());
         assert!("NDL".parse::<Id>().is_err());
