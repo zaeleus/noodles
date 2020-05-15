@@ -11,6 +11,7 @@ pub struct Builder {
     alternative_alleles: Vec<AlternativeAllele>,
     assembly: Option<String>,
     contigs: Vec<Contig>,
+    sample_names: Vec<String>,
     map: HashMap<String, String>,
 }
 
@@ -60,6 +61,14 @@ impl Builder {
         self
     }
 
+    pub fn add_sample_name<I>(mut self, sample_name: I) -> Self
+    where
+        I: Into<String>,
+    {
+        self.sample_names.push(sample_name.into());
+        self
+    }
+
     pub fn insert<K, V>(mut self, key: K, value: V) -> Self
     where
         K: Into<String>,
@@ -78,6 +87,7 @@ impl Builder {
             alternative_alleles: self.alternative_alleles,
             assembly: self.assembly,
             contigs: self.contigs,
+            samples_names: self.sample_names,
             map: self.map,
         }
     }
@@ -93,6 +103,7 @@ impl Default for Builder {
             alternative_alleles: Vec::new(),
             assembly: None,
             contigs: Vec::new(),
+            sample_names: Vec::new(),
             map: HashMap::new(),
         }
     }
@@ -113,6 +124,7 @@ mod tests {
         assert!(header.alternative_alleles().is_empty());
         assert!(header.assembly().is_none());
         assert!(header.contigs().is_empty());
+        assert!(header.sample_names().is_empty());
     }
 
     #[test]
@@ -147,6 +159,7 @@ mod tests {
             .set_assembly("file:///assemblies.fasta")
             .add_contig(Contig::new(String::from("sq0")))
             .add_contig(Contig::new(String::from("sq0")))
+            .add_sample_name("sample0")
             .insert("fileDate", "20200515")
             .build();
 
@@ -157,6 +170,7 @@ mod tests {
         assert_eq!(header.alternative_alleles().len(), 1);
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
+        assert_eq!(header.sample_names().len(), 1);
         assert_eq!(header.get("fileDate"), Some(&String::from("20200515")));
 
         Ok(())

@@ -6,7 +6,7 @@ pub use self::kind::Kind;
 
 use std::{error, fmt, str::FromStr};
 
-use self::value::Value;
+use self::{parser::Line, value::Value};
 
 type Field = (String, String);
 
@@ -19,6 +19,7 @@ pub enum Record {
     AlternativeAllele(Vec<Field>),
     Assembly(String),
     Contig(Vec<Field>),
+    Header(Vec<String>),
     Other(String, String),
 }
 
@@ -47,22 +48,30 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, (key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
+        println!("{}", s);
+        let (_, line) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
-        let kind = key.parse().map_err(ParseError::InvalidKind)?;
+        match line {
+            Line::Meta(key, value) => {
+                let kind = key.parse().map_err(ParseError::InvalidKind)?;
 
-        match kind {
-            Kind::FileFormat => Ok(parse_string(value).map(Self::FileFormat)?),
-            Kind::Info => Ok(parse_struct(value).map(Self::Info)?),
-            Kind::Filter => Ok(parse_struct(value).map(Self::Filter)?),
-            Kind::Format => Ok(parse_struct(value).map(Self::Format)?),
-            Kind::AlternativeAllele => Ok(parse_struct(value).map(Self::AlternativeAllele)?),
-            Kind::Assembly => Ok(parse_string(value).map(Self::Assembly)?),
-            Kind::Contig => Ok(parse_struct(value).map(Self::Contig)?),
-            Kind::Other(k) => {
-                let v = parse_string(value)?;
-                Ok(Self::Other(k, v))
+                match kind {
+                    Kind::FileFormat => Ok(parse_string(value).map(Self::FileFormat)?),
+                    Kind::Info => Ok(parse_struct(value).map(Self::Info)?),
+                    Kind::Filter => Ok(parse_struct(value).map(Self::Filter)?),
+                    Kind::Format => Ok(parse_struct(value).map(Self::Format)?),
+                    Kind::AlternativeAllele => {
+                        Ok(parse_struct(value).map(Self::AlternativeAllele)?)
+                    }
+                    Kind::Assembly => Ok(parse_string(value).map(Self::Assembly)?),
+                    Kind::Contig => Ok(parse_struct(value).map(Self::Contig)?),
+                    Kind::Other(k) => {
+                        let v = parse_string(value)?;
+                        Ok(Self::Other(k, v))
+                    }
+                }
             }
+            Line::Header(sample_names) => Ok(Self::Header(sample_names)),
         }
     }
 }

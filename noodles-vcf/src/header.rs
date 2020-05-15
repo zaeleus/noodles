@@ -32,6 +32,7 @@ pub struct Header {
     alternative_alleles: Vec<AlternativeAllele>,
     assembly: Option<String>,
     contigs: Vec<Contig>,
+    samples_names: Vec<String>,
     map: HashMap<String, String>,
 }
 
@@ -66,6 +67,10 @@ impl Header {
 
     pub fn contigs(&self) -> &[Contig] {
         &self.contigs
+    }
+
+    pub fn sample_names(&self) -> &[String] {
+        &self.samples_names
     }
 
     pub fn get(&self, key: &str) -> Option<&String> {
@@ -106,6 +111,18 @@ impl fmt::Display for Header {
         for (key, value) in &self.map {
             writeln!(f, "##{}={}", key, value)?;
         }
+
+        f.write_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")?;
+
+        if !self.sample_names().is_empty() {
+            f.write_str("\tFORMAT")?;
+
+            for sample_name in self.sample_names() {
+                write!(f, "\t{}", sample_name)?;
+            }
+        }
+
+        f.write_str("\n")?;
 
         Ok(())
     }
@@ -181,6 +198,9 @@ impl FromStr for Header {
                         Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
                     header.contigs.push(contig);
                 }
+                Record::Header(samples_names) => {
+                    header.samples_names = samples_names;
+                }
                 Record::Other(key, value) => {
                     header.map.insert(key, value);
                 }
@@ -223,6 +243,7 @@ mod tests {
             alternative_alleles: vec![],
             assembly: Some(String::from("file:///assemblies.fasta")),
             contigs: vec![],
+            samples_names: vec![],
             map: vec![(String::from("fileDate"), String::from("20200514"))]
                 .into_iter()
                 .collect(),
@@ -232,6 +253,7 @@ mod tests {
 ##fileformat=VCFv4.3
 ##assembly=file:///assemblies.fasta
 ##fileDate=20200514
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
 
         assert_eq!(header.to_string(), expected);
@@ -250,6 +272,7 @@ mod tests {
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
         let header: Header = s.parse()?;
@@ -261,6 +284,7 @@ mod tests {
         assert_eq!(header.alternative_alleles().len(), 1);
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
+        assert!(header.sample_names().is_empty());
 
         assert_eq!(header.get("fileDate"), Some(&String::from("20200506")));
         assert_eq!(header.get("source"), Some(&String::from("noodles-vcf")));
