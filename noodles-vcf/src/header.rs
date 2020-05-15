@@ -14,6 +14,7 @@ pub use self::{
 use std::{
     collections::HashMap,
     convert::TryFrom,
+    fmt,
     str::{FromStr, Lines},
 };
 
@@ -79,6 +80,38 @@ impl Default for Header {
             contigs: Vec::new(),
             map: HashMap::new(),
         }
+    }
+}
+
+impl fmt::Display for Header {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "##{}={}", record::Kind::FileFormat, self.file_format)?;
+
+        for info in self.infos() {
+            writeln!(f, "{}", info)?;
+        }
+
+        for format in self.formats() {
+            writeln!(f, "{}", format)?;
+        }
+
+        for alternative_allele in self.alternative_alleles() {
+            writeln!(f, "{}", alternative_allele)?;
+        }
+
+        if let Some(assembly) = self.assembly() {
+            writeln!(f, "##{}={}", record::Kind::Assembly, assembly)?;
+        }
+
+        for contig in self.contigs() {
+            writeln!(f, "{}", contig)?;
+        }
+
+        for (key, value) in &self.map {
+            writeln!(f, "##{}={}", key, value)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -164,6 +197,30 @@ mod tests {
     fn test_default() {
         let header = Header::default();
         assert_eq!(header.file_format(), FILE_FORMAT);
+    }
+
+    #[test]
+    fn test_fmt() {
+        let header = Header {
+            file_format: FILE_FORMAT.into(),
+            infos: vec![],
+            filters: vec![],
+            formats: vec![],
+            alternative_alleles: vec![],
+            assembly: Some(String::from("file:///assemblies.fasta")),
+            contigs: vec![],
+            map: vec![(String::from("fileDate"), String::from("20200514"))]
+                .into_iter()
+                .collect(),
+        };
+
+        let expected = "\
+##fileformat=VCFv4.3
+##assembly=file:///assemblies.fasta
+##fileDate=20200514
+";
+
+        assert_eq!(header.to_string(), expected);
     }
 
     #[test]
