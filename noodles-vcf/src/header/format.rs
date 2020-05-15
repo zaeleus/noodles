@@ -3,11 +3,11 @@ mod ty;
 
 pub use self::ty::Type;
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt};
 
 use crate::record::format;
 
-use super::{number, Number};
+use super::{number, record, Number};
 
 use self::key::Key;
 
@@ -34,6 +34,23 @@ impl Format {
 
     pub fn description(&self) -> &str {
         &self.description
+    }
+}
+
+impl fmt::Display for Format {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("##")?;
+        f.write_str(record::Kind::Format.as_ref())?;
+        f.write_str("=<")?;
+
+        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, ",{}={}", Key::Number, self.number)?;
+        write!(f, ",{}={}", Key::Type, self.ty)?;
+        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        f.write_str(">")?;
+
+        Ok(())
     }
 }
 
@@ -96,14 +113,30 @@ impl TryFrom<&[(String, String)]> for Format {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_try_from_fields_for_format() -> Result<(), ParseError> {
-        let fields = vec![
+    fn build_fields() -> Vec<(String, String)> {
+        vec![
             (String::from("ID"), String::from("GT")),
             (String::from("Number"), String::from("1")),
             (String::from("Type"), String::from("Integer")),
             (String::from("Description"), String::from("Genotype")),
-        ];
+        ]
+    }
+
+    #[test]
+    fn test_fmt() -> Result<(), ParseError> {
+        let fields = build_fields();
+        let format = Format::try_from(&fields[..])?;
+
+        let expected = r#"##FORMAT=<ID=GT,Number=1,Type=Integer,Description="Genotype">"#;
+
+        assert_eq!(format.to_string(), expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_format() -> Result<(), ParseError> {
+        let fields = build_fields();
 
         let format = Format::try_from(&fields[..])?;
 

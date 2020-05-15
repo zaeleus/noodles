@@ -8,6 +8,23 @@ pub enum Type {
     String,
 }
 
+impl AsRef<str> for Type {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Integer => "Integer",
+            Self::Float => "Float",
+            Self::Character => "Character",
+            Self::String => "String",
+        }
+    }
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -40,6 +57,14 @@ impl FromStr for Type {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Type::Integer.to_string(), "Integer");
+        assert_eq!(Type::Float.to_string(), "Float");
+        assert_eq!(Type::Character.to_string(), "Character");
+        assert_eq!(Type::String.to_string(), "String");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
