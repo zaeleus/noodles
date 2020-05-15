@@ -1,6 +1,8 @@
 mod key;
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::{collections::HashMap, convert::TryFrom, fmt};
+
+use super::record;
 
 use self::key::Key;
 
@@ -17,6 +19,24 @@ impl Contig {
 
     pub fn get(&self, key: &str) -> Option<&str> {
         self.fields.get(key).map(|s| &**s)
+    }
+}
+
+impl fmt::Display for Contig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("##")?;
+        f.write_str(record::Kind::Contig.as_ref())?;
+        f.write_str("=<")?;
+
+        write!(f, "{}={}", Key::Id, self.id)?;
+
+        for (key, value) in &self.fields {
+            write!(f, r#",{}="{}""#, key, value)?;
+        }
+
+        f.write_str(">")?;
+
+        Ok(())
     }
 }
 
@@ -63,13 +83,28 @@ impl TryFrom<&[(String, String)]> for Contig {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_try_from_fields_for_contig() -> Result<(), ParseError> {
-        let fields = vec![
+    fn build_fields() -> Vec<(String, String)> {
+        vec![
             (String::from("ID"), String::from("sq0")),
             (String::from("length"), String::from("13")),
-        ];
+        ]
+    }
 
+    #[test]
+    fn test_fmt() -> Result<(), ParseError> {
+        let fields = build_fields();
+        let contig = Contig::try_from(&fields[..])?;
+
+        let expected = r#"##contig=<ID=sq0,length="13">"#;
+
+        assert_eq!(contig.to_string(), expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_contig() -> Result<(), ParseError> {
+        let fields = build_fields();
         let contig = Contig::try_from(&fields[..])?;
 
         assert_eq!(contig.id(), "sq0");

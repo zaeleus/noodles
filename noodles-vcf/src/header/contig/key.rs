@@ -6,6 +6,21 @@ pub enum Key {
     Other(String),
 }
 
+impl AsRef<str> for Key {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => "ID",
+            Self::Other(s) => s,
+        }
+    }
+}
+
+impl fmt::Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -32,6 +47,12 @@ impl FromStr for Key {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Key::Id.to_string(), "ID");
+        assert_eq!(Key::Other(String::from("length")).to_string(), "length");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
