@@ -3,6 +3,7 @@ use std::{error, fmt, str::FromStr};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
     Id,
+    Length,
     Other(String),
 }
 
@@ -10,6 +11,7 @@ impl AsRef<str> for Key {
     fn as_ref(&self) -> &str {
         match self {
             Self::Id => "ID",
+            Self::Length => "length",
             Self::Other(s) => s,
         }
     }
@@ -39,6 +41,7 @@ impl FromStr for Key {
         match s {
             "" => Err(ParseError(s.into())),
             "ID" => Ok(Self::Id),
+            "length" => Ok(Self::Length),
             _ => Ok(Self::Other(s.into())),
         }
     }
@@ -51,13 +54,14 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(Key::Id.to_string(), "ID");
-        assert_eq!(Key::Other(String::from("length")).to_string(), "length");
+        assert_eq!(Key::Length.to_string(), "length");
+        assert_eq!(Key::Other(String::from("md5")).to_string(), "md5");
     }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("ID".parse::<Key>()?, Key::Id);
-        assert_eq!("length".parse::<Key>()?, Key::Other(String::from("length")));
+        assert_eq!("length".parse::<Key>()?, Key::Length);
         assert_eq!(
             "assembly".parse::<Key>()?,
             Key::Other(String::from("assembly"))
