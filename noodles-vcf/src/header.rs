@@ -14,7 +14,7 @@ pub use self::{
 use std::{
     collections::HashMap,
     convert::TryFrom,
-    fmt,
+    error, fmt,
     str::{FromStr, Lines},
 };
 
@@ -124,6 +124,24 @@ pub enum ParseError {
     InvalidFormat(format::ParseError),
     InvalidAlternativeAllele(alternative_allele::ParseError),
     InvalidContig(contig::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid header: ")?;
+
+        match self {
+            ParseError::MissingFileFormat => f.write_str("missing fileformat"),
+            ParseError::InvalidRecord(e) => write!(f, "{}", e),
+            ParseError::InvalidInfo(e) => write!(f, "{}", e),
+            ParseError::InvalidFilter(e) => write!(f, "{}", e),
+            ParseError::InvalidFormat(e) => write!(f, "{}", e),
+            ParseError::InvalidAlternativeAllele(e) => write!(f, "{}", e),
+            ParseError::InvalidContig(e) => write!(f, "{}", e),
+        }
+    }
 }
 
 impl FromStr for Header {

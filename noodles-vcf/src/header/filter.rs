@@ -1,6 +1,6 @@
 mod key;
 
-use std::{convert::TryFrom, fmt};
+use std::{convert::TryFrom, error, fmt};
 
 use super::record;
 
@@ -40,6 +40,18 @@ impl fmt::Display for Filter {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Key),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid filter header: ")?;
+
+        match self {
+            ParseError::MissingField(key) => write!(f, "missing {} field", key),
+        }
+    }
 }
 
 impl TryFrom<&[(String, String)]> for Filter {

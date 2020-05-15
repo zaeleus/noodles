@@ -1,6 +1,6 @@
 mod key;
 
-use std::{collections::HashMap, convert::TryFrom, fmt};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use super::record;
 
@@ -44,6 +44,19 @@ impl fmt::Display for Contig {
 pub enum ParseError {
     InvalidKey(key::ParseError),
     MissingField(Key),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid contig header: ")?;
+
+        match self {
+            ParseError::InvalidKey(e) => write!(f, "{}", e),
+            ParseError::MissingField(key) => write!(f, "missing {} field", key),
+        }
+    }
 }
 
 impl TryFrom<&[(String, String)]> for Contig {

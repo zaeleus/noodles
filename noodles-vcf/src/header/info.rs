@@ -3,7 +3,7 @@ mod ty;
 
 pub use self::ty::Type;
 
-use std::{collections::HashMap, convert::TryFrom, fmt};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use crate::record::info;
 
@@ -69,6 +69,21 @@ pub enum ParseError {
     InvalidId(info::field::key::ParseError),
     InvalidNumber(number::ParseError),
     InvalidType(ty::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid info header: ")?;
+
+        match self {
+            ParseError::MissingField(key) => write!(f, "missing {} field", key),
+            ParseError::InvalidId(e) => write!(f, "{}", e),
+            ParseError::InvalidNumber(e) => write!(f, "{}", e),
+            ParseError::InvalidType(e) => write!(f, "{}", e),
+        }
+    }
 }
 
 impl TryFrom<&[(String, String)]> for Info {

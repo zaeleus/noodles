@@ -3,7 +3,7 @@ mod key;
 
 pub use self::id::Id;
 
-use std::{convert::TryFrom, fmt};
+use std::{convert::TryFrom, error, fmt};
 
 use super::record;
 
@@ -45,6 +45,19 @@ pub enum ParseError {
     MissingField(Key),
     InvalidId(id::ParseError),
 }
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid alternative allele header: ")?;
+
+        match self {
+            ParseError::MissingField(key) => write!(f, "missing {} field", key),
+            ParseError::InvalidId(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+impl error::Error for ParseError {}
 
 impl TryFrom<&[(String, String)]> for AlternativeAllele {
     type Error = ParseError;
