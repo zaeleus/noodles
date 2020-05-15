@@ -3,7 +3,9 @@ mod key;
 
 pub use self::id::Id;
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, fmt};
+
+use super::record;
 
 use self::key::Key;
 
@@ -20,6 +22,21 @@ impl AlternativeAllele {
 
     pub fn description(&self) -> &str {
         &self.description
+    }
+}
+
+impl fmt::Display for AlternativeAllele {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("##")?;
+        f.write_str(record::Kind::AlternativeAllele.as_ref())?;
+        f.write_str("=<")?;
+
+        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        f.write_str(">")?;
+
+        Ok(())
     }
 }
 
@@ -59,13 +76,28 @@ impl TryFrom<&[(String, String)]> for AlternativeAllele {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_try_from_fields_for_filter() -> Result<(), ParseError> {
-        let fields = vec![
+    fn build_fields() -> Vec<(String, String)> {
+        vec![
             (String::from("ID"), String::from("DEL")),
             (String::from("Description"), String::from("Deletion")),
-        ];
+        ]
+    }
 
+    #[test]
+    fn test_fmt() -> Result<(), ParseError> {
+        let fields = build_fields();
+        let alternative_allele = AlternativeAllele::try_from(&fields[..])?;
+
+        let expected = r#"##ALT=<ID=DEL,Description="Deletion">"#;
+
+        assert_eq!(alternative_allele.to_string(), expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_filter() -> Result<(), ParseError> {
+        let fields = build_fields();
         let filter = AlternativeAllele::try_from(&fields[..])?;
 
         assert_eq!(filter.id(), Id::Deletion);

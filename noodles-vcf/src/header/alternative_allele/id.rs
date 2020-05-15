@@ -10,6 +10,25 @@ pub enum Id {
     Breakend,
 }
 
+impl AsRef<str> for Id {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Deletion => "DEL",
+            Self::Insertion => "INS",
+            Self::Duplication => "DUP",
+            Self::Inversion => "INV",
+            Self::CopyNumberVariation => "CNV",
+            Self::Breakend => "BDN",
+        }
+    }
+}
+
+impl fmt::Display for Id {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -44,6 +63,16 @@ impl FromStr for Id {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Id::Deletion.to_string(), "DEL");
+        assert_eq!(Id::Insertion.to_string(), "INS");
+        assert_eq!(Id::Duplication.to_string(), "DUP");
+        assert_eq!(Id::Inversion.to_string(), "INV");
+        assert_eq!(Id::CopyNumberVariation.to_string(), "CNV");
+        assert_eq!(Id::Breakend.to_string(), "BDN");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
