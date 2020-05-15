@@ -3,11 +3,11 @@ mod ty;
 
 pub use self::ty::Type;
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::{collections::HashMap, convert::TryFrom, fmt};
 
 use crate::record::info;
 
-use super::{number, Number};
+use super::{number, record, Number};
 
 use self::key::Key;
 
@@ -39,6 +39,27 @@ impl Info {
 
     pub fn fields(&self) -> &HashMap<String, String> {
         &self.fields
+    }
+}
+
+impl fmt::Display for Info {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("##")?;
+        f.write_str(record::Kind::Info.as_ref())?;
+        f.write_str("=<")?;
+
+        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, ",{}={}", Key::Number, self.number)?;
+        write!(f, ",{}={}", Key::Type, self.ty)?;
+        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        for (key, value) in &self.fields {
+            write!(f, r#",{}="{}""#, key, value)?;
+        }
+
+        f.write_str(">")?;
+
+        Ok(())
     }
 }
 
@@ -112,6 +133,19 @@ mod tests {
                 String::from("Number of samples with data"),
             ),
         ]
+    }
+
+    #[test]
+    fn test_fmt() -> Result<(), ParseError> {
+        let fields = build_fields();
+        let info = Info::try_from(&fields[..])?;
+
+        let expected =
+            r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
+
+        assert_eq!(info.to_string(), expected);
+
+        Ok(())
     }
 
     #[test]

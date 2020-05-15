@@ -27,6 +27,12 @@ impl AsRef<str> for Kind {
     }
 }
 
+impl fmt::Display for Kind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -63,6 +69,21 @@ impl FromStr for Kind {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Kind::FileFormat.to_string(), "fileformat");
+        assert_eq!(Kind::Info.to_string(), "INFO");
+        assert_eq!(Kind::Filter.to_string(), "FILTER");
+        assert_eq!(Kind::Format.to_string(), "FORMAT");
+        assert_eq!(Kind::AlternativeAllele.to_string(), "ALT");
+        assert_eq!(Kind::Assembly.to_string(), "assembly");
+        assert_eq!(Kind::Contig.to_string(), "contig");
+        assert_eq!(
+            Kind::Other(String::from("fileDate")).to_string(),
+            "fileDate"
+        );
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

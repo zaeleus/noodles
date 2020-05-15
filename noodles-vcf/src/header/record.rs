@@ -2,9 +2,11 @@ mod kind;
 mod parser;
 mod value;
 
+pub use self::kind::Kind;
+
 use std::{error, fmt, str::FromStr};
 
-use self::{kind::Kind, value::Value};
+use self::value::Value;
 
 type Field = (String, String);
 

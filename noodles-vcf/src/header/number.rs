@@ -15,6 +15,18 @@ impl Default for Number {
     }
 }
 
+impl fmt::Display for Number {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Count(n) => write!(f, "{}", n),
+            Self::A => f.write_str("A"),
+            Self::R => f.write_str("R"),
+            Self::G => f.write_str("G"),
+            Self::Unknown => f.write_str("."),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -54,6 +66,15 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(Number::default(), Number::Unknown);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Number::Count(1).to_string(), "1");
+        assert_eq!(Number::A.to_string(), "A");
+        assert_eq!(Number::R.to_string(), "R");
+        assert_eq!(Number::G.to_string(), "G");
+        assert_eq!(Number::Unknown.to_string(), ".");
     }
 
     #[test]
