@@ -52,15 +52,16 @@ impl FromStr for Info {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == MISSING_FIELD {
-            return Ok(Info::default());
+        match s {
+            "" => Err(ParseError(s.into())),
+            MISSING_FIELD => Ok(Info::default()),
+            _ => s
+                .split(DELIMITER)
+                .map(|s| s.parse())
+                .collect::<Result<_, _>>()
+                .map(Info)
+                .map_err(|_| ParseError(s.into())),
         }
-
-        s.split(DELIMITER)
-            .map(|s| s.parse())
-            .collect::<Result<_, _>>()
-            .map(Info)
-            .map_err(|_| ParseError(s.into()))
     }
 }
 
@@ -99,6 +100,8 @@ mod tests {
 
         let actual: Info = "NS=2;AF=0.333,0.667".parse()?;
         assert_eq!(actual.len(), 2);
+
+        assert!("".parse::<Info>().is_err());
 
         Ok(())
     }
