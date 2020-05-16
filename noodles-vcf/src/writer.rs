@@ -65,12 +65,13 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
+            .set_position(1)
             .set_reference_bases("A".parse()?)
             .build()?;
 
         writer.write_record(&record)?;
 
-        let expected = b"sq0\t0\t.\tA\t.\t.\t.\t.\n";
+        let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\n";
 
         assert_eq!(writer.get_ref(), expected);
 

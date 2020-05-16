@@ -8,7 +8,7 @@ use super::{
 #[derive(Debug, Default)]
 pub struct Builder {
     chromosome: Option<Chromosome>,
-    position: i32,
+    position: Option<i32>,
     id: Id,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
@@ -39,7 +39,7 @@ impl Builder {
     }
 
     pub fn set_position(mut self, position: i32) -> Self {
-        self.position = position;
+        self.position = Some(position);
         self
     }
 
@@ -85,7 +85,7 @@ impl Builder {
 
         Ok(Record {
             chromosome: self.chromosome.ok_or_else(|| BuildError)?,
-            position: self.position,
+            position: self.position.ok_or_else(|| BuildError)?,
             id: self.id,
             reference_bases: self.reference_bases,
             alternate_bases: self.alternate_bases,
@@ -108,11 +108,12 @@ mod tests {
 
         let record = Builder::new()
             .set_chromosome(chromosome.clone())
+            .set_position(5)
             .set_reference_bases(reference_bases.clone())
             .build()?;
 
         assert_eq!(record.chromosome(), &chromosome);
-        assert_eq!(record.position(), 0);
+        assert_eq!(record.position(), 5);
         assert!(record.id().is_none());
         assert_eq!(record.reference_bases(), &reference_bases);
         assert!(record.alternate_bases().is_empty());
