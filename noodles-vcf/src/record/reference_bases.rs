@@ -4,6 +4,8 @@ pub use self::base::Base;
 
 use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
+use super::MISSING_FIELD;
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ReferenceBases(Vec<Base>);
 
@@ -40,12 +42,16 @@ impl FromStr for ReferenceBases {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.chars()
-            .map(|c| c.to_ascii_uppercase())
-            .map(Base::try_from)
-            .collect::<Result<_, _>>()
-            .map(ReferenceBases)
-            .map_err(|_| ParseError(s.into()))
+        match s {
+            "" | MISSING_FIELD => Err(ParseError(s.into())),
+            _ => s
+                .chars()
+                .map(|c| c.to_ascii_uppercase())
+                .map(Base::try_from)
+                .collect::<Result<_, _>>()
+                .map(ReferenceBases)
+                .map_err(|_| ParseError(s.into())),
+        }
     }
 }
 
@@ -71,6 +77,9 @@ mod tests {
 
         let bases: ReferenceBases = "AtCgN".parse()?;
         assert_eq!(&bases[..], &expected[..]);
+
+        assert!("".parse::<ReferenceBases>().is_err());
+        assert!(".".parse::<ReferenceBases>().is_err());
 
         Ok(())
     }

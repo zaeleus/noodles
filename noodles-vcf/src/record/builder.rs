@@ -79,6 +79,10 @@ impl Builder {
     }
 
     pub fn build(self) -> Result<Record, BuildError> {
+        if self.reference_bases.is_empty() {
+            return Err(BuildError);
+        }
+
         Ok(Record {
             chromosome: self.chromosome.ok_or_else(|| BuildError)?,
             position: self.position,
@@ -100,12 +104,17 @@ mod tests {
     #[test]
     fn test_default() -> Result<(), Box<dyn std::error::Error>> {
         let chromosome: Chromosome = "sq0".parse()?;
-        let record = Builder::new().set_chromosome(chromosome.clone()).build()?;
+        let reference_bases: ReferenceBases = "A".parse()?;
+
+        let record = Builder::new()
+            .set_chromosome(chromosome.clone())
+            .set_reference_bases(reference_bases.clone())
+            .build()?;
 
         assert_eq!(record.chromosome(), &chromosome);
         assert_eq!(record.position(), 0);
         assert!(record.id().is_none());
-        assert!(record.reference_bases().is_empty());
+        assert_eq!(record.reference_bases(), &reference_bases);
         assert!(record.alternate_bases().is_empty());
         assert!(record.quality_score().is_none());
         assert_eq!(record.filter_status(), &FilterStatus::Missing);
