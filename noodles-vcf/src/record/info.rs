@@ -4,6 +4,8 @@ pub use self::field::Field;
 
 use std::{error, fmt, ops::Deref, str::FromStr};
 
+use super::MISSING_FIELD;
+
 const DELIMITER: char = ';';
 
 #[derive(Debug, Default)]
@@ -19,15 +21,19 @@ impl Deref for Info {
 
 impl fmt::Display for Info {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for (i, field) in self.iter().enumerate() {
-            if i > 0 {
-                write!(f, "{}", DELIMITER)?
+        if self.is_empty() {
+            f.write_str(MISSING_FIELD)
+        } else {
+            for (i, field) in self.iter().enumerate() {
+                if i > 0 {
+                    write!(f, "{}", DELIMITER)?
+                }
+
+                write!(f, "{}", field)?;
             }
 
-            write!(f, "{}", field)?;
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
@@ -46,6 +52,10 @@ impl FromStr for Info {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s == MISSING_FIELD {
+            return Ok(Info::default());
+        }
+
         s.split(DELIMITER)
             .map(|s| s.parse())
             .collect::<Result<_, _>>()
@@ -60,6 +70,9 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        let info = Info::default();
+        assert_eq!(info.to_string(), ".");
+
         let info = Info(vec![Field::new(
             field::Key::SamplesWithDataCount,
             field::Value::Integer(2),
@@ -78,6 +91,9 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
+        let actual: Info = ".".parse()?;
+        assert!(actual.is_empty());
+
         let actual: Info = "NS=2".parse()?;
         assert_eq!(actual.len(), 1);
 

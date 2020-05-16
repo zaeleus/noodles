@@ -70,7 +70,7 @@ mod tests {
 
         writer.write_record(&record)?;
 
-        let expected = b"sq0\t0\t.\tA\t.\t.\t.\t\n";
+        let expected = b"sq0\t0\t.\tA\t.\t.\t.\t.\n";
 
         assert_eq!(writer.get_ref(), expected);
 
