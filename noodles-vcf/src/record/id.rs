@@ -5,11 +5,23 @@ use super::MISSING_FIELD;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Id(Option<String>);
 
+impl AsRef<str> for Id {
+    fn as_ref(&self) -> &str {
+        self.0.as_deref().unwrap_or(MISSING_FIELD)
+    }
+}
+
 impl Deref for Id {
     type Target = Option<String>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl fmt::Display for Id {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(self.as_ref())
     }
 }
 
@@ -39,6 +51,12 @@ impl FromStr for Id {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Id(Some(String::from("r0"))).to_string(), "r0");
+        assert_eq!(Id(None).to_string(), ".");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

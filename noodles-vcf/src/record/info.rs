@@ -17,6 +17,20 @@ impl Deref for Info {
     }
 }
 
+impl fmt::Display for Info {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (i, field) in self.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{}", DELIMITER)?
+            }
+
+            write!(f, "{}", field)?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -43,6 +57,24 @@ impl FromStr for Info {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let info = Info(vec![Field::new(
+            field::Key::SamplesWithDataCount,
+            field::Value::Integer(2),
+        )]);
+        assert_eq!(info.to_string(), "NS=2");
+
+        let info = Info(vec![
+            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
+            Field::new(
+                field::Key::AlleleFrequencies,
+                field::Value::FloatArray(vec![0.333, 0.667]),
+            ),
+        ]);
+        assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

@@ -17,6 +17,20 @@ impl Deref for Format {
     }
 }
 
+impl fmt::Display for Format {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (i, key) in self.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{}", DELIMITER)?
+            }
+
+            f.write_str(key.as_ref())?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -43,6 +57,20 @@ impl FromStr for Format {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let format = Format(vec![Key::Genotype]);
+        assert_eq!(format.to_string(), "GT");
+
+        let format = Format(vec![
+            Key::Genotype,
+            Key::ConditionalGenotypeQuality,
+            Key::ReadDepth,
+            Key::HaplotypeQuality,
+        ]);
+        assert_eq!(format.to_string(), "GT:GQ:DP:HQ");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

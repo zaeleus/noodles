@@ -15,6 +15,16 @@ impl Deref for ReferenceBases {
     }
 }
 
+impl fmt::Display for ReferenceBases {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for base in self.iter() {
+            write!(f, "{}", char::from(*base))?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -42,6 +52,12 @@ impl FromStr for ReferenceBases {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let reference_bases = ReferenceBases(vec![Base::A, Base::T, Base::C, Base::G, Base::N]);
+        assert_eq!(reference_bases.to_string(), "ATCGN");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

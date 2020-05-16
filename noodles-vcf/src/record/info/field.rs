@@ -1,13 +1,11 @@
 pub mod key;
 mod value;
 
-pub use self::key::Key;
+pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
 use crate::header::info::Type;
-
-use self::value::Value;
 
 const SEPARATOR: char = '=';
 const MAX_COMPONENTS: usize = 2;
@@ -29,6 +27,15 @@ impl Field {
 
     pub fn value(&self) -> &Value {
         &self.value
+    }
+}
+
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.value() {
+            Value::Flag(_) => write!(f, "{}", self.key),
+            value => write!(f, "{}{}{}", self.key, SEPARATOR, value),
+        }
     }
 }
 
@@ -85,6 +92,12 @@ mod tests {
     use crate::header::Number;
 
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let field = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+        assert_eq!(field.to_string(), "NS=2");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

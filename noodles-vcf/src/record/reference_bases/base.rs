@@ -9,6 +9,18 @@ pub enum Base {
     N,
 }
 
+impl From<Base> for char {
+    fn from(base: Base) -> Self {
+        match base {
+            Base::A => 'A',
+            Base::C => 'C',
+            Base::G => 'G',
+            Base::T => 'T',
+            Base::N => 'N',
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct TryFromCharError(char);
 
@@ -42,6 +54,15 @@ impl TryFrom<char> for Base {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_from_base_for_char() {
+        assert_eq!(char::from(Base::A), 'A');
+        assert_eq!(char::from(Base::C), 'C');
+        assert_eq!(char::from(Base::G), 'G');
+        assert_eq!(char::from(Base::T), 'T');
+        assert_eq!(char::from(Base::N), 'N');
+    }
 
     #[test]
     fn test_try_from_char_for_base() -> Result<(), TryFromCharError> {

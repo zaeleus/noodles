@@ -8,6 +8,15 @@ pub enum Chromosome {
     Symbol(String),
 }
 
+impl fmt::Display for Chromosome {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Name(name) => f.write_str(name),
+            Self::Symbol(symbol) => write!(f, "<{}>", symbol),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -39,6 +48,12 @@ impl FromStr for Chromosome {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Chromosome::Name(String::from("sq0")).to_string(), "sq0");
+        assert_eq!(Chromosome::Symbol(String::from("sq0")).to_string(), "<sq0>");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

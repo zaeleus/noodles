@@ -10,6 +10,23 @@ pub enum Allele {
     OverlappingDeletion,
 }
 
+impl fmt::Display for Allele {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Bases(bases) => {
+                for base in bases {
+                    write!(f, "{}", char::from(*base))?;
+                }
+
+                Ok(())
+            }
+            Self::Symbol(symbol) => f.write_str(symbol),
+            Self::Breakend(breakend) => f.write_str(breakend),
+            Self::OverlappingDeletion => f.write_str("*"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -50,6 +67,30 @@ impl FromStr for Allele {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let allele = Allele::Bases(vec![Base::G]);
+        assert_eq!(allele.to_string(), "G");
+
+        let allele = Allele::Bases(vec![Base::G, Base::T]);
+        assert_eq!(allele.to_string(), "GT");
+
+        let allele = Allele::Symbol(String::from("<DUP>"));
+        assert_eq!(allele.to_string(), "<DUP>");
+
+        let allele = Allele::Breakend(String::from("]sq0:5]A"));
+        assert_eq!(allele.to_string(), "]sq0:5]A");
+
+        let allele = Allele::Breakend(String::from("C[sq1:13["));
+        assert_eq!(allele.to_string(), "C[sq1:13[");
+
+        let allele = Allele::Breakend(String::from("G."));
+        assert_eq!(allele.to_string(), "G.");
+
+        let allele = Allele::Breakend(String::from(".A"));
+        assert_eq!(allele.to_string(), ".A");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

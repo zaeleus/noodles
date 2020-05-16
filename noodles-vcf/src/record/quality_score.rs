@@ -13,6 +13,15 @@ impl Deref for QualityScore {
     }
 }
 
+impl fmt::Display for QualityScore {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.0 {
+            Some(score) => write!(f, "{}", score),
+            None => f.write_str(MISSING_FIELD),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -42,6 +51,15 @@ impl FromStr for QualityScore {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let quality_score = QualityScore(Some(1.3));
+        assert_eq!(quality_score.to_string(), "1.3");
+
+        let quality_score = QualityScore(None);
+        assert_eq!(quality_score.to_string(), ".");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

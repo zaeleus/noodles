@@ -18,6 +18,26 @@ impl Default for FilterStatus {
     }
 }
 
+impl fmt::Display for FilterStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Missing => f.write_str(MISSING_FIELD),
+            Self::Pass => f.write_str(PASS_STATUS),
+            Self::Fail(ids) => {
+                for (i, id) in ids.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "{}", DELIMITER)?;
+                    }
+
+                    f.write_str(id)?;
+                }
+
+                Ok(())
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -52,6 +72,18 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(FilterStatus::default(), FilterStatus::Missing);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(FilterStatus::Missing.to_string(), ".");
+        assert_eq!(FilterStatus::Pass.to_string(), "PASS");
+
+        let status = FilterStatus::Fail(vec![String::from("q10")]);
+        assert_eq!(status.to_string(), "q10");
+
+        let status = FilterStatus::Fail(vec![String::from("q10"), String::from("s50")]);
+        assert_eq!(status.to_string(), "q10,s50");
     }
 
     #[test]

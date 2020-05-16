@@ -19,6 +19,24 @@ impl Deref for AlternateBases {
     }
 }
 
+impl fmt::Display for AlternateBases {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.is_empty() {
+            f.write_str(MISSING_FIELD)
+        } else {
+            for (i, allele) in self.iter().enumerate() {
+                if i > 0 {
+                    f.write_str(",")?;
+                }
+
+                write!(f, "{}", allele)?;
+            }
+
+            Ok(())
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
@@ -48,7 +66,24 @@ impl FromStr for AlternateBases {
 
 #[cfg(test)]
 mod tests {
+    use crate::record::reference_bases::Base;
+
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let alternate_bases = AlternateBases(vec![Allele::Bases(vec![Base::G])]);
+        assert_eq!(alternate_bases.to_string(), "G");
+
+        let alternate_bases = AlternateBases(vec![
+            Allele::Bases(vec![Base::G]),
+            Allele::Bases(vec![Base::T]),
+        ]);
+        assert_eq!(alternate_bases.to_string(), "G,T");
+
+        let alternate_bases = AlternateBases(vec![]);
+        assert_eq!(alternate_bases.to_string(), ".");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
