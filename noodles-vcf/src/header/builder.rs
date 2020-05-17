@@ -158,7 +158,7 @@ mod tests {
             ))
             .set_assembly("file:///assemblies.fasta")
             .add_contig(Contig::new(String::from("sq0")))
-            .add_contig(Contig::new(String::from("sq0")))
+            .add_contig(Contig::new(String::from("sq1")))
             .add_sample_name("sample0")
             .insert("fileDate", "20200515")
             .build();
