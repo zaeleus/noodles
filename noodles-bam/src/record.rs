@@ -1,3 +1,10 @@
+pub mod cigar;
+pub mod data;
+mod quality;
+pub mod sequence;
+
+pub use self::{cigar::Cigar, data::Data, quality::Quality, sequence::Sequence};
+
 use std::{
     ffi::CStr,
     fmt, mem,
@@ -6,8 +13,6 @@ use std::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam as sam;
-
-use super::{Cigar, Data, Quality, Sequence};
 
 #[derive(Clone, Default)]
 pub struct Record(Vec<u8>);

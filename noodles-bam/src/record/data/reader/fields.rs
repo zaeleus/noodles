@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::data::Field;
+use crate::record::data::Field;
 
 use super::Reader;
 
