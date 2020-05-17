@@ -219,7 +219,7 @@ fn parse_file_format(lines: &mut Lines) -> Result<String, ParseError> {
 
     match record {
         Record::FileFormat(value) => Ok(value),
-        _ => return Err(ParseError::MissingFileFormat),
+        _ => Err(ParseError::MissingFileFormat),
     }
 }
 
