@@ -33,7 +33,7 @@ impl Field {
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.value() {
-            Value::Flag(_) => write!(f, "{}", self.key),
+            Value::Flag => write!(f, "{}", self.key),
             value => write!(f, "{}{}{}", self.key, SEPARATOR, value),
         }
     }
@@ -111,7 +111,7 @@ mod tests {
 
         let actual: Field = "SOMATIC".parse()?;
         assert_eq!(actual.key(), &Key::IsSomaticMutation);
-        assert_eq!(actual.value(), &Value::Flag(true));
+        assert_eq!(actual.value(), &Value::Flag);
 
         let actual: Field = "SVTYPE=DEL".parse()?;
         assert_eq!(

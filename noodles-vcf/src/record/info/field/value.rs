@@ -10,7 +10,7 @@ const DELIMITER: char = ',';
 pub enum Value {
     Integer(i32),
     Float(f32),
-    Flag(bool),
+    Flag,
     Character(char),
     String(String),
     IntegerArray(Vec<i32>),
@@ -24,7 +24,7 @@ impl fmt::Display for Value {
         match self {
             Self::Integer(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
-            Self::Flag(_) => Ok(()),
+            Self::Flag => Ok(()),
             Self::Character(c) => write!(f, "{}", c),
             Self::String(s) => write!(f, "{}", s),
             Self::IntegerArray(values) => {
@@ -161,7 +161,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
 
 fn parse_flag(s: &str) -> Result<Value, ParseError> {
     if s.is_empty() {
-        Ok(Value::Flag(true))
+        Ok(Value::Flag)
     } else {
         Err(ParseError::InvalidFlag(s.into()))
     }
@@ -211,8 +211,7 @@ mod tests {
         let value = Value::Float(0.333);
         assert_eq!(value.to_string(), "0.333");
 
-        let value = Value::Flag(true);
-        assert_eq!(value.to_string(), "");
+        assert_eq!(Value::Flag.to_string(), "");
 
         let value = Value::Character('n');
         assert_eq!(value.to_string(), "n");
