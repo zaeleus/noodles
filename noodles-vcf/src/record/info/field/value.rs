@@ -243,4 +243,89 @@ mod tests {
         let value = Value::StringArray(vec![String::from("noodles"), String::from("vcf")]);
         assert_eq!(value.to_string(), "noodles,vcf");
     }
+
+    #[test]
+    fn test_from_str_key_with_integer() -> Result<(), ParseError> {
+        let key = Key::Other(String::from("I32"), Number::Count(0), Type::Integer);
+        assert!(Value::from_str_key("8", &key).is_err());
+
+        let key = Key::Other(String::from("I32"), Number::Count(1), Type::Integer);
+        assert_eq!(Value::from_str_key("8", &key)?, Value::Integer(8));
+
+        let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
+        assert_eq!(
+            Value::from_str_key("8,13", &key)?,
+            Value::IntegerArray(vec![8, 13])
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_key_with_float() -> Result<(), ParseError> {
+        let key = Key::Other(String::from("F32"), Number::Count(0), Type::Float);
+        assert!(Value::from_str_key("0.333", &key).is_err());
+
+        let key = Key::Other(String::from("F32"), Number::Count(1), Type::Float);
+        assert_eq!(Value::from_str_key("0.333", &key)?, Value::Float(0.333));
+
+        let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
+        assert_eq!(
+            Value::from_str_key("0.333,0.667", &key)?,
+            Value::FloatArray(vec![0.333, 0.667])
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_key_with_flag() -> Result<(), ParseError> {
+        let key = Key::Other(String::from("BOOL"), Number::Count(0), Type::Flag);
+        assert_eq!(Value::from_str_key("", &key)?, Value::Flag);
+
+        let key = Key::Other(String::from("BOOL"), Number::Count(0), Type::Flag);
+        assert!(Value::from_str_key("true", &key).is_err());
+
+        let key = Key::Other(String::from("BOOL"), Number::Count(1), Type::Flag);
+        assert!(Value::from_str_key("", &key).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_key_with_character() -> Result<(), ParseError> {
+        let key = Key::Other(String::from("CHAR"), Number::Count(0), Type::Character);
+        assert!(Value::from_str_key("n", &key).is_err());
+
+        let key = Key::Other(String::from("CHAR"), Number::Count(1), Type::Character);
+        assert_eq!(Value::from_str_key("n", &key)?, Value::Character('n'));
+
+        let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
+        assert_eq!(
+            Value::from_str_key("n,d,l,s", &key)?,
+            Value::CharacterArray(vec!['n', 'd', 'l', 's'])
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_key_with_string() -> Result<(), ParseError> {
+        let key = Key::Other(String::from("STRING"), Number::Count(0), Type::String);
+        assert!(Value::from_str_key("noodles", &key).is_err());
+
+        let key = Key::Other(String::from("STRING"), Number::Count(1), Type::String);
+        assert_eq!(
+            Value::from_str_key("noodles", &key)?,
+            Value::String(String::from("noodles"))
+        );
+
+        let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
+        assert_eq!(
+            Value::from_str_key("noodles,vcf", &key)?,
+            Value::StringArray(vec![String::from("noodles"), String::from("vcf")])
+        );
+
+        Ok(())
+    }
 }
