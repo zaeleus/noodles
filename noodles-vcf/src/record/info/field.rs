@@ -97,6 +97,18 @@ mod tests {
     fn test_fmt() {
         let field = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
         assert_eq!(field.to_string(), "NS=2");
+
+        let field = Field::new(Key::BaseQuality, Value::Float(1.333));
+        assert_eq!(field.to_string(), "BQ=1.333");
+
+        let field = Field::new(Key::IsSomaticMutation, Value::Flag);
+        assert_eq!(field.to_string(), "SOMATIC");
+
+        let field = Field::new(
+            Key::Other(String::from("SVTYPE"), Number::Count(1), Type::String),
+            Value::String(String::from("DEL")),
+        );
+        assert_eq!(field.to_string(), "SVTYPE=DEL");
     }
 
     #[test]
