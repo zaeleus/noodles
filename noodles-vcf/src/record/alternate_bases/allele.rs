@@ -1,3 +1,7 @@
+pub mod symbol;
+
+pub use self::symbol::Symbol;
+
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 use crate::record::reference_bases::Base;
@@ -5,7 +9,7 @@ use crate::record::reference_bases::Base;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Allele {
     Bases(Vec<Base>),
-    Symbol(String),
+    Symbol(Symbol),
     Breakend(String),
     OverlappingDeletion,
 }
@@ -20,7 +24,7 @@ impl fmt::Display for Allele {
 
                 Ok(())
             }
-            Self::Symbol(symbol) => f.write_str(symbol),
+            Self::Symbol(symbol) => write!(f, "<{}>", symbol),
             Self::Breakend(breakend) => f.write_str(breakend),
             Self::OverlappingDeletion => f.write_str("*"),
         }
@@ -47,7 +51,10 @@ impl FromStr for Allele {
             "*" => Ok(Self::OverlappingDeletion),
             _ => {
                 if s.starts_with('<') {
-                    Ok(Self::Symbol(s.into()))
+                    s.trim_matches(|c| c == '<' || c == '>')
+                        .parse()
+                        .map(Self::Symbol)
+                        .map_err(|_| ParseError(s.into()))
                 } else if s.contains(|c| c == '[' || c == ']') || (s.len() == 2 && s.contains('.'))
                 {
                     Ok(Self::Breakend(s.into()))
@@ -76,7 +83,7 @@ mod tests {
         let allele = Allele::Bases(vec![Base::G, Base::T]);
         assert_eq!(allele.to_string(), "GT");
 
-        let allele = Allele::Symbol(String::from("<DUP>"));
+        let allele = Allele::Symbol(Symbol::new(symbol::Type::Duplication, Vec::new()));
         assert_eq!(allele.to_string(), "<DUP>");
 
         let allele = Allele::Breakend(String::from("]sq0:5]A"));
@@ -103,7 +110,7 @@ mod tests {
 
         assert_eq!(
             "<DUP>".parse::<Allele>()?,
-            Allele::Symbol(String::from("<DUP>"))
+            Allele::Symbol(Symbol::new(symbol::Type::Duplication, Vec::new()))
         );
 
         assert_eq!(

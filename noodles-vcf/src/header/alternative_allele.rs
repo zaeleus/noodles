@@ -1,9 +1,8 @@
-mod id;
 mod key;
 
-pub use self::id::Id;
-
 use std::{convert::TryFrom, error, fmt};
+
+use crate::record::alternate_bases::allele::{symbol, Symbol};
 
 use super::record;
 
@@ -11,17 +10,17 @@ use self::key::Key;
 
 #[derive(Clone, Debug)]
 pub struct AlternativeAllele {
-    id: Id,
+    id: Symbol,
     description: String,
 }
 
 impl AlternativeAllele {
-    pub fn new(id: Id, description: String) -> Self {
+    pub fn new(id: Symbol, description: String) -> Self {
         Self { id, description }
     }
 
-    pub fn id(&self) -> Id {
-        self.id
+    pub fn id(&self) -> &Symbol {
+        &self.id
     }
 
     pub fn description(&self) -> &str {
@@ -47,7 +46,7 @@ impl fmt::Display for AlternativeAllele {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Key),
-    InvalidId(id::ParseError),
+    InvalidId(symbol::ParseError),
 }
 
 impl fmt::Display for ParseError {
@@ -117,7 +116,10 @@ mod tests {
         let fields = build_fields();
         let filter = AlternativeAllele::try_from(&fields[..])?;
 
-        assert_eq!(filter.id(), Id::Deletion);
+        assert_eq!(
+            filter.id(),
+            &Symbol::new(symbol::Type::Deletion, Vec::new())
+        );
         assert_eq!(filter.description(), "Deletion");
 
         Ok(())

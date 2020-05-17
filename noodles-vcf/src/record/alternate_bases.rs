@@ -1,4 +1,4 @@
-mod allele;
+pub mod allele;
 
 pub use self::allele::Allele;
 

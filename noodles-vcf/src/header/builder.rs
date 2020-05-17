@@ -130,8 +130,8 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
-            header::{alternative_allele, format, info, Number},
-            record,
+            header::{format, info, Number},
+            record::{self, alternate_bases::allele},
         };
 
         let header = Builder::new()
@@ -153,7 +153,7 @@ mod tests {
                 String::from("Genotype"),
             ))
             .add_alternate_allele(AlternativeAllele::new(
-                alternative_allele::Id::Deletion,
+                allele::Symbol::from(allele::symbol::Type::Deletion),
                 String::from("Deletion"),
             ))
             .set_assembly("file:///assemblies.fasta")

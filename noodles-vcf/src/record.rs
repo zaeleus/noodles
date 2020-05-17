@@ -1,4 +1,4 @@
-mod alternate_bases;
+pub mod alternate_bases;
 mod builder;
 mod chromosome;
 mod field;
