@@ -89,11 +89,11 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         assert!(".".parse::<AlternateBases>()?.is_empty());
 
-        let alternate_baes = "G".parse::<AlternateBases>()?;
-        assert_eq!(alternate_baes.len(), 1);
+        let alternate_bases = "G".parse::<AlternateBases>()?;
+        assert_eq!(alternate_bases.len(), 1);
 
-        let alternate_baes = "G,T".parse::<AlternateBases>()?;
-        assert_eq!(alternate_baes.len(), 2);
+        let alternate_bases = "G,T".parse::<AlternateBases>()?;
+        assert_eq!(alternate_bases.len(), 2);
 
         assert!("".parse::<AlternateBases>().is_err());
 
