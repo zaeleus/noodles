@@ -1,13 +1,11 @@
 pub mod bai;
 pub mod reader;
 pub mod record;
-mod reference;
 mod writer;
 
 pub use self::{
     reader::{Reader, Records},
     record::Record,
-    reference::Reference,
     writer::Writer,
 };
 
