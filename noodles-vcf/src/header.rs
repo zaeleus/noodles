@@ -137,6 +137,7 @@ pub enum ParseError {
     InvalidFormat(format::ParseError),
     InvalidAlternativeAllele(alternative_allele::ParseError),
     InvalidContig(contig::ParseError),
+    ExpectedEof,
 }
 
 impl error::Error for ParseError {}
@@ -153,6 +154,7 @@ impl fmt::Display for ParseError {
             ParseError::InvalidFormat(e) => write!(f, "{}", e),
             ParseError::InvalidAlternativeAllele(e) => write!(f, "{}", e),
             ParseError::InvalidContig(e) => write!(f, "{}", e),
+            ParseError::ExpectedEof => f.write_str("expected EOF"),
         }
     }
 }
@@ -166,7 +168,7 @@ impl FromStr for Header {
 
         header.file_format = parse_file_format(&mut lines)?;
 
-        for line in lines {
+        while let Some(line) = lines.next() {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match record {
@@ -200,11 +202,16 @@ impl FromStr for Header {
                 }
                 Record::Header(samples_names) => {
                     header.samples_names = samples_names;
+                    break;
                 }
                 Record::Other(key, value) => {
                     header.map.insert(key, value);
                 }
             }
+        }
+
+        if lines.next().is_some() {
+            return Err(ParseError::ExpectedEof);
         }
 
         Ok(header)
@@ -309,5 +316,15 @@ mod tests {
         let header: Header = s.parse()?;
         assert!(header.assembly().is_none());
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_data_after_header() {
+        let s = r#"##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+##contig=<ID=sq0,length=8>
+"#;
+
+        assert!(matches!(s.parse::<Header>(), Err(ParseError::ExpectedEof)));
     }
 }
