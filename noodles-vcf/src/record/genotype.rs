@@ -4,7 +4,7 @@ pub use self::field::Field;
 
 use std::{error, fmt, ops::Deref};
 
-use super::Format;
+use super::{Format, MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
@@ -24,12 +24,17 @@ impl fmt::Display for ParseError {
 
 impl Genotype {
     pub fn from_str_format(s: &str, format: &Format) -> Result<Self, ParseError> {
-        s.split(DELIMITER)
-            .zip(format.iter())
-            .map(|(t, k)| Field::from_str_key(t, k))
-            .collect::<Result<_, _>>()
-            .map(Self)
-            .map_err(|_| ParseError(s.into()))
+        match s {
+            "" => Err(ParseError(s.into())),
+            MISSING_FIELD => Ok(Self::default()),
+            _ => s
+                .split(DELIMITER)
+                .zip(format.iter())
+                .map(|(t, k)| Field::from_str_key(t, k))
+                .collect::<Result<_, _>>()
+                .map(Self)
+                .map_err(|_| ParseError(s.into())),
+        }
     }
 }
 
@@ -43,15 +48,19 @@ impl Deref for Genotype {
 
 impl fmt::Display for Genotype {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for (i, field) in self.iter().enumerate() {
-            if i > 0 {
-                write!(f, "{}", DELIMITER)?
+        if self.is_empty() {
+            f.write_str(MISSING_FIELD)
+        } else {
+            for (i, field) in self.iter().enumerate() {
+                if i > 0 {
+                    write!(f, "{}", DELIMITER)?
+                }
+
+                write!(f, "{}", field)?;
             }
 
-            write!(f, "{}", field)?;
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
@@ -64,6 +73,10 @@ mod tests {
     #[test]
     fn test_from_str_format() -> Result<(), Box<dyn std::error::Error>> {
         let format = "GT".parse()?;
+        let actual = Genotype::from_str_format(".", &format)?;
+        assert!(actual.is_empty());
+
+        let format = "GT".parse()?;
         let actual = Genotype::from_str_format("0|0", &format)?;
         assert_eq!(actual.len(), 1);
 
@@ -71,11 +84,17 @@ mod tests {
         let actual = Genotype::from_str_format("0|0:13", &format)?;
         assert_eq!(actual.len(), 2);
 
+        let format = "GT".parse()?;
+        assert!(Genotype::from_str_format("", &format).is_err());
+
         Ok(())
     }
 
     #[test]
     fn test_fmt() {
+        let genotype = Genotype::default();
+        assert_eq!(genotype.to_string(), ".");
+
         let genotype = Genotype(vec![Field::new(
             format::Key::Genotype,
             field::Value::String(String::from("0|0")),
