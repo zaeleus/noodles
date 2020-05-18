@@ -1,10 +1,9 @@
+pub mod key;
 mod value;
 
-pub use self::value::Value;
+pub use self::{key::Key, value::Value};
 
 use std::{error, fmt};
-
-use crate::record::format::Key;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Field {

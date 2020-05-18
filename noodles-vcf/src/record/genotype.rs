@@ -66,8 +66,6 @@ impl fmt::Display for Genotype {
 
 #[cfg(test)]
 mod tests {
-    use crate::record::format;
-
     use super::*;
 
     #[test]
@@ -96,7 +94,7 @@ mod tests {
         assert_eq!(genotype.to_string(), ".");
 
         let genotype = Genotype(vec![Field::new(
-            format::Key::Genotype,
+            field::Key::Genotype,
             field::Value::String(String::from("0|0")),
         )]);
 
@@ -104,11 +102,11 @@ mod tests {
 
         let genotype = Genotype(vec![
             Field::new(
-                format::Key::Genotype,
+                field::Key::Genotype,
                 field::Value::String(String::from("0|0")),
             ),
             Field::new(
-                format::Key::ConditionalGenotypeQuality,
+                field::Key::ConditionalGenotypeQuality,
                 field::Value::Integer(13),
             ),
         ]);

@@ -147,7 +147,7 @@ mod tests {
                 String::from("Quality below 10"),
             ))
             .add_format(Format::new(
-                record::format::Key::Genotype,
+                record::genotype::field::Key::Genotype,
                 Number::Count(1),
                 format::Type::String,
                 String::from("Genotype"),

@@ -1,8 +1,6 @@
-pub mod key;
-
-pub use self::key::Key;
-
 use std::{error, fmt, ops::Deref, str::FromStr};
+
+use crate::record::genotype::field::Key;
 
 const DELIMITER: char = ':';
 

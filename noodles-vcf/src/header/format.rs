@@ -5,7 +5,7 @@ pub use self::ty::Type;
 
 use std::{convert::TryFrom, error, fmt};
 
-use crate::record::format;
+use crate::record::genotype;
 
 use super::{number, record, Number};
 
@@ -13,14 +13,14 @@ use self::key::Key;
 
 #[derive(Clone, Debug)]
 pub struct Format {
-    id: format::Key,
+    id: genotype::field::Key,
     number: Number,
     ty: Type,
     description: String,
 }
 
 impl Format {
-    pub fn new(id: format::Key, number: Number, ty: Type, description: String) -> Self {
+    pub fn new(id: genotype::field::Key, number: Number, ty: Type, description: String) -> Self {
         Self {
             id,
             number,
@@ -29,7 +29,7 @@ impl Format {
         }
     }
 
-    pub fn id(&self) -> &format::Key {
+    pub fn id(&self) -> &genotype::field::Key {
         &self.id
     }
 
@@ -66,7 +66,7 @@ impl fmt::Display for Format {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Key),
-    InvalidId(format::key::ParseError),
+    InvalidId(genotype::field::key::ParseError),
     InvalidNumber(number::ParseError),
     InvalidType(ty::ParseError),
 }
@@ -164,7 +164,7 @@ mod tests {
 
         let format = Format::try_from(&fields[..])?;
 
-        assert_eq!(format.id(), &format::Key::Genotype);
+        assert_eq!(format.id(), &genotype::field::Key::Genotype);
         assert_eq!(*format.number(), Number::Count(1));
         assert_eq!(*format.ty(), Type::Integer);
         assert_eq!(format.description(), "Genotype");

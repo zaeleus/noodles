@@ -4,7 +4,7 @@ mod chromosome;
 mod field;
 mod filter_status;
 pub mod format;
-mod genotype;
+pub mod genotype;
 mod id;
 pub mod info;
 mod quality_score;
@@ -230,8 +230,8 @@ mod tests {
         let record: Record = s.parse()?;
 
         let expected = [
-            format::Key::Genotype,
-            format::Key::ConditionalGenotypeQuality,
+            genotype::field::Key::Genotype,
+            genotype::field::Key::ConditionalGenotypeQuality,
         ];
 
         assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
@@ -239,11 +239,11 @@ mod tests {
         let genotypes = record.genotypes();
         let expected = vec![
             genotype::Field::new(
-                format::Key::Genotype,
+                genotype::field::Key::Genotype,
                 genotype::field::Value::String(String::from("0|1")),
             ),
             genotype::Field::new(
-                format::Key::ConditionalGenotypeQuality,
+                genotype::field::Key::ConditionalGenotypeQuality,
                 genotype::field::Value::Integer(13),
             ),
         ];
