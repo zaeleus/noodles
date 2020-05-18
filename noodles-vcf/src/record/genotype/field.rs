@@ -43,6 +43,12 @@ impl Field {
     }
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::header::{format::Type, Number};
@@ -67,5 +73,18 @@ mod tests {
         assert_eq!(actual.value(), &Value::String(String::from("0|0")));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_fmt() {
+        let field = Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13));
+        assert_eq!(field.to_string(), "13");
+
+        let key = Key::Other(String::from("CNQ"), Number::Count(1), Type::Float);
+        let field = Field::new(key, Value::Float(8.333));
+        assert_eq!(field.to_string(), "8.333");
+
+        let field = Field::new(Key::Genotype, Value::String(String::from("0|0")));
+        assert_eq!(field.to_string(), "0|0");
     }
 }

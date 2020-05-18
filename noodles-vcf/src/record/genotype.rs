@@ -40,3 +40,47 @@ impl Deref for Genotype {
         &self.0
     }
 }
+
+impl fmt::Display for Genotype {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (i, field) in self.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{}", DELIMITER)?
+            }
+
+            write!(f, "{}", field)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::record::format;
+
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let genotype = Genotype(vec![Field::new(
+            format::Key::Genotype,
+            field::Value::String(String::from("0|0")),
+        )]);
+
+        assert_eq!(genotype.to_string(), "0|0");
+
+        let genotype = Genotype(vec![
+            Field::new(
+                format::Key::Genotype,
+                field::Value::String(String::from("0|0")),
+            ),
+            Field::new(
+                format::Key::ConditionalGenotypeQuality,
+                field::Value::Integer(13),
+            ),
+        ]);
+
+        assert_eq!(genotype.to_string(), "0|0:13");
+    }
+}

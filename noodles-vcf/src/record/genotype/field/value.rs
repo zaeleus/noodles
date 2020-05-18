@@ -18,6 +18,61 @@ pub enum Value {
     StringArray(Vec<String>),
 }
 
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Integer(n) => write!(f, "{}", n),
+            Self::Float(n) => write!(f, "{}", n),
+            Self::Character(c) => write!(f, "{}", c),
+            Self::String(s) => write!(f, "{}", s),
+            Self::IntegerArray(values) => {
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "{}", DELIMITER)?;
+                    }
+
+                    write!(f, "{}", value)?;
+                }
+
+                Ok(())
+            }
+            Self::FloatArray(values) => {
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "{}", DELIMITER)?;
+                    }
+
+                    write!(f, "{}", value)?;
+                }
+
+                Ok(())
+            }
+            Self::CharacterArray(values) => {
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "{}", DELIMITER)?;
+                    }
+
+                    write!(f, "{}", value)?;
+                }
+
+                Ok(())
+            }
+            Self::StringArray(values) => {
+                for (i, value) in values.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, "{}", DELIMITER)?;
+                    }
+
+                    write!(f, "{}", value)?;
+                }
+
+                Ok(())
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     InvalidNumberForType(Number, Type),
@@ -131,6 +186,45 @@ fn parse_string_array(s: &str) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let value = Value::Integer(2);
+        assert_eq!(value.to_string(), "2");
+
+        let value = Value::Float(0.333);
+        assert_eq!(value.to_string(), "0.333");
+
+        let value = Value::Character('n');
+        assert_eq!(value.to_string(), "n");
+
+        let value = Value::String(String::from("noodles"));
+        assert_eq!(value.to_string(), "noodles");
+
+        let value = Value::IntegerArray(vec![2]);
+        assert_eq!(value.to_string(), "2");
+
+        let value = Value::IntegerArray(vec![2, 5]);
+        assert_eq!(value.to_string(), "2,5");
+
+        let value = Value::FloatArray(vec![0.333]);
+        assert_eq!(value.to_string(), "0.333");
+
+        let value = Value::FloatArray(vec![0.333, 0.667]);
+        assert_eq!(value.to_string(), "0.333,0.667");
+
+        let value = Value::CharacterArray(vec!['n']);
+        assert_eq!(value.to_string(), "n");
+
+        let value = Value::CharacterArray(vec!['n', 'd', 'l', 's']);
+        assert_eq!(value.to_string(), "n,d,l,s");
+
+        let value = Value::StringArray(vec![String::from("noodles")]);
+        assert_eq!(value.to_string(), "noodles");
+
+        let value = Value::StringArray(vec![String::from("noodles"), String::from("vcf")]);
+        assert_eq!(value.to_string(), "noodles,vcf");
+    }
 
     #[test]
     fn test_from_str_key_with_integer() -> Result<(), ParseError> {
