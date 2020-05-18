@@ -220,6 +220,7 @@ mod tests {
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.info().len(), 1);
         assert!(record.format().is_none());
+        assert!(record.genotypes().is_empty());
 
         Ok(())
     }
