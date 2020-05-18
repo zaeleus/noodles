@@ -62,6 +62,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_from_str_format() -> Result<(), Box<dyn std::error::Error>> {
+        let format = "GT".parse()?;
+        let actual = Genotype::from_str_format("0|0", &format)?;
+        assert_eq!(actual.len(), 1);
+
+        let format = "GT:GQ".parse()?;
+        let actual = Genotype::from_str_format("0|0:13", &format)?;
+        assert_eq!(actual.len(), 2);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_fmt() {
         let genotype = Genotype(vec![Field::new(
             format::Key::Genotype,
