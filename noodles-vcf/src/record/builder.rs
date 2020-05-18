@@ -1,7 +1,7 @@
 use std::{error, fmt};
 
 use super::{
-    AlternateBases, Chromosome, FilterStatus, Format, Id, Info, QualityScore, Record,
+    AlternateBases, Chromosome, FilterStatus, Format, Genotype, Id, Info, QualityScore, Record,
     ReferenceBases,
 };
 
@@ -16,6 +16,7 @@ pub struct Builder {
     filter_status: FilterStatus,
     info: Info,
     format: Option<Format>,
+    genotypes: Vec<Genotype>,
 }
 
 #[derive(Debug)]
@@ -78,6 +79,11 @@ impl Builder {
         self
     }
 
+    pub fn set_genotypes(mut self, genotypes: Vec<Genotype>) -> Self {
+        self.genotypes = genotypes;
+        self
+    }
+
     pub fn build(self) -> Result<Record, BuildError> {
         if self.reference_bases.is_empty() {
             return Err(BuildError);
@@ -93,6 +99,7 @@ impl Builder {
             filter_status: self.filter_status,
             info: self.info,
             format: self.format,
+            genotypes: self.genotypes,
         })
     }
 }
@@ -121,6 +128,7 @@ mod tests {
         assert_eq!(record.filter_status(), &FilterStatus::Missing);
         assert!(record.info().is_empty());
         assert!(record.format().is_none());
+        assert!(record.genotypes().is_empty());
 
         Ok(())
     }

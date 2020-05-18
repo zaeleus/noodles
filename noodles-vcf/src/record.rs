@@ -4,6 +4,7 @@ mod chromosome;
 mod field;
 mod filter_status;
 pub mod format;
+mod genotype;
 mod id;
 pub mod info;
 mod quality_score;
@@ -11,8 +12,8 @@ mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, format::Format, id::Id, info::Info, quality_score::QualityScore,
-    reference_bases::ReferenceBases,
+    filter_status::FilterStatus, format::Format, genotype::Genotype, id::Id, info::Info,
+    quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -31,6 +32,7 @@ pub struct Record {
     filter_status: FilterStatus,
     info: Info,
     format: Option<Format>,
+    genotypes: Vec<Genotype>,
 }
 
 impl Record {
@@ -73,12 +75,17 @@ impl Record {
     pub fn format(&self) -> Option<&Format> {
         self.format.as_ref()
     }
+
+    pub fn genotypes(&self) -> &[Genotype] {
+        &self.genotypes
+    }
 }
 
 #[derive(Debug)]
 pub enum ParseError {
     Missing(Field),
     Invalid(Field, Box<dyn error::Error + Send + Sync>),
+    InvalidGenotype(genotype::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -88,6 +95,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Missing(field) => write!(f, "missing field: {}", field),
             Self::Invalid(field, message) => write!(f, "invalid {} field: {}", field, message),
+            Self::InvalidGenotype(e) => write!(f, "{}", e),
         }
     }
 }
@@ -143,6 +151,16 @@ impl FromStr for Record {
             None => None,
         };
 
+        let genotypes = format
+            .as_ref()
+            .map(|f| {
+                fields
+                    .map(|s| Genotype::from_str_format(s, f))
+                    .collect::<Result<_, _>>()
+                    .map_err(ParseError::InvalidGenotype)
+            })
+            .unwrap_or_else(|| Ok(Vec::new()))?;
+
         Ok(Self {
             chromosome: chrom,
             position: pos,
@@ -153,6 +171,7 @@ impl FromStr for Record {
             filter_status: filter,
             info,
             format,
+            genotypes,
         })
     }
 }
@@ -216,6 +235,21 @@ mod tests {
         ];
 
         assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
+
+        let genotypes = record.genotypes();
+        let expected = vec![
+            genotype::Field::new(
+                format::Key::Genotype,
+                genotype::field::Value::String(String::from("0|1")),
+            ),
+            genotype::Field::new(
+                format::Key::ConditionalGenotypeQuality,
+                genotype::field::Value::Integer(13),
+            ),
+        ];
+
+        assert_eq!(genotypes.len(), 1);
+        assert_eq!(&genotypes[0][..], &expected[..]);
 
         Ok(())
     }
