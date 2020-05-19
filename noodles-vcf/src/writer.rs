@@ -24,7 +24,7 @@ where
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(
+        write!(
             self.inner,
             "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
             chrom = record.chromosome(),
@@ -35,12 +35,24 @@ where
             qual = record.quality_score(),
             filter = record.filter_status(),
             info = record.info(),
-        )
+        )?;
+
+        if let Some(format) = record.format() {
+            write!(self.inner, "\t{}", format)?;
+
+            for field in record.genotypes() {
+                write!(self.inner, "\t{}", field)?;
+            }
+        }
+
+        writeln!(self.inner)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::record::{Format, Genotype};
+
     use super::*;
 
     #[test]
@@ -72,6 +84,29 @@ mod tests {
         writer.write_record(&record)?;
 
         let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\n";
+
+        assert_eq!(writer.get_ref(), expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        let format: Format = "GT:GQ".parse()?;
+
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(1)
+            .set_reference_bases("A".parse()?)
+            .set_format(format.clone())
+            .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+            .build()?;
+
+        writer.write_record(&record)?;
+
+        let expected = b"sq0\t1\t.\tA\t.\t.\t.\t.\tGT:GQ\t0|0:13\n";
 
         assert_eq!(writer.get_ref(), expected);
 
