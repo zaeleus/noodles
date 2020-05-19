@@ -1,6 +1,6 @@
 use std::{error, fmt, ops::Deref, str::FromStr};
 
-use crate::record::genotype::field::Key;
+use crate::record::genotype::field::{key, Key};
 
 const DELIMITER: char = ':';
 
@@ -30,13 +30,23 @@ impl fmt::Display for Format {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    Empty,
+    MissingLeadingGenotype,
+    InvalidKey(key::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid format: {}", self.0)
+        f.write_str("invalid format: ")?;
+
+        match self {
+            Self::Empty => f.write_str("field is empty"),
+            Self::MissingLeadingGenotype => f.write_str("leading genotype (GT) is missing"),
+            Self::InvalidKey(e) => write!(f, "{}", e),
+        }
     }
 }
 
@@ -44,11 +54,19 @@ impl FromStr for Format {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.split(DELIMITER)
+        let keys: Vec<_> = s
+            .split(DELIMITER)
             .map(|s| s.parse())
             .collect::<Result<_, _>>()
-            .map(Format)
-            .map_err(|_| ParseError(s.into()))
+            .map_err(ParseError::InvalidKey)?;
+
+        if keys.is_empty() {
+            Err(ParseError::Empty)
+        } else if keys[0] == Key::Genotype {
+            Ok(Self(keys))
+        } else {
+            Err(ParseError::MissingLeadingGenotype)
+        }
     }
 }
 
@@ -77,6 +95,10 @@ mod tests {
 
         let actual: Format = "GT:GQ:DP:HQ".parse()?;
         assert_eq!(actual.len(), 4);
+
+        assert!("".parse::<Format>().is_err());
+        assert!(".".parse::<Format>().is_err());
+        assert!("GQ:GT".parse::<Format>().is_err());
 
         Ok(())
     }
