@@ -99,7 +99,8 @@ mod tests {
 ATCG
 >chr2
 NNNN
-NNNNNN
+NNNN
+NN
 ";
 
     #[test]
