@@ -76,7 +76,7 @@ impl Reference {
 
     pub fn min_offset(&self, start: u64) -> VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;
-        self.intervals[i].ioffset
+        self.intervals.get(i).map(|i| i.ioffset).unwrap_or_default()
     }
 }
 
