@@ -4,7 +4,7 @@ use crate::record::genotype::field::{key, Key};
 
 const DELIMITER: char = ':';
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Format(Vec<Key>);
 
 impl Deref for Format {
