@@ -84,6 +84,11 @@ impl Builder {
         self
     }
 
+    pub fn add_genotype(mut self, genotype: Genotype) -> Self {
+        self.genotypes.push(genotype);
+        self
+    }
+
     pub fn build(self) -> Result<Record, BuildError> {
         if self.reference_bases.is_empty() {
             return Err(BuildError);
