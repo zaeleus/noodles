@@ -1,23 +1,19 @@
+use noodles_sam::record::data::field::Tag;
+
 use super::Value;
 
 #[derive(Debug)]
 pub struct Field {
-    tag: String,
+    tag: Tag,
     value: Value,
 }
 
 impl Field {
-    pub fn new<T>(tag: T, value: Value) -> Self
-    where
-        T: Into<String>,
-    {
-        Self {
-            tag: tag.into(),
-            value,
-        }
+    pub fn new(tag: Tag, value: Value) -> Self {
+        Self { tag, value }
     }
 
-    pub fn tag(&self) -> &str {
+    pub fn tag(&self) -> &Tag {
         &self.tag
     }
 
