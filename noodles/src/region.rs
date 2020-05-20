@@ -87,7 +87,7 @@ impl Region {
         match self {
             Self::Mapped { name, start, end } => {
                 let (i, _, reference_sequence) = reference_sequences.get_full(name).unwrap();
-                let resolved_end = end.unwrap_or(MIN_POSITION);
+                let resolved_end = end.unwrap_or(reference_sequence.len() as u64);
                 Some((i, reference_sequence, *start, resolved_end))
             }
             Self::Unmapped | Self::All => None,
@@ -183,6 +183,42 @@ impl FromStr for Region {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_resolve() {
+        let reference_sequences: ReferenceSequences = vec![
+            (
+                String::from("sq0"),
+                ReferenceSequence::new(String::from("sq0"), 8),
+            ),
+            (
+                String::from("sq1"),
+                ReferenceSequence::new(String::from("sq1"), 13),
+            ),
+            (
+                String::from("sq0"),
+                ReferenceSequence::new(String::from("sq2"), 21),
+            ),
+        ]
+        .into_iter()
+        .collect();
+
+        let region = Region::mapped(String::from("sq1"), 5, Some(8));
+        let actual = region.resolve(&reference_sequences);
+        let expected = Some((1, &reference_sequences["sq1"], 5, 8));
+        assert_eq!(actual, expected);
+
+        let region = Region::mapped(String::from("sq1"), 5, None);
+        let actual = region.resolve(&reference_sequences);
+        let expected = Some((1, &reference_sequences["sq1"], 5, 13));
+        assert_eq!(actual, expected);
+
+        let region = Region::Unmapped;
+        assert_eq!(region.resolve(&reference_sequences), None);
+
+        let region = Region::All;
+        assert_eq!(region.resolve(&reference_sequences), None);
+    }
 
     #[test]
     fn test_fmt() {

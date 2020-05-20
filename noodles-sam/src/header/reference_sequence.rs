@@ -7,7 +7,7 @@ pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
 use super::record;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     name: String,
     len: i32,
