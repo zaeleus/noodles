@@ -148,7 +148,7 @@ mod tests {
 
         let record = Builder::new()
             .set_name(name.clone())
-            .set_flags(Flags::from(65))
+            .set_flags(Flags::PAIRED | Flags::READ_1)
             .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(Position::from(13))
             .set_mapping_quality(MappingQuality::from(37))
@@ -162,7 +162,7 @@ mod tests {
             .build();
 
         assert_eq!(record.name(), &name);
-        assert_eq!(u16::from(record.flags()), 65);
+        assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
         assert_eq!(i32::from(record.position()), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
