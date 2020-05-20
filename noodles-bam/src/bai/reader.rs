@@ -116,3 +116,30 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_header() {
+        let data = b"BAI\x01";
+        let mut reader = Reader::new(&data[..]);
+        assert!(reader.read_header().is_ok());
+    }
+
+    #[test]
+    fn test_read_header_with_invalid_magic_number() {
+        let data = [];
+        let mut reader = Reader::new(&data[..]);
+        assert!(reader.read_header().is_err());
+
+        let data = b"BAI";
+        let mut reader = Reader::new(&data[..]);
+        assert!(reader.read_header().is_err());
+
+        let data = b"MThd";
+        let mut reader = Reader::new(&data[..]);
+        assert!(reader.read_header().is_err());
+    }
+}
