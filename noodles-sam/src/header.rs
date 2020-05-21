@@ -21,7 +21,7 @@ pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
 
 #[derive(Debug, Default)]
 pub struct Header {
-    header: header::Header,
+    header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
     read_groups: Vec<ReadGroup>,
     programs: Vec<Program>,
@@ -33,12 +33,12 @@ impl Header {
         Builder::new()
     }
 
-    pub fn header(&self) -> &header::Header {
-        &self.header
+    pub fn header(&self) -> Option<&header::Header> {
+        self.header.as_ref()
     }
 
-    pub fn header_mut(&mut self) -> &mut header::Header {
-        &mut self.header
+    pub fn header_mut(&mut self) -> Option<&mut header::Header> {
+        self.header.as_mut()
     }
 
     pub fn reference_sequences(&self) -> &ReferenceSequences {
@@ -76,7 +76,9 @@ impl Header {
 
 impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{}", self.header)?;
+        if let Some(header) = self.header() {
+            writeln!(f, "{}", header)?;
+        }
 
         for reference_sequence in self.reference_sequences.values() {
             writeln!(f, "{}", reference_sequence)?;
@@ -100,7 +102,6 @@ impl fmt::Display for Header {
 
 #[derive(Debug)]
 pub enum ParseError {
-    MissingHeader,
     UnexpectedHeader,
     InvalidRecord(record::ParseError),
     InvalidHeader(header::ParseError),
@@ -114,7 +115,6 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingHeader => f.write_str("@HD missing"),
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
             Self::InvalidRecord(e) => write!(f, "{}", e),
             Self::InvalidHeader(e) => write!(f, "{}", e),
@@ -130,27 +130,20 @@ impl FromStr for Header {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut header = Header::default();
-        let mut lines = s.lines();
 
-        let record: Record = lines
-            .next()
-            .ok_or_else(|| ParseError::MissingHeader)
-            .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
-
-        match record {
-            Record::Header(fields) => {
-                header.header =
-                    header::Header::try_from(&fields[..]).map_err(ParseError::InvalidHeader)?;
-            }
-            _ => return Err(ParseError::MissingHeader),
-        }
-
-        for line in lines {
+        for (i, line) in s.lines().enumerate() {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match record {
-                Record::Header(_) => {
-                    return Err(ParseError::UnexpectedHeader);
+                Record::Header(fields) => {
+                    if i == 0 {
+                        header.header = Some(
+                            header::Header::try_from(&fields[..])
+                                .map_err(ParseError::InvalidHeader)?,
+                        );
+                    } else {
+                        return Err(ParseError::UnexpectedHeader);
+                    }
                 }
                 Record::ReferenceSequence(fields) => {
                     let reference_sequence = ReferenceSequence::try_from(&fields[..])
@@ -202,7 +195,7 @@ mod tests {
         .collect();
 
         let header = Header {
-            header: header::Header::new(String::from("1.6")),
+            header: Some(header::Header::new(String::from("1.6"))),
             reference_sequences,
             read_groups: vec![
                 ReadGroup::new(String::from("rg0")),
@@ -258,9 +251,11 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_without_hd() {
-        let s = "@SQ\tSN:sq0\t:LN:8\n";
-        assert!(s.parse::<Header>().is_err());
+    fn test_from_str_without_hd() -> Result<(), ParseError> {
+        let header: Header = "@SQ\tSN:sq0\tLN:8\n".parse()?;
+        assert!(header.header().is_none());
+        assert_eq!(header.reference_sequences().len(), 1);
+        Ok(())
     }
 
     #[test]

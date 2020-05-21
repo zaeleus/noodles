@@ -2,6 +2,7 @@ use super::{header, Header, Program, ReadGroup, ReferenceSequence, ReferenceSequ
 
 #[derive(Debug, Default)]
 pub struct Builder {
+    header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
     read_groups: Vec<ReadGroup>,
     programs: Vec<Program>,
@@ -11,6 +12,11 @@ pub struct Builder {
 impl Builder {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn set_header(mut self, header: header::Header) -> Self {
+        self.header = Some(header);
+        self
     }
 
     pub fn add_reference_sequence(mut self, reference_sequence: ReferenceSequence) -> Self {
@@ -39,7 +45,7 @@ impl Builder {
 
     pub fn build(self) -> Header {
         Header {
-            header: header::Header::default(),
+            header: self.header,
             reference_sequences: self.reference_sequences,
             read_groups: self.read_groups,
             programs: self.programs,
@@ -56,7 +62,7 @@ mod tests {
     fn test_default() {
         let header = Builder::default().build();
 
-        assert_eq!(header.header().version(), "1.6");
+        assert!(header.header().is_none());
         assert!(header.reference_sequences().is_empty());
         assert!(header.read_groups().is_empty());
         assert!(header.programs().is_empty());

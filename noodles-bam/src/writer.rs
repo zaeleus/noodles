@@ -283,7 +283,10 @@ mod tests {
     fn test_write_header() -> io::Result<()> {
         let mut writer = Writer::new(Vec::new());
 
-        let header = sam::Header::default();
+        let header = sam::Header::builder()
+            .set_header(sam::header::header::Header::default())
+            .build();
+
         writer.write_header(&header)?;
         writer.try_finish()?;
 

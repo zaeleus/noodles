@@ -52,9 +52,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{
-        data::{self, Field},
-        Data,
+    use crate::{
+        header,
+        record::{
+            data::{self, Field},
+            Data,
+        },
     };
 
     use super::*;
@@ -63,7 +66,10 @@ mod tests {
     fn test_write_header() -> io::Result<()> {
         let mut writer = Writer::new(vec![]);
 
-        let header = Header::default();
+        let header = Header::builder()
+            .set_header(header::header::Header::default())
+            .build();
+
         writer.write_header(&header)?;
 
         let expected = b"@HD\tVN:1.6\n";

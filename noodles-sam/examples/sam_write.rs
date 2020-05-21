@@ -8,7 +8,7 @@ use std::io;
 
 use noodles_sam::{
     self as sam,
-    header::{Program, ReferenceSequence},
+    header::{header, Program, ReferenceSequence},
 };
 
 fn main() -> io::Result<()> {
@@ -17,6 +17,7 @@ fn main() -> io::Result<()> {
     let mut writer = sam::Writer::new(handle);
 
     let header = sam::Header::builder()
+        .set_header(header::Header::default())
         .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
         .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
         .add_reference_sequence(ReferenceSequence::new(String::from("sq2"), 21))
