@@ -236,6 +236,19 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_with_empty_input() -> Result<(), ParseError> {
+        let header: Header = "".parse()?;
+
+        assert!(header.header().is_none());
+        assert!(header.reference_sequences().is_empty());
+        assert!(header.read_groups().is_empty());
+        assert!(header.programs().is_empty());
+        assert!(header.comments().is_empty());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_from_str_without_hd() -> Result<(), ParseError> {
         let header: Header = "@SQ\tSN:sq0\tLN:8\n".parse()?;
         assert!(header.header().is_none());
