@@ -76,6 +76,12 @@ impl FromStr for Field {
         let value = if let Type::Flag = key.ty() {
             let s = components.next().unwrap_or_default();
             Value::from_str_key(s, &key).map_err(ParseError::InvalidValue)?
+        } else if let Key::Other(..) = key {
+            if let Some(s) = components.next() {
+                Value::from_str_key(s, &key).map_err(ParseError::InvalidValue)?
+            } else {
+                Value::Flag
+            }
         } else {
             components
                 .next()
@@ -131,6 +137,13 @@ mod tests {
             &Key::Other(String::from("SVTYPE"), Number::Count(1), Type::String)
         );
         assert_eq!(actual.value(), &Value::String(String::from("DEL")));
+
+        let actual: Field = "FLG".parse()?;
+        assert_eq!(
+            actual.key(),
+            &Key::Other(String::from("FLG"), Number::Count(1), Type::String)
+        );
+        assert_eq!(actual.value(), &Value::Flag);
 
         Ok(())
     }
