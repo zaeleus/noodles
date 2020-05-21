@@ -181,34 +181,19 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let reference_sequences = vec![
-            (
-                String::from("sq0"),
-                ReferenceSequence::new(String::from("sq0"), 8),
-            ),
-            (
-                String::from("sq1"),
-                ReferenceSequence::new(String::from("sq1"), 13),
-            ),
-        ]
-        .into_iter()
-        .collect();
+        let header = Header::builder()
+            .set_header(header::Header::new(String::from("1.6")))
+            .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
+            .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+            .add_read_group(ReadGroup::new(String::from("rg0")))
+            .add_read_group(ReadGroup::new(String::from("rg1")))
+            .add_program(Program::new(String::from("pg0")))
+            .add_program(Program::new(String::from("pg1")))
+            .add_comment("noodles")
+            .add_comment("sam")
+            .build();
 
-        let header = Header {
-            header: Some(header::Header::new(String::from("1.6"))),
-            reference_sequences,
-            read_groups: vec![
-                ReadGroup::new(String::from("rg0")),
-                ReadGroup::new(String::from("rg1")),
-            ],
-            programs: vec![
-                Program::new(String::from("pg0")),
-                Program::new(String::from("pg1")),
-            ],
-            comments: vec![String::from("noodles"), String::from("sam")],
-        };
-
-        let actual = format!("{}", header);
+        let actual = header.to_string();
         let expected = "\
 @HD\tVN:1.6
 @SQ\tSN:sq0\tLN:8
