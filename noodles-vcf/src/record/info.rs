@@ -38,13 +38,21 @@ impl fmt::Display for Info {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    Empty,
+    InvalidField(field::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "invalid info: {}", self.0)
+        f.write_str("invalid info: ")?;
+
+        match self {
+            Self::Empty => f.write_str("field is empty"),
+            Self::InvalidField(e) => write!(f, "{}", e),
+        }
     }
 }
 
@@ -53,14 +61,14 @@ impl FromStr for Info {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Info::default()),
             _ => s
                 .split(DELIMITER)
                 .map(|s| s.parse())
                 .collect::<Result<_, _>>()
                 .map(Info)
-                .map_err(|_| ParseError(s.into())),
+                .map_err(ParseError::InvalidField),
         }
     }
 }
