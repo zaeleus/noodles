@@ -210,8 +210,8 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
-        let raw_header = "\
+    fn test_from_str() -> Result<(), ParseError> {
+        let s = "\
 @HD\tVN:1.6\tSO:coordinate
 @SQ\tSN:sq0\tLN:1
 @SQ\tSN:sq1\tLN:2
@@ -220,19 +220,18 @@ mod tests {
 @CO\tnoodles_sam::header::tests::test_from_str
 ";
 
-        let header: Header = raw_header.parse().unwrap();
+        let header: Header = s.parse()?;
 
         assert_eq!(header.reference_sequences().len(), 2);
-
         assert_eq!(header.read_groups().len(), 1);
-
         assert_eq!(header.programs().len(), 1);
-
         assert_eq!(header.comments.len(), 1);
         assert_eq!(
             &header.comments[0],
             "noodles_sam::header::tests::test_from_str"
         );
+
+        Ok(())
     }
 
     #[test]
