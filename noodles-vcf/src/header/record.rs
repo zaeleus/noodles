@@ -48,7 +48,6 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        println!("{}", s);
         let (_, line) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
         match line {
