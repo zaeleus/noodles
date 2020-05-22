@@ -131,12 +131,16 @@ mod tests {
         assert_eq!(actual.key(), &Key::IsSomaticMutation);
         assert_eq!(actual.value(), &Value::Flag);
 
-        let actual: Field = "SVTYPE=DEL".parse()?;
+        let actual: Field = "EVENT=INV0".parse()?;
+        assert_eq!(actual.key(), &Key::BreakendEventId);
+        assert_eq!(actual.value(), &Value::String(String::from("INV0")));
+
+        let actual: Field = "NDLS=VCF".parse()?;
         assert_eq!(
             actual.key(),
-            &Key::Other(String::from("SVTYPE"), Number::Count(1), Type::String)
+            &Key::Other(String::from("NDLS"), Number::Count(1), Type::String)
         );
-        assert_eq!(actual.value(), &Value::String(String::from("DEL")));
+        assert_eq!(actual.value(), &Value::String(String::from("VCF")));
 
         let actual: Field = "FLG".parse()?;
         assert_eq!(
