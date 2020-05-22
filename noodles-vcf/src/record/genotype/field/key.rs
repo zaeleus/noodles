@@ -4,6 +4,7 @@ use crate::header::{format::Type, Number};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
+    // § 1.6.2 Genotype fields (2020-04-02)
     ReadDepths,
     ForwardStrandReadDepths,
     ReverseStrandReadDepths,
@@ -20,6 +21,16 @@ pub enum Key {
     RoundedGenotypePosteriorProbabilities,
     PhasingQuality,
     PhaseSet,
+
+    // § 4 FORMAT keys used for structural variants (2020-04-02)
+    GenotypeCopyNumber,
+    GenotypeCopyNumberQuality,
+    GenotypeCopyNumberLikelihoods,
+    GenotypeCopyNumberPosteriorProbabilities,
+    NovelVariantQualityScore,
+    HaplotypeId,
+    AncestralHaplotypeId,
+
     Other(String, Number, Type),
 }
 
@@ -42,6 +53,15 @@ impl Key {
             Self::RoundedGenotypePosteriorProbabilities => Number::G,
             Self::PhasingQuality => Number::Count(1),
             Self::PhaseSet => Number::Count(1),
+
+            Self::GenotypeCopyNumber => Number::Count(1),
+            Self::GenotypeCopyNumberQuality => Number::Count(1),
+            Self::GenotypeCopyNumberLikelihoods => Number::G,
+            Self::GenotypeCopyNumberPosteriorProbabilities => Number::G,
+            Self::NovelVariantQualityScore => Number::Count(1),
+            Self::HaplotypeId => Number::Count(1),
+            Self::AncestralHaplotypeId => Number::Count(1),
+
             Self::Other(_, number, _) => *number,
         }
     }
@@ -64,6 +84,15 @@ impl Key {
             Self::RoundedGenotypePosteriorProbabilities => Type::Integer,
             Self::PhasingQuality => Type::Integer,
             Self::PhaseSet => Type::Integer,
+
+            Self::GenotypeCopyNumber => Type::Integer,
+            Self::GenotypeCopyNumberQuality => Type::Float,
+            Self::GenotypeCopyNumberLikelihoods => Type::Float,
+            Self::GenotypeCopyNumberPosteriorProbabilities => Type::Float,
+            Self::NovelVariantQualityScore => Type::Integer,
+            Self::HaplotypeId => Type::Integer,
+            Self::AncestralHaplotypeId => Type::Integer,
+
             Self::Other(_, _, ty) => *ty,
         }
     }
@@ -88,6 +117,15 @@ impl AsRef<str> for Key {
             Self::RoundedGenotypePosteriorProbabilities => "PP",
             Self::PhasingQuality => "PQ",
             Self::PhaseSet => "PS",
+
+            Self::GenotypeCopyNumber => "CN",
+            Self::GenotypeCopyNumberQuality => "CNQ",
+            Self::GenotypeCopyNumberLikelihoods => "CNL",
+            Self::GenotypeCopyNumberPosteriorProbabilities => "CNP",
+            Self::NovelVariantQualityScore => "NQ",
+            Self::HaplotypeId => "HAP",
+            Self::AncestralHaplotypeId => "AHAP",
+
             Self::Other(key, ..) => key,
         }
     }
@@ -135,6 +173,15 @@ impl FromStr for Key {
             "PP" => Ok(Self::RoundedGenotypePosteriorProbabilities),
             "PQ" => Ok(Self::PhasingQuality),
             "PS" => Ok(Self::PhaseSet),
+
+            "CN" => Ok(Self::GenotypeCopyNumber),
+            "CNQ" => Ok(Self::GenotypeCopyNumberQuality),
+            "CNL" => Ok(Self::GenotypeCopyNumberLikelihoods),
+            "CNP" => Ok(Self::GenotypeCopyNumberPosteriorProbabilities),
+            "NQ" => Ok(Self::NovelVariantQualityScore),
+            "HAP" => Ok(Self::HaplotypeId),
+            "AHAP" => Ok(Self::AncestralHaplotypeId),
+
             _ => Ok(Self::Other(s.into(), Number::Count(1), Type::String)),
         }
     }
@@ -165,6 +212,18 @@ mod tests {
         );
         assert_eq!(Key::PhasingQuality.number(), Number::Count(1));
         assert_eq!(Key::PhaseSet.number(), Number::Count(1));
+
+        assert_eq!(Key::GenotypeCopyNumber.number(), Number::Count(1));
+        assert_eq!(Key::GenotypeCopyNumberQuality.number(), Number::Count(1));
+        assert_eq!(Key::GenotypeCopyNumberLikelihoods.number(), Number::G);
+        assert_eq!(
+            Key::GenotypeCopyNumberPosteriorProbabilities.number(),
+            Number::G
+        );
+        assert_eq!(Key::NovelVariantQualityScore.number(), Number::Count(1));
+        assert_eq!(Key::HaplotypeId.number(), Number::Count(1));
+        assert_eq!(Key::AncestralHaplotypeId.number(), Number::Count(1));
+
         assert_eq!(
             Key::Other(String::from("NDLS"), Number::Count(1), Type::String).number(),
             Number::Count(1)
@@ -192,6 +251,18 @@ mod tests {
         );
         assert_eq!(Key::PhasingQuality.ty(), Type::Integer);
         assert_eq!(Key::PhaseSet.ty(), Type::Integer);
+
+        assert_eq!(Key::GenotypeCopyNumber.ty(), Type::Integer);
+        assert_eq!(Key::GenotypeCopyNumberQuality.ty(), Type::Float);
+        assert_eq!(Key::GenotypeCopyNumberLikelihoods.ty(), Type::Float);
+        assert_eq!(
+            Key::GenotypeCopyNumberPosteriorProbabilities.ty(),
+            Type::Float
+        );
+        assert_eq!(Key::NovelVariantQualityScore.ty(), Type::Integer);
+        assert_eq!(Key::HaplotypeId.ty(), Type::Integer);
+        assert_eq!(Key::AncestralHaplotypeId.ty(), Type::Integer);
+
         assert_eq!(
             Key::Other(String::from("NDLS"), Number::Count(1), Type::String).ty(),
             Type::String
@@ -216,6 +287,18 @@ mod tests {
         assert_eq!(Key::RoundedGenotypePosteriorProbabilities.to_string(), "PP");
         assert_eq!(Key::PhasingQuality.to_string(), "PQ");
         assert_eq!(Key::PhaseSet.to_string(), "PS");
+
+        assert_eq!(Key::GenotypeCopyNumber.to_string(), "CN");
+        assert_eq!(Key::GenotypeCopyNumberQuality.to_string(), "CNQ");
+        assert_eq!(Key::GenotypeCopyNumberLikelihoods.to_string(), "CNL");
+        assert_eq!(
+            Key::GenotypeCopyNumberPosteriorProbabilities.to_string(),
+            "CNP"
+        );
+        assert_eq!(Key::NovelVariantQualityScore.to_string(), "NQ");
+        assert_eq!(Key::HaplotypeId.to_string(), "HAP");
+        assert_eq!(Key::AncestralHaplotypeId.to_string(), "AHAP");
+
         assert_eq!(
             Key::Other(String::from("NDLS"), Number::Count(1), Type::String).to_string(),
             "NDLS"
@@ -243,6 +326,22 @@ mod tests {
         );
         assert_eq!("PQ".parse::<Key>()?, Key::PhasingQuality);
         assert_eq!("PS".parse::<Key>()?, Key::PhaseSet);
+
+        assert_eq!("CN".parse::<Key>()?, Key::GenotypeCopyNumber);
+        assert_eq!("CNQ".parse::<Key>()?, Key::GenotypeCopyNumberQuality);
+        assert_eq!("CNL".parse::<Key>()?, Key::GenotypeCopyNumberLikelihoods);
+        assert_eq!(
+            "CNP".parse::<Key>()?,
+            Key::GenotypeCopyNumberPosteriorProbabilities
+        );
+        assert_eq!("NQ".parse::<Key>()?, Key::NovelVariantQualityScore);
+        assert_eq!("HAP".parse::<Key>()?, Key::HaplotypeId);
+        assert_eq!("AHAP".parse::<Key>()?, Key::AncestralHaplotypeId);
+
+        assert_eq!(
+            "NDLS".parse::<Key>()?,
+            Key::Other(String::from("NDLS"), Number::Count(1), Type::String)
+        );
 
         assert!("".parse::<Key>().is_err());
 
