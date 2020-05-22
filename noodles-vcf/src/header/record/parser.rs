@@ -76,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_meta() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_with_meta_string_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, line) = parse("##fileformat=VCFv4.3")?;
 
         match line {
@@ -103,6 +103,34 @@ mod tests {
             Line::Meta(key, value) => {
                 assert_eq!(key, "reference");
                 assert_eq!(value, Value::String(String::from("file:///tmp/ref.fasta")));
+            }
+            Line::Header(_) => panic!(),
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_with_meta_struct_value() -> Result<(), Box<dyn std::error::Error>> {
+        let (_, line) = parse(
+            r#"##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">"#,
+        )?;
+
+        match line {
+            Line::Meta(key, value) => {
+                assert_eq!(key, "ALT");
+                assert_eq!(
+                    value,
+                    Value::Struct(vec![
+                        (String::from("ID"), String::from("NON_REF")),
+                        (
+                            String::from("Description"),
+                            String::from(
+                                "Represents any possible alternative allele at this location"
+                            )
+                        ),
+                    ])
+                )
             }
             Line::Header(_) => panic!(),
         }
