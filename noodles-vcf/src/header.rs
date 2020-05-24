@@ -242,19 +242,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let header = Header {
-            file_format: FILE_FORMAT.into(),
-            infos: vec![],
-            filters: vec![],
-            formats: vec![],
-            alternative_alleles: vec![],
-            assembly: Some(String::from("file:///assemblies.fasta")),
-            contigs: vec![],
-            samples_names: vec![],
-            map: vec![(String::from("fileDate"), String::from("20200514"))]
-                .into_iter()
-                .collect(),
-        };
+        let header = Header::builder()
+            .set_file_format("VCFv4.3")
+            .set_assembly("file:///assemblies.fasta")
+            .insert("fileDate", "20200514")
+            .build();
 
         let expected = "\
 ##fileformat=VCFv4.3
