@@ -4,8 +4,10 @@ use noodles_fasta as fasta;
 
 use crate::{
     compression_header::preservation_map::substitution_matrix::Base,
-    compression_header::SubstitutionMatrix, Feature,
+    compression_header::SubstitutionMatrix,
 };
+
+use super::Feature;
 
 pub fn resolve_bases(
     reference_sequence_record: &fasta::Record,

@@ -10,7 +10,8 @@ use crate::{
     encoding::{self, Encoding},
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    BitReader, CompressionHeader, Feature, Record, Tag,
+    record::{Feature, Tag},
+    BitReader, CompressionHeader, Record,
 };
 
 use super::encoding::read_encoding;

@@ -1,8 +1,11 @@
+mod feature;
+mod flags;
 pub mod resolve;
+mod tag;
+
+pub use self::{feature::Feature, flags::Flags, tag::Tag};
 
 use noodles_sam as sam;
-
-use crate::{Feature, Flags, Tag};
 
 #[derive(Clone, Debug, Default)]
 pub struct Record {

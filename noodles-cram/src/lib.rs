@@ -1,8 +1,8 @@
 pub use self::reader::block::read_block;
 pub use self::{
     bit_reader::BitReader, block::Block, compression_header::CompressionHeader,
-    container::Container, data_series::DataSeries, encoding::Encoding, feature::Feature,
-    flags::Flags, reader::Reader, record::Record, slice::Slice, tag::Tag,
+    container::Container, data_series::DataSeries, encoding::Encoding, reader::Reader,
+    record::Record, slice::Slice,
 };
 
 mod bit_reader;
@@ -12,15 +12,12 @@ mod container;
 pub mod crai;
 mod data_series;
 mod encoding;
-mod feature;
-mod flags;
 mod huffman;
 mod num;
 mod rans;
 mod reader;
 pub mod record;
 mod slice;
-mod tag;
 
 use std::collections::HashMap;
 
