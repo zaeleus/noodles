@@ -83,8 +83,16 @@ mod tests {
         let allele = Allele::Bases(vec![Base::G, Base::T]);
         assert_eq!(allele.to_string(), "GT");
 
-        let allele = Allele::Symbol(Symbol::new(symbol::Type::Duplication, Vec::new()));
+        let allele = Allele::Symbol(Symbol::StructuralVariant(symbol::StructuralVariant::from(
+            symbol::structural_variant::Type::Duplication,
+        )));
         assert_eq!(allele.to_string(), "<DUP>");
+
+        let allele = Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN0")));
+        assert_eq!(allele.to_string(), "<CN0>");
+
+        let allele = Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN:0")));
+        assert_eq!(allele.to_string(), "<CN:0>");
 
         let allele = Allele::Breakend(String::from("]sq0:5]A"));
         assert_eq!(allele.to_string(), "]sq0:5]A");
@@ -110,7 +118,19 @@ mod tests {
 
         assert_eq!(
             "<DUP>".parse::<Allele>()?,
-            Allele::Symbol(Symbol::new(symbol::Type::Duplication, Vec::new()))
+            Allele::Symbol(Symbol::StructuralVariant(symbol::StructuralVariant::from(
+                symbol::structural_variant::Type::Duplication,
+            )))
+        );
+
+        assert_eq!(
+            "<CN0>".parse::<Allele>()?,
+            Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN0")))
+        );
+
+        assert_eq!(
+            "<CN:0>".parse::<Allele>()?,
+            Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN:0")))
         );
 
         assert_eq!(

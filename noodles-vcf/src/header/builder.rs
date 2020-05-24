@@ -153,7 +153,9 @@ mod tests {
                 String::from("Genotype"),
             ))
             .add_alternate_allele(AlternativeAllele::new(
-                allele::Symbol::from(allele::symbol::Type::Deletion),
+                allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
+                    allele::symbol::structural_variant::Type::Deletion,
+                )),
                 String::from("Deletion"),
             ))
             .set_assembly("file:///assemblies.fasta")

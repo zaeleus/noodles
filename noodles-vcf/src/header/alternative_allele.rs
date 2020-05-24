@@ -118,7 +118,9 @@ mod tests {
 
         assert_eq!(
             filter.id(),
-            &Symbol::new(symbol::Type::Deletion, Vec::new())
+            &Symbol::StructuralVariant(symbol::StructuralVariant::from(
+                symbol::structural_variant::Type::Deletion
+            ))
         );
         assert_eq!(filter.description(), "Deletion");
 
