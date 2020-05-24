@@ -267,6 +267,28 @@ mod tests {
     }
 
     #[test]
+    fn test_fmt_with_genotypes() {
+        let header = Header::builder().add_sample_name("sample0").build();
+        let expected = "\
+##fileformat=VCFv4.3
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0
+";
+        assert_eq!(header.to_string(), expected);
+
+        let header = Header::builder()
+            .add_sample_name("sample0")
+            .add_sample_name("sample1")
+            .build();
+
+        let expected = "\
+##fileformat=VCFv4.3
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample0\tsample1
+";
+
+        assert_eq!(header.to_string(), expected);
+    }
+
+    #[test]
     fn test_from_str() -> Result<(), ParseError> {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20200506
