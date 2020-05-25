@@ -8,5 +8,6 @@ members = [
   "noodles-fastq",
   "noodles-gff",
   "noodles-sam",
+  "noodles-tabix",
   "noodles-vcf",
 ]
