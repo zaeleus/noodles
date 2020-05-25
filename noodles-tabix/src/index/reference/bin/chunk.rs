@@ -1,11 +1,13 @@
+use noodles_bgzf as bgzf;
+
 #[derive(Debug)]
 pub struct Chunk {
-    start: u64,
-    end: u64,
+    start: bgzf::VirtualPosition,
+    end: bgzf::VirtualPosition,
 }
 
 impl Chunk {
-    pub fn new(start: u64, end: u64) -> Self {
+    pub fn new(start: bgzf::VirtualPosition, end: bgzf::VirtualPosition) -> Self {
         Self { start, end }
     }
 }

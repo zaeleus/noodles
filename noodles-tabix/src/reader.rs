@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_bgzf as bgzf;
 
 use crate::index::{
     reference::{bin::Chunk, Bin},
@@ -119,15 +120,21 @@ where
     let mut chunks = Vec::with_capacity(n_chunk as usize);
 
     for _ in 0..n_chunk {
-        let cnk_beg = reader.read_u64::<LittleEndian>()?;
-        let cnk_end = reader.read_u64::<LittleEndian>()?;
+        let cnk_beg = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
+
+        let cnk_end = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
+
         chunks.push(Chunk::new(cnk_beg, cnk_end));
     }
 
     Ok(chunks)
 }
 
-fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<u64>>
+fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>
 where
     R: Read,
 {
@@ -135,7 +142,10 @@ where
     let mut intervals = Vec::with_capacity(n_intv as usize);
 
     for _ in 0..n_intv {
-        let ioff = reader.read_u64::<LittleEndian>()?;
+        let ioff = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
+
         intervals.push(ioff);
     }
 
