@@ -1,7 +1,8 @@
 pub mod index;
 mod reader;
+mod writer;
 
-pub use self::{index::Index, reader::Reader};
+pub use self::{index::Index, reader::Reader, writer::Writer};
 
 use std::{fs::File, io, path::Path};
 
