@@ -32,7 +32,7 @@ where
     }
 
     pub fn read_index(&mut self) -> io::Result<Index> {
-        let n_ref = self.inner.read_i32::<LittleEndian>()?;
+        let n_ref = self.inner.read_u32::<LittleEndian>()?;
         let mut references = Vec::with_capacity(n_ref as usize);
         self.read_references(&mut references)?;
 
@@ -48,11 +48,11 @@ where
         let n_ref = references.capacity();
 
         for _ in 0..n_ref {
-            let n_bin = self.inner.read_i32::<LittleEndian>()?;
+            let n_bin = self.inner.read_u32::<LittleEndian>()?;
             let mut bins = Vec::with_capacity(n_bin as usize);
             self.read_bins(&mut bins)?;
 
-            let n_intv = self.inner.read_i32::<LittleEndian>()?;
+            let n_intv = self.inner.read_u32::<LittleEndian>()?;
             let mut intervals = Vec::with_capacity(n_intv as usize);
             self.read_intervals(&mut intervals)?;
 
@@ -68,7 +68,7 @@ where
         for _ in 0..n_bin {
             let bin = self.inner.read_u32::<LittleEndian>()?;
 
-            let n_chunks = self.inner.read_i32::<LittleEndian>()?;
+            let n_chunks = self.inner.read_u32::<LittleEndian>()?;
             let mut chunks = Vec::with_capacity(n_chunks as usize);
             self.read_chunks(&mut chunks)?;
 
