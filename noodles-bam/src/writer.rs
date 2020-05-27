@@ -64,11 +64,8 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        let c_name = match record.name().as_ref() {
-            Some(name) => CString::new(name.as_str())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
-            None => CString::default(),
-        };
+        let c_name = CString::new(record.name().as_str())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let reference_sequence_id = match record.reference_sequence_name().as_ref() {
             Some(name) => reference_sequences
@@ -314,7 +311,7 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        assert_eq!(record.name(), b"\0");
+        assert_eq!(record.name(), b"*\0");
         assert_eq!(record.flags(), sam::record::Flags::default());
         assert_eq!(record.reference_sequence_id(), -1);
         assert_eq!(record.position(), -1);
