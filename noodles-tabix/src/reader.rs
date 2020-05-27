@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    str,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
@@ -76,9 +79,32 @@ where
     let mut names = vec![0; l_nm as usize];
     reader.read_exact(&mut names)?;
 
-    let list = Vec::new();
+    parse_names(&names)
+}
 
-    Ok(list)
+fn parse_names(buf: &[u8]) -> io::Result<Vec<String>> {
+    let mut names = Vec::new();
+    let mut start = 0;
+
+    loop {
+        let buf = &buf[start..];
+
+        match buf.iter().position(|&b| b == 0) {
+            Some(end) => {
+                let raw_name = &buf[..end];
+                let name = str::from_utf8(raw_name)
+                    .map(|s| s.into())
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                names.push(name);
+
+                start += end + 1;
+            }
+            None => break,
+        }
+    }
+
+    Ok(names)
 }
 
 fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<Reference>>
@@ -169,5 +195,18 @@ mod tests {
         let data = b"MThd";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_index().is_err());
+    }
+
+    #[test]
+    fn test_parse_names() -> io::Result<()> {
+        let data = b"noodles\x00tabix\x00";
+        let actual = parse_names(&data[..])?;
+        let expected = vec![String::from("noodles"), String::from("tabix")];
+        assert_eq!(actual, expected);
+
+        let data = b"";
+        assert!(parse_names(&data[..])?.is_empty());
+
+        Ok(())
     }
 }
