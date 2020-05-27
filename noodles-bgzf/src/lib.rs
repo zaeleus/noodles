@@ -6,8 +6,12 @@ mod reader;
 mod virtual_position;
 mod writer;
 
+// XLEN (2)
 const GZIP_XLEN_SIZE: usize = 2;
+
+// SI1 (1) + SI2 (1) + SLEN (2) + BSIZE (2)
 const BGZF_XLEN: usize = 6;
+
 pub(crate) const BGZF_HEADER_SIZE: usize = gz::HEADER_SIZE + GZIP_XLEN_SIZE + BGZF_XLEN;
 
 #[cfg(test)]
