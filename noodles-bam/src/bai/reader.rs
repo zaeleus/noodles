@@ -32,83 +32,82 @@ where
     }
 
     pub fn read_index(&mut self) -> io::Result<Index> {
-        let n_ref = self.inner.read_u32::<LittleEndian>()?;
-        let mut references = Vec::with_capacity(n_ref as usize);
-        self.read_references(&mut references)?;
-
+        let references = read_references(&mut self.inner)?;
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
-
         Ok(Index::new(references, n_no_coor))
     }
+}
 
-    pub fn read_references(&mut self, references: &mut Vec<Reference>) -> io::Result<()> {
-        let n_ref = references.capacity();
+fn read_references<R>(reader: &mut R) -> io::Result<Vec<Reference>>
+where
+    R: Read,
+{
+    let n_ref = reader.read_u32::<LittleEndian>()?;
+    let mut references = Vec::with_capacity(n_ref as usize);
 
-        for _ in 0..n_ref {
-            let n_bin = self.inner.read_u32::<LittleEndian>()?;
-            let mut bins = Vec::with_capacity(n_bin as usize);
-            self.read_bins(&mut bins)?;
-
-            let n_intv = self.inner.read_u32::<LittleEndian>()?;
-            let mut intervals = Vec::with_capacity(n_intv as usize);
-            self.read_intervals(&mut intervals)?;
-
-            references.push(Reference::new(bins, intervals));
-        }
-
-        Ok(())
+    for _ in 0..n_ref {
+        let bins = read_bins(reader)?;
+        let intervals = read_intervals(reader)?;
+        references.push(Reference::new(bins, intervals));
     }
 
-    pub fn read_bins(&mut self, bins: &mut Vec<Bin>) -> io::Result<()> {
-        let n_bin = bins.capacity();
+    Ok(references)
+}
 
-        for _ in 0..n_bin {
-            let bin = self.inner.read_u32::<LittleEndian>()?;
+fn read_bins<R>(reader: &mut R) -> io::Result<Vec<Bin>>
+where
+    R: Read,
+{
+    let n_bin = reader.read_u32::<LittleEndian>()?;
+    let mut bins = Vec::with_capacity(n_bin as usize);
 
-            let n_chunks = self.inner.read_u32::<LittleEndian>()?;
-            let mut chunks = Vec::with_capacity(n_chunks as usize);
-            self.read_chunks(&mut chunks)?;
-
-            bins.push(Bin::new(bin, chunks));
-        }
-
-        Ok(())
+    for _ in 0..n_bin {
+        let bin = reader.read_u32::<LittleEndian>()?;
+        let chunks = read_chunks(reader)?;
+        bins.push(Bin::new(bin, chunks));
     }
 
-    pub fn read_chunks(&mut self, chunks: &mut Vec<Chunk>) -> io::Result<()> {
-        let n_chunks = chunks.capacity();
+    Ok(bins)
+}
 
-        for _ in 0..n_chunks {
-            let chunk_beg = self
-                .inner
-                .read_u64::<LittleEndian>()
-                .map(bgzf::VirtualPosition::from)?;
+fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
+where
+    R: Read,
+{
+    let n_chunk = reader.read_u32::<LittleEndian>()?;
+    let mut chunks = Vec::with_capacity(n_chunk as usize);
 
-            let chunk_end = self
-                .inner
-                .read_u64::<LittleEndian>()
-                .map(bgzf::VirtualPosition::from)?;
+    for _ in 0..n_chunk {
+        let chunk_beg = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
 
-            chunks.push(Chunk::new(chunk_beg, chunk_end));
-        }
+        let chunk_end = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
 
-        Ok(())
+        chunks.push(Chunk::new(chunk_beg, chunk_end));
     }
 
-    pub fn read_intervals(&mut self, intervals: &mut Vec<bgzf::VirtualPosition>) -> io::Result<()> {
-        let n_intervals = intervals.capacity();
+    Ok(chunks)
+}
 
-        for _ in 0..n_intervals {
-            let ioffset = self
-                .inner
-                .read_u64::<LittleEndian>()
-                .map(bgzf::VirtualPosition::from)?;
+fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>
+where
+    R: Read,
+{
+    let n_intv = reader.read_u32::<LittleEndian>()?;
+    let mut intervals = Vec::with_capacity(n_intv as usize);
 
-            intervals.push(ioffset);
-        }
+    for _ in 0..n_intv {
+        let ioffset = reader
+            .read_u64::<LittleEndian>()
+            .map(bgzf::VirtualPosition::from)?;
 
-        Ok(())
+        intervals.push(ioffset);
     }
+
+    Ok(intervals)
 }
 
 #[cfg(test)]
