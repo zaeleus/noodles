@@ -13,6 +13,15 @@ use noodles_sam::{
 
 use super::MAGIC_NUMBER;
 
+// § 4.2 The BAM format (2020-04-30)
+//
+// ref_id (4) + pos (4) + l_read_name (1) + mapq (1) + bin (2) + n_cigar_op (2) + flag (2) + l_seq
+// (4) + next_ref_id (4) + next_pos (4) + tlen (4)
+const BLOCK_HEADER_SIZE: usize = 32;
+
+// § 4.2.1 BIN field calculation (2020-04-30)
+const UNMAPPED_BIN: u16 = 4680;
+
 pub struct Writer<W>
 where
     W: Write,
@@ -87,21 +96,12 @@ where
         let n_cigar_op = record.cigar().ops().len() as u16;
         let l_seq = record.sequence().len() as i32;
 
-        let block_size = 4
-            + 4
-            + 1
-            + 1
-            + 2
-            + 2
-            + 2
-            + 4
-            + 4
-            + 4
-            + 4
+        let block_size = BLOCK_HEADER_SIZE as i32
             + (l_read_name as i32)
             + (4 * (n_cigar_op as i32))
             + ((l_seq + 1) / 2)
             + l_seq;
+
         self.inner.write_i32::<LittleEndian>(block_size)?;
 
         let ref_id = reference_sequence_id as i32;
@@ -121,7 +121,7 @@ where
                 let end = record.cigar().mapped_len() as i32;
                 region_to_bin(start, end) as u16
             })
-            .unwrap_or(4680);
+            .unwrap_or(UNMAPPED_BIN);
 
         self.inner.write_u16::<LittleEndian>(bin)?;
 
