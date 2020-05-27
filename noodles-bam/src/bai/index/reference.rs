@@ -4,18 +4,16 @@ pub use self::bin::Bin;
 
 use noodles_bgzf as bgzf;
 
-use crate::bai::Interval;
-
 const WINDOW_SIZE: u64 = 16384;
 
 #[derive(Debug)]
 pub struct Reference {
     bins: Vec<Bin>,
-    intervals: Vec<Interval>,
+    intervals: Vec<bgzf::VirtualPosition>,
 }
 
 impl Reference {
-    pub fn new(bins: Vec<Bin>, intervals: Vec<Interval>) -> Self {
+    pub fn new(bins: Vec<Bin>, intervals: Vec<bgzf::VirtualPosition>) -> Self {
         Self { bins, intervals }
     }
 
@@ -23,12 +21,12 @@ impl Reference {
         &self.bins
     }
 
-    pub fn intervals(&self) -> &[Interval] {
+    pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
         &self.intervals
     }
 
     pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;
-        self.intervals.get(i).map(|i| i.ioffset).unwrap_or_default()
+        self.intervals.get(i).copied().unwrap_or_default()
     }
 }

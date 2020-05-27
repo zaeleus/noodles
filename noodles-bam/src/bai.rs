@@ -12,11 +12,6 @@ use self::index::reference::{bin::Chunk, Bin};
 
 pub static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
-#[derive(Debug)]
-pub struct Interval {
-    ioffset: VirtualPosition,
-}
-
 pub fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,

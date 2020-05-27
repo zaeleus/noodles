@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use super::{index::Reference, Bin, Chunk, Index, Interval, MAGIC_NUMBER};
+use super::{index::Reference, Bin, Chunk, Index, MAGIC_NUMBER};
 
 pub struct Reader<R> {
     inner: R,
@@ -95,7 +95,7 @@ where
         Ok(())
     }
 
-    pub fn read_intervals(&mut self, intervals: &mut Vec<Interval>) -> io::Result<()> {
+    pub fn read_intervals(&mut self, intervals: &mut Vec<bgzf::VirtualPosition>) -> io::Result<()> {
         let n_intervals = intervals.capacity();
 
         for _ in 0..n_intervals {
@@ -104,7 +104,7 @@ where
                 .read_u64::<LittleEndian>()
                 .map(bgzf::VirtualPosition::from)?;
 
-            intervals.push(Interval { ioffset });
+            intervals.push(ioffset);
         }
 
         Ok(())
