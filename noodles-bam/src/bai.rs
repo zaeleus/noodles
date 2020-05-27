@@ -1,99 +1,20 @@
+pub mod index;
 mod reader;
 
-pub use self::reader::Reader;
+pub use self::{index::Index, reader::Reader};
 
 use std::{fs::File, io, path::Path};
 
 use bit_vec::BitVec;
 use noodles_bgzf::VirtualPosition;
 
+use self::index::reference::{bin::Chunk, Bin};
+
 pub static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 #[derive(Debug)]
 pub struct Interval {
     ioffset: VirtualPosition,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Chunk {
-    chunk_beg: VirtualPosition,
-    chunk_end: VirtualPosition,
-}
-
-impl Chunk {
-    pub fn new(start: VirtualPosition, end: VirtualPosition) -> Self {
-        Self {
-            chunk_beg: start,
-            chunk_end: end,
-        }
-    }
-
-    pub fn start(&self) -> VirtualPosition {
-        self.chunk_beg
-    }
-
-    pub fn start_mut(&mut self) -> &mut VirtualPosition {
-        &mut self.chunk_beg
-    }
-
-    pub fn end(&self) -> VirtualPosition {
-        self.chunk_end
-    }
-
-    pub fn end_mut(&mut self) -> &mut VirtualPosition {
-        &mut self.chunk_end
-    }
-}
-
-#[derive(Debug)]
-pub struct Bin {
-    bin: u32,
-    chunks: Vec<Chunk>,
-}
-
-impl Bin {
-    pub fn chunks(&self) -> &[Chunk] {
-        &self.chunks
-    }
-}
-
-const WINDOW_SIZE: u64 = 16384;
-
-#[derive(Debug)]
-pub struct Reference {
-    bins: Vec<Bin>,
-    intervals: Vec<Interval>,
-}
-
-impl Reference {
-    pub fn bins(&self) -> &[Bin] {
-        &self.bins
-    }
-
-    pub fn intervals(&self) -> &[Interval] {
-        &self.intervals
-    }
-
-    pub fn min_offset(&self, start: u64) -> VirtualPosition {
-        let i = (start / WINDOW_SIZE) as usize;
-        self.intervals.get(i).map(|i| i.ioffset).unwrap_or_default()
-    }
-}
-
-#[derive(Debug)]
-pub struct Index {
-    references: Vec<Reference>,
-    n_no_coor: Option<u64>,
-}
-
-impl Index {
-    pub fn references(&self) -> &[Reference] {
-        &self.references
-    }
-
-    pub fn unplaced_unmapped_read_count(&self) -> Option<u64> {
-        self.n_no_coor
-    }
 }
 
 pub fn read<P>(src: P) -> io::Result<Index>
@@ -136,7 +57,7 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
     let mut query_bins = Vec::new();
 
     for bin in bins {
-        let bin_index = bin.bin as usize;
+        let bin_index = bin.bin() as usize;
 
         if bin_index < region_bins.len() && region_bins[bin_index] {
             query_bins.push(bin);

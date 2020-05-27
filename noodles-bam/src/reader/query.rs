@@ -2,7 +2,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf::VirtualPosition;
 
-use crate::{bai, Record};
+use crate::{bai::index::reference::bin::Chunk, Record};
 
 use super::Reader;
 
@@ -14,12 +14,12 @@ enum State {
 
 pub struct Query<'a, R: Read + Seek> {
     reader: &'a mut Reader<R>,
-    chunks: Vec<bai::Chunk>,
+    chunks: Vec<Chunk>,
     reference_sequence_id: usize,
     start: u64,
     end: u64,
     i: usize,
-    current_chunk: bai::Chunk,
+    current_chunk: Chunk,
     state: State,
     record: Record,
 }
@@ -27,12 +27,12 @@ pub struct Query<'a, R: Read + Seek> {
 impl<'a, R: Read + Seek> Query<'a, R> {
     pub fn new(
         reader: &'a mut Reader<R>,
-        chunks: Vec<bai::Chunk>,
+        chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         start: u64,
         end: u64,
     ) -> Self {
-        let current_chunk = bai::Chunk::new(VirtualPosition::from(0), VirtualPosition::from(1));
+        let current_chunk = Chunk::new(VirtualPosition::from(0), VirtualPosition::from(1));
 
         Self {
             reader,

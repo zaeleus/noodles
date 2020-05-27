@@ -1,9 +1,9 @@
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf as bgzf;
 
-use super::{Bin, Chunk, Index, Interval, Reference, MAGIC_NUMBER};
+use super::{index::Reference, Bin, Chunk, Index, Interval, MAGIC_NUMBER};
 
 pub struct Reader<R> {
     inner: R,
@@ -38,10 +38,7 @@ where
 
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
 
-        Ok(Index {
-            references,
-            n_no_coor,
-        })
+        Ok(Index::new(references, n_no_coor))
     }
 
     pub fn read_references(&mut self, references: &mut Vec<Reference>) -> io::Result<()> {
@@ -56,7 +53,7 @@ where
             let mut intervals = Vec::with_capacity(n_intv as usize);
             self.read_intervals(&mut intervals)?;
 
-            references.push(Reference { bins, intervals });
+            references.push(Reference::new(bins, intervals));
         }
 
         Ok(())
@@ -72,7 +69,7 @@ where
             let mut chunks = Vec::with_capacity(n_chunks as usize);
             self.read_chunks(&mut chunks)?;
 
-            bins.push(Bin { bin, chunks });
+            bins.push(Bin::new(bin, chunks));
         }
 
         Ok(())
@@ -85,17 +82,14 @@ where
             let chunk_beg = self
                 .inner
                 .read_u64::<LittleEndian>()
-                .map(VirtualPosition::from)?;
+                .map(bgzf::VirtualPosition::from)?;
 
             let chunk_end = self
                 .inner
                 .read_u64::<LittleEndian>()
-                .map(VirtualPosition::from)?;
+                .map(bgzf::VirtualPosition::from)?;
 
-            chunks.push(Chunk {
-                chunk_beg,
-                chunk_end,
-            });
+            chunks.push(Chunk::new(chunk_beg, chunk_end));
         }
 
         Ok(())
@@ -108,7 +102,7 @@ where
             let ioffset = self
                 .inner
                 .read_u64::<LittleEndian>()
-                .map(VirtualPosition::from)?;
+                .map(bgzf::VirtualPosition::from)?;
 
             intervals.push(Interval { ioffset });
         }
