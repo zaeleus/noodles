@@ -1,4 +1,5 @@
 use std::{
+    convert::TryFrom,
     io::{self, Read},
     str,
 };
@@ -8,7 +9,7 @@ use noodles_bgzf as bgzf;
 
 use crate::index::{
     reference::{bin::Chunk, Bin},
-    Reference,
+    Format, Reference,
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -29,7 +30,11 @@ where
         read_magic(&mut self.inner)?;
 
         let n_ref = self.inner.read_i32::<LittleEndian>()?;
-        let format = self.inner.read_i32::<LittleEndian>()?;
+
+        let format = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+            Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         let col_seq = self.inner.read_i32::<LittleEndian>()?;
         let col_beg = self.inner.read_i32::<LittleEndian>()?;
         let col_end = self.inner.read_i32::<LittleEndian>()?;

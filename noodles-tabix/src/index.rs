@@ -1,10 +1,11 @@
+mod format;
 pub mod reference;
 
-pub use self::reference::Reference;
+pub use self::{format::Format, reference::Reference};
 
 #[derive(Debug)]
 pub struct Index {
-    format: i32,
+    format: Format,
     reference_sequence_name_index: usize,
     start_position_index: usize,
     end_position_index: usize,
@@ -18,7 +19,7 @@ pub struct Index {
 impl Index {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        format: i32,
+        format: Format,
         reference_sequence_name_index: usize,
         start_position_index: usize,
         end_position_index: usize,
