@@ -12,14 +12,6 @@ pub enum MateReferenceSequenceName {
 }
 
 impl MateReferenceSequenceName {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::None => NULL_FIELD,
-            Self::Eq => EQ_FIELD,
-            Self::Some(name) => name,
-        }
-    }
-
     pub fn is_empty(&self) -> bool {
         self.is_none()
     }
@@ -46,6 +38,16 @@ impl MateReferenceSequenceName {
     }
 }
 
+impl AsRef<str> for MateReferenceSequenceName {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::None => NULL_FIELD,
+            Self::Eq => EQ_FIELD,
+            Self::Some(name) => name,
+        }
+    }
+}
+
 impl Default for MateReferenceSequenceName {
     fn default() -> Self {
         Self::None
@@ -54,7 +56,7 @@ impl Default for MateReferenceSequenceName {
 
 impl fmt::Display for MateReferenceSequenceName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.as_ref())
     }
 }
 
@@ -87,16 +89,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_as_str() {
-        assert_eq!(MateReferenceSequenceName::None.as_str(), "*");
-        assert_eq!(MateReferenceSequenceName::Eq.as_str(), "=");
-        assert_eq!(
-            MateReferenceSequenceName::Some(String::from("sq0")).as_str(),
-            "sq0"
-        )
-    }
-
-    #[test]
     fn test_is_empty() {
         assert!(MateReferenceSequenceName::None.is_empty());
         assert!(!MateReferenceSequenceName::Eq.is_empty());
@@ -127,5 +119,15 @@ mod tests {
     #[test]
     fn test_default() {
         assert!(MateReferenceSequenceName::default().is_empty());
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(MateReferenceSequenceName::None.to_string(), "*");
+        assert_eq!(MateReferenceSequenceName::Eq.to_string(), "=");
+        assert_eq!(
+            MateReferenceSequenceName::Some(String::from("sq0")).to_string(),
+            "sq0"
+        );
     }
 }

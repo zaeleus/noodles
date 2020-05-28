@@ -35,7 +35,7 @@ where
             pos = i32::from(record.position()),
             mapq = u8::from(record.mapping_quality()),
             cigar = record.cigar(),
-            rnext = record.mate_reference_sequence_name().as_str(),
+            rnext = record.mate_reference_sequence_name().as_ref(),
             pnext = i32::from(record.mate_position()),
             tlen = record.template_len(),
             seq = record.sequence(),
