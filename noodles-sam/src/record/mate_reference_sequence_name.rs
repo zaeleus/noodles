@@ -130,4 +130,26 @@ mod tests {
             "sq0"
         );
     }
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        let mate_reference_sequence_name: MateReferenceSequenceName = "*".parse()?;
+        assert_eq!(
+            mate_reference_sequence_name,
+            MateReferenceSequenceName::None
+        );
+
+        let mate_reference_sequence_name: MateReferenceSequenceName = "=".parse()?;
+        assert_eq!(mate_reference_sequence_name, MateReferenceSequenceName::Eq);
+
+        let mate_reference_sequence_name: MateReferenceSequenceName = "sq0".parse()?;
+        assert_eq!(
+            mate_reference_sequence_name,
+            MateReferenceSequenceName::Some(String::from("sq0"))
+        );
+
+        assert!("".parse::<MateReferenceSequenceName>().is_err());
+
+        Ok(())
+    }
 }
