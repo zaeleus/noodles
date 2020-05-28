@@ -6,12 +6,14 @@ use super::NULL_FIELD;
 pub struct ReadName(Option<String>);
 
 impl ReadName {
-    pub fn as_str(&self) -> &str {
-        self.0.as_deref().unwrap_or(NULL_FIELD)
-    }
-
     pub fn is_empty(&self) -> bool {
         self.0.is_none()
+    }
+}
+
+impl AsRef<str> for ReadName {
+    fn as_ref(&self) -> &str {
+        self.0.as_deref().unwrap_or(NULL_FIELD)
     }
 }
 
@@ -25,7 +27,7 @@ impl Deref for ReadName {
 
 impl fmt::Display for ReadName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.as_ref())
     }
 }
 
@@ -60,17 +62,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_as_str() -> Result<(), ParseError> {
-        let read_name = ReadName::default();
-        assert_eq!(read_name.as_str(), "*");
-
-        let read_name: ReadName = "r0".parse()?;
-        assert_eq!(read_name.as_str(), "r0");
-
-        Ok(())
-    }
-
-    #[test]
     fn test_is_empty() -> Result<(), ParseError> {
         let read_name = ReadName::default();
         assert!(read_name.is_empty());
@@ -82,12 +73,23 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let read_name: ReadName = "*".parse()?;
-        assert!(read_name.is_empty());
+    fn test_fmt() -> Result<(), ParseError> {
+        let read_name = ReadName::default();
+        assert_eq!(read_name.to_string(), "*");
 
         let read_name: ReadName = "r0".parse()?;
-        assert_eq!(read_name.as_str(), "r0");
+        assert_eq!(read_name.to_string(), "r0");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        let read_name: ReadName = "*".parse()?;
+        assert_eq!(*read_name, None);
+
+        let read_name: ReadName = "r0".parse()?;
+        assert_eq!(*read_name, Some(String::from("r0")));
 
         Ok(())
     }

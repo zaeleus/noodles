@@ -64,7 +64,7 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        let c_name = CString::new(record.name().as_str())
+        let c_name = CString::new(record.name().as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let reference_sequence_id = match record.reference_sequence_name().as_ref() {
