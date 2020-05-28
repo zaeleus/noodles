@@ -230,11 +230,11 @@ mod tests {
         assert!(field.value().is_uint32());
         assert_eq!(field.value().as_uint32(), Some(27015));
 
-        let field = read_one_field(&b"JBf\xd0\x0f\x49\x40"[..]);
+        let field = read_one_field(&b"JBf\x56\x0e\x49\x40"[..]);
         assert_eq!(field.tag(), &Tag::Other(String::from("JB")));
         assert!(field.value().is_float());
         let f = field.value().as_float().unwrap();
-        assert!(f - 3.14159 < ::std::f32::EPSILON);
+        assert_eq!(f, 3.1415);
 
         let field = read_one_field(&b"NRZ\x6e\x6f\x6f\x64\x6c\x65\x73\x00"[..]);
         assert_eq!(field.tag(), &Tag::Other(String::from("NR")));
@@ -276,11 +276,11 @@ mod tests {
         assert!(field.value().is_uint32_array());
         assert_eq!(field.value().as_uint32_array(), Some(&[27015][..]));
 
-        let field = read_one_field(&b"EQBf\x01\x00\x00\x00\xa1\x67\x0b\x40"[..]);
+        let field = read_one_field(&b"EQBf\x01\x00\x00\x00\xa1\xf8\x2d\x40"[..]);
         assert_eq!(field.tag(), &Tag::Other(String::from("EQ")));
         assert!(field.value().is_float_array());
         let a = field.value().as_float_array().unwrap();
         assert_eq!(a.len(), 1);
-        assert!(a[0] - 2.7182 < ::std::f32::EPSILON);
+        assert_eq!(a[0], 2.7183);
     }
 }
