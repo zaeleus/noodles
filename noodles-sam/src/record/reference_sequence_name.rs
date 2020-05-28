@@ -65,4 +65,17 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        let reference_sequence_name: ReferenceSequenceName = "*".parse()?;
+        assert_eq!(*reference_sequence_name, None);
+
+        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
+        assert_eq!(*reference_sequence_name, Some(String::from("sq0")));
+
+        assert!("".parse::<ReferenceSequenceName>().is_err());
+
+        Ok(())
+    }
 }
