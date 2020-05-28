@@ -91,8 +91,8 @@ mod tests {
         assert_eq!(MateReferenceSequenceName::None.as_str(), "*");
         assert_eq!(MateReferenceSequenceName::Eq.as_str(), "=");
         assert_eq!(
-            MateReferenceSequenceName::Some(String::from("r0")).as_str(),
-            "r0"
+            MateReferenceSequenceName::Some(String::from("sq0")).as_str(),
+            "sq0"
         )
     }
 
@@ -100,28 +100,28 @@ mod tests {
     fn test_is_empty() {
         assert!(MateReferenceSequenceName::None.is_empty());
         assert!(!MateReferenceSequenceName::Eq.is_empty());
-        assert!(!MateReferenceSequenceName::Some(String::from("r0")).is_empty());
+        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_empty());
     }
 
     #[test]
     fn test_is_none() {
         assert!(MateReferenceSequenceName::None.is_none());
         assert!(!MateReferenceSequenceName::Eq.is_none());
-        assert!(!MateReferenceSequenceName::Some(String::from("r0")).is_none());
+        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_none());
     }
 
     #[test]
     fn test_is_eq() {
         assert!(!MateReferenceSequenceName::None.is_eq());
         assert!(MateReferenceSequenceName::Eq.is_eq());
-        assert!(!MateReferenceSequenceName::Some(String::from("r0")).is_eq());
+        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_eq());
     }
 
     #[test]
     fn test_is_some() {
         assert!(!MateReferenceSequenceName::None.is_some());
         assert!(!MateReferenceSequenceName::Eq.is_some());
-        assert!(MateReferenceSequenceName::Some(String::from("r0")).is_some());
+        assert!(MateReferenceSequenceName::Some(String::from("sq0")).is_some());
     }
 
     #[test]
