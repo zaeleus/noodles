@@ -65,14 +65,14 @@ where
         record: &sam::Record,
     ) -> io::Result<()> {
         let c_name = CString::new(record.name().as_ref())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let reference_sequence_id = match &**record.reference_sequence_name() {
             Some(name) => reference_sequences
                 .get_full(name)
                 .map(|(i, _, _)| i as i32)
                 .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence id")
+                    io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
                 })?,
             None => -1,
         };
@@ -82,7 +82,7 @@ where
                 .get_full(name)
                 .map(|(i, _, _)| i as i32)
                 .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence id")
+                    io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
                 })?,
             MateReferenceSequenceName::Eq => reference_sequence_id,
             MateReferenceSequenceName::None => -1,
@@ -166,7 +166,7 @@ where
 
     for reference_sequence in reference_sequences.values() {
         let c_name = CString::new(reference_sequence.name())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         let name = c_name.as_bytes_with_nul();
 
         let l_name = name.len() as i32;
