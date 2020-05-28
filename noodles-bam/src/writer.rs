@@ -67,7 +67,7 @@ where
         let c_name = CString::new(record.name().as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        let reference_sequence_id = match record.reference_sequence_name().as_ref() {
+        let reference_sequence_id = match &**record.reference_sequence_name() {
             Some(name) => reference_sequences
                 .get_full(name)
                 .map(|(i, _, _)| i as i32)

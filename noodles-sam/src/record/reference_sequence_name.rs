@@ -5,8 +5,8 @@ use super::NULL_FIELD;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequenceName(Option<String>);
 
-impl ReferenceSequenceName {
-    pub fn as_str(&self) -> &str {
+impl AsRef<str> for ReferenceSequenceName {
+    fn as_ref(&self) -> &str {
         self.0.as_deref().unwrap_or(NULL_FIELD)
     }
 }
@@ -21,7 +21,7 @@ impl Deref for ReferenceSequenceName {
 
 impl fmt::Display for ReferenceSequenceName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.as_ref())
     }
 }
 
@@ -48,5 +48,21 @@ impl FromStr for ReferenceSequenceName {
             NULL_FIELD => Ok(ReferenceSequenceName(None)),
             _ => Ok(ReferenceSequenceName(Some(s.into()))),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() -> Result<(), ParseError> {
+        let reference_sequence_name = ReferenceSequenceName::default();
+        assert_eq!(reference_sequence_name.to_string(), "*");
+
+        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
+        assert_eq!(reference_sequence_name.to_string(), "sq0");
+
+        Ok(())
     }
 }
