@@ -33,12 +33,12 @@ impl Format {
         &self.id
     }
 
-    pub fn number(&self) -> &Number {
-        &self.number
+    pub fn number(&self) -> Number {
+        self.number
     }
 
-    pub fn ty(&self) -> &Type {
-        &self.ty
+    pub fn ty(&self) -> Type {
+        self.ty
     }
 
     pub fn description(&self) -> &str {
@@ -165,8 +165,8 @@ mod tests {
         let format = Format::try_from(&fields[..])?;
 
         assert_eq!(format.id(), &genotype::field::Key::Genotype);
-        assert_eq!(*format.number(), Number::Count(1));
-        assert_eq!(*format.ty(), Type::Integer);
+        assert_eq!(format.number(), Number::Count(1));
+        assert_eq!(format.ty(), Type::Integer);
         assert_eq!(format.description(), "Genotype");
 
         Ok(())

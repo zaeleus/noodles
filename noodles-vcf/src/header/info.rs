@@ -35,12 +35,12 @@ impl Info {
         &self.id
     }
 
-    pub fn number(&self) -> &Number {
-        &self.number
+    pub fn number(&self) -> Number {
+        self.number
     }
 
-    pub fn ty(&self) -> &Type {
-        &self.ty
+    pub fn ty(&self) -> Type {
+        self.ty
     }
 
     pub fn description(&self) -> &str {
@@ -179,8 +179,8 @@ mod tests {
         let info = Info::try_from(&fields[..])?;
 
         assert_eq!(info.id(), &info::field::Key::SamplesWithDataCount);
-        assert_eq!(*info.number(), Number::Count(1));
-        assert_eq!(*info.ty(), Type::Integer);
+        assert_eq!(info.number(), Number::Count(1));
+        assert_eq!(info.ty(), Type::Integer);
         assert_eq!(info.description(), "Number of samples with data");
 
         Ok(())
