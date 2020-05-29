@@ -2,7 +2,9 @@ mod records;
 
 pub use self::records::Records;
 
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader, Read, Seek};
+
+use noodles_bgzf as bgzf;
 
 const NEWLINE: u8 = b'\n';
 const HEADER_PREFIX: u8 = b'#';
@@ -61,6 +63,15 @@ where
 
     pub fn records(&mut self) -> Records<R> {
         Records::new(self)
+    }
+}
+
+impl<R> Reader<BufReader<bgzf::Reader<R>>>
+where
+    R: Read + Seek,
+{
+    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.get_mut().seek(pos)
     }
 }
 
