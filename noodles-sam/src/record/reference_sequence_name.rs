@@ -5,6 +5,12 @@ use super::NULL_FIELD;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequenceName(Option<String>);
 
+impl ReferenceSequenceName {
+    pub fn is_empty(&self) -> bool {
+        self.is_none()
+    }
+}
+
 impl AsRef<str> for ReferenceSequenceName {
     fn as_ref(&self) -> &str {
         self.0.as_deref().unwrap_or(NULL_FIELD)
@@ -54,6 +60,15 @@ impl FromStr for ReferenceSequenceName {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_empty() {
+        let reference_sequence_name = ReferenceSequenceName::default();
+        assert!(reference_sequence_name.is_empty());
+
+        let reference_sequence_name = ReferenceSequenceName(Some(String::from("sq0")));
+        assert!(!reference_sequence_name.is_empty());
+    }
 
     #[test]
     fn test_fmt() -> Result<(), ParseError> {
