@@ -25,7 +25,11 @@ where
         let mut eol = false;
 
         loop {
-            let buf = self.inner.fill_buf()?;
+            let buf = match self.inner.fill_buf() {
+                Ok(buf) => buf,
+                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => return Err(e),
+            };
 
             if eol && !buf.is_empty() && buf[0] != HEADER_PREFIX {
                 break;
