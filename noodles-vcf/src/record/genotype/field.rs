@@ -12,7 +12,7 @@ pub struct Field {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub struct ParseError(value::ParseError);
 
 impl error::Error for ParseError {}
 
@@ -26,7 +26,7 @@ impl Field {
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         Value::from_str_key(s, key)
             .map(|v| Self::new(key.clone(), v))
-            .map_err(|_| ParseError(s.into()))
+            .map_err(ParseError)
     }
 
     pub fn new(key: Key, value: Value) -> Self {
