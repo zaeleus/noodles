@@ -41,4 +41,40 @@ impl Index {
             unmapped_read_count,
         }
     }
+
+    pub fn format(&self) -> Format {
+        self.format
+    }
+
+    pub fn reference_sequence_name_index(&self) -> usize {
+        self.reference_sequence_name_index
+    }
+
+    pub fn start_position_index(&self) -> usize {
+        self.start_position_index
+    }
+
+    pub fn end_position_index(&self) -> usize {
+        self.end_position_index
+    }
+
+    pub fn comment(&self) -> i32 {
+        self.comment
+    }
+
+    pub fn header_line_count(&self) -> u32 {
+        self.header_line_count
+    }
+
+    pub fn names(&self) -> &[String] {
+        &self.names
+    }
+
+    pub fn references(&self) -> &[Reference] {
+        &self.references
+    }
+
+    pub fn unmapped_read_count(&self) -> Option<u64> {
+        self.unmapped_read_count
+    }
 }
