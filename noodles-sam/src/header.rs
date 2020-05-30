@@ -18,13 +18,14 @@ pub use self::{
 pub use self::record::Record;
 
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
+pub type Programs = IndexMap<String, Program>;
 
 #[derive(Debug, Default)]
 pub struct Header {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
     read_groups: Vec<ReadGroup>,
-    programs: Vec<Program>,
+    programs: Programs,
     comments: Vec<String>,
 }
 
@@ -57,11 +58,11 @@ impl Header {
         &mut self.read_groups
     }
 
-    pub fn programs(&self) -> &[Program] {
+    pub fn programs(&self) -> &Programs {
         &self.programs
     }
 
-    pub fn programs_mut(&mut self) -> &mut Vec<Program> {
+    pub fn programs_mut(&mut self) -> &mut Programs {
         &mut self.programs
     }
 
@@ -88,7 +89,7 @@ impl fmt::Display for Header {
             writeln!(f, "{}", read_group)?;
         }
 
-        for program in &self.programs {
+        for program in self.programs.values() {
             writeln!(f, "{}", program)?;
         }
 
@@ -163,7 +164,10 @@ impl FromStr for Header {
                 Record::Program(fields) => {
                     let program =
                         Program::try_from(&fields[..]).map_err(ParseError::InvalidProgram)?;
-                    header.programs.push(program);
+
+                    let id = program.id();
+
+                    header.programs.insert(id.into(), program);
                 }
                 Record::Comment(comment) => {
                     header.comments.push(comment);

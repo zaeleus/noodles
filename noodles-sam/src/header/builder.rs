@@ -1,11 +1,11 @@
-use super::{header, Header, Program, ReadGroup, ReferenceSequence, ReferenceSequences};
+use super::{header, Header, Program, Programs, ReadGroup, ReferenceSequence, ReferenceSequences};
 
 #[derive(Debug, Default)]
 pub struct Builder {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
     read_groups: Vec<ReadGroup>,
-    programs: Vec<Program>,
+    programs: Programs,
     comments: Vec<String>,
 }
 
@@ -31,7 +31,7 @@ impl Builder {
     }
 
     pub fn add_program(mut self, program: Program) -> Self {
-        self.programs.push(program);
+        self.programs.insert(program.id().into(), program);
         self
     }
 
