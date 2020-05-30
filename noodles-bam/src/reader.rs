@@ -6,7 +6,6 @@ pub use self::{query::Query, records::Records};
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::DerefMut,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -50,7 +49,7 @@ impl<R: Read> Reader<R> {
         Ok(header)
     }
 
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, mut record: &mut Record) -> io::Result<usize> {
         let block_size = match self.inner.read_u32::<LittleEndian>() {
             Ok(bs) => bs as usize,
             Err(e) => match e.kind() {
@@ -60,9 +59,7 @@ impl<R: Read> Reader<R> {
         };
 
         record.resize(block_size);
-        let buf = record.deref_mut();
-
-        self.inner.read_exact(buf)?;
+        self.inner.read_exact(&mut record)?;
 
         Ok(block_size)
     }
