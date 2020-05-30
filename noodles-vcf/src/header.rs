@@ -163,58 +163,58 @@ impl FromStr for Header {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut header = Header::default();
+        let mut builder = Header::builder();
         let mut lines = s.lines();
 
-        header.file_format = parse_file_format(&mut lines)?;
+        let file_format = parse_file_format(&mut lines)?;
+        builder = builder.set_file_format(file_format);
 
         while let Some(line) = lines.next() {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            match record {
+            builder = match record {
                 Record::FileFormat(_) => todo!("unexpected fileformat"),
                 Record::Info(fields) => {
                     let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
-                    header.infos.push(info);
+                    builder.add_info(info)
                 }
                 Record::Filter(fields) => {
                     let filter =
                         Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
-                    header.filters.push(filter);
+                    builder.add_filter(filter)
                 }
                 Record::Format(fields) => {
                     let format =
                         Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
-                    header.formats.push(format);
+                    builder.add_format(format)
                 }
                 Record::AlternativeAllele(fields) => {
                     let alternative_allele = AlternativeAllele::try_from(&fields[..])
                         .map_err(ParseError::InvalidAlternativeAllele)?;
-                    header.alternative_alleles.push(alternative_allele);
+                    builder.add_alternative_allele(alternative_allele)
                 }
-                Record::Assembly(value) => {
-                    header.assembly = Some(value);
-                }
+                Record::Assembly(value) => builder.set_assembly(value),
                 Record::Contig(fields) => {
                     let contig =
                         Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
-                    header.contigs.push(contig);
+                    builder.add_contig(contig)
                 }
                 Record::Header(samples_names) => {
-                    header.samples_names = samples_names;
+                    for sample_name in samples_names {
+                        builder = builder.add_sample_name(sample_name);
+                    }
+
                     break;
                 }
-                Record::Other(key, value) => {
-                    header.map.insert(key, value);
-                }
-            }
+                Record::Other(key, value) => builder.insert(key, value),
+            };
         }
 
         if lines.next().is_some() {
             return Err(ParseError::ExpectedEof);
         }
 
-        Ok(header)
+        Ok(builder.build())
     }
 }
 
