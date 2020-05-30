@@ -43,7 +43,7 @@ impl Builder {
         self
     }
 
-    pub fn add_alternate_allele(mut self, alternative_allele: AlternativeAllele) -> Self {
+    pub fn add_alternative_allele(mut self, alternative_allele: AlternativeAllele) -> Self {
         self.alternative_alleles.push(alternative_allele);
         self
     }
@@ -152,7 +152,7 @@ mod tests {
                 format::Type::String,
                 String::from("Genotype"),
             ))
-            .add_alternate_allele(AlternativeAllele::new(
+            .add_alternative_allele(AlternativeAllele::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,
                 )),
