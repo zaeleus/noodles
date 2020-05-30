@@ -130,18 +130,18 @@ impl FromStr for Header {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut header = Header::default();
+        let mut builder = Header::builder();
 
         for (i, line) in s.lines().enumerate() {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            match record {
+            builder = match record {
                 Record::Header(fields) => {
                     if i == 0 {
-                        header.header = Some(
+                        builder.set_header(
                             header::Header::try_from(&fields[..])
                                 .map_err(ParseError::InvalidHeader)?,
-                        );
+                        )
                     } else {
                         return Err(ParseError::UnexpectedHeader);
                     }
@@ -149,33 +149,23 @@ impl FromStr for Header {
                 Record::ReferenceSequence(fields) => {
                     let reference_sequence = ReferenceSequence::try_from(&fields[..])
                         .map_err(ParseError::InvalidReferenceSequence)?;
-
-                    let name = reference_sequence.name();
-
-                    header
-                        .reference_sequences
-                        .insert(name.into(), reference_sequence);
+                    builder.add_reference_sequence(reference_sequence)
                 }
                 Record::ReadGroup(fields) => {
                     let read_group =
                         ReadGroup::try_from(&fields[..]).map_err(ParseError::InvalidReadGroup)?;
-                    header.read_groups.push(read_group);
+                    builder.add_read_group(read_group)
                 }
                 Record::Program(fields) => {
                     let program =
                         Program::try_from(&fields[..]).map_err(ParseError::InvalidProgram)?;
-
-                    let id = program.id();
-
-                    header.programs.insert(id.into(), program);
+                    builder.add_program(program)
                 }
-                Record::Comment(comment) => {
-                    header.comments.push(comment);
-                }
-            }
+                Record::Comment(comment) => builder.add_comment(comment),
+            };
         }
 
-        Ok(header)
+        Ok(builder.build())
     }
 }
 
