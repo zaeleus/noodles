@@ -131,6 +131,7 @@ impl fmt::Display for Header {
 #[derive(Debug)]
 pub enum ParseError {
     MissingFileFormat,
+    UnexpectedFileFormat,
     InvalidRecord(record::ParseError),
     InvalidInfo(info::ParseError),
     InvalidFilter(filter::ParseError),
@@ -148,6 +149,7 @@ impl fmt::Display for ParseError {
 
         match self {
             ParseError::MissingFileFormat => f.write_str("missing fileformat"),
+            ParseError::UnexpectedFileFormat => f.write_str("unexpected file format"),
             ParseError::InvalidRecord(e) => write!(f, "{}", e),
             ParseError::InvalidInfo(e) => write!(f, "{}", e),
             ParseError::InvalidFilter(e) => write!(f, "{}", e),
@@ -173,7 +175,9 @@ impl FromStr for Header {
             let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             builder = match record {
-                Record::FileFormat(_) => todo!("unexpected fileformat"),
+                Record::FileFormat(_) => {
+                    return Err(ParseError::UnexpectedFileFormat);
+                }
                 Record::Info(fields) => {
                     let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
                     builder.add_info(info)
@@ -340,5 +344,18 @@ mod tests {
 "#;
 
         assert!(matches!(s.parse::<Header>(), Err(ParseError::ExpectedEof)));
+    }
+
+    #[test]
+    fn test_from_str_with_multiple_fileformats() {
+        let s = "\
+##fileformat=VCFv4.3
+##fileformat=VCFv4.3
+";
+
+        assert!(matches!(
+            s.parse::<Header>(),
+            Err(ParseError::UnexpectedFileFormat)
+        ));
     }
 }
