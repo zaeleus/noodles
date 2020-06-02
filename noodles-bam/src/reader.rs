@@ -11,7 +11,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles::Region;
 use noodles_bgzf::{self as bgzf, VirtualPosition};
-use noodles_sam::header::ReferenceSequences;
+use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
 
@@ -36,17 +36,19 @@ impl<R: Read> Reader<R> {
             ));
         }
 
-        let header = read_header(&mut self.inner)?;
+        read_header(&mut self.inner)
+    }
 
-        // I'm actually not sure what the BAM references are used for since the reference sequence
-        // dictionary in the SAM header should have or has the same information plus, commonly,
-        // more (e.g., the M5 tag).
-        //
-        // In this case, the BAM references are discarded in favor of the dictionary in the SAM
-        // header.
-        read_references(&mut self.inner)?;
+    pub fn read_reference_sequences(&mut self) -> io::Result<Vec<ReferenceSequence>> {
+        let n_ref = self.inner.read_u32::<LittleEndian>()?;
+        let mut reference_sequences = Vec::with_capacity(n_ref as usize);
 
-        Ok(header)
+        for _ in 0..n_ref {
+            let reference_sequence = read_reference_sequence(&mut self.inner)?;
+            reference_sequences.push(reference_sequence);
+        }
+
+        Ok(reference_sequences)
     }
 
     pub fn read_record(&mut self, mut record: &mut Record) -> io::Result<usize> {
@@ -141,22 +143,19 @@ where
     })
 }
 
-fn read_references<R>(reader: &mut R) -> io::Result<()>
+fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
 where
     R: Read,
 {
-    let n_ref = reader.read_u32::<LittleEndian>()?;
+    let l_name = reader.read_u32::<LittleEndian>()?;
 
-    for _ in 0..n_ref {
-        let l_name = reader.read_u32::<LittleEndian>()?;
+    let mut c_name = vec![0; l_name as usize];
+    reader.read_exact(&mut c_name)?;
 
-        let mut buf = vec![0; l_name as usize];
-        reader.read_exact(&mut buf)?;
+    let name = bytes_with_nul_to_string(&c_name)?;
+    let l_ref = reader.read_u32::<LittleEndian>()?;
 
-        let _l_ref = reader.read_u32::<LittleEndian>()?;
-    }
-
-    Ok(())
+    Ok(ReferenceSequence::new(name, l_ref as i32))
 }
 
 fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
