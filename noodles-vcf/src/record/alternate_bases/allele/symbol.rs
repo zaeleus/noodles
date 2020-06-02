@@ -8,6 +8,7 @@ use std::{error, fmt, str::FromStr};
 pub enum Symbol {
     StructuralVariant(StructuralVariant),
     NonstructuralVariant(String),
+    Unspecified,
 }
 
 #[derive(Debug)]
@@ -25,13 +26,14 @@ impl FromStr for Symbol {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError(s.into()));
+        match s {
+            "" => Err(ParseError(s.into())),
+            "*" | "NON_REF" => Ok(Self::Unspecified),
+            _ => s
+                .parse::<StructuralVariant>()
+                .map(Self::StructuralVariant)
+                .or_else(|_| Ok(Self::NonstructuralVariant(s.into()))),
         }
-
-        s.parse::<StructuralVariant>()
-            .map(Self::StructuralVariant)
-            .or_else(|_| Ok(Self::NonstructuralVariant(s.into())))
     }
 }
 
@@ -40,6 +42,7 @@ impl fmt::Display for Symbol {
         match self {
             Self::StructuralVariant(sv) => write!(f, "{}", sv),
             Self::NonstructuralVariant(nsv) => f.write_str(nsv),
+            Self::Unspecified => f.write_str("*"),
         }
     }
 }
@@ -60,15 +63,8 @@ mod tests {
             Symbol::NonstructuralVariant(String::from("CN:0"))
         );
 
-        assert_eq!(
-            "NON_REF".parse::<Symbol>()?,
-            Symbol::NonstructuralVariant(String::from("NON_REF"))
-        );
-
-        assert_eq!(
-            "*".parse::<Symbol>()?,
-            Symbol::NonstructuralVariant(String::from("*"))
-        );
+        assert_eq!("NON_REF".parse::<Symbol>()?, Symbol::Unspecified);
+        assert_eq!("*".parse::<Symbol>()?, Symbol::Unspecified);
 
         assert!("".parse::<Symbol>().is_err());
 
@@ -84,10 +80,7 @@ mod tests {
         let symbol = Symbol::NonstructuralVariant(String::from("CN:0"));
         assert_eq!(symbol.to_string(), "CN:0");
 
-        let symbol = Symbol::NonstructuralVariant(String::from("NON_REF"));
-        assert_eq!(symbol.to_string(), "NON_REF");
-
-        let symbol = Symbol::NonstructuralVariant(String::from("*"));
+        let symbol = Symbol::Unspecified;
         assert_eq!(symbol.to_string(), "*");
     }
 }
