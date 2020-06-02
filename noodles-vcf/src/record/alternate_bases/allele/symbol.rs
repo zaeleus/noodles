@@ -39,3 +39,49 @@ impl fmt::Display for Symbol {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!(
+            "DEL".parse::<Symbol>()?,
+            Symbol::StructuralVariant(StructuralVariant::from(structural_variant::Type::Deletion))
+        );
+
+        assert_eq!(
+            "CN:0".parse::<Symbol>()?,
+            Symbol::NonstructuralVariant(String::from("CN:0"))
+        );
+
+        assert_eq!(
+            "NON_REF".parse::<Symbol>()?,
+            Symbol::NonstructuralVariant(String::from("NON_REF"))
+        );
+
+        assert_eq!(
+            "*".parse::<Symbol>()?,
+            Symbol::NonstructuralVariant(String::from("*"))
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_fmt() {
+        let symbol =
+            Symbol::StructuralVariant(StructuralVariant::from(structural_variant::Type::Deletion));
+        assert_eq!(symbol.to_string(), "DEL");
+
+        let symbol = Symbol::NonstructuralVariant(String::from("CN:0"));
+        assert_eq!(symbol.to_string(), "CN:0");
+
+        let symbol = Symbol::NonstructuralVariant(String::from("NON_REF"));
+        assert_eq!(symbol.to_string(), "NON_REF");
+
+        let symbol = Symbol::NonstructuralVariant(String::from("*"));
+        assert_eq!(symbol.to_string(), "*");
+    }
+}
