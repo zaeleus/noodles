@@ -73,6 +73,14 @@ impl Header {
     pub fn comments_mut(&mut self) -> &mut Vec<String> {
         &mut self.comments
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.header.is_none()
+            && self.reference_sequences.is_empty()
+            && self.read_groups.is_empty()
+            && self.programs.is_empty()
+            && self.comments.is_empty()
+    }
 }
 
 impl fmt::Display for Header {
@@ -172,6 +180,15 @@ impl FromStr for Header {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_empty() {
+        let header = Header::default();
+        assert!(header.is_empty());
+
+        let header = Header::builder().add_comment("noodles-sam").build();
+        assert!(!header.is_empty());
+    }
 
     #[test]
     fn test_fmt() {
