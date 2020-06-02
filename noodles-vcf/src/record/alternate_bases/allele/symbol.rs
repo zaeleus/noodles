@@ -25,6 +25,10 @@ impl FromStr for Symbol {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseError(s.into()));
+        }
+
         s.parse::<StructuralVariant>()
             .map(Self::StructuralVariant)
             .or_else(|_| Ok(Self::NonstructuralVariant(s.into())))
@@ -65,6 +69,8 @@ mod tests {
             "*".parse::<Symbol>()?,
             Symbol::NonstructuralVariant(String::from("*"))
         );
+
+        assert!("".parse::<Symbol>().is_err());
 
         Ok(())
     }
