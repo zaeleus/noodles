@@ -83,7 +83,7 @@ impl Record {
 
 #[derive(Debug)]
 pub enum ParseError {
-    Missing(Field),
+    MissingField(Field),
     Invalid(Field, Box<dyn error::Error + Send + Sync>),
     InvalidGenotype(genotype::ParseError),
 }
@@ -93,7 +93,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing(field) => write!(f, "missing field: {}", field),
+            Self::MissingField(field) => write!(f, "missing field: {}", field),
             Self::Invalid(field, message) => write!(f, "invalid {} field: {}", field, message),
             Self::InvalidGenotype(e) => write!(f, "{}", e),
         }
@@ -180,7 +180,7 @@ fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<&'a str, ParseErr
 where
     I: Iterator<Item = &'a str>,
 {
-    fields.next().ok_or_else(|| ParseError::Missing(field))
+    fields.next().ok_or_else(|| ParseError::MissingField(field))
 }
 
 fn parse_i32<'a, I>(fields: &mut I, field: Field) -> Result<i32, ParseError>
