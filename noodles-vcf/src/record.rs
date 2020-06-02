@@ -16,7 +16,7 @@ pub use self::{
     quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
@@ -84,7 +84,15 @@ impl Record {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Field),
-    Invalid(Field, Box<dyn error::Error + Send + Sync>),
+    InvalidChromosome(chromosome::ParseError),
+    InvalidPosition(num::ParseIntError),
+    InvalidId(id::ParseError),
+    InvalidReferenceBases(reference_bases::ParseError),
+    InvalidAlternateBases(alternate_bases::ParseError),
+    InvalidQualityScore(quality_score::ParseError),
+    InvalidFilterStatus(filter_status::ParseError),
+    InvalidInfo(info::ParseError),
+    InvalidFormat(format::ParseError),
     InvalidGenotype(genotype::ParseError),
 }
 
@@ -94,7 +102,15 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingField(field) => write!(f, "missing field: {}", field),
-            Self::Invalid(field, message) => write!(f, "invalid {} field: {}", field, message),
+            Self::InvalidChromosome(e) => write!(f, "{}", e),
+            Self::InvalidPosition(e) => write!(f, "{}", e),
+            Self::InvalidId(e) => write!(f, "{}", e),
+            Self::InvalidReferenceBases(e) => write!(f, "{}", e),
+            Self::InvalidAlternateBases(e) => write!(f, "{}", e),
+            Self::InvalidQualityScore(e) => write!(f, "{}", e),
+            Self::InvalidFilterStatus(e) => write!(f, "{}", e),
+            Self::InvalidInfo(e) => write!(f, "{}", e),
+            Self::InvalidFormat(e) => write!(f, "{}", e),
             Self::InvalidGenotype(e) => write!(f, "{}", e),
         }
     }
@@ -106,48 +122,32 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(FIELD_DELIMITER);
 
-        let chrom = parse_string(&mut fields, Field::Chromosome).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Chromosome, Box::new(e)))
-        })?;
+        let chrom = parse_string(&mut fields, Field::Chromosome)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidChromosome))?;
 
-        let pos = parse_i32(&mut fields, Field::Position)?;
+        let pos = parse_string(&mut fields, Field::Position)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))?;
 
-        let id = parse_string(&mut fields, Field::Id).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Id, Box::new(e)))
-        })?;
+        let id = parse_string(&mut fields, Field::Id)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidId))?;
 
-        let r#ref = parse_string(&mut fields, Field::ReferenceBases).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::ReferenceBases, Box::new(e)))
-        })?;
+        let r#ref = parse_string(&mut fields, Field::ReferenceBases)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidReferenceBases))?;
 
-        let alt = parse_string(&mut fields, Field::AlternateBases).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::ReferenceBases, Box::new(e)))
-        })?;
+        let alt = parse_string(&mut fields, Field::AlternateBases)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidAlternateBases))?;
 
-        let qual = parse_string(&mut fields, Field::QualityScore).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::QualityScore, Box::new(e)))
-        })?;
+        let qual = parse_string(&mut fields, Field::QualityScore)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScore))?;
 
-        let filter = parse_string(&mut fields, Field::FilterStatus).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::FilterStatus, Box::new(e)))
-        })?;
+        let filter = parse_string(&mut fields, Field::FilterStatus)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidFilterStatus))?;
 
-        let info = parse_string(&mut fields, Field::Info).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Info, Box::new(e)))
-        })?;
+        let info = parse_string(&mut fields, Field::Info)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidInfo))?;
 
         let format = match fields.next() {
-            Some(s) => s
-                .parse()
-                .map(Some)
-                .map_err(|e| ParseError::Invalid(Field::Format, Box::new(e)))?,
+            Some(s) => s.parse().map(Some).map_err(ParseError::InvalidFormat)?,
             None => None,
         };
 
@@ -181,16 +181,6 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or_else(|| ParseError::MissingField(field))
-}
-
-fn parse_i32<'a, I>(fields: &mut I, field: Field) -> Result<i32, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    parse_string(fields, field).and_then(|s| {
-        s.parse()
-            .map_err(|e| ParseError::Invalid(field, Box::new(e)))
-    })
 }
 
 #[cfg(test)]
