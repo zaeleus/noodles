@@ -49,10 +49,6 @@ impl<'a> Sequence<'a> {
             remaining: self.n_chars,
         }
     }
-
-    pub fn symbols(&self) -> Symbols<Bases> {
-        Symbols { iter: self.bases() }
-    }
 }
 
 impl<'a> Deref for Sequence<'a> {
@@ -112,18 +108,6 @@ impl<'a> DoubleEndedIterator for Bases<'a> {
     }
 }
 
-pub struct Symbols<I> {
-    iter: I,
-}
-
-impl<I: Iterator<Item = Base>> Iterator for Symbols<I> {
-    type Item = char;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(char::from)
-    }
-}
-
 pub struct Complement<I> {
     iter: I,
 }
@@ -174,20 +158,6 @@ mod tests {
         assert_eq!(bases.next(), Some(Base::T));
         assert_eq!(bases.next(), Some(Base::G));
         assert_eq!(bases.next(), Some(Base::C));
-        assert_eq!(bases.next(), None);
-    }
-
-    #[test]
-    fn test_symbols() {
-        let data = [0x18, 0x42];
-        let sequence = Sequence::new(&data, 4);
-
-        let mut bases = sequence.symbols();
-
-        assert_eq!(bases.next(), Some('A'));
-        assert_eq!(bases.next(), Some('T'));
-        assert_eq!(bases.next(), Some('G'));
-        assert_eq!(bases.next(), Some('C'));
         assert_eq!(bases.next(), None);
     }
 
