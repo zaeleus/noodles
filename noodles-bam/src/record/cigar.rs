@@ -6,7 +6,6 @@ use std::{convert::TryFrom, fmt, mem, ops::Deref};
 
 use noodles_sam::record::cigar::op::Kind;
 
-#[derive(Debug)]
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
@@ -30,6 +29,12 @@ impl<'a> Cigar<'a> {
                 _ => None,
             })
             .sum()
+    }
+}
+
+impl<'a> fmt::Debug for Cigar<'a> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_list().entries(self.ops()).finish()
     }
 }
 

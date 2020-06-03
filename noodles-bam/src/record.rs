@@ -169,6 +169,7 @@ impl fmt::Debug for Record {
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.template_len())
             .field("read_name", &read_name)
+            .field("cigar", &self.cigar())
             .finish()
     }
 }
