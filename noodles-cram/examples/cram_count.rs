@@ -5,16 +5,14 @@
 //!
 //! The result matches the output of `samtools view -c <src>`.
 
-use std::{env, fs::File};
+use std::{env, fs::File, io};
 
 use noodles_cram as cram;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let file = File::open(src)?;
-    let mut reader = cram::Reader::new(file);
-
+    let mut reader = File::open(src).map(cram::Reader::new)?;
     reader.read_file_definition()?;
     reader.read_file_header()?;
 
