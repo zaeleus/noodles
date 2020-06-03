@@ -5,7 +5,7 @@ use super::{
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    name: ReadName,
+    read_name: ReadName,
     flags: Flags,
     reference_sequence_name: ReferenceSequenceName,
     position: Position,
@@ -24,8 +24,8 @@ impl Builder {
         Self::default()
     }
 
-    pub fn set_name(mut self, name: ReadName) -> Self {
-        self.name = name;
+    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
+        self.read_name = read_name;
         self
     }
 
@@ -92,7 +92,7 @@ impl Builder {
 
     pub fn build(self) -> Record {
         Record {
-            qname: self.name,
+            qname: self.read_name,
             flag: self.flags,
             rname: self.reference_sequence_name,
             pos: self.position,
@@ -118,7 +118,7 @@ mod tests {
     fn test_default() {
         let record = Builder::new().build();
 
-        assert!(record.name().is_none());
+        assert!(record.read_name().is_none());
         assert!(record.flags().is_empty());
         assert!(record.reference_sequence_name().is_none());
         assert!(record.position().is_none());
@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let name: ReadName = "r0".parse()?;
+        let read_name: ReadName = "r0".parse()?;
         let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let cigar = Cigar::new(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
         let mate_reference_sequence_name: MateReferenceSequenceName = MateReferenceSequenceName::Eq;
@@ -147,7 +147,7 @@ mod tests {
         )]);
 
         let record = Builder::new()
-            .set_name(name.clone())
+            .set_read_name(read_name.clone())
             .set_flags(Flags::PAIRED | Flags::READ_1)
             .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(Position::from(13))
@@ -161,7 +161,7 @@ mod tests {
             .set_data(data)
             .build();
 
-        assert_eq!(record.name(), &name);
+        assert_eq!(record.read_name(), &read_name);
         assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
         assert_eq!(i32::from(record.position()), 13);

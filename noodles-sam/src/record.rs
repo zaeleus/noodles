@@ -45,7 +45,7 @@ impl Record {
         Builder::new()
     }
 
-    pub fn name(&self) -> &ReadName {
+    pub fn read_name(&self) -> &ReadName {
         &self.qname
     }
 

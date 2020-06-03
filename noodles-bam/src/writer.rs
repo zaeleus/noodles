@@ -64,7 +64,7 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        let c_name = CString::new(record.name().as_ref())
+        let c_read_name = CString::new(record.read_name().as_ref())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let reference_sequence_id = match &**record.reference_sequence_name() {
@@ -88,7 +88,7 @@ where
             MateReferenceSequenceName::None => -1,
         };
 
-        let read_name = c_name.as_bytes_with_nul();
+        let read_name = c_read_name.as_bytes_with_nul();
         let l_read_name = read_name.len() as u8;
         let n_cigar_op = record.cigar().ops().len() as u16;
         let l_seq = record.sequence().len() as i32;

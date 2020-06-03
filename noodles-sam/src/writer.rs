@@ -29,7 +29,7 @@ where
         write!(
             self.inner,
             "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
-            qname = record.name().as_ref(),
+            qname = record.read_name().as_ref(),
             flag = u16::from(record.flags()),
             rname = record.reference_sequence_name().as_ref(),
             pos = i32::from(record.position()),
