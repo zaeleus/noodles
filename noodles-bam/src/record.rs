@@ -1,9 +1,9 @@
 pub mod cigar;
 pub mod data;
-mod quality;
+mod quality_scores;
 pub mod sequence;
 
-pub use self::{cigar::Cigar, data::Data, quality::Quality, sequence::Sequence};
+pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 
 use std::{
     ffi::CStr,
@@ -109,7 +109,7 @@ impl Record {
         Sequence::new(bytes, n_chars)
     }
 
-    pub fn quality_scores(&self) -> Quality {
+    pub fn quality_scores(&self) -> QualityScores {
         let l_seq = self.l_seq();
 
         let offset = 32
@@ -119,7 +119,7 @@ impl Record {
         let len = l_seq as usize;
 
         let bytes = &self.0[offset..offset + len];
-        Quality::new(bytes)
+        QualityScores::new(bytes)
     }
 
     pub fn data(&self) -> Data {

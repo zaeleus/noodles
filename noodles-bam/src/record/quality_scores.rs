@@ -3,13 +3,13 @@ use std::{ops::Deref, slice};
 const QUALITY_OFFSET: u8 = b'!';
 
 #[derive(Debug)]
-pub struct Quality<'a> {
+pub struct QualityScores<'a> {
     qual: &'a [u8],
 }
 
-impl<'a> Quality<'a> {
-    pub fn new(qual: &[u8]) -> Quality {
-        Quality { qual }
+impl<'a> QualityScores<'a> {
+    pub fn new(qual: &'a [u8]) -> Self {
+        Self { qual }
     }
 
     pub fn chars(&self) -> Chars<slice::Iter<u8>> {
@@ -19,7 +19,7 @@ impl<'a> Quality<'a> {
     }
 }
 
-impl<'a> Deref for Quality<'a> {
+impl<'a> Deref for QualityScores<'a> {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn test_chars() {
         let data: Vec<_> = b"><>=@>;".iter().map(|b| b - QUALITY_OFFSET).collect();
-        let quality = Quality::new(&data);
+        let quality = QualityScores::new(&data);
         let actual: Vec<char> = quality.chars().collect();
         assert_eq!(actual, vec!['>', '<', '>', '=', '@', '>', ';']);
     }
