@@ -37,8 +37,7 @@ impl Region {
     /// ```
     /// use noodles::Region;
     ///
-    /// let name = String::from("sn1");
-    /// let region = Region::mapped(name, 1, Some(5));
+    /// let region = Region::mapped("sq0", 1, Some(5));
     ///
     /// assert!(matches!(region, Region::Mapped {
     ///     name,
@@ -46,8 +45,15 @@ impl Region {
     ///     end: Some(5),
     /// }));
     /// ```
-    pub fn mapped(name: String, start: u64, end: Option<u64>) -> Region {
-        Region::Mapped { name, start, end }
+    pub fn mapped<I>(name: I, start: u64, end: Option<u64>) -> Region
+    where
+        I: Into<String>,
+    {
+        Region::Mapped {
+            name: name.into(),
+            start,
+            end,
+        }
     }
 
     /// Returns the reference name of the region.
@@ -60,8 +66,8 @@ impl Region {
     /// ```
     /// use noodles::Region;
     ///
-    /// let region = Region::mapped(String::from("sn1"), 1, Some(5));
-    /// assert_eq!(region.name(), "sn1");
+    /// let region = Region::mapped("sq0", 1, Some(5));
+    /// assert_eq!(region.name(), "sq0");
     ///
     /// assert_eq!(Region::Unmapped.name(), "*");
     /// assert_eq!(Region::All.name(), ".");
@@ -203,12 +209,12 @@ mod tests {
         .into_iter()
         .collect();
 
-        let region = Region::mapped(String::from("sq1"), 5, Some(8));
+        let region = Region::mapped("sq1", 5, Some(8));
         let actual = region.resolve(&reference_sequences);
         let expected = Some((1, &reference_sequences["sq1"], 5, 8));
         assert_eq!(actual, expected);
 
-        let region = Region::mapped(String::from("sq1"), 5, None);
+        let region = Region::mapped("sq1", 5, None);
         let actual = region.resolve(&reference_sequences);
         let expected = Some((1, &reference_sequences["sq1"], 5, 13));
         assert_eq!(actual, expected);
@@ -222,11 +228,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let region = Region::mapped(String::from("sn2"), 3, Some(5));
-        assert_eq!(format!("{}", region), "sn2:3-5");
+        let region = Region::mapped("sq2", 3, Some(5));
+        assert_eq!(format!("{}", region), "sq2:3-5");
 
-        let region = Region::mapped(String::from("sn2"), 3, None);
-        assert_eq!(format!("{}", region), "sn2:3");
+        let region = Region::mapped("sq2", 3, None);
+        assert_eq!(format!("{}", region), "sq2:3");
 
         assert_eq!(format!("{}", Region::Unmapped), "*");
 
@@ -235,9 +241,9 @@ mod tests {
 
     #[test]
     fn test_from_str_reference_sequences() {
-        match "sn2:3-5".parse() {
+        match "sq2:3-5".parse() {
             Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sn2");
+                assert_eq!(name, "sq2");
                 assert_eq!(start, 3);
                 assert_eq!(end, Some(5));
             }
@@ -247,9 +253,9 @@ mod tests {
 
     #[test]
     fn test_from_str_reference_sequences_with_no_end() {
-        match "sn2:3".parse() {
+        match "sq2:3".parse() {
             Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sn2");
+                assert_eq!(name, "sq2");
                 assert_eq!(start, 3);
                 assert_eq!(end, None);
             }
@@ -259,9 +265,9 @@ mod tests {
 
     #[test]
     fn test_from_str_reference_sequences_with_no_start_or_end() {
-        match "sn2".parse() {
+        match "sq2".parse() {
             Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sn2");
+                assert_eq!(name, "sq2");
                 assert_eq!(start, 1);
                 assert_eq!(end, None);
             }
