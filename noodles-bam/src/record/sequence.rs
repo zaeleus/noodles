@@ -65,8 +65,8 @@ impl<'a> Deref for Sequence<'a> {
 
 impl<'a> fmt::Display for Sequence<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for symbol in self.symbols() {
-            write!(f, "{}", symbol)?;
+        for base in self.bases() {
+            write!(f, "{}", base)?;
         }
 
         Ok(())

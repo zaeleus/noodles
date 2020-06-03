@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
     Eq,
@@ -39,6 +41,12 @@ impl Base {
             Self::V => Self::B,
             Self::N => Self::N,
         }
+    }
+}
+
+impl fmt::Display for Base {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", char::from(*self))
     }
 }
 
@@ -87,6 +95,26 @@ mod tests {
         assert_eq!(Base::D.complement(), Base::H);
         assert_eq!(Base::B.complement(), Base::V);
         assert_eq!(Base::N.complement(), Base::N);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Base::Eq.to_string(), "=");
+        assert_eq!(Base::A.to_string(), "A");
+        assert_eq!(Base::C.to_string(), "C");
+        assert_eq!(Base::M.to_string(), "M");
+        assert_eq!(Base::G.to_string(), "G");
+        assert_eq!(Base::R.to_string(), "R");
+        assert_eq!(Base::S.to_string(), "S");
+        assert_eq!(Base::V.to_string(), "V");
+        assert_eq!(Base::T.to_string(), "T");
+        assert_eq!(Base::W.to_string(), "W");
+        assert_eq!(Base::Y.to_string(), "Y");
+        assert_eq!(Base::H.to_string(), "H");
+        assert_eq!(Base::K.to_string(), "K");
+        assert_eq!(Base::D.to_string(), "D");
+        assert_eq!(Base::B.to_string(), "B");
+        assert_eq!(Base::N.to_string(), "N");
     }
 
     #[test]
