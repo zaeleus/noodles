@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in query {
         let record = result?;
 
-        let name = CStr::from_bytes_with_nul(record.name())?.to_str()?;
+        let read_name = CStr::from_bytes_with_nul(record.read_name())?.to_str()?;
 
         let reference_sequence_id = record.reference_sequence_id() as usize;
         let (_, reference_sequence) = reference_sequences
@@ -38,7 +38,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let len = record.cigar().mapped_len() as i32;
         let end = start + len - 1;
 
-        println!("{} ({}:{}-{})", name, reference_sequence.name(), start, end);
+        println!(
+            "{} ({}:{}-{})",
+            read_name,
+            reference_sequence.name(),
+            start,
+            end
+        );
     }
 
     Ok(())

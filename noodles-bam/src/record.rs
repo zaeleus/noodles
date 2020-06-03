@@ -85,7 +85,7 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..])
     }
 
-    pub fn name(&self) -> &[u8] {
+    pub fn read_name(&self) -> &[u8] {
         let offset = 32;
         let len = self.l_read_name() as usize;
         &self.0[offset..offset + len]
@@ -153,7 +153,7 @@ impl DerefMut for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        let read_name = CStr::from_bytes_with_nul(self.name());
+        let read_name = CStr::from_bytes_with_nul(self.read_name());
 
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
@@ -297,10 +297,10 @@ mod tests {
     }
 
     #[test]
-    fn test_name() {
+    fn test_read_name() {
         let r = build_record();
         let expected = [0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00];
-        assert_eq!(r.name(), expected);
+        assert_eq!(r.read_name(), expected);
     }
 
     #[test]

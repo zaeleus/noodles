@@ -311,7 +311,7 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        assert_eq!(record.name(), b"*\0");
+        assert_eq!(record.read_name(), b"*\0");
         assert_eq!(record.flags(), sam::record::Flags::default());
         assert_eq!(record.reference_sequence_id(), -1);
         assert_eq!(record.position(), -1);
