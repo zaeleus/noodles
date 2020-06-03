@@ -15,17 +15,80 @@ use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
 
-pub struct Reader<R: Read> {
+/// A BAM reader.
+///
+/// A BAM file is an encoded and compressed version of a SAM file. While a SAM file has a header
+/// and a list of records, a BAM is comprised of three parts:
+///
+///   1. a SAM header,
+///   2. a list of reference sequences, and
+///   3. a list of encoded SAM records.
+///
+/// The reader reads records sequentially but can use virtual positions to seek to offsets from the
+/// start of a seekable stream.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::{fs::File, io};
+/// use noodles_bam as bam;
+///
+/// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+/// reader.read_header()?;
+/// reader.read_reference_sequences()?;
+///
+/// for result in reader.records() {
+///     let record = result?;
+///     println!("{:?}", record);
+/// }
+///
+/// # Ok::<(), io::Error>(())
+/// ```
+pub struct Reader<R>
+where
+    R: Read,
+{
     inner: bgzf::Reader<R>,
 }
 
-impl<R: Read> Reader<R> {
+impl<R> Reader<R>
+where
+    R: Read,
+{
+    /// Creates a BAM reader.
+    ///
+    /// The given reader must be a raw BGZF stream, as the underlying reader wraps it in a decoder.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    /// let mut _reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
         }
     }
 
+    /// Reads the SAM header of a BAM file.
+    ///
+    /// The BAM magic number is also checked.
+    ///
+    /// This returns the raw SAM header as a `String`. It can subsequently be parsed as a
+    /// `sam::Header`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let header = reader.read_header()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
         let magic = read_magic(&mut self.inner)?;
 
@@ -39,6 +102,25 @@ impl<R: Read> Reader<R> {
         read_header(&mut self.inner)
     }
 
+    /// Reads the binary reference sequences after the SAM header.
+    ///
+    /// This is not the same as the `@SQ` records in the SAM header. A BAM has a list of reference
+    /// sequences containing name and length tuples after the SAM header and before the list of
+    /// records.
+    ///
+    /// This returns a list of `sam::header::ReferenceSequence` objects, which can be used to build
+    /// a minimal `sam::Header` if the SAM header is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// let reference_sequences = reader.read_reference_sequences()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_reference_sequences(&mut self) -> io::Result<Vec<ReferenceSequence>> {
         let n_ref = self.inner.read_u32::<LittleEndian>()?;
         let mut reference_sequences = Vec::with_capacity(n_ref as usize);
@@ -51,6 +133,32 @@ impl<R: Read> Reader<R> {
         Ok(reference_sequences)
     }
 
+    /// Reads a single record.
+    ///
+    /// The record block size (`bs`) is read from the underlying stream, and `bs` addition bytes
+    /// are read into the given record.
+    ///
+    /// It is more ergonomic to read records using an iterator (see `records` and `query`), but
+    /// using this method directly allows the reuse of a single `bam::Record` buffer.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// let mut record = bam::Record::default();
+    /// reader.read_record(&mut record)?;
+    ///
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_record(&mut self, mut record: &mut Record) -> io::Result<usize> {
         let block_size = match self.inner.read_u32::<LittleEndian>() {
             Ok(bs) => bs as usize,
@@ -66,20 +174,98 @@ impl<R: Read> Reader<R> {
         Ok(block_size)
     }
 
+    /// Returns an iterator over all records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn records(&mut self) -> Records<R> {
         Records::new(self)
     }
 
+    /// Returns the current virtual position of the underlying BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    ///
+    /// let data = Vec::new();
+    /// let reader = bam::Reader::new(&data[..]);
+    /// let virtual_position = reader.virtual_position();
+    ///
+    /// assert_eq!(virtual_position.compressed(), 0);
+    /// assert_eq!(virtual_position.uncompressed(), 0);
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.inner.virtual_position()
     }
 }
 
-impl<R: Read + Seek> Reader<R> {
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
+    /// Seeks the underlying BGZF reader to the given virtual position.
+    ///
+    /// Virtual positions typically come from the associated BAM index file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         self.inner.seek(pos)
     }
 
+    /// Returns an iterator over records that intersect the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles::Region;
+    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let header: sam::Header = reader.read_header()?.parse()?;
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// let index = bai::read("sample.bam.bai")?;
+    /// let region = Region::mapped("sq0", 17711, Some(28657));
+    /// let query = reader.query(&reference_sequences, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn query(
         &mut self,
         reference_sequences: &ReferenceSequences,
