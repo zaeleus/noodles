@@ -14,7 +14,7 @@ use std::{
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam as sam;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Record(Vec<u8>);
 
 impl Record {
@@ -137,6 +137,16 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        Self::from(vec![
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x02, 0xff, 0x48, 0x12, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0x00, 0x00, 0x00, 0x00, 0x2a, 0x00,
+        ])
+    }
+}
+
 impl Deref for Record {
     type Target = [u8];
 
@@ -224,9 +234,6 @@ mod tests {
 
     #[test]
     fn test_block_size() {
-        let r = Record::default();
-        assert_eq!(r.block_size(), 0);
-
         let r = build_record();
         assert_eq!(r.block_size(), 64);
     }
