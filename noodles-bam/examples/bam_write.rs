@@ -1,6 +1,6 @@
 //! Creates a new BAM file.
 //!
-//! This writes a SAM header and three unmapped records to stdout.
+//! This writes a SAM header, reference sequences, and three unmapped records to stdout.
 //!
 //! Verify the output by piping to `samtools view -h --no-PG`.
 
@@ -27,6 +27,7 @@ fn main() -> io::Result<()> {
         .build();
 
     writer.write_header(&header)?;
+    writer.write_reference_sequences(header.reference_sequences())?;
 
     for _ in 0..3 {
         let record = sam::Record::default();

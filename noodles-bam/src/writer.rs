@@ -7,7 +7,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
-    header::ReferenceSequences,
+    header::{ReferenceSequence, ReferenceSequences},
     record::{Cigar, MateReferenceSequenceName, QualityScores, Sequence},
 };
 
@@ -38,6 +38,7 @@ const UNMAPPED_BIN: u16 = 4680;
 ///
 /// let header = sam::Header::builder().add_comment("noodles-bam").build();
 /// writer.write_header(&header)?;
+/// writer.write_reference_sequences(header.reference_sequences())?;
 ///
 /// let record = sam::Record::default();
 /// writer.write_record(header.reference_sequences(), &record)?;
@@ -101,7 +102,7 @@ where
         self.inner.try_finish()
     }
 
-    /// Writes a SAM header and reference sequences.
+    /// Writes a SAM header.
     ///
     /// # Examples
     ///
@@ -125,7 +126,44 @@ where
 
         self.inner.write_all(text.as_bytes())?;
 
-        write_references(&mut self.inner, header.reference_sequences())
+        Ok(())
+    }
+
+    /// Writes SAM reference sequences.
+    ///
+    /// The reference sequences here are typically the same as the reference sequences in the SAM
+    /// header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::Writer::new(Vec::new());
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+    ///     .add_comment("noodles-bam")
+    ///     .build();
+    ///
+    /// writer.write_header(&header)?;
+    /// writer.write_reference_sequences(header.reference_sequences())?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn write_reference_sequences(
+        &mut self,
+        reference_sequences: &ReferenceSequences,
+    ) -> io::Result<()> {
+        let n_ref = reference_sequences.len() as i32;
+        self.inner.write_i32::<LittleEndian>(n_ref)?;
+
+        for reference_sequence in reference_sequences.values() {
+            write_reference(&mut self.inner, reference_sequence)?;
+        }
+
+        Ok(())
     }
 
     /// Writes a SAM record.
@@ -242,25 +280,20 @@ where
     }
 }
 
-fn write_references<W>(writer: &mut W, reference_sequences: &ReferenceSequences) -> io::Result<()>
+fn write_reference<W>(writer: &mut W, reference_sequence: &ReferenceSequence) -> io::Result<()>
 where
     W: Write,
 {
-    let n_ref = reference_sequences.len() as i32;
-    writer.write_i32::<LittleEndian>(n_ref)?;
+    let c_name = CString::new(reference_sequence.name())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let name = c_name.as_bytes_with_nul();
 
-    for reference_sequence in reference_sequences.values() {
-        let c_name = CString::new(reference_sequence.name())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        let name = c_name.as_bytes_with_nul();
+    let l_name = name.len() as i32;
+    writer.write_i32::<LittleEndian>(l_name)?;
+    writer.write_all(name)?;
 
-        let l_name = name.len() as i32;
-        writer.write_i32::<LittleEndian>(l_name)?;
-        writer.write_all(name)?;
-
-        let l_ref = reference_sequence.len() as i32;
-        writer.write_i32::<LittleEndian>(l_ref)?;
-    }
+    let l_ref = reference_sequence.len() as i32;
+    writer.write_i32::<LittleEndian>(l_ref)?;
 
     Ok(())
 }
@@ -378,6 +411,32 @@ mod tests {
         let expected = "@HD\tVN:1.6\n";
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_reference_sequences() -> io::Result<()> {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+            .set_header(sam::header::header::Header::default())
+            .build();
+
+        writer.write_header(&header)?;
+        writer.write_reference_sequences(header.reference_sequences())?;
+        writer.try_finish()?;
+
+        let mut reader = Reader::new(writer.get_ref().as_slice());
+        reader.read_header()?;
+        let actual = reader.read_reference_sequences()?;
+
+        assert_eq!(actual.len(), 1);
+        assert_eq!(
+            &actual[0],
+            &sam::header::ReferenceSequence::new(String::from("sq0"), 8)
+        );
 
         Ok(())
     }
