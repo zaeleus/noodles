@@ -66,6 +66,8 @@ pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
+///
+/// [`optimize_chunks`]: fn.optimize_chunks.html
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
     optimize_chunks(chunks, VirtualPosition::default())
 }
@@ -74,6 +76,8 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 ///
 /// Unlike [`merge_chunks`], `min_offset` (typically from the linear index) is given to remove
 /// chunks that cannot be in the query.
+///
+/// [`merge_chunks`]: fn.merge_chunks.html
 pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chunk> {
     let mut chunks: Vec<_> = chunks
         .iter()
