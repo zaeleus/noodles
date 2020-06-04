@@ -18,12 +18,11 @@ use noodles_sam as sam;
 pub struct Record(Vec<u8>);
 
 impl Record {
-
-    pub fn resize(&mut self, new_len: usize) {
+    pub(crate) fn resize(&mut self, new_len: usize) {
         self.0.resize(new_len, Default::default());
     }
 
-    pub fn block_size(&self) -> u32 {
+    pub(crate) fn block_size(&self) -> u32 {
         self.0.len() as u32
     }
 
