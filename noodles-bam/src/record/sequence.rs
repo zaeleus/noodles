@@ -41,6 +41,19 @@ impl<'a> Sequence<'a> {
         self.n_chars
     }
 
+    pub fn get(&self, i: usize) -> Option<&Base> {
+        let j = i / 2;
+        let b = self.seq.get(j)?;
+
+        let k = if i % 2 == 0 {
+            (b & 0xf0) >> 4
+        } else {
+            b & 0x0f
+        };
+
+        BASES.get(k as usize)
+    }
+
     pub fn bases(&self) -> Bases {
         Bases {
             sequence: self,
@@ -146,6 +159,14 @@ impl<'a> Index<usize> for Sequence<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get() {
+        let data = [0x18, 0x42];
+        let sequence = Sequence::new(&data, 4);
+        assert_eq!(sequence.get(2), Some(&Base::G));
+        assert_eq!(sequence.get(8), None);
+    }
 
     #[test]
     fn test_bases() {
