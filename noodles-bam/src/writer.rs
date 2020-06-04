@@ -22,6 +22,27 @@ const BLOCK_HEADER_SIZE: usize = 32;
 // § 4.2.1 BIN field calculation (2020-04-30)
 const UNMAPPED_BIN: u16 = 4680;
 
+/// A BAM writer.
+///
+/// Since the raw text header and `bam::Record` are immutable, BAM files are created by encoding a
+/// SAM header and SAM records.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_bam as bam;
+/// use noodles_sam as sam;
+///
+/// let mut writer = bam::Writer::new(Vec::new());
+///
+/// let header = sam::Header::builder().add_comment("noodles-bam").build();
+/// writer.write_header(&header)?;
+///
+/// let record = sam::Record::default();
+/// writer.write_record(header.reference_sequences(), &record)?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Writer<W>
 where
     W: Write,
@@ -33,20 +54,68 @@ impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a new writer with a default compression level.
+    ///
+    /// The given stream is wrapped in a BGZF encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let writer = bam::Writer::new(Vec::new());
+    /// ```
     pub fn new(writer: W) -> Self {
         Self {
             inner: bgzf::Writer::new(writer),
         }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let writer = bam::Writer::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
     pub fn get_ref(&self) -> &W {
         self.inner.get_ref()
     }
 
+    /// Attempts to finish the output stream.
+    ///
+    /// This is typically only manually called if the underlying stream is needed before the writer
+    /// is dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// let mut writer = bam::Writer::new(Vec::new());
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
         self.inner.try_finish()
     }
 
+    /// Writes a SAM header and reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::Writer::new(Vec::new());
+    ///
+    /// let header = sam::Header::builder().add_comment("noodles-bam").build();
+    /// writer.write_header(&header)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
         self.inner.write_all(MAGIC_NUMBER)?;
 
@@ -59,6 +128,22 @@ where
         write_references(&mut self.inner, header.reference_sequences())
     }
 
+    /// Writes a SAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::Writer::new(Vec::new());
+    ///
+    /// let reference_sequences = sam::header::ReferenceSequences::new();
+    /// let record = sam::Record::default();
+    /// writer.write_record(&reference_sequences, &record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_record(
         &mut self,
         reference_sequences: &ReferenceSequences,
