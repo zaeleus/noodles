@@ -18,9 +18,6 @@ use noodles_sam as sam;
 pub struct Record(Vec<u8>);
 
 impl Record {
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self(Vec::with_capacity(capacity))
-    }
 
     pub fn resize(&mut self, new_len: usize) {
         self.0.resize(new_len, Default::default());
