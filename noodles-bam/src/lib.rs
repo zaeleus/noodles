@@ -9,4 +9,4 @@ pub use self::{
     writer::Writer,
 };
 
-pub static MAGIC_NUMBER: &[u8] = b"BAM\x01";
+pub(crate) static MAGIC_NUMBER: &[u8] = b"BAM\x01";
