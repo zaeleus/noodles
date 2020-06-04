@@ -44,9 +44,9 @@ impl Record {
         self.0[offset]
     }
 
-    pub fn mapping_quality(&self) -> u8 {
+    pub fn mapping_quality(&self) -> sam::record::MappingQuality {
         let offset = 9;
-        self.0[offset]
+        sam::record::MappingQuality::from(self.0[offset])
     }
 
     pub fn bin(&self) -> u16 {
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn test_mapping_quality() {
         let r = build_record();
-        assert_eq!(r.mapping_quality(), 12);
+        assert_eq!(r.mapping_quality(), sam::record::MappingQuality::from(12));
     }
 
     #[test]
