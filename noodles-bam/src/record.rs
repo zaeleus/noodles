@@ -14,6 +14,26 @@ use std::{
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam as sam;
 
+/// A BAM record.
+///
+/// A BAM record encodes the same fields as a SAM record:
+///
+///  * reference sequence ID (RNAME equiv.),
+///  * position (POS),
+///  * mapping quality (MAPQ),
+///  * flags (FLAG),
+///  * mate reference sequence ID (RNEXT equiv.),
+///  * mate positino (PNEXT),
+///  * template length (TLEN),
+///  * read name (QNAME),
+///  * CIGAR string (CIGAR),
+///  * sequence (SEQ),
+///  * quality scores (QUAL), and
+///  * optional data fields (DATA).
+///
+/// Additionally, it encodes the BAM index bin (`bin`).
+///
+/// A `bam::Record` wraps a raw byte buffer, and the fields should be considered immutable.
 #[derive(Clone)]
 pub struct Record(Vec<u8>);
 
@@ -26,10 +46,37 @@ impl Record {
         self.0.len() as u32
     }
 
+    /// Returns the reference sequence ID of this read.
+    ///
+    /// The reference sequence ID is the index of the associated reference sequence in the SAM
+    /// header or BAM reference sequences.
+    ///
+    /// A value of -1 is used for an unmapped read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.reference_sequence_id(), -1);
+    /// ```
     pub fn reference_sequence_id(&self) -> i32 {
         LittleEndian::read_i32(&self.0)
     }
 
+    /// Returns the start position of a mapped read.
+    ///
+    /// Unlike in SAM (1-based), this value is 0-based.
+    ///
+    /// A value of -1 is used for an unmapped read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.position(), -1);
+    /// ```
     pub fn position(&self) -> i32 {
         let offset = 4;
         LittleEndian::read_i32(&self.0[offset..])
@@ -40,11 +87,30 @@ impl Record {
         self.0[offset]
     }
 
+    /// Returns the mapping quality of this read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    /// let record = bam::Record::default();
+    /// assert!(record.mapping_quality().is_none());
+    /// ```
     pub fn mapping_quality(&self) -> sam::record::MappingQuality {
         let offset = 9;
         sam::record::MappingQuality::from(self.0[offset])
     }
 
+    /// Returns the index bin that includes this read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.bin(), 4680);
+    /// ```
     pub fn bin(&self) -> u16 {
         let offset = 10;
         LittleEndian::read_u16(&self.0[offset..])
@@ -55,6 +121,16 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..])
     }
 
+    /// Returns the SAM flags set for this read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.flags(), sam::record::Flags::empty());
+    /// ```
     pub fn flags(&self) -> sam::record::Flags {
         let offset = 14;
         let value = LittleEndian::read_u16(&self.0[offset..]);
@@ -66,27 +142,83 @@ impl Record {
         LittleEndian::read_u32(&self.0[offset..])
     }
 
+    /// Returns the eference sequence ID of the mate of this read.
+    ///
+    /// The mate reference sequence ID is the index of the associated reference sequence in the SAM
+    /// header or BAM reference sequences.
+    ///
+    /// A value of -1 is used when the mate is unmapped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.mate_reference_sequence_id(), -1);
+    /// ```
     pub fn mate_reference_sequence_id(&self) -> i32 {
         let offset = 20;
         LittleEndian::read_i32(&self.0[offset..])
     }
 
+    /// Returns the start position of the mate of this read.
+    ///
+    /// Unlike in SAM (1-based), this value is 0-based.
+    ///
+    /// A value of -1 is used when the mate is unmapped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.mate_position(), -1);
+    /// ```
     pub fn mate_position(&self) -> i32 {
         let offset = 24;
         LittleEndian::read_i32(&self.0[offset..])
     }
 
+    /// Returns the template length of this read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.template_len(), 0);
+    /// ```
     pub fn template_len(&self) -> i32 {
         let offset = 28;
         LittleEndian::read_i32(&self.0[offset..])
     }
 
+    /// Returns the name of this read.
+    ///
+    /// This is also called the query name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert_eq!(record.read_name(), b"*\x00");
+    /// ```
     pub fn read_name(&self) -> &[u8] {
         let offset = 32;
         let len = self.l_read_name() as usize;
         &self.0[offset..offset + len]
     }
 
+    /// Returns the CIGAR operations that describe how the read was mapped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert!(record.cigar().is_empty());
+    /// ```
     pub fn cigar(&self) -> Cigar {
         let offset = 32 + (self.l_read_name() as usize);
         let len = mem::size_of::<u32>() * (self.n_cigar_op() as usize);
@@ -94,6 +226,15 @@ impl Record {
         Cigar::new(bytes)
     }
 
+    /// Returns the bases in the sequence of this read.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert!(record.sequence().is_empty());
+    /// ```
     pub fn sequence(&self) -> Sequence {
         let offset = 32
             + (self.l_read_name() as usize)
@@ -105,6 +246,15 @@ impl Record {
         Sequence::new(bytes, n_chars)
     }
 
+    /// Returns the quality score for each base in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert!(record.quality_scores().is_empty());
+    /// ```
     pub fn quality_scores(&self) -> QualityScores {
         let l_seq = self.l_seq();
 
@@ -118,6 +268,15 @@ impl Record {
         QualityScores::new(bytes)
     }
 
+    /// Returns the quality score for each base in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// assert!(record.data().is_empty());
+    /// ```
     pub fn data(&self) -> Data {
         let l_seq = self.l_seq();
 
