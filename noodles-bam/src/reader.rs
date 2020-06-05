@@ -1,3 +1,5 @@
+//! BAM reading and iterators
+
 mod query;
 mod records;
 

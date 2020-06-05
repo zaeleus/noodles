@@ -1,3 +1,5 @@
+//! BAM index (BAI)
+
 pub mod index;
 mod reader;
 mod writer;
