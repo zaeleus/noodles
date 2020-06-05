@@ -337,6 +337,7 @@ impl fmt::Debug for Record {
             .field("tlen", &self.template_len())
             .field("read_name", &read_name)
             .field("cigar", &self.cigar())
+            .field("seq", &self.sequence())
             .finish()
     }
 }

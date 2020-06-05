@@ -26,7 +26,6 @@ static BASES: &[Base] = &[
     Base::N,
 ];
 
-#[derive(Debug)]
 pub struct Sequence<'a> {
     seq: &'a [u8],
     n_chars: usize,
@@ -61,6 +60,12 @@ impl<'a> Sequence<'a> {
             tail: self.n_chars - 1,
             remaining: self.n_chars,
         }
+    }
+}
+
+impl<'a> fmt::Debug for Sequence<'a> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_list().entries(self.bases()).finish()
     }
 }
 
