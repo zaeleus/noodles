@@ -292,7 +292,7 @@ where
             )
         })?;
 
-        let query_bins = bai::query(index_reference.bins(), start, end);
+        let query_bins = index_reference.query(start, end);
 
         let chunks: Vec<_> = query_bins
             .iter()

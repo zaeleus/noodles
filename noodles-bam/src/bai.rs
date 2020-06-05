@@ -8,7 +8,6 @@ pub use self::{index::Index, reader::Reader, writer::Writer};
 
 use std::{fs::File, io, path::Path};
 
-use bit_vec::BitVec;
 use noodles_bgzf::VirtualPosition;
 
 use self::index::reference::{bin::Chunk, Bin};
@@ -22,47 +21,6 @@ where
     let mut reader = File::open(src).map(Reader::new)?;
     reader.read_header()?;
     reader.read_index()
-}
-
-const MAX_BINS: usize = ((1 << 18) - 1) / 7 + 1;
-
-// See § 5.3 in SAMv1.pdf (accessed 2019-11-15).
-pub fn region_to_bins(start: usize, end: usize) -> BitVec {
-    let ranges = [
-        (1 + (start >> 26), 1 + (end >> 26)),
-        (9 + (start >> 23), 9 + (end >> 23)),
-        (73 + (start >> 20), 73 + (end >> 20)),
-        (585 + (start >> 17), 585 + (end >> 17)),
-        (4681 + (start >> 14), 4681 + (end >> 14)),
-    ];
-
-    let mut bins = BitVec::from_elem(MAX_BINS, false);
-
-    bins.set(0, true);
-
-    for (start, end) in &ranges {
-        for k in *start..=*end {
-            bins.set(k, true);
-        }
-    }
-
-    bins
-}
-
-pub fn query(bins: &[Bin], start: u64, end: u64) -> Vec<&Bin> {
-    let region_bins = region_to_bins(start as usize, end as usize);
-
-    let mut query_bins = Vec::new();
-
-    for bin in bins {
-        let bin_index = bin.bin() as usize;
-
-        if bin_index < region_bins.len() && region_bins[bin_index] {
-            query_bins.push(bin);
-        }
-    }
-
-    query_bins
 }
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
