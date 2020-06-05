@@ -13,7 +13,7 @@ use noodles_bgzf::VirtualPosition;
 
 use self::index::reference::{bin::Chunk, Bin};
 
-pub static MAGIC_NUMBER: &[u8] = b"BAI\x01";
+pub(crate) static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 pub fn read<P>(src: P) -> io::Result<Index>
 where
