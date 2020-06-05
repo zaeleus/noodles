@@ -349,152 +349,192 @@ impl From<Vec<u8>> for Record {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        ffi::CString,
+        io::{self, BufWriter, Write},
+    };
+
+    use byteorder::WriteBytesExt;
+
     use super::*;
 
-    #[rustfmt::skip]
-    fn build_record() -> Record {
-        Record::from(vec![
-            // ref_id
-            0x0a, 0x00, 0x00, 0x00,
-            // pos
-            0x85, 0xee, 0x00, 0x00,
-            // l_read_name
-            0x0a,
-            // mapq
-            0x0c,
-            // bin
-            0x4c, 0x12,
-            // n_ciar_op
-            0x01, 0x00,
-            // flag
-            0xa3, 0x00,
-            // l_seq
-            0x04, 0x00, 0x00, 0x00,
-            // next_ref_id
-            0x0a, 0x00, 0x00, 0x00,
-            // next_pos
-            0xe0, 0xee, 0x00, 0x00,
-            // tlen
-            0xa6, 0x00, 0x00, 0x00,
-            // read_name
-            0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00,
-            // cigar
-            0x40, 0x00, 0x00, 0x00,
-            // seq
-            0x18, 0x42,
-            // qual
-            0x1f, 0x1d, 0x1e, 0x20,
-            // data
+    fn build_record() -> io::Result<Record> {
+        use sam::record::Flags;
+
+        let read_name = CString::new("noodles:0")
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let flag = u16::from(Flags::PAIRED | Flags::READ_1);
+
+        let mut writer = BufWriter::new(Vec::new());
+
+        // ref_id
+        writer.write_i32::<LittleEndian>(10)?;
+        // pos
+        writer.write_i32::<LittleEndian>(61061)?;
+        // l_read_name
+        writer.write_u8(10)?;
+        // mapq
+        writer.write_u8(12)?;
+        // bin
+        writer.write_u16::<LittleEndian>(4684)?;
+        // n_ciar_op
+        writer.write_u16::<LittleEndian>(1)?;
+        // flag
+        writer.write_u16::<LittleEndian>(flag)?;
+        // l_seq
+        writer.write_u32::<LittleEndian>(4)?;
+        // next_ref_id
+        writer.write_i32::<LittleEndian>(10)?;
+        // next_pos
+        writer.write_i32::<LittleEndian>(61152)?;
+        // tlen
+        writer.write_i32::<LittleEndian>(166)?;
+        // read_name
+        writer.write_all(read_name.as_bytes_with_nul())?;
+        // cigar
+        writer.write_all(&[0x40, 0x00, 0x00, 0x00])?;
+        // seq
+        writer.write_all(&[0x18, 0x42])?;
+        // qual
+        writer.write_all(&[0x1f, 0x1d, 0x1e, 0x20])?;
+        // data
+        writer.write_all(&[
             0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,
-        ])
+        ])?;
+
+        writer
+            .into_inner()
+            .map(Record::from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     }
 
     #[test]
-    fn test_block_size() {
-        let r = build_record();
-        assert_eq!(r.block_size(), 64);
+    fn test_block_size() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.block_size(), 64);
+        Ok(())
     }
 
     #[test]
-    fn test_reference_sequence_id() {
-        let r = build_record();
-        assert_eq!(r.reference_sequence_id(), 10);
+    fn test_reference_sequence_id() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.reference_sequence_id(), 10);
+        Ok(())
     }
 
     #[test]
-    fn test_position() {
-        let r = build_record();
-        assert_eq!(r.position(), 61061);
+    fn test_position() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.position(), 61061);
+        Ok(())
     }
 
     #[test]
-    fn test_l_read_name() {
-        let r = build_record();
-        assert_eq!(r.l_read_name(), 10);
+    fn test_l_read_name() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.l_read_name(), 10);
+        Ok(())
     }
 
     #[test]
-    fn test_mapping_quality() {
-        let r = build_record();
-        assert_eq!(r.mapping_quality(), sam::record::MappingQuality::from(12));
+    fn test_mapping_quality() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(
+            record.mapping_quality(),
+            sam::record::MappingQuality::from(12)
+        );
+        Ok(())
     }
 
     #[test]
-    fn test_bin() {
-        let r = build_record();
-        assert_eq!(r.bin(), 4684);
+    fn test_bin() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.bin(), 4684);
+        Ok(())
     }
 
     #[test]
-    fn test_n_cigar_op() {
-        let r = build_record();
-        assert_eq!(r.n_cigar_op(), 1);
+    fn test_n_cigar_op() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.n_cigar_op(), 1);
+        Ok(())
     }
 
     #[test]
-    fn test_flags() {
-        let r = build_record();
-        assert_eq!(u16::from(r.flags()), 0xa3);
+    fn test_flags() -> io::Result<()> {
+        use sam::record::Flags;
+        let record = build_record()?;
+        assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
+        Ok(())
     }
 
     #[test]
-    fn test_l_seq() {
-        let r = build_record();
-        assert_eq!(r.l_seq(), 4);
+    fn test_l_seq() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.l_seq(), 4);
+        Ok(())
     }
 
     #[test]
-    fn test_mate_reference_sequence_id() {
-        let r = build_record();
-        assert_eq!(r.mate_reference_sequence_id(), 10);
+    fn test_mate_reference_sequence_id() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.mate_reference_sequence_id(), 10);
+        Ok(())
     }
 
     #[test]
-    fn test_mate_position() {
-        let r = build_record();
-        assert_eq!(r.mate_position(), 61152);
+    fn test_mate_position() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.mate_position(), 61152);
+        Ok(())
     }
 
     #[test]
-    fn test_template_len() {
-        let r = build_record();
-        assert_eq!(r.template_len(), 166);
+    fn test_template_len() -> io::Result<()> {
+        let record = build_record()?;
+        assert_eq!(record.template_len(), 166);
+        Ok(())
     }
 
     #[test]
-    fn test_read_name() {
-        let r = build_record();
-        let expected = [0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73, 0x3a, 0x30, 0x00];
-        assert_eq!(r.read_name(), expected);
+    fn test_read_name() -> io::Result<()> {
+        let record = build_record()?;
+        let expected = b"noodles:0\x00";
+        assert_eq!(record.read_name(), expected);
+        Ok(())
     }
 
     #[test]
-    fn test_cigar() {
-        let r = build_record();
+    fn test_cigar() -> io::Result<()> {
+        let record = build_record()?;
         let expected = [0x40, 0x00, 0x00, 0x00];
-        assert_eq!(*r.cigar(), expected);
+        assert_eq!(*record.cigar(), expected);
+        Ok(())
     }
 
     #[test]
-    fn test_sequence() {
-        let r = build_record();
+    fn test_sequence() -> io::Result<()> {
+        let record = build_record()?;
         let expected = [0x18, 0x42];
-        assert_eq!(*r.sequence(), expected);
+        assert_eq!(*record.sequence(), expected);
+        Ok(())
     }
 
     #[test]
-    fn test_quality_scores() {
-        let r = build_record();
+    fn test_quality_scores() -> io::Result<()> {
+        let record = build_record()?;
         let expected = [0x1f, 0x1d, 0x1e, 0x20];
-        assert_eq!(*r.quality_scores(), expected);
+        assert_eq!(*record.quality_scores(), expected);
+        Ok(())
     }
 
     #[test]
-    fn test_data() {
-        let r = build_record();
+    fn test_data() -> io::Result<()> {
+        let record = build_record()?;
         let expected = [
             0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,
         ];
-        assert_eq!(*r.data(), expected);
+        assert_eq!(*record.data(), expected);
+        Ok(())
     }
 }
