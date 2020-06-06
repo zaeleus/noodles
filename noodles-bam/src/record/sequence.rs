@@ -83,24 +83,6 @@ impl<'a> fmt::Display for Sequence<'a> {
     }
 }
 
-pub struct Complement<I> {
-    iter: I,
-}
-
-impl<I: Iterator<Item = Base>> Complement<I> {
-    pub fn new(iter: I) -> Self {
-        Self { iter }
-    }
-}
-
-impl<I: Iterator<Item = Base>> Iterator for Complement<I> {
-    type Item = Base;
-
-    fn next(&mut self) -> Option<Base> {
-        self.iter.next().map(|b| b.complement())
-    }
-}
-
 impl<'a> Index<usize> for Sequence<'a> {
     type Output = Base;
 
