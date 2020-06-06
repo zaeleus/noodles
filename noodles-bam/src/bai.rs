@@ -51,21 +51,22 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chu
 
     chunks.sort_unstable_by_key(|c| c.start());
 
+    // At worst, no chunks are merged, and the resulting list will be the same size as the input.
     let mut merged_chunks = Vec::with_capacity(chunks.len());
-    merged_chunks.push(chunks[0]);
 
-    for b in chunks {
-        let a = merged_chunks.last_mut().expect("list cannot be empty");
+    // `chunks` is guaranteed to be non-empty.
+    let mut current_chunk = chunks[0];
 
-        if b.start() > a.end() {
-            merged_chunks.push(b);
-            continue;
-        }
-
-        if a.end() < b.end() {
-            *a.end_mut() = b.end();
+    for next_chunk in chunks.iter().skip(1) {
+        if next_chunk.start() > current_chunk.end() {
+            merged_chunks.push(current_chunk);
+            current_chunk = *next_chunk;
+        } else if current_chunk.end() < next_chunk.end() {
+            current_chunk = Chunk::new(current_chunk.start(), next_chunk.end());
         }
     }
+
+    merged_chunks.push(current_chunk);
 
     merged_chunks
 }

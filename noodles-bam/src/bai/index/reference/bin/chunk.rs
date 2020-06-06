@@ -18,15 +18,7 @@ impl Chunk {
         self.chunk_beg
     }
 
-    pub fn start_mut(&mut self) -> &mut bgzf::VirtualPosition {
-        &mut self.chunk_beg
-    }
-
     pub fn end(&self) -> bgzf::VirtualPosition {
         self.chunk_end
-    }
-
-    pub fn end_mut(&mut self) -> &mut bgzf::VirtualPosition {
-        &mut self.chunk_end
     }
 }
