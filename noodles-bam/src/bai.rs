@@ -42,7 +42,7 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chu
     let mut chunks: Vec<_> = chunks
         .iter()
         .filter(|c| c.end() > min_offset)
-        .cloned()
+        .copied()
         .collect();
 
     if chunks.is_empty() {
@@ -52,7 +52,7 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chu
     chunks.sort_unstable_by_key(|c| c.start());
 
     let mut merged_chunks = Vec::with_capacity(chunks.len());
-    merged_chunks.push(chunks[0].clone());
+    merged_chunks.push(chunks[0]);
 
     for b in chunks {
         let a = merged_chunks.last_mut().expect("list cannot be empty");
