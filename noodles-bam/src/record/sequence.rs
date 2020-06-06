@@ -1,6 +1,7 @@
 mod base;
+mod bases;
 
-pub use self::base::Base;
+pub use self::{base::Base, bases::Bases};
 
 use std::{
     fmt,
@@ -54,12 +55,7 @@ impl<'a> Sequence<'a> {
     }
 
     pub fn bases(&self) -> Bases {
-        Bases {
-            sequence: self,
-            head: 0,
-            tail: self.n_chars - 1,
-            remaining: self.n_chars,
-        }
+        Bases::new(self)
     }
 }
 
@@ -84,45 +80,6 @@ impl<'a> fmt::Display for Sequence<'a> {
         }
 
         Ok(())
-    }
-}
-
-pub struct Bases<'a> {
-    sequence: &'a Sequence<'a>,
-    head: usize,
-    tail: usize,
-    remaining: usize,
-}
-
-impl<'a> Iterator for Bases<'a> {
-    type Item = Base;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.remaining == 0 {
-            return None;
-        }
-
-        let symbol = self.sequence[self.head];
-        self.head += 1;
-        self.remaining -= 1;
-        Some(symbol)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.remaining, Some(self.remaining))
-    }
-}
-
-impl<'a> DoubleEndedIterator for Bases<'a> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        if self.remaining == 0 {
-            return None;
-        }
-
-        let symbol = self.sequence[self.tail];
-        self.tail -= 1;
-        self.remaining -= 1;
-        Some(symbol)
     }
 }
 
