@@ -75,7 +75,7 @@ where
         }
     }
 
-    /// Reads the SAM header of a BAM file.
+    /// Reads the raw SAM header.
     ///
     /// The BAM magic number is also checked.
     ///
