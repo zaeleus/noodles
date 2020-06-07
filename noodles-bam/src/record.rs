@@ -48,7 +48,7 @@ impl Record {
         self.0.len() as u32
     }
 
-    /// Returns the reference sequence ID of this read.
+    /// Returns the reference sequence ID of this record.
     ///
     /// The reference sequence ID is the index of the associated reference sequence in the SAM
     /// header or BAM reference sequences.
@@ -66,7 +66,7 @@ impl Record {
         LittleEndian::read_i32(&self.0)
     }
 
-    /// Returns the start position of a mapped read.
+    /// Returns the start position of this record.
     ///
     /// Unlike in SAM (1-based), this value is 0-based.
     ///
@@ -89,7 +89,7 @@ impl Record {
         self.0[offset]
     }
 
-    /// Returns the mapping quality of this read.
+    /// Returns the mapping quality of this record.
     ///
     /// # Examples
     ///
@@ -104,7 +104,7 @@ impl Record {
         sam::record::MappingQuality::from(self.0[offset])
     }
 
-    /// Returns the index bin that includes this read.
+    /// Returns the index bin that includes this record.
     ///
     /// # Examples
     ///
@@ -123,7 +123,7 @@ impl Record {
         LittleEndian::read_u16(&self.0[offset..])
     }
 
-    /// Returns the SAM flags set for this read.
+    /// Returns the SAM flags of this record.
     ///
     /// # Examples
     ///
@@ -144,7 +144,7 @@ impl Record {
         LittleEndian::read_u32(&self.0[offset..])
     }
 
-    /// Returns the reference sequence ID of the mate of this read.
+    /// Returns the reference sequence ID of the mate of this record.
     ///
     /// The mate reference sequence ID is the index of the associated reference sequence in the SAM
     /// header or BAM reference sequences.
@@ -163,7 +163,7 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..])
     }
 
-    /// Returns the start position of the mate of this read.
+    /// Returns the start position of the mate of this record.
     ///
     /// Unlike in SAM (1-based), this value is 0-based.
     ///
@@ -181,7 +181,7 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..])
     }
 
-    /// Returns the template length of this read.
+    /// Returns the template length of this record.
     ///
     /// # Examples
     ///
@@ -195,7 +195,7 @@ impl Record {
         LittleEndian::read_i32(&self.0[offset..])
     }
 
-    /// Returns the name of this read.
+    /// Returns the read name of this record.
     ///
     /// This is also called the query name.
     ///
@@ -228,7 +228,7 @@ impl Record {
         Cigar::new(bytes)
     }
 
-    /// Returns the bases in the sequence of this read.
+    /// Returns the bases in the sequence of this record.
     ///
     /// # Examples
     ///
