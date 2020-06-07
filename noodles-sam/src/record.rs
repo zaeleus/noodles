@@ -433,51 +433,39 @@ impl FromStr for Record {
     }
 }
 
-fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<String, ParseError>
+fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<&'a str, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    fields
-        .next()
-        .ok_or_else(|| ParseError::Missing(field))
-        .map(|s| s.into())
+    fields.next().ok_or_else(|| ParseError::Missing(field))
 }
 
 fn parse_u8<'a, I>(fields: &mut I, field: Field) -> Result<u8, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    fields
-        .next()
-        .ok_or_else(|| ParseError::Missing(field))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-        })
+    parse_string(fields, field).and_then(|s| {
+        s.parse()
+            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
+    })
 }
 
 fn parse_u16<'a, I>(fields: &mut I, field: Field) -> Result<u16, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    fields
-        .next()
-        .ok_or_else(|| ParseError::Missing(field))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-        })
+    parse_string(fields, field).and_then(|s| {
+        s.parse()
+            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
+    })
 }
 
 fn parse_i32<'a, I>(fields: &mut I, field: Field) -> Result<i32, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    fields
-        .next()
-        .ok_or_else(|| ParseError::Missing(field))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-        })
+    parse_string(fields, field).and_then(|s| {
+        s.parse()
+            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
+    })
 }
