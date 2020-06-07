@@ -25,7 +25,7 @@ use noodles_sam as sam;
 ///  * mapping quality (MAPQ),
 ///  * flags (FLAG),
 ///  * mate reference sequence ID (RNEXT equiv.),
-///  * mate positino (PNEXT),
+///  * mate position (PNEXT),
 ///  * template length (TLEN),
 ///  * read name (QNAME),
 ///  * CIGAR string (CIGAR),
@@ -144,7 +144,7 @@ impl Record {
         LittleEndian::read_u32(&self.0[offset..])
     }
 
-    /// Returns the eference sequence ID of the mate of this read.
+    /// Returns the reference sequence ID of the mate of this read.
     ///
     /// The mate reference sequence ID is the index of the associated reference sequence in the SAM
     /// header or BAM reference sequences.
