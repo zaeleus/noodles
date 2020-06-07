@@ -4,8 +4,8 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{
     index::{
-        reference::{bin::Chunk, Bin},
-        Reference,
+        reference_sequence::{bin::Chunk, Bin},
+        ReferenceSequence,
     },
     Index, MAGIC_NUMBER,
 };
@@ -94,11 +94,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
-        let n_ref = index.references().len() as u32;
+        let n_ref = index.reference_sequences().len() as u32;
         self.inner.write_u32::<LittleEndian>(n_ref)?;
 
-        for reference in index.references() {
-            write_reference(&mut self.inner, reference)?;
+        for reference_sequence in index.reference_sequences() {
+            write_reference_sequence(&mut self.inner, reference_sequence)?;
         }
 
         if let Some(n_no_coor) = index.unplaced_unmapped_read_count() {
@@ -109,21 +109,24 @@ where
     }
 }
 
-fn write_reference<W>(writer: &mut W, reference: &Reference) -> io::Result<()>
+fn write_reference_sequence<W>(
+    writer: &mut W,
+    reference_sequence: &ReferenceSequence,
+) -> io::Result<()>
 where
     W: Write,
 {
-    let n_bin = reference.bins().len() as u32;
+    let n_bin = reference_sequence.bins().len() as u32;
     writer.write_u32::<LittleEndian>(n_bin)?;
 
-    for bin in reference.bins() {
+    for bin in reference_sequence.bins() {
         write_bin(writer, bin)?;
     }
 
-    let n_intv = reference.intervals().len() as u32;
+    let n_intv = reference_sequence.intervals().len() as u32;
     writer.write_u32::<LittleEndian>(n_intv)?;
 
-    for interval in reference.intervals() {
+    for interval in reference_sequence.intervals() {
         let ioffset = u64::from(*interval);
         writer.write_u64::<LittleEndian>(ioffset)?;
     }
@@ -176,8 +179,8 @@ mod tests {
         )];
         let bins = vec![Bin::new(16385, chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
-        let references = vec![Reference::new(bins, intervals)];
-        let index = Index::new(references, None);
+        let reference_sequences = vec![ReferenceSequence::new(bins, intervals)];
+        let index = Index::new(reference_sequences, None);
 
         let mut actual_writer = Writer::new(Vec::new());
         actual_writer.write_header()?;

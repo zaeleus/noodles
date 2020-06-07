@@ -11,19 +11,19 @@ const WINDOW_SIZE: u64 = 16384;
 
 /// A reference sequence in the BAM index.
 #[derive(Debug)]
-pub struct Reference {
+pub struct ReferenceSequence {
     bins: Vec<Bin>,
     intervals: Vec<bgzf::VirtualPosition>,
 }
 
-impl Reference {
+impl ReferenceSequence {
     /// Creates a new BAM index reference seqeuence.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::bai::index::Reference;
-    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// use noodles_bam::bai::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
     /// ```
     pub fn new(bins: Vec<Bin>, intervals: Vec<bgzf::VirtualPosition>) -> Self {
         Self { bins, intervals }
@@ -34,9 +34,9 @@ impl Reference {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::bai::index::Reference;
-    /// let reference = Reference::new(Vec::new(), Vec::new());
-    /// assert!(reference.bins().is_empty());
+    /// use noodles_bam::bai::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// assert!(reference_sequence.bins().is_empty());
     /// ```
     pub fn bins(&self) -> &[Bin] {
         &self.bins
@@ -46,9 +46,9 @@ impl Reference {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::bai::index::Reference;
-    /// let reference = Reference::new(Vec::new(), Vec::new());
-    /// assert!(reference.intervals().is_empty());
+    /// use noodles_bam::bai::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// assert!(reference_sequence.intervals().is_empty());
     /// ```
     pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
         &self.intervals
@@ -59,9 +59,9 @@ impl Reference {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::bai::index::Reference;
-    /// let reference = Reference::new(Vec::new(), Vec::new());
-    /// let query_bins = reference.query(8, 13);
+    /// use noodles_bam::bai::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let query_bins = reference_sequence.query(8, 13);
     /// assert!(query_bins.is_empty());
     /// ```
     pub fn query(&self, start: u64, end: u64) -> Vec<&Bin> {
@@ -86,9 +86,9 @@ impl Reference {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_bam::bai::index::Reference;
-    /// let reference = Reference::new(Vec::new(), Vec::new());
-    /// assert_eq!(reference.min_offset(13), bgzf::VirtualPosition::from(0));
+    /// use noodles_bam::bai::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;

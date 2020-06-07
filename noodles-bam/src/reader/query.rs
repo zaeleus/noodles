@@ -2,7 +2,7 @@ use std::io::{self, Read, Seek};
 
 use noodles_bgzf::VirtualPosition;
 
-use crate::{bai::index::reference::bin::Chunk, Record};
+use crate::{bai::index::reference_sequence::bin::Chunk, Record};
 
 use super::Reader;
 

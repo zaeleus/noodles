@@ -1,13 +1,13 @@
 //! BAM index and fields
 
-pub mod reference;
+pub mod reference_sequence;
 
-pub use self::reference::Reference;
+pub use self::reference_sequence::ReferenceSequence;
 
 /// A BAM index.
 #[derive(Debug, Default)]
 pub struct Index {
-    references: Vec<Reference>,
+    reference_sequences: Vec<ReferenceSequence>,
     n_no_coor: Option<u64>,
 }
 
@@ -20,9 +20,9 @@ impl Index {
     /// use noodles_bam::bai;
     /// let index = bai::Index::new(Vec::new(), None);
     /// ```
-    pub fn new(references: Vec<Reference>, n_no_coor: Option<u64>) -> Self {
+    pub fn new(reference_sequences: Vec<ReferenceSequence>, n_no_coor: Option<u64>) -> Self {
         Self {
-            references,
+            reference_sequences,
             n_no_coor,
         }
     }
@@ -36,10 +36,10 @@ impl Index {
     /// ```
     /// use noodles_bam::bai;
     /// let index = bai::Index::default();
-    /// assert!(index.references().is_empty());
+    /// assert!(index.reference_sequences().is_empty());
     /// ```
-    pub fn references(&self) -> &[Reference] {
-        &self.references
+    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
+        &self.reference_sequences
     }
 
     /// Returns the number of unmapped reads in the associated BAM file.

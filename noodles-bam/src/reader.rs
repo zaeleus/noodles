@@ -291,7 +291,7 @@ where
             )
         })?;
 
-        let index_reference = index.references().get(i).ok_or_else(|| {
+        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!(
@@ -302,7 +302,7 @@ where
             )
         })?;
 
-        let query_bins = index_reference.query(start, end);
+        let query_bins = index_reference_sequence.query(start, end);
 
         let chunks: Vec<_> = query_bins
             .iter()
@@ -310,7 +310,7 @@ where
             .cloned()
             .collect();
 
-        let min_offset = index_reference.min_offset(start);
+        let min_offset = index_reference_sequence.min_offset(start);
         let merged_chunks = bai::optimize_chunks(&chunks, min_offset);
 
         Ok(Query::new(self, merged_chunks, i, start, end))

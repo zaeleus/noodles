@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use super::{index::Reference, Bin, Chunk, Index, MAGIC_NUMBER};
+use super::{index::ReferenceSequence, Bin, Chunk, Index, MAGIC_NUMBER};
 
 /// A BAM index (BAI) reader.
 ///
@@ -96,7 +96,7 @@ where
     }
 }
 
-fn read_references<R>(reader: &mut R) -> io::Result<Vec<Reference>>
+fn read_references<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence>>
 where
     R: Read,
 {
@@ -106,7 +106,7 @@ where
     for _ in 0..n_ref {
         let bins = read_bins(reader)?;
         let intervals = read_intervals(reader)?;
-        references.push(Reference::new(bins, intervals));
+        references.push(ReferenceSequence::new(bins, intervals));
     }
 
     Ok(references)
