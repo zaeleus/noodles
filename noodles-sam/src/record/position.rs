@@ -3,7 +3,7 @@ use std::ops::Deref;
 const UNMAPPED: i32 = 0;
 const MIN: i32 = 1;
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Position(Option<i32>);
 
 impl From<i32> for Position {
