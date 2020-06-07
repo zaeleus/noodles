@@ -31,7 +31,7 @@ use noodles_sam as sam;
 ///  * CIGAR string (CIGAR),
 ///  * sequence (SEQ),
 ///  * quality scores (QUAL), and
-///  * optional data fields (DATA).
+///  * optional data fields.
 ///
 /// Additionally, it encodes the BAM index bin (`bin`).
 ///
