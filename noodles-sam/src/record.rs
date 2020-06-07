@@ -189,7 +189,7 @@ impl Record {
     /// use noodles_sam::{self as sam, record::cigar::{op, Op}};
     ///
     /// let record = sam::Record::default();
-    /// assert!(record.cigar().ops().is_empty());
+    /// assert!(record.cigar().is_empty());
     /// assert_eq!(record.cigar().to_string(), "*");
     ///
     /// let record = sam::Record::builder().set_cigar("34M2S".parse()?).build();

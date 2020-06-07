@@ -22,6 +22,10 @@ impl Cigar {
         &self.ops
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.ops.is_empty()
+    }
+
     pub fn mapped_len(&self) -> u32 {
         self.ops()
             .iter()
@@ -79,6 +83,15 @@ impl FromStr for Cigar {
 #[cfg(test)]
 mod tests {
     use super::{op::Kind, *};
+
+    #[test]
+    fn test_is_empty() {
+        let cigar = Cigar::default();
+        assert!(cigar.is_empty());
+
+        let cigar = Cigar::new(vec![Op::new(Kind::Match, 1)]);
+        assert!(!cigar.is_empty());
+    }
 
     #[test]
     fn test_fmt() {
