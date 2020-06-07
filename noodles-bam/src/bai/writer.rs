@@ -10,6 +10,21 @@ use super::{
     Index, MAGIC_NUMBER,
 };
 
+/// A BAM index (BAI) writer.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::{fs::File, io};
+/// use noodles_bam::bai;
+///
+/// let index = bai::Index::new(Vec::new(), None);
+///
+/// let mut writer = File::create("sample.bam.bai").map(bai::Writer::new)?;
+/// writer.write_header()?;
+/// writer.write_index(&index)?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Writer<W> {
     inner: W,
 }
@@ -18,18 +33,66 @@ impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a new BAI index writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// let writer = bai::Writer::new(Vec::new());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// let writer = bai::Writer::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
+    /// Writer a BAM index header.
+    ///
+    /// This writes the magic number of the file format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::bai;
+    ///
+    /// let mut writer = bai::Writer::new(Vec::new());
+    /// writer.write_header()?;
+    ///
+    /// assert_eq!(writer.get_ref(), b"BAI\x01");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_header(&mut self) -> io::Result<()> {
         self.inner.write_all(MAGIC_NUMBER)
     }
 
+    /// Writes a BAM index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::bai;
+    ///
+    /// let index = bai::Index::new(Vec::new(), None);
+    ///
+    /// let mut writer = bai::Writer::new(Vec::new());
+    /// writer.write_header()?;
+    /// writer.write_index(&index)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
         let n_ref = index.references().len() as u32;
         self.inner.write_u32::<LittleEndian>(n_ref)?;
@@ -104,14 +167,6 @@ mod tests {
     use noodles_bgzf as bgzf;
 
     use super::*;
-
-    #[test]
-    fn test_write_header() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-        writer.write_header()?;
-        assert_eq!(writer.get_ref(), b"BAI\x01");
-        Ok(())
-    }
 
     #[test]
     fn test_write_index() -> io::Result<()> {

@@ -5,6 +5,29 @@ use noodles_bgzf as bgzf;
 
 use super::{index::Reference, Bin, Chunk, Index, MAGIC_NUMBER};
 
+/// A BAM index (BAI) reader.
+///
+/// A BAM index has three top-level fields:
+///
+///   1. a magic number,
+///   2. a list of reference sequences,
+///   3. and optionally, the number of unmapped reads in the associated BAM.
+///
+/// While these fields can be read individually, consider using [`bai::read`] to read the entire
+/// index at once.
+///
+/// [`bai::read`]: fn.read.html
+///
+/// # Examples
+///
+/// ```no_run
+///# use std::{fs::File, io};
+/// use noodles_bam::bai;
+/// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+/// reader.read_header()?;
+/// let index = reader.read_index()?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Reader<R> {
     inner: R,
 }
@@ -13,10 +36,33 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Create a BAM index reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam::bai;
+    /// let reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
+    /// Read the BAM index header.
+    ///
+    /// The BAM index header is just the magic number of the file format.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam::bai;
+    /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+    /// reader.read_header()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_header(&mut self) -> io::Result<()> {
         let mut magic = [0; 4];
         self.inner.read_exact(&mut magic)?;
@@ -31,6 +77,18 @@ where
         Ok(())
     }
 
+    /// Reads the BAM index.
+    ///
+    /// The position of the stream is expected to be directly after the header.
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam::bai;
+    /// let mut reader = File::open("sample.bam.bai").map(bai::Reader::new)?;
+    /// reader.read_header()?;
+    /// let index = reader.read_index()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let references = read_references(&mut self.inner)?;
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();

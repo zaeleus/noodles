@@ -1,4 +1,27 @@
 //! BAM index (BAI)
+//!
+//! A BAM index (BAI) is used with an associated coordinate-sorted BAM file that allows random
+//! access to records, e.g., [querying].
+//!
+//! The index contains a list of reference sequences parallel to the one defined in the BAM file.
+//! Each indexed reference sequence has a calculated set of hierarchical bins at different
+//! granularities. The bins then define a list of physical file positions in the BAM to search for
+//! overlapping records.
+//!
+//! When reading entire BAM files sequentially, a BAM index is not necessary.
+//!
+//! [querying]: ../reader/struct.Reader.html#method.query
+//!
+//! # Examples
+//!
+//! ## Reading a BAM index
+//!
+//! ```no_run
+//! # use std::io;
+//! use noodles_bam::bai;
+//! let index = bai::read("sample.bam.bai")?;
+//! # Ok::<(), io::Error>(())
+//! ```
 
 pub mod index;
 mod reader;
@@ -14,6 +37,19 @@ use self::index::reference::{bin::Chunk, Bin};
 
 pub(crate) static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
+/// Reads the entire contents of a BAM index.
+///
+/// This is a convenience function and is equivalent to opening the file at the given path, reading
+/// the header, and reading the index.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_bam::bai;
+/// let index = bai::read("sample.bam.bai")?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
@@ -28,6 +64,31 @@ where
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
 ///
 /// [`optimize_chunks`]: fn.optimize_chunks.html
+///
+/// # Examples
+///
+/// ```
+/// use noodles_bam::bai::{self, index::reference::bin::Chunk};
+/// use noodles_bgzf as bgzf;
+///
+/// let chunks = [
+///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
+///     Chunk::new(bgzf::VirtualPosition::from(5), bgzf::VirtualPosition::from(8)),
+///     Chunk::new(bgzf::VirtualPosition::from(7), bgzf::VirtualPosition::from(13)),
+///     Chunk::new(bgzf::VirtualPosition::from(21), bgzf::VirtualPosition::from(34)),
+/// ];
+///
+/// let actual = bai::merge_chunks(&chunks);
+///
+/// let expected = [
+///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
+///     Chunk::new(bgzf::VirtualPosition::from(5), bgzf::VirtualPosition::from(13)),
+///     Chunk::new(bgzf::VirtualPosition::from(21), bgzf::VirtualPosition::from(34)),
+/// ];
+///
+/// assert_eq!(actual, expected);
+/// ```
+
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
     optimize_chunks(chunks, VirtualPosition::default())
 }
@@ -38,6 +99,30 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 /// chunks that cannot be in the query.
 ///
 /// [`merge_chunks`]: fn.merge_chunks.html
+///
+/// # Examples
+///
+/// ```
+/// use noodles_bam::bai::{self, index::reference::bin::Chunk};
+/// use noodles_bgzf as bgzf;
+///
+/// let chunks = [
+///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
+///     Chunk::new(bgzf::VirtualPosition::from(5), bgzf::VirtualPosition::from(8)),
+///     Chunk::new(bgzf::VirtualPosition::from(7), bgzf::VirtualPosition::from(13)),
+///     Chunk::new(bgzf::VirtualPosition::from(21), bgzf::VirtualPosition::from(34)),
+/// ];
+/// let min_offset = bgzf::VirtualPosition::from(5);
+///
+/// let actual = bai::optimize_chunks(&chunks, min_offset);
+///
+/// let expected = [
+///     Chunk::new(bgzf::VirtualPosition::from(5), bgzf::VirtualPosition::from(13)),
+///     Chunk::new(bgzf::VirtualPosition::from(21), bgzf::VirtualPosition::from(34)),
+/// ];
+///
+/// assert_eq!(actual, expected);
+/// ```
 pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chunk> {
     let mut chunks: Vec<_> = chunks
         .iter()

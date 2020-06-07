@@ -1,3 +1,5 @@
+//! BAM index reference sequence and fields
+
 pub mod bin;
 
 pub use self::bin::Bin;
@@ -7,6 +9,7 @@ use noodles_bgzf as bgzf;
 
 const WINDOW_SIZE: u64 = 16384;
 
+/// A reference sequence in the BAM index.
 #[derive(Debug)]
 pub struct Reference {
     bins: Vec<Bin>,
@@ -14,18 +17,53 @@ pub struct Reference {
 }
 
 impl Reference {
+    /// Creates a new BAM index reference seqeuence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai::index::Reference;
+    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// ```
     pub fn new(bins: Vec<Bin>, intervals: Vec<bgzf::VirtualPosition>) -> Self {
         Self { bins, intervals }
     }
 
+    /// Returns the list of bins in this reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai::index::Reference;
+    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// assert!(reference.bins().is_empty());
+    /// ```
     pub fn bins(&self) -> &[Bin] {
         &self.bins
     }
-
+    /// Returns a list of 16 kbp intervals that make up the linear index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai::index::Reference;
+    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// assert!(reference.intervals().is_empty());
+    /// ```
     pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
         &self.intervals
     }
 
+    /// Returns a list of bins in this reference seqeunce that intersect the given range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai::index::Reference;
+    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// let query_bins = reference.query(8, 13);
+    /// assert!(query_bins.is_empty());
+    /// ```
     pub fn query(&self, start: u64, end: u64) -> Vec<&Bin> {
         let region_bins = region_to_bins(start as usize, end as usize);
 
@@ -42,6 +80,16 @@ impl Reference {
         query_bins
     }
 
+    /// Finds in minimum start offset in the linear index for a given start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_bam::bai::index::Reference;
+    /// let reference = Reference::new(Vec::new(), Vec::new());
+    /// assert_eq!(reference.min_offset(13), bgzf::VirtualPosition::from(0));
+    /// ```
     pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {
         let i = (start / WINDOW_SIZE) as usize;
         self.intervals.get(i).copied().unwrap_or_default()
