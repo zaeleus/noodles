@@ -270,7 +270,7 @@ impl Record {
         QualityScores::new(bytes)
     }
 
-    /// Returns the quality score for each base in the sequence.
+    /// Returns the optional data fields for this record.
     ///
     /// # Examples
     ///
