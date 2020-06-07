@@ -348,7 +348,7 @@ impl Default for Record {
 
 #[derive(Debug)]
 pub enum ParseError {
-    Missing(Field),
+    MissingField(Field),
     Invalid(Field, String),
 }
 
@@ -357,7 +357,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing(field) => write!(f, "missing field: {}", field.name()),
+            Self::MissingField(field) => write!(f, "missing field: {}", field.name()),
             Self::Invalid(field, message) => {
                 write!(f, "invalid {} field: {}", field.name(), message)
             }
@@ -437,7 +437,7 @@ fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<&'a str, ParseErr
 where
     I: Iterator<Item = &'a str>,
 {
-    fields.next().ok_or_else(|| ParseError::Missing(field))
+    fields.next().ok_or_else(|| ParseError::MissingField(field))
 }
 
 fn parse_u8<'a, I>(fields: &mut I, field: Field) -> Result<u8, ParseError>
