@@ -183,7 +183,7 @@ where
         Ok(block_size)
     }
 
-    /// Returns an iterator over all records.
+    /// Returns an iterator over records starting from the current stream position.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
