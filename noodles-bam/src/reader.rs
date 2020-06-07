@@ -79,6 +79,8 @@ where
     ///
     /// The BAM magic number is also checked.
     ///
+    /// The position of the stream is expected to be at the start.
+    ///
     /// This returns the raw SAM header as a `String`. It can subsequently be parsed as a
     /// `sam::Header`.
     ///
@@ -110,6 +112,8 @@ where
     /// sequences containing name and length tuples after the SAM header and before the list of
     /// records.
     ///
+    /// The position of the stream is expected to be directly after the header.
+    ///
     /// This returns a list of `sam::header::ReferenceSequence` objects, which can be used to build
     /// a minimal `sam::Header` if the SAM header is empty.
     ///
@@ -139,6 +143,9 @@ where
     ///
     /// The record block size (`bs`) is read from the underlying stream, and `bs` addition bytes
     /// are read into the given record.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
     ///
     /// It is more ergonomic to read records using an iterator (see `records` and `query`), but
     /// using this method directly allows the reuse of a single `bam::Record` buffer.
@@ -177,6 +184,9 @@ where
     }
 
     /// Returns an iterator over all records.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
     ///
     /// # Examples
     ///
