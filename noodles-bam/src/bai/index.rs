@@ -5,7 +5,7 @@ pub mod reference;
 pub use self::reference::Reference;
 
 /// A BAM index.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Index {
     references: Vec<Reference>,
     n_no_coor: Option<u64>,
@@ -35,7 +35,7 @@ impl Index {
     ///
     /// ```
     /// use noodles_bam::bai;
-    /// let index = bai::Index::new(Vec::new(), None);
+    /// let index = bai::Index::default();
     /// assert!(index.references().is_empty());
     /// ```
     pub fn references(&self) -> &[Reference] {
@@ -49,7 +49,7 @@ impl Index {
     /// ```
     /// use noodles_bam::bai;
     ///
-    /// let index = bai::Index::new(Vec::new(), None);
+    /// let index = bai::Index::default();
     /// assert_eq!(index.unplaced_unmapped_read_count(), None);
     ///
     /// let index = bai::Index::new(Vec::new(), Some(13));
