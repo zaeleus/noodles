@@ -20,7 +20,7 @@ pub use self::{
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const NULL_FIELD: &str = "*";
 const FIELD_DELIMITER: char = '\t';
@@ -349,7 +349,18 @@ impl Default for Record {
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Field),
-    Invalid(Field, String),
+    InvalidReadName(read_name::ParseError),
+    InvalidFlags(num::ParseIntError),
+    InvalidReferenceSequenceName(reference_sequence_name::ParseError),
+    InvalidPosition(num::ParseIntError),
+    InvalidMappingQuality(num::ParseIntError),
+    InvalidCigar(cigar::op::ParseError),
+    InvalidMateReferenceSequenceName(mate_reference_sequence_name::ParseError),
+    InvalidMatePosition(num::ParseIntError),
+    InvalidTemplateLength(num::ParseIntError),
+    InvalidSequence(sequence::ParseError),
+    InvalidQualityScores(quality_scores::ParseError),
+    InvalidData(String),
 }
 
 impl error::Error for ParseError {}
@@ -358,9 +369,18 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingField(field) => write!(f, "missing field: {}", field.name()),
-            Self::Invalid(field, message) => {
-                write!(f, "invalid {} field: {}", field.name(), message)
-            }
+            Self::InvalidReadName(e) => write!(f, "{}", e),
+            Self::InvalidFlags(e) => write!(f, "{}", e),
+            Self::InvalidReferenceSequenceName(e) => write!(f, "{}", e),
+            Self::InvalidPosition(e) => write!(f, "{}", e),
+            Self::InvalidMappingQuality(e) => write!(f, "{}", e),
+            Self::InvalidCigar(e) => write!(f, "{}", e),
+            Self::InvalidMateReferenceSequenceName(e) => write!(f, "{}", e),
+            Self::InvalidMatePosition(e) => write!(f, "{}", e),
+            Self::InvalidTemplateLength(e) => write!(f, "{}", e),
+            Self::InvalidSequence(e) => write!(f, "{}", e),
+            Self::InvalidQualityScores(e) => write!(f, "{}", e),
+            Self::InvalidData(e) => write!(f, "{}", e),
         }
     }
 }
@@ -371,48 +391,49 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let qname = parse_string(&mut fields, Field::Name).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Name, format!("{}", e)))
-        })?;
+        let qname = parse_string(&mut fields, Field::Name)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidReadName))?;
 
-        let flag = parse_u16(&mut fields, Field::Flags).map(Flags::from)?;
+        let flag = parse_string(&mut fields, Field::Flags)
+            .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
+            .map(Flags::from)?;
 
-        let rname = parse_string(&mut fields, Field::ReferenceSequenceName).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::ReferenceSequenceName, format!("{}", e)))
-        })?;
+        let rname = parse_string(&mut fields, Field::ReferenceSequenceName)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidReferenceSequenceName))?;
 
-        let pos = parse_i32(&mut fields, Field::Position).map(Position::from)?;
-        let mapq = parse_u8(&mut fields, Field::MappingQuality).map(MappingQuality::from)?;
+        let pos = parse_string(&mut fields, Field::Position)
+            .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidPosition))
+            .map(Position::from)?;
 
-        let cigar = parse_string(&mut fields, Field::Cigar).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
-        })?;
+        let mapq = parse_string(&mut fields, Field::MappingQuality)
+            .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
+            .map(MappingQuality::from)?;
+
+        let cigar = parse_string(&mut fields, Field::Cigar)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;
 
         let rnext = parse_string(&mut fields, Field::MateReferenceSequenceName).and_then(|s| {
             s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Cigar, format!("{}", e)))
+                .map_err(ParseError::InvalidMateReferenceSequenceName)
         })?;
 
-        let pnext = parse_i32(&mut fields, Field::MatePosition).map(Position::from)?;
-        let tlen = parse_i32(&mut fields, Field::TemplateLength)?;
+        let pnext = parse_string(&mut fields, Field::MatePosition)
+            .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidMatePosition))
+            .map(Position::from)?;
 
-        let seq = parse_string(&mut fields, Field::Sequence).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::Sequence, format!("{}", e)))
-        })?;
+        let tlen = parse_string(&mut fields, Field::TemplateLength)
+            .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidTemplateLength))?;
 
-        let qual = parse_string(&mut fields, Field::QualityScores).and_then(|s| {
-            s.parse()
-                .map_err(|e| ParseError::Invalid(Field::QualityScores, format!("{}", e)))
-        })?;
+        let seq = parse_string(&mut fields, Field::Sequence)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidSequence))?;
+
+        let qual = parse_string(&mut fields, Field::QualityScores)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
 
         let data = match fields.next() {
             Some(s) => s
                 .parse()
-                .map_err(|e| ParseError::Invalid(Field::Data, format!("{}", e)))?,
+                .map_err(|e| ParseError::InvalidData(format!("{}", e)))?,
             None => Data::default(),
         };
 
@@ -438,34 +459,4 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or_else(|| ParseError::MissingField(field))
-}
-
-fn parse_u8<'a, I>(fields: &mut I, field: Field) -> Result<u8, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    parse_string(fields, field).and_then(|s| {
-        s.parse()
-            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-    })
-}
-
-fn parse_u16<'a, I>(fields: &mut I, field: Field) -> Result<u16, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    parse_string(fields, field).and_then(|s| {
-        s.parse()
-            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-    })
-}
-
-fn parse_i32<'a, I>(fields: &mut I, field: Field) -> Result<i32, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    parse_string(fields, field).and_then(|s| {
-        s.parse()
-            .map_err(|e| ParseError::Invalid(field, format!("{}", e)))
-    })
 }
