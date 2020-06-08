@@ -2,6 +2,23 @@ use std::io::{self, Write};
 
 use super::{Header, Record};
 
+/// A SAM writer.
+///
+/// # Examples
+///
+/// ```
+/// # use std::io;
+/// use noodles_sam as sam;
+///
+/// let mut writer = sam::Writer::new(Vec::new());
+///
+/// let header = sam::Header::builder().add_comment("noodles-sam").build();
+/// writer.write_header(&header)?;
+///
+/// let record = sam::Record::default();
+/// writer.write_record(&record)?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Writer<W>
 where
     W: Write,
@@ -13,18 +30,61 @@ impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a SAM writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let writer = sam::Writer::new(Vec::new());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let writer = sam::Writer::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
+    /// Writes a SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_sam as sam;
+    /// let mut writer = sam::Writer::new(Vec::new());
+    /// let header = sam::Header::builder().add_comment("noodles-sam").build();
+    /// writer.write_header(&header)?;
+    /// assert_eq!(writer.get_ref(), b"@CO\tnoodles-sam\n");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
         write!(self.inner, "{}", header)
     }
 
+    /// Writes a SAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_sam as sam;
+    /// let mut writer = sam::Writer::new(Vec::new());
+    /// let record = sam::Record::default();
+    /// writer.write_record(&record)?;
+    /// assert_eq!(writer.get_ref(), b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         write!(
             self.inner,
