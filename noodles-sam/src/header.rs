@@ -18,13 +18,14 @@ pub use self::{
 pub use self::record::Record;
 
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
+pub type ReadGroups = IndexMap<String, ReadGroup>;
 pub type Programs = IndexMap<String, Program>;
 
 #[derive(Debug, Default)]
 pub struct Header {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
-    read_groups: Vec<ReadGroup>,
+    read_groups: ReadGroups,
     programs: Programs,
     comments: Vec<String>,
 }
@@ -50,11 +51,11 @@ impl Header {
         &mut self.reference_sequences
     }
 
-    pub fn read_groups(&self) -> &[ReadGroup] {
+    pub fn read_groups(&self) -> &ReadGroups {
         &self.read_groups
     }
 
-    pub fn read_groups_mut(&mut self) -> &mut Vec<ReadGroup> {
+    pub fn read_groups_mut(&mut self) -> &mut ReadGroups {
         &mut self.read_groups
     }
 
@@ -93,7 +94,7 @@ impl fmt::Display for Header {
             writeln!(f, "{}", reference_sequence)?;
         }
 
-        for read_group in &self.read_groups {
+        for read_group in self.read_groups.values() {
             writeln!(f, "{}", read_group)?;
         }
 

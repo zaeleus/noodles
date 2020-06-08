@@ -1,10 +1,12 @@
-use super::{header, Header, Program, Programs, ReadGroup, ReferenceSequence, ReferenceSequences};
+use super::{
+    header, Header, Program, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
+};
 
 #[derive(Debug, Default)]
 pub struct Builder {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
-    read_groups: Vec<ReadGroup>,
+    read_groups: ReadGroups,
     programs: Programs,
     comments: Vec<String>,
 }
@@ -26,7 +28,7 @@ impl Builder {
     }
 
     pub fn add_read_group(mut self, read_group: ReadGroup) -> Self {
-        self.read_groups.push(read_group);
+        self.read_groups.insert(read_group.id().into(), read_group);
         self
     }
 
