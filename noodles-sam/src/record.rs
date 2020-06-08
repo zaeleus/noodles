@@ -360,7 +360,7 @@ pub enum ParseError {
     InvalidTemplateLength(num::ParseIntError),
     InvalidSequence(sequence::ParseError),
     InvalidQualityScores(quality_scores::ParseError),
-    InvalidData(String),
+    InvalidData(data::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -431,9 +431,7 @@ impl FromStr for Record {
             .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
 
         let data = match fields.next() {
-            Some(s) => s
-                .parse()
-                .map_err(|e| ParseError::InvalidData(format!("{}", e)))?,
+            Some(s) => s.parse().map_err(ParseError::InvalidData)?,
             None => Data::default(),
         };
 

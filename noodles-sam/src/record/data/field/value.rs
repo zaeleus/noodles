@@ -1,9 +1,9 @@
-mod subtype;
-mod ty;
+pub mod subtype;
+pub mod ty;
 
-use std::{fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
-use super::{Component, ParseError, DELIMITER};
+use super::DELIMITER;
 
 use self::{subtype::Subtype, ty::Type};
 
@@ -264,6 +264,35 @@ impl fmt::Display for Value {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    MissingType,
+    InvalidType(ty::ParseError),
+    MissingValue,
+    InvalidCharValue,
+    InvalidIntValue(num::ParseIntError),
+    InvalidFloatValue(num::ParseFloatError),
+    MissingSubtype,
+    InvalidSubtype(subtype::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingType => f.write_str("missing type"),
+            Self::InvalidType(e) => write!(f, "{}", e),
+            Self::MissingValue => f.write_str("missing value"),
+            Self::InvalidCharValue => f.write_str("invalid char value"),
+            Self::InvalidIntValue(e) => write!(f, "{}", e),
+            Self::InvalidFloatValue(e) => write!(f, "{}", e),
+            Self::MissingSubtype => f.write_str("missing subtype"),
+            Self::InvalidSubtype(e) => write!(f, "{}", e),
+        }
+    }
+}
+
 impl FromStr for Value {
     type Err = ParseError;
 
@@ -272,15 +301,10 @@ impl FromStr for Value {
 
         let ty = components
             .next()
-            .ok_or_else(|| ParseError::Missing(Component::Type))
-            .and_then(|t| {
-                t.parse()
-                    .map_err(|e| ParseError::Invalid(Component::Type, Box::new(e)))
-            })?;
+            .ok_or_else(|| ParseError::MissingType)
+            .and_then(|t| t.parse().map_err(ParseError::InvalidType))?;
 
-        let value = components
-            .next()
-            .ok_or_else(|| ParseError::Missing(Component::Value))?;
+        let value = components.next().ok_or_else(|| ParseError::MissingValue)?;
 
         match ty {
             Type::Char => parse_char(value).map(Value::Char),
@@ -293,45 +317,36 @@ impl FromStr for Value {
     }
 }
 
-fn invalid_value_error<E>(e: E) -> ParseError
-where
-    E: Into<Box<dyn std::error::Error>>,
-{
-    ParseError::Invalid(Component::Value, e.into())
-}
-
 fn parse_char(s: &str) -> Result<char, ParseError> {
-    s.chars()
-        .next()
-        .ok_or_else(|| ParseError::Invalid(Component::Value, String::new().into()))
+    s.chars().next().ok_or_else(|| ParseError::InvalidCharValue)
 }
 
 fn parse_i8(s: &str) -> Result<i8, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_u8(s: &str) -> Result<u8, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_i16(s: &str) -> Result<i16, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_u16(s: &str) -> Result<u16, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_i32(s: &str) -> Result<i32, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_u32(s: &str) -> Result<u32, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidIntValue)
 }
 
 fn parse_f32(s: &str) -> Result<f32, ParseError> {
-    s.parse().map_err(invalid_value_error)
+    s.parse().map_err(ParseError::InvalidFloatValue)
 }
 
 fn parse_array(s: &str) -> Result<Value, ParseError> {
@@ -339,11 +354,8 @@ fn parse_array(s: &str) -> Result<Value, ParseError> {
 
     let subtype = raw_values
         .next()
-        .ok_or_else(|| ParseError::Missing(Component::Subtype))
-        .and_then(|t| {
-            t.parse()
-                .map_err(|e| ParseError::Invalid(Component::Subtype, Box::new(e)))
-        })?;
+        .ok_or_else(|| ParseError::MissingSubtype)
+        .and_then(|t| t.parse().map_err(ParseError::InvalidSubtype))?;
 
     match subtype {
         Subtype::Int8 => raw_values

@@ -1,5 +1,5 @@
-mod tag;
-mod value;
+pub mod tag;
+pub mod value;
 
 pub use self::{tag::Tag, value::Value};
 
@@ -41,18 +41,12 @@ impl fmt::Display for Field {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Component {
-    Tag,
-    Type,
-    Subtype,
-    Value,
-}
-
 #[derive(Debug)]
 pub enum ParseError {
-    Missing(Component),
-    Invalid(Component, Box<dyn std::error::Error>),
+    MissingTag,
+    InvalidTag(tag::ParseError),
+    MissingValue,
+    InvalidValue(value::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -60,10 +54,10 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing(component) => write!(f, "missing field component: {:?}", component),
-            Self::Invalid(component, e) => {
-                write!(f, "invalid field {:?} component: {}", component, e)
-            }
+            Self::MissingTag => f.write_str("missing tag"),
+            Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::MissingValue => f.write_str("missing value"),
+            Self::InvalidValue(e) => write!(f, "{}", e),
         }
     }
 }
@@ -76,16 +70,13 @@ impl FromStr for Field {
 
         let tag = components
             .next()
-            .ok_or_else(|| ParseError::Missing(Component::Tag))
-            .and_then(|t| {
-                t.parse()
-                    .map_err(|e| ParseError::Invalid(Component::Tag, Box::new(e)))
-            })?;
+            .ok_or_else(|| ParseError::MissingTag)
+            .and_then(|t| t.parse().map_err(ParseError::InvalidTag))?;
 
         let value = components
             .next()
-            .ok_or_else(|| ParseError::Missing(Component::Type))
-            .and_then(|t| t.parse())?;
+            .ok_or_else(|| ParseError::MissingValue)
+            .and_then(|t| t.parse().map_err(ParseError::InvalidValue))?;
 
         Ok(Self::new(tag, value))
     }

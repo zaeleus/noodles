@@ -44,13 +44,17 @@ impl fmt::Display for Data {
 }
 
 #[derive(Debug)]
-pub struct ParseError(Box<dyn std::error::Error>);
+pub enum ParseError {
+    InvalidField(field::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        match self {
+            Self::InvalidField(e) => write!(f, "{}", e),
+        }
     }
 }
 
@@ -63,7 +67,7 @@ impl FromStr for Data {
         }
 
         s.split(DELIMITER)
-            .map(|t| t.parse().map_err(|e| ParseError(Box::new(e))))
+            .map(|t| t.parse().map_err(ParseError::InvalidField))
             .collect::<Result<_, _>>()
             .map(Self::new)
     }
