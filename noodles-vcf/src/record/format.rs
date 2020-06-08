@@ -16,7 +16,7 @@ impl Deref for Format {
 }
 
 impl fmt::Display for Format {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, key) in self.iter().enumerate() {
             if i > 0 {
                 write!(f, "{}", DELIMITER)?
@@ -39,7 +39,7 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid format: ")?;
 
         match self {

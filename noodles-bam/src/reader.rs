@@ -204,7 +204,7 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn records(&mut self) -> Records<R> {
+    pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
 
@@ -283,7 +283,7 @@ where
         reference_sequences: &ReferenceSequences,
         index: &bai::Index,
         region: &Region,
-    ) -> io::Result<Query<R>> {
+    ) -> io::Result<Query<'_, R>> {
         let (i, _, start, end) = region.resolve(reference_sequences).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,

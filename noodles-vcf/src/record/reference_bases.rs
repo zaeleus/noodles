@@ -18,7 +18,7 @@ impl Deref for ReferenceBases {
 }
 
 impl fmt::Display for ReferenceBases {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for base in self.iter() {
             write!(f, "{}", char::from(*base))?;
         }
@@ -33,7 +33,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid reference bases: {}", self.0)
     }
 }

@@ -19,7 +19,7 @@ impl Default for FilterStatus {
 }
 
 impl fmt::Display for FilterStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Missing => f.write_str(MISSING_FIELD),
             Self::Pass => f.write_str(PASS_STATUS),
@@ -44,7 +44,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid filter status: {}", self.0)
     }
 }

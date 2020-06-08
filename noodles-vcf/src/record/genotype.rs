@@ -17,7 +17,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid genotype: {}", self.0)
     }
 }
@@ -47,7 +47,7 @@ impl Deref for Genotype {
 }
 
 impl fmt::Display for Genotype {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {

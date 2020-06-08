@@ -29,7 +29,7 @@ pub enum Error {
 impl error::Error for Error {}
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
@@ -78,7 +78,7 @@ impl Record {
         self.parse_u8(Header::Frame)
     }
 
-    pub fn attributes(&self) -> self::Result<Attributes> {
+    pub fn attributes(&self) -> self::Result<Attributes<'_>> {
         self.parse(Header::Attributes).map(Attributes::new)
     }
 

@@ -222,7 +222,7 @@ impl FromStr for Header {
     }
 }
 
-fn parse_file_format(lines: &mut Lines) -> Result<String, ParseError> {
+fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
     let record = lines
         .next()
         .ok_or_else(|| ParseError::MissingFileFormat)

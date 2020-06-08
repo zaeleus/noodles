@@ -9,7 +9,7 @@ pub enum Chromosome {
 }
 
 impl fmt::Display for Chromosome {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Name(name) => f.write_str(name),
             Self::Symbol(symbol) => write!(f, "<{}>", symbol),
@@ -23,7 +23,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid chromosome: {}", self.0)
     }
 }

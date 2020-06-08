@@ -40,7 +40,7 @@ impl Cigar {
 }
 
 impl fmt::Display for Cigar {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ops = self.ops();
 
         if ops.is_empty() {

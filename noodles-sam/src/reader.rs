@@ -160,7 +160,7 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn records(&mut self) -> Records<R> {
+    pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
 }

@@ -9,11 +9,11 @@ use noodles_sam::record::cigar::op::Kind;
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
-    pub fn new(bytes: &[u8]) -> Cigar {
+    pub fn new(bytes: &[u8]) -> Cigar<'_> {
         Cigar(bytes)
     }
 
-    pub fn ops(&self) -> Ops {
+    pub fn ops(&self) -> Ops<'_> {
         Ops {
             cigar: self.0,
             i: 0,
@@ -33,13 +33,13 @@ impl<'a> Cigar<'a> {
 }
 
 impl<'a> fmt::Debug for Cigar<'a> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_list().entries(self.ops()).finish()
     }
 }
 
 impl<'a> fmt::Display for Cigar<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for op in self.ops() {
             write!(f, "{}", op)?;
         }

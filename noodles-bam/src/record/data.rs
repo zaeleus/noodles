@@ -12,7 +12,7 @@ use self::reader::Fields;
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {
-    pub fn new(bytes: &[u8]) -> Data {
+    pub fn new(bytes: &[u8]) -> Data<'_> {
         Data(bytes)
     }
 

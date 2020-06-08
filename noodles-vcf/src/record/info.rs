@@ -20,7 +20,7 @@ impl Deref for Info {
 }
 
 impl fmt::Display for Info {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
@@ -46,7 +46,7 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid info: ")?;
 
         match self {

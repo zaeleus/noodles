@@ -11,7 +11,7 @@ pub enum Type {
 }
 
 impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", char::from(*self))
     }
 }
@@ -22,7 +22,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "invalid data field type: expected {{A, i, f, Z, H, B}}, got {}",

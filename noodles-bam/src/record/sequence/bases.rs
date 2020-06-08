@@ -8,7 +8,7 @@ pub struct Bases<'a> {
 }
 
 impl<'a> Bases<'a> {
-    pub fn new(sequence: &'a Sequence) -> Self {
+    pub fn new(sequence: &'a Sequence<'_>) -> Self {
         Self {
             sequence,
             head: 0,

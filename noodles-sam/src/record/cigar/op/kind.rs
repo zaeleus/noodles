@@ -14,7 +14,7 @@ pub enum Kind {
 }
 
 impl fmt::Display for Kind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", char::from(*self))
     }
 }

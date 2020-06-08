@@ -17,7 +17,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid alternate bases allele symbol: {}", self.0)
     }
 }
@@ -38,7 +38,7 @@ impl FromStr for Symbol {
 }
 
 impl fmt::Display for Symbol {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::StructuralVariant(sv) => write!(f, "{}", sv),
             Self::NonstructuralVariant(nsv) => f.write_str(nsv),

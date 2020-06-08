@@ -12,7 +12,7 @@ impl<'a> QualityScores<'a> {
         Self { qual }
     }
 
-    pub fn chars(&self) -> Chars<slice::Iter<u8>> {
+    pub fn chars(&self) -> Chars<slice::Iter<'_, u8>> {
         Chars {
             chars: self.qual.iter(),
         }

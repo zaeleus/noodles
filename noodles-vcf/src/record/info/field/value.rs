@@ -20,7 +20,7 @@ pub enum Value {
 }
 
 impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Integer(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
@@ -87,7 +87,7 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid info value: ")?;
 
         match self {

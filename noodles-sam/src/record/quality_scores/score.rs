@@ -22,7 +22,7 @@ pub struct TryFromCharError(char);
 impl error::Error for TryFromCharError {}
 
 impl fmt::Display for TryFromCharError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "invalid score: expected {{{}..={}}}, got {}",
@@ -48,7 +48,7 @@ pub struct TryFromUByteError(u8);
 impl error::Error for TryFromUByteError {}
 
 impl fmt::Display for TryFromUByteError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "invalid score: expected {{0..={}}}, got {}",

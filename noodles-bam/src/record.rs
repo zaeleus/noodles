@@ -221,7 +221,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> Cigar {
+    pub fn cigar(&self) -> Cigar<'_> {
         let offset = 32 + (self.l_read_name() as usize);
         let len = mem::size_of::<u32>() * (self.n_cigar_op() as usize);
         let bytes = &self.0[offset..offset + len];
@@ -237,7 +237,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> Sequence {
+    pub fn sequence(&self) -> Sequence<'_> {
         let offset = 32
             + (self.l_read_name() as usize)
             + mem::size_of::<u32>() * (self.n_cigar_op() as usize);
@@ -257,7 +257,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> QualityScores {
+    pub fn quality_scores(&self) -> QualityScores<'_> {
         let l_seq = self.l_seq();
 
         let offset = 32
@@ -279,7 +279,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> Data {
+    pub fn data(&self) -> Data<'_> {
         let l_seq = self.l_seq();
 
         let offset = 32
@@ -319,7 +319,7 @@ impl DerefMut for Record {
 }
 
 impl fmt::Debug for Record {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let read_name = CStr::from_bytes_with_nul(self.read_name());
 
         fmt.debug_struct("Record")

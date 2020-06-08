@@ -12,18 +12,18 @@ pub(crate) enum Value<'a> {
     Symbol(&'a str),
 }
 
-fn name(input: &str) -> IResult<&str, Value> {
+fn name(input: &str) -> IResult<&str, Value<'_>> {
     map(rest, Value::Name)(input)
 }
 
-fn symbol(input: &str) -> IResult<&str, Value> {
+fn symbol(input: &str) -> IResult<&str, Value<'_>> {
     map(
         delimited(tag("<"), take_until(">"), tag(">")),
         Value::Symbol,
     )(input)
 }
 
-pub(crate) fn parse(input: &str) -> IResult<&str, Value> {
+pub(crate) fn parse(input: &str) -> IResult<&str, Value<'_>> {
     alt((symbol, name))(input)
 }
 

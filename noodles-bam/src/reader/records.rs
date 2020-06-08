@@ -10,7 +10,7 @@ pub struct Records<'a, R: Read> {
 }
 
 impl<'a, R: Read> Records<'a, R> {
-    pub fn new(reader: &'a mut Reader<R>) -> Records<R> {
+    pub fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
         Self {
             reader,
             record: Record::default(),

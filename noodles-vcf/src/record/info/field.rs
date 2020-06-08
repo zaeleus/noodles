@@ -31,7 +31,7 @@ impl Field {
 }
 
 impl fmt::Display for Field {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.value() {
             Value::Flag => write!(f, "{}", self.key),
             value => write!(f, "{}{}{}", self.key, SEPARATOR, value),
@@ -50,7 +50,7 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid info: ")?;
 
         match self {

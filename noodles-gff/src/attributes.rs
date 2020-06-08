@@ -17,7 +17,7 @@ impl<'a> Attributes<'a> {
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
     /// let _attributes = Attributes::new(data);
     /// ```
-    pub fn new(attrs: &str) -> Attributes {
+    pub fn new(attrs: &str) -> Attributes<'_> {
         Attributes { attrs }
     }
 
@@ -58,7 +58,7 @@ impl<'a> Attributes<'a> {
     /// assert_eq!(it.next(), Some(("level", "2")));
     /// assert_eq!(it.next(), None)
     /// ```
-    pub fn iter(&self) -> AttributesIter {
+    pub fn iter(&self) -> AttributesIter<'_> {
         self.into_iter()
     }
 }

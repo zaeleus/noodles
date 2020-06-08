@@ -15,7 +15,7 @@ impl<R: Read> Reader<R> {
         Self { inner }
     }
 
-    pub fn records(&mut self) -> csv::StringRecordsIter<R> {
+    pub fn records(&mut self) -> csv::StringRecordsIter<'_, R> {
         self.inner.records()
     }
 }

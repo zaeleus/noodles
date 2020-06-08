@@ -15,7 +15,7 @@ impl Default for Strand {
 }
 
 impl fmt::Display for Strand {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
             Self::Forward => '+',
             Self::Reverse => '-',
@@ -33,7 +33,7 @@ pub struct ParseError(String);
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid strand: expected {{+, -, ., ?}}, got {}", self.0)
     }
 }

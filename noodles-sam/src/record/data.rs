@@ -30,7 +30,7 @@ impl Data {
 }
 
 impl fmt::Display for Data {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, field) in self.fields.iter().enumerate() {
             if i > 0 {
                 f.write_str("\t")?;
@@ -51,7 +51,7 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(e) => write!(f, "{}", e),
         }

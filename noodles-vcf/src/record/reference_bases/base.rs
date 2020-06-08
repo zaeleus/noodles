@@ -27,7 +27,7 @@ pub struct TryFromCharError(char);
 impl error::Error for TryFromCharError {}
 
 impl fmt::Display for TryFromCharError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "invalid reference base: expected {{A, C, G, T, N}}, got {}",

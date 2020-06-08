@@ -54,13 +54,13 @@ impl<'a> Sequence<'a> {
         BASES.get(k as usize)
     }
 
-    pub fn bases(&self) -> Bases {
+    pub fn bases(&self) -> Bases<'_> {
         Bases::new(self)
     }
 }
 
 impl<'a> fmt::Debug for Sequence<'a> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_list().entries(self.bases()).finish()
     }
 }
