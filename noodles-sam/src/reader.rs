@@ -4,7 +4,9 @@ mod records;
 
 pub use self::records::Records;
 
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader, Read, Seek};
+
+use noodles_bgzf as bgzf;
 
 const HEADER_PREFIX: u8 = b'@';
 const NEWLINE: u8 = b'\n';
@@ -162,6 +164,37 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
+    }
+}
+
+impl<R> Reader<BufReader<bgzf::Reader<R>>>
+where
+    R: Read + Seek,
+{
+    /// Seeks the underlying BGZF stream to the given virtual position.
+    ///
+    /// Virtual positions typically come from an associated index.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use std::io::BufReader;
+    ///
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.sam.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(BufReader::new)
+    ///     .map(sam::Reader::new)?;
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.get_mut().seek(pos)
     }
 }
 

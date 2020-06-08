@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 bitflags = "1.2.1"
 indexmap = "1.3.2"
+noodles-bgzf = { path = "../noodles-bgzf" }
