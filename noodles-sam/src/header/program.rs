@@ -1,3 +1,5 @@
+//! SAM header program and fields.
+
 mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
@@ -6,6 +8,10 @@ pub use self::tag::Tag;
 
 use super::record;
 
+/// A SAM header program.
+///
+/// A program describes any program that created, viewed, or mutated a SAM file. The program ID is
+/// guaranteed to be set.
 #[derive(Debug)]
 pub struct Program {
     id: String,
@@ -13,6 +19,15 @@ pub struct Program {
 }
 
 impl Program {
+    /// Creates a program with an ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert_eq!(program.id(), "pg0");
+    /// ```
     pub fn new(id: String) -> Self {
         Self {
             id,
@@ -20,10 +35,41 @@ impl Program {
         }
     }
 
+    /// Returns the program ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert_eq!(program.id(), "pg0");
+    /// ```
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    /// Returns the raw fields of the program.
+    ///
+    /// This includes any field that is not specially handled by the structure itself. For example,
+    /// this will not include the ID field, as it is parsed and available as [`id`].
+    ///
+    /// [`id`]: #method.id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{program::Tag, Program};
+    ///
+    /// let mut program = Program::new(String::from("pg0"));
+    /// program.insert(Tag::Name, String::from("noodles-sam"));
+    ///
+    /// let fields = program.fields();
+    /// assert_eq!(fields.len(), 1);
+    /// assert_eq!(fields.get(&Tag::Name), Some(&String::from("noodles-sam")));
+    ///
+    /// assert_eq!(fields.get(&Tag::Id), None);
+    /// assert_eq!(program.id(), "pg0");
+    /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
     }
@@ -32,10 +78,41 @@ impl Program {
         &mut self.id
     }
 
+    /// Returns a reference to the raw field value mapped to the given key.
+    ///
+    /// This can only be used for fields with unparsed values. For a program, [`id`] must be used
+    /// instead of `get(Tag::Id)`.
+    ///
+    /// [`id`]: #method.id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{program::Tag, Program};
+    ///
+    /// let mut program = Program::new(String::from("pg0"));
+    /// program.insert(Tag::Name, String::from("noodles-sam"));
+    ///
+    /// assert_eq!(program.get(&Tag::Name), Some(&String::from("noodles-sam")));
+    /// assert_eq!(program.get(&Tag::Id), None);
+    /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
     }
 
+    /// Inserts a tag-raw value pair into the program.
+    ///
+    /// This follows similar semantics to [`std::collections::HashMap::insert`].
+    ///
+    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{program::Tag, Program};
+    /// let mut program = Program::new(String::from("pg0"));
+    /// program.insert(Tag::Name, String::from("noodles-sam"));
+    /// ```
     pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
         self.fields.insert(tag, value)
     }
@@ -63,6 +140,7 @@ impl fmt::Display for Program {
     }
 }
 
+/// An error returned when a raw SAM header program fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     MissingRequiredTag(Tag),

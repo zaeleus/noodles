@@ -1,5 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
+/// A SAM header header subsort order (`SS`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubsortOrder {
     Unsorted(String),

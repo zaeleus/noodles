@@ -9,6 +9,7 @@ type Field = (String, String);
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
 
+/// A SAM header record.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Record {
     Header(Vec<Field>),

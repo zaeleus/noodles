@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+/// A SAM header read group platform (`PL`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Platform {
     Capillary,

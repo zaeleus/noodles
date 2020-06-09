@@ -1,5 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
+/// A SAM header header tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
     Version,

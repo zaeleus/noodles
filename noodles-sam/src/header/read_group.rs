@@ -1,3 +1,5 @@
+//! SAM header read group and fields.
+
 mod platform;
 mod tag;
 
@@ -7,6 +9,10 @@ pub use self::{platform::Platform, tag::Tag};
 
 use super::record;
 
+/// A SAM header read group.
+///
+/// A read group typically defines the set of reads that came from the same run on a sequencing
+/// instrument. The read group ID is guaranteed to be set.
 #[derive(Debug)]
 pub struct ReadGroup {
     id: String,
@@ -14,6 +20,15 @@ pub struct ReadGroup {
 }
 
 impl ReadGroup {
+    /// Creates a read group with an ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReadGroup;
+    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// assert_eq!(read_group.id(), "rg0");
+    /// ```
     pub fn new(id: String) -> Self {
         Self {
             id,
@@ -21,6 +36,15 @@ impl ReadGroup {
         }
     }
 
+    /// Returns the read group ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReadGroup;
+    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// assert_eq!(read_group.id(), "rg0");
+    /// ```
     pub fn id(&self) -> &str {
         &self.id
     }
@@ -29,14 +53,67 @@ impl ReadGroup {
         &mut self.id
     }
 
+    /// Returns the raw fields of the read group.
+    ///
+    /// This includes any field that is not specially handled by the structure itself. For example,
+    /// this will not include the ID field, as it is parsed and available as [`id`].
+    ///
+    /// [`id`]: #method.id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{read_group::Tag, ReadGroup};
+    ///
+    /// let mut read_group = ReadGroup::new(String::from("rg0"));
+    /// read_group.insert(Tag::Program, String::from("noodles-sam"));
+    ///
+    /// let fields = read_group.fields();
+    /// assert_eq!(fields.len(), 1);
+    /// assert_eq!(fields.get(&Tag::Program), Some(&String::from("noodles-sam")));
+    ///
+    /// assert_eq!(fields.get(&Tag::Id), None);
+    /// assert_eq!(read_group.id(), "rg0");
+    /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
     }
 
+    /// Returns a reference to the raw field value mapped to the given key.
+    ///
+    /// This can only be used for fields with unparsed values. For a read group, [`id`] must be
+    /// used instead of `get(Tag::Id)`.
+    ///
+    /// [`id`]: #method.id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{read_group::Tag, ReadGroup};
+    ///
+    /// let mut read_group = ReadGroup::new(String::from("rg0"));
+    /// read_group.insert(Tag::Program, String::from("noodles-sam"));
+    ///
+    /// assert_eq!(read_group.get(&Tag::Program), Some(&String::from("noodles-sam")));
+    /// assert_eq!(read_group.get(&Tag::Id), None);
+    /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
     }
 
+    /// Inserts a tag-raw value pair into the read group.
+    ///
+    /// This follows similar semantics to [`std::collections::HashMap::insert`].
+    ///
+    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{read_group::Tag, ReadGroup};
+    /// let mut read_group = ReadGroup::new(String::from("rg0"));
+    /// read_group.insert(Tag::Program, String::from("noodles-sam"));
+    /// ```
     pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
         self.fields.insert(tag, value)
     }
@@ -64,6 +141,7 @@ impl fmt::Display for ReadGroup {
     }
 }
 
+/// An error returned when a raw SAM header read group fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     MissingRequiredTag(Tag),

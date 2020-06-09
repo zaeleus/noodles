@@ -1,3 +1,5 @@
+//! SAM header reference sequence and fields.
+
 mod molecule_topology;
 mod tag;
 
@@ -7,6 +9,12 @@ pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
 use super::record;
 
+/// A SAM header reference sequence.
+///
+/// The reference sequence describes a sequence a read possibly mapped to. Both the reference
+/// sequence name and length are guaranteed to be set.
+///
+/// A list of reference sequences creates a reference sequence dictionary.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     name: String,
@@ -16,6 +24,16 @@ pub struct ReferenceSequence {
 
 #[allow(clippy::len_without_is_empty)]
 impl ReferenceSequence {
+    /// Creates a reference sequence with a name and length.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert_eq!(reference_sequence.name(), "sq0");
+    /// assert_eq!(reference_sequence.len(), 13);
+    /// ```
     pub fn new(name: String, len: i32) -> Self {
         Self {
             name,
@@ -24,6 +42,15 @@ impl ReferenceSequence {
         }
     }
 
+    /// Returns the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert_eq!(reference_sequence.name(), "sq0");
+    /// ```
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -32,6 +59,15 @@ impl ReferenceSequence {
         &mut self.name
     }
 
+    /// Returns the reference sequence length.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert_eq!(reference_sequence.len(), 13);
+    /// ```
     pub fn len(&self) -> i32 {
         self.len
     }
@@ -40,14 +76,80 @@ impl ReferenceSequence {
         &mut self.name
     }
 
+    /// Returns the raw fields of the reference sequence.
+    ///
+    /// This includes any field that is not specially handled by the structure itself. For example,
+    /// this will not include the name and length fields, as they are parsed and available as
+    /// [`name`] and [`len`], respectively.
+    ///
+    /// [`name`]: #method.name
+    /// [`len`]: #method.len
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
+    ///
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    ///
+    /// let fields = reference_sequence.fields();
+    ///
+    /// assert_eq!(fields.len(), 1);
+    /// assert_eq!(
+    ///     fields.get(&Tag::Md5Checksum),
+    ///     Some(&String::from("d7eba311421bbc9d3ada44709dd61534"))
+    /// );
+    ///
+    /// assert_eq!(fields.get(&Tag::Name), None);
+    /// assert_eq!(reference_sequence.name(), "sq0");
+    ///
+    /// assert_eq!(fields.get(&Tag::Len), None);
+    /// assert_eq!(reference_sequence.len(), 13);
+    /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
     }
 
+    /// Returns a reference to the raw field value mapped to the given key.
+    ///
+    /// This can only be used for fields with unparsed values. For a reference sequence, [`name`]
+    /// and [`len`] must be used instead of `get(Tag::Name)` and `get(Tag::Len)`, respectively.
+    ///
+    /// [`name`]: #method.name
+    /// [`len`]: #method.len
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
+    ///
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    ///
+    /// assert_eq!(
+    ///     reference_sequence.get(&Tag::Md5Checksum),
+    ///     Some(&String::from("d7eba311421bbc9d3ada44709dd61534"))
+    /// );
+    /// assert_eq!(reference_sequence.get(&Tag::AssemblyId), None);
+    /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
     }
 
+    /// Inserts a tag-raw value pair into the reference sequence.
+    ///
+    /// This follows similar semantics to [`std::collections::HashMap::insert`].
+    ///
+    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    /// ```
     pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
         self.fields.insert(tag, value)
     }
@@ -77,6 +179,7 @@ impl fmt::Display for ReferenceSequence {
     }
 }
 
+/// An error returned when a raw SAM header reference sequence fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     MissingRequiredTag(Tag),

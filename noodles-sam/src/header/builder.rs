@@ -2,6 +2,7 @@ use super::{
     header, Header, Program, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
 };
 
+/// A SAM header builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     header: Option<header::Header>,
@@ -12,31 +13,112 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Creates a new SAM header builder.
+    ///
+    /// Typically, [`sam::Header::builder`] is used instead of calling `sam::header::Builder::new`.
+    ///
+    /// [`sam::Header::builder`]: struct.Header.html#method.builder
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let builder = sam::Header::builder();
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Sets a SAM header header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let header = sam::Header::builder()
+    ///     .set_header(sam::header::header::Header::default())
+    ///     .build();
+    ///
+    /// assert!(header.header().is_some());
+    /// ```
     pub fn set_header(mut self, header: header::Header) -> Self {
         self.header = Some(header);
         self
     }
 
+    /// Adds a reference sequence to the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .build();
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// assert_eq!(reference_sequences.len(), 1);
+    /// assert!(reference_sequences.contains_key("sq0"));
+    /// ```
     pub fn add_reference_sequence(mut self, reference_sequence: ReferenceSequence) -> Self {
         let name = reference_sequence.name().into();
         self.reference_sequences.insert(name, reference_sequence);
         self
     }
 
+    /// Adds a read group to the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReadGroup};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .build();
+    ///
+    /// let read_groups = header.read_groups();
+    /// assert_eq!(read_groups.len(), 1);
+    /// assert!(read_groups.contains_key("rg0"));
+    /// ```
     pub fn add_read_group(mut self, read_group: ReadGroup) -> Self {
         self.read_groups.insert(read_group.id().into(), read_group);
         self
     }
 
+    /// Adds a program to the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::Program};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .build();
+    ///
+    /// let programs = header.programs();
+    /// assert_eq!(programs.len(), 1);
+    /// assert!(programs.contains_key("noodles-sam"));
+    /// ```
     pub fn add_program(mut self, program: Program) -> Self {
         self.programs.insert(program.id().into(), program);
         self
     }
 
+    /// Adds a comment to the SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let header = sam::Header::builder().add_comment("noodles-sam").build();
+    /// let comments = header.comments();
+    /// assert_eq!(comments.len(), 1);
+    /// assert_eq!(&comments[0], "noodles-sam");
+    /// ```
     pub fn add_comment<S>(mut self, comment: S) -> Self
     where
         S: Into<String>,
@@ -45,6 +127,15 @@ impl Builder {
         self
     }
 
+    /// Builds a SAM header.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let header = sam::Header::builder().build();
+    /// assert!(header.is_empty());
+    /// ```
     pub fn build(self) -> Header {
         Header {
             header: self.header,

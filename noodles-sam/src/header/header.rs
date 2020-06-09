@@ -1,3 +1,11 @@
+//! SAM header header and fields.
+//!
+//! The namespace of this module is intentionally awkward to disambiguate a SAM header
+//! ([`sam::Header`]) and a header record ([`sam::header::header::Header`]).
+//!
+//! [`sam::Header`]: ../struct.Header.html
+//! [`sam::header::header::Header`]: struct.Header.html
+
 mod group_order;
 mod sort_order;
 mod subsort_order;
@@ -13,6 +21,9 @@ use super::record;
 
 static VERSION: &str = "1.6";
 
+/// A SAM header header.
+///
+/// The header describes file-level metadata. The format version is guaranteed to be set.
 #[derive(Debug)]
 pub struct Header {
     version: String,
@@ -20,6 +31,15 @@ pub struct Header {
 }
 
 impl Header {
+    /// Creates a header with a format version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let header = Header::new(String::from("1.6"));
+    /// assert_eq!(header.version(), "1.6");
+    /// ```
     pub fn new(version: String) -> Self {
         Self {
             version,
@@ -27,6 +47,15 @@ impl Header {
         }
     }
 
+    /// Returns the format version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let header = Header::new(String::from("1.6"));
+    /// assert_eq!(header.version(), "1.6");
+    /// ```
     pub fn version(&self) -> &str {
         &self.version
     }
@@ -35,14 +64,66 @@ impl Header {
         &mut self.version
     }
 
+    /// Returns the raw fields of the header.
+    ///
+    /// This includes any field that is not specially handled by the structure itself. For example,
+    /// this will not include the version field, as it is parsed and available as [`version`].
+    ///
+    /// [`version`]: #method.version
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::{self, Header};
+    ///
+    /// let mut header = Header::new(String::from("1.6"));
+    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
+    ///
+    /// let fields = header.fields();
+    /// assert_eq!(fields.len(), 1);
+    /// assert_eq!(fields.get(&header::Tag::SortOrder), Some(&String::from("coordinate")));
+    /// assert_eq!(fields.get(&header::Tag::Version), None);
+    /// assert_eq!(header.version(), "1.6");
+    /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
     }
 
+    /// Returns a reference to the raw field value mapped to the given key.
+    ///
+    /// This can only be used for fields with unparsed values. For the header, [`version`] must be
+    /// used instead of `get(header::Tag::Version)`.
+    ///
+    /// [`version`]: #method.version
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::{self, Header};
+    ///
+    /// let mut header = Header::default();
+    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
+    ///
+    /// assert_eq!(header.get(&header::Tag::SortOrder), Some(&String::from("coordinate")));
+    /// assert_eq!(header.get(&header::Tag::GroupOrder), None);
+    /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
     }
 
+    /// Inserts a tag-raw value pair into the header.
+    ///
+    /// This follows similar semantics to [`std::collections::HashMap::insert`].
+    ///
+    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::{self, Header};
+    /// let mut header = Header::default();
+    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
+    /// ```
     pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
         self.fields.insert(tag, value)
     }
@@ -70,6 +151,7 @@ impl fmt::Display for Header {
     }
 }
 
+/// An error returned when a raw SAM header header fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     MissingRequiredTag(Tag),

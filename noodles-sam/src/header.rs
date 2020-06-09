@@ -1,3 +1,64 @@
+//! SAM header and records.
+//!
+//! A SAM header defines 5 record types:
+//!
+//!   1. header (`@HD`),
+//!   2. reference sequence (`@SQ`),
+//!   3. read group (`@RG`),
+//!   4. program (`@PG`), and
+//!   5. comment (`@CO`).
+//!
+//! Each record is effectively a map. It defines key-value pairs associated with that record type.
+//!
+//! All records are optional, which means an empty header is considered a valid SAM header.
+//!
+//! If there is a header record, it must appear on the first line.
+//!
+//! Reference sequence, read group, program, and comment records are lists of records of the same
+//! type. Reference sequences must be ordered; whereas read groups, programs, and comments can be
+//! unordered. (`sam::Header` defines them to be ordered.)
+//!
+//! # Examples
+//!
+//! ## Parse a SAM header
+//!
+//! ```
+//! use noodles_sam as sam;
+//!
+//! let s = "\
+//! @HD\tVN:1.6\tSO:coordinate
+//! @SQ\tSN:sq0\tLN:8
+//! @SQ\tSN:sq1\tLN:13
+//! ";
+//!
+//! let header: sam::Header = s.parse()?;
+//!
+//! assert!(header.header().is_some());
+//! assert_eq!(header.reference_sequences().len(), 2);
+//! assert!(header.read_groups().is_empty());
+//! assert!(header.programs().is_empty());
+//! assert!(header.comments().is_empty());
+//! # Ok::<(), sam::header::ParseError>(())
+//! ```
+//!
+//! ## Create a SAM header
+//!
+//! ```
+//! use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
+//!
+//! let header = sam::Header::builder()
+//!     .set_header(header::header::Header::default())
+//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
+//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+//!     .build();
+//!
+//! assert!(header.header().is_some());
+//! assert_eq!(header.reference_sequences().len(), 2);
+//! assert!(header.read_groups().is_empty());
+//! assert!(header.programs().is_empty());
+//! assert!(header.comments().is_empty());
+//! ```
+
 mod builder;
 #[allow(clippy::module_inception)]
 pub mod header;
@@ -17,10 +78,19 @@ pub use self::{
 
 pub use self::record::Record;
 
+/// A reference seqeuence dictionary.
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
+
+/// An ordered map of read groups.
 pub type ReadGroups = IndexMap<String, ReadGroup>;
+
+/// An ordered map of programs.
 pub type Programs = IndexMap<String, Program>;
 
+/// A SAM header.
+///
+/// Records are grouped by their types: header, reference seqeuence, read group, program, and
+/// comment.
 #[derive(Debug, Default)]
 pub struct Header {
     header: Option<header::Header>,
@@ -31,10 +101,41 @@ pub struct Header {
 }
 
 impl Header {
+    /// Returns a builder to create a SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .set_header(header::header::Header::default())
+    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .build();
+    ///
+    /// assert!(header.header().is_some());
+    /// assert_eq!(header.reference_sequences().len(), 1);
+    /// assert!(header.read_groups().is_empty());
+    /// assert!(header.programs().is_empty());
+    /// assert!(header.comments().is_empty());
+    /// ```
     pub fn builder() -> Builder {
         Builder::new()
     }
 
+    /// Returns the SAM header header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .set_header(header::header::Header::default())
+    ///     .build();
+    ///
+    /// assert!(header.header().is_some());
+    /// ```
     pub fn header(&self) -> Option<&header::Header> {
         self.header.as_ref()
     }
@@ -43,6 +144,23 @@ impl Header {
         self.header.as_mut()
     }
 
+    /// Returns the SAM header reference sequences.
+    ///
+    /// This is also called the reference sequence dictionary.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .build();
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// assert_eq!(reference_sequences.len(), 1);
+    /// assert!(reference_sequences.contains_key("sq0"));
+    /// ```
     pub fn reference_sequences(&self) -> &ReferenceSequences {
         &self.reference_sequences
     }
@@ -51,6 +169,21 @@ impl Header {
         &mut self.reference_sequences
     }
 
+    /// Returns the SAM header read groups.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReadGroup};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .build();
+    ///
+    /// let read_groups = header.read_groups();
+    /// assert_eq!(read_groups.len(), 1);
+    /// assert!(read_groups.contains_key("rg0"));
+    /// ```
     pub fn read_groups(&self) -> &ReadGroups {
         &self.read_groups
     }
@@ -59,6 +192,21 @@ impl Header {
         &mut self.read_groups
     }
 
+    /// Returns the SAM header programs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::Program};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .build();
+    ///
+    /// let programs = header.programs();
+    /// assert_eq!(programs.len(), 1);
+    /// assert!(programs.contains_key("noodles-sam"));
+    /// ```
     pub fn programs(&self) -> &Programs {
         &self.programs
     }
@@ -67,6 +215,17 @@ impl Header {
         &mut self.programs
     }
 
+    /// Returns the SAM header comments.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let header = sam::Header::builder().add_comment("noodles-sam").build();
+    /// let comments = header.comments();
+    /// assert_eq!(comments.len(), 1);
+    /// assert_eq!(&comments[0], "noodles-sam");
+    /// ```
     pub fn comments(&self) -> &[String] {
         &self.comments
     }
@@ -75,6 +234,19 @@ impl Header {
         &mut self.comments
     }
 
+    /// Returns whether there are no records in this SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let header = sam::Header::default();
+    /// assert!(header.is_empty());
+    ///
+    /// let header = sam::Header::builder().add_comment("noodles-sam").build();
+    /// assert!(!header.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.header.is_none()
             && self.reference_sequences.is_empty()
@@ -85,6 +257,27 @@ impl Header {
 }
 
 impl fmt::Display for Header {
+    /// Formats the SAM header as a raw SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
+    ///
+    /// let header = sam::Header::builder()
+    ///     .set_header(header::header::Header::new(String::from("1.6")))
+    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
+    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+    ///     .build();
+    ///
+    /// let expected = "\
+    /// @HD\tVN:1.6
+    /// @SQ\tSN:sq0\tLN:8
+    /// @SQ\tSN:sq1\tLN:13
+    /// ";
+    ///
+    /// assert_eq!(header.to_string(), expected);
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(header) = self.header() {
             writeln!(f, "{}", header)?;
@@ -110,6 +303,7 @@ impl fmt::Display for Header {
     }
 }
 
+/// An error returned when a raw SAM header fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     UnexpectedHeader,
@@ -138,6 +332,28 @@ impl fmt::Display for ParseError {
 impl FromStr for Header {
     type Err = ParseError;
 
+    /// Parses a raw SAM header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let s = "\
+    /// @HD\tVN:1.6\tSO:coordinate
+    /// @SQ\tSN:sq0\tLN:8
+    /// @SQ\tSN:sq1\tLN:13
+    /// ";
+    ///
+    /// let header: sam::Header = s.parse()?;
+    ///
+    /// assert!(header.header().is_some());
+    /// assert_eq!(header.reference_sequences().len(), 2);
+    /// assert!(header.read_groups().is_empty());
+    /// assert!(header.programs().is_empty());
+    /// assert!(header.comments().is_empty());
+    /// # Ok::<(), sam::header::ParseError>(())
+    /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut builder = Header::builder();
 

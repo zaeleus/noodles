@@ -1,5 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
+/// A SAM header header group order (`GO`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GroupOrder {
     None,

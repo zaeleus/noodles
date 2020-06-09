@@ -1,5 +1,6 @@
 use std::{error, fmt, str::FromStr};
 
+/// A SAM header header sort order (`SO`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SortOrder {
     Unknown,

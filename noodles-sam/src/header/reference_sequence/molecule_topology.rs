@@ -15,6 +15,7 @@ impl fmt::Display for ParseError {
     }
 }
 
+/// A SAM header reference sequence molecule topology (`TP`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MoleculeTopology {
     Linear,
