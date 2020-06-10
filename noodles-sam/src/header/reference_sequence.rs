@@ -3,7 +3,7 @@
 mod molecule_topology;
 mod tag;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
 pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
@@ -184,7 +184,7 @@ impl fmt::Display for ReferenceSequence {
 pub enum ParseError {
     MissingRequiredTag(Tag),
     InvalidTag(tag::ParseError),
-    InvalidValue(Tag, Box<dyn error::Error>),
+    InvalidLength(num::ParseIntError),
 }
 
 impl error::Error for ParseError {}
@@ -194,7 +194,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
-            Self::InvalidValue(tag, e) => write!(f, "invalid value for tag {:?}: {}", tag, e),
+            Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
         }
     }
 }
@@ -218,12 +218,8 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
                     continue;
                 }
                 Tag::Length => {
-                    reference_sequence.len = value
-                        .parse()
-                        .map_err(|e| ParseError::InvalidValue(Tag::Length, Box::new(e)))?;
-
+                    reference_sequence.len = value.parse().map_err(ParseError::InvalidLength)?;
                     has_len = true;
-
                     continue;
                 }
                 _ => {}
@@ -294,6 +290,12 @@ mod tests {
             String::from("d7eba311421bbc9d3ada44709dd61534"),
         )];
 
+        assert!(ReferenceSequence::try_from(&fields[..]).is_err());
+    }
+
+    #[test]
+    fn test_from_str_with_invalid_length() {
+        let fields = [(String::from("LN"), String::from("thirteen"))];
         assert!(ReferenceSequence::try_from(&fields[..]).is_err());
     }
 }
