@@ -22,6 +22,9 @@ const BLOCK_HEADER_SIZE: usize = 32;
 // § 4.2.1 BIN field calculation (2020-04-30)
 const UNMAPPED_BIN: u16 = 4680;
 
+// § 4.2.3 SEQ and QUAL encoding (2020-04-30)
+const NULL_QUALITY_SCORE: u8 = 255;
+
 /// A BAM writer.
 ///
 /// Since the raw text header and `bam::Record` are immutable, BAM files are created by encoding a
@@ -264,8 +267,32 @@ where
         self.inner.write_all(read_name)?;
 
         write_cigar(&mut self.inner, record.cigar())?;
-        write_seq(&mut self.inner, record.sequence())?;
-        write_qual(&mut self.inner, record.quality_scores())?;
+
+        // § 4.2.3 SEQ and QUAL encoding (2020-04-30)
+        let sequence = record.sequence();
+        let quality_scores = record.quality_scores();
+
+        write_seq(&mut self.inner, sequence)?;
+
+        if sequence.len() < quality_scores.len() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "quality scores length does not match sequence length",
+            ));
+        } else if sequence.len() > quality_scores.len() {
+            if quality_scores.is_empty() {
+                for _ in 0..sequence.len() {
+                    self.inner.write_u8(NULL_QUALITY_SCORE)?;
+                }
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "quality scores length does not match sequence length",
+                ));
+            }
+        } else {
+            write_qual(&mut self.inner, quality_scores)?;
+        }
 
         Ok(())
     }
@@ -390,7 +417,7 @@ fn region_to_bin(start: i32, mut end: i32) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Reader, Record};
+    use crate::{record::sequence::Base, Reader, Record};
 
     use super::*;
 
@@ -470,6 +497,99 @@ mod tests {
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
         assert!(record.data().is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_sequence_length_less_than_quality_scores_length(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let record = sam::Record::builder()
+            .set_sequence("AT".parse()?)
+            .set_quality_scores("NDLS".parse()?)
+            .build();
+
+        assert!(writer
+            .write_record(header.reference_sequences(), &record)
+            .is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_sequence_length_greater_than_quality_scores_length(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let record = sam::Record::builder()
+            .set_sequence("ATCG".parse()?)
+            .set_quality_scores("ND".parse()?)
+            .build();
+
+        assert!(writer
+            .write_record(header.reference_sequences(), &record)
+            .is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_sequence_and_no_quality_scores(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let sam_record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
+        writer.write_record(header.reference_sequences(), &sam_record)?;
+
+        writer.try_finish()?;
+
+        let mut reader = Reader::new(writer.get_ref().as_slice());
+
+        let mut record = Record::default();
+        reader.read_record(&mut record)?;
+
+        let actual: Vec<_> = record.sequence().bases().collect();
+        let expected = [Base::A, Base::T, Base::C, Base::G];
+        assert_eq!(actual, expected);
+
+        let actual = record.quality_scores();
+        let expected = [255, 255, 255, 255];
+        assert_eq!(*actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_sequence_and_quality_scores() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let sam_record = sam::Record::builder()
+            .set_sequence("ATCG".parse()?)
+            .set_quality_scores("NDLS".parse()?)
+            .build();
+
+        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.try_finish()?;
+
+        let mut reader = Reader::new(writer.get_ref().as_slice());
+
+        let mut record = Record::default();
+        reader.read_record(&mut record)?;
+
+        let actual: Vec<_> = record.sequence().bases().collect();
+        let expected = [Base::A, Base::T, Base::C, Base::G];
+        assert_eq!(actual, expected);
+
+        let actual = record.quality_scores();
+        let expected = [45, 35, 43, 50];
+        assert_eq!(*actual, expected);
 
         Ok(())
     }
