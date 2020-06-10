@@ -20,6 +20,18 @@ the BAM format, add `noodles-bam` to your project's dependencies list.
 noodles-bam = { git = "https://github.com/zaeleus/noodles.git" }
 ```
 
+## Examples
+
+Each crate may have its own examples directory, and all examples are runnable
+as an application. After cloning the repository, run `cargo run --release
+--example` for a list of available examples. Use the example name as the option
+argument and append program arguments to the command, e.g.,
+
+```bash
+cargo run --release --example bam_write > sample.bam
+cargo run --release --example bam_read_header sample.bam
+```
+
 ## Related tools
 
 noodles itself does not provide any applications, but related tools do depend
