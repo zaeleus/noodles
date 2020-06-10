@@ -4,7 +4,7 @@ use std::{error, fmt, str::FromStr};
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
     Name,
-    Len,
+    Length,
     AlternativeLocus,
     AlternativeNames,
     AssemblyId,
@@ -20,7 +20,7 @@ impl AsRef<str> for Tag {
     fn as_ref(&self) -> &str {
         match self {
             Self::Name => "SN",
-            Self::Len => "LN",
+            Self::Length => "LN",
             Self::AlternativeLocus => "AH",
             Self::AlternativeNames => "AN",
             Self::AssemblyId => "AS",
@@ -57,7 +57,7 @@ impl FromStr for Tag {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "SN" => Ok(Self::Name),
-            "LN" => Ok(Self::Len),
+            "LN" => Ok(Self::Length),
             "AH" => Ok(Self::AlternativeLocus),
             "AN" => Ok(Self::AlternativeNames),
             "AS" => Ok(Self::AssemblyId),
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(format!("{}", Tag::Name), "SN");
-        assert_eq!(format!("{}", Tag::Len), "LN");
+        assert_eq!(format!("{}", Tag::Length), "LN");
         assert_eq!(format!("{}", Tag::AlternativeLocus), "AH");
         assert_eq!(format!("{}", Tag::AlternativeNames), "AN");
         assert_eq!(format!("{}", Tag::AssemblyId), "AS");
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("SN".parse::<Tag>()?, Tag::Name);
-        assert_eq!("LN".parse::<Tag>()?, Tag::Len);
+        assert_eq!("LN".parse::<Tag>()?, Tag::Length);
         assert_eq!("AH".parse::<Tag>()?, Tag::AlternativeLocus);
         assert_eq!("AN".parse::<Tag>()?, Tag::AlternativeNames);
         assert_eq!("AS".parse::<Tag>()?, Tag::AssemblyId);

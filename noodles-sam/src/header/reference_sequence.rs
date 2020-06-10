@@ -104,7 +104,7 @@ impl ReferenceSequence {
     /// assert_eq!(fields.get(&Tag::Name), None);
     /// assert_eq!(reference_sequence.name(), "sq0");
     ///
-    /// assert_eq!(fields.get(&Tag::Len), None);
+    /// assert_eq!(fields.get(&Tag::Length), None);
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
@@ -114,7 +114,7 @@ impl ReferenceSequence {
     /// Returns a reference to the raw field value mapped to the given key.
     ///
     /// This can only be used for fields with unparsed values. For a reference sequence, [`name`]
-    /// and [`len`] must be used instead of `get(Tag::Name)` and `get(Tag::Len)`, respectively.
+    /// and [`len`] must be used instead of `get(Tag::Name)` and `get(Tag::Length)`, respectively.
     ///
     /// [`name`]: #method.name
     /// [`len`]: #method.len
@@ -169,7 +169,7 @@ impl fmt::Display for ReferenceSequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::ReferenceSequence)?;
         write!(f, "\t{}:{}", Tag::Name, self.name)?;
-        write!(f, "\t{}:{}", Tag::Len, self.len)?;
+        write!(f, "\t{}:{}", Tag::Length, self.len)?;
 
         for (tag, value) in &self.fields {
             write!(f, "\t{}:{}", tag, value)?;
@@ -217,10 +217,10 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
                     has_name = true;
                     continue;
                 }
-                Tag::Len => {
+                Tag::Length => {
                     reference_sequence.len = value
                         .parse()
-                        .map_err(|e| ParseError::InvalidValue(Tag::Len, Box::new(e)))?;
+                        .map_err(|e| ParseError::InvalidValue(Tag::Length, Box::new(e)))?;
 
                     has_len = true;
 
@@ -235,7 +235,7 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
         if !has_name {
             return Err(ParseError::MissingRequiredTag(Tag::Name));
         } else if !has_len {
-            return Err(ParseError::MissingRequiredTag(Tag::Len));
+            return Err(ParseError::MissingRequiredTag(Tag::Length));
         }
 
         Ok(reference_sequence)
