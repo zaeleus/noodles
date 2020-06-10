@@ -32,13 +32,17 @@ impl fmt::Display for ReferenceSequenceName {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid reference sequence name: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("reference sequence name cannot be empty"),
+        }
     }
 }
 
@@ -46,11 +50,8 @@ impl FromStr for ReferenceSequenceName {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError(s.into()));
-        }
-
         match s {
+            "" => Err(ParseError::Empty),
             NULL_FIELD => Ok(ReferenceSequenceName(None)),
             _ => Ok(ReferenceSequenceName(Some(s.into()))),
         }

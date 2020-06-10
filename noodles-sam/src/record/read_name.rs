@@ -32,13 +32,17 @@ impl fmt::Display for ReadName {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid read name: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("read name cannot be empty"),
+        }
     }
 }
 
@@ -46,11 +50,8 @@ impl FromStr for ReadName {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError(s.into()));
-        }
-
         match s {
+            "" => Err(ParseError::Empty),
             NULL_FIELD => Ok(ReadName(None)),
             _ => Ok(ReadName(Some(s.into()))),
         }
@@ -90,6 +91,8 @@ mod tests {
 
         let read_name: ReadName = "r0".parse()?;
         assert_eq!(*read_name, Some(String::from("r0")));
+
+        assert!("".parse::<ReadName>().is_err());
 
         Ok(())
     }

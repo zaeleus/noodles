@@ -61,13 +61,17 @@ impl fmt::Display for MateReferenceSequenceName {
 }
 
 #[derive(Debug)]
-pub struct ParseError(String);
+pub enum ParseError {
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid mate reference sequence name: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("mate reference sequence name cannot be empty"),
+        }
     }
 }
 
@@ -76,7 +80,7 @@ impl FromStr for MateReferenceSequenceName {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             EQ_FIELD => Ok(MateReferenceSequenceName::Eq),
             NULL_FIELD => Ok(MateReferenceSequenceName::None),
             _ => Ok(MateReferenceSequenceName::Some(s.into())),
