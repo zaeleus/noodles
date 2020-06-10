@@ -30,17 +30,17 @@ const MAX_FIELDS: usize = 12;
 ///
 /// A SAM record has 11 required fields:
 ///
-///   1. read name (QNAME),
-///   2. flags (FLAG),
-///   3. reference sequence name (RNAME),
-///   4. position (POS),
-///   5. mapping quality (MAPQ),
-///   6. CIGAR string (CIGAR),
-///   7. mate reference sequence name (RNEXT),
-///   8. mate position (PNEXT),
-///   9. template length (TLEN),
-///   10. sequence (SEQ), and
-///   11. quality scores (QUAL).
+///   1. read name (`QNAME`),
+///   2. flags (`FLAG`),
+///   3. reference sequence name (`RNAME`),
+///   4. position (`POS`),
+///   5. mapping quality (`MAPQ`),
+///   6. CIGAR string (`CIGAR`),
+///   7. mate reference sequence name (`RNEXT`),
+///   8. mate position (`PNEXT`),
+///   9. template length (`TLEN`),
+///   10. sequence (`SEQ`), and
+///   11. quality scores (`QUAL`).
 ///
 /// Additionally, optional data fields can be included with any record.
 #[derive(Debug)]
