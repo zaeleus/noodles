@@ -20,17 +20,17 @@ use noodles_sam as sam;
 ///
 /// A BAM record encodes the same fields as a SAM record:
 ///
-///  * reference sequence ID (RNAME equiv.),
-///  * position (POS),
-///  * mapping quality (MAPQ),
-///  * flags (FLAG),
-///  * mate reference sequence ID (RNEXT equiv.),
-///  * mate position (PNEXT),
-///  * template length (TLEN),
-///  * read name (QNAME),
-///  * CIGAR string (CIGAR),
-///  * sequence (SEQ),
-///  * quality scores (QUAL), and
+///  * reference sequence ID (`RNAME` equiv.),
+///  * position (`POS`),
+///  * mapping quality (`MAPQ`),
+///  * flags (`FLAG`),
+///  * mate reference sequence ID (`RNEXT` equiv.),
+///  * mate position (`PNEXT`),
+///  * template length (`TLEN`),
+///  * read name (`QNAME`),
+///  * CIGAR string (`CIGAR`),
+///  * sequence (`SEQ`),
+///  * quality scores (`QUAL`), and
 ///  * optional data fields.
 ///
 /// Additionally, it encodes the BAM index bin (`bin`).
