@@ -354,7 +354,7 @@ pub enum ParseError {
     InvalidReferenceSequenceName(reference_sequence_name::ParseError),
     InvalidPosition(num::ParseIntError),
     InvalidMappingQuality(num::ParseIntError),
-    InvalidCigar(cigar::op::ParseError),
+    InvalidCigar(cigar::ParseError),
     InvalidMateReferenceSequenceName(mate_reference_sequence_name::ParseError),
     InvalidMatePosition(num::ParseIntError),
     InvalidTemplateLength(num::ParseIntError),

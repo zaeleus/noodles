@@ -1,6 +1,6 @@
 pub mod op;
 
-use std::{fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 pub use self::op::Op;
 
@@ -55,12 +55,29 @@ impl fmt::Display for Cigar {
     }
 }
 
+#[derive(Debug)]
+pub enum ParseError {
+    Empty,
+    InvalidOp(op::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => f.write_str("cigar cannot be empty"),
+            Self::InvalidOp(e) => write!(f, "{}", e),
+        }
+    }
+}
+
 impl FromStr for Cigar {
-    type Err = op::ParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err(op::ParseError::Empty);
+            return Err(ParseError::Empty);
         } else if s == NULL_FIELD {
             return Ok(Cigar::default());
         }
@@ -71,7 +88,7 @@ impl FromStr for Cigar {
         let mut start = 0;
 
         for (end, raw_kind) in matches {
-            let op = s[start..=end].parse()?;
+            let op = s[start..=end].parse().map_err(ParseError::InvalidOp)?;
             ops.push(op);
             start = end + raw_kind.len();
         }
