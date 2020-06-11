@@ -106,7 +106,7 @@ where
     }
 }
 
-pub fn write_header<W>(writer: &mut W, cdata_len: usize) -> io::Result<()>
+fn write_header<W>(writer: &mut W, cdata_len: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -128,7 +128,7 @@ where
     Ok(())
 }
 
-pub fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: u32) -> io::Result<()>
+fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: u32) -> io::Result<()>
 where
     W: Write,
 {
