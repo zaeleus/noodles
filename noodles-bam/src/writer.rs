@@ -1,4 +1,5 @@
 use std::{
+    cmp,
     ffi::CString,
     io::{self, Write},
 };
@@ -274,24 +275,28 @@ where
 
         write_seq(&mut self.inner, sequence)?;
 
-        if sequence.len() < quality_scores.len() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "quality scores length does not match sequence length",
-            ));
-        } else if sequence.len() > quality_scores.len() {
-            if quality_scores.is_empty() {
-                for _ in 0..sequence.len() {
-                    self.inner.write_u8(NULL_QUALITY_SCORE)?;
-                }
-            } else {
+        match sequence.len().cmp(&quality_scores.len()) {
+            cmp::Ordering::Less => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     "quality scores length does not match sequence length",
                 ));
             }
-        } else {
-            write_qual(&mut self.inner, quality_scores)?;
+            cmp::Ordering::Greater => {
+                if quality_scores.is_empty() {
+                    for _ in 0..sequence.len() {
+                        self.inner.write_u8(NULL_QUALITY_SCORE)?;
+                    }
+                } else {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "quality scores length does not match sequence length",
+                    ));
+                }
+            }
+            cmp::Ordering::Equal => {
+                write_qual(&mut self.inner, quality_scores)?;
+            }
         }
 
         Ok(())
