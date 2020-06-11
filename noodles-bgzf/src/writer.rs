@@ -24,6 +24,24 @@ static BGZF_EOF: &[u8] = &[
     0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
 
+/// A BZGF writer.
+///
+/// This implements [`std::io::Write`], consuming uncompressed data and emitting compressed data.
+///
+/// [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+///
+/// # Examples
+///
+/// ```
+/// # use std::io::{self, Write};
+/// use noodles_bgzf as bgzf;
+///
+/// let mut writer = bgzf::Writer::new(Vec::new());
+/// writer.write_all(b"noodles-bgzf")?;
+///
+/// let data = writer.finish()?;
+/// # Ok::<(), io::Error>(())
+/// ```
 #[derive(Debug)]
 pub struct Writer<W>
 where
@@ -38,6 +56,14 @@ impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a writer with a default compression level.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::Writer::new(Vec::new());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self {
             inner,
@@ -46,6 +72,15 @@ where
         }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::Writer::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
@@ -64,11 +99,41 @@ where
         Ok(())
     }
 
+    /// Attempts to finish the output stream by flushing any remaining buffers.
+    ///
+    /// This then appends the final BGZF EOF block.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Write};
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// writer.write_all(b"noodles-bgzf")?;
+    ///
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
         self.flush()?;
         self.inner.write_all(BGZF_EOF)
     }
 
+    /// Returns the underlying writer after finishing the output stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Write};
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// writer.write_all(b"noodles-bgzf")?;
+    ///
+    /// let data = writer.finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn finish(mut self) -> io::Result<W> {
         self.try_finish()?;
         Ok(self.inner)

@@ -5,6 +5,25 @@ use flate2::read::DeflateDecoder;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
+/// A BGZF reader.
+///
+/// Due to the static structure of a BGZF block, gzip headers are mostly discarded. CRC32
+/// validation is also disabled when decompressing data.
+///
+/// This implements [`std::io::Read`], consuming compressed data and emitting uncompressed data.
+///
+/// [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::{fs::File, io::{self, Read}};
+/// use noodles_bgzf as bgzf;
+/// let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
+/// let mut data = Vec::new();
+/// reader.read_to_end(&mut data);
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Reader<R> {
     inner: R,
     position: u64,
@@ -16,6 +35,15 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Creates a BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -25,10 +53,30 @@ where
         }
     }
 
+    /// Returns the current position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::Reader::new(&data[..]);
+    /// assert_eq!(reader.position(), 0);
+    /// ```
     pub fn position(&self) -> u64 {
         self.position
     }
 
+    /// Returns the current virtual position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::Reader::new(&data[..]);
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
+    /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.block.virtual_position()
     }
@@ -38,6 +86,21 @@ impl<R> Reader<R>
 where
     R: Read + Seek,
 {
+    /// Seeks the stream to the given virtual position.
+    ///
+    /// The underlying stream's cursor is first moved the the compressed position. A block is read,
+    /// decompressed, and has its own cursor moved to the uncompressed position.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io::{self, Cursor};
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::Reader::new(Cursor::new(Vec::new()));
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let compressed_offset = pos.compressed();
         let uncompressed_offset = pos.uncompressed();

@@ -1,3 +1,41 @@
+#![deny(missing_docs)]
+
+//! **noodles-bgzf** handles the reading and writing of BGZF (blocked gzip file).
+//!
+//! While the gzip format is typically a single stream, a BGZF is the concatentation of many gzip
+//! streams. Each stream is called a block, with its uncompressed data size being constrained to
+//! less than 64 KiB. This multistream gzip allows random access using [`virtual positions`].
+//!
+//! noodles-bgzf abstracts away the concept of blocks, implementing [`std::io::Read`] for the
+//! reader and [`std::io::Write`] for the writer.
+//!
+//! [`virtual positions`]: struct.VirtualPosition.html
+//! [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
+//! [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+//!
+//! # Examples
+//!
+//! ## Read an entire BGZF file
+//!
+//! ```no_run
+//! # use std::{fs::File, io::{self, Read}};
+//! use noodles_bgzf as bgzf;
+//! let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
+//! let mut data = Vec::new();
+//! reader.read_to_end(&mut data);
+//! # Ok::<(), io::Error>(())
+//! ```
+//!
+//! ## Write a BGZF file
+//!
+//! ```no_run
+//! # use std::{fs::File, io::{self, Write}};
+//! use noodles_bgzf as bgzf;
+//! let mut writer = File::create("data.gz").map(bgzf::Writer::new)?;
+//! writer.write_all(b"noodles-bgzf")?;
+//! # Ok::<(), io::Error>(())
+//! ```
+
 pub use self::{block::Block, reader::Reader, virtual_position::VirtualPosition, writer::Writer};
 
 mod block;

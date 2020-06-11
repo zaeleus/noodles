@@ -1,11 +1,53 @@
+/// A BGZF virtual position.
+///
+/// A virtual position is a 64-bit unsigned integer representing both the position in the
+/// compressed stream and position in the uncompressed block data. The compressed position is
+/// typically at the start of a block.
+///
+/// The compressed position is the first six most significant bytes; and the uncompressed position,
+/// the last two least significant bytes. For example, for the virtual position
+/// 10253313912875616487:
+///
+/// ```text
+///                       compressed position
+///                        |               |
+/// 10253313912875616487 = 8e 4b 16 ad eb 85 88 e7
+///                                          |   |
+///                                  uncompressed position
+/// ```
+///
+/// The compressed position is at 156453154188165 (`8e 4b 16 ad eb 85`), and uncompressed position
+/// is at 35047 (`88 e7`).
+///
+/// This is also called a virtual file offset; or, simply, a virtual offset.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct VirtualPosition(u64);
 
 impl VirtualPosition {
+    /// The position in the compressed BGZF stream.
+    ///
+    /// This is typically at the start of a block.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let virtual_position = bgzf::VirtualPosition::from(3741638);
+    /// assert_eq!(virtual_position.compressed(), 57);
+    /// ```
     pub fn compressed(self) -> u64 {
         self.0 >> 16
     }
 
+    /// The position in the uncompressed block data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let virtual_position = bgzf::VirtualPosition::from(3741638);
+    /// assert_eq!(virtual_position.uncompressed(), 6086);
+    /// ```
     pub fn uncompressed(self) -> u64 {
         self.0 & 0xffff
     }
@@ -18,6 +60,15 @@ impl From<u64> for VirtualPosition {
 }
 
 impl From<(u64, u64)> for VirtualPosition {
+    /// Converts a `(compressed position, uncompressed position)` tuple to a virtual position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let virtual_position = bgzf::VirtualPosition::from((57, 6086));
+    /// assert_eq!(virtual_position, bgzf::VirtualPosition::from(3741638));
+    /// ```
     fn from(pos: (u64, u64)) -> Self {
         Self(pos.0 << 16 | pos.1)
     }
