@@ -5,14 +5,17 @@ use flate2::read::DeflateDecoder;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
-pub struct Reader<R: Read> {
+pub struct Reader<R> {
     inner: R,
     position: u64,
     cdata: Vec<u8>,
     block: Block,
 }
 
-impl<R: Read> Reader<R> {
+impl<R> Reader<R>
+where
+    R: Read,
+{
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -31,7 +34,10 @@ impl<R: Read> Reader<R> {
     }
 }
 
-impl<R: Read + Seek> Reader<R> {
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let compressed_offset = pos.compressed();
         let uncompressed_offset = pos.uncompressed();
