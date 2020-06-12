@@ -12,6 +12,11 @@ enum State {
     End,
 }
 
+/// An iterator over records of a BAM reader that intersect a given region.
+///
+/// This is created by calling [`bam::Reader::query`].
+///
+/// [`bam::Reader::query`]: struct.Reader.html#method.query
 pub struct Query<'a, R>
 where
     R: Read + Seek,
@@ -31,7 +36,7 @@ impl<'a, R> Query<'a, R>
 where
     R: Read + Seek,
 {
-    pub fn new(
+    pub(crate) fn new(
         reader: &'a mut Reader<R>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,

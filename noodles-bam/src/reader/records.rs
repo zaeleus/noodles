@@ -4,6 +4,11 @@ use crate::Record;
 
 use super::Reader;
 
+/// An iterator over records of a BAM reader.
+///
+/// This is created by calling [`bam::Reader::records`].
+///
+/// [`bam::Reader::records`]: struct.Reader.html#method.records
 pub struct Records<'a, R>
 where
     R: Read,
@@ -16,7 +21,7 @@ impl<'a, R> Records<'a, R>
 where
     R: Read,
 {
-    pub fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
+    pub(crate) fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
         Self {
             reader,
             record: Record::default(),
