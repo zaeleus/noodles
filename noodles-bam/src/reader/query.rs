@@ -12,7 +12,10 @@ enum State {
     End,
 }
 
-pub struct Query<'a, R: Read + Seek> {
+pub struct Query<'a, R>
+where
+    R: Read + Seek,
+{
     reader: &'a mut Reader<R>,
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
@@ -24,7 +27,10 @@ pub struct Query<'a, R: Read + Seek> {
     record: Record,
 }
 
-impl<'a, R: Read + Seek> Query<'a, R> {
+impl<'a, R> Query<'a, R>
+where
+    R: Read + Seek,
+{
     pub fn new(
         reader: &'a mut Reader<R>,
         chunks: Vec<Chunk>,
@@ -71,7 +77,10 @@ impl<'a, R: Read + Seek> Query<'a, R> {
     }
 }
 
-impl<'a, R: Read + Seek> Iterator for Query<'a, R> {
+impl<'a, R> Iterator for Query<'a, R>
+where
+    R: Read + Seek,
+{
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {

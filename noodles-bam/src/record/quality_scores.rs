@@ -31,7 +31,10 @@ pub struct Chars<I> {
     chars: I,
 }
 
-impl<'a, I: Iterator<Item = &'a u8>> Iterator for Chars<I> {
+impl<'a, I> Iterator for Chars<I>
+where
+    I: Iterator<Item = &'a u8>,
+{
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
@@ -43,7 +46,10 @@ impl<'a, I: Iterator<Item = &'a u8>> Iterator for Chars<I> {
     }
 }
 
-impl<'a, I: Iterator<Item = &'a u8> + DoubleEndedIterator> DoubleEndedIterator for Chars<I> {
+impl<'a, I> DoubleEndedIterator for Chars<I>
+where
+    I: Iterator<Item = &'a u8> + DoubleEndedIterator,
+{
     fn next_back(&mut self) -> Option<char> {
         self.chars.next_back().map(|&b| byte_to_char(b))
     }

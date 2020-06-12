@@ -8,11 +8,17 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{Field, Value};
 
-pub struct Reader<R: BufRead> {
+pub struct Reader<R>
+where
+    R: BufRead,
+{
     inner: R,
 }
 
-impl<R: BufRead> Reader<R> {
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
     pub fn new(inner: R) -> Self {
         Self { inner }
     }

@@ -4,12 +4,18 @@ use crate::Record;
 
 use super::Reader;
 
-pub struct Records<'a, R: Read> {
+pub struct Records<'a, R>
+where
+    R: Read,
+{
     reader: &'a mut Reader<R>,
     record: Record,
 }
 
-impl<'a, R: Read> Records<'a, R> {
+impl<'a, R> Records<'a, R>
+where
+    R: Read,
+{
     pub fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
         Self {
             reader,
@@ -18,7 +24,10 @@ impl<'a, R: Read> Records<'a, R> {
     }
 }
 
-impl<'a, R: Read> Iterator for Records<'a, R> {
+impl<'a, R> Iterator for Records<'a, R>
+where
+    R: Read,
+{
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
