@@ -1,4 +1,4 @@
-//! BAM reader and iterators
+//! BAM reader and iterators.
 
 mod query;
 mod records;

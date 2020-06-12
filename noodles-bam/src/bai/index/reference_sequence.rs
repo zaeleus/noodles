@@ -1,4 +1,4 @@
-//! BAM index reference sequence and fields
+//! BAM index reference sequence and fields.
 
 pub mod bin;
 

@@ -1,4 +1,4 @@
-//! BAM index and fields
+//! BAM index and fields.
 
 pub mod reference_sequence;
 

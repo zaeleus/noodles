@@ -1,4 +1,4 @@
-//! BAM record and fields
+//! BAM record and fields.
 
 pub mod cigar;
 pub mod data;

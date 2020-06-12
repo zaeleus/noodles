@@ -1,4 +1,4 @@
-//! BAM index bin and fields
+//! BAM index bin and fields.
 
 mod chunk;
 

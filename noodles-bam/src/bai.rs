@@ -1,4 +1,4 @@
-//! BAM index (BAI)
+//! BAM index (BAI) and fields.
 //!
 //! A BAM index (BAI) is used with an associated coordinate-sorted BAM file that allows random
 //! access to records, e.g., [querying].
