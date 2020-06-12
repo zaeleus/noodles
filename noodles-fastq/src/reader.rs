@@ -19,7 +19,7 @@ impl<R: BufRead> Reader<R> {
         if len > 0 {
             len += read_line(&mut self.inner, record.sequence_mut())?;
             len += read_line(&mut self.inner, record.plus_line_mut())?;
-            len += read_line(&mut self.inner, record.quality_mut())?;
+            len += read_line(&mut self.inner, record.quality_scores_mut())?;
         }
 
         Ok(len)

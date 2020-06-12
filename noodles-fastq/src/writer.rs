@@ -22,7 +22,7 @@ impl<W: Write> Writer<W> {
         self.inner.write_all(b"\n")?;
         self.inner.write_all(record.plus_line())?;
         self.inner.write_all(b"\n")?;
-        self.inner.write_all(record.quality())?;
+        self.inner.write_all(record.quality_scores())?;
         self.inner.write_all(b"\n")?;
 
         Ok(())
