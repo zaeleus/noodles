@@ -1,10 +1,11 @@
 //! BAM CIGAR and operations.
 
 mod op;
+mod ops;
 
-pub use self::op::Op;
+pub use self::{op::Op, ops::Ops};
 
-use std::{convert::TryFrom, fmt, mem, ops::Deref};
+use std::{fmt, ops::Deref};
 
 use noodles_sam::record::cigar::op::Kind;
 
@@ -48,10 +49,7 @@ impl<'a> Cigar<'a> {
     /// assert_eq!(ops.next(), None);
     /// ```
     pub fn ops(&self) -> Ops<'_> {
-        Ops {
-            cigar: self.0,
-            i: 0,
-        }
+        Ops::new(self.0)
     }
 
     /// Calculates the alignment span over the reference sequence.
@@ -108,40 +106,10 @@ impl<'a> Deref for Cigar<'a> {
     }
 }
 
-/// An iterator over the operations of a CIGAR.
-///
-/// This is created by calling [`Cigar::ops`].
-///
-/// [`Cigar::ops`]: struct.Cigar.html#method.ops
-pub struct Ops<'a> {
-    cigar: &'a [u8],
-    i: usize,
-}
-
-impl<'a> Iterator for Ops<'a> {
-    type Item = Op;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let size = mem::size_of::<u32>();
-        let start = self.i * size;
-
-        if start < self.cigar.len() {
-            let end = start + size;
-
-            let data = &self.cigar[start..end];
-            let op = Op::try_from(data).unwrap();
-
-            self.i += 1;
-
-            Some(op)
-        } else {
-            None
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use super::*;
 
     #[test]
