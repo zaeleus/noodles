@@ -1,3 +1,5 @@
+//! BAM CIGAR and operations.
+
 mod op;
 
 pub use self::op::Op;
@@ -6,13 +8,45 @@ use std::{convert::TryFrom, fmt, mem, ops::Deref};
 
 use noodles_sam::record::cigar::op::Kind;
 
+/// BAM record CIGAR.
 pub struct Cigar<'a>(&'a [u8]);
 
 impl<'a> Cigar<'a> {
+    /// Creates a CIGAR by wrapping raw CIGAR data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Cigar;
+    ///
+    /// // 36M8S
+    /// let data = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let cigar = Cigar::new(&data);
+    ///
+    /// assert_eq!(*cigar, data);
+    /// ```
     pub fn new(bytes: &[u8]) -> Cigar<'_> {
         Cigar(bytes)
     }
 
+    /// Returns a iterator over the operations in the CIGAR.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{cigar::Op, Cigar};
+    /// use noodles_sam::record::cigar::op::Kind;
+    ///
+    /// // 36M8S
+    /// let data = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let cigar = Cigar::new(&data);
+    ///
+    /// let mut ops = cigar.ops();
+    ///
+    /// assert_eq!(ops.next(), Some(Op::new(Kind::Match, 36)));
+    /// assert_eq!(ops.next(), Some(Op::new(Kind::SoftClip, 8)));
+    /// assert_eq!(ops.next(), None);
+    /// ```
     pub fn ops(&self) -> Ops<'_> {
         Ops {
             cigar: self.0,
@@ -20,6 +54,24 @@ impl<'a> Cigar<'a> {
         }
     }
 
+    /// Calculates the alignment span over the reference sequence.
+    ///
+    /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
+    /// alignment matches (`M`), deletions from the reference (`D`), skipped reference regions
+    /// (`S`), sequence matches (`=`), and sequence mismatches (`X`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{cigar::Op, Cigar};
+    /// use noodles_sam::record::cigar::op::Kind;
+    ///
+    /// // 36M4D8S
+    /// let data = [0x40, 0x02, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let cigar = Cigar::new(&data);
+    ///
+    /// assert_eq!(cigar.mapped_len(), 40);
+    /// ```
     pub fn mapped_len(&self) -> u32 {
         self.ops()
             .filter_map(|op| match op.kind() {
@@ -56,6 +108,11 @@ impl<'a> Deref for Cigar<'a> {
     }
 }
 
+/// An iterator over the operations of a CIGAR.
+///
+/// This is created by calling [`Cigar::ops`].
+///
+/// [`Cigar::ops`]: struct.Cigar.html#method.ops
 pub struct Ops<'a> {
     cigar: &'a [u8],
     i: usize,

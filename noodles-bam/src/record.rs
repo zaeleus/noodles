@@ -28,7 +28,7 @@ use noodles_sam as sam;
 ///  * mate position (`PNEXT`),
 ///  * template length (`TLEN`),
 ///  * read name (`QNAME`),
-///  * CIGAR string (`CIGAR`),
+///  * CIGAR operations (`CIGAR`),
 ///  * sequence (`SEQ`),
 ///  * quality scores (`QUAL`), and
 ///  * optional data fields.

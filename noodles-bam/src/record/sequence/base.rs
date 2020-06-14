@@ -1,5 +1,6 @@
 use std::fmt;
 
+/// A BAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
     Eq,
@@ -21,7 +22,19 @@ pub enum Base {
 }
 
 impl Base {
-    // https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation
+    /// Returns the complement of this base.
+    ///
+    /// See <https://en.wikipedia.org/wiki/Nucleic_acid_notation#IUPAC_notation>.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::sequence::Base;
+    /// assert_eq!(Base::A.complement(), Base::T);
+    /// assert_eq!(Base::C.complement(), Base::G);
+    /// assert_eq!(Base::G.complement(), Base::C);
+    /// assert_eq!(Base::T.complement(), Base::A);
+    /// ```
     pub fn complement(self) -> Self {
         match self {
             Self::Eq => Self::Eq,

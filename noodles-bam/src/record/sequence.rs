@@ -1,3 +1,5 @@
+//! BAM record sequence and bases.
+
 mod base;
 mod bases;
 
@@ -27,20 +29,59 @@ static BASES: &[Base] = &[
     Base::N,
 ];
 
+/// BAM record sequence.
 pub struct Sequence<'a> {
     seq: &'a [u8],
     n_chars: usize,
 }
 
 impl<'a> Sequence<'a> {
+    /// Creates a sequence by wrapping raw sequence data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Sequence;
+    ///
+    /// let data = [0x12, 0x48]; // ACGT
+    /// let sequence = Sequence::new(&data, 4);
+    /// assert_eq!(*sequence, data);
+    /// ```
     pub fn new(seq: &'a [u8], n_chars: usize) -> Self {
         Self { seq, n_chars }
     }
 
+    /// Returns the number of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Sequence;
+    ///
+    /// let data = [0x12, 0x48]; // ACGT
+    /// let sequence = Sequence::new(&data, 4);
+    ///
+    /// assert_eq!(sequence.n_chars(), 4);
+    /// ```
     pub fn n_chars(&self) -> usize {
         self.n_chars
     }
 
+    /// Returns a reference to the base at the given index.
+    ///
+    /// If the index is out of bounds, this returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{sequence::Base, Sequence};
+    ///
+    /// let data = [0x12, 0x48]; // ACGT
+    /// let sequence = Sequence::new(&data, 4);
+    ///
+    /// assert_eq!(sequence.get(1), Some(&Base::C));
+    /// assert_eq!(sequence.get(8), None);
+    /// ```
     pub fn get(&self, i: usize) -> Option<&Base> {
         let j = i / 2;
         let b = self.seq.get(j)?;
@@ -54,6 +95,24 @@ impl<'a> Sequence<'a> {
         BASES.get(k as usize)
     }
 
+    /// Returns a iterator over the bases in this sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{sequence::Base, Sequence};
+    ///
+    /// let data = [0x12, 0x48]; // ACGT
+    /// let sequence = Sequence::new(&data, 4);
+    ///
+    /// let mut bases = sequence.bases();
+    ///
+    /// assert_eq!(bases.next(), Some(Base::A));
+    /// assert_eq!(bases.next(), Some(Base::C));
+    /// assert_eq!(bases.next(), Some(Base::G));
+    /// assert_eq!(bases.next(), Some(Base::T));
+    /// assert_eq!(bases.next(), None);
+    /// ```
     pub fn bases(&self) -> Bases<'_> {
         Bases::new(self)
     }
