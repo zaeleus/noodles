@@ -6,7 +6,7 @@ use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{Field, Value};
+use super::{field::Value, Field};
 
 pub struct Reader<R>
 where

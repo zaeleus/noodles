@@ -1,6 +1,8 @@
-use noodles_sam::record::data::field::Tag;
+mod value;
 
-use super::Value;
+pub use self::value::Value;
+
+use noodles_sam::record::data::field::Tag;
 
 #[derive(Debug)]
 pub struct Field {

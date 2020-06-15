@@ -1,8 +1,7 @@
-mod field;
+pub mod field;
 mod reader;
-mod value;
 
-pub use self::{field::Field, reader::Reader, value::Value};
+pub use self::{field::Field, reader::Reader};
 
 use std::ops::Deref;
 
