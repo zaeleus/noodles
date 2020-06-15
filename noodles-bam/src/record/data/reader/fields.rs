@@ -4,6 +4,11 @@ use crate::record::data::Field;
 
 use super::Reader;
 
+/// An iterator over BAM record data fields.
+///
+/// This is created by calling [`bam::record::data::Reader::fields`].
+///
+/// [`bam::record::data::Reader::fields`]: struct.Reader.html#method.fields
 pub struct Fields<R>
 where
     R: BufRead,
@@ -15,7 +20,7 @@ impl<R> Fields<R>
 where
     R: BufRead,
 {
-    pub fn new(reader: Reader<R>) -> Self {
+    pub(crate) fn new(reader: Reader<R>) -> Self {
         Self { reader }
     }
 }

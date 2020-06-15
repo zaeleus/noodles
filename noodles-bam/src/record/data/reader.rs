@@ -1,3 +1,5 @@
+//! BAM record data reader and iterators.
+
 mod fields;
 
 pub use self::fields::Fields;
@@ -8,6 +10,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{field::Value, Field};
 
+/// A BAM record data reader.
 pub struct Reader<R>
 where
     R: BufRead,
@@ -19,10 +22,51 @@ impl<R> Reader<R>
 where
     R: BufRead,
 {
+    /// Creates a BAM record data reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::Reader;
+    ///
+    /// // NH:i:1  RG:Z:rg0
+    /// let data = [
+    ///     0x4e, 0x48, 0x69, 0x01, 0x00, 0x00, 0x00,
+    ///     0x52, 0x47, 0x5a, 0x72, 0x67, 0x30, 0x00,
+    /// ];
+    /// let reader = Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
+    /// Returns an iterator over data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{data::{field::Value, Field, Reader}};
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// // NH:i:1  RG:Z:rg0
+    /// let data = [
+    ///     0x4e, 0x48, 0x69, 0x01, 0x00, 0x00, 0x00,
+    ///     0x52, 0x47, 0x5a, 0x72, 0x67, 0x30, 0x00,
+    /// ];
+    /// let reader = Reader::new(&data[..]);
+    ///
+    /// let mut fields = reader.fields();
+    ///
+    /// let field = fields.next().unwrap()?;
+    /// assert_eq!(field, Field::new(Tag::AlignmentHitCount, Value::Int32(1)));
+    ///
+    /// let field = fields.next().unwrap()?;
+    /// assert_eq!(field, Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))));
+    ///
+    /// assert!(fields.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn fields(self) -> Fields<R> {
         Fields::new(self)
     }
