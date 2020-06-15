@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! **noodles-bam** handles the reading and writing of the BAM (Binary Alignment/Map) file format.
 //!
 //! The BAM format contains the same information as SAM (Sequence Alignment/Map), namely a SAM

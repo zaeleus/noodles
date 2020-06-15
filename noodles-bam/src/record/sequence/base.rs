@@ -3,21 +3,37 @@ use std::fmt;
 /// A BAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
+    /// Equal to the reference base.
     Eq,
+    /// Adenine
     A,
+    /// Cytosine.
     C,
+    /// Amino.
     M,
+    /// Guanine.
     G,
+    /// Purine.
     R,
+    /// Strong.
     S,
+    /// Not T.
     V,
+    /// Thymine.
     T,
+    /// Weak.
     W,
+    /// Pyrimidine.
     Y,
+    /// Not G.
     H,
+    /// Keto.
     K,
+    /// Not C.
     D,
+    /// Not A.
     B,
+    /// Any base.
     N,
 }
 
