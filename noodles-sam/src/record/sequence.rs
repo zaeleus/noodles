@@ -12,7 +12,7 @@ pub struct Sequence {
 }
 
 impl Sequence {
-    fn new(bases: Vec<Base>) -> Self {
+    pub fn new(bases: Vec<Base>) -> Self {
         Self { bases }
     }
 
