@@ -1,4 +1,4 @@
-//! SAM reader and iterators
+//! SAM reader and iterators.
 
 mod records;
 

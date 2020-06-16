@@ -1,4 +1,4 @@
-//! SAM record and fields
+//! SAM record and fields.
 
 mod builder;
 pub mod cigar;
