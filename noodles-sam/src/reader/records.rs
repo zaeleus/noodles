@@ -4,6 +4,11 @@ use crate::Record;
 
 use super::Reader;
 
+/// An iterator over records of a SAM reader.
+///
+/// This is created by calling [`sam::Reader::records`].
+///
+/// [`sam::Reader::records`]: struct.Reader.html#method.records
 pub struct Records<'a, R> {
     inner: &'a mut Reader<R>,
     line_buf: String,
@@ -13,7 +18,7 @@ impl<'a, R> Records<'a, R>
 where
     R: BufRead,
 {
-    pub fn new(inner: &'a mut Reader<R>) -> Self {
+    pub(crate) fn new(inner: &'a mut Reader<R>) -> Self {
         Self {
             inner,
             line_buf: String::new(),
