@@ -10,7 +10,6 @@ pub struct Op {
     len: u32,
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl Op {
     pub fn new(kind: Kind, len: u32) -> Self {
         Self { kind, len }
@@ -22,6 +21,25 @@ impl Op {
 
     pub fn len(self) -> u32 {
         self.len
+    }
+
+    /// Returns whether the operation is a no-op.
+    ///
+    /// That is, whether the operation has a length of 0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    ///
+    /// let op = Op::new(Kind::Match, 0);
+    /// assert!(op.is_empty());
+    ///
+    /// let op = Op::new(Kind::Match, 13);
+    /// assert!(!op.is_empty());
+    /// ```
+    pub fn is_empty(self) -> bool {
+        self.len == 0
     }
 }
 
