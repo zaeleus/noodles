@@ -94,6 +94,8 @@ pub enum Tag {
     OriginalUmiBarcodeSequence,
     /// (`PG`).
     Program,
+    /// (`PQ`).
+    TemplateLikelihood,
     /// (`PT`).
     PaddedReadAnnotations,
     /// (`PU`).
@@ -177,6 +179,7 @@ impl AsRef<str> for Tag {
             Self::OriginalQualityScores => "OQ",
             Self::OriginalUmiBarcodeSequence => "OX",
             Self::Program => "PG",
+            Self::TemplateLikelihood => "PQ",
             Self::PaddedReadAnnotations => "PT",
             Self::PlatformUnit => "PU",
             Self::MateQualityScores => "Q2",
@@ -264,6 +267,7 @@ impl FromStr for Tag {
             "OQ" => Ok(Self::OriginalQualityScores),
             "OX" => Ok(Self::OriginalUmiBarcodeSequence),
             "PG" => Ok(Self::Program),
+            "PQ" => Ok(Self::TemplateLikelihood),
             "PT" => Ok(Self::PaddedReadAnnotations),
             "PU" => Ok(Self::PlatformUnit),
             "Q2" => Ok(Self::MateQualityScores),
@@ -340,6 +344,7 @@ mod tests {
         assert_eq!(Tag::OriginalQualityScores.to_string(), "OQ");
         assert_eq!(Tag::OriginalUmiBarcodeSequence.to_string(), "OX");
         assert_eq!(Tag::Program.to_string(), "PG");
+        assert_eq!(Tag::TemplateLikelihood.to_string(), "PQ");
         assert_eq!(Tag::PaddedReadAnnotations.to_string(), "PT");
         assert_eq!(Tag::PlatformUnit.to_string(), "PU");
         assert_eq!(Tag::MateQualityScores.to_string(), "Q2");
@@ -404,6 +409,7 @@ mod tests {
         assert_eq!("OQ".parse::<Tag>()?, Tag::OriginalQualityScores);
         assert_eq!("OX".parse::<Tag>()?, Tag::OriginalUmiBarcodeSequence);
         assert_eq!("PG".parse::<Tag>()?, Tag::Program);
+        assert_eq!("PQ".parse::<Tag>()?, Tag::TemplateLikelihood);
         assert_eq!("PT".parse::<Tag>()?, Tag::PaddedReadAnnotations);
         assert_eq!("PU".parse::<Tag>()?, Tag::PlatformUnit);
         assert_eq!("Q2".parse::<Tag>()?, Tag::MateQualityScores);
