@@ -12,7 +12,7 @@ pub struct QualityScores {
 }
 
 impl QualityScores {
-    fn new(scores: Vec<Score>) -> Self {
+    pub fn new(scores: Vec<Score>) -> Self {
         Self { scores }
     }
 
