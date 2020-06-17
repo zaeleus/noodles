@@ -3,6 +3,9 @@ use std::ops::Deref;
 const UNMAPPED: i32 = 0;
 const MIN: i32 = 1;
 
+/// A SAM record position.
+///
+/// This represents a 1-based start position on the reference sequence.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Position(Option<i32>);
 

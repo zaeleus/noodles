@@ -6,11 +6,11 @@ pub mod data;
 mod field;
 mod flags;
 mod mapping_quality;
-mod mate_reference_sequence_name;
+pub mod mate_reference_sequence_name;
 mod position;
 pub mod quality_scores;
-mod read_name;
-mod reference_sequence_name;
+pub mod read_name;
+pub mod reference_sequence_name;
 pub mod sequence;
 
 pub use self::{
@@ -346,6 +346,7 @@ impl Default for Record {
     }
 }
 
+/// An error returned when a raw SAM record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
     MissingField(Field),

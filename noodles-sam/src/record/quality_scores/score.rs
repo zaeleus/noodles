@@ -7,6 +7,12 @@ const END_CHAR: char = '~';
 
 const MAX_SCORE: u8 = 93;
 
+/// A SAM record quality scores score.
+///
+/// A quality score ranges from 0 to 93 (inclusive), where higher is better.
+///
+/// Quality scores can be represented as ASCII characters. Each score is offset by 33 (`!`) to only
+/// use the set of printable characters (`!`-`~`, excluding the space character).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Score(u8);
 
@@ -16,6 +22,7 @@ impl fmt::Display for Score {
     }
 }
 
+/// An error returned when the conversion from a character to a SAM quality scores score fails.
 #[derive(Debug)]
 pub struct TryFromCharError(char);
 
@@ -42,6 +49,7 @@ impl TryFrom<char> for Score {
     }
 }
 
+/// An error returned when the conversion from a byte to a SAM quality scores score fails.
 #[derive(Debug)]
 pub struct TryFromUByteError(u8);
 

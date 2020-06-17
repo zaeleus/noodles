@@ -1,16 +1,31 @@
+/// A SAM record field.
+///
+/// A SAM record has 11 required fields and 1 optional field (`Data`).
 #[derive(Clone, Copy, Debug)]
 pub enum Field {
+    /// Read name (`QNAME`).
     Name,
+    /// Flags (`FLAG`).
     Flags,
+    /// Reference sequence name (`RNAME`).
     ReferenceSequenceName,
+    /// 1-based start position (`POS`).
     Position,
+    /// Mapping quality (`MAPQ`).
     MappingQuality,
+    /// CIGAR operations (`CIGAR`).
     Cigar,
+    /// Mate reference sequence name (`RNEXT`).
     MateReferenceSequenceName,
+    /// 1-based mate start position (`PNEXT`).
     MatePosition,
+    /// Template length (`TLEN`).
     TemplateLength,
+    /// Sequence (`SEQ`).
     Sequence,
+    /// Quality scores (`QUAL`).
     QualityScores,
+    /// Optional data.
     Data,
 }
 

@@ -1,3 +1,5 @@
+//! SAM record sequence and bases.
+
 mod base;
 
 pub use self::base::Base;
@@ -6,24 +8,72 @@ use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 use super::NULL_FIELD;
 
+/// A SAM record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence {
     bases: Vec<Base>,
 }
 
 impl Sequence {
+    /// Creates a new SAM record sequence from a list of bases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// ```
     pub fn new(bases: Vec<Base>) -> Self {
         Self { bases }
     }
 
+    /// Returns the list of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    ///
+    /// let actual = sequence.bases();
+    /// let expected = [Base::A, Base::C, Base::G, Base::T];
+    /// assert_eq!(actual, expected);
+    /// ```
     pub fn bases(&self) -> &[Base] {
         &self.bases
     }
 
+    /// Returns whether the sequence is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let sequence = Sequence::default();
+    /// assert!(sequence.is_empty());
+    ///
+    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// assert!(!sequence.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.bases.is_empty()
     }
 
+    /// Returns the number of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let sequence = Sequence::default();
+    /// assert_eq!(sequence.len(), 0);
+    ///
+    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// assert_eq!(sequence.len(), 4);
+    /// ```
     pub fn len(&self) -> usize {
         self.bases.len()
     }
@@ -43,6 +93,7 @@ impl fmt::Display for Sequence {
     }
 }
 
+/// An error returned when a raw SAM record sequence fails to parse.
 #[derive(Debug)]
 pub struct ParseError(base::TryFromCharError);
 

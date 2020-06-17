@@ -1,15 +1,25 @@
 use std::{error, fmt, str::FromStr};
 
+/// A SAM record CIGAR operation kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
+    /// An alignment match (`M`).
     Match,
+    /// An insertion into the reference (`I`).
     Insertion,
+    /// A deletion from the reference (`D`).
     Deletion,
+    /// A skipped region from the reference (`N`).
     Skip,
+    /// A soft clip (`S`).
     SoftClip,
+    /// A hard clip (`H`).
     HardClip,
+    /// Padding (`P`).
     Pad,
+    /// A sequence match (`=`).
     SeqMatch,
+    /// A sequence mismatch (`X`).
     SeqMismatch,
 }
 
@@ -19,6 +29,7 @@ impl fmt::Display for Kind {
     }
 }
 
+/// An error returned when a raw SAM record CIGAR operation kind fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

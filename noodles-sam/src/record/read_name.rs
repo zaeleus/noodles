@@ -1,7 +1,12 @@
+//! SAM record read name.
+
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 
+/// A SAM record read name.
+///
+/// This is also called a query name.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadName(Option<String>);
 
@@ -31,8 +36,10 @@ impl fmt::Display for ReadName {
     }
 }
 
+/// An error returned when a raw SAM record read name fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
 }
 

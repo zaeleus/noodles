@@ -4,6 +4,7 @@ use std::{error, fmt, num, str::FromStr};
 
 pub use self::kind::Kind;
 
+/// A SAM record CIGAR operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {
     kind: Kind,
@@ -11,14 +12,44 @@ pub struct Op {
 }
 
 impl Op {
+    /// Creates a CIGAR operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    ///
+    /// let op = Op::new(Kind::Match, 13);
+    ///
+    /// assert_eq!(op.kind(), Kind::Match);
+    /// assert_eq!(op.len(), 13);
+    /// ```
     pub fn new(kind: Kind, len: u32) -> Self {
         Self { kind, len }
     }
 
+    /// Returns the kind of the operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// let op = Op::new(Kind::Match, 13);
+    /// assert_eq!(op.kind(), Kind::Match);
+    /// ```
     pub fn kind(self) -> Kind {
         self.kind
     }
 
+    /// Returns the length of the operation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::cigar::{op::Kind, Op};
+    /// let op = Op::new(Kind::Match, 13);
+    /// assert_eq!(op.len(), 13);
+    /// ```
     pub fn len(self) -> u32 {
         self.len
     }
@@ -49,10 +80,14 @@ impl fmt::Display for Op {
     }
 }
 
+/// An error returned when a raw CIGAR operation fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The raw operation has an invalid length.
     InvalidLength(num::ParseIntError),
+    /// The raw operation has an invalid kind.
     InvalidKind(kind::ParseError),
 }
 

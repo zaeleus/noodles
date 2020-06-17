@@ -1,21 +1,35 @@
+//! SAM record mate reference sequence name.
+
 use std::{error, fmt, str::FromStr};
 
 use super::NULL_FIELD;
 
 const EQ_FIELD: &str = "=";
 
+/// A SAM record mate reference sequence name.
+///
+/// SAM record mate reference sequence names can be in 1 of 3 states:
+///
+///   1. the mate is not set (`*`),
+///   2. the mate is on the same reference sequence (`=`), or
+///   3. the mate is on a different reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MateReferenceSequenceName {
+    /// The mate is not not set.
     None,
+    /// The mate is on the same reference sequence.
     Eq,
+    /// The mate is on a different reference sequence.
     Some(String),
 }
 
 impl MateReferenceSequenceName {
+    /// Returns whether the mate is not set.
     pub fn is_empty(&self) -> bool {
         self.is_none()
     }
 
+    /// Returns whether the mate is not set.
     pub fn is_none(&self) -> bool {
         match self {
             Self::None => true,
@@ -23,6 +37,7 @@ impl MateReferenceSequenceName {
         }
     }
 
+    /// Returns whether the mate is on the same reference sequence.
     pub fn is_eq(&self) -> bool {
         match self {
             Self::Eq => true,
@@ -30,6 +45,7 @@ impl MateReferenceSequenceName {
         }
     }
 
+    /// Returns whether the mate is on a different reference sequence.
     pub fn is_some(&self) -> bool {
         match self {
             Self::Some(_) => true,
@@ -60,8 +76,10 @@ impl fmt::Display for MateReferenceSequenceName {
     }
 }
 
+/// An error returned when a raw SAM record mate reference sequence name fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
 }
 

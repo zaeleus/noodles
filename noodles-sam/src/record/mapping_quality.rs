@@ -2,6 +2,11 @@ use std::ops::Deref;
 
 const NULL_QUALITY: u8 = 255;
 
+/// A SAM record mapping quality.
+///
+/// Mapping quality ranges from 0 to 254 (inclusive), where higher is better.
+///
+/// The value 255 is reserved as a marker for a missing mapping quality.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct MappingQuality(Option<u8>);
 

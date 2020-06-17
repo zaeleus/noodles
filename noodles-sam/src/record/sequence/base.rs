@@ -1,33 +1,61 @@
 use std::{convert::TryFrom, error, fmt};
 
+/// A SAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
+    /// Adenine.
     A,
+    /// Not A.
     B,
+    /// Cytosine.
     C,
+    /// Not C.
     D,
+    /// Undefined (`E`).
     E,
+    /// Undefined (`F`).
     F,
+    /// Guanine.
     G,
+    /// Not G.
     H,
+    /// Undefined (`I`).
     I,
+    /// Undefined (`J`).
     J,
+    /// Keto.
     K,
+    /// Undefined (`L`).
     L,
+    /// Amino.
     M,
+    /// Any base.
     N,
+    /// Undefined (`O`).
     O,
+    /// Purine.
     P,
+    /// Undefined (`Q`).
     Q,
+    /// Undefined (`R`).
     R,
+    /// Strong.
     S,
+    /// Thymine.
     T,
+    /// Uracil.
     U,
+    /// Not T.
     V,
+    /// Weak.
     W,
+    /// Undefined (`X`).
     X,
+    /// Pyrimidine.
     Y,
+    /// Zero.
     Z,
+    /// Equal to the reference base.
     Eq,
 }
 
@@ -37,6 +65,7 @@ impl fmt::Display for Base {
     }
 }
 
+/// An error returned when the conversion from a character to a SAM record sequence base fails.
 #[derive(Debug)]
 pub struct TryFromCharError(char);
 

@@ -1,7 +1,10 @@
+//! SAM record reference sequence name.
+
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 
+/// A SAM record reference sequence name.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequenceName(Option<String>);
 
@@ -31,8 +34,10 @@ impl fmt::Display for ReferenceSequenceName {
     }
 }
 
+/// An error returned when a raw SAM record reference sequence name fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
 }
 

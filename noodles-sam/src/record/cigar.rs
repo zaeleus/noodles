@@ -1,3 +1,5 @@
+//! SAM CIGAR and operations.
+
 pub mod op;
 
 use std::{error, fmt, str::FromStr};
@@ -8,24 +10,74 @@ use super::NULL_FIELD;
 
 use self::op::Kind;
 
+/// A SAM record CIGAR.
 #[derive(Debug, Default)]
 pub struct Cigar {
     ops: Vec<Op>,
 }
 
 impl Cigar {
+    /// Creates a CIGAR from a list of operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
+    /// ```
     pub fn new(ops: Vec<Op>) -> Self {
         Self { ops }
     }
 
+    /// Returns the operations of the CIGAR.
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    ///
+    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
+    ///
+    /// let actual = cigar.ops();
+    /// let expected = [Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)];
+    /// assert_eq!(actual, expected);
+    /// ```
     pub fn ops(&self) -> &[Op] {
         &self.ops
     }
 
+    /// Returns whether the CIGAR has any operations.
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    ///
+    /// let cigar = Cigar::default();
+    /// assert!(cigar.is_empty());
+    ///
+    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
+    /// assert!(!cigar.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.ops.is_empty()
     }
 
+    /// Calculates the alignment span over the reference sequence.
+    ///
+    /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
+    /// alignment matches (`M`), deletions from the reference (`D`), skipped reference regions
+    /// (`S`), sequence matches (`=`), and sequence mismatches (`X`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    ///
+    /// let cigar = Cigar::new(vec![
+    ///     Op::new(Kind::Match, 36),
+    ///     Op::new(Kind::Deletion, 4),
+    ///     Op::new(Kind::SoftClip, 8),
+    /// ]);
+    ///
+    /// assert_eq!(cigar.mapped_len(), 40);
+    /// ```
     pub fn mapped_len(&self) -> u32 {
         self.ops()
             .iter()
@@ -55,9 +107,12 @@ impl fmt::Display for Cigar {
     }
 }
 
+/// An error returned when a raw CIGAR string fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The CIGAR string has an invalid operation.
     InvalidOp(op::ParseError),
 }
 
