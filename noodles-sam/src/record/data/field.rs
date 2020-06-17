@@ -7,7 +7,7 @@ use std::{error, fmt, str::FromStr};
 
 pub(crate) const DELIMITER: char = ':';
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     tag: Tag,
     value: Value,
