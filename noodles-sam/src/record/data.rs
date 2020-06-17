@@ -1,3 +1,5 @@
+//! SAM record data and fields.
+
 pub mod field;
 
 pub use self::field::Field;
@@ -6,24 +8,90 @@ use std::{error, fmt, str::FromStr};
 
 const DELIMITER: char = '\t';
 
+/// SAM record data.
+///
+/// This is also called optional fields.
 #[derive(Clone, Debug, Default)]
 pub struct Data {
     fields: Vec<Field>,
 }
 
 impl Data {
+    /// Creates SAM record data from a list of data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let data = Data::new(vec![
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+    /// ]);
+    /// ```
     pub fn new(fields: Vec<Field>) -> Self {
         Self { fields }
     }
 
+    /// Returns the list of data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let data = Data::new(vec![
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+    /// ]);
+    ///
+    /// let actual = data.fields();
+    /// let expected = [
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+    /// ];
+    /// assert_eq!(actual, expected);
+    /// ```
     pub fn fields(&self) -> &[Field] {
         &self.fields
     }
 
+    /// Returns whether there are any data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let data = Data::default();
+    /// assert!(data.is_empty());
+    ///
+    /// let data = Data::new(vec![
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+    /// ]);
+    /// assert!(!data.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.fields.is_empty()
     }
 
+    /// Returns the number of data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let data = Data::default();
+    /// assert_eq!(data.len(), 0);
+    ///
+    /// let data = Data::new(vec![
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+    /// ]);
+    /// assert_eq!(data.len(), 2);
+    /// ```
     pub fn len(&self) -> usize {
         self.fields.len()
     }
@@ -43,8 +111,10 @@ impl fmt::Display for Data {
     }
 }
 
+/// An error returned when raw SAM record data fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The input data contains an invalid field.
     InvalidField(field::ParseError),
 }
 

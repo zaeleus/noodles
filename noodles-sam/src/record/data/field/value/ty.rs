@@ -1,12 +1,21 @@
+//! SAM record data field value type.
+
 use std::{error, fmt, str::FromStr};
 
+/// A SAM record data field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
+    /// Character (`A`).
     Char,
+    /// 32-bit integer (`i`).
     Int32,
+    /// Single-precision floating-point (`f`).
     Float,
+    /// String (`Z`).
     String,
+    /// Hex string (`H`).
     Hex,
+    /// Array (`B`).
     Array,
 }
 
@@ -16,6 +25,7 @@ impl fmt::Display for Type {
     }
 }
 
+/// An error returned when a raw SAM record data field value type fails to parse.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 

@@ -1,68 +1,134 @@
+//! SAM record data field tag.
+
 use std::{error, fmt, str::FromStr};
 
 const LEN: usize = 2;
 
+/// A SAM record data field tag.
+///
+/// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
+/// (2020-05-29).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Tag {
+    /// (`AM`).
     MinMappingQuality,
+    /// (`AS`).
     AlignmentScore,
+    /// (`BC`).
     SampleBarcodeSequence,
+    /// (`BQ`).
     BaseAlignmentQualityOffsets,
+    /// (`BZ`).
     OriginalUmiQualityScores,
+    /// (`CB`).
     CellBarcodeId,
+    /// (`CC`).
     NextHitReferenceSequenceName,
+    /// (`CG`).
     Cigar,
+    /// (`CM`).
     ColorEditDistance,
+    /// (`CO`).
     Comment,
+    /// (`CP`).
     NextHitPosition,
+    /// (`CQ`).
     ColarQualityScores,
+    /// (`CR`).
     CellBarcodeSequence,
+    /// (`CS`).
     ColorSequence,
+    /// (`CT`).
     CompleteReadAnnotations,
+    /// (`CY`).
     CellBarcodeQualityScores,
+    /// (`E2`).
     NextHitSequence,
+    /// (`FI`).
     SegmentIndex,
+    /// (`FS`).
     SegmentSuffix,
+    /// (`FZ`).
     AlterantiveSequence,
+    /// (`GC`).
     ReservedGC,
+    /// (`GQ`).
     ReservedGQ,
+    /// (`GS`).
     ReservedGS,
+    /// (`H0`).
     PerfectHitCount,
+    /// (`H1`).
     OneDifferenceHitCount,
+    /// (`H2`).
     TwoDifferenceHitCount,
+    /// (`HI`).
     HitIndex,
+    /// (`IH`).
     TotalHitCount,
+    /// (`LB`).
     Library,
+    /// (`MC`).
     MateCigar,
+    /// (`MD`).
     MismatchedPositions,
+    /// (`MF`).
     ReservedMF,
+    /// (`MI`).
     UmiId,
+    /// (`MQ`).
     MateMappingQuality,
+    /// (`NH`).
     AlignmentHitCount,
+    /// (`NM`).
     EditDistance,
+    /// (`OA`).
     OriginalAlignment,
+    /// (`OC`).
     OriginalCigar,
+    /// (`OP`).
     OriginalPosition,
+    /// (`OQ`).
     OriginalQualityScores,
+    /// (`OX`).
     OriginalUmiBarcodeSequence,
+    /// (`PG`).
     Program,
+    /// (`PT`).
     PaddedReadAnnotations,
+    /// (`PU`).
     PlatformUnit,
+    /// (`Q2`).
     MateQualityScores,
+    /// (`QT`).
     SampleBarcodeQualityScores,
+    /// (`QX`).
     UmiQualityScores,
+    /// (`R2`).
     MateSequence,
+    /// (`RG`).
     ReadGroup,
+    /// (`RT`).
     ReservedRT,
+    /// (`RX`).
     UmiSequence,
+    /// (`S2`).
     ReservedS2,
+    /// (`SA`).
     OtherAlignments,
+    /// (`SM`).
     TemplateMappingQuality,
+    /// (`SQ`).
     ReservedSQ,
+    /// (`TC`).
     SegmentCount,
+    /// (`TS`).
     TranscriptStrand,
+    /// (`U2`).
     NextHitQualityScores,
+    /// (`UQ`).
     SegmentLikelihood,
+    /// Any other non-standard tag.
     Other(String),
 }
 
@@ -139,6 +205,7 @@ impl fmt::Display for Tag {
     }
 }
 
+/// An error returned when a raw SAM record data field tag fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

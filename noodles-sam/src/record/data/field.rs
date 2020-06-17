@@ -1,3 +1,5 @@
+//! SAM record data field and components.
+
 pub mod tag;
 pub mod value;
 
@@ -7,6 +9,7 @@ use std::{error, fmt, str::FromStr};
 
 pub(crate) const DELIMITER: char = ':';
 
+/// A SAM record data field.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     tag: Tag,
@@ -14,14 +17,40 @@ pub struct Field {
 }
 
 impl Field {
+    /// Creates a SAM record data field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// ```
     pub fn new(tag: Tag, value: Value) -> Self {
         Self { tag, value }
     }
 
+    /// Returns the data field tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// assert_eq!(field.tag(), &Tag::AlignmentHitCount);
+    /// ```
     pub fn tag(&self) -> &Tag {
         &self.tag
     }
 
+    /// Returns the data field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// assert!(matches!(field.value(), Value::Int32(n) if *n == 1));
+    /// ```
     pub fn value(&self) -> &Value {
         &self.value
     }
@@ -41,11 +70,16 @@ impl fmt::Display for Field {
     }
 }
 
+/// An error returned when a raw SAM record data field fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The data field tag is missing.
     MissingTag,
+    /// The data field tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The data field value is missing.
     MissingValue,
+    /// The data field value is invalid.
     InvalidValue(value::ParseError),
 }
 
