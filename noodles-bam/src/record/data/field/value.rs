@@ -336,7 +336,7 @@ impl Value {
         }
     }
 
-    /// Returns whether the value is an single-precision floating-point.
+    /// Returns whether the value is a single-precision floating-point.
     ///
     /// # Examples
     ///
