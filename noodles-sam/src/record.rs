@@ -349,18 +349,31 @@ impl Default for Record {
 /// An error returned when a raw SAM record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required record field is missing.
     MissingField(Field),
+    /// The record read name is invalid.
     InvalidReadName(read_name::ParseError),
+    /// The record flags field is invalid.
     InvalidFlags(num::ParseIntError),
+    /// The record reference sequence name is invalid.
     InvalidReferenceSequenceName(reference_sequence_name::ParseError),
+    /// The record position is invalid.
     InvalidPosition(num::ParseIntError),
+    /// The record mapping quality is invalid.
     InvalidMappingQuality(num::ParseIntError),
+    /// The record CIGAR string is invalid.
     InvalidCigar(cigar::ParseError),
+    /// The record mate reference sequence name is invalid.
     InvalidMateReferenceSequenceName(mate_reference_sequence_name::ParseError),
+    /// The record mate position is invalid.
     InvalidMatePosition(num::ParseIntError),
+    /// The record template length is invalid.
     InvalidTemplateLength(num::ParseIntError),
+    /// The record sequence is invalid.
     InvalidSequence(sequence::ParseError),
+    /// The record quality score is invalid.
     InvalidQualityScores(quality_scores::ParseError),
+    /// The record data is invalid.
     InvalidData(data::ParseError),
 }
 
