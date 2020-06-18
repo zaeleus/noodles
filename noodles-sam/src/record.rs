@@ -382,7 +382,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingField(field) => write!(f, "missing field: {}", field.name()),
+            Self::MissingField(field) => write!(f, "missing field: {}", field),
             Self::InvalidReadName(e) => write!(f, "{}", e),
             Self::InvalidFlags(e) => write!(f, "{}", e),
             Self::InvalidReferenceSequenceName(e) => write!(f, "{}", e),

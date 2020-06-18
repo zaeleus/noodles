@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// A SAM record field.
 ///
 /// A SAM record has 11 required fields and 1 optional field (`Data`).
@@ -29,8 +31,8 @@ pub enum Field {
     Data,
 }
 
-impl Field {
-    pub fn name(&self) -> &str {
+impl AsRef<str> for Field {
+    fn as_ref(&self) -> &str {
         match self {
             Self::Name => "QNAME",
             Self::Flags => "FLAG",
@@ -48,23 +50,29 @@ impl Field {
     }
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_name() {
-        assert_eq!(Field::Name.name(), "QNAME");
-        assert_eq!(Field::Flags.name(), "FLAG");
-        assert_eq!(Field::ReferenceSequenceName.name(), "RNAME");
-        assert_eq!(Field::Position.name(), "POS");
-        assert_eq!(Field::MappingQuality.name(), "MAPQ");
-        assert_eq!(Field::Cigar.name(), "CIGAR");
-        assert_eq!(Field::MateReferenceSequenceName.name(), "RNEXT");
-        assert_eq!(Field::MatePosition.name(), "PNEXT");
-        assert_eq!(Field::TemplateLength.name(), "TLEN");
-        assert_eq!(Field::Sequence.name(), "SEQ");
-        assert_eq!(Field::QualityScores.name(), "QUAL");
-        assert_eq!(Field::Data.name(), "DATA");
+    fn test_fmt() {
+        assert_eq!(Field::Name.to_string(), "QNAME");
+        assert_eq!(Field::Flags.to_string(), "FLAG");
+        assert_eq!(Field::ReferenceSequenceName.to_string(), "RNAME");
+        assert_eq!(Field::Position.to_string(), "POS");
+        assert_eq!(Field::MappingQuality.to_string(), "MAPQ");
+        assert_eq!(Field::Cigar.to_string(), "CIGAR");
+        assert_eq!(Field::MateReferenceSequenceName.to_string(), "RNEXT");
+        assert_eq!(Field::MatePosition.to_string(), "PNEXT");
+        assert_eq!(Field::TemplateLength.to_string(), "TLEN");
+        assert_eq!(Field::Sequence.to_string(), "SEQ");
+        assert_eq!(Field::QualityScores.to_string(), "QUAL");
+        assert_eq!(Field::Data.to_string(), "DATA");
     }
 }
