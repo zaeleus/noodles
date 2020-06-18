@@ -55,6 +55,19 @@ impl ReferenceSequence {
         &self.name
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    ///
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert_eq!(reference_sequence.name(), "sq0");
+    ///
+    /// *reference_sequence.name_mut() = String::from("sq1");
+    /// assert_eq!(reference_sequence.name(), "sq1");
+    /// ```
     pub fn name_mut(&mut self) -> &mut String {
         &mut self.name
     }
@@ -72,6 +85,19 @@ impl ReferenceSequence {
         self.len
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    ///
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert_eq!(reference_sequence.len(), 13);
+    ///
+    /// *reference_sequence.len_mut() = 8;
+    /// assert_eq!(reference_sequence.len(), 8);
+    /// ```
     pub fn len_mut(&mut self) -> &mut i32 {
         &mut self.len
     }

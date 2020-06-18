@@ -49,6 +49,20 @@ impl ReadGroup {
         &self.id
     }
 
+    /// Returns a mutable reference to the read group ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReadGroup;
+    ///
+    /// let mut read_group = ReadGroup::new(String::from("rg0"));
+    /// assert_eq!(read_group.id(), "rg0");
+    ///
+    /// *read_group.id_mut() = String::from("rg1");
+    /// assert_eq!(read_group.id(), "rg1");
+    /// ```
+    //
     pub fn id_mut(&mut self) -> &mut String {
         &mut self.id
     }

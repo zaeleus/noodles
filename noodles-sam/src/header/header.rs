@@ -60,6 +60,19 @@ impl Header {
         &self.version
     }
 
+    /// Returns a mutable reference to the format version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    ///
+    /// let mut header = Header::new(String::from("1.6"));
+    /// assert_eq!(header.version(), "1.6");
+    ///
+    /// *header.version_mut() = String::from("1.5");
+    /// assert_eq!(header.version(), "1.5");
+    /// ```
     pub fn version_mut(&mut self) -> &mut String {
         &mut self.version
     }

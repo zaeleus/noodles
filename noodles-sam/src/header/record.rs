@@ -12,10 +12,15 @@ const DATA_FIELD_DELIMITER: char = ':';
 /// A SAM header record.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Record {
+    /// A header record (`@HD`).
     Header(Vec<Field>),
+    /// A reference sequence record (`@SQ`).
     ReferenceSequence(Vec<Field>),
+    /// A read group record (`@RG`).
     ReadGroup(Vec<Field>),
+    /// A program record (`@PG`).
     Program(Vec<Field>),
+    /// A comment record (`CO`).
     Comment(String),
 }
 

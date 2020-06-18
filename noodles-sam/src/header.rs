@@ -123,12 +123,15 @@ impl Header {
         Builder::new()
     }
 
-    /// Returns the SAM header header.
+    /// Returns the SAM header header if it is set.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::{self as sam, header};
+    ///
+    /// let header = sam::Header::default();
+    /// assert!(header.header().is_none());
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::default())
@@ -140,6 +143,23 @@ impl Header {
         self.header.as_ref()
     }
 
+    /// Returns a mutable reference to the SAM header header if it is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header};
+    ///
+    /// let mut header = sam::Header::builder()
+    ///     .set_header(header::header::Header::new(String::from("1.6")))
+    ///     .build();
+    /// assert_eq!(header.header().map(|h| h.version()), Some("1.6"));
+    ///
+    /// header.header_mut().map(|h| {
+    ///     *h.version_mut() = String::from("1.5");
+    /// });
+    /// assert_eq!(header.header().map(|h| h.version()), Some("1.5"));
+    /// ```
     pub fn header_mut(&mut self) -> Option<&mut header::Header> {
         self.header.as_mut()
     }
@@ -165,6 +185,27 @@ impl Header {
         &self.reference_sequences
     }
 
+    /// Returns a mutable reference to the SAM header reference sequences.
+    ///
+    /// This is also called the reference sequence dictionary.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    ///
+    /// let mut header = sam::Header::default();
+    /// assert!(header.reference_sequences().is_empty());
+    ///
+    /// header.reference_sequences_mut().insert(
+    ///     String::from("sq0"),
+    ///     ReferenceSequence::new(String::from("sq0"), 13)
+    /// );
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// assert_eq!(reference_sequences.len(), 1);
+    /// assert!(reference_sequences.contains_key("sq0"));
+    /// ```
     pub fn reference_sequences_mut(&mut self) -> &mut ReferenceSequences {
         &mut self.reference_sequences
     }
@@ -188,6 +229,25 @@ impl Header {
         &self.read_groups
     }
 
+    /// Returns a mutable reference to the SAM header read groups.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReadGroup};
+    ///
+    /// let mut header = sam::Header::default();
+    /// assert!(header.read_groups().is_empty());
+    ///
+    /// header.read_groups_mut().insert(
+    ///     String::from("rg0"),
+    ///     ReadGroup::new(String::from("rg0")),
+    /// );
+    ///
+    /// let read_groups = header.read_groups();
+    /// assert_eq!(read_groups.len(), 1);
+    /// assert!(read_groups.contains_key("rg0"));
+    /// ```
     pub fn read_groups_mut(&mut self) -> &mut ReadGroups {
         &mut self.read_groups
     }
@@ -211,6 +271,24 @@ impl Header {
         &self.programs
     }
 
+    /// Returns a mutable reference to the SAM header programs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::Program};
+    ///
+    /// let mut header = sam::Header::default();
+    ///
+    /// header.programs_mut().insert(
+    ///     String::from("noodles-sam"),
+    ///     Program::new(String::from("noodles-sam")),
+    /// );
+    ///
+    /// let programs = header.programs();
+    /// assert_eq!(programs.len(), 1);
+    /// assert!(programs.contains_key("noodles-sam"));
+    /// ```
     pub fn programs_mut(&mut self) -> &mut Programs {
         &mut self.programs
     }
@@ -230,6 +308,18 @@ impl Header {
         &self.comments
     }
 
+    /// Returns a mutable reference to the SAM header comments.
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let mut header = sam::Header::default();
+    /// header.comments_mut().push(String::from("noodles-sam"));
+    ///
+    /// let comments = header.comments();
+    /// assert_eq!(comments.len(), 1);
+    /// assert_eq!(&comments[0], "noodles-sam");
+    /// ```
     pub fn comments_mut(&mut self) -> &mut Vec<String> {
         &mut self.comments
     }

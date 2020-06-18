@@ -48,6 +48,23 @@ impl Program {
         &self.id
     }
 
+    /// Returns a mutable reference to the program ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    ///
+    /// let mut program = Program::new(String::from("pg0"));
+    /// assert_eq!(program.id(), "pg0");
+    ///
+    /// *program.id_mut() = String::from("pg1");
+    /// assert_eq!(program.id(), "pg1");
+    /// ```
+    pub fn id_mut(&mut self) -> &mut String {
+        &mut self.id
+    }
+
     /// Returns the raw fields of the program.
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
@@ -72,10 +89,6 @@ impl Program {
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
-    }
-
-    pub fn id_mut(&mut self) -> &mut String {
-        &mut self.id
     }
 
     /// Returns a reference to the raw field value mapped to the given key.
