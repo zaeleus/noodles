@@ -95,13 +95,21 @@ impl fmt::Display for Sequence {
 
 /// An error returned when a raw SAM record sequence fails to parse.
 #[derive(Debug)]
-pub struct ParseError(base::TryFromCharError);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The raw sequence has an invalid base.
+    InvalidBase(base::TryFromCharError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid sequence: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("sequence cannot be empty"),
+            Self::InvalidBase(e) => write!(f, "{}", e),
+        }
     }
 }
 
@@ -109,16 +117,17 @@ impl FromStr for Sequence {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == NULL_FIELD {
-            return Ok(Self::default());
+        match s {
+            "" => Err(ParseError::Empty),
+            NULL_FIELD => Ok(Self::default()),
+            _ => s
+                .chars()
+                .map(|c| c.to_ascii_uppercase())
+                .map(Base::try_from)
+                .collect::<Result<_, _>>()
+                .map(Self::new)
+                .map_err(ParseError::InvalidBase),
         }
-
-        s.chars()
-            .map(|c| c.to_ascii_uppercase())
-            .map(Base::try_from)
-            .collect::<Result<_, _>>()
-            .map(Self::new)
-            .map_err(ParseError)
     }
 }
 
@@ -168,6 +177,8 @@ mod tests {
 
         let sequence = "aTcG".parse::<Sequence>()?;
         assert_eq!(sequence.bases(), &expected);
+
+        assert!("".parse::<Sequence>().is_err());
 
         Ok(())
     }
