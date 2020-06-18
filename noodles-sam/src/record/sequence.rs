@@ -178,6 +178,7 @@ mod tests {
         let sequence = "aTcG".parse::<Sequence>()?;
         assert_eq!(sequence.bases(), &expected);
 
+        assert!("*".parse::<Sequence>()?.is_empty());
         assert!("".parse::<Sequence>().is_err());
 
         Ok(())
