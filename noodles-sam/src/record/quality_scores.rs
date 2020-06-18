@@ -127,6 +127,7 @@ impl FromStr for QualityScores {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
+            NULL_FIELD => Ok(Self::default()),
             _ => s
                 .chars()
                 .map(Score::try_from)
@@ -187,6 +188,7 @@ mod tests {
 
         assert_eq!(quality_scores.scores(), &expected[..]);
 
+        assert!("*".parse::<QualityScores>()?.is_empty());
         assert!("".parse::<QualityScores>().is_err());
 
         Ok(())
