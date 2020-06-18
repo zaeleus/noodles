@@ -23,6 +23,7 @@ pub enum Platform {
     PacBio,
 }
 
+/// An error returned when a raw SAM header read group platform fails to parse.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 

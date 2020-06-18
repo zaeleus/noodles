@@ -21,10 +21,14 @@ impl fmt::Display for SubsortOrder {
     }
 }
 
+/// An error returned when a raw SAM header header subsort order fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The primary sort order is missing.
     MissingOrder,
+    /// The primary sort order is invalid.
     InvalidOrder(String),
+    /// The subsort order is missing.
     MissingSubsort,
 }
 

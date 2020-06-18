@@ -33,6 +33,7 @@ impl fmt::Display for GroupOrder {
     }
 }
 
+/// An error returned when a raw SAM header header group order fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

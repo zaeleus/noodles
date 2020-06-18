@@ -306,11 +306,17 @@ impl fmt::Display for Header {
 /// An error returned when a raw SAM header fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A header record is not on the first line.
     UnexpectedHeader,
+    /// The record is invalid.
     InvalidRecord(record::ParseError),
+    /// A header record is invalid.
     InvalidHeader(header::ParseError),
+    /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::ParseError),
+    /// A reference read group record is invalid.
     InvalidReadGroup(read_group::ParseError),
+    /// A program record is invalid.
     InvalidProgram(program::ParseError),
 }
 

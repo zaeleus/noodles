@@ -1,20 +1,5 @@
 use std::{error, fmt, str::FromStr};
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct ParseError(String);
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid molecule topology: expected {{linear, circular}}, got {}",
-            self.0
-        )
-    }
-}
-
 /// A SAM header reference sequence molecule topology (`TP`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MoleculeTopology {
@@ -27,6 +12,22 @@ pub enum MoleculeTopology {
 impl Default for MoleculeTopology {
     fn default() -> Self {
         Self::Linear
+    }
+}
+
+/// An error returned when a raw SAM header reference sequence molecule topology fails to parse.
+#[derive(Debug, Eq, PartialEq)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "invalid molecule topology: expected {{linear, circular}}, got {}",
+            self.0
+        )
     }
 }
 

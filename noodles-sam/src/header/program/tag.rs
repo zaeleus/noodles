@@ -39,6 +39,7 @@ impl fmt::Display for Tag {
     }
 }
 
+/// An error returned when a raw SAM header program tag fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

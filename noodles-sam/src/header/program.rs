@@ -143,7 +143,9 @@ impl fmt::Display for Program {
 /// An error returned when a raw SAM header program fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required tag is missing.
     MissingRequiredTag(Tag),
+    /// A tag is invalid.
     InvalidTag(tag::ParseError),
 }
 

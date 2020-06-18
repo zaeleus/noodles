@@ -182,8 +182,11 @@ impl fmt::Display for ReferenceSequence {
 /// An error returned when a raw SAM header reference sequence fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required tag is missing.
     MissingRequiredTag(Tag),
+    /// A tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The length tag (`LN`) has a invalid value.
     InvalidLength(num::ParseIntError),
 }
 

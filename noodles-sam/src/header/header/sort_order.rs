@@ -36,6 +36,7 @@ impl fmt::Display for SortOrder {
     }
 }
 
+/// An error returned when a raw SAM header header sort order fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

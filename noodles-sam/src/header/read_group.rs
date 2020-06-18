@@ -144,7 +144,9 @@ impl fmt::Display for ReadGroup {
 /// An error returned when a raw SAM header read group fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required tag is missing.
     MissingRequiredTag(Tag),
+    /// A tag is invalid.
     InvalidTag(tag::ParseError),
 }
 

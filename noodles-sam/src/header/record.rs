@@ -19,11 +19,16 @@ pub enum Record {
     Comment(String),
 }
 
+/// An error returned when a raw SAM header record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The kind is missing.
     MissingKind,
+    /// The kind is invalid.
     InvalidKind(kind::ParseError),
+    /// A tag is missing.
     MissingTag,
+    /// A tag value is missing.
     MissingValue(String),
 }
 
