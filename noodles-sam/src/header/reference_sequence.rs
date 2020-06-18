@@ -72,8 +72,8 @@ impl ReferenceSequence {
         self.len
     }
 
-    pub fn len_mut(&mut self) -> &mut String {
-        &mut self.name
+    pub fn len_mut(&mut self) -> &mut i32 {
+        &mut self.len
     }
 
     /// Returns the raw fields of the reference sequence.
