@@ -103,13 +103,21 @@ impl fmt::Display for QualityScores {
 
 /// An error returned when raw SAM record quality scores fail to parse.
 #[derive(Debug)]
-pub struct ParseError(score::TryFromCharError);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The raw quality scores has an invalid score.
+    InvalidScore(score::TryFromCharError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid sequence: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("quality scores cannot be empty"),
+            Self::InvalidScore(e) => write!(f, "{}", e),
+        }
     }
 }
 
@@ -117,11 +125,15 @@ impl FromStr for QualityScores {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.chars()
-            .map(Score::try_from)
-            .collect::<Result<_, _>>()
-            .map(QualityScores::new)
-            .map_err(ParseError)
+        match s {
+            "" => Err(ParseError::Empty),
+            _ => s
+                .chars()
+                .map(Score::try_from)
+                .collect::<Result<_, _>>()
+                .map(QualityScores::new)
+                .map_err(ParseError::InvalidScore),
+        }
     }
 }
 
@@ -174,6 +186,8 @@ mod tests {
             .collect::<Result<_, _>>()?;
 
         assert_eq!(quality_scores.scores(), &expected[..]);
+
+        assert!("".parse::<QualityScores>().is_err());
 
         Ok(())
     }
