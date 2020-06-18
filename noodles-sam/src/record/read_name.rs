@@ -11,6 +11,21 @@ use super::NULL_FIELD;
 pub struct ReadName(Option<String>);
 
 impl ReadName {
+    /// Returns whether a read name is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use noodles_sam as sam;
+    /// use noodles_sam::record::ReadName;
+    ///
+    /// let read_name = ReadName::default();
+    /// assert!(read_name.is_empty());
+    ///
+    /// let read_name: ReadName = "r0".parse()?;
+    /// assert!(!read_name.is_empty());
+    /// # Ok::<(), sam::record::read_name::ParseError>(())
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.0.is_none()
     }

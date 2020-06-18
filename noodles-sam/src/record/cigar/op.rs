@@ -1,3 +1,5 @@
+//! SAM record CIGAR operation and kind.
+
 mod kind;
 
 use std::{error, fmt, num, str::FromStr};

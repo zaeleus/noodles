@@ -9,6 +9,21 @@ use super::NULL_FIELD;
 pub struct ReferenceSequenceName(Option<String>);
 
 impl ReferenceSequenceName {
+    /// Returns whether a reference sequence name is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use noodles_sam as sam;
+    /// use noodles_sam::record::ReferenceSequenceName;
+    ///
+    /// let reference_sequence_name = ReferenceSequenceName::default();
+    /// assert!(reference_sequence_name.is_empty());
+    ///
+    /// let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
+    /// assert!(!reference_sequence_name.is_empty());
+    /// # Ok::<(), sam::record::reference_sequence_name::ParseError>(())
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.is_none()
     }

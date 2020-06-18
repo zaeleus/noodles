@@ -275,6 +275,14 @@ impl Builder {
         self
     }
 
+    /// Builds a SAM record.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let record = sam::Record::builder().build();
+    /// ```
     pub fn build(self) -> Record {
         Record {
             qname: self.read_name,
