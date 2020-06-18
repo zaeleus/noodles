@@ -3,20 +3,35 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header read group tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
+    /// Read group ID (`ID`).
     Id,
+    /// Barcode sequence (`BC`).
     Barcode,
+    /// Sequencing center (`CN`).
     SequencingCenter,
+    /// Description (`DS`).
     Description,
+    /// Datetime of run (`DT`).
     ProducedAt,
+    /// Flow order (`FO`).
     FlowOrder,
+    /// Key sequence (`KS`).
     KeySequence,
+    /// Library (`LB`).
     Library,
+    /// Programs used (`PG`).
     Program,
+    /// Predicted median insert size (`PI`).
     PredictedMedianInsertSize,
+    /// Platform used (`PL`).
     Platform,
+    /// Platform model (`PM`).
     PlatformModel,
+    /// Platform unit (`PU`).
     PlatformUnit,
+    /// Sample (`SM`).
     Sample,
+    /// Any other read group tag.
     Other(String),
 }
 

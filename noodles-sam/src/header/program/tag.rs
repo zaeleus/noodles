@@ -3,12 +3,19 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header program tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
+    /// Program ID (`ID`).
     Id,
+    /// Program name (`PN`).
     Name,
+    /// Command line (`CL`).
     CommandLine,
+    /// Previous program ID (`PP`).
     PreviousId,
+    /// Description (`DS`).
     Description,
+    /// Program version (`VN`).
     Version,
+    /// Any other program tag.
     Other(String),
 }
 

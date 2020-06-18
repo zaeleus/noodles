@@ -3,16 +3,27 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header reference sequence tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
+    /// Reference sequence name (`SN`).
     Name,
+    /// Reference sequence length (`LN`).
     Length,
+    /// Alternate locus (`AH`).
     AlternativeLocus,
+    /// Alternate reference sequence names (`AN`).
     AlternativeNames,
+    /// Genome assembly ID (`AS`).
     AssemblyId,
+    /// Description (`DS`).
     Description,
+    /// MD5 checksum of the reference sequence (`M5`).
     Md5Checksum,
+    /// Species (`SP`).
     Species,
+    /// Molecule topology (`TP`).
     MoleculeTopology,
+    /// URI of the reference sequence (`UR`).
     Uri,
+    /// Any other reference sequence tag.
     Other(String),
 }
 

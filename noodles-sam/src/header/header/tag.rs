@@ -3,10 +3,15 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header header tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
+    /// Format version (`VN`).
     Version,
+    /// Sorting order of alignments (`SO`).
     SortOrder,
+    /// Group order of alignments (`GO`).
     GroupOrder,
+    /// Subsort order of alignments (`SS`).
     SubsortOrder,
+    /// Any other header tag.
     Other(String),
 }
 
