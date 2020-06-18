@@ -155,13 +155,16 @@ impl Header {
     ///     .build();
     /// assert_eq!(header.header().map(|h| h.version()), Some("1.6"));
     ///
-    /// header.header_mut().map(|h| {
+    /// header.header_mut().as_mut().map(|h| {
     ///     *h.version_mut() = String::from("1.5");
     /// });
     /// assert_eq!(header.header().map(|h| h.version()), Some("1.5"));
+    ///
+    /// *header.header_mut() = None;
+    /// assert!(header.header().is_none());
     /// ```
-    pub fn header_mut(&mut self) -> Option<&mut header::Header> {
-        self.header.as_mut()
+    pub fn header_mut(&mut self) -> &mut Option<header::Header> {
+        &mut self.header
     }
 
     /// Returns the SAM header reference sequences.
