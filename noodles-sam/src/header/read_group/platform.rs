@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 /// A SAM header read group platform (`PL`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -23,8 +23,19 @@ pub enum Platform {
     PacBio,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct ParseError(String);
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid platform: {}", self.0)
+    }
+}
+
 impl FromStr for Platform {
-    type Err = ();
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -37,7 +48,7 @@ impl FromStr for Platform {
             "IONTORRENT" => Ok(Self::IonTorrent),
             "ONT" => Ok(Self::Ont),
             "PACBIO" => Ok(Self::PacBio),
-            _ => Err(()),
+            _ => Err(ParseError(s.into())),
         }
     }
 }
@@ -47,7 +58,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ()> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("CAPILLARY".parse::<Platform>()?, Platform::Capillary);
         assert_eq!("DNBSEQ".parse::<Platform>()?, Platform::DnbSeq);
         assert_eq!("LS454".parse::<Platform>()?, Platform::LS454);
