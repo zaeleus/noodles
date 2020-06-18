@@ -3,8 +3,11 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header header group order (`GO`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GroupOrder {
+    /// Alignments are not grouped (`none`).
     None,
+    /// Alignments are grouped by read name (`query`).
     Query,
+    /// Alignments are grouped by reference sequence and position (`reference`).
     Reference,
 }
 

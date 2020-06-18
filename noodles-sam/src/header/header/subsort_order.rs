@@ -3,8 +3,11 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header header subsort order (`SS`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubsortOrder {
+    /// Alignments are primarily unsorted (`unsorted`).
     Unsorted(String),
+    /// Alignments are primarily sorted by read name (`queryname`).
     QueryName(String),
+    /// Alignments are primarily sorted by reference sequence and position (`coordinate`).
     Coordinate(String),
 }
 

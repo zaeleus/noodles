@@ -3,14 +3,23 @@ use std::str::FromStr;
 /// A SAM header read group platform (`PL`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Platform {
+    /// Capillary electrophoresis sequencing (`CAPILLARY`).
     Capillary,
+    /// DNBseq sequencing (`DNBSEQ`).
     DnbSeq,
+    /// 454 Life Sciences sequencing (`LS454`).
     LS454,
+    /// Illumina sequencing (`ILLUMINA`).
     Illumina,
+    /// SOLiD sequencing (`SOLID`).
     Solid,
+    /// Helicos sequencing (`HELICOS`).
     Helicos,
+    /// Ion Torrent sequencing (`IONTORRENT`).
     IonTorrent,
+    /// Oxford Nanopore Technologies (ONT) sequencing (`ONT`).
     Ont,
+    /// PacBio sequencing (`PACBIO`).
     PacBio,
 }
 

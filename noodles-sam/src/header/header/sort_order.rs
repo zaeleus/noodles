@@ -3,9 +3,13 @@ use std::{error, fmt, str::FromStr};
 /// A SAM header header sort order (`SO`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SortOrder {
+    /// Alignment order is unknown (`unknown`).
     Unknown,
+    /// Alignments are not sorted (`unsorted`).
     Unsorted,
+    /// Alignments are sorted by read name (`queryname`).
     QueryName,
+    /// Alignments are sorted by reference sequence and position (`coordinate`).
     Coordinate,
 }
 
