@@ -14,7 +14,7 @@ impl<R: BufRead> Reader<R> {
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
 
-        let mut len = read_line(&mut self.inner, record.name_mut())?;
+        let mut len = read_line(&mut self.inner, record.read_name_mut())?;
 
         if len > 0 {
             len += read_line(&mut self.inner, record.sequence_mut())?;

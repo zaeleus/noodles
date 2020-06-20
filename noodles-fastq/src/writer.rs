@@ -16,7 +16,7 @@ impl<W: Write> Writer<W> {
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.inner.write_all(record.name())?;
+        self.inner.write_all(record.read_name())?;
         self.inner.write_all(b"\n")?;
         self.inner.write_all(record.sequence())?;
         self.inner.write_all(b"\n+\n")?;
