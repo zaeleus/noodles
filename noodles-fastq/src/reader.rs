@@ -18,7 +18,7 @@ impl<R: BufRead> Reader<R> {
 
         if len > 0 {
             len += read_line(&mut self.inner, record.sequence_mut())?;
-            len += read_line(&mut self.inner, record.plus_line_mut())?;
+            len += read_line(&mut self.inner, &mut Vec::new())?;
             len += read_line(&mut self.inner, record.quality_scores_mut())?;
         }
 
@@ -58,11 +58,11 @@ dcba
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 25);
-        assert_eq!(record, Record::new("@noodles:1/1", "AGCT", "+", "abcd"));
+        assert_eq!(record, Record::new("@noodles:1/1", "AGCT", "abcd"));
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 25);
-        assert_eq!(record, Record::new("@noodles:2/1", "TCGA", "+", "dcba"));
+        assert_eq!(record, Record::new("@noodles:2/1", "TCGA", "dcba"));
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 0);

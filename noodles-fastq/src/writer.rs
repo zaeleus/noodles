@@ -19,9 +19,7 @@ impl<W: Write> Writer<W> {
         self.inner.write_all(record.name())?;
         self.inner.write_all(b"\n")?;
         self.inner.write_all(record.sequence())?;
-        self.inner.write_all(b"\n")?;
-        self.inner.write_all(record.plus_line())?;
-        self.inner.write_all(b"\n")?;
+        self.inner.write_all(b"\n+\n")?;
         self.inner.write_all(record.quality_scores())?;
         self.inner.write_all(b"\n")?;
 
@@ -37,7 +35,7 @@ mod tests {
     fn test_write_record() -> io::Result<()> {
         let mut writer = Writer::new(Vec::new());
 
-        let record = Record::new("r0", "ATCG", "+", "NDLS");
+        let record = Record::new("r0", "ATCG", "NDLS");
         writer.write_record(&record)?;
 
         let expected = b"r0\nATCG\n+\nNDLS\n";
