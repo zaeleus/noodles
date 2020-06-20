@@ -1,7 +1,5 @@
-pub use self::reader::Reader;
-pub use self::record::Record;
-pub use self::writer::Writer;
+mod reader;
+mod record;
+mod writer;
 
-pub mod reader;
-pub mod record;
-pub mod writer;
+pub use self::{reader::Reader, record::Record, writer::Writer};
