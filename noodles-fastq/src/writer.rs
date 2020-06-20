@@ -6,7 +6,10 @@ pub struct Writer<W> {
     inner: W,
 }
 
-impl<W: Write> Writer<W> {
+impl<W> Writer<W>
+where
+    W: Write,
+{
     pub fn new(inner: W) -> Self {
         Self { inner }
     }

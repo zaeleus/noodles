@@ -2,11 +2,14 @@ use std::io::{self, BufRead};
 
 use super::Record;
 
-pub struct Reader<R: BufRead> {
+pub struct Reader<R> {
     inner: R,
 }
 
-impl<R: BufRead> Reader<R> {
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
@@ -26,7 +29,10 @@ impl<R: BufRead> Reader<R> {
     }
 }
 
-fn read_line<R: BufRead>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize> {
+fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
     let result = reader.read_until(b'\n', buf);
     buf.pop();
     result
