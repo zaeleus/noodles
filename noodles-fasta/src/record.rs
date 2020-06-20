@@ -1,32 +1,25 @@
-#[derive(Clone, Debug, Default)]
+pub mod definition;
+
+pub use self::definition::Definition;
+
 pub struct Record {
-    name: String,
+    definition: Definition,
     sequence: Vec<u8>,
 }
 
 impl Record {
-    pub fn new(name: String, sequence: Vec<u8>) -> Self {
-        Self { name, sequence }
+    pub fn new(definition: Definition, sequence: Vec<u8>) -> Self {
+        Self {
+            definition,
+            sequence,
+        }
     }
 
     pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub(crate) fn name_mut(&mut self) -> &mut String {
-        &mut self.name
+        &self.definition.reference_sequence_name()
     }
 
     pub fn sequence(&self) -> &[u8] {
         &self.sequence
-    }
-
-    pub(crate) fn sequence_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.sequence
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.name.clear();
-        self.sequence.clear();
     }
 }

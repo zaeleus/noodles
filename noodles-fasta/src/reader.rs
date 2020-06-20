@@ -1,7 +1,5 @@
 use std::io::{self, BufRead, Seek, SeekFrom};
 
-use crate::Record;
-
 pub struct Reader<R> {
     inner: R,
 }
@@ -14,37 +12,8 @@ where
         Self { inner }
     }
 
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        record.clear();
-
-        let mut bytes_read = match self.read_description(record.name_mut()) {
-            Ok(0) => return Ok(0),
-            Ok(len) => len,
-            Err(e) => return Err(e),
-        };
-
-        bytes_read += self.read_sequence(record.sequence_mut())?;
-
-        Ok(bytes_read)
-    }
-
-    pub fn read_description(&mut self, buf: &mut String) -> io::Result<usize> {
-        match self.inner.read_line(buf) {
-            Ok(0) => Ok(0),
-            Ok(len) => {
-                if !buf.starts_with('>') {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        "line does not start with a '>'",
-                    ));
-                }
-
-                buf.pop();
-
-                Ok(len)
-            }
-            Err(e) => Err(e),
-        }
+    pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
+        read_line(&mut self.inner, buf)
     }
 
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
@@ -86,47 +55,69 @@ where
     }
 }
 
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let result = reader.read_line(buf);
+    buf.pop();
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
 
-    use crate::Record;
-
     use super::*;
 
-    static DATA: &[u8] = b"\
->chr1
-ATCG
->chr2
-NNNN
-NNNN
-NN
-";
+    #[test]
+    fn test_read_definition() -> io::Result<()> {
+        let data = b">sq0\nACGT\n";
+        let mut reader = Reader::new(&data[..]);
+
+        let mut description_buf = String::new();
+        reader.read_definition(&mut description_buf)?;
+
+        assert_eq!(description_buf, ">sq0");
+
+        Ok(())
+    }
 
     #[test]
-    fn test_read_record() {
-        let mut reader = Reader::new(&DATA[..]);
-        let mut record = Record::default();
+    fn test_read_sequence() -> io::Result<()> {
+        let mut sequence_buf = Vec::new();
 
-        reader.read_record(&mut record).unwrap();
-        assert_eq!(record.name(), ">chr1");
-        assert_eq!(record.sequence(), b"ATCG");
+        let data = b"ACGT\n";
+        let mut reader = Reader::new(&data[..]);
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"ACGT");
 
-        reader.read_record(&mut record).unwrap();
-        assert_eq!(record.name(), ">chr2");
-        assert_eq!(record.sequence(), b"NNNNNNNNNN");
+        let data = b"ACGT\n>sq1\n";
+        let mut reader = Reader::new(&data[..]);
+        sequence_buf.clear();
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"ACGT");
+
+        let data = b"NNNN\nNNNN\nNN\n";
+        let mut reader = Reader::new(&data[..]);
+        sequence_buf.clear();
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"NNNNNNNNNN");
+
+        Ok(())
     }
 
     #[test]
     fn test_read_sequence_after_seek() {
-        let cursor = Cursor::new(&DATA[..]);
+        let data = b">sq0\nACGT\n>sq1\nNNNN\n";
+        let cursor = Cursor::new(&data[..]);
         let mut reader = Reader::new(cursor);
 
-        reader.seek(SeekFrom::Start(17)).unwrap();
+        reader.seek(SeekFrom::Start(14)).unwrap();
 
         let mut buf = Vec::new();
         reader.read_sequence(&mut buf).unwrap();
 
-        assert_eq!(buf, b"NNNNNNNNNN");
+        assert_eq!(buf, b"NNNN");
     }
 }
