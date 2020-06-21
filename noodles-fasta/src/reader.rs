@@ -1,5 +1,6 @@
 use std::io::{self, BufRead, Seek, SeekFrom};
 
+/// A FASTA reader.
 pub struct Reader<R> {
     inner: R,
 }
@@ -8,14 +9,78 @@ impl<R> Reader<R>
 where
     R: BufRead,
 {
+    /// Creates a FASTA reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
+    /// Reads a raw definition line.
+    ///
+    /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
+    /// [`fasta::record::Definition`].
+    ///
+    /// The position of the stream is expected to be at the start or at the start of another
+    /// definition.
+    ///
+    /// If successful, this returns the number of bytes read from the stream. If the number of
+    /// bytes read is 0, the stream reached EOF.
+    ///
+    /// [`fasta::record::Definition`]: record/definition/struct.Definition.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    ///
+    /// let mut buf = String::new();
+    /// reader.read_definition(&mut buf)?;
+    ///
+    /// assert_eq!(buf, ">sq0");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
     }
 
+    /// Reads a sequence.
+    ///
+    /// The given buffer consumes a sequence without newlines until another definition or EOF is
+    /// reached.
+    ///
+    /// The position of the stream is expected to be at the start of a sequence, which is directly
+    /// after a definition.
+    ///
+    /// If successful, this returns the number of bytes read from the stream. If the number of
+    /// bytes read is 0, the stream reached EOF (though this case is likely an error).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// reader.read_definition(&mut String::new())?;
+    ///
+    /// let mut buf = Vec::new();
+    /// reader.read_sequence(&mut buf)?;
+    ///
+    /// assert_eq!(buf, b"ACGT");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut bytes_read = 0;
 
@@ -50,6 +115,28 @@ impl<R> Seek for Reader<R>
 where
     R: BufRead + Seek,
 {
+    /// Seeks the underlying stream to the given position.
+    ///
+    /// These positions typically come from an associated index, which start at the sequence and
+    /// _not_ the definition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor, Seek, SeekFrom};
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let cursor = Cursor::new(&data[..]);
+    /// let mut reader = fasta::Reader::new(cursor);
+    /// reader.seek(SeekFrom::Start(14));
+    ///
+    /// let mut buf = Vec::new();
+    /// reader.read_sequence(&mut buf)?;
+    ///
+    /// assert_eq!(buf, b"NNNNNNNNNN");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos)
     }
