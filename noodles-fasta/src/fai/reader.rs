@@ -1,11 +1,8 @@
 use std::io::{self, BufRead};
 
-use super::Record;
-
 /// A FASTA index reader.
 pub struct Reader<R> {
     inner: R,
-    line_buf: String,
 }
 
 impl<R> Reader<R>
@@ -22,19 +19,21 @@ where
     /// let mut reader = fai::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            line_buf: String::new(),
-        }
+        Self { inner }
     }
 
-    /// Reads a FASTA index record.
+    /// Reads a raw FASTA index record.
+    ///
+    /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
+    /// [`fai::Record`].
     ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// record.
     ///
     /// If successful, this returns the number of bytes read from the stream. If the number of
     /// bytes read is 0, the stream reached EOF.
+    ///
+    /// [`fai::Record`]: struct.Record.html
     ///
     /// # Examples
     ///
@@ -45,29 +44,16 @@ where
     /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
     /// let mut reader = fai::Reader::new(&data[..]);
     ///
-    /// let mut record = fai::Record::default();
-    /// reader.read_record(&mut record)?;
+    /// let mut buf = String::new();
+    /// reader.read_record(&mut buf)?;
     ///
-    /// assert_eq!(record.name(), "sq0");
+    /// assert_eq!(buf, "sq0\t13\t5\t80\t81");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.line_buf.clear();
-
-        match self.inner.read_line(&mut self.line_buf) {
-            Ok(0) => Ok(0),
-            Ok(n) => {
-                self.line_buf.pop();
-
-                *record = self
-                    .line_buf
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                Ok(n)
-            }
-            Err(e) => Err(e),
-        }
+    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
+        let result = self.inner.read_line(buf);
+        buf.pop();
+        result
     }
 }
 
@@ -83,15 +69,16 @@ sq1\t17711\t10954\t80\t81
 ";
 
         let mut reader = Reader::new(&data[..]);
-        let mut record = Record::default();
 
-        let bytes_read = reader.read_record(&mut record)?;
-        assert_eq!(bytes_read, 18);
+        let mut buf = String::new();
+        reader.read_record(&mut buf)?;
+        assert_eq!(buf, "sq0\t10946\t4\t80\t81");
 
-        let bytes_read = reader.read_record(&mut record)?;
-        assert_eq!(bytes_read, 22);
+        buf.clear();
+        reader.read_record(&mut buf)?;
+        assert_eq!(buf, "sq1\t17711\t10954\t80\t81");
 
-        let bytes_read = reader.read_record(&mut record)?;
+        let bytes_read = reader.read_record(&mut buf)?;
         assert_eq!(bytes_read, 0);
 
         Ok(())
