@@ -1,3 +1,5 @@
+//! FASTA record definition and components.
+
 use std::{error, fmt, str::FromStr};
 
 const PREFIX: char = '>';

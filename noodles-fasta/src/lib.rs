@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! **noodles-fasta** handles and reading and writing of the FASTA format.
 //!
 //! FASTA is a text format with no formal specification and only has de facto rules. It typically
