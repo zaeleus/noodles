@@ -39,9 +39,9 @@ impl Record {
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition, sequence);
     ///
-    /// assert_eq!(record.name(), "sq0");
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
-    pub fn name(&self) -> &str {
+    pub fn reference_sequence_name(&self) -> &str {
         &self.definition.reference_sequence_name()
     }
 
