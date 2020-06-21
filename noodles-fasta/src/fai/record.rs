@@ -7,6 +7,7 @@ use self::field::Field;
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 5;
 
+/// A FASTA index record.
 #[derive(Debug, Default)]
 pub struct Record {
     name: String,
@@ -18,6 +19,7 @@ pub struct Record {
 
 #[allow(clippy::len_without_is_empty)]
 impl Record {
+    /// Creates a FASTA index record.
     pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
         Self {
             name,
@@ -28,30 +30,38 @@ impl Record {
         }
     }
 
+    /// Returns the reference sequence name.
     pub fn name(&self) -> &str {
         &self.name
     }
 
+    /// Returns the length of the sequence.
     pub fn len(&self) -> u64 {
         self.len
     }
 
+    /// Returns the offset from the start.
     pub fn offset(&self) -> u64 {
         self.offset
     }
 
+    /// Returns the number of bases in a line.
     pub fn line_bases(&self) -> u64 {
         self.line_bases
     }
 
+    /// Returns the number of characters in a line.
     pub fn line_width(&self) -> u64 {
         self.line_width
     }
 }
 
+/// An error returned when a raw FASTA index record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A field is missing.
     Missing(Field),
+    /// A field is invalid.
     Invalid(Field, std::num::ParseIntError),
 }
 

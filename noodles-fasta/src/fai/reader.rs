@@ -2,6 +2,7 @@ use std::io::{self, BufRead};
 
 use super::Record;
 
+/// A FASTA index reader.
 pub struct Reader<R> {
     inner: R,
     line_buf: String,
@@ -11,6 +12,15 @@ impl<R> Reader<R>
 where
     R: BufRead,
 {
+    /// Creates a FASTA index reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::fai;
+    /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
+    /// let mut reader = fai::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self {
             inner,
@@ -18,6 +28,29 @@ where
         }
     }
 
+    /// Reads a FASTA index record.
+    ///
+    /// The position of the stream is expected to be at the start or at the start of another
+    /// record.
+    ///
+    /// If successful, this returns the number of bytes read from the stream. If the number of
+    /// bytes read is 0, the stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta::fai;
+    ///
+    /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
+    /// let mut reader = fai::Reader::new(&data[..]);
+    ///
+    /// let mut record = fai::Record::default();
+    /// reader.read_record(&mut record)?;
+    ///
+    /// assert_eq!(record.name(), "sq0");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         self.line_buf.clear();
 
