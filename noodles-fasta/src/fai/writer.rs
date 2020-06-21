@@ -19,7 +19,6 @@ where
     /// use noodles_fasta::fai;
     /// let mut writer = fai::Writer::new(Vec::new());
     /// ```
-
     pub fn new(inner: W) -> Self {
         Self { inner }
     }
@@ -56,8 +55,8 @@ where
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         writeln!(
             self.inner,
-            "{name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
-            name = record.name(),
+            "{reference_sequence_name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
+            reference_sequence_name = record.reference_sequence_name(),
             len = record.len(),
             offset = record.offset(),
             line_bases = record.line_bases(),

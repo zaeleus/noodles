@@ -10,7 +10,7 @@ const MAX_FIELDS: usize = 5;
 /// A FASTA index record.
 #[derive(Debug, Default)]
 pub struct Record {
-    name: String,
+    reference_sequence_name: String,
     len: u64,
     offset: u64,
     line_bases: u64,
@@ -20,9 +20,15 @@ pub struct Record {
 #[allow(clippy::len_without_is_empty)]
 impl Record {
     /// Creates a FASTA index record.
-    pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
+    pub fn new(
+        reference_sequence_name: String,
+        len: u64,
+        offset: u64,
+        line_bases: u64,
+        line_width: u64,
+    ) -> Self {
         Self {
-            name,
+            reference_sequence_name,
             len,
             offset,
             line_bases,
@@ -31,8 +37,8 @@ impl Record {
     }
 
     /// Returns the reference sequence name.
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn reference_sequence_name(&self) -> &str {
+        &self.reference_sequence_name
     }
 
     /// Returns the length of the sequence.
@@ -82,14 +88,14 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let name = parse_string(&mut fields, Field::Name)?;
+        let reference_sequence_name = parse_string(&mut fields, Field::ReferenceSequenceName)?;
         let len = parse_u64(&mut fields, Field::Length)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let line_bases = parse_u64(&mut fields, Field::LineBases)?;
         let line_width = parse_u64(&mut fields, Field::LineWidth)?;
 
         Ok(Record {
-            name,
+            reference_sequence_name,
             len,
             offset,
             line_bases,
@@ -126,7 +132,7 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         let record: Record = "sq0\t10946\t4\t80\t81".parse()?;
 
-        assert_eq!(record.name(), "sq0");
+        assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.len(), 10946);
         assert_eq!(record.offset(), 4);
         assert_eq!(record.line_bases(), 80);
