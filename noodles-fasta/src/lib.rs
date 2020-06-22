@@ -27,6 +27,30 @@
 //! NACT
 //! GG
 //! ```
+//!
+//! # Examples
+//!
+//! ## Read all records in a FASTA file
+//!
+//! ```no_run
+//! # use std::{fs::File, io::{self, BufReader}};
+//! use noodles_fasta as fasta;
+//!
+//! let mut reader = File::open("reference.fa")
+//!     .map(BufReader::new)
+//!     .map(fasta::Reader::new)?;
+//!
+//! for result in reader.records() {
+//!     let record = result?;
+//!
+//!     println!(
+//!         "{}\t{}",
+//!         record.reference_sequence_name(),
+//!         record.sequence().len()
+//!     );
+//! }
+//! # Ok::<(), io::Error>(())
+//! ```
 
 pub mod fai;
 mod reader;
