@@ -1,3 +1,9 @@
+//! FASTA reader and iterators.
+
+mod records;
+
+pub use self::records::Records;
+
 use std::io::{self, BufRead, Seek, SeekFrom};
 
 /// A FASTA reader.
@@ -108,6 +114,35 @@ where
         }
 
         Ok(bytes_read)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// The position of the stream is expected to be at the start or at the start of another
+    /// definition.
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// let record = records.next().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))??;
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
+    /// assert_eq!(record.sequence(), b"ACGT");
+    ///
+    /// let record = records.next().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))??;
+    /// assert_eq!(record.reference_sequence_name(), "sq1");
+    /// assert_eq!(record.sequence(), b"NNNNNNNNNN");
+    ///
+    /// assert!(records.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> Records<R> {
+        Records::new(self)
     }
 }
 
