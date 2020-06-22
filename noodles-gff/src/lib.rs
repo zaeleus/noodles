@@ -1,30 +1,4 @@
-pub use self::{reader::Reader, record::Record};
-
 pub mod reader;
 pub mod record;
 
-use std::{
-    fs::File,
-    io::{self, BufReader, Read},
-    path::Path,
-};
-
-use flate2::bufread::MultiGzDecoder;
-
-pub fn open<P>(src: P) -> io::Result<Reader<Box<dyn Read>>>
-where
-    P: AsRef<Path>,
-{
-    let path = src.as_ref();
-    let extension = path.extension();
-    let file = File::open(path)?;
-
-    match extension.and_then(|ext| ext.to_str()) {
-        Some("gz") => {
-            let reader = BufReader::new(file);
-            let decoder = MultiGzDecoder::new(reader);
-            Ok(Reader::new(Box::new(decoder)))
-        }
-        _ => Ok(Reader::new(Box::new(file))),
-    }
-}
+pub use self::{reader::Reader, record::Record};

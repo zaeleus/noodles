@@ -7,4 +7,3 @@ edition = "2018"
 
 [dependencies]
 csv = "1.0.1"
-flate2 = "1.0.1"
