@@ -5,6 +5,7 @@ pub mod definition;
 pub use self::definition::Definition;
 
 /// A FASTA record.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {
     definition: Definition,
     sequence: Vec<u8>,

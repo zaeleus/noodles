@@ -130,13 +130,15 @@ where
     ///
     /// let mut records = reader.records();
     ///
-    /// let record = records.next().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))??;
-    /// assert_eq!(record.reference_sequence_name(), "sq0");
-    /// assert_eq!(record.sequence(), b"ACGT");
+    /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
+    ///     fasta::record::Definition::new(String::from("sq0"), None),
+    ///     b"ACGT".to_vec(),
+    /// )));
     ///
-    /// let record = records.next().ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))??;
-    /// assert_eq!(record.reference_sequence_name(), "sq1");
-    /// assert_eq!(record.sequence(), b"NNNNNNNNNN");
+    /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
+    ///     fasta::record::Definition::new(String::from("sq1"), None),
+    ///     b"NNNNNNNNNN".to_vec(),
+    /// )));
     ///
     /// assert!(records.next().is_none());
     /// # Ok::<(), io::Error>(())
