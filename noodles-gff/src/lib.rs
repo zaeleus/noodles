@@ -1,9 +1,7 @@
-pub use self::{attributes::Attributes, reader::Reader, record::Record, strand::Strand};
+pub use self::{reader::Reader, record::Record};
 
-pub mod attributes;
 pub mod reader;
 pub mod record;
-pub mod strand;
 
 use std::{
     fs::File,

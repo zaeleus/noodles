@@ -12,7 +12,7 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles_gff::Attributes;
+    /// use noodles_gff::record::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
     /// let _attributes = Attributes::new(data);
@@ -30,7 +30,7 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles_gff::Attributes;
+    /// use noodles_gff::record::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
     /// let attributes = Attributes::new(data);
@@ -48,7 +48,7 @@ impl<'a> Attributes<'a> {
     /// # Example
     ///
     /// ```
-    /// use noodles_gff::Attributes;
+    /// use noodles_gff::record::Attributes;
     ///
     /// let data = r#"gene_name "DDX11L1"; level 2;"#;
     /// let attributes = Attributes::new(data);

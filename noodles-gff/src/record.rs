@@ -1,8 +1,11 @@
+mod attributes;
+mod strand;
+
+pub use self::{attributes::Attributes, strand::Strand};
+
 use std::{error, fmt};
 
 use csv::StringRecord;
-
-use super::{Attributes, Strand};
 
 static EMPTY_VALUE: &str = ".";
 
@@ -129,8 +132,6 @@ fn is_empty(s: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::Strand;
-
     use super::*;
 
     fn build_string_record() -> StringRecord {
