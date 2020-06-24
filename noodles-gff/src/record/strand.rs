@@ -31,14 +31,23 @@ impl fmt::Display for Strand {
     }
 }
 
+/// An error returned when a raw GFF record strand fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The strand is invalid.
+    Invalid(String),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid strand: expected {{+, -, ., ?}}, got {}", self.0)
+        match self {
+            Self::Empty => f.write_str("strand cannot be empty"),
+            Self::Invalid(s) => write!(f, "expected {{+, -, ., ?}}, got {}", s),
+        }
     }
 }
 
@@ -47,11 +56,12 @@ impl FromStr for Strand {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "+" => Ok(Self::Forward),
             "-" => Ok(Self::Reverse),
             "." => Ok(Self::Irrelevant),
             "?" => Ok(Self::Unknown),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid(s.into())),
         }
     }
 }
@@ -74,11 +84,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!("+".parse(), Ok(Strand::Forward));
-        assert_eq!("-".parse(), Ok(Strand::Reverse));
-        assert_eq!(".".parse(), Ok(Strand::Irrelevant));
-        assert_eq!("?".parse(), Ok(Strand::Unknown));
-        assert_eq!("!".parse::<Strand>(), Err(ParseError(String::from("!"))));
+    fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!("+".parse::<Strand>()?, Strand::Forward);
+        assert_eq!("-".parse::<Strand>()?, Strand::Reverse);
+        assert_eq!(".".parse::<Strand>()?, Strand::Irrelevant);
+        assert_eq!("?".parse::<Strand>()?, Strand::Unknown);
+
+        assert_eq!("".parse::<Strand>(), Err(ParseError::Empty));
+        assert_eq!(
+            "!".parse::<Strand>(),
+            Err(ParseError::Invalid(String::from("!")))
+        );
+
+        Ok(())
     }
 }
