@@ -1,4 +1,4 @@
-mod attributes;
+pub mod attributes;
 mod field;
 mod strand;
 
@@ -19,7 +19,7 @@ pub struct Record {
     score: Option<f32>,
     strand: Strand,
     frame: Option<String>,
-    attributes: Option<String>,
+    attributes: Attributes,
 }
 
 impl Record {
@@ -55,8 +55,8 @@ impl Record {
         self.frame.as_deref()
     }
 
-    pub fn attributes(&self) -> Option<&str> {
-        self.attributes.as_deref()
+    pub fn attributes(&self) -> &Attributes {
+        &self.attributes
     }
 }
 
@@ -77,6 +77,8 @@ pub enum ParseError {
     InvalidScore(num::ParseFloatError),
     /// The strand is invalid.
     InvalidStrand(strand::ParseError),
+    /// The attributes are invalid.
+    InvalidAttributes(attributes::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -123,7 +125,10 @@ impl FromStr for Record {
             }
         })?;
 
-        let attributes = fields.next().map(|s| s.into());
+        let attributes = match fields.next() {
+            Some(s) => s.parse().map_err(ParseError::InvalidAttributes)?,
+            None => Attributes::default(),
+        };
 
         Ok(Record {
             reference_sequence_name,
@@ -152,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; gene_name \"g0\"";
+        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
         let record = s.parse::<Record>()?;
 
         assert_eq!(record.reference_sequence_name(), "sq0");
@@ -163,9 +168,13 @@ mod tests {
         assert_eq!(record.score(), None);
         assert_eq!(record.strand(), Strand::Forward);
         assert_eq!(record.frame(), None);
+
         assert_eq!(
             record.attributes(),
-            Some(r#"gene_id "ndls0"; gene_name "g0""#)
+            &Attributes::from(vec![
+                attributes::Entry::new(String::from("gene_id"), String::from("ndls0")),
+                attributes::Entry::new(String::from("gene_name"), String::from("gene0")),
+            ])
         );
 
         Ok(())

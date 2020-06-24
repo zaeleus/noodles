@@ -1,135 +1,91 @@
-use std::{iter::IntoIterator, str::Split};
+//! GFF record attributes and entry.
+
+pub mod entry;
+
+pub use self::entry::Entry;
+
+use std::str::FromStr;
 
 const DELIMITER: char = ';';
 
-pub struct Attributes<'a> {
-    attrs: &'a str,
-}
+/// GFF record attributes.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Attributes(Vec<Entry>);
 
-impl<'a> Attributes<'a> {
-    /// Wraps a GFFv2 attribute string for parsing.
+impl Attributes {
+    /// Returns the attribute entries.
     ///
-    /// # Example
-    ///
-    /// ```
-    /// use noodles_gff::record::Attributes;
-    ///
-    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let _attributes = Attributes::new(data);
-    /// ```
-    pub fn new(attrs: &str) -> Attributes<'_> {
-        Attributes { attrs }
-    }
-
-    /// Returns the value corresponding to the key.
-    ///
-    /// This uses a linear search, which is only really useful for a single
-    /// lookup. For multiple lookups, consider converting the attribute pairs
-    /// to a map first.
-    ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
-    /// use noodles_gff::record::Attributes;
+    /// use noodles_gff::record::{attributes::Entry, Attributes};
     ///
-    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let attributes = Attributes::new(data);
+    /// let attributes = Attributes::from(vec![
+    ///     Entry::new(String::from("gene_name"), String::from("gene0")),
+    /// ]);
     ///
-    /// assert_eq!(attributes.get("gene_name"), Some("DDX11L1"));
-    /// assert_eq!(attributes.get("level"), Some("2"));
-    /// assert_eq!(attributes.get("gene_type"), None);
+    /// assert_eq!(attributes.entries().len(), 1);
     /// ```
-    pub fn get(&self, key: &str) -> Option<&str> {
-        self.iter().find(|&(k, _)| k == key).map(|(_, v)| v)
-    }
-
-    /// Returns an iterator that parses over all attribute pairs.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use noodles_gff::record::Attributes;
-    ///
-    /// let data = r#"gene_name "DDX11L1"; level 2;"#;
-    /// let attributes = Attributes::new(data);
-    /// let mut it = attributes.iter();
-    ///
-    /// assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));
-    /// assert_eq!(it.next(), Some(("level", "2")));
-    /// assert_eq!(it.next(), None)
-    /// ```
-    pub fn iter(&self) -> AttributesIter<'_> {
-        self.into_iter()
+    pub fn entries(&self) -> &[Entry] {
+        &self.0
     }
 }
 
-impl<'a> IntoIterator for &'a Attributes<'a> {
-    type Item = (&'a str, &'a str);
-    type IntoIter = AttributesIter<'a>;
+/// An error returned when raw attributes fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input attributes has an invalid entry.
+    InvalidEntry(entry::ParseError),
+}
 
-    fn into_iter(self) -> AttributesIter<'a> {
-        AttributesIter {
-            split: self.attrs.split(DELIMITER),
+impl From<Vec<Entry>> for Attributes {
+    fn from(entries: Vec<Entry>) -> Self {
+        Self(entries)
+    }
+}
+
+impl FromStr for Attributes {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Ok(Self::default());
         }
-    }
-}
 
-pub struct AttributesIter<'a> {
-    split: Split<'a, char>,
-}
-
-impl<'a> Iterator for AttributesIter<'a> {
-    type Item = (&'a str, &'a str);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.split.next().map(str::trim_start).and_then(|p| {
-            let mut pieces = p.splitn(2, ' ');
-
-            if let Some(key) = pieces.next() {
-                if let Some(value) = pieces.next() {
-                    return Some((key, trim_quotes(value)));
-                }
-            }
-
-            None
-        })
-    }
-}
-
-fn trim_quotes(s: &str) -> &str {
-    s.trim_matches('"')
-}
-
-#[cfg(test)]
-mod attributes_iter_tests {
-    use super::Attributes;
-
-    #[test]
-    fn test_next() {
-        let data = r#"gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";"#;
-        let attributes = Attributes::new(data);
-        let mut it = attributes.iter();
-
-        assert_eq!(it.next(), Some(("gene_id", "ENSG00000223972.5")));
-        assert_eq!(
-            it.next(),
-            Some(("gene_type", "transcribed_unprocessed_pseudogene"))
-        );
-        assert_eq!(it.next(), Some(("gene_name", "DDX11L1")));
-        assert_eq!(it.next(), Some(("level", "2")));
-        assert_eq!(it.next(), Some(("havana_gene", "OTTHUMG00000000961.2")));
-        assert_eq!(it.next(), None);
+        s.split(DELIMITER)
+            .map(|t| t.parse())
+            .collect::<Result<Vec<_>, _>>()
+            .map(Self::from)
+            .map_err(ParseError::InvalidEntry)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::trim_quotes;
+    use super::*;
 
     #[test]
-    fn test_trim_quotes() {
-        assert_eq!(trim_quotes("DDX11L1"), "DDX11L1");
-        assert_eq!(trim_quotes(r#""DDX11L1""#), "DDX11L1");
-        assert_eq!(trim_quotes(""), "");
+    fn test_from_str() -> Result<(), ParseError> {
+        let s = "gene_id=ndls0;gene_name=gene0";
+        let actual = s.parse::<Attributes>()?;
+        let expected = Attributes::from(vec![
+            Entry::new(String::from("gene_id"), String::from("ndls0")),
+            Entry::new(String::from("gene_name"), String::from("gene0")),
+        ]);
+        assert_eq!(actual, expected);
+
+        let s = "gene_id=ndls0";
+        let actual = s.parse::<Attributes>()?;
+        let expected = Attributes::from(vec![Entry::new(
+            String::from("gene_id"),
+            String::from("ndls0"),
+        )]);
+        assert_eq!(actual, expected);
+
+        let actual = "".parse::<Attributes>()?;
+        let expected = Attributes::default();
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
