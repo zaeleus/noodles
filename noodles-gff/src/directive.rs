@@ -1,6 +1,6 @@
 //! GFF directives.
 
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 pub(crate) const PREFIX: &str = "##";
 
@@ -30,12 +30,30 @@ pub enum Directive {
     StartOfFasta,
 }
 
+/// An error returned when a raw GFF directive fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The directive name is invalid.
     Invalid(String),
+    /// The directive prefix (`##`) is missing.
     MissingPrefix,
+    /// The directive name is missing.
     MissingName,
+    /// The directive value is missing.
     MissingValue,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid(s) => write!(f, "invalid directive name: {}", s),
+            Self::MissingPrefix => f.write_str("directive prefix is missing"),
+            Self::MissingName => f.write_str("directive name is missing"),
+            Self::MissingValue => f.write_str("directive value is missing"),
+        }
+    }
 }
 
 impl FromStr for Directive {
