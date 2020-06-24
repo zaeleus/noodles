@@ -66,6 +66,17 @@ impl FromStr for Strand {
     }
 }
 
+impl From<Strand> for char {
+    fn from(strand: Strand) -> Self {
+        match strand {
+            Strand::Forward => '+',
+            Strand::Reverse => '-',
+            Strand::Irrelevant => '.',
+            Strand::Unknown => '?',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,5 +108,13 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_strand_for_char() {
+        assert_eq!(char::from(Strand::Forward), '+');
+        assert_eq!(char::from(Strand::Reverse), '-');
+        assert_eq!(char::from(Strand::Irrelevant), '.');
+        assert_eq!(char::from(Strand::Unknown), '?');
     }
 }
