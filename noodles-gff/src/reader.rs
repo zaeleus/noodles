@@ -68,4 +68,35 @@ where
 
         String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
+
+    /// Reads a raw GFF record.
+    ///
+    /// This reads from the underlying stream until a newline is reached and appends it to the
+    /// given buffer, sans the final newline character.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; gene_name \"g0\"
+    /// ";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    ///
+    /// let mut buf = String::new();
+    /// reader.read_record(&mut buf)?;
+    /// assert_eq!(buf, "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; gene_name \"g0\"");
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
+        let result = self.inner.read_line(buf);
+        buf.pop();
+        result
+    }
 }
