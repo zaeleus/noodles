@@ -33,12 +33,12 @@ pub enum Directive {
 /// An error returned when a raw GFF directive fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The directive name is invalid.
-    Invalid(String),
     /// The directive prefix (`##`) is missing.
     MissingPrefix,
     /// The directive name is missing.
     MissingName,
+    /// The directive name is invalid.
+    InvalidName(String),
     /// The directive value is missing.
     MissingValue,
 }
@@ -48,9 +48,9 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Invalid(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingPrefix => f.write_str("directive prefix is missing"),
             Self::MissingName => f.write_str("directive name is missing"),
+            Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingValue => f.write_str("directive value is missing"),
         }
     }
@@ -99,7 +99,7 @@ impl FromStr for Directive {
                 .ok_or_else(|| ParseError::MissingValue),
             "#" => Ok(Self::ForwardReferencesAreResolved),
             "FASTA" => Ok(Self::StartOfFasta),
-            _ => Err(ParseError::Invalid(name.into())),
+            _ => Err(ParseError::InvalidName(name.into())),
         };
     }
 }
