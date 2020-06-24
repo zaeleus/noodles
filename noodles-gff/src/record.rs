@@ -46,7 +46,7 @@ impl Record {
         Self(inner)
     }
 
-    pub fn seq_name(&self) -> self::Result<&str> {
+    pub fn reference_sequence_name(&self) -> self::Result<&str> {
         self.parse(Header::SeqName)
     }
 
@@ -153,15 +153,15 @@ mod tests {
     }
 
     #[test]
-    fn test_seq_name() {
+    fn test_reference_sequence_name() {
         let r = build_string_record();
         let record = Record::new(r);
-        assert_eq!(record.seq_name(), Ok("chr1"));
+        assert_eq!(record.reference_sequence_name(), Ok("chr1"));
 
         let r = build_empty_string_record();
         let record = Record::new(r);
         let err = Error::Empty(Header::SeqName);
-        assert_eq!(record.seq_name(), Err(err));
+        assert_eq!(record.reference_sequence_name(), Err(err));
     }
 
     #[test]
