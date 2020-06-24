@@ -2,7 +2,7 @@
 
 use std::str::FromStr;
 
-const PREFIX: &str = "##";
+pub(crate) const PREFIX: &str = "##";
 
 /// A GFF directive.
 ///
