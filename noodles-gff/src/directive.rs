@@ -30,6 +30,7 @@ pub enum Directive {
     StartOfFasta,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     Invalid(String),
     MissingPrefix,
