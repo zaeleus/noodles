@@ -8,6 +8,17 @@ pub enum Strand {
     Unknown,
 }
 
+impl AsRef<str> for Strand {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Forward => "+",
+            Self::Reverse => "-",
+            Self::Irrelevant => ".",
+            Self::Unknown => "?",
+        }
+    }
+}
+
 impl Default for Strand {
     fn default() -> Self {
         Self::Irrelevant
@@ -16,14 +27,7 @@ impl Default for Strand {
 
 impl fmt::Display for Strand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Self::Forward => '+',
-            Self::Reverse => '-',
-            Self::Irrelevant => '.',
-            Self::Unknown => '?',
-        };
-
-        write!(f, "{}", s)
+        f.write_str(self.as_ref())
     }
 }
 
@@ -62,11 +66,11 @@ mod tests {
     }
 
     #[test]
-    fn test_display() {
-        assert_eq!(format!("{}", Strand::Forward), "+");
-        assert_eq!(format!("{}", Strand::Reverse), "-");
-        assert_eq!(format!("{}", Strand::Irrelevant), ".");
-        assert_eq!(format!("{}", Strand::Unknown), "?");
+    fn test_fmt() {
+        assert_eq!(Strand::Forward.to_string(), "+");
+        assert_eq!(Strand::Reverse.to_string(), "-");
+        assert_eq!(Strand::Irrelevant.to_string(), ".");
+        assert_eq!(Strand::Unknown.to_string(), "?");
     }
 
     #[test]
