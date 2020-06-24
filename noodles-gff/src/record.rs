@@ -17,7 +17,7 @@ pub struct Record {
     start: i32,
     end: i32,
     score: Option<f32>,
-    strand: String,
+    strand: Strand,
     frame: Option<String>,
     attributes: Option<String>,
 }
@@ -47,8 +47,8 @@ impl Record {
         self.score
     }
 
-    pub fn strand(&self) -> &str {
-        &self.strand
+    pub fn strand(&self) -> Strand {
+        self.strand
     }
 
     pub fn frame(&self) -> Option<&str> {
@@ -75,6 +75,8 @@ pub enum ParseError {
     InvalidEnd(num::ParseIntError),
     /// The score is invalid.
     InvalidScore(num::ParseFloatError),
+    /// The strand is invalid.
+    InvalidStrand(strand::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -110,7 +112,9 @@ impl FromStr for Record {
             }
         })?;
 
-        let strand = parse_string(&mut fields, Field::Strand).map(|s| s.into())?;
+        let strand = parse_string(&mut fields, Field::Strand)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidStrand))?;
+
         let frame = parse_string(&mut fields, Field::Frame).map(|s| {
             if s == NULL_FIELD {
                 None
@@ -157,7 +161,7 @@ mod tests {
         assert_eq!(record.start(), 8);
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), None);
-        assert_eq!(record.strand(), "+");
+        assert_eq!(record.strand(), Strand::Forward);
         assert_eq!(record.frame(), None);
         assert_eq!(
             record.attributes(),
