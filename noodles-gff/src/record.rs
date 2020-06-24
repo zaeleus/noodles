@@ -1,28 +1,16 @@
 mod attributes;
+mod field;
 mod strand;
 
-pub use self::{attributes::Attributes, strand::Strand};
+pub use self::{attributes::Attributes, field::Field, strand::Strand};
 
 use std::{error, fmt};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Header {
-    SeqName,
-    Source,
-    Feature,
-    Start,
-    End,
-    Score,
-    Strand,
-    Frame,
-    Attributes,
-}
-
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {
-    Missing(Header),
-    Empty(Header),
-    Parse(Header, String),
+    Missing(Field),
+    Empty(Field),
+    Parse(Field, String),
 }
 
 impl error::Error for Error {}
