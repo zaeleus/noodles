@@ -10,6 +10,7 @@ const NULL_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 9;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     reference_sequence_name: String,
     source: String,
