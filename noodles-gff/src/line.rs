@@ -1,6 +1,6 @@
 //! GFF lines.
 
-use std::str::FromStr;
+use std::{error, fmt, str::FromStr};
 
 use super::{directive, record, Directive, Record};
 
@@ -22,6 +22,17 @@ pub enum ParseError {
     InvalidDirective(directive::ParseError),
     /// The record is invalid.
     InvalidRecord(record::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidDirective(e) => write!(f, "{}", e),
+            Self::InvalidRecord(e) => write!(f, "{}", e),
+        }
+    }
 }
 
 impl FromStr for Line {
