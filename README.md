@@ -4,7 +4,7 @@
 
 **noodles** is a library for handling various bioinformatics file formats. It
 currently includes readers (and some writers) for BAM, BGZF, CRAM 3.0, FASTA,
-FASTQ, GFF/GTFv2, SAM, and VCF 4.3.
+FASTQ, GFF3, SAM, and VCF 4.3.
 
 Notably, the BAM and CRAM parsers are pure Rust implementations.
 
