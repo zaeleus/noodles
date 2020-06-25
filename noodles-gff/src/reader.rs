@@ -16,6 +16,27 @@ where
         Self { inner }
     }
 
+    /// Unwraps and returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"##gff-version 3
+    /// #format: gff3
+    /// ";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    /// reader.read_line(&mut String::new())?;
+    ///
+    /// assert_eq!(reader.into_inner(), b"#format: gff3\n");
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads a raw GFF line.
     ///
     /// This reads from the underlying stream until a newline is reached and appends it to the
