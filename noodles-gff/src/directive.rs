@@ -68,7 +68,7 @@ impl FromStr for Directive {
 
         let name = components.next().ok_or_else(|| ParseError::MissingName)?;
 
-        return match name {
+        match name {
             "gff-version" => components
                 .next()
                 .map(|s| Self::GffVersion(s.into()))
@@ -100,6 +100,6 @@ impl FromStr for Directive {
             "#" => Ok(Self::ForwardReferencesAreResolved),
             "FASTA" => Ok(Self::StartOfFasta),
             _ => Err(ParseError::InvalidName(name.into())),
-        };
+        }
     }
 }
