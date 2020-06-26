@@ -1,6 +1,7 @@
 mod lines;
+mod records;
 
-pub use self::lines::Lines;
+pub use self::{lines::Lines, records::Records};
 
 use std::io::{self, BufRead};
 
@@ -73,7 +74,7 @@ where
         result
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns an iterator over lines starting from the current stream position.
     ///
     /// This stops at either EOF or when the `FASTA` directive is read, whichever comes first.
     ///
@@ -105,6 +106,31 @@ where
     /// ```
     pub fn lines(&mut self) -> Lines<R> {
         Lines::new(self)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// This filters lines for only records. It stops at either EOF or when the `FASTA` directive
+    /// is read, whichever comes first.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"##gff-version 3
+    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
+    /// ";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    /// let mut records = reader.records();
+    ///
+    /// assert!(records.next().transpose()?.is_some());
+    /// assert!(records.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> Records<R> {
+        Records::new(self.lines())
     }
 }
 
