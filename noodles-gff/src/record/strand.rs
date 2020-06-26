@@ -2,18 +2,18 @@ use std::{error, fmt, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Strand {
+    None,
     Forward,
     Reverse,
-    Irrelevant,
     Unknown,
 }
 
 impl AsRef<str> for Strand {
     fn as_ref(&self) -> &str {
         match self {
+            Self::None => ".",
             Self::Forward => "+",
             Self::Reverse => "-",
-            Self::Irrelevant => ".",
             Self::Unknown => "?",
         }
     }
@@ -21,7 +21,7 @@ impl AsRef<str> for Strand {
 
 impl Default for Strand {
     fn default() -> Self {
-        Self::Irrelevant
+        Self::None
     }
 }
 
@@ -46,7 +46,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("strand cannot be empty"),
-            Self::Invalid(s) => write!(f, "expected {{+, -, ., ?}}, got {}", s),
+            Self::Invalid(s) => write!(f, "expected {{., +, -, ?}}, got {}", s),
         }
     }
 }
@@ -57,9 +57,9 @@ impl FromStr for Strand {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
+            "." => Ok(Self::None),
             "+" => Ok(Self::Forward),
             "-" => Ok(Self::Reverse),
-            "." => Ok(Self::Irrelevant),
             "?" => Ok(Self::Unknown),
             _ => Err(ParseError::Invalid(s.into())),
         }
@@ -69,9 +69,9 @@ impl FromStr for Strand {
 impl From<Strand> for char {
     fn from(strand: Strand) -> Self {
         match strand {
+            Strand::None => '.',
             Strand::Forward => '+',
             Strand::Reverse => '-',
-            Strand::Irrelevant => '.',
             Strand::Unknown => '?',
         }
     }
@@ -83,22 +83,22 @@ mod tests {
 
     #[test]
     fn test_default() {
-        assert_eq!(Strand::default(), Strand::Irrelevant);
+        assert_eq!(Strand::default(), Strand::None);
     }
 
     #[test]
     fn test_fmt() {
+        assert_eq!(Strand::None.to_string(), ".");
         assert_eq!(Strand::Forward.to_string(), "+");
         assert_eq!(Strand::Reverse.to_string(), "-");
-        assert_eq!(Strand::Irrelevant.to_string(), ".");
         assert_eq!(Strand::Unknown.to_string(), "?");
     }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!(".".parse::<Strand>()?, Strand::None);
         assert_eq!("+".parse::<Strand>()?, Strand::Forward);
         assert_eq!("-".parse::<Strand>()?, Strand::Reverse);
-        assert_eq!(".".parse::<Strand>()?, Strand::Irrelevant);
         assert_eq!("?".parse::<Strand>()?, Strand::Unknown);
 
         assert_eq!("".parse::<Strand>(), Err(ParseError::Empty));
@@ -112,9 +112,9 @@ mod tests {
 
     #[test]
     fn test_from_strand_for_char() {
+        assert_eq!(char::from(Strand::None), '.');
         assert_eq!(char::from(Strand::Forward), '+');
         assert_eq!(char::from(Strand::Reverse), '-');
-        assert_eq!(char::from(Strand::Irrelevant), '.');
         assert_eq!(char::from(Strand::Unknown), '?');
     }
 }
