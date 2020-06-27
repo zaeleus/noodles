@@ -1,3 +1,5 @@
+//! GFF reader and iterators.
+
 mod lines;
 mod records;
 
@@ -5,6 +7,7 @@ pub use self::{lines::Lines, records::Records};
 
 use std::io::{self, BufRead};
 
+/// A GFF reader.
 pub struct Reader<R> {
     inner: R,
 }
@@ -13,6 +16,15 @@ impl<R> Reader<R>
 where
     R: BufRead,
 {
+    /// Creates a GFF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let data = b"##gff-version 3\n";
+    /// let mut reader = gff::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
