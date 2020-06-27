@@ -79,6 +79,12 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        Builder::new().build()
+    }
+}
+
 /// An error returned when a raw GFF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
