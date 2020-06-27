@@ -15,8 +15,8 @@ pub enum Field {
     Score,
     /// The strand.
     Strand,
-    /// The frame.
-    Frame,
+    /// The phase.
+    Phase,
     /// The attributes.
     Attributes,
 }

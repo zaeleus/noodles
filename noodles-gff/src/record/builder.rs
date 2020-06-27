@@ -10,7 +10,7 @@ pub struct Builder {
     end: i32,
     score: Option<f32>,
     strand: Strand,
-    frame: Option<String>,
+    phase: Option<String>,
     attributes: Attributes,
 }
 
@@ -146,7 +146,7 @@ impl Builder {
         self
     }
 
-    /// Sets a GFF record frame.
+    /// Sets a GFF record phase.
     ///
     /// # Examples
     ///
@@ -154,13 +154,13 @@ impl Builder {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::Record::builder()
-    ///     .set_frame(String::from("0"))
+    ///     .set_phase(String::from("0"))
     ///     .build();
     ///
-    /// assert_eq!(record.frame(), Some("0"));
+    /// assert_eq!(record.phase(), Some("0"));
     /// ```
-    pub fn set_frame(mut self, frame: String) -> Self {
-        self.frame = Some(frame);
+    pub fn set_phase(mut self, phase: String) -> Self {
+        self.phase = Some(phase);
         self
     }
 
@@ -206,7 +206,7 @@ impl Builder {
             end: self.end,
             score: self.score,
             strand: self.strand,
-            frame: self.frame,
+            phase: self.phase,
             attributes: self.attributes,
         }
     }
@@ -222,7 +222,7 @@ impl Default for Builder {
             end: 1,
             score: None,
             strand: Strand::default(),
-            frame: None,
+            phase: None,
             attributes: Attributes::default(),
         }
     }
@@ -245,7 +245,7 @@ mod tests {
         assert_eq!(record.end(), 1);
         assert!(record.score().is_none());
         assert_eq!(record.strand(), Strand::default());
-        assert!(record.frame().is_none());
+        assert!(record.phase().is_none());
         assert!(record.attributes().entries().is_empty());
     }
 
@@ -264,7 +264,7 @@ mod tests {
             .set_end(13)
             .set_score(21.0)
             .set_strand(Strand::Forward)
-            .set_frame(String::from("0"))
+            .set_phase(String::from("0"))
             .set_attributes(attributes.clone())
             .build();
 
@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), Some(21.0));
         assert_eq!(record.strand(), Strand::Forward);
-        assert_eq!(record.frame(), Some("0"));
+        assert_eq!(record.phase(), Some("0"));
         assert_eq!(record.attributes(), &attributes);
     }
 }

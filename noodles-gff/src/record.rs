@@ -23,7 +23,7 @@ pub struct Record {
     end: i32,
     score: Option<f32>,
     strand: Strand,
-    frame: Option<String>,
+    phase: Option<String>,
     attributes: Attributes,
 }
 
@@ -136,17 +136,17 @@ impl Record {
         self.strand
     }
 
-    /// Returns the frame of the record.
+    /// Returns the phase of the record.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_gff as gff;
     /// let record = gff::Record::default();
-    /// assert!(record.frame().is_none());
+    /// assert!(record.phase().is_none());
     /// ```
-    pub fn frame(&self) -> Option<&str> {
-        self.frame.as_deref()
+    pub fn phase(&self) -> Option<&str> {
+        self.phase.as_deref()
     }
 
     /// Returns the attributes of the record.
@@ -226,7 +226,7 @@ impl FromStr for Record {
         let strand = parse_string(&mut fields, Field::Strand)
             .and_then(|s| s.parse().map_err(ParseError::InvalidStrand))?;
 
-        let frame = parse_string(&mut fields, Field::Frame).map(|s| {
+        let phase = parse_string(&mut fields, Field::Phase).map(|s| {
             if s == NULL_FIELD {
                 None
             } else {
@@ -247,7 +247,7 @@ impl FromStr for Record {
             end,
             score,
             strand,
-            frame,
+            phase,
             attributes,
         })
     }
@@ -276,7 +276,7 @@ mod tests {
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), None);
         assert_eq!(record.strand(), Strand::Forward);
-        assert_eq!(record.frame(), None);
+        assert_eq!(record.phase(), None);
 
         assert_eq!(
             record.attributes(),
