@@ -1,3 +1,5 @@
+//! GFF record and fields.
+
 pub mod attributes;
 mod builder;
 mod field;
@@ -11,6 +13,7 @@ const NULL_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 9;
 
+/// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     reference_sequence_name: String,
@@ -42,38 +45,119 @@ impl Record {
         Builder::new()
     }
 
+    /// Returns the reference sequence name of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.reference_sequence_name(), ".");
+    /// ```
     pub fn reference_sequence_name(&self) -> &str {
         &self.reference_sequence_name
     }
 
+    /// Returns the source of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.source(), ".");
+    /// ```
     pub fn source(&self) -> &str {
         &self.source
     }
 
+    /// Returns the feature type of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.feature(), ".");
+    /// ```
     pub fn feature(&self) -> &str {
         &self.feature
     }
 
+    /// Returns the start position of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.start(), 1);
+    /// ```
     pub fn start(&self) -> i32 {
         self.start
     }
 
+    /// Returns the end position of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.end(), 1);
+    /// ```
     pub fn end(&self) -> i32 {
         self.end
     }
 
+    /// Returns the score of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert!(record.score().is_none());
+    /// ```
     pub fn score(&self) -> Option<f32> {
         self.score
     }
 
+    /// Returns the strand of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff::{self as gff, record::Strand};
+    /// let record = gff::Record::default();
+    /// assert_eq!(record.strand(), Strand::None);
+    /// ```
     pub fn strand(&self) -> Strand {
         self.strand
     }
 
+    /// Returns the frame of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert!(record.frame().is_none());
+    /// ```
     pub fn frame(&self) -> Option<&str> {
         self.frame.as_deref()
     }
 
+    /// Returns the attributes of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    /// let record = gff::Record::default();
+    /// assert!(record.attributes().entries().is_empty());
+    /// ```
     pub fn attributes(&self) -> &Attributes {
         &self.attributes
     }

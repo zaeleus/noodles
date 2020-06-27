@@ -1,10 +1,15 @@
 use std::{error, fmt, str::FromStr};
 
+/// A GFF record strand.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum Strand {
+    /// Unstranded (`.`).
     None,
+    /// Forward strand (`+`).
     Forward,
+    /// Reverse strand (`-`).
     Reverse,
+    /// Strandedness is relevant but unknown (`?`).
     Unknown,
 }
 

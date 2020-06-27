@@ -51,10 +51,14 @@ impl Entry {
     }
 }
 
+/// An error returned when a raw GFF record attribute entry fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The entry key is missing.
     MissingKey,
+    /// The entry value is missing.
     MissingValue,
 }
 
