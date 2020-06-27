@@ -1,8 +1,9 @@
 pub mod attributes;
+mod builder;
 mod field;
 mod strand;
 
-pub use self::{attributes::Attributes, field::Field, strand::Strand};
+pub use self::{attributes::Attributes, builder::Builder, field::Field, strand::Strand};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -24,6 +25,23 @@ pub struct Record {
 }
 
 impl Record {
+    /// Returns a builder to create a record from each of its fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    ///
+    /// let record = gff::Record::builder()
+    ///     .set_reference_sequence_name(String::from("sq0"))
+    ///     .build();
+    ///
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
     pub fn reference_sequence_name(&self) -> &str {
         &self.reference_sequence_name
     }
