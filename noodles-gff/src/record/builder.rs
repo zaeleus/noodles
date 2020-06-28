@@ -242,7 +242,7 @@ mod tests {
         assert!(record.score().is_none());
         assert_eq!(record.strand(), Strand::default());
         assert!(record.phase().is_none());
-        assert!(record.attributes().entries().is_empty());
+        assert!(record.attributes().is_empty());
     }
 
     #[test]

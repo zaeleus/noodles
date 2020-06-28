@@ -159,7 +159,7 @@ impl Record {
     /// ```
     /// use noodles_gff as gff;
     /// let record = gff::Record::default();
-    /// assert!(record.attributes().entries().is_empty());
+    /// assert!(record.attributes().is_empty());
     /// ```
     pub fn attributes(&self) -> &Attributes {
         &self.attributes

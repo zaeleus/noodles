@@ -4,7 +4,7 @@ pub mod entry;
 
 pub use self::entry::Entry;
 
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 
 const DELIMITER: char = ';';
 
@@ -12,21 +12,10 @@ const DELIMITER: char = ';';
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Attributes(Vec<Entry>);
 
-impl Attributes {
-    /// Returns the attribute entries.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_gff::record::{attributes::Entry, Attributes};
-    ///
-    /// let attributes = Attributes::from(vec![
-    ///     Entry::new(String::from("gene_name"), String::from("gene0")),
-    /// ]);
-    ///
-    /// assert_eq!(attributes.entries().len(), 1);
-    /// ```
-    pub fn entries(&self) -> &[Entry] {
+impl Deref for Attributes {
+    type Target = [Entry];
+
+    fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
