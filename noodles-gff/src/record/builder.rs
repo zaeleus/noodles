@@ -5,7 +5,7 @@ use super::{Attributes, Phase, Record, Strand, NULL_FIELD};
 pub struct Builder {
     reference_sequence_name: String,
     source: String,
-    feature: String,
+    ty: String,
     start: i32,
     end: i32,
     score: Option<f32>,
@@ -68,7 +68,7 @@ impl Builder {
         self
     }
 
-    /// Sets a GFF record feature.
+    /// Sets a GFF record feature type.
     ///
     /// # Examples
     ///
@@ -76,13 +76,13 @@ impl Builder {
     /// use noodles_gff as gff;
     ///
     /// let record = gff::Record::builder()
-    ///     .set_feature(String::from("gene"))
+    ///     .set_type(String::from("gene"))
     ///     .build();
     ///
-    /// assert_eq!(record.feature(), "gene");
+    /// assert_eq!(record.ty(), "gene");
     /// ```
-    pub fn set_feature(mut self, feature: String) -> Self {
-        self.feature = feature;
+    pub fn set_type(mut self, ty: String) -> Self {
+        self.ty = ty;
         self
     }
 
@@ -197,7 +197,7 @@ impl Builder {
         Record {
             reference_sequence_name: self.reference_sequence_name,
             source: self.source,
-            feature: self.feature,
+            ty: self.ty,
             start: self.start,
             end: self.end,
             score: self.score,
@@ -213,7 +213,7 @@ impl Default for Builder {
         Builder {
             reference_sequence_name: NULL_FIELD.into(),
             source: NULL_FIELD.into(),
-            feature: NULL_FIELD.into(),
+            ty: NULL_FIELD.into(),
             start: 1,
             end: 1,
             score: None,
@@ -236,7 +236,7 @@ mod tests {
 
         assert_eq!(record.reference_sequence_name(), ".");
         assert_eq!(record.source(), ".");
-        assert_eq!(record.feature(), ".");
+        assert_eq!(record.ty(), ".");
         assert_eq!(record.start(), 1);
         assert_eq!(record.end(), 1);
         assert!(record.score().is_none());
@@ -255,7 +255,7 @@ mod tests {
         let record = Builder::new()
             .set_reference_sequence_name(String::from("sq0"))
             .set_source(String::from("NOODLES"))
-            .set_feature(String::from("CDS"))
+            .set_type(String::from("CDS"))
             .set_start(8)
             .set_end(13)
             .set_score(21.0)
@@ -266,7 +266,7 @@ mod tests {
 
         assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.source(), "NOODLES");
-        assert_eq!(record.feature(), "CDS");
+        assert_eq!(record.ty(), "CDS");
         assert_eq!(record.start(), 8);
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), Some(21.0));

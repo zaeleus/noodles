@@ -21,7 +21,7 @@ const MAX_FIELDS: usize = 9;
 pub struct Record {
     reference_sequence_name: String,
     source: String,
-    feature: String,
+    ty: String,
     start: i32,
     end: i32,
     score: Option<f32>,
@@ -81,10 +81,10 @@ impl Record {
     /// ```
     /// use noodles_gff as gff;
     /// let record = gff::Record::default();
-    /// assert_eq!(record.feature(), ".");
+    /// assert_eq!(record.ty(), ".");
     /// ```
-    pub fn feature(&self) -> &str {
-        &self.feature
+    pub fn ty(&self) -> &str {
+        &self.ty
     }
 
     /// Returns the start position of the record.
@@ -212,7 +212,7 @@ impl FromStr for Record {
         let reference_sequence_name =
             parse_string(&mut fields, Field::ReferenceSequenceName).map(|s| s.into())?;
         let source = parse_string(&mut fields, Field::Source).map(|s| s.into())?;
-        let feature = parse_string(&mut fields, Field::Feature).map(|s| s.into())?;
+        let ty = parse_string(&mut fields, Field::Type).map(|s| s.into())?;
 
         let start = parse_string(&mut fields, Field::Start)
             .and_then(|s| s.parse().map_err(ParseError::InvalidStart))?;
@@ -247,7 +247,7 @@ impl FromStr for Record {
         Ok(Record {
             reference_sequence_name,
             source,
-            feature,
+            ty,
             start,
             end,
             score,
@@ -276,7 +276,7 @@ mod tests {
 
         assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.source(), "NOODLES");
-        assert_eq!(record.feature(), "gene");
+        assert_eq!(record.ty(), "gene");
         assert_eq!(record.start(), 8);
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), None);

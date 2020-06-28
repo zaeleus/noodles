@@ -6,7 +6,7 @@ pub enum Field {
     /// The source.
     Source,
     /// The feature type.
-    Feature,
+    Type,
     /// The start position.
     Start,
     /// The end position.
