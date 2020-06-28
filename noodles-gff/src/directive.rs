@@ -30,6 +30,22 @@ pub enum Directive {
     StartOfFasta,
 }
 
+impl fmt::Display for Directive {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::GffVersion(version) => write!(f, "{}gff-version {}", PREFIX, version),
+            Self::SequenceRegion(args) => write!(f, "{}sequence-region {}", PREFIX, args),
+            Self::FeatureOntology(uri) => write!(f, "{}feature-ontology {}", PREFIX, uri),
+            Self::AttributeOntology(uri) => write!(f, "{}attribute-ontology {}", PREFIX, uri),
+            Self::SourceOntology(uri) => write!(f, "{}source-ontology {}", PREFIX, uri),
+            Self::Species(uri) => write!(f, "{}species {}", PREFIX, uri),
+            Self::GenomeBuild(args) => write!(f, "{}genome-build {}", PREFIX, args),
+            Self::ForwardReferencesAreResolved => write!(f, "{}#", PREFIX),
+            Self::StartOfFasta => write!(f, "{}FASTA", PREFIX),
+        }
+    }
+}
+
 /// An error returned when a raw GFF directive fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -101,5 +117,51 @@ impl FromStr for Directive {
             "FASTA" => Ok(Self::StartOfFasta),
             _ => Err(ParseError::InvalidName(name.into())),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(
+            Directive::GffVersion(String::from("3")).to_string(),
+            "##gff-version 3"
+        );
+
+        assert_eq!(
+            Directive::SequenceRegion(String::from("sq0 8 13")).to_string(),
+            "##sequence-region sq0 8 13"
+        );
+
+        assert_eq!(
+            Directive::FeatureOntology(String::from("https://example.com/fo.obo")).to_string(),
+            "##feature-ontology https://example.com/fo.obo"
+        );
+
+        assert_eq!(
+            Directive::AttributeOntology(String::from("https://example.com/ao.obo")).to_string(),
+            "##attribute-ontology https://example.com/ao.obo"
+        );
+
+        assert_eq!(
+            Directive::SourceOntology(String::from("https://example.com/so.obo")).to_string(),
+            "##source-ontology https://example.com/so.obo"
+        );
+
+        assert_eq!(
+            Directive::Species(String::from("https://example.com/species?id=1")).to_string(),
+            "##species https://example.com/species?id=1"
+        );
+
+        assert_eq!(
+            Directive::GenomeBuild(String::from("NCBI GRCh38.p13")).to_string(),
+            "##genome-build NCBI GRCh38.p13"
+        );
+
+        assert_eq!(Directive::ForwardReferencesAreResolved.to_string(), "###");
+        assert_eq!(Directive::StartOfFasta.to_string(), "##FASTA");
     }
 }
