@@ -1,5 +1,9 @@
 //! GFF directives.
 
+pub mod sequence_region;
+
+pub use self::sequence_region::SequenceRegion;
+
 use std::{error, fmt, str::FromStr};
 
 pub(crate) const PREFIX: &str = "##";
@@ -12,7 +16,7 @@ pub enum Directive {
     /// The GFF version (`gff-version`).
     GffVersion(String),
     /// A reference to a sequence segment (`sequence-region`).
-    SequenceRegion(String),
+    SequenceRegion(SequenceRegion),
     /// The ontology used for the feature types (`feature-ontology`).
     FeatureOntology(String),
     /// The ontology used for the attributes (`attribute-ontology`).
@@ -34,7 +38,7 @@ impl fmt::Display for Directive {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::GffVersion(version) => write!(f, "{}gff-version {}", PREFIX, version),
-            Self::SequenceRegion(args) => write!(f, "{}sequence-region {}", PREFIX, args),
+            Self::SequenceRegion(sequence_region) => write!(f, "{}", sequence_region),
             Self::FeatureOntology(uri) => write!(f, "{}feature-ontology {}", PREFIX, uri),
             Self::AttributeOntology(uri) => write!(f, "{}attribute-ontology {}", PREFIX, uri),
             Self::SourceOntology(uri) => write!(f, "{}source-ontology {}", PREFIX, uri),
@@ -57,6 +61,8 @@ pub enum ParseError {
     InvalidName(String),
     /// The directive value is missing.
     MissingValue,
+    /// A sequence region is invalid.
+    InvalidSequenceRegion(sequence_region::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -68,6 +74,7 @@ impl fmt::Display for ParseError {
             Self::MissingName => f.write_str("directive name is missing"),
             Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingValue => f.write_str("directive value is missing"),
+            Self::InvalidSequenceRegion(e) => write!(f, "{}", e),
         }
     }
 }
@@ -91,8 +98,9 @@ impl FromStr for Directive {
                 .ok_or_else(|| ParseError::MissingValue),
             "sequence-region" => components
                 .next()
-                .map(|s| Self::SequenceRegion(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or_else(|| ParseError::MissingValue)
+                .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
+                .map(Self::SequenceRegion),
             "feature-ontology" => components
                 .next()
                 .map(|s| Self::FeatureOntology(s.into()))
@@ -131,10 +139,8 @@ mod tests {
             "##gff-version 3"
         );
 
-        assert_eq!(
-            Directive::SequenceRegion(String::from("sq0 8 13")).to_string(),
-            "##sequence-region sq0 8 13"
-        );
+        let directive = Directive::SequenceRegion(SequenceRegion::new(String::from("sq0"), 8, 13));
+        assert_eq!(directive.to_string(), "##sequence-region sq0 8 13");
 
         assert_eq!(
             Directive::FeatureOntology(String::from("https://example.com/fo.obo")).to_string(),
