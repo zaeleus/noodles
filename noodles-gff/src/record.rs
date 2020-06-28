@@ -3,9 +3,12 @@
 pub mod attributes;
 mod builder;
 mod field;
+mod phase;
 mod strand;
 
-pub use self::{attributes::Attributes, builder::Builder, field::Field, strand::Strand};
+pub use self::{
+    attributes::Attributes, builder::Builder, field::Field, phase::Phase, strand::Strand,
+};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -23,7 +26,7 @@ pub struct Record {
     end: i32,
     score: Option<f32>,
     strand: Strand,
-    phase: Option<String>,
+    phase: Option<Phase>,
     attributes: Attributes,
 }
 
@@ -145,8 +148,8 @@ impl Record {
     /// let record = gff::Record::default();
     /// assert!(record.phase().is_none());
     /// ```
-    pub fn phase(&self) -> Option<&str> {
-        self.phase.as_deref()
+    pub fn phase(&self) -> Option<Phase> {
+        self.phase
     }
 
     /// Returns the attributes of the record.
@@ -186,6 +189,8 @@ pub enum ParseError {
     InvalidScore(num::ParseFloatError),
     /// The strand is invalid.
     InvalidStrand(strand::ParseError),
+    /// The phase is invalid.
+    InvalidPhase(phase::ParseError),
     /// The attributes are invalid.
     InvalidAttributes(attributes::ParseError),
 }
@@ -226,11 +231,11 @@ impl FromStr for Record {
         let strand = parse_string(&mut fields, Field::Strand)
             .and_then(|s| s.parse().map_err(ParseError::InvalidStrand))?;
 
-        let phase = parse_string(&mut fields, Field::Phase).map(|s| {
+        let phase = parse_string(&mut fields, Field::Phase).and_then(|s| {
             if s == NULL_FIELD {
-                None
+                Ok(None)
             } else {
-                Some(s.into())
+                s.parse().map(Some).map_err(ParseError::InvalidPhase)
             }
         })?;
 

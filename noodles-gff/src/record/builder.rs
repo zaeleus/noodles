@@ -1,4 +1,4 @@
-use super::{Attributes, Record, Strand, NULL_FIELD};
+use super::{Attributes, Phase, Record, Strand, NULL_FIELD};
 
 /// A GFF record builder.
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub struct Builder {
     end: i32,
     score: Option<f32>,
     strand: Strand,
-    phase: Option<String>,
+    phase: Option<Phase>,
     attributes: Attributes,
 }
 
@@ -151,15 +151,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff as gff;
-    ///
-    /// let record = gff::Record::builder()
-    ///     .set_phase(String::from("0"))
-    ///     .build();
-    ///
-    /// assert_eq!(record.phase(), Some("0"));
+    /// use noodles_gff::{self as gff, record::Phase};
+    /// let record = gff::Record::builder().set_phase(Phase::Zero).build();
+    /// assert_eq!(record.phase(), Some(Phase::Zero));
     /// ```
-    pub fn set_phase(mut self, phase: String) -> Self {
+    pub fn set_phase(mut self, phase: Phase) -> Self {
         self.phase = Some(phase);
         self
     }
@@ -264,7 +260,7 @@ mod tests {
             .set_end(13)
             .set_score(21.0)
             .set_strand(Strand::Forward)
-            .set_phase(String::from("0"))
+            .set_phase(Phase::Zero)
             .set_attributes(attributes.clone())
             .build();
 
@@ -275,7 +271,7 @@ mod tests {
         assert_eq!(record.end(), 13);
         assert_eq!(record.score(), Some(21.0));
         assert_eq!(record.strand(), Strand::Forward);
-        assert_eq!(record.phase(), Some("0"));
+        assert_eq!(record.phase(), Some(Phase::Zero));
         assert_eq!(record.attributes(), &attributes);
     }
 }
