@@ -1,8 +1,9 @@
 //! GFF directives.
 
+pub mod genome_build;
 pub mod sequence_region;
 
-pub use self::sequence_region::SequenceRegion;
+pub use self::{genome_build::GenomeBuild, sequence_region::SequenceRegion};
 
 use std::{error, fmt, str::FromStr};
 
@@ -26,7 +27,7 @@ pub enum Directive {
     /// The species the annotations apply to (`species`).
     Species(String),
     /// The genome build used for the start and end positions (`genome-build`).
-    GenomeBuild(String),
+    GenomeBuild(GenomeBuild),
     /// A marker indicating that all forward references to feature IDs have been resolved (`#`).
     ForwardReferencesAreResolved,
     /// A marker indicating the end of the records list and start of a bundled reference sequences
@@ -43,7 +44,7 @@ impl fmt::Display for Directive {
             Self::AttributeOntology(uri) => write!(f, "{}attribute-ontology {}", PREFIX, uri),
             Self::SourceOntology(uri) => write!(f, "{}source-ontology {}", PREFIX, uri),
             Self::Species(uri) => write!(f, "{}species {}", PREFIX, uri),
-            Self::GenomeBuild(args) => write!(f, "{}genome-build {}", PREFIX, args),
+            Self::GenomeBuild(genome_build) => write!(f, "{}", genome_build),
             Self::ForwardReferencesAreResolved => write!(f, "{}#", PREFIX),
             Self::StartOfFasta => write!(f, "{}FASTA", PREFIX),
         }
@@ -63,6 +64,8 @@ pub enum ParseError {
     MissingValue,
     /// A sequence region is invalid.
     InvalidSequenceRegion(sequence_region::ParseError),
+    /// A genome build is invalid.
+    InvalidGenomeBuild(genome_build::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -75,6 +78,7 @@ impl fmt::Display for ParseError {
             Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingValue => f.write_str("directive value is missing"),
             Self::InvalidSequenceRegion(e) => write!(f, "{}", e),
+            Self::InvalidGenomeBuild(e) => write!(f, "{}", e),
         }
     }
 }
@@ -119,8 +123,9 @@ impl FromStr for Directive {
                 .ok_or_else(|| ParseError::MissingValue),
             "genome-build" => components
                 .next()
-                .map(|s| Self::GenomeBuild(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or_else(|| ParseError::MissingValue)
+                .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
+                .map(Self::GenomeBuild),
             "#" => Ok(Self::ForwardReferencesAreResolved),
             "FASTA" => Ok(Self::StartOfFasta),
             _ => Err(ParseError::InvalidName(name.into())),
@@ -162,10 +167,9 @@ mod tests {
             "##species https://example.com/species?id=1"
         );
 
-        assert_eq!(
-            Directive::GenomeBuild(String::from("NCBI GRCh38.p13")).to_string(),
-            "##genome-build NCBI GRCh38.p13"
-        );
+        let directive =
+            Directive::GenomeBuild(GenomeBuild::new(String::from("NDLS"), String::from("r1")));
+        assert_eq!(directive.to_string(), "##genome-build NDLS r1");
 
         assert_eq!(Directive::ForwardReferencesAreResolved.to_string(), "###");
         assert_eq!(Directive::StartOfFasta.to_string(), "##FASTA");
