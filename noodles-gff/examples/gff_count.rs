@@ -1,4 +1,6 @@
 //! Counts the number of records in a GFF file.
+//!
+//! The result matches the output of `grep --invert-match '^#' <src> | wc -l`.
 
 use std::{
     env,
