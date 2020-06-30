@@ -58,7 +58,7 @@ where
         &self.inner
     }
 
-    /// Writer a BAM index header.
+    /// Writes a BAM index header.
     ///
     /// This writes the magic number of the file format.
     ///
