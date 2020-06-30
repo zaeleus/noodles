@@ -55,7 +55,7 @@ where
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::new(
-    ///     tabix::index::Format::Generic,
+    ///     tabix::index::Format::Vcf,
     ///     1,
     ///     4,
     ///     5,
@@ -193,7 +193,7 @@ mod tests {
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![Reference::new(bins, intervals)];
         let index = Index::new(
-            Format::Generic,
+            Format::Vcf,
             1,
             4,
             5,
@@ -213,7 +213,7 @@ mod tests {
         // n_ref
         expected_writer.write_i32::<LittleEndian>(1)?;
         // format
-        expected_writer.write_i32::<LittleEndian>(0)?;
+        expected_writer.write_i32::<LittleEndian>(2)?;
         // col_seq
         expected_writer.write_i32::<LittleEndian>(1)?;
         // col_beg
