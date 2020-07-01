@@ -1,8 +1,8 @@
 mod builder;
 mod format;
-pub mod reference;
+pub mod reference_sequence;
 
-pub use self::{builder::Builder, format::Format, reference::Reference};
+pub use self::{builder::Builder, format::Format, reference_sequence::ReferenceSequence};
 
 #[derive(Debug)]
 pub struct Index {
@@ -13,7 +13,7 @@ pub struct Index {
     comment: i32,
     header_line_count: u32,
     reference_sequence_names: Vec<String>,
-    references: Vec<Reference>,
+    reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
 
@@ -50,8 +50,8 @@ impl Index {
         &self.reference_sequence_names
     }
 
-    pub fn references(&self) -> &[Reference] {
-        &self.references
+    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
+        &self.reference_sequences
     }
 
     pub fn unmapped_read_count(&self) -> Option<u64> {

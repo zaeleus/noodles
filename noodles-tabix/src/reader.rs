@@ -8,8 +8,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
 use crate::index::{
-    reference::{bin::Chunk, Bin},
-    Format, Reference,
+    reference_sequence::{bin::Chunk, Bin},
+    Format, ReferenceSequence,
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -52,7 +52,7 @@ where
             .set_comment(meta)
             .set_header_line_count(skip as u32)
             .set_reference_sequence_names(names)
-            .set_references(references);
+            .set_reference_sequences(references);
 
         if let Some(unmapped_read_count) = n_no_coors {
             builder = builder.set_unmapped_read_count(unmapped_read_count);
@@ -116,7 +116,7 @@ fn parse_names(buf: &[u8]) -> io::Result<Vec<String>> {
     Ok(names)
 }
 
-fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<Reference>>
+fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<ReferenceSequence>>
 where
     R: Read,
 {
@@ -125,7 +125,7 @@ where
     for _ in 0..len {
         let bins = read_bins(reader)?;
         let intervals = read_intervals(reader)?;
-        references.push(Reference::new(bins, intervals));
+        references.push(ReferenceSequence::new(bins, intervals));
     }
 
     Ok(references)

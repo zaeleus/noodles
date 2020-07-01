@@ -4,8 +4,8 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{
     index::{
-        reference::{bin::Chunk, Bin},
-        Reference,
+        reference_sequence::{bin::Chunk, Bin},
+        ReferenceSequence,
     },
     Index, MAGIC_NUMBER,
 };
@@ -61,7 +61,7 @@ where
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_magic(&mut self.inner)?;
 
-        let n_ref = index.references().len() as i32;
+        let n_ref = index.reference_sequences().len() as i32;
         self.inner.write_i32::<LittleEndian>(n_ref)?;
 
         let format = i32::from(index.format());
@@ -95,8 +95,8 @@ where
             self.inner.write_u8(NUL)?;
         }
 
-        for reference in index.references() {
-            write_reference(&mut self.inner, reference)?;
+        for reference_sequence in index.reference_sequences() {
+            write_reference_sequence(&mut self.inner, reference_sequence)?;
         }
 
         if let Some(n_no_coor) = index.unmapped_read_count() {
@@ -114,7 +114,7 @@ where
     writer.write_all(MAGIC_NUMBER)
 }
 
-pub fn write_reference<W>(writer: &mut W, reference: &Reference) -> io::Result<()>
+pub fn write_reference_sequence<W>(writer: &mut W, reference: &ReferenceSequence) -> io::Result<()>
 where
     W: Write,
 {
@@ -183,7 +183,7 @@ mod tests {
         )];
         let bins = vec![Bin::new(16385, chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
-        let references = vec![Reference::new(bins, intervals)];
+        let references = vec![ReferenceSequence::new(bins, intervals)];
         let index = Index::builder()
             .set_format(Format::Vcf)
             .set_reference_sequence_name_index(1)
@@ -191,8 +191,8 @@ mod tests {
             .set_end_position_index(5)
             .set_comment(i32::from(b'#'))
             .set_header_line_count(0)
-            .set_names(vec![String::from("sq0"), String::from("sq1")])
-            .set_references(references)
+            .set_reference_sequence_names(vec![String::from("sq0"), String::from("sq1")])
+            .set_reference_sequences(references)
             .build();
 
         let mut actual_writer = Writer::new(Vec::new());

@@ -1,4 +1,4 @@
-use super::{format::CoordinateSystem, Format, Index, Reference};
+use super::{format::CoordinateSystem, Format, Index, ReferenceSequence};
 
 /// A tabix index builder.
 pub struct Builder {
@@ -9,7 +9,7 @@ pub struct Builder {
     comment: i32,
     header_line_count: u32,
     reference_sequence_names: Vec<String>,
-    references: Vec<Reference>,
+    reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
 
@@ -135,23 +135,23 @@ impl Builder {
         self
     }
 
-    /// Sets tabix index references.
+    /// Sets tabix index reference sequences.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::{self as tabix, index::Reference};
+    /// use noodles_tabix::{self as tabix, index::ReferenceSequence};
     ///
-    /// let references = vec![Reference::new(Vec::new(), Vec::new())];
+    /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new())];
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_references(references)
+    ///     .set_reference_sequences(reference_sequences)
     ///     .build();
     ///
-    /// assert_eq!(index.references().len(), 1);
+    /// assert_eq!(index.reference_sequences().len(), 1);
     /// ```
-    pub fn set_references(mut self, references: Vec<Reference>) -> Self {
-        self.references = references;
+    pub fn set_reference_sequences(mut self, reference_sequences: Vec<ReferenceSequence>) -> Self {
+        self.reference_sequences = reference_sequences;
         self
     }
 
@@ -190,7 +190,7 @@ impl Builder {
             comment: self.comment,
             header_line_count: self.header_line_count,
             reference_sequence_names: self.reference_sequence_names,
-            references: self.references,
+            reference_sequences: self.reference_sequences,
             unmapped_read_count: self.unmapped_read_count,
         }
     }
@@ -206,7 +206,7 @@ impl Default for Builder {
             comment: b'#' as i32,
             header_line_count: 0,
             reference_sequence_names: Vec::new(),
-            references: Vec::new(),
+            reference_sequences: Vec::new(),
             unmapped_read_count: None,
         }
     }

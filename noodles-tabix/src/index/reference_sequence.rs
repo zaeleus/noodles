@@ -5,12 +5,12 @@ pub use self::bin::Bin;
 use noodles_bgzf as bgzf;
 
 #[derive(Debug)]
-pub struct Reference {
+pub struct ReferenceSequence {
     bins: Vec<Bin>,
     intervals: Vec<bgzf::VirtualPosition>,
 }
 
-impl Reference {
+impl ReferenceSequence {
     pub fn new(bins: Vec<Bin>, intervals: Vec<bgzf::VirtualPosition>) -> Self {
         Self { bins, intervals }
     }
