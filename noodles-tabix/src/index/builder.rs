@@ -6,7 +6,7 @@ pub struct Builder {
     reference_sequence_name_index: usize,
     start_position_index: usize,
     end_position_index: usize,
-    comment: u8,
+    line_comment_prefix: u8,
     header_line_count: u32,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
@@ -85,17 +85,21 @@ impl Builder {
         self
     }
 
-    /// Sets a tabix index comment.
+    /// Sets a tabix index line comment prefix.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// let index = tabix::Index::builder().set_comment(b'#').build();
-    /// assert_eq!(index.comment(), b'#');
+    ///
+    /// let index = tabix::Index::builder()
+    ///     .set_line_comment_prefix(b'#')
+    ///     .build();
+    ///
+    /// assert_eq!(index.line_comment_prefix(), b'#');
     /// ```
-    pub fn set_comment(mut self, comment: u8) -> Self {
-        self.comment = comment;
+    pub fn set_line_comment_prefix(mut self, line_comment_prefix: u8) -> Self {
+        self.line_comment_prefix = line_comment_prefix;
         self
     }
 
@@ -187,7 +191,7 @@ impl Builder {
             reference_sequence_name_index: self.reference_sequence_name_index,
             start_position_index: self.start_position_index,
             end_position_index: self.end_position_index,
-            comment: self.comment,
+            line_comment_prefix: self.line_comment_prefix,
             header_line_count: self.header_line_count,
             reference_sequence_names: self.reference_sequence_names,
             reference_sequences: self.reference_sequences,
@@ -203,7 +207,7 @@ impl Default for Builder {
             reference_sequence_name_index: 1,
             start_position_index: 4,
             end_position_index: 5,
-            comment: b'#',
+            line_comment_prefix: b'#',
             header_line_count: 0,
             reference_sequence_names: Vec::new(),
             reference_sequences: Vec::new(),

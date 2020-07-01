@@ -10,7 +10,7 @@ pub struct Index {
     reference_sequence_name_index: usize,
     start_position_index: usize,
     end_position_index: usize,
-    comment: u8,
+    line_comment_prefix: u8,
     header_line_count: u32,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
@@ -38,8 +38,8 @@ impl Index {
         self.end_position_index
     }
 
-    pub fn comment(&self) -> u8 {
-        self.comment
+    pub fn line_comment_prefix(&self) -> u8 {
+        self.line_comment_prefix
     }
 
     pub fn header_line_count(&self) -> u32 {
