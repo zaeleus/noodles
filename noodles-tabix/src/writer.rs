@@ -83,11 +83,15 @@ where
         self.inner.write_i32::<LittleEndian>(skip)?;
 
         // Add 1 for each trailing nul.
-        let l_nm = index.names().iter().map(|n| n.len() + 1).sum::<usize>() as i32;
+        let l_nm = index
+            .reference_sequence_names()
+            .iter()
+            .map(|n| n.len() + 1)
+            .sum::<usize>() as i32;
         self.inner.write_i32::<LittleEndian>(l_nm)?;
 
-        for name in index.names() {
-            self.inner.write_all(name.as_bytes())?;
+        for reference_sequence_name in index.reference_sequence_names() {
+            self.inner.write_all(reference_sequence_name.as_bytes())?;
             self.inner.write_u8(NUL)?;
         }
 

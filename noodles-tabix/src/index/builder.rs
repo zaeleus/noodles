@@ -8,7 +8,7 @@ pub struct Builder {
     end_position_index: usize,
     comment: i32,
     header_line_count: u32,
-    names: Vec<String>,
+    reference_sequence_names: Vec<String>,
     references: Vec<Reference>,
     unmapped_read_count: Option<u64>,
 }
@@ -117,7 +117,7 @@ impl Builder {
         self
     }
 
-    /// Sets tabix index names.
+    /// Sets tabix index reference sequence names.
     ///
     /// # Examples
     ///
@@ -125,13 +125,13 @@ impl Builder {
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_names(vec![String::from("sq0")])
+    ///     .set_reference_sequence_names(vec![String::from("sq0")])
     ///     .build();
     ///
-    /// assert_eq!(index.names(), [String::from("sq0")]);
+    /// assert_eq!(index.reference_sequence_names(), [String::from("sq0")]);
     /// ```
-    pub fn set_names(mut self, names: Vec<String>) -> Self {
-        self.names = names;
+    pub fn set_reference_sequence_names(mut self, reference_sequence_names: Vec<String>) -> Self {
+        self.reference_sequence_names = reference_sequence_names;
         self
     }
 
@@ -189,7 +189,7 @@ impl Builder {
             end_position_index: self.end_position_index,
             comment: self.comment,
             header_line_count: self.header_line_count,
-            names: self.names,
+            reference_sequence_names: self.reference_sequence_names,
             references: self.references,
             unmapped_read_count: self.unmapped_read_count,
         }
@@ -205,7 +205,7 @@ impl Default for Builder {
             end_position_index: 5,
             comment: b'#' as i32,
             header_line_count: 0,
-            names: Vec::new(),
+            reference_sequence_names: Vec::new(),
             references: Vec::new(),
             unmapped_read_count: None,
         }

@@ -12,7 +12,7 @@ pub struct Index {
     end_position_index: usize,
     comment: i32,
     header_line_count: u32,
-    names: Vec<String>,
+    reference_sequence_names: Vec<String>,
     references: Vec<Reference>,
     unmapped_read_count: Option<u64>,
 }
@@ -46,8 +46,8 @@ impl Index {
         self.header_line_count
     }
 
-    pub fn names(&self) -> &[String] {
-        &self.names
+    pub fn reference_sequence_names(&self) -> &[String] {
+        &self.reference_sequence_names
     }
 
     pub fn references(&self) -> &[Reference] {

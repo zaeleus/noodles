@@ -51,7 +51,7 @@ where
             .set_end_position_index(col_end as usize)
             .set_comment(meta)
             .set_header_line_count(skip as u32)
-            .set_names(names)
+            .set_reference_sequence_names(names)
             .set_references(references);
 
         if let Some(unmapped_read_count) = n_no_coors {
