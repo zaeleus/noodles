@@ -35,7 +35,7 @@ use noodles_bgzf::VirtualPosition;
 
 use self::index::reference_sequence::{bin::Chunk, Bin};
 
-pub(crate) static MAGIC_NUMBER: &[u8] = b"BAI\x01";
+static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
 /// Reads the entire contents of a BAM index.
 ///
