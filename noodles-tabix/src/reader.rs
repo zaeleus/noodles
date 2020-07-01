@@ -44,17 +44,21 @@ where
         let references = read_references(&mut self.inner, n_ref as usize)?;
         let n_no_coors = self.inner.read_u64::<LittleEndian>().ok();
 
-        Ok(Index::new(
-            format,
-            col_seq as usize,
-            col_beg as usize,
-            col_end as usize,
-            meta,
-            skip as u32,
-            names,
-            references,
-            n_no_coors,
-        ))
+        let mut builder = Index::builder()
+            .set_format(format)
+            .set_reference_sequence_name_index(col_seq as usize)
+            .set_start_position_index(col_beg as usize)
+            .set_end_position_index(col_end as usize)
+            .set_comment(meta)
+            .set_header_line_count(skip as u32)
+            .set_names(names)
+            .set_references(references);
+
+        if let Some(unmapped_read_count) = n_no_coors {
+            builder = builder.set_unmapped_read_count(unmapped_read_count);
+        }
+
+        Ok(builder.build())
     }
 }
 

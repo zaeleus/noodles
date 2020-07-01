@@ -53,19 +53,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::new(
-    ///     tabix::index::Format::Vcf,
-    ///     1,
-    ///     4,
-    ///     5,
-    ///     i32::from(b'#'),
-    ///     0,
-    ///     Vec::new(),
-    ///     Vec::new(),
-    ///     None,
-    /// );
-    ///
+    /// let index = tabix::Index::builder().build();
     /// let mut writer = tabix::Writer::new(Vec::new());
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())
@@ -192,17 +180,16 @@ mod tests {
         let bins = vec![Bin::new(16385, chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![Reference::new(bins, intervals)];
-        let index = Index::new(
-            Format::Vcf,
-            1,
-            4,
-            5,
-            i32::from(b'#'),
-            0,
-            vec![String::from("sq0"), String::from("sq1")],
-            references,
-            None,
-        );
+        let index = Index::builder()
+            .set_format(Format::Vcf)
+            .set_reference_sequence_name_index(1)
+            .set_start_position_index(4)
+            .set_end_position_index(5)
+            .set_comment(i32::from(b'#'))
+            .set_header_line_count(0)
+            .set_names(vec![String::from("sq0"), String::from("sq1")])
+            .set_references(references)
+            .build();
 
         let mut actual_writer = Writer::new(Vec::new());
         actual_writer.write_index(&index)?;
