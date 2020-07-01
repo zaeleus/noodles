@@ -24,7 +24,7 @@ impl Chunk {
         }
     }
 
-    /// The start of the chunk, as a virtual position.
+    /// Returns the start of the chunk as a virtual position.
     ///
     /// # Examples
     ///
@@ -38,7 +38,7 @@ impl Chunk {
         self.chunk_beg
     }
 
-    /// The end of the chunk, as a virtual position.
+    /// Returns the end of the chunk as a virtual position.
     ///
     /// # Examples
     ///
