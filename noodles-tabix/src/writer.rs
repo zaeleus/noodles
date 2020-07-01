@@ -53,7 +53,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_tabix as tabix;
-    /// let index = tabix::Index::builder().build();
+    /// let index = tabix::Index::default();
     /// let mut writer = tabix::Writer::new(Vec::new());
     /// writer.write_index(&index)?;
     /// # Ok::<(), io::Error>(())

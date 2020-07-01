@@ -58,3 +58,9 @@ impl Index {
         self.unmapped_read_count
     }
 }
+
+impl Default for Index {
+    fn default() -> Self {
+        Builder::default().build()
+    }
+}
