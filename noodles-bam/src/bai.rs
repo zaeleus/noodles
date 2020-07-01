@@ -88,7 +88,6 @@ where
 ///
 /// assert_eq!(actual, expected);
 /// ```
-
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
     optimize_chunks(chunks, VirtualPosition::default())
 }
