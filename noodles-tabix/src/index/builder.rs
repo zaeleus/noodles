@@ -6,7 +6,7 @@ pub struct Builder {
     reference_sequence_name_index: usize,
     start_position_index: usize,
     end_position_index: usize,
-    comment: i32,
+    comment: u8,
     header_line_count: u32,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
@@ -91,10 +91,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    /// let index = tabix::Index::builder().set_comment(b'#' as i32).build();
-    /// assert_eq!(index.comment(), b'#' as i32);
+    /// let index = tabix::Index::builder().set_comment(b'#').build();
+    /// assert_eq!(index.comment(), b'#');
     /// ```
-    pub fn set_comment(mut self, comment: i32) -> Self {
+    pub fn set_comment(mut self, comment: u8) -> Self {
         self.comment = comment;
         self
     }
@@ -203,7 +203,7 @@ impl Default for Builder {
             reference_sequence_name_index: 1,
             start_position_index: 4,
             end_position_index: 5,
-            comment: b'#' as i32,
+            comment: b'#',
             header_line_count: 0,
             reference_sequence_names: Vec::new(),
             reference_sequences: Vec::new(),

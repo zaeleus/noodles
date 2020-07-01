@@ -76,7 +76,7 @@ where
         let col_end = index.end_position_index() as i32;
         self.inner.write_i32::<LittleEndian>(col_end)?;
 
-        let meta = index.comment();
+        let meta = i32::from(index.comment());
         self.inner.write_i32::<LittleEndian>(meta)?;
 
         let skip = index.header_line_count() as i32;
@@ -189,7 +189,7 @@ mod tests {
             .set_reference_sequence_name_index(1)
             .set_start_position_index(4)
             .set_end_position_index(5)
-            .set_comment(i32::from(b'#'))
+            .set_comment(b'#')
             .set_header_line_count(0)
             .set_reference_sequence_names(vec![String::from("sq0"), String::from("sq1")])
             .set_reference_sequences(references)
