@@ -1,3 +1,5 @@
+//! Tabix index format coordinate system.
+
 use std::{convert::TryFrom, error, fmt};
 
 /// A tabix index format coordinate system.

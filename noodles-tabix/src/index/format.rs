@@ -9,14 +9,31 @@ use std::{convert::TryFrom, error, fmt};
 const COORDINATE_SYSTEM_SHIFT: usize = 16;
 const FORMAT_MASK: i32 = 0xffff;
 
+/// A tabix index format.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Format {
+    /// A generic format with a defined coordinate system.
     Generic(CoordinateSystem),
+    /// The SAM (Sequence Alignment/Map) format.
     Sam,
+    /// The VCF (Variant Call Format) format.
     Vcf,
 }
 
 impl Format {
+    /// Returns the coordinate system of the format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix::index::{format::CoordinateSystem, Format};
+    ///
+    /// let format = Format::Generic(CoordinateSystem::Bed);
+    /// assert_eq!(format.coordinate_system(), CoordinateSystem::Bed);
+    ///
+    /// assert_eq!(Format::Sam.coordinate_system(), CoordinateSystem::Gff);
+    /// assert_eq!(Format::Vcf.coordinate_system(), CoordinateSystem::Gff);
+    /// ```
     pub fn coordinate_system(&self) -> CoordinateSystem {
         match self {
             Self::Generic(coordinate_system) => *coordinate_system,
@@ -25,9 +42,12 @@ impl Format {
     }
 }
 
+/// An error returned when a raw format fails to convert.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TryFromIntError {
+    /// The coordinate system is invalid.
     InvalidCoordinateSystem(coordinate_system::TryFromIntError),
+    /// The kind is invalid.
     InvalidKind(u16),
 }
 
