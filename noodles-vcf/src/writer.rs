@@ -7,22 +7,71 @@ pub struct Writer<W> {
     inner: W,
 }
 
+/// A VCF writer.
 impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a VCF writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::Writer::new(Vec::new());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self { inner }
     }
 
+    /// Returns a reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::Writer::new(Vec::new());
+    /// assert!(writer.get_ref().is_empty());
+    /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
+    /// Writes a VCF header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut writer = vcf::Writer::new(Vec::new());
+    ///
+    /// let header = vcf::Header::default();
+    /// writer.write_header(&header)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
         write!(self.inner, "{}", header)
     }
 
+    /// Writes a VCF record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// let mut writer = vcf::Writer::new(Vec::new());
+    /// writer.write_record(&record)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         write!(
             self.inner,
