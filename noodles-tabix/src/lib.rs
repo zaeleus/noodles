@@ -1,3 +1,30 @@
+#![deny(missing_docs)]
+
+//! **noodles-tabix** handles the reading and writing of the [tabix format].
+//!
+//! A tabix (TBI) is an index file typically used to allow random access of an accompanied file
+//! that is
+//!
+//!   1) bgzipped,
+//!   2) tab-delimited,
+//!   3) grouped by reference sequence name, and
+//!   4) coordinate sorted by start position.
+//!
+//! It can be used to find relevant records for a given genomic region.
+//!
+//! [tabix format]: https://samtools.github.io/hts-specs/tabix.pdf
+//!
+//! # Examples
+//!
+//! ## Read a tabix file
+//!
+//! ```no_run
+//! # use std::io;
+//! use noodles_tabix as tabix;
+//! let index = tabix::read("sample.vcf.gz.tbi")?;
+//! # Ok::<(), io::Error>(())
+//! ```
+
 pub mod index;
 mod reader;
 mod writer;
