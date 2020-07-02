@@ -1,3 +1,5 @@
+//! VCF reader and iterators.
+
 mod records;
 
 pub use self::records::Records;
@@ -9,6 +11,33 @@ use noodles_bgzf as bgzf;
 const NEWLINE: u8 = b'\n';
 const HEADER_PREFIX: u8 = b'#';
 
+/// A VCF reader.
+///
+/// The VCF format has two main parts: 1) a header and 2) a list of VCF records.
+///
+/// Each header line is prefixed with a `#` (number sign) and is terminated by the header header
+/// (`#CHROM`...; inclusive).
+///
+/// VCF records are line-based and follow directly after the header until EOF.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::{fs::File, io::{self, BufReader}};
+/// use noodles_vcf as vcf;
+///
+/// let mut reader = File::open("sample.vcf")
+///     .map(BufReader::new)
+///     .map(vcf::Reader::new)?;
+///
+/// reader.read_header()?;
+///
+/// for result in reader.records() {
+///     let record = result?;
+///     println!("{:?}", record);
+/// }
+/// # Ok::<(), io::Error>(())
+/// ```
 #[derive(Debug)]
 pub struct Reader<R> {
     inner: R,
@@ -18,10 +47,54 @@ impl<R> Reader<R>
 where
     R: BufRead,
 {
+    /// Creates a VCF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let reader = vcf::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
+    /// Reads the raw VCF header.
+    ///
+    /// This reads all header lines prefixed with a `#` (number sign) and is terminated by the
+    /// header header (`#CHROM`...; inclusive).
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`vcf::Header`].
+    ///
+    /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
+    /// [`vcf::Header`]: header/struct.Header.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let header = reader.read_header()?;
+    ///
+    /// assert_eq!(header, "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
         let mut header_buf = Vec::new();
         let mut eol = false;
@@ -55,12 +128,77 @@ where
         String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
+    /// Reads a single raw VCF record.
+    ///
+    /// This reads from the underlying stream until a newline is reached and appends it to the
+    /// given buffer, sans the final newline character. The buffer can subsequently be parsed as a
+    /// [`vcf::Record`].
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// It is more ergonomic to read records using an iterator (see [`records`]), but using this
+    /// method allows control of the line buffer and whether the raw record should be parsed.
+    ///
+    /// If successful, the number of bytes is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
+    ///
+    /// [`vcf::Record`]: record/struct.Record.html
+    /// [`records`]: #method.records
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// reader.read_header()?;
+    ///
+    /// let mut buf = String::new();
+    /// reader.read_record(&mut buf)?;
+    ///
+    /// assert_eq!(buf, "sq0\t1\t.\tA\t.\t.\tPASS\t.");
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         let result = self.inner.read_line(buf);
         buf.pop();
         result
     }
 
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// Unlike [`read_record`], each record is parsed as a [`vcf::Record`].
+    ///
+    /// [`read_record`]: #method.read_record
+    /// [`vcf::Record`]: record/struct.Record.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::Reader::new(&data[..]);
+    /// let header = reader.read_header()?;
+    ///
+    /// let mut records = reader.records();
+    /// assert!(records.next().is_some());
+    /// assert!(records.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
@@ -70,6 +208,26 @@ impl<R> Reader<BufReader<bgzf::Reader<R>>>
 where
     R: Read + Seek,
 {
+    /// Seeks the underlying BGZF stream to the given virtual position.
+    ///
+    /// Virtual positions typically come from an associated index.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io::{self, BufReader}};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(BufReader::new)
+    ///     .map(vcf::Reader::new)?;
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.get_mut().seek(pos)
     }
