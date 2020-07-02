@@ -4,6 +4,7 @@ use super::Record;
 
 pub struct Reader<R> {
     inner: R,
+    line_buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -11,7 +12,10 @@ where
     R: BufRead,
 {
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            line_buf: Vec::new(),
+        }
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
@@ -20,8 +24,10 @@ where
         let mut len = read_line(&mut self.inner, record.read_name_mut())?;
 
         if len > 0 {
+            self.line_buf.clear();
+
             len += read_line(&mut self.inner, record.sequence_mut())?;
-            len += read_line(&mut self.inner, &mut Vec::new())?;
+            len += read_line(&mut self.inner, &mut self.line_buf)?;
             len += read_line(&mut self.inner, record.quality_scores_mut())?;
         }
 
