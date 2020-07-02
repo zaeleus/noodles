@@ -14,6 +14,11 @@ use crate::index::{
 
 use super::{Index, MAGIC_NUMBER};
 
+/// A tabix reader.
+///
+/// Consider using [`tabix::read`] to read the entire index at once.
+///
+/// [`tabix::read`]: fn.read.html
 pub struct Reader<R> {
     inner: R,
 }
@@ -22,10 +27,33 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Creates a tabix reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_tabix as tabix;;
+    /// let reader = File::open("sample.vcf.gz.tbi").map(tabix::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
+    /// Reads the tabix index.
+    ///
+    /// The position of the stream is expected to be at the beginning.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_tabix as tabix;;
+    /// let mut reader = File::open("sample.vcf.gz.tbi").map(tabix::Reader::new)?;
+    /// let index = reader.read_index()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner)?;
 
