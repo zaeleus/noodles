@@ -14,6 +14,8 @@ use crate::index::{
 
 use super::{Index, MAGIC_NUMBER};
 
+const NUL: u8 = b'\x00';
+
 /// A tabix reader.
 ///
 /// Consider using [`tabix::read`] to read the entire index at once.
@@ -126,7 +128,7 @@ fn parse_names(buf: &[u8]) -> io::Result<Vec<String>> {
     loop {
         let buf = &buf[start..];
 
-        match buf.iter().position(|&b| b == 0) {
+        match buf.iter().position(|&b| b == NUL) {
             Some(end) => {
                 let raw_name = &buf[..end];
                 let name = str::from_utf8(raw_name)
