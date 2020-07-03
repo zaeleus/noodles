@@ -26,7 +26,10 @@ const NEWLINE: u8 = b'\n';
 /// # use std::{fs::File, io::{self, BufReader}};
 /// use noodles_sam as sam;
 ///
-/// let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
+/// let mut reader = File::open("sample.sam")
+///     .map(BufReader::new)
+///     .map(sam::Reader::new)?;
+///
 /// reader.read_header()?;
 ///
 /// for result in reader.records() {
@@ -48,11 +51,14 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io::{self, BufReader}};
+    /// ```
     /// use noodles_sam as sam;
-    /// let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
-    /// # Ok::<(), io::Error>(())
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let reader = sam::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
@@ -72,11 +78,18 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io::{self, BufReader}};
+    /// ```
+    /// # use std::io;
     /// use noodles_sam as sam;
-    /// let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::Reader::new(&data[..]);
     /// let header = reader.read_header()?;
+    ///
+    /// assert_eq!(header, "@HD\tVN:1.6\n");
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
@@ -125,15 +138,21 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io::{self, BufReader}};
+    /// ```
+    /// # use std::io;
     /// use noodles_sam as sam;
     ///
-    /// let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
+    /// let data = b"@HD\tVN:1.6
+    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// let mut record = String::new();
-    /// reader.read_record(&mut record)?;
+    /// let mut buf = String::new();
+    /// reader.read_record(&mut buf)?;
+    ///
+    /// assert_eq!(buf, "*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*");
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
@@ -153,17 +172,20 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io::{self, BufReader}};
+    /// ```
+    /// # use std::io;
     /// use noodles_sam as sam;
     ///
-    /// let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
+    /// let data = b"@HD\tVN:1.6
+    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// for result in reader.records() {
-    ///     let record = result?;
-    ///     println!("{:?}", record);
-    /// }
+    /// let mut records = reader.records();
+    /// assert!(records.next().is_some());
+    /// assert!(records.next().is_none());
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
