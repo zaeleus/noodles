@@ -2,12 +2,44 @@ use std::io::{self, Write};
 
 use super::{Header, Record};
 
+/// A VCF writer.
+///
+/// # Examples
+///
+/// ```
+/// # use std::io;
+/// use noodles_vcf::{self as vcf, header::Contig};
+///
+/// let mut writer = vcf::Writer::new(Vec::new());
+///
+/// let header = vcf::Header::builder()
+///     .add_contig(Contig::new(String::from("sq0")))
+///     .build();
+///
+/// writer.write_header(&header)?;
+///
+/// let record = vcf::Record::builder()
+///     .set_chromosome("sq0".parse()?)
+///     .set_position(1)
+///     .set_reference_bases("A".parse()?)
+///     .build()?;
+///
+/// writer.write_record(&record);
+///
+/// let expected = b"##fileformat=VCFv4.3
+/// ###contig=<ID=sq0>
+/// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+/// sq0\t1\t.\tA\t.\t.\t.\t.
+/// ";
+///
+/// assert_eq!(&writer.get_ref()[..], &expected[..]);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 #[derive(Debug)]
 pub struct Writer<W> {
     inner: W,
 }
 
-/// A VCF writer.
 impl<W> Writer<W>
 where
     W: Write,
