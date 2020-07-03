@@ -13,10 +13,12 @@ const NEWLINE: u8 = b'\n';
 
 /// A SAM reader.
 ///
-/// The SAM format is comprised to two parts:
+/// The SAM format is comprised to two parts: 1) a header and 2) a list of records.
 ///
-///   1. a SAM header, and
-///   2. a list of SAM records.
+/// Each header line is prefixed with an `@` (at sign). The header is optional and may be empty.
+///
+/// SAM records are line-based and follow directly after the header or the start of the file until
+/// EOF.
 ///
 /// # Examples
 ///
@@ -63,6 +65,8 @@ where
     /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
     /// [`sam::Header`].
     ///
+    /// The SAM header is optional, and if it is missing, an empty string is returned.
+    ///
     /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
     /// [`sam::Header`]: header/struct.Header.html
     ///
@@ -79,10 +83,10 @@ where
         let mut header_buf = Vec::new();
         let mut eol = false;
 
-        loop {
+        for i in 0.. {
             let buf = self.inner.fill_buf()?;
 
-            if eol && !buf.is_empty() && buf[0] != HEADER_PREFIX {
+            if (i == 0 || eol) && !buf.is_empty() && buf[0] != HEADER_PREFIX {
                 break;
             }
 
@@ -220,6 +224,14 @@ r002
 ";
         assert_eq!(actual, expected);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_no_header() -> io::Result<()> {
+        let data = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
+        let mut reader = Reader::new(&data[..]);
+        assert!(reader.read_header()?.is_empty());
         Ok(())
     }
 

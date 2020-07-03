@@ -7,7 +7,8 @@
 //!
 //! The header mostly holds meta information about the data: a header describing the file
 //! format version, reference sequences reads map to, read groups reads belong to, programs that
-//! previously manipulated the data, and free-form comments.
+//! previously manipulated the data, and free-form comments. The header is optional and may be
+//! empty.
 //!
 //! Each record represents a read, a linear alignment of a segment. Records have fields describing
 //! how a read was mapped (or not) to a reference sequence.

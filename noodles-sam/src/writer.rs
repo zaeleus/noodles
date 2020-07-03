@@ -4,6 +4,13 @@ use super::{Header, Record};
 
 /// A SAM writer.
 ///
+/// The SAM format is comprised of two parts: 1) a header and 2) a list of records.
+///
+/// Each header line is prefixed with an `@` (at sign). The header is optional and may be empty.
+///
+/// SAM records are line-based and follow directly after the header or the start of the file until
+/// EOF.
+///
 /// # Examples
 ///
 /// ```
@@ -62,6 +69,9 @@ where
     }
 
     /// Writes a SAM header.
+    ///
+    /// The SAM header is optional, though recommended to include. A call to this method can be
+    /// omitted if it is empty.
     ///
     /// # Examples
     ///
