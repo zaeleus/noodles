@@ -17,6 +17,12 @@ use super::{Header, Record};
 ///
 /// let record = sam::Record::default();
 /// writer.write_record(&record)?;
+///
+/// let expected = b"@CO\tnoodles-sam
+/// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+/// ";
+///
+/// assert_eq!(&writer.get_ref()[..], &expected[..]);
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Writer<W>
