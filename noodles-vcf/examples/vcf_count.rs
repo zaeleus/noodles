@@ -13,7 +13,7 @@ use noodles_vcf as vcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).map(|f| vcf::Reader::new(BufReader::new(f)))?;
+    let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
     reader.read_header()?;
 
     let count = reader.records().count();
