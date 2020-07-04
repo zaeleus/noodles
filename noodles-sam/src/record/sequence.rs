@@ -10,23 +10,9 @@ use super::NULL_FIELD;
 
 /// A SAM record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Sequence {
-    bases: Vec<Base>,
-}
+pub struct Sequence(Vec<Base>);
 
 impl Sequence {
-    /// Creates a new SAM record sequence from a list of bases.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
-    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
-    /// ```
-    pub fn new(bases: Vec<Base>) -> Self {
-        Self { bases }
-    }
-
     /// Returns the list of bases in the sequence.
     ///
     /// # Examples
@@ -34,14 +20,14 @@ impl Sequence {
     /// ```
     /// use noodles_sam::record::{sequence::Base, Sequence};
     ///
-    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
     ///
     /// let actual = sequence.bases();
     /// let expected = [Base::A, Base::C, Base::G, Base::T];
     /// assert_eq!(actual, expected);
     /// ```
     pub fn bases(&self) -> &[Base] {
-        &self.bases
+        &self.0
     }
 
     /// Returns whether the sequence is empty.
@@ -54,11 +40,11 @@ impl Sequence {
     /// let sequence = Sequence::default();
     /// assert!(sequence.is_empty());
     ///
-    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
     /// assert!(!sequence.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.bases.is_empty()
+        self.0.is_empty()
     }
 
     /// Returns the number of bases in the sequence.
@@ -71,20 +57,26 @@ impl Sequence {
     /// let sequence = Sequence::default();
     /// assert_eq!(sequence.len(), 0);
     ///
-    /// let sequence = Sequence::new(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
     /// assert_eq!(sequence.len(), 4);
     /// ```
     pub fn len(&self) -> usize {
-        self.bases.len()
+        self.0.len()
+    }
+}
+
+impl From<Vec<Base>> for Sequence {
+    fn from(bases: Vec<Base>) -> Self {
+        Self(bases)
     }
 }
 
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.bases.is_empty() {
+        if self.0.is_empty() {
             write!(f, "{}", NULL_FIELD)
         } else {
-            for base in &self.bases {
+            for base in &self.0 {
                 write!(f, "{}", base)?;
             }
 
@@ -124,8 +116,8 @@ impl FromStr for Sequence {
                 .chars()
                 .map(|c| c.to_ascii_uppercase())
                 .map(Base::try_from)
-                .collect::<Result<_, _>>()
-                .map(Self::new)
+                .collect::<Result<Vec<_>, _>>()
+                .map(Self::from)
                 .map_err(ParseError::InvalidBase),
         }
     }
@@ -138,19 +130,19 @@ mod tests {
     #[test]
     fn test_bases() {
         let bases = [Base::A, Base::T, Base::C, Base::G];
-        let sequence = Sequence::new(bases.to_vec());
+        let sequence = Sequence::from(bases.to_vec());
         assert_eq!(sequence.bases(), &bases);
     }
 
     #[test]
     fn test_is_empty() {
-        let sequence = Sequence::new(Vec::new());
+        let sequence = Sequence::from(Vec::new());
         assert!(sequence.is_empty());
     }
 
     #[test]
     fn test_len() {
-        let sequence = Sequence::new(vec![Base::A, Base::T, Base::C, Base::G]);
+        let sequence = Sequence::from(vec![Base::A, Base::T, Base::C, Base::G]);
         assert_eq!(sequence.len(), 4);
     }
 
@@ -161,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let sequence = Sequence::new(vec![Base::A, Base::T, Base::C, Base::G]);
+        let sequence = Sequence::from(vec![Base::A, Base::T, Base::C, Base::G]);
         assert_eq!(sequence.to_string(), "ATCG");
     }
 
