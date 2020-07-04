@@ -4,7 +4,7 @@ pub mod entry;
 
 pub use self::entry::Entry;
 
-use std::{fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 const DELIMITER: char = ';';
 
@@ -39,6 +39,16 @@ impl fmt::Display for Attributes {
 pub enum ParseError {
     /// The input attributes has an invalid entry.
     InvalidEntry(entry::ParseError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidEntry(e) => write!(f, "invalid entry: {}", e),
+        }
+    }
 }
 
 impl From<Vec<Entry>> for Attributes {

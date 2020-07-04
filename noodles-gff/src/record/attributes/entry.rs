@@ -1,6 +1,6 @@
 //! GFF record attribute entry.
 
-use std::{fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 const SEPARATOR: char = '=';
 
@@ -66,6 +66,18 @@ pub enum ParseError {
     MissingKey,
     /// The entry value is missing.
     MissingValue,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::MissingKey => f.write_str("missing key"),
+            Self::MissingValue => f.write_str("missing value"),
+        }
+    }
 }
 
 impl FromStr for Entry {
