@@ -4,7 +4,7 @@ mod base;
 
 pub use self::base::Base;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 
@@ -12,56 +12,11 @@ use super::NULL_FIELD;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<Base>);
 
-impl Sequence {
-    /// Returns the list of bases in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
-    ///
-    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
-    ///
-    /// let actual = sequence.bases();
-    /// let expected = [Base::A, Base::C, Base::G, Base::T];
-    /// assert_eq!(actual, expected);
-    /// ```
-    pub fn bases(&self) -> &[Base] {
+impl Deref for Sequence {
+    type Target = [Base];
+
+    fn deref(&self) -> &Self::Target {
         &self.0
-    }
-
-    /// Returns whether the sequence is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
-    ///
-    /// let sequence = Sequence::default();
-    /// assert!(sequence.is_empty());
-    ///
-    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
-    /// assert!(!sequence.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Returns the number of bases in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
-    ///
-    /// let sequence = Sequence::default();
-    /// assert_eq!(sequence.len(), 0);
-    ///
-    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
-    /// assert_eq!(sequence.len(), 4);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.0.len()
     }
 }
 
@@ -128,30 +83,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_bases() {
-        let bases = [Base::A, Base::T, Base::C, Base::G];
-        let sequence = Sequence::from(bases.to_vec());
-        assert_eq!(sequence.bases(), &bases);
-    }
-
-    #[test]
-    fn test_is_empty() {
-        let sequence = Sequence::from(Vec::new());
-        assert!(sequence.is_empty());
-    }
-
-    #[test]
-    fn test_len() {
-        let sequence = Sequence::from(vec![Base::A, Base::T, Base::C, Base::G]);
-        assert_eq!(sequence.len(), 4);
-    }
-
-    #[test]
-    fn test_default() {
-        assert!(Sequence::default().is_empty());
-    }
-
-    #[test]
     fn test_fmt() {
         let sequence = Sequence::from(vec![Base::A, Base::T, Base::C, Base::G]);
         assert_eq!(sequence.to_string(), "ATCG");
@@ -162,13 +93,13 @@ mod tests {
         let expected = [Base::A, Base::T, Base::C, Base::G];
 
         let sequence = "ATCG".parse::<Sequence>()?;
-        assert_eq!(sequence.bases(), &expected);
+        assert_eq!(*sequence, expected);
 
         let sequence = "atcg".parse::<Sequence>()?;
-        assert_eq!(sequence.bases(), &expected);
+        assert_eq!(*sequence, expected);
 
         let sequence = "aTcG".parse::<Sequence>()?;
-        assert_eq!(sequence.bases(), &expected);
+        assert_eq!(*sequence, expected);
 
         assert!("*".parse::<Sequence>()?.is_empty());
         assert!("".parse::<Sequence>().is_err());

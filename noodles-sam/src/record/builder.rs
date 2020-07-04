@@ -217,10 +217,7 @@ impl Builder {
     ///     .set_sequence("ACGT".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     record.sequence().bases(),
-    ///     [Base::A, Base::C, Base::G, Base::T],
-    /// );
+    /// assert_eq!(**record.sequence(), [Base::A, Base::C, Base::G, Base::T]);
     /// Ok::<(), sam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {

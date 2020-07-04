@@ -371,7 +371,7 @@ where
         }
     }
 
-    for chunk in sequence.bases().chunks(2) {
+    for chunk in sequence.chunks(2) {
         let l = base_to_u8(chunk[0]);
 
         let r = if let Some(c) = chunk.get(1) {

@@ -286,7 +286,8 @@ impl Record {
     ///
     /// let record = sam::Record::builder().set_sequence("AT".parse()?).build();
     /// assert_eq!(record.sequence().to_string(), "AT");
-    /// let mut bases = record.sequence().bases().iter();
+    ///
+    /// let mut bases = record.sequence().iter();
     /// assert_eq!(bases.next(), Some(&Base::A));
     /// assert_eq!(bases.next(), Some(&Base::T));
     /// assert_eq!(bases.next(), None);
