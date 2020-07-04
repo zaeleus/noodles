@@ -2,7 +2,7 @@
 
 pub mod op;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 pub use self::op::Op;
 
@@ -17,24 +17,12 @@ pub struct Cigar {
 }
 
 impl Cigar {
-    /// Creates a CIGAR from a list of operations.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
-    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
-    /// ```
-    pub fn new(ops: Vec<Op>) -> Self {
-        Self { ops }
-    }
-
     /// Returns the operations of the CIGAR.
     ///
     /// ```
     /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
+    /// let cigar = Cigar::from(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
     ///
     /// let actual = cigar.ops();
     /// let expected = [Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)];
@@ -52,7 +40,7 @@ impl Cigar {
     /// let cigar = Cigar::default();
     /// assert!(cigar.is_empty());
     ///
-    /// let cigar = Cigar::new(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
+    /// let cigar = Cigar::from(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
     /// assert!(!cigar.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
@@ -70,7 +58,7 @@ impl Cigar {
     /// ```
     /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::new(vec![
+    /// let cigar = Cigar::from(vec![
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::Deletion, 4),
     ///     Op::new(Kind::SoftClip, 8),
@@ -104,6 +92,12 @@ impl fmt::Display for Cigar {
 
             Ok(())
         }
+    }
+}
+
+impl From<Vec<Op>> for Cigar {
+    fn from(ops: Vec<Op>) -> Self {
+        Self { ops }
     }
 }
 
@@ -148,7 +142,7 @@ impl FromStr for Cigar {
             start = end + raw_kind.len();
         }
 
-        Ok(Cigar::new(ops))
+        Ok(Cigar::from(ops))
     }
 }
 
@@ -161,13 +155,13 @@ mod tests {
         let cigar = Cigar::default();
         assert!(cigar.is_empty());
 
-        let cigar = Cigar::new(vec![Op::new(Kind::Match, 1)]);
+        let cigar = Cigar::from(vec![Op::new(Kind::Match, 1)]);
         assert!(!cigar.is_empty());
     }
 
     #[test]
     fn test_fmt() {
-        let cigar = Cigar::new(vec![
+        let cigar = Cigar::from(vec![
             Op::new(Kind::Match, 1),
             Op::new(Kind::Skip, 13),
             Op::new(Kind::SoftClip, 144),
@@ -178,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_fmt_when_cigar_has_no_ops() {
-        let cigar = Cigar::new(vec![]);
+        let cigar = Cigar::default();
         assert_eq!(format!("{}", cigar), "*");
     }
 
