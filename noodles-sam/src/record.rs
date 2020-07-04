@@ -194,7 +194,8 @@ impl Record {
     ///
     /// let record = sam::Record::builder().set_cigar("34M2S".parse()?).build();
     /// assert_eq!(record.cigar().to_string(), "34M2S");
-    /// let mut ops = record.cigar().ops().iter();
+    ///
+    /// let mut ops = record.cigar().iter();
     /// assert_eq!(ops.next(), Some(&Op::new(op::Kind::Match, 34)));
     /// assert_eq!(ops.next(), Some(&Op::new(op::Kind::SoftClip, 2)));
     /// assert_eq!(ops.next(), None);

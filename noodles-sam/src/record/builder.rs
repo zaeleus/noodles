@@ -144,7 +144,7 @@ impl Builder {
     ///     .set_cigar("36M".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.cigar().ops(), [Op::new(Kind::Match, 36)]);
+    /// assert_eq!(**record.cigar(), [Op::new(Kind::Match, 36)]);
     /// Ok::<(), sam::record::cigar::ParseError>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
@@ -316,7 +316,7 @@ mod tests {
         assert!(record.reference_sequence_name().is_none());
         assert!(record.position().is_none());
         assert!(record.mapping_quality().is_none());
-        assert!(record.cigar().ops().is_empty());
+        assert!(record.cigar().is_empty());
         assert!(record.mate_reference_sequence_name().is_none());
         assert!(record.mate_position().is_none());
         assert_eq!(record.template_len(), 0);
@@ -359,7 +359,7 @@ mod tests {
         assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
         assert_eq!(i32::from(record.position()), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
-        assert_eq!(record.cigar().ops().len(), 1);
+        assert_eq!(record.cigar().len(), 1);
 
         assert_eq!(
             record.mate_reference_sequence_name(),

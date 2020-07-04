@@ -217,7 +217,7 @@ where
 
         let read_name = c_read_name.as_bytes_with_nul();
         let l_read_name = read_name.len() as u8;
-        let n_cigar_op = record.cigar().ops().len() as u16;
+        let n_cigar_op = record.cigar().len() as u16;
         let l_seq = record.sequence().len() as i32;
 
         let block_size = BLOCK_HEADER_SIZE as i32
@@ -334,7 +334,7 @@ fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
 where
     W: Write,
 {
-    for op in cigar.ops() {
+    for op in cigar.iter() {
         let len = op.len() as u32;
         let kind = op.kind() as u32;
         let value = len << 4 | kind;

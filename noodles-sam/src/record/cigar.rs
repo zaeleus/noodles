@@ -12,41 +12,9 @@ use self::op::Kind;
 
 /// A SAM record CIGAR.
 #[derive(Debug, Default)]
-pub struct Cigar {
-    ops: Vec<Op>,
-}
+pub struct Cigar(Vec<Op>);
 
 impl Cigar {
-    /// Returns the operations of the CIGAR.
-    ///
-    /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
-    ///
-    /// let cigar = Cigar::from(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
-    ///
-    /// let actual = cigar.ops();
-    /// let expected = [Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)];
-    /// assert_eq!(actual, expected);
-    /// ```
-    pub fn ops(&self) -> &[Op] {
-        &self.ops
-    }
-
-    /// Returns whether the CIGAR has any operations.
-    ///
-    /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
-    ///
-    /// let cigar = Cigar::default();
-    /// assert!(cigar.is_empty());
-    ///
-    /// let cigar = Cigar::from(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
-    /// assert!(!cigar.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.ops.is_empty()
-    }
-
     /// Calculates the alignment span over the reference sequence.
     ///
     /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
@@ -67,8 +35,7 @@ impl Cigar {
     /// assert_eq!(cigar.mapped_len(), 40);
     /// ```
     pub fn mapped_len(&self) -> u32 {
-        self.ops()
-            .iter()
+        self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
                     Some(op.len())
@@ -79,14 +46,20 @@ impl Cigar {
     }
 }
 
+impl Deref for Cigar {
+    type Target = [Op];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let ops = self.ops();
-
-        if ops.is_empty() {
+        if self.is_empty() {
             write!(f, "{}", NULL_FIELD)
         } else {
-            for op in ops {
+            for op in self.iter() {
                 write!(f, "{}", op)?;
             }
 
@@ -97,7 +70,7 @@ impl fmt::Display for Cigar {
 
 impl From<Vec<Op>> for Cigar {
     fn from(ops: Vec<Op>) -> Self {
-        Self { ops }
+        Self(ops)
     }
 }
 
@@ -180,13 +153,13 @@ mod tests {
     fn test_from_str() {
         let actual = "1M13N144S".parse::<Cigar>().unwrap();
 
-        let expected_ops = vec![
+        let expected_ops = [
             Op::new(Kind::Match, 1),
             Op::new(Kind::Skip, 13),
             Op::new(Kind::SoftClip, 144),
         ];
 
-        assert_eq!(actual.ops(), &expected_ops[..]);
+        assert_eq!(*actual, expected_ops);
 
         assert!("".parse::<Cigar>().is_err());
     }
@@ -194,6 +167,6 @@ mod tests {
     #[test]
     fn test_from_str_with_null_cigar() {
         let cigar = "*".parse::<Cigar>().unwrap();
-        assert!(cigar.ops().is_empty());
+        assert!(cigar.is_empty());
     }
 }
