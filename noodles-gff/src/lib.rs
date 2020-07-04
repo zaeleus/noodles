@@ -1,6 +1,6 @@
 #![deny(missing_docs)]
 
-//! **noodles-gff** handles the reading of the [GFF3 format][gff3-spec].
+//! **noodles-gff** handles the reading and writing of the [GFF3 format][gff3-spec].
 //!
 //! GFF (Generic Feature Format) is a text-based format used to represent genomic features.
 //!
@@ -35,5 +35,6 @@ pub mod directive;
 pub mod line;
 pub mod reader;
 pub mod record;
+mod writer;
 
-pub use self::{directive::Directive, line::Line, reader::Reader, record::Record};
+pub use self::{directive::Directive, line::Line, reader::Reader, record::Record, writer::Writer};

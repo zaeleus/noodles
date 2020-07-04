@@ -12,7 +12,7 @@ pub use self::{
 
 use std::{error, fmt, num, str::FromStr};
 
-const NULL_FIELD: &str = ".";
+pub(crate) const NULL_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 9;
 
