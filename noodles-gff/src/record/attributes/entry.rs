@@ -1,6 +1,6 @@
 //! GFF record attribute entry.
 
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 const SEPARATOR: char = '=';
 
@@ -51,6 +51,12 @@ impl Entry {
     }
 }
 
+impl fmt::Display for Entry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}{}", self.key, SEPARATOR, self.value)
+    }
+}
+
 /// An error returned when a raw GFF record attribute entry fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -89,6 +95,12 @@ impl FromStr for Entry {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
+        assert_eq!(entry.to_string(), "gene_name=gene0");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {

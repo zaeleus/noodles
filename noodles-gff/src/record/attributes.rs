@@ -4,7 +4,7 @@ pub mod entry;
 
 pub use self::entry::Entry;
 
-use std::{ops::Deref, str::FromStr};
+use std::{fmt, ops::Deref, str::FromStr};
 
 const DELIMITER: char = ';';
 
@@ -17,6 +17,20 @@ impl Deref for Attributes {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl fmt::Display for Attributes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (i, entry) in self.iter().enumerate() {
+            if i > 0 {
+                write!(f, "{}", DELIMITER)?;
+            }
+
+            write!(f, "{}", entry)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -52,6 +66,26 @@ impl FromStr for Attributes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let attributes = Attributes::default();
+        assert!(attributes.to_string().is_empty());
+
+        let attributes = Attributes::from(vec![Entry::new(
+            String::from("gene_id"),
+            String::from("ndls0"),
+        )]);
+
+        assert_eq!(attributes.to_string(), "gene_id=ndls0");
+
+        let attributes = Attributes::from(vec![
+            Entry::new(String::from("gene_id"), String::from("ndls0")),
+            Entry::new(String::from("gene_name"), String::from("gene0")),
+        ]);
+
+        assert_eq!(attributes.to_string(), "gene_id=ndls0;gene_name=gene0")
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
