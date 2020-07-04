@@ -38,7 +38,7 @@ impl ReferenceSequence {
         Self {
             name,
             len,
-            ..Default::default()
+            fields: HashMap::new(),
         }
     }
 
@@ -181,16 +181,6 @@ impl ReferenceSequence {
     }
 }
 
-impl Default for ReferenceSequence {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            len: 0,
-            fields: HashMap::new(),
-        }
-    }
-}
-
 impl fmt::Display for ReferenceSequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::ReferenceSequence)?;
@@ -232,38 +222,31 @@ impl TryFrom<&[(String, String)]> for ReferenceSequence {
     type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut reference_sequence = ReferenceSequence::default();
-
-        let mut has_name = false;
-        let mut has_len = false;
+        let mut name = None;
+        let mut len = None;
+        let mut fields = HashMap::new();
 
         for (raw_tag, value) in raw_fields {
             let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             match tag {
                 Tag::Name => {
-                    reference_sequence.name = value.into();
-                    has_name = true;
-                    continue;
+                    name = Some(value.into());
                 }
                 Tag::Length => {
-                    reference_sequence.len = value.parse().map_err(ParseError::InvalidLength)?;
-                    has_len = true;
-                    continue;
+                    len = value.parse().map(Some).map_err(ParseError::InvalidLength)?;
                 }
-                _ => {}
+                _ => {
+                    fields.insert(tag, value.into());
+                }
             }
-
-            reference_sequence.fields.insert(tag, value.into());
         }
 
-        if !has_name {
-            return Err(ParseError::MissingRequiredTag(Tag::Name));
-        } else if !has_len {
-            return Err(ParseError::MissingRequiredTag(Tag::Length));
-        }
-
-        Ok(reference_sequence)
+        Ok(Self {
+            name: name.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Name))?,
+            len: len.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Length))?,
+            fields,
+        })
     }
 }
 
