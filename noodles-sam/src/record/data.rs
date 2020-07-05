@@ -17,22 +17,6 @@ pub struct Data {
 }
 
 impl Data {
-    /// Creates SAM record data from a list of data fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
-    ///
-    /// let data = Data::new(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ]);
-    /// ```
-    pub fn new(fields: Vec<Field>) -> Self {
-        Self { fields }
-    }
-
     /// Returns the list of data fields.
     ///
     /// # Examples
@@ -40,7 +24,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let data = Data::new(vec![
+    /// let data = Data::from(vec![
     ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
     ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
     /// ]);
@@ -66,7 +50,7 @@ impl Data {
     /// let data = Data::default();
     /// assert!(data.is_empty());
     ///
-    /// let data = Data::new(vec![
+    /// let data = Data::from(vec![
     ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
     ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
     /// ]);
@@ -86,7 +70,7 @@ impl Data {
     /// let data = Data::default();
     /// assert_eq!(data.len(), 0);
     ///
-    /// let data = Data::new(vec![
+    /// let data = Data::from(vec![
     ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
     ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
     /// ]);
@@ -108,6 +92,12 @@ impl fmt::Display for Data {
         }
 
         Ok(())
+    }
+}
+
+impl From<Vec<Field>> for Data {
+    fn from(fields: Vec<Field>) -> Self {
+        Self { fields }
     }
 }
 
@@ -138,8 +128,8 @@ impl FromStr for Data {
 
         s.split(DELIMITER)
             .map(|t| t.parse().map_err(ParseError::InvalidField))
-            .collect::<Result<_, _>>()
-            .map(Self::new)
+            .collect::<Result<Vec<_>, _>>()
+            .map(Self::from)
     }
 }
 
@@ -151,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let data = Data::new(vec![
+        let data = Data::from(vec![
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
             Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
         ]);

@@ -330,7 +330,7 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert!(record.data().is_empty());
     ///
-    /// let data = Data::new(vec![data::Field::new(
+    /// let data = Data::from(vec![data::Field::new(
     ///     data::field::Tag::AlignmentHitCount,
     ///     data::field::Value::Int32(1),
     /// )]);

@@ -173,7 +173,7 @@ mod tests {
     fn test_write_record_with_data() -> io::Result<()> {
         let mut writer = Writer::new(vec![]);
 
-        let data = Data::new(vec![Field::new(
+        let data = Data::from(vec![Field::new(
             data::field::Tag::ReadGroup,
             data::field::Value::String(String::from("rg0")),
         )]);
