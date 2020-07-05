@@ -261,7 +261,7 @@ impl Builder {
     ///     .set_data("NH:i:1\tRG:Z:rg0".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.data().fields(), [
+    /// assert_eq!(**record.data(), [
     ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
     ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
     /// ]);
@@ -319,7 +319,7 @@ mod tests {
         assert_eq!(record.template_len(), 0);
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
-        assert!(record.data().fields().is_empty());
+        assert!(record.data().is_empty());
     }
 
     #[test]
@@ -367,7 +367,7 @@ mod tests {
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
-        assert_eq!(record.data().fields().len(), 1);
+        assert_eq!(record.data().len(), 1);
 
         Ok(())
     }

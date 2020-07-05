@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 const DELIMITER: char = '\t';
 
@@ -12,78 +12,19 @@ const DELIMITER: char = '\t';
 ///
 /// This is also called optional fields.
 #[derive(Clone, Debug, Default)]
-pub struct Data {
-    fields: Vec<Field>,
-}
+pub struct Data(Vec<Field>);
 
-impl Data {
-    /// Returns the list of data fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
-    ///
-    /// let data = Data::from(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ]);
-    ///
-    /// let actual = data.fields();
-    /// let expected = [
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ];
-    /// assert_eq!(actual, expected);
-    /// ```
-    pub fn fields(&self) -> &[Field] {
-        &self.fields
-    }
+impl Deref for Data {
+    type Target = [Field];
 
-    /// Returns whether there are any data fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
-    ///
-    /// let data = Data::default();
-    /// assert!(data.is_empty());
-    ///
-    /// let data = Data::from(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ]);
-    /// assert!(!data.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.fields.is_empty()
-    }
-
-    /// Returns the number of data fields.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
-    ///
-    /// let data = Data::default();
-    /// assert_eq!(data.len(), 0);
-    ///
-    /// let data = Data::from(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ]);
-    /// assert_eq!(data.len(), 2);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.fields.len()
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, field) in self.fields.iter().enumerate() {
+        for (i, field) in self.iter().enumerate() {
             if i > 0 {
                 f.write_str("\t")?;
             }
@@ -97,7 +38,7 @@ impl fmt::Display for Data {
 
 impl From<Vec<Field>> for Data {
     fn from(fields: Vec<Field>) -> Self {
-        Self { fields }
+        Self(fields)
     }
 }
 
@@ -153,14 +94,10 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let fields = "RG:Z:rg0\tNH:i:1";
-        let data: Data = fields.parse()?;
-        let fields = data.fields();
-        assert_eq!(fields.len(), 2);
+        let data: Data = "RG:Z:rg0\tNH:i:1".parse()?;
+        assert_eq!(data.len(), 2);
 
-        let fields = "";
-        let data: Data = fields.parse()?;
-        assert!(data.fields().is_empty());
+        assert!("".parse::<Data>()?.is_empty());
 
         Ok(())
     }
