@@ -21,7 +21,7 @@ impl From<Base> for char {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromCharError(char);
 
 impl error::Error for TryFromCharError {}

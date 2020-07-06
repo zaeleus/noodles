@@ -33,14 +33,26 @@ impl From<Vec<Base>> for ReferenceBases {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when raw VCF reference bases fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is missing (`.`).
+    Missing,
+    /// The input has an invalid base.
+    InvalidBase(base::TryFromCharError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid reference bases: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Missing => f.write_str("missing input"),
+            Self::InvalidBase(e) => write!(f, "invalid base: {}", e),
+        }
     }
 }
 
@@ -49,14 +61,15 @@ impl FromStr for ReferenceBases {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" | MISSING_FIELD => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
+            MISSING_FIELD => Err(ParseError::Missing),
             _ => s
                 .chars()
                 .map(|c| c.to_ascii_uppercase())
                 .map(Base::try_from)
                 .collect::<Result<_, _>>()
                 .map(ReferenceBases)
-                .map_err(|_| ParseError(s.into())),
+                .map_err(ParseError::InvalidBase),
         }
     }
 }
@@ -84,8 +97,12 @@ mod tests {
         let bases: ReferenceBases = "AtCgN".parse()?;
         assert_eq!(&bases[..], &expected[..]);
 
-        assert!("".parse::<ReferenceBases>().is_err());
-        assert!(".".parse::<ReferenceBases>().is_err());
+        assert_eq!("".parse::<ReferenceBases>(), Err(ParseError::Empty));
+        assert_eq!(".".parse::<ReferenceBases>(), Err(ParseError::Missing));
+        assert!(matches!(
+            "Z".parse::<ReferenceBases>(),
+            Err(ParseError::InvalidBase(_))
+        ));
 
         Ok(())
     }
