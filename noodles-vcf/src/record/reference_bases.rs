@@ -27,6 +27,12 @@ impl fmt::Display for ReferenceBases {
     }
 }
 
+impl From<Vec<Base>> for ReferenceBases {
+    fn from(bases: Vec<Base>) -> Self {
+        Self(bases)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
