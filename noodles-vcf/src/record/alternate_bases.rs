@@ -37,6 +37,12 @@ impl fmt::Display for AlternateBases {
     }
 }
 
+impl From<Vec<Allele>> for AlternateBases {
+    fn from(alleles: Vec<Allele>) -> Self {
+        Self(alleles)
+    }
+}
+
 #[derive(Debug)]
 pub struct ParseError(String);
 
