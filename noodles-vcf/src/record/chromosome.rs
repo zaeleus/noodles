@@ -2,6 +2,8 @@ mod parser;
 
 use std::{error, fmt, str::FromStr};
 
+use super::MISSING_FIELD;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Chromosome {
     Name(String),
@@ -17,14 +19,26 @@ impl fmt::Display for Chromosome {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF record chromosome fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is missing (`.`).
+    Missing,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid chromosome: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Missing => f.write_str("missing input (`.`)"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -32,15 +46,15 @@ impl FromStr for Chromosome {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError(s.into()));
-        }
-
-        let (_, value) = parser::parse(s).map_err(|_| ParseError(s.into()))?;
-
-        match value {
-            parser::Value::Name(s) => Ok(Self::Name(s.into())),
-            parser::Value::Symbol(s) => Ok(Self::Symbol(s.into())),
+        match s {
+            "" => Err(ParseError::Empty),
+            MISSING_FIELD => Err(ParseError::Missing),
+            _ => parser::parse(s)
+                .map(|(_, value)| match value {
+                    parser::Value::Name(t) => Self::Name(t.into()),
+                    parser::Value::Symbol(t) => Self::Symbol(t.into()),
+                })
+                .map_err(|_| ParseError::Invalid),
         }
     }
 }
@@ -56,19 +70,11 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!(
-            "sq0".parse::<Chromosome>()?,
-            Chromosome::Name(String::from("sq0"))
-        );
+    fn test_from_str() {
+        assert_eq!("sq0".parse(), Ok(Chromosome::Name(String::from("sq0"))));
+        assert_eq!("<sq0>".parse(), Ok(Chromosome::Symbol(String::from("sq0"))));
 
-        assert_eq!(
-            "<sq0>".parse::<Chromosome>()?,
-            Chromosome::Symbol(String::from("sq0"))
-        );
-
-        assert!("".parse::<Chromosome>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Chromosome>(), Err(ParseError::Empty));
+        assert_eq!(".".parse::<Chromosome>(), Err(ParseError::Missing));
     }
 }
