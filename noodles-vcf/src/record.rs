@@ -1,3 +1,5 @@
+//! VCF record and fields.
+
 pub mod alternate_bases;
 mod builder;
 mod chromosome;
@@ -8,7 +10,7 @@ pub mod genotype;
 mod id;
 pub mod info;
 mod quality_score;
-mod reference_bases;
+pub mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
@@ -21,6 +23,21 @@ use std::{error, fmt, num, str::FromStr};
 pub(crate) const MISSING_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 
+/// A VCF record.
+///
+/// A VCF record has 8 required fields:
+///
+///   1. chromosome (`CRHOM`),
+///   2. position (`POS`),
+///   3. id (`ID`),
+///   4. reference bases (`REF`),
+///   5. alternate bases (`ALT`),
+///   6. quality score (`QUAL`),
+///   7. filter status (`FILTER`), and
+///   8. information (`INFO`),
+///
+/// Additionally, each record can have genotype information. This adds the extra `FORMAT` field
+/// and a number of genotype fields.
 #[derive(Debug)]
 pub struct Record {
     chromosome: Chromosome,
@@ -36,63 +53,302 @@ pub struct Record {
 }
 
 impl Record {
+    /// Returns a builder to create a record from each of its fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let builder = vcf::Record::builder();
+    /// ```
     pub fn builder() -> Builder {
         Builder::new()
     }
 
+    /// Returns the chromosome of the record.
+    ///
+    /// The chromosome is either a reference sequence name or a symbol (`<identifier>`).
+    ///
+    /// This is a required field and guaranteed to be set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::Chromosome};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.chromosome(), &Chromosome::Name(String::from("sq0")));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn chromosome(&self) -> &Chromosome {
         &self.chromosome
     }
 
+    /// Returns the start position of the record.
+    ///
+    /// VCF positions are 1-based.
+    ///
+    /// This is a required field and guaranteed to be set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(8)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.position(), 8);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn position(&self) -> i32 {
         self.position
     }
 
+    /// Returns the ID of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(8)
+    ///     .set_id("nd0".parse()?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(**record.id(), Some(String::from("nd0")));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn id(&self) -> &Id {
         &self.id
     }
 
+    /// Returns the reference bases of the record.
+    ///
+    /// This is a required field and guaranteed to be set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{reference_bases::Base, ReferenceBases}};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(8)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(
+    ///     record.reference_bases(),
+    ///     &ReferenceBases::from(vec![Base::A])
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn reference_bases(&self) -> &ReferenceBases {
         &self.reference_bases
     }
 
+    /// Returns the alternate bases of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases}
+    /// };
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(8)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_alternate_bases("C".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(
+    ///     record.alternate_bases(),
+    ///     &AlternateBases::from(vec![Allele::Bases(vec![Base::C])]),
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn alternate_bases(&self) -> &AlternateBases {
         &self.alternate_bases
     }
 
+    /// Returns the quality score of the record.
+    ///
+    /// The quality score is a [Phred quality score].
+    ///
+    /// [Phred quality score]: https://en.wikipedia.org/wiki/Phred_quality_score
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::QualityScore};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(8)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_quality_score(QualityScore::try_from(13.0)?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(**record.quality_score(), Some(13.0));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn quality_score(&self) -> &QualityScore {
         &self.quality_score
     }
 
+    /// Returns the filter status of the record.
+    ///
+    /// The filter status can either be pass (`PASS`), a list of filter names
+    /// that caused the record to fail, (e.g., `q10`), or missing (`.`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::FilterStatus};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_filter_status(FilterStatus::Pass)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.filter_status(), &FilterStatus::Pass);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn filter_status(&self) -> &FilterStatus {
         &self.filter_status
     }
 
+    /// Returns the addition information of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{info::{field::{Key, Value}, Field}, Info},
+    /// };
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_alternate_bases("C".parse()?)
+    ///     .set_info("NS=3;AF=0.5".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.info(), &Info::from(vec![
+    ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
+    ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
+    /// ]));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn info(&self) -> &Info {
         &self.info
     }
 
+    /// Returns the format of the genotypes of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{genotype::field::Key, Format, Genotype}
+    /// };
+    ///
+    /// let format: Format = "GT:GQ".parse()?;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_format(format.clone())
+    ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.format(), Some(&Format::from(vec![
+    ///     Key::Genotype,
+    ///     Key::ConditionalGenotypeQuality,
+    /// ])));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn format(&self) -> Option<&Format> {
         self.format.as_ref()
     }
 
+    /// Returns the genotypes of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype}
+    /// };
+    ///
+    /// let format: Format = "GT:GQ".parse()?;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(1)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_format(format.clone())
+    ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.genotypes(), [Genotype::from(vec![
+    ///     Field::new(Key::Genotype, Value::String(String::from("0|0"))),
+    ///     Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    /// ])]);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn genotypes(&self) -> &[Genotype] {
         &self.genotypes
     }
 }
 
+/// An error returned when a raw VCF record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A field is missing.
     MissingField(Field),
+    /// The chromosome is invalid.
     InvalidChromosome(chromosome::ParseError),
+    /// The position is invalid.
     InvalidPosition(num::ParseIntError),
+    /// The ID is invalid.
     InvalidId(id::ParseError),
+    /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::ParseError),
+    /// The alternate bases are invalid.
     InvalidAlternateBases(alternate_bases::ParseError),
+    /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
+    /// The filter status is invalid.
     InvalidFilterStatus(filter_status::ParseError),
+    /// The info is invalid.
     InvalidInfo(info::ParseError),
+    /// The format is invalid.
     InvalidFormat(format::ParseError),
+    /// A genotype is invalid.
     InvalidGenotype(genotype::ParseError),
 }
 
