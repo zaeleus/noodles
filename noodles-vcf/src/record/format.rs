@@ -29,6 +29,12 @@ impl fmt::Display for Format {
     }
 }
 
+impl From<Vec<Key>> for Format {
+    fn from(keys: Vec<Key>) -> Self {
+        Self(keys)
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     Empty,
