@@ -5,7 +5,7 @@ use super::MISSING_FIELD;
 const MIN: f32 = 0.0;
 
 /// A VCF record quality score.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct QualityScore(Option<f32>);
 
 impl Deref for QualityScore {

@@ -205,11 +205,11 @@ impl Record {
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.quality_score(), Some(13.0));
+    /// assert_eq!(*record.quality_score(), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn quality_score(&self) -> &QualityScore {
-        &self.quality_score
+    pub fn quality_score(&self) -> QualityScore {
+        self.quality_score
     }
 
     /// Returns the filter status of the record.
@@ -462,7 +462,7 @@ mod tests {
         let alternate_bases = [Allele::Bases(vec![Base::A])];
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
-        assert_eq!(**record.quality_score(), Some(5.8));
+        assert_eq!(*record.quality_score(), Some(5.8));
         assert_eq!(record.filter_status(), &FilterStatus::Pass);
         assert_eq!(record.info().len(), 1);
         assert!(record.format().is_none());
