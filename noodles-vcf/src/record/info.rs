@@ -37,6 +37,12 @@ impl fmt::Display for Info {
     }
 }
 
+impl From<Vec<Field>> for Info {
+    fn from(fields: Vec<Field>) -> Self {
+        Self(fields)
+    }
+}
+
 #[derive(Debug)]
 pub enum ParseError {
     Empty,
