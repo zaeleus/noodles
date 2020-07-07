@@ -64,6 +64,12 @@ impl fmt::Display for Genotype {
     }
 }
 
+impl From<Vec<Field>> for Genotype {
+    fn from(fields: Vec<Field>) -> Self {
+        Self(fields)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
