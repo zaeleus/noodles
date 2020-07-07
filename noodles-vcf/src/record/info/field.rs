@@ -10,7 +10,7 @@ use crate::header::info::Type;
 const SEPARATOR: char = '=';
 const MAX_COMPONENTS: usize = 2;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     key: Key,
     value: Value,

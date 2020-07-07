@@ -8,7 +8,7 @@ use super::MISSING_FIELD;
 
 const DELIMITER: char = ';';
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Info(Vec<Field>);
 
 impl Deref for Info {
