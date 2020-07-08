@@ -8,7 +8,7 @@ use super::record;
 
 use self::key::Key;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AlternativeAllele {
     id: Symbol,
     description: String,

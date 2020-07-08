@@ -23,7 +23,7 @@ use self::record::Record;
 
 static FILE_FORMAT: &str = "VCFv4.3";
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     file_format: String,
     infos: Vec<Info>,

@@ -6,7 +6,7 @@ use super::record;
 
 use self::key::Key;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Filter {
     id: String,
     description: String,

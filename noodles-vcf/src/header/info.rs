@@ -11,7 +11,7 @@ use super::{number, record, Number};
 
 use self::key::Key;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Info {
     id: info::field::Key,
     number: Number,
