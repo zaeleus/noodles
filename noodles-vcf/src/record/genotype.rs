@@ -8,7 +8,7 @@ use super::{Format, MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotype(Vec<Field>);
 
 #[derive(Debug)]

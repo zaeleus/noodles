@@ -38,7 +38,7 @@ const FIELD_DELIMITER: char = '\t';
 ///
 /// Additionally, each record can have genotype information. This adds the extra `FORMAT` field
 /// and a number of genotype fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     chromosome: Chromosome,
     position: i32,
