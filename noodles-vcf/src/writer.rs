@@ -110,7 +110,7 @@ where
             "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
             chrom = record.chromosome(),
             pos = record.position(),
-            id = record.id(),
+            id = record.ids(),
             r#ref = record.reference_bases(),
             alt = record.alternate_bases(),
             qual = record.quality_score(),

@@ -7,14 +7,14 @@ mod field;
 mod filter_status;
 pub mod format;
 pub mod genotype;
-mod id;
+mod ids;
 pub mod info;
 mod quality_score;
 pub mod reference_bases;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, format::Format, genotype::Genotype, id::Id, info::Info,
+    filter_status::FilterStatus, format::Format, genotype::Genotype, ids::Ids, info::Info,
     quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
@@ -29,7 +29,7 @@ const FIELD_DELIMITER: char = '\t';
 ///
 ///   1. chromosome (`CRHOM`),
 ///   2. position (`POS`),
-///   3. id (`ID`),
+///   3. IDs (`ID`),
 ///   4. reference bases (`REF`),
 ///   5. alternate bases (`ALT`),
 ///   6. quality score (`QUAL`),
@@ -42,7 +42,7 @@ const FIELD_DELIMITER: char = '\t';
 pub struct Record {
     chromosome: Chromosome,
     position: i32,
-    id: Id,
+    ids: Ids,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
@@ -123,15 +123,15 @@ impl Record {
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(8)
-    ///     .set_id("nd0".parse()?)
+    ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.id(), [String::from("nd0")]);
+    /// assert_eq!(**record.ids(), [String::from("nd0")]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn id(&self) -> &Id {
-        &self.id
+    pub fn ids(&self) -> &Ids {
+        &self.ids
     }
 
     /// Returns the reference bases of the record.
@@ -336,7 +336,7 @@ pub enum ParseError {
     /// The position is invalid.
     InvalidPosition(num::ParseIntError),
     /// The ID is invalid.
-    InvalidId(id::ParseError),
+    InvalidIds(ids::ParseError),
     /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::ParseError),
     /// The alternate bases are invalid.
@@ -361,7 +361,7 @@ impl fmt::Display for ParseError {
             Self::MissingField(field) => write!(f, "missing field: {}", field),
             Self::InvalidChromosome(e) => write!(f, "{}", e),
             Self::InvalidPosition(e) => write!(f, "{}", e),
-            Self::InvalidId(e) => write!(f, "{}", e),
+            Self::InvalidIds(e) => write!(f, "{}", e),
             Self::InvalidReferenceBases(e) => write!(f, "{}", e),
             Self::InvalidAlternateBases(e) => write!(f, "{}", e),
             Self::InvalidQualityScore(e) => write!(f, "{}", e),
@@ -385,8 +385,8 @@ impl FromStr for Record {
         let pos = parse_string(&mut fields, Field::Position)
             .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))?;
 
-        let id = parse_string(&mut fields, Field::Id)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidId))?;
+        let ids = parse_string(&mut fields, Field::Ids)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidIds))?;
 
         let r#ref = parse_string(&mut fields, Field::ReferenceBases)
             .and_then(|s| s.parse().map_err(ParseError::InvalidReferenceBases))?;
@@ -421,7 +421,7 @@ impl FromStr for Record {
         Ok(Self {
             chromosome: chrom,
             position: pos,
-            id,
+            ids,
             reference_bases: r#ref,
             alternate_bases: alt,
             quality_score: qual,
@@ -455,7 +455,7 @@ mod tests {
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
         assert_eq!(record.position(), 13);
-        assert_eq!(**record.id(), [String::from("nd0")]);
+        assert_eq!(**record.ids(), [String::from("nd0")]);
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);

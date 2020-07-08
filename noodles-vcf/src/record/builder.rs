@@ -1,7 +1,7 @@
 use std::{convert::TryFrom, error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Chromosome, FilterStatus, Format, Genotype, Id, Info,
+    reference_bases::Base, AlternateBases, Chromosome, FilterStatus, Format, Genotype, Ids, Info,
     QualityScore, Record, ReferenceBases,
 };
 
@@ -9,7 +9,7 @@ use super::{
 pub struct Builder {
     chromosome: Option<Chromosome>,
     position: Option<i32>,
-    id: Id,
+    ids: Ids,
     reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
@@ -53,8 +53,8 @@ impl Builder {
         self
     }
 
-    pub fn set_id(mut self, id: Id) -> Self {
-        self.id = id;
+    pub fn set_ids(mut self, ids: Ids) -> Self {
+        self.ids = ids;
         self
     }
 
@@ -110,7 +110,7 @@ impl Builder {
                 .chromosome
                 .ok_or_else(|| BuildError::MissingChromosome)?,
             position: self.position.ok_or_else(|| BuildError::MissingPosition)?,
-            id: self.id,
+            ids: self.ids,
             reference_bases: ReferenceBases::try_from(self.reference_bases)
                 .map_err(|_| BuildError::MissingReferenceBases)?,
             alternate_bases: self.alternate_bases,
@@ -140,7 +140,7 @@ mod tests {
 
         assert_eq!(record.chromosome(), &chromosome);
         assert_eq!(record.position(), 5);
-        assert!(record.id().is_empty());
+        assert!(record.ids().is_empty());
         assert_eq!(record.reference_bases(), &reference_bases);
         assert!(record.alternate_bases().is_empty());
         assert!(record.quality_score().is_none());

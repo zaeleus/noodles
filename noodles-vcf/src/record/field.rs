@@ -4,7 +4,7 @@ use std::fmt;
 pub enum Field {
     Chromosome,
     Position,
-    Id,
+    Ids,
     ReferenceBases,
     AlternateBases,
     QualityScore,
@@ -18,7 +18,7 @@ impl AsRef<str> for Field {
         match self {
             Self::Chromosome => "CHROM",
             Self::Position => "POS",
-            Self::Id => "ID",
+            Self::Ids => "ID",
             Self::ReferenceBases => "REF",
             Self::AlternateBases => "ALT",
             Self::QualityScore => "QUAL",
@@ -43,7 +43,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Field::Chromosome.to_string(), "CHROM");
         assert_eq!(Field::Position.to_string(), "POS");
-        assert_eq!(Field::Id.to_string(), "ID");
+        assert_eq!(Field::Ids.to_string(), "ID");
         assert_eq!(Field::ReferenceBases.to_string(), "REF");
         assert_eq!(Field::AlternateBases.to_string(), "ALT");
         assert_eq!(Field::QualityScore.to_string(), "QUAL");
