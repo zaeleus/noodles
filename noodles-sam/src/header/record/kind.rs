@@ -27,18 +27,20 @@ impl fmt::Display for Kind {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    Empty,
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid record kind: expected @{{HD, SQ, RG, PG, CO}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -47,12 +49,13 @@ impl FromStr for Kind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "@HD" => Ok(Self::Header),
             "@SQ" => Ok(Self::ReferenceSequence),
             "@RG" => Ok(Self::ReadGroup),
             "@PG" => Ok(Self::Program),
             "@CO" => Ok(Self::Comment),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -62,16 +65,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("@HD".parse::<Kind>()?, Kind::Header);
-        assert_eq!("@SQ".parse::<Kind>()?, Kind::ReferenceSequence);
-        assert_eq!("@RG".parse::<Kind>()?, Kind::ReadGroup);
-        assert_eq!("@PG".parse::<Kind>()?, Kind::Program);
-        assert_eq!("@CO".parse::<Kind>()?, Kind::Comment);
+    fn test_from_str() {
+        assert_eq!("@HD".parse(), Ok(Kind::Header));
+        assert_eq!("@SQ".parse(), Ok(Kind::ReferenceSequence));
+        assert_eq!("@RG".parse(), Ok(Kind::ReadGroup));
+        assert_eq!("@PG".parse(), Ok(Kind::Program));
+        assert_eq!("@CO".parse(), Ok(Kind::Comment));
 
-        assert!("@NO".parse::<Kind>().is_err());
-        assert!("HD".parse::<Kind>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Kind>(), Err(ParseError::Empty));
+        assert_eq!("@NO".parse::<Kind>(), Err(ParseError::Invalid));
+        assert_eq!("HD".parse::<Kind>(), Err(ParseError::Invalid));
     }
 }

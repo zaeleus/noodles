@@ -196,7 +196,7 @@ impl fmt::Display for ReferenceSequence {
 }
 
 /// An error returned when a raw SAM header reference sequence fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A required tag is missing.
     MissingRequiredTag(Tag),
@@ -279,7 +279,10 @@ mod tests {
             ),
         ];
 
-        assert!(ReferenceSequence::try_from(&fields[..]).is_err());
+        assert_eq!(
+            ReferenceSequence::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Name))
+        );
     }
 
     #[test]
@@ -292,7 +295,10 @@ mod tests {
             ),
         ];
 
-        assert!(ReferenceSequence::try_from(&fields[..]).is_err());
+        assert_eq!(
+            ReferenceSequence::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Length))
+        );
     }
 
     #[test]
@@ -302,12 +308,19 @@ mod tests {
             String::from("d7eba311421bbc9d3ada44709dd61534"),
         )];
 
-        assert!(ReferenceSequence::try_from(&fields[..]).is_err());
+        assert_eq!(
+            ReferenceSequence::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Name))
+        );
     }
 
     #[test]
     fn test_from_str_with_invalid_length() {
         let fields = [(String::from("LN"), String::from("thirteen"))];
-        assert!(ReferenceSequence::try_from(&fields[..]).is_err());
+
+        assert!(matches!(
+            ReferenceSequence::try_from(&fields[..]),
+            Err(ParseError::InvalidLength(_))
+        ));
     }
 }

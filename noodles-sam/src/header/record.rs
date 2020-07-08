@@ -10,7 +10,7 @@ const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
 
 /// A SAM header record.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Record {
     /// A header record (`@HD`).
     Header(Vec<Field>),
@@ -25,7 +25,7 @@ pub enum Record {
 }
 
 /// An error returned when a raw SAM header record fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The kind is missing.
     MissingKind,
@@ -100,34 +100,47 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let record = "@HD\tVN:1.6".parse()?;
-        let fields = vec![(String::from("VN"), String::from("1.6"))];
-        assert!(matches!(record, Record::Header(f) if f == fields));
+    fn test_from_str() {
+        assert_eq!(
+            "@HD\tVN:1.6".parse(),
+            Ok(Record::Header(vec![(
+                String::from("VN"),
+                String::from("1.6")
+            )]))
+        );
 
-        let record = "@SQ\tSN:sq0\tLN:8".parse()?;
-        let fields = vec![
-            (String::from("SN"), String::from("sq0")),
-            (String::from("LN"), String::from("8")),
-        ];
-        assert!(matches!(record, Record::ReferenceSequence(f) if f == fields));
+        assert_eq!(
+            "@SQ\tSN:sq0\tLN:8".parse(),
+            Ok(Record::ReferenceSequence(vec![
+                (String::from("SN"), String::from("sq0")),
+                (String::from("LN"), String::from("8")),
+            ]))
+        );
 
-        let record = "@RG\tID:rg0".parse()?;
-        let fields = vec![(String::from("ID"), String::from("rg0"))];
-        assert!(matches!(record, Record::ReadGroup(f) if f == fields));
+        assert_eq!(
+            "@RG\tID:rg0".parse(),
+            Ok(Record::ReadGroup(vec![(
+                String::from("ID"),
+                String::from("rg0")
+            )]))
+        );
 
-        let record = "@PG\tID:pg0".parse()?;
-        let fields = vec![(String::from("ID"), String::from("pg0"))];
-        assert!(matches!(record, Record::Program(f) if f == fields));
+        assert_eq!(
+            "@PG\tID:pg0".parse(),
+            Ok(Record::Program(vec![(
+                String::from("ID"),
+                String::from("pg0")
+            )]))
+        );
 
-        let record = "@CO\tnoodles".parse()?;
-        assert!(matches!(record, Record::Comment(c) if c == "noodles"));
+        assert_eq!(
+            "@CO\tnoodles".parse(),
+            Ok(Record::Comment(String::from("noodles")))
+        );
 
-        Ok(())
-    }
-
-    #[test]
-    fn test_from_str_when_comment_has_no_message() {
-        assert!("@CO".parse::<Record>().is_err());
+        assert_eq!(
+            "@CO".parse::<Record>(),
+            Err(ParseError::MissingValue(String::from("@CO")))
+        );
     }
 }

@@ -34,18 +34,22 @@ impl fmt::Display for GroupOrder {
 }
 
 /// An error returned when a raw SAM header header group order fails to parse.
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid group order: expected {{none, query, reference}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -54,10 +58,11 @@ impl FromStr for GroupOrder {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "none" => Ok(Self::None),
             "query" => Ok(Self::Query),
             "reference" => Ok(Self::Reference),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -79,15 +84,13 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("none".parse::<GroupOrder>()?, GroupOrder::None);
-        assert_eq!("query".parse::<GroupOrder>()?, GroupOrder::Query);
-        assert_eq!("reference".parse::<GroupOrder>()?, GroupOrder::Reference);
+    fn test_from_str() {
+        assert_eq!("none".parse(), Ok(GroupOrder::None));
+        assert_eq!("query".parse(), Ok(GroupOrder::Query));
+        assert_eq!("reference".parse(), Ok(GroupOrder::Reference));
 
-        assert!("".parse::<GroupOrder>().is_err());
-        assert!("noodles".parse::<GroupOrder>().is_err());
-        assert!("Query".parse::<GroupOrder>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<GroupOrder>(), Err(ParseError::Empty));
+        assert_eq!("noodles".parse::<GroupOrder>(), Err(ParseError::Invalid));
+        assert_eq!("Query".parse::<GroupOrder>(), Err(ParseError::Invalid));
     }
 }

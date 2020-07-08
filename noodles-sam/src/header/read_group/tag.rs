@@ -64,14 +64,22 @@ impl fmt::Display for Tag {
 }
 
 /// An error returned when a raw SAM header read group tag fails to parse.
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid read group tag: '{}'", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -80,6 +88,7 @@ impl FromStr for Tag {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "ID" => Ok(Self::Id),
             "BC" => Ok(Self::Barcode),
             "CN" => Ok(Self::SequencingCenter),
@@ -98,7 +107,7 @@ impl FromStr for Tag {
                 if s.len() == 2 {
                     Ok(Self::Other(s.into()))
                 } else {
-                    Err(ParseError(s.into()))
+                    Err(ParseError::Invalid)
                 }
             }
         }
@@ -129,27 +138,24 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("ID".parse::<Tag>()?, Tag::Id);
-        assert_eq!("BC".parse::<Tag>()?, Tag::Barcode);
-        assert_eq!("CN".parse::<Tag>()?, Tag::SequencingCenter);
-        assert_eq!("DS".parse::<Tag>()?, Tag::Description);
-        assert_eq!("DT".parse::<Tag>()?, Tag::ProducedAt);
-        assert_eq!("FO".parse::<Tag>()?, Tag::FlowOrder);
-        assert_eq!("KS".parse::<Tag>()?, Tag::KeySequence);
-        assert_eq!("LB".parse::<Tag>()?, Tag::Library);
-        assert_eq!("PG".parse::<Tag>()?, Tag::Program);
-        assert_eq!("PI".parse::<Tag>()?, Tag::PredictedMedianInsertSize);
-        assert_eq!("PL".parse::<Tag>()?, Tag::Platform);
-        assert_eq!("PM".parse::<Tag>()?, Tag::PlatformModel);
-        assert_eq!("PU".parse::<Tag>()?, Tag::PlatformUnit);
-        assert_eq!("SM".parse::<Tag>()?, Tag::Sample);
+    fn test_from_str() {
+        assert_eq!("ID".parse::<Tag>(), Ok(Tag::Id));
+        assert_eq!("BC".parse::<Tag>(), Ok(Tag::Barcode));
+        assert_eq!("CN".parse::<Tag>(), Ok(Tag::SequencingCenter));
+        assert_eq!("DS".parse::<Tag>(), Ok(Tag::Description));
+        assert_eq!("DT".parse::<Tag>(), Ok(Tag::ProducedAt));
+        assert_eq!("FO".parse::<Tag>(), Ok(Tag::FlowOrder));
+        assert_eq!("KS".parse::<Tag>(), Ok(Tag::KeySequence));
+        assert_eq!("LB".parse::<Tag>(), Ok(Tag::Library));
+        assert_eq!("PG".parse::<Tag>(), Ok(Tag::Program));
+        assert_eq!("PI".parse::<Tag>(), Ok(Tag::PredictedMedianInsertSize));
+        assert_eq!("PL".parse::<Tag>(), Ok(Tag::Platform));
+        assert_eq!("PM".parse::<Tag>(), Ok(Tag::PlatformModel));
+        assert_eq!("PU".parse::<Tag>(), Ok(Tag::PlatformUnit));
+        assert_eq!("SM".parse::<Tag>(), Ok(Tag::Sample));
+        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
 
-        assert_eq!("ND".parse::<Tag>()?, Tag::Other(String::from("ND")));
-
-        assert!("".parse::<Tag>().is_err());
-        assert!("NDL".parse::<Tag>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
+        assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));
     }
 }

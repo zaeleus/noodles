@@ -34,14 +34,22 @@ impl fmt::Display for Tag {
 }
 
 /// An error returned when a raw SAM header header tag fails to parse.
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid header tag: '{}'", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -50,6 +58,7 @@ impl FromStr for Tag {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "VN" => Ok(Self::Version),
             "SO" => Ok(Self::SortOrder),
             "GO" => Ok(Self::GroupOrder),
@@ -58,7 +67,7 @@ impl FromStr for Tag {
                 if s.len() == 2 {
                     Ok(Self::Other(s.into()))
                 } else {
-                    Err(ParseError(s.into()))
+                    Err(ParseError::Invalid)
                 }
             }
         }
@@ -79,17 +88,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("VN".parse::<Tag>()?, Tag::Version);
-        assert_eq!("SO".parse::<Tag>()?, Tag::SortOrder);
-        assert_eq!("GO".parse::<Tag>()?, Tag::GroupOrder);
-        assert_eq!("SS".parse::<Tag>()?, Tag::SubsortOrder);
+    fn test_from_str() {
+        assert_eq!("VN".parse::<Tag>(), Ok(Tag::Version));
+        assert_eq!("SO".parse::<Tag>(), Ok(Tag::SortOrder));
+        assert_eq!("GO".parse::<Tag>(), Ok(Tag::GroupOrder));
+        assert_eq!("SS".parse::<Tag>(), Ok(Tag::SubsortOrder));
+        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
 
-        assert_eq!("ND".parse::<Tag>()?, Tag::Other(String::from("ND")));
-
-        assert!("".parse::<Tag>().is_err());
-        assert!("NDL".parse::<Tag>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
+        assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));
     }
 }

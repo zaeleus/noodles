@@ -13,7 +13,7 @@ use super::record;
 ///
 /// A read group typically defines the set of reads that came from the same run on a sequencing
 /// instrument. The read group ID is guaranteed to be set.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReadGroup {
     id: String,
     fields: HashMap<Tag, String>,
@@ -156,7 +156,7 @@ impl fmt::Display for ReadGroup {
 }
 
 /// An error returned when a raw SAM header read group fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A required tag is missing.
     MissingRequiredTag(Tag),
@@ -222,8 +222,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_no_version() {
-        let fields = [(String::from("DS"), String::from("noodles"))];
-        assert!(ReadGroup::try_from(&fields[..]).is_err());
+    fn test_from_str_with_no_id() {
+        let fields = [(String::from("PG"), String::from("noodles"))];
+
+        assert_eq!(
+            ReadGroup::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Id))
+        );
     }
 }

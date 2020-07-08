@@ -24,7 +24,7 @@ static VERSION: &str = "1.6";
 /// A SAM header header.
 ///
 /// The header describes file-level metadata. The format version is guaranteed to be set.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     version: String,
     fields: HashMap<Tag, String>,
@@ -165,7 +165,7 @@ impl fmt::Display for Header {
 }
 
 /// An error returned when a raw SAM header header fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A required tag is missing.
     MissingRequiredTag(Tag),
@@ -240,6 +240,10 @@ mod tests {
     #[test]
     fn test_from_str_with_no_version() {
         let fields = [(String::from("SO"), String::from("coordinate"))];
-        assert!(Header::try_from(&fields[..]).is_err());
+
+        assert_eq!(
+            Header::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Version))
+        );
     }
 }

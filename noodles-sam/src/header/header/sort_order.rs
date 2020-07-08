@@ -37,18 +37,22 @@ impl fmt::Display for SortOrder {
 }
 
 /// An error returned when a raw SAM header header sort order fails to parse.
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid sort order: expected {{unknown, unsorted, queryname, coordinate}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -57,11 +61,12 @@ impl FromStr for SortOrder {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "unknown" => Ok(Self::Unknown),
             "unsorted" => Ok(Self::Unsorted),
             "queryname" => Ok(Self::QueryName),
             "coordinate" => Ok(Self::Coordinate),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -84,16 +89,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("unknown".parse::<SortOrder>()?, SortOrder::Unknown);
-        assert_eq!("unsorted".parse::<SortOrder>()?, SortOrder::Unsorted);
-        assert_eq!("queryname".parse::<SortOrder>()?, SortOrder::QueryName);
-        assert_eq!("coordinate".parse::<SortOrder>()?, SortOrder::Coordinate);
+    fn test_from_str() {
+        assert_eq!("unknown".parse(), Ok(SortOrder::Unknown));
+        assert_eq!("unsorted".parse(), Ok(SortOrder::Unsorted));
+        assert_eq!("queryname".parse(), Ok(SortOrder::QueryName));
+        assert_eq!("coordinate".parse(), Ok(SortOrder::Coordinate));
 
-        assert!("".parse::<SortOrder>().is_err());
-        assert!("noodles".parse::<SortOrder>().is_err());
-        assert!("QueryName".parse::<SortOrder>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<SortOrder>(), Err(ParseError::Empty));
+        assert_eq!("noodles".parse::<SortOrder>(), Err(ParseError::Invalid));
+        assert_eq!("QueryName".parse::<SortOrder>(), Err(ParseError::Invalid));
     }
 }

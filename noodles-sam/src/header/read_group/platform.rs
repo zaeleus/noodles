@@ -24,14 +24,22 @@ pub enum Platform {
 }
 
 /// An error returned when a raw SAM header read group platform fails to parse.
-#[derive(Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid platform: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -40,6 +48,7 @@ impl FromStr for Platform {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "CAPILLARY" => Ok(Self::Capillary),
             "DNBSEQ" => Ok(Self::DnbSeq),
             "LS454" => Ok(Self::LS454),
@@ -49,7 +58,7 @@ impl FromStr for Platform {
             "IONTORRENT" => Ok(Self::IonTorrent),
             "ONT" => Ok(Self::Ont),
             "PACBIO" => Ok(Self::PacBio),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -59,22 +68,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("CAPILLARY".parse::<Platform>()?, Platform::Capillary);
-        assert_eq!("DNBSEQ".parse::<Platform>()?, Platform::DnbSeq);
-        assert_eq!("LS454".parse::<Platform>()?, Platform::LS454);
-        assert_eq!("ILLUMINA".parse::<Platform>()?, Platform::Illumina);
-        assert_eq!("SOLID".parse::<Platform>()?, Platform::Solid);
-        assert_eq!("HELICOS".parse::<Platform>()?, Platform::Helicos);
-        assert_eq!("IONTORRENT".parse::<Platform>()?, Platform::IonTorrent);
-        assert_eq!("ONT".parse::<Platform>()?, Platform::Ont);
-        assert_eq!("PACBIO".parse::<Platform>()?, Platform::PacBio);
+    fn test_from_str() {
+        assert_eq!("CAPILLARY".parse(), Ok(Platform::Capillary));
+        assert_eq!("DNBSEQ".parse(), Ok(Platform::DnbSeq));
+        assert_eq!("LS454".parse(), Ok(Platform::LS454));
+        assert_eq!("ILLUMINA".parse(), Ok(Platform::Illumina));
+        assert_eq!("SOLID".parse(), Ok(Platform::Solid));
+        assert_eq!("HELICOS".parse(), Ok(Platform::Helicos));
+        assert_eq!("IONTORRENT".parse(), Ok(Platform::IonTorrent));
+        assert_eq!("ONT".parse(), Ok(Platform::Ont));
+        assert_eq!("PACBIO".parse(), Ok(Platform::PacBio));
 
-        assert!("".parse::<Platform>().is_err());
-        assert!("NOODLES".parse::<Platform>().is_err());
-        assert!("Illumina".parse::<Platform>().is_err());
-        assert!("illumina".parse::<Platform>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Platform>(), Err(ParseError::Empty));
+        assert_eq!("NOODLES".parse::<Platform>(), Err(ParseError::Invalid));
+        assert_eq!("Illumina".parse::<Platform>(), Err(ParseError::Invalid));
+        assert_eq!("illumina".parse::<Platform>(), Err(ParseError::Invalid));
     }
 }

@@ -16,18 +16,22 @@ impl Default for MoleculeTopology {
 }
 
 /// An error returned when a raw SAM header reference sequence molecule topology fails to parse.
-#[derive(Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid molecule topology: expected {{linear, circular}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -36,9 +40,10 @@ impl FromStr for MoleculeTopology {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "linear" => Ok(Self::Linear),
             "circular" => Ok(Self::Circular),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -53,25 +58,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!("linear".parse(), Ok(MoleculeTopology::Linear));
         assert_eq!("circular".parse(), Ok(MoleculeTopology::Circular));
 
-        assert_eq!(
-            "".parse::<MoleculeTopology>(),
-            Err(ParseError(String::from("")))
-        );
-
+        assert_eq!("".parse::<MoleculeTopology>(), Err(ParseError::Empty));
         assert_eq!(
             "noodles".parse::<MoleculeTopology>(),
-            Err(ParseError(String::from("noodles")))
+            Err(ParseError::Invalid)
         );
-
         assert_eq!(
             "Linear".parse::<MoleculeTopology>(),
-            Err(ParseError(String::from("Linear")))
+            Err(ParseError::Invalid)
         );
-
-        Ok(())
     }
 }

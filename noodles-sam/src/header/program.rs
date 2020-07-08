@@ -12,7 +12,7 @@ use super::record;
 ///
 /// A program describes any program that created, viewed, or mutated a SAM file. The program ID is
 /// guaranteed to be set.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Program {
     id: String,
     fields: HashMap<Tag, String>,
@@ -154,7 +154,7 @@ impl fmt::Display for Program {
 }
 
 /// An error returned when a raw SAM header program fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A required tag is missing.
     MissingRequiredTag(Tag),
@@ -219,7 +219,11 @@ mod tests {
 
     #[test]
     fn test_from_str_with_no_id() {
-        let fields = [(String::from("DS"), String::from("noodles"))];
-        assert!(Program::try_from(&fields[..]).is_err());
+        let fields = [(String::from("PN"), String::from("noodles"))];
+
+        assert_eq!(
+            Program::try_from(&fields[..]),
+            Err(ParseError::MissingRequiredTag(Tag::Id))
+        );
     }
 }

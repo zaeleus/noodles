@@ -22,12 +22,14 @@ impl fmt::Display for SubsortOrder {
 }
 
 /// An error returned when a raw SAM header header subsort order fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The primary sort order is missing.
     MissingOrder,
     /// The primary sort order is invalid.
-    InvalidOrder(String),
+    InvalidOrder,
     /// The subsort order is missing.
     MissingSubsort,
 }
@@ -36,14 +38,11 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid subsort order: ")?;
-
         match self {
-            Self::MissingOrder => write!(f, "missing order"),
-            Self::InvalidOrder(s) => {
-                write!(f, "expected {{unsorted, queryname, coordinate}}, got {}", s)
-            }
-            Self::MissingSubsort => write!(f, "missing subsort"),
+            Self::Empty => f.write_str("empty input"),
+            Self::MissingOrder => f.write_str("missing primary sort order"),
+            Self::InvalidOrder => f.write_str("invalid primary sort order"),
+            Self::MissingSubsort => f.write_str("missing subsort order"),
         }
     }
 }
@@ -52,6 +51,10 @@ impl FromStr for SubsortOrder {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
+
         let mut pieces = s.splitn(2, ':');
 
         let order = pieces.next().ok_or_else(|| ParseError::MissingOrder)?;
@@ -65,7 +68,7 @@ impl FromStr for SubsortOrder {
             "unsorted" => Ok(Self::Unsorted(subsort)),
             "queryname" => Ok(Self::QueryName(subsort)),
             "coordinate" => Ok(Self::Coordinate(subsort)),
-            _ => Err(ParseError::InvalidOrder(s.into())),
+            _ => Err(ParseError::InvalidOrder),
         }
     }
 }
@@ -93,32 +96,36 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!(
-            "unsorted:MI".parse::<SubsortOrder>()?,
-            SubsortOrder::Unsorted(String::from("MI"))
+            "unsorted:MI".parse(),
+            Ok(SubsortOrder::Unsorted(String::from("MI")))
+        );
+        assert_eq!(
+            "queryname:MI".parse(),
+            Ok(SubsortOrder::QueryName(String::from("MI")))
+        );
+        assert_eq!(
+            "coordinate:MI".parse(),
+            Ok(SubsortOrder::Coordinate(String::from("MI")))
+        );
+        assert_eq!(
+            "unsorted:MI:coordinate".parse(),
+            Ok(SubsortOrder::Unsorted(String::from("MI:coordinate")))
         );
 
+        assert_eq!("".parse::<SubsortOrder>(), Err(ParseError::Empty));
         assert_eq!(
-            "queryname:MI".parse::<SubsortOrder>()?,
-            SubsortOrder::QueryName(String::from("MI"))
+            "noodles".parse::<SubsortOrder>(),
+            Err(ParseError::MissingSubsort)
         );
-
         assert_eq!(
-            "coordinate:MI".parse::<SubsortOrder>()?,
-            SubsortOrder::Coordinate(String::from("MI"))
+            "QueryName".parse::<SubsortOrder>(),
+            Err(ParseError::MissingSubsort)
         );
-
         assert_eq!(
-            "unsorted:MI:coordinate".parse::<SubsortOrder>()?,
-            SubsortOrder::Unsorted(String::from("MI:coordinate"))
+            "queryname".parse::<SubsortOrder>(),
+            Err(ParseError::MissingSubsort)
         );
-
-        assert!("".parse::<SubsortOrder>().is_err());
-        assert!("noodles".parse::<SubsortOrder>().is_err());
-        assert!("queryname".parse::<SubsortOrder>().is_err());
-        assert!("QueryName".parse::<SubsortOrder>().is_err());
-
-        Ok(())
     }
 }
