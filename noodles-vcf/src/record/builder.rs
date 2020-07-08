@@ -1,8 +1,8 @@
-use std::{error, fmt};
+use std::{convert::TryFrom, error, fmt};
 
 use super::{
-    AlternateBases, Chromosome, FilterStatus, Format, Genotype, Id, Info, QualityScore, Record,
-    ReferenceBases,
+    reference_bases::Base, AlternateBases, Chromosome, FilterStatus, Format, Genotype, Id, Info,
+    QualityScore, Record, ReferenceBases,
 };
 
 #[derive(Debug, Default)]
@@ -10,7 +10,7 @@ pub struct Builder {
     chromosome: Option<Chromosome>,
     position: Option<i32>,
     id: Id,
-    reference_bases: ReferenceBases,
+    reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
     filter_status: FilterStatus,
@@ -50,7 +50,13 @@ impl Builder {
     }
 
     pub fn set_reference_bases(mut self, reference_bases: ReferenceBases) -> Self {
-        self.reference_bases = reference_bases;
+        self.reference_bases.clear();
+        self.reference_bases.extend(reference_bases.iter());
+        self
+    }
+
+    pub fn add_reference_base(mut self, reference_base: Base) -> Self {
+        self.reference_bases.push(reference_base);
         self
     }
 
@@ -90,15 +96,14 @@ impl Builder {
     }
 
     pub fn build(self) -> Result<Record, BuildError> {
-        if self.reference_bases.is_empty() {
-            return Err(BuildError);
-        }
+        let reference_bases =
+            ReferenceBases::try_from(self.reference_bases).map_err(|_| BuildError)?;
 
         Ok(Record {
             chromosome: self.chromosome.ok_or_else(|| BuildError)?,
             position: self.position.ok_or_else(|| BuildError)?,
             id: self.id,
-            reference_bases: self.reference_bases,
+            reference_bases,
             alternate_bases: self.alternate_bases,
             quality_score: self.quality_score,
             filter_status: self.filter_status,

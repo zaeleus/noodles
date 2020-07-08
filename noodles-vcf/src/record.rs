@@ -136,11 +136,12 @@ impl Record {
 
     /// Returns the reference bases of the record.
     ///
-    /// This is a required field and guaranteed to be set.
+    /// This is a required field and guaranteed to be nonempty.
     ///
     /// # Examples
     ///
     /// ```
+    /// use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{reference_bases::Base, ReferenceBases}};
     ///
     /// let record = vcf::Record::builder()
@@ -151,7 +152,7 @@ impl Record {
     ///
     /// assert_eq!(
     ///     record.reference_bases(),
-    ///     &ReferenceBases::from(vec![Base::A])
+    ///     &ReferenceBases::try_from(vec![Base::A])?,
     /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```

@@ -6,7 +6,7 @@ use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferenceBases(Vec<Base>);
 
 impl Deref for ReferenceBases {
@@ -24,12 +24,6 @@ impl fmt::Display for ReferenceBases {
         }
 
         Ok(())
-    }
-}
-
-impl From<Vec<Base>> for ReferenceBases {
-    fn from(bases: Vec<Base>) -> Self {
-        Self(bases)
     }
 }
 
@@ -74,6 +68,35 @@ impl FromStr for ReferenceBases {
     }
 }
 
+/// An error returned when a vector of bases fails to convert to reference bases.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromBaseVectorError {
+    /// The input is empty.
+    Empty,
+}
+
+impl error::Error for TryFromBaseVectorError {}
+
+impl fmt::Display for TryFromBaseVectorError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => f.write_str("empty list"),
+        }
+    }
+}
+
+impl TryFrom<Vec<Base>> for ReferenceBases {
+    type Error = TryFromBaseVectorError;
+
+    fn try_from(bases: Vec<Base>) -> Result<Self, Self::Error> {
+        if bases.is_empty() {
+            Err(TryFromBaseVectorError::Empty)
+        } else {
+            Ok(Self(bases))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,5 +128,17 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_vec_bases_for_reference_bases() {
+        assert_eq!(
+            ReferenceBases::try_from(vec![Base::A]),
+            Ok(ReferenceBases(vec![Base::A]))
+        );
+        assert_eq!(
+            ReferenceBases::try_from(Vec::new()),
+            Err(TryFromBaseVectorError::Empty)
+        );
     }
 }
