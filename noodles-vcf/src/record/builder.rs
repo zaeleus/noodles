@@ -126,7 +126,7 @@ mod tests {
 
         assert_eq!(record.chromosome(), &chromosome);
         assert_eq!(record.position(), 5);
-        assert!(record.id().is_none());
+        assert!(record.id().is_empty());
         assert_eq!(record.reference_bases(), &reference_bases);
         assert!(record.alternate_bases().is_empty());
         assert!(record.quality_score().is_none());

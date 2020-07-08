@@ -2,17 +2,13 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Id(Option<String>);
+const DELIMITER: char = ';';
 
-impl AsRef<str> for Id {
-    fn as_ref(&self) -> &str {
-        self.0.as_deref().unwrap_or(MISSING_FIELD)
-    }
-}
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Id(Vec<String>);
 
 impl Deref for Id {
-    type Target = Option<String>;
+    type Target = [String];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -21,18 +17,36 @@ impl Deref for Id {
 
 impl fmt::Display for Id {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
+        if self.is_empty() {
+            write!(f, "{}", MISSING_FIELD)
+        } else {
+            for (i, id) in self.iter().enumerate() {
+                if i > 0 {
+                    write!(f, "{}", DELIMITER)?;
+                }
+
+                f.write_str(id)?;
+            }
+
+            Ok(())
+        }
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF record ID fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid id: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -41,9 +55,9 @@ impl FromStr for Id {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
-            MISSING_FIELD => Ok(Self(None)),
-            _ => Ok(Self(Some(s.into()))),
+            "" => Err(ParseError::Empty),
+            MISSING_FIELD => Ok(Self::default()),
+            _ => Ok(Self(s.split(DELIMITER).map(|s| s.into()).collect())),
         }
     }
 }
@@ -54,15 +68,23 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Id(Some(String::from("r0"))).to_string(), "r0");
-        assert_eq!(Id(None).to_string(), ".");
+        assert_eq!(Id::default().to_string(), ".");
+        assert_eq!(Id(vec![String::from("nd0")]).to_string(), "nd0");
+        assert_eq!(
+            Id(vec![String::from("nd0"), String::from("nd1")]).to_string(),
+            "nd0;nd1"
+        );
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert!(".".parse::<Id>()?.is_none());
-        assert!("rs13".parse::<Id>()?.is_some());
-        assert!("".parse::<Id>().is_err());
-        Ok(())
+    fn test_from_str() {
+        assert_eq!(".".parse(), Ok(Id::default()));
+        assert_eq!("nd0".parse(), Ok(Id(vec![String::from("nd0")])));
+        assert_eq!(
+            "nd0;nd1".parse(),
+            Ok(Id(vec![String::from("nd0"), String::from("nd1")]))
+        );
+
+        assert_eq!("".parse::<Id>(), Err(ParseError::Empty));
     }
 }

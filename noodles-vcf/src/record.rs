@@ -113,7 +113,7 @@ impl Record {
         self.position
     }
 
-    /// Returns the ID of the record.
+    /// Returns a list of IDs of the record.
     ///
     /// # Examples
     ///
@@ -127,7 +127,7 @@ impl Record {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.id(), Some(String::from("nd0")));
+    /// assert_eq!(**record.id(), [String::from("nd0")]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn id(&self) -> &Id {
@@ -448,13 +448,13 @@ mod tests {
         use alternate_bases::Allele;
         use reference_bases::Base;
 
-        let s = "chr1\t13\tr0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
+        let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL";
         let record: Record = s.parse()?;
 
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
         assert_eq!(record.position(), 13);
-        assert!(record.id().is_some());
+        assert_eq!(**record.id(), [String::from("nd0")]);
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);
@@ -473,7 +473,7 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), ParseError> {
-        let s = "chr1\t13\tr0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
+        let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
         let expected = [
