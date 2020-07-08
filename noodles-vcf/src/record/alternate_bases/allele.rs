@@ -31,7 +31,7 @@ impl fmt::Display for Allele {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}

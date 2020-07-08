@@ -43,14 +43,23 @@ impl From<Vec<Allele>> for AlternateBases {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when raw VCF alternate bases fail to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// An allele is invalid.
+    InvalidAllele(allele::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid alternate bases: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidAllele(e) => write!(f, "invalid allele: {}", e),
+        }
     }
 }
 
@@ -59,13 +68,13 @@ impl FromStr for AlternateBases {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(AlternateBases::default()),
             _ => s
                 .split(DELIMITER)
-                .map(|s| s.parse().map_err(|_| ParseError(s.into())))
+                .map(|s| s.parse().map_err(ParseError::InvalidAllele))
                 .collect::<Result<_, _>>()
-                .map(AlternateBases),
+                .map(Self),
         }
     }
 }
@@ -92,17 +101,22 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert!(".".parse::<AlternateBases>()?.is_empty());
+    fn test_from_str() {
+        assert_eq!(".".parse(), Ok(AlternateBases::default()));
 
-        let alternate_bases = "G".parse::<AlternateBases>()?;
-        assert_eq!(alternate_bases.len(), 1);
+        assert_eq!(
+            "G".parse(),
+            Ok(AlternateBases::from(vec![Allele::Bases(vec![Base::G])]))
+        );
 
-        let alternate_bases = "G,T".parse::<AlternateBases>()?;
-        assert_eq!(alternate_bases.len(), 2);
+        assert_eq!(
+            "G,T".parse(),
+            Ok(AlternateBases::from(vec![
+                Allele::Bases(vec![Base::G]),
+                Allele::Bases(vec![Base::T]),
+            ]))
+        );
 
-        assert!("".parse::<AlternateBases>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<AlternateBases>(), Err(ParseError::Empty));
     }
 }
