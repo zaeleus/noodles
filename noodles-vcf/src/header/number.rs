@@ -27,18 +27,22 @@ impl fmt::Display for Number {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid info number: expected {{<usize>, A, R, G, .}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -47,13 +51,14 @@ impl FromStr for Number {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "A" => Ok(Self::A),
             "R" => Ok(Self::R),
             "G" => Ok(Self::G),
             "." => Ok(Self::Unknown),
             _ => match s.parse() {
                 Ok(n) => Ok(Self::Count(n)),
-                Err(_) => Err(ParseError(s.into())),
+                Err(_) => Err(ParseError::Invalid),
             },
         }
     }
@@ -78,16 +83,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("1".parse::<Number>()?, Number::Count(1));
-        assert_eq!("A".parse::<Number>()?, Number::A);
-        assert_eq!("R".parse::<Number>()?, Number::R);
-        assert_eq!("G".parse::<Number>()?, Number::G);
-        assert_eq!(".".parse::<Number>()?, Number::Unknown);
+    fn test_from_str() {
+        assert_eq!("1".parse(), Ok(Number::Count(1)));
+        assert_eq!("A".parse(), Ok(Number::A));
+        assert_eq!("R".parse(), Ok(Number::R));
+        assert_eq!("G".parse(), Ok(Number::G));
+        assert_eq!(".".parse(), Ok(Number::Unknown));
 
-        assert!("".parse::<Number>().is_err());
-        assert!("Noodles".parse::<Number>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Number>(), Err(ParseError::Empty));
+        assert_eq!("Noodles".parse::<Number>(), Err(ParseError::Invalid));
     }
 }
