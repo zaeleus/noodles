@@ -1,3 +1,5 @@
+//! VCF header and fields.
+
 mod alternative_allele;
 mod builder;
 mod contig;
@@ -23,6 +25,7 @@ use self::record::Record;
 
 static FILE_FORMAT: &str = "VCFv4.3";
 
+/// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     file_format: String,
@@ -37,42 +40,210 @@ pub struct Header {
 }
 
 impl Header {
+    /// Returns a builder to create a record from each of its fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let builder = vcf::Header::builder();
+    /// ```
     pub fn builder() -> Builder {
         Builder::new()
     }
 
+    /// Returns the file format (`fileformat`) of the VCF.
+    ///
+    /// `fileformat` is a reqiured meta record and is guaranteed to be set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let header = vcf::Header::builder().set_file_format("VCFv4.3").build();
+    /// assert_eq!(header.file_format(), "VCFv4.3");
+    /// ```
     pub fn file_format(&self) -> &str {
         &self.file_format
     }
 
+    /// Returns a list of information records (`INFO`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(Info::new(
+    ///         Key::SamplesWithDataCount,
+    ///         Number::Count(1),
+    ///         Type::Integer,
+    ///         String::from("Number of samples with data"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let infos = header.infos();
+    /// assert_eq!(infos.len(), 1);
+    /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
+    /// ```
     pub fn infos(&self) -> &[Info] {
         &self.infos
     }
 
+    /// Returns a list of filter records (`FILTER`).
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Filter};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_filter(Filter::new(
+    ///         String::from("q10"),
+    ///         String::from("Quality below 10"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let filters = header.filters();
+    /// assert_eq!(filters.len(), 1);
+    /// assert_eq!(filters[0].id(), "q10");
+    /// ```
     pub fn filters(&self) -> &[Filter] {
         &self.filters
     }
 
+    /// Returns a list of genotype key records (`FORMAT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_format(Format::new(
+    ///         Key::Genotype,
+    ///         Number::Count(1),
+    ///         Type::String,
+    ///         String::from("Genotype"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let formats = header.formats();
+    /// assert_eq!(formats.len(), 1);
+    /// assert_eq!(formats[0].id(), &Key::Genotype);
+    /// ```
     pub fn formats(&self) -> &[Format] {
         &self.formats
     }
 
+    /// Returns a list of symbolic alternate alleles (`ALT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_alternative_allele(AlternativeAllele::new(
+    ///         Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///         String::from("Deletion"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let alternative_alleles = header.alternative_alleles();
+    /// assert_eq!(alternative_alleles.len(), 1);
+    /// assert_eq!(
+    ///     alternative_alleles[0].id(),
+    ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
+    /// );
+    /// ```
     pub fn alternative_alleles(&self) -> &[AlternativeAllele] {
         &self.alternative_alleles
     }
 
+    /// Returns a URI to the breakpoint assemblies (`assembly`) referenced in records.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_assembly("file:///assemblies.fasta")
+    ///     .build();
+    ///
+    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
+    /// ```
     pub fn assembly(&self) -> Option<&str> {
         self.assembly.as_deref()
     }
 
+    /// Returns a list of contig records (`CONTIG`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Contig};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .build();
+    ///
+    /// assert_eq!(header.contigs(), [Contig::new(String::from("sq0"))]);
+    /// ```
     pub fn contigs(&self) -> &[Contig] {
         &self.contigs
     }
 
+    /// Returns a list sample names that come after the FORMAT column in the header record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_sample_name("sample0")
+    ///     .add_sample_name("sample1")
+    ///     .build();
+    ///
+    /// assert_eq!(header.sample_names(), [
+    ///     String::from("sample0"),
+    ///     String::from("sample1"),
+    /// ]);
+    /// ```
     pub fn sample_names(&self) -> &[String] {
         &self.samples_names
     }
 
+    /// Returns a header record with the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .insert("fileDate", "20200709")
+    ///     .build();
+    ///
+    /// assert_eq!(header.get("fileDate"), Some(&String::from("20200709")));
+    /// assert_eq!(header.get("reference"), None);
+    /// ```
     pub fn get(&self, key: &str) -> Option<&String> {
         self.map.get(key)
     }
@@ -128,16 +299,26 @@ impl fmt::Display for Header {
     }
 }
 
+/// An error returned when a raw VCF header fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// The file format (`fileformat`) is missing.
     MissingFileFormat,
+    /// The file format (`fileformat`) appears other than the first line.
     UnexpectedFileFormat,
+    /// A record is invalid.
     InvalidRecord(record::ParseError),
+    /// An information record (`INFO`) is invalid.
     InvalidInfo(info::ParseError),
+    /// A filter record (`FILTER`) is invalid.
     InvalidFilter(filter::ParseError),
+    /// A genotype key record (`FORMAT`) is invalid.
     InvalidFormat(format::ParseError),
+    /// A symboloic alternate allele record (`ALT`) is invalid.
     InvalidAlternativeAllele(alternative_allele::ParseError),
+    /// A contig record (`contig`) is invalid.
     InvalidContig(contig::ParseError),
+    /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
 }
 
