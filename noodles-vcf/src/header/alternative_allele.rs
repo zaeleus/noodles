@@ -8,6 +8,7 @@ use super::record;
 
 use self::key::Key;
 
+/// A VCF header symbolic alternate allele record (`ALT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AlternativeAllele {
     id: Symbol,
@@ -15,14 +16,75 @@ pub struct AlternativeAllele {
 }
 
 impl AlternativeAllele {
+    /// Creates a VCF header symbolic alternate allele.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let alternative_allele = AlternativeAllele::new(
+    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///     String::from("Deletion"),
+    /// );
+    /// ```
     pub fn new(id: Symbol, description: String) -> Self {
         Self { id, description }
     }
 
+    /// Returns the alternate allele symbol.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let alternative_allele = AlternativeAllele::new(
+    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///     String::from("Deletion"),
+    /// );
+    ///
+    /// assert_eq!(
+    ///     alternative_allele.id(),
+    ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    /// );
+    /// ```
     pub fn id(&self) -> &Symbol {
         &self.id
     }
 
+    /// Returns the description of the alternate allele symbol.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let alternative_allele = AlternativeAllele::new(
+    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///     String::from("Deletion"),
+    /// );
+    ///
+    /// assert_eq!(alternative_allele.description(), "Deletion");
+    /// ```
     pub fn description(&self) -> &str {
         &self.description
     }
@@ -43,9 +105,12 @@ impl fmt::Display for AlternativeAllele {
     }
 }
 
+/// An error returned when a raw VCF header alternative allele record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required field is missing.
     MissingField(Key),
+    /// The ID is invalid.
     InvalidId(symbol::ParseError),
 }
 

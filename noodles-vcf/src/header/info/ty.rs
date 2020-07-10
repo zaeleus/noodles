@@ -1,11 +1,17 @@
 use std::{error, fmt, str::FromStr};
 
+/// A info field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
+    /// A 32-bit integer.
     Integer,
+    /// A single-precision floating-point.
     Float,
+    /// A boolean.
     Flag,
+    /// A character.
     Character,
+    /// A string.
     String,
 }
 

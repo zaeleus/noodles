@@ -11,6 +11,7 @@ use super::{number, record, Number};
 
 use self::key::Key;
 
+/// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Info {
     id: info::field::Key,
@@ -21,6 +22,23 @@ pub struct Info {
 }
 
 impl Info {
+    /// Creates a VCF header information record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    /// ```
     pub fn new(id: info::field::Key, number: Number, ty: Type, description: String) -> Self {
         Self {
             id,
@@ -31,22 +49,101 @@ impl Info {
         }
     }
 
+    /// Returns the information field key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert_eq!(info.id(), &Key::SamplesWithDataCount);
+    /// ```
     pub fn id(&self) -> &info::field::Key {
         &self.id
     }
 
+    /// Returns the cardinality of the information field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert_eq!(info.number(), Number::Count(1));
+    /// ```
     pub fn number(&self) -> Number {
         self.number
     }
 
+    /// Returns the type of the information field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert_eq!(info.ty(), Type::Integer);
+    /// ```
     pub fn ty(&self) -> Type {
         self.ty
     }
 
+    /// Returns the description of the information field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert_eq!(info.description(), "Number of samples with data");
+    /// ```
     pub fn description(&self) -> &str {
         &self.description
     }
 
+    /// Returns the extra fields in the record.
+    ///
+    /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
     pub fn fields(&self) -> &HashMap<String, String> {
         &self.fields
     }
@@ -73,11 +170,16 @@ impl fmt::Display for Info {
     }
 }
 
+/// An error returned when a raw VCF header information record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required field is missing.
     MissingField(Key),
+    /// The ID is invalid.
     InvalidId(info::field::key::ParseError),
+    /// The number is invalid.
     InvalidNumber(number::ParseError),
+    /// The type is invalid.
     InvalidType(ty::ParseError),
 }
 

@@ -1,11 +1,17 @@
 use std::{error, fmt, str::FromStr};
 
+/// A VCF number describing the cardinality of a field.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Number {
+    /// An explicit size.
     Count(usize),
+    /// The number of alternate alleles.
     A,
+    /// The number of reference and alternate alleles.
     R,
+    /// The number of genotypes.
     G,
+    /// The size is unknown.
     Unknown,
 }
 
@@ -27,6 +33,7 @@ impl fmt::Display for Number {
     }
 }
 
+/// An error returned when a VCF number fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.

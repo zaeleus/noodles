@@ -49,7 +49,7 @@ impl Header {
     /// let builder = vcf::Header::builder();
     /// ```
     pub fn builder() -> Builder {
-        Builder::new()
+        Builder::default()
     }
 
     /// Returns the file format (`fileformat`) of the VCF.
@@ -97,6 +97,8 @@ impl Header {
 
     /// Returns a list of filter records (`FILTER`).
     ///
+    /// # Examples
+    ///
     /// ```
     /// use noodles_vcf::{self as vcf, header::Filter};
     ///
@@ -115,7 +117,7 @@ impl Header {
         &self.filters
     }
 
-    /// Returns a list of genotype key records (`FORMAT`).
+    /// Returns a list of genotype format records (`FORMAT`).
     ///
     /// # Examples
     ///
@@ -192,7 +194,7 @@ impl Header {
         self.assembly.as_deref()
     }
 
-    /// Returns a list of contig records (`CONTIG`).
+    /// Returns a list of contig records (`contig`).
     ///
     /// # Examples
     ///
@@ -232,6 +234,9 @@ impl Header {
 
     /// Returns a header record with the given key.
     ///
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
+    /// `assembly`, and `contig`.
+    ///
     /// # Examples
     ///
     /// ```
@@ -251,7 +256,7 @@ impl Header {
 
 impl Default for Header {
     fn default() -> Self {
-        Builder::new().build()
+        Builder::default().build()
     }
 }
 
@@ -312,7 +317,7 @@ pub enum ParseError {
     InvalidInfo(info::ParseError),
     /// A filter record (`FILTER`) is invalid.
     InvalidFilter(filter::ParseError),
-    /// A genotype key record (`FORMAT`) is invalid.
+    /// A genotype format record (`FORMAT`) is invalid.
     InvalidFormat(format::ParseError),
     /// A symboloic alternate allele record (`ALT`) is invalid.
     InvalidAlternativeAllele(alternative_allele::ParseError),

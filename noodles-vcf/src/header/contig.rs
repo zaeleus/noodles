@@ -6,6 +6,7 @@ use super::record;
 
 use self::key::Key;
 
+/// A VCF header contig record (`contig`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Contig {
     id: String,
@@ -15,6 +16,14 @@ pub struct Contig {
 
 #[allow(clippy::len_without_is_empty)]
 impl Contig {
+    /// Creates a VCF header contig record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Contig;
+    /// let contig = Contig::new(String::from("sq0"));
+    /// ```
     pub fn new(id: String) -> Self {
         Self {
             id,
@@ -23,10 +32,28 @@ impl Contig {
         }
     }
 
+    /// Returns the ID of the contig.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Contig;
+    /// let contig = Contig::new(String::from("sq0"));
+    /// assert_eq!(contig.id(), "sq0");
+    /// ```
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    /// Returns the length of the contig, if it is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Contig;
+    /// let contig = Contig::new(String::from("sq0"));
+    /// assert_eq!(contig.len(), None);
+    /// ```
     pub fn len(&self) -> Option<i32> {
         self.len
     }
@@ -58,10 +85,14 @@ impl fmt::Display for Contig {
     }
 }
 
+/// An error returned when a raw VCF header contig record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A key is invalid.
     InvalidKey(key::ParseError),
+    /// The length is invalid.
     InvalidLength(num::ParseIntError),
+    /// A required field is missing.
     MissingField(Key),
 }
 

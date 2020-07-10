@@ -11,6 +11,7 @@ use super::{number, record, Number};
 
 use self::key::Key;
 
+/// A VCF header genotype format record (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Format {
     id: genotype::field::Key,
@@ -20,6 +21,23 @@ pub struct Format {
 }
 
 impl Format {
+    /// Creates a VCF header genotype format record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    /// ```
     pub fn new(id: genotype::field::Key, number: Number, ty: Type, description: String) -> Self {
         Self {
             id,
@@ -29,18 +47,94 @@ impl Format {
         }
     }
 
+    /// Returns the genotype field key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert_eq!(format.id(), &Key::Genotype);
+    /// ```
     pub fn id(&self) -> &genotype::field::Key {
         &self.id
     }
 
+    /// Returns the cardinality of the genotype field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert_eq!(format.number(), Number::Count(1));
+    /// ```
     pub fn number(&self) -> Number {
         self.number
     }
 
+    /// Returns the type of the genotype field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert_eq!(format.ty(), Type::String);
+    /// ```
     pub fn ty(&self) -> Type {
         self.ty
     }
 
+    /// Returns the description of the genotype field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert_eq!(format.description(), "Genotype");
+    /// ```
     pub fn description(&self) -> &str {
         &self.description
     }
@@ -63,11 +157,16 @@ impl fmt::Display for Format {
     }
 }
 
+/// An error returned when a raw VCF header genotype format record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A required field is missing.
     MissingField(Key),
+    /// The ID is invalid.
     InvalidId(genotype::field::key::ParseError),
+    /// The number is invalid.
     InvalidNumber(number::ParseError),
+    /// The type is invalid.
     InvalidType(ty::ParseError),
 }
 

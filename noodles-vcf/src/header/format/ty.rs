@@ -1,10 +1,15 @@
 use std::{error, fmt, str::FromStr};
 
+/// A format field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
+    /// A 32-bit integer.
     Integer,
+    /// A single-precision floating-point.
     Float,
+    /// A character.
     Character,
+    /// A string.
     String,
 }
 
@@ -25,6 +30,7 @@ impl fmt::Display for Type {
     }
 }
 
+/// An error returned when an format field type fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

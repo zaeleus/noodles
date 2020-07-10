@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::{AlternativeAllele, Contig, Filter, Format, Header, Info, FILE_FORMAT};
 
+/// A VCF header builder.
 #[derive(Debug)]
 pub struct Builder {
     file_format: String,
@@ -16,10 +17,15 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
+    /// Sets the fileformat record (`fileformat`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let header = vcf::Header::builder().set_file_format("VCFv4.3").build();
+    /// assert_eq!(header.file_format(), "VCFv4.3");
+    /// ```
     pub fn set_file_format<I>(mut self, file_format: I) -> Self
     where
         I: Into<String>,
@@ -28,26 +34,133 @@ impl Builder {
         self
     }
 
+    /// Adds an information record (`INFO`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(Info::new(
+    ///         Key::SamplesWithDataCount,
+    ///         Number::Count(1),
+    ///         Type::Integer,
+    ///         String::from("Number of samples with data"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let infos = header.infos();
+    /// assert_eq!(infos.len(), 1);
+    /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
+    /// ```
     pub fn add_info(mut self, info: Info) -> Self {
         self.infos.push(info);
         self
     }
 
+    /// Adds a filter record (`FILTER`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Filter};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_filter(Filter::new(
+    ///         String::from("q10"),
+    ///         String::from("Quality below 10"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let filters = header.filters();
+    /// assert_eq!(filters.len(), 1);
+    /// assert_eq!(filters[0].id(), "q10");
+    /// ```
     pub fn add_filter(mut self, filter: Filter) -> Self {
         self.filters.push(filter);
         self
     }
 
+    /// Adds a genotype format record (`FORMAT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_format(Format::new(
+    ///         Key::Genotype,
+    ///         Number::Count(1),
+    ///         Type::String,
+    ///         String::from("Genotype"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let formats = header.formats();
+    /// assert_eq!(formats.len(), 1);
+    /// assert_eq!(formats[0].id(), &Key::Genotype);
+    /// ```
     pub fn add_format(mut self, format: Format) -> Self {
         self.formats.push(format);
         self
     }
 
+    /// Adds an alternative allele record (`ALT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_alternative_allele(AlternativeAllele::new(
+    ///         Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///         String::from("Deletion"),
+    ///     ))
+    ///     .build();
+    ///
+    /// let alternative_alleles = header.alternative_alleles();
+    /// assert_eq!(alternative_alleles.len(), 1);
+    /// assert_eq!(
+    ///     alternative_alleles[0].id(),
+    ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
+    /// );
+    /// ```
     pub fn add_alternative_allele(mut self, alternative_allele: AlternativeAllele) -> Self {
         self.alternative_alleles.push(alternative_allele);
         self
     }
 
+    /// Sets an breakpoint assemblies record (`assembly`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_assembly("file:///assemblies.fasta")
+    ///     .build();
+    ///
+    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
+    /// ```
     pub fn set_assembly<I>(mut self, assembly: I) -> Self
     where
         I: Into<String>,
@@ -56,11 +169,41 @@ impl Builder {
         self
     }
 
+    /// Adds a contig record (`contig`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Contig};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .build();
+    ///
+    /// assert_eq!(header.contigs(), [Contig::new(String::from("sq0"))]);
+    /// ```
     pub fn add_contig(mut self, contig: Contig) -> Self {
         self.contigs.push(contig);
         self
     }
 
+    /// Adds a sample name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_sample_name("sample0")
+    ///     .add_sample_name("sample1")
+    ///     .build();
+    ///
+    /// assert_eq!(header.sample_names(), [
+    ///     String::from("sample0"),
+    ///     String::from("sample1"),
+    /// ]);
+    /// ```
     pub fn add_sample_name<I>(mut self, sample_name: I) -> Self
     where
         I: Into<String>,
@@ -69,6 +212,19 @@ impl Builder {
         self
     }
 
+    /// Inserts a key-value pair representing an unstructured record into the header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .insert("fileDate", "20200709")
+    ///     .build();
+    ///
+    /// assert_eq!(header.get("fileDate"), Some(&String::from("20200709")));
+    /// ```
     pub fn insert<K, V>(mut self, key: K, value: V) -> Self
     where
         K: Into<String>,
@@ -78,6 +234,14 @@ impl Builder {
         self
     }
 
+    /// Builds a VCF header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let header = vcf::Header::builder().build();
+    /// ```
     pub fn build(self) -> Header {
         Header {
             file_format: self.file_format,
@@ -115,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let header = Builder::new().build();
+        let header = Builder::default().build();
 
         assert_eq!(header.file_format(), FILE_FORMAT);
         assert!(header.infos().is_empty());
@@ -134,7 +298,7 @@ mod tests {
             record::{self, alternate_bases::allele},
         };
 
-        let header = Builder::new()
+        let header = Builder::default()
             .set_file_format("VCFv4.2")
             .add_info(Info::new(
                 record::info::field::Key::SamplesWithDataCount,

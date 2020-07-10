@@ -6,6 +6,7 @@ use super::record;
 
 use self::key::Key;
 
+/// A VCF header filter record (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Filter {
     id: String,
@@ -13,14 +14,40 @@ pub struct Filter {
 }
 
 impl Filter {
+    /// Creates a VCF header filter record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// ```
     pub fn new(id: String, description: String) -> Self {
         Self { id, description }
     }
 
+    /// Returns the ID of the filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// assert_eq!(filter.id(), "q10");
+    /// ```
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    /// Returns the description of the filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// assert_eq!(filter.description(), "Quality below 10");
+    /// ```
     pub fn description(&self) -> &str {
         &self.description
     }
@@ -41,8 +68,10 @@ impl fmt::Display for Filter {
     }
 }
 
+/// An error returned when a raw VCF header filter record fails to parse.
 #[derive(Debug)]
 pub enum ParseError {
+    /// A field is missing.
     MissingField(Key),
 }
 
