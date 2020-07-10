@@ -4,7 +4,7 @@ pub use self::symbol::Symbol;
 
 use std::{convert::TryFrom, error, fmt, str::FromStr};
 
-use crate::record::reference_bases::Base;
+use crate::record::reference_bases::{base, Base};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Allele {
@@ -32,13 +32,24 @@ impl fmt::Display for Allele {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The symbol is invalid.
+    InvalidSymbol(symbol::ParseError),
+    /// A base is invalid.
+    InvalidBase(base::TryFromCharError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid alternate bases allele: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidSymbol(e) => write!(f, "invalid symbol: {}", e),
+            Self::InvalidBase(e) => write!(f, "invalid base: {}", e),
+        }
     }
 }
 
@@ -47,14 +58,14 @@ impl FromStr for Allele {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             "*" => Ok(Self::OverlappingDeletion),
             _ => {
                 if s.starts_with('<') {
                     s.trim_matches(|c| c == '<' || c == '>')
                         .parse()
                         .map(Self::Symbol)
-                        .map_err(|_| ParseError(s.into()))
+                        .map_err(ParseError::InvalidSymbol)
                 } else if s.contains(|c| c == '[' || c == ']') || (s.len() == 2 && s.contains('.'))
                 {
                     Ok(Self::Breakend(s.into()))
@@ -64,7 +75,7 @@ impl FromStr for Allele {
                         .map(Base::try_from)
                         .collect::<Result<_, _>>()
                         .map(Self::Bases)
-                        .map_err(|_| ParseError(s.into()))
+                        .map_err(ParseError::InvalidBase)
                 }
             }
         }

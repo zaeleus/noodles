@@ -1,4 +1,4 @@
-mod base;
+pub mod base;
 
 pub use self::base::Base;
 

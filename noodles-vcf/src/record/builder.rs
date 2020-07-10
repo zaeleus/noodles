@@ -19,10 +19,14 @@ pub struct Builder {
     genotypes: Vec<Genotype>,
 }
 
+/// An error returned when a VCF record fails to build.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildError {
+    /// The chromosome is missing.
     MissingChromosome,
+    /// The position is missing.
     MissingPosition,
+    /// The reference bases are missing.
     MissingReferenceBases,
 }
 

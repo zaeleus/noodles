@@ -137,14 +137,20 @@ impl fmt::Display for Key {
     }
 }
 
+/// An error returned when a raw VCF record genotype field key fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid genotype key: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -153,7 +159,7 @@ impl FromStr for Key {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err(ParseError(s.into()));
+            return Err(ParseError::Empty);
         }
 
         match s {
@@ -306,45 +312,44 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("AD".parse::<Key>()?, Key::ReadDepths);
-        assert_eq!("ADF".parse::<Key>()?, Key::ForwardStrandReadDepths);
-        assert_eq!("ADR".parse::<Key>()?, Key::ReverseStrandReadDepths);
-        assert_eq!("DP".parse::<Key>()?, Key::ReadDepth);
-        assert_eq!("EC".parse::<Key>()?, Key::ExpectedAlternateAlleleCounts);
-        assert_eq!("FT".parse::<Key>()?, Key::Filter);
-        assert_eq!("GL".parse::<Key>()?, Key::GenotypeLikelihoods);
-        assert_eq!("GP".parse::<Key>()?, Key::GenotypePosteriorProbabilities);
-        assert_eq!("GQ".parse::<Key>()?, Key::ConditionalGenotypeQuality);
-        assert_eq!("GT".parse::<Key>()?, Key::Genotype);
-        assert_eq!("HQ".parse::<Key>()?, Key::HaplotypeQuality);
-        assert_eq!("MQ".parse::<Key>()?, Key::MappingQuality);
-        assert_eq!("PL".parse::<Key>()?, Key::RoundedGenotypeLikelihoods);
-        assert_eq!(
-            "PP".parse::<Key>()?,
-            Key::RoundedGenotypePosteriorProbabilities
-        );
-        assert_eq!("PQ".parse::<Key>()?, Key::PhasingQuality);
-        assert_eq!("PS".parse::<Key>()?, Key::PhaseSet);
+    fn test_from_str() {
+        assert_eq!("AD".parse(), Ok(Key::ReadDepths));
+        assert_eq!("ADF".parse(), Ok(Key::ForwardStrandReadDepths));
+        assert_eq!("ADR".parse(), Ok(Key::ReverseStrandReadDepths));
+        assert_eq!("DP".parse(), Ok(Key::ReadDepth));
+        assert_eq!("EC".parse(), Ok(Key::ExpectedAlternateAlleleCounts));
+        assert_eq!("FT".parse(), Ok(Key::Filter));
+        assert_eq!("GL".parse(), Ok(Key::GenotypeLikelihoods));
+        assert_eq!("GP".parse(), Ok(Key::GenotypePosteriorProbabilities));
+        assert_eq!("GQ".parse(), Ok(Key::ConditionalGenotypeQuality));
+        assert_eq!("GT".parse(), Ok(Key::Genotype));
+        assert_eq!("HQ".parse(), Ok(Key::HaplotypeQuality));
+        assert_eq!("MQ".parse(), Ok(Key::MappingQuality));
+        assert_eq!("PL".parse(), Ok(Key::RoundedGenotypeLikelihoods));
+        assert_eq!("PP".parse(), Ok(Key::RoundedGenotypePosteriorProbabilities));
+        assert_eq!("PQ".parse(), Ok(Key::PhasingQuality));
+        assert_eq!("PS".parse(), Ok(Key::PhaseSet));
 
-        assert_eq!("CN".parse::<Key>()?, Key::GenotypeCopyNumber);
-        assert_eq!("CNQ".parse::<Key>()?, Key::GenotypeCopyNumberQuality);
-        assert_eq!("CNL".parse::<Key>()?, Key::GenotypeCopyNumberLikelihoods);
+        assert_eq!("CN".parse(), Ok(Key::GenotypeCopyNumber));
+        assert_eq!("CNQ".parse(), Ok(Key::GenotypeCopyNumberQuality));
+        assert_eq!("CNL".parse(), Ok(Key::GenotypeCopyNumberLikelihoods));
         assert_eq!(
-            "CNP".parse::<Key>()?,
-            Key::GenotypeCopyNumberPosteriorProbabilities
+            "CNP".parse(),
+            Ok(Key::GenotypeCopyNumberPosteriorProbabilities)
         );
-        assert_eq!("NQ".parse::<Key>()?, Key::NovelVariantQualityScore);
-        assert_eq!("HAP".parse::<Key>()?, Key::HaplotypeId);
-        assert_eq!("AHAP".parse::<Key>()?, Key::AncestralHaplotypeId);
+        assert_eq!("NQ".parse(), Ok(Key::NovelVariantQualityScore));
+        assert_eq!("HAP".parse(), Ok(Key::HaplotypeId));
+        assert_eq!("AHAP".parse(), Ok(Key::AncestralHaplotypeId));
 
         assert_eq!(
-            "NDLS".parse::<Key>()?,
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String)
+            "NDLS".parse(),
+            Ok(Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String
+            ))
         );
 
-        assert!("".parse::<Key>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
     }
 }

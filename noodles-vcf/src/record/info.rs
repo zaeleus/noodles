@@ -43,9 +43,12 @@ impl From<Vec<Field>> for Info {
     }
 }
 
-#[derive(Debug)]
+/// An error returned when a raw VCF information fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// A field is invalid.
     InvalidField(field::ParseError),
 }
 
@@ -53,11 +56,9 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid info: ")?;
-
         match self {
-            Self::Empty => f.write_str("field is empty"),
-            Self::InvalidField(e) => write!(f, "{}", e),
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidField(e) => write!(f, "invalid field: {}", e),
         }
     }
 }
@@ -115,7 +116,11 @@ mod tests {
         let actual: Info = "NS=2;AF=0.333,0.667".parse()?;
         assert_eq!(actual.len(), 2);
 
-        assert!("".parse::<Info>().is_err());
+        assert_eq!("".parse::<Info>(), Err(ParseError::Empty));
+        assert!(matches!(
+            "NS=ndls".parse::<Info>(),
+            Err(ParseError::InvalidField(_))
+        ));
 
         Ok(())
     }

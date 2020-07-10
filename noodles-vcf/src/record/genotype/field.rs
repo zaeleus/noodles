@@ -11,14 +11,19 @@ pub struct Field {
     value: Value,
 }
 
-#[derive(Debug)]
-pub struct ParseError(value::ParseError);
+/// An error returned when a raw VCF record info field value fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    InvalidValue(value::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid genotype field: {}", self.0)
+        match self {
+            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
+        }
     }
 }
 
@@ -26,7 +31,7 @@ impl Field {
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         Value::from_str_key(s, key)
             .map(|v| Self::new(key.clone(), v))
-            .map_err(ParseError)
+            .map_err(ParseError::InvalidValue)
     }
 
     pub fn new(key: Key, value: Value) -> Self {

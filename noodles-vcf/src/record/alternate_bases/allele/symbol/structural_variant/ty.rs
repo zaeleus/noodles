@@ -29,18 +29,24 @@ impl fmt::Display for Type {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF record a structural variant type of an alternate base allele
+/// symbol fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid alternate bases symbol type: expected {{DEL, INS, DUP, INV, CNV, BND}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -49,13 +55,14 @@ impl FromStr for Type {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "DEL" => Ok(Self::Deletion),
             "INS" => Ok(Self::Insertion),
             "DUP" => Ok(Self::Duplication),
             "INV" => Ok(Self::Inversion),
             "CNV" => Ok(Self::CopyNumberVariation),
             "BND" => Ok(Self::Breakend),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -75,17 +82,15 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("DEL".parse::<Type>()?, Type::Deletion);
-        assert_eq!("INS".parse::<Type>()?, Type::Insertion);
-        assert_eq!("DUP".parse::<Type>()?, Type::Duplication);
-        assert_eq!("INV".parse::<Type>()?, Type::Inversion);
-        assert_eq!("CNV".parse::<Type>()?, Type::CopyNumberVariation);
-        assert_eq!("BND".parse::<Type>()?, Type::Breakend);
+    fn test_from_str() {
+        assert_eq!("DEL".parse(), Ok(Type::Deletion));
+        assert_eq!("INS".parse(), Ok(Type::Insertion));
+        assert_eq!("DUP".parse(), Ok(Type::Duplication));
+        assert_eq!("INV".parse(), Ok(Type::Inversion));
+        assert_eq!("CNV".parse(), Ok(Type::CopyNumberVariation));
+        assert_eq!("BND".parse(), Ok(Type::Breakend));
 
-        assert!("".parse::<Type>().is_err());
-        assert!("NDL".parse::<Type>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Type>(), Err(ParseError::Empty));
+        assert_eq!("NDL".parse::<Type>(), Err(ParseError::Invalid));
     }
 }

@@ -73,27 +73,30 @@ impl fmt::Display for Value {
     }
 }
 
-#[derive(Debug)]
+/// An error returned when a raw VCF record genotype field value fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The field cardinality is invalid for the type.
     InvalidNumberForType(Number, Type),
+    /// The integer is invalid.
     InvalidInteger(num::ParseIntError),
+    /// The floating-point is invalid.
     InvalidFloat(num::ParseFloatError),
-    InvalidCharacter(String),
+    /// The character is invalid.
+    InvalidCharacter,
 }
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid info value: ")?;
-
         match self {
             ParseError::InvalidNumberForType(number, ty) => {
                 write!(f, "invalid number {:?} for type {:?}", number, ty)
             }
             ParseError::InvalidInteger(e) => write!(f, "invalid integer: {}", e),
             ParseError::InvalidFloat(e) => write!(f, "invalid float: {}", e),
-            ParseError::InvalidCharacter(e) => write!(f, "invalid character: {}", e),
+            ParseError::InvalidCharacter => f.write_str("invalid character"),
         }
     }
 }
@@ -160,7 +163,7 @@ fn parse_raw_char(s: &str) -> Result<char, ParseError> {
         }
     }
 
-    Err(ParseError::InvalidCharacter(s.into()))
+    Err(ParseError::InvalidCharacter)
 }
 
 fn parse_char(s: &str) -> Result<Value, ParseError> {
@@ -227,73 +230,92 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_key_with_integer() -> Result<(), ParseError> {
+    fn test_from_str_key_with_integer() {
         let key = Key::Other(String::from("I32"), Number::Count(0), Type::Integer);
-        assert!(Value::from_str_key("8", &key).is_err());
+        assert_eq!(
+            Value::from_str_key("8", &key),
+            Err(ParseError::InvalidNumberForType(
+                Number::Count(0),
+                Type::Integer
+            ))
+        );
 
         let key = Key::Other(String::from("I32"), Number::Count(1), Type::Integer);
-        assert_eq!(Value::from_str_key("8", &key)?, Value::Integer(8));
+        assert_eq!(Value::from_str_key("8", &key), Ok(Value::Integer(8)));
 
         let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
         assert_eq!(
-            Value::from_str_key("8,13", &key)?,
-            Value::IntegerArray(vec![8, 13])
+            Value::from_str_key("8,13", &key),
+            Ok(Value::IntegerArray(vec![8, 13]))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_float() -> Result<(), ParseError> {
+    fn test_from_str_key_with_float() {
         let key = Key::Other(String::from("F32"), Number::Count(0), Type::Float);
-        assert!(Value::from_str_key("0.333", &key).is_err());
+        assert_eq!(
+            Value::from_str_key("0.333", &key),
+            Err(ParseError::InvalidNumberForType(
+                Number::Count(0),
+                Type::Float
+            ))
+        );
 
         let key = Key::Other(String::from("F32"), Number::Count(1), Type::Float);
-        assert_eq!(Value::from_str_key("0.333", &key)?, Value::Float(0.333));
+        assert_eq!(Value::from_str_key("0.333", &key), Ok(Value::Float(0.333)));
 
         let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
         assert_eq!(
-            Value::from_str_key("0.333,0.667", &key)?,
-            Value::FloatArray(vec![0.333, 0.667])
+            Value::from_str_key("0.333,0.667", &key),
+            Ok(Value::FloatArray(vec![0.333, 0.667]))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_character() -> Result<(), ParseError> {
+    fn test_from_str_key_with_character() {
         let key = Key::Other(String::from("CHAR"), Number::Count(0), Type::Character);
-        assert!(Value::from_str_key("n", &key).is_err());
+        assert_eq!(
+            Value::from_str_key("n", &key),
+            Err(ParseError::InvalidNumberForType(
+                Number::Count(0),
+                Type::Character
+            ))
+        );
 
         let key = Key::Other(String::from("CHAR"), Number::Count(1), Type::Character);
-        assert_eq!(Value::from_str_key("n", &key)?, Value::Character('n'));
+        assert_eq!(Value::from_str_key("n", &key), Ok(Value::Character('n')));
 
         let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
         assert_eq!(
-            Value::from_str_key("n,d,l,s", &key)?,
-            Value::CharacterArray(vec!['n', 'd', 'l', 's'])
+            Value::from_str_key("n,d,l,s", &key),
+            Ok(Value::CharacterArray(vec!['n', 'd', 'l', 's']))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_string() -> Result<(), ParseError> {
+    fn test_from_str_key_with_string() {
         let key = Key::Other(String::from("STRING"), Number::Count(0), Type::String);
-        assert!(Value::from_str_key("noodles", &key).is_err());
+        assert_eq!(
+            Value::from_str_key("noodles", &key),
+            Err(ParseError::InvalidNumberForType(
+                Number::Count(0),
+                Type::String
+            ))
+        );
 
         let key = Key::Other(String::from("STRING"), Number::Count(1), Type::String);
         assert_eq!(
-            Value::from_str_key("noodles", &key)?,
-            Value::String(String::from("noodles"))
+            Value::from_str_key("noodles", &key),
+            Ok(Value::String(String::from("noodles")))
         );
 
         let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
         assert_eq!(
-            Value::from_str_key("noodles,vcf", &key)?,
-            Value::StringArray(vec![String::from("noodles"), String::from("vcf")])
+            Value::from_str_key("noodles,vcf", &key),
+            Ok(Value::StringArray(vec![
+                String::from("noodles"),
+                String::from("vcf")
+            ]))
         );
-
-        Ok(())
     }
 }

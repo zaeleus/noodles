@@ -21,6 +21,7 @@ impl From<Base> for char {
     }
 }
 
+/// An error returned when a character fails to convert to a base.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromCharError(char);
 
@@ -28,11 +29,7 @@ impl error::Error for TryFromCharError {}
 
 impl fmt::Display for TryFromCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid reference base: expected {{A, C, G, T, N}}, got {}",
-            self.0
-        )
+        write!(f, "expected {{A, C, G, T, N}}, got {}", self.0)
     }
 }
 
@@ -65,15 +62,13 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_char_for_base() -> Result<(), TryFromCharError> {
-        assert_eq!(Base::try_from('A')?, Base::A);
-        assert_eq!(Base::try_from('C')?, Base::C);
-        assert_eq!(Base::try_from('G')?, Base::G);
-        assert_eq!(Base::try_from('T')?, Base::T);
-        assert_eq!(Base::try_from('N')?, Base::N);
+    fn test_try_from_char_for_base() {
+        assert_eq!(Base::try_from('A'), Ok(Base::A));
+        assert_eq!(Base::try_from('C'), Ok(Base::C));
+        assert_eq!(Base::try_from('G'), Ok(Base::G));
+        assert_eq!(Base::try_from('T'), Ok(Base::T));
+        assert_eq!(Base::try_from('N'), Ok(Base::N));
 
-        assert!(Base::try_from('Z').is_err());
-
-        Ok(())
+        assert_eq!(Base::try_from('Z'), Err(TryFromCharError('Z')));
     }
 }

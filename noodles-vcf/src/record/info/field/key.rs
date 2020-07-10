@@ -229,14 +229,20 @@ impl fmt::Display for Key {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF record info field key fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid info key: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -245,7 +251,7 @@ impl FromStr for Key {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err(ParseError(s.into()));
+            return Err(ParseError::Empty);
         }
 
         match s {
@@ -490,68 +496,67 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("AA".parse::<Key>()?, Key::AncestralAllele);
-        assert_eq!("AC".parse::<Key>()?, Key::AlleleCount);
-        assert_eq!("AD".parse::<Key>()?, Key::TotalReadDepths);
-        assert_eq!("ADF".parse::<Key>()?, Key::ForwardStrandReadDepths);
-        assert_eq!("ADR".parse::<Key>()?, Key::ReverseStrandReadDepths);
-        assert_eq!("AF".parse::<Key>()?, Key::AlleleFrequencies);
-        assert_eq!("AN".parse::<Key>()?, Key::TotalAlleleCount);
-        assert_eq!("BQ".parse::<Key>()?, Key::BaseQuality);
-        assert_eq!("CIGAR".parse::<Key>()?, Key::Cigar);
-        assert_eq!("DB".parse::<Key>()?, Key::IsInDbSnp);
-        assert_eq!("DP".parse::<Key>()?, Key::TotalDepth);
-        // assert_eq!("END".parse::<Key>()?, Key::EndPosition);
-        assert_eq!("H2".parse::<Key>()?, Key::IsInHapMap2);
-        assert_eq!("H3".parse::<Key>()?, Key::IsInHapMap3);
-        assert_eq!("MQ".parse::<Key>()?, Key::MappingQuality);
-        assert_eq!("MQ0".parse::<Key>()?, Key::ZeroMappingQualityCount);
-        assert_eq!("NS".parse::<Key>()?, Key::SamplesWithDataCount);
-        assert_eq!("SB".parse::<Key>()?, Key::StrandBias);
-        assert_eq!("SOMATIC".parse::<Key>()?, Key::IsSomaticMutation);
-        assert_eq!("VALIDATED".parse::<Key>()?, Key::IsValidated);
-        assert_eq!("1000G".parse::<Key>()?, Key::IsIn1000Genomes);
+    fn test_from_str() {
+        assert_eq!("AA".parse(), Ok(Key::AncestralAllele));
+        assert_eq!("AC".parse(), Ok(Key::AlleleCount));
+        assert_eq!("AD".parse(), Ok(Key::TotalReadDepths));
+        assert_eq!("ADF".parse(), Ok(Key::ForwardStrandReadDepths));
+        assert_eq!("ADR".parse(), Ok(Key::ReverseStrandReadDepths));
+        assert_eq!("AF".parse(), Ok(Key::AlleleFrequencies));
+        assert_eq!("AN".parse(), Ok(Key::TotalAlleleCount));
+        assert_eq!("BQ".parse(), Ok(Key::BaseQuality));
+        assert_eq!("CIGAR".parse(), Ok(Key::Cigar));
+        assert_eq!("DB".parse(), Ok(Key::IsInDbSnp));
+        assert_eq!("DP".parse(), Ok(Key::TotalDepth));
+        // assert_eq!("END".parse(), Ok(Key::EndPosition));
+        assert_eq!("H2".parse(), Ok(Key::IsInHapMap2));
+        assert_eq!("H3".parse(), Ok(Key::IsInHapMap3));
+        assert_eq!("MQ".parse(), Ok(Key::MappingQuality));
+        assert_eq!("MQ0".parse(), Ok(Key::ZeroMappingQualityCount));
+        assert_eq!("NS".parse(), Ok(Key::SamplesWithDataCount));
+        assert_eq!("SB".parse(), Ok(Key::StrandBias));
+        assert_eq!("SOMATIC".parse(), Ok(Key::IsSomaticMutation));
+        assert_eq!("VALIDATED".parse(), Ok(Key::IsValidated));
+        assert_eq!("1000G".parse(), Ok(Key::IsIn1000Genomes));
 
-        assert_eq!("IMPRECISE".parse::<Key>()?, Key::IsImprecise);
-        assert_eq!("NOVEL".parse::<Key>()?, Key::IsNovel);
-        assert_eq!("END".parse::<Key>()?, Key::EndPosition);
-        assert_eq!("SVTYPE".parse::<Key>()?, Key::SvType);
-        assert_eq!("SVLEN".parse::<Key>()?, Key::SvLengths);
-        assert_eq!("CIPOS".parse::<Key>()?, Key::PositionConfidenceIntervals);
-        assert_eq!("CIEND".parse::<Key>()?, Key::EndConfidenceIntervals);
-        assert_eq!("HOMLEN".parse::<Key>()?, Key::MicrohomologyLengths);
-        assert_eq!("HOMSEQ".parse::<Key>()?, Key::MicrohomologySequences);
-        assert_eq!("BKPTID".parse::<Key>()?, Key::BreakpointIds);
-        assert_eq!("MEINFO".parse::<Key>()?, Key::MobileElementInfo);
+        assert_eq!("IMPRECISE".parse(), Ok(Key::IsImprecise));
+        assert_eq!("NOVEL".parse(), Ok(Key::IsNovel));
+        assert_eq!("END".parse(), Ok(Key::EndPosition));
+        assert_eq!("SVTYPE".parse(), Ok(Key::SvType));
+        assert_eq!("SVLEN".parse(), Ok(Key::SvLengths));
+        assert_eq!("CIPOS".parse(), Ok(Key::PositionConfidenceIntervals));
+        assert_eq!("CIEND".parse(), Ok(Key::EndConfidenceIntervals));
+        assert_eq!("HOMLEN".parse(), Ok(Key::MicrohomologyLengths));
+        assert_eq!("HOMSEQ".parse(), Ok(Key::MicrohomologySequences));
+        assert_eq!("BKPTID".parse(), Ok(Key::BreakpointIds));
+        assert_eq!("MEINFO".parse(), Ok(Key::MobileElementInfo));
+        assert_eq!("METRANS".parse(), Ok(Key::MobileElementTransductionInfo));
+        assert_eq!("DGVID".parse(), Ok(Key::DbvId));
+        assert_eq!("DBVARID".parse(), Ok(Key::DbVarId));
+        assert_eq!("DBRIPID".parse(), Ok(Key::DbRipId));
+        assert_eq!("MATEID".parse(), Ok(Key::MateBreakendIds));
+        assert_eq!("PARID".parse(), Ok(Key::PartnerBreakendId));
+        assert_eq!("EVENT".parse(), Ok(Key::BreakendEventId));
+        assert_eq!("CILEN".parse(), Ok(Key::BreakendConfidenceIntervals));
+        // assert_eq!("DP".parse(), Ok(Key::BreakendReadDepth));
+        assert_eq!("DPADJ".parse(), Ok(Key::AdjacentReadDepths));
+        assert_eq!("CN".parse(), Ok(Key::BreakendCopyNumber));
+        assert_eq!("CNADJ".parse(), Ok(Key::AdjacentCopyNumber));
+        assert_eq!("CICN".parse(), Ok(Key::CopyNumberConfidenceIntervals));
         assert_eq!(
-            "METRANS".parse::<Key>()?,
-            Key::MobileElementTransductionInfo
-        );
-        assert_eq!("DGVID".parse::<Key>()?, Key::DbvId);
-        assert_eq!("DBVARID".parse::<Key>()?, Key::DbVarId);
-        assert_eq!("DBRIPID".parse::<Key>()?, Key::DbRipId);
-        assert_eq!("MATEID".parse::<Key>()?, Key::MateBreakendIds);
-        assert_eq!("PARID".parse::<Key>()?, Key::PartnerBreakendId);
-        assert_eq!("EVENT".parse::<Key>()?, Key::BreakendEventId);
-        assert_eq!("CILEN".parse::<Key>()?, Key::BreakendConfidenceIntervals);
-        // assert_eq!("DP".parse::<Key>()?, Key::BreakendReadDepth);
-        assert_eq!("DPADJ".parse::<Key>()?, Key::AdjacentReadDepths);
-        assert_eq!("CN".parse::<Key>()?, Key::BreakendCopyNumber);
-        assert_eq!("CNADJ".parse::<Key>()?, Key::AdjacentCopyNumber);
-        assert_eq!("CICN".parse::<Key>()?, Key::CopyNumberConfidenceIntervals);
-        assert_eq!(
-            "CICNADJ".parse::<Key>()?,
-            Key::AdjacentCopyNumberConfidenceIntervals
+            "CICNADJ".parse(),
+            Ok(Key::AdjacentCopyNumberConfidenceIntervals)
         );
 
         assert_eq!(
-            "NDLS".parse::<Key>()?,
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String)
+            "NDLS".parse(),
+            Ok(Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String
+            ))
         );
 
-        assert!("".parse::<Key>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
     }
 }

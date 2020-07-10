@@ -11,21 +11,30 @@ const DELIMITER: char = ':';
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotype(Vec<Field>);
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF genotype fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// A field is invalid.
+    InvalidField(field::ParseError),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid genotype: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidField(e) => write!(f, "invalid field: {}", e),
+        }
     }
 }
 
 impl Genotype {
     pub fn from_str_format(s: &str, format: &Format) -> Result<Self, ParseError> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
             _ => s
                 .split(DELIMITER)
@@ -33,7 +42,7 @@ impl Genotype {
                 .map(|(t, k)| Field::from_str_key(t, k))
                 .collect::<Result<_, _>>()
                 .map(Self)
-                .map_err(|_| ParseError(s.into())),
+                .map_err(ParseError::InvalidField),
         }
     }
 }
@@ -77,8 +86,10 @@ mod tests {
     #[test]
     fn test_from_str_format() -> Result<(), Box<dyn std::error::Error>> {
         let format = "GT".parse()?;
-        let actual = Genotype::from_str_format(".", &format)?;
-        assert!(actual.is_empty());
+        assert_eq!(
+            Genotype::from_str_format(".", &format),
+            Ok(Genotype(Vec::new()))
+        );
 
         let format = "GT".parse()?;
         let actual = Genotype::from_str_format("0|0", &format)?;
@@ -89,7 +100,10 @@ mod tests {
         assert_eq!(actual.len(), 2);
 
         let format = "GT".parse()?;
-        assert!(Genotype::from_str_format("", &format).is_err());
+        assert_eq!(
+            Genotype::from_str_format("", &format),
+            Err(ParseError::Empty)
+        );
 
         Ok(())
     }

@@ -328,7 +328,7 @@ impl Record {
 }
 
 /// An error returned when a raw VCF record fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is missing.
     MissingField(Field),

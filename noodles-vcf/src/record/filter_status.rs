@@ -38,14 +38,20 @@ impl fmt::Display for FilterStatus {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF filter status fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid filter status: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -54,7 +60,7 @@ impl FromStr for FilterStatus {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::Missing),
             PASS_STATUS => Ok(Self::Pass),
             _ => {
@@ -87,18 +93,23 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!(".".parse::<FilterStatus>()?, FilterStatus::Missing);
-        assert_eq!("PASS".parse::<FilterStatus>()?, FilterStatus::Pass);
+    fn test_from_str() {
+        assert_eq!(".".parse(), Ok(FilterStatus::Missing));
+        assert_eq!("PASS".parse(), Ok(FilterStatus::Pass));
 
-        let status = FilterStatus::Fail(vec![String::from("q10")]);
-        assert_eq!("q10".parse::<FilterStatus>()?, status);
+        assert_eq!(
+            "q10".parse(),
+            Ok(FilterStatus::Fail(vec![String::from("q10")]))
+        );
 
-        let status = FilterStatus::Fail(vec![String::from("q10"), String::from("s50")]);
-        assert_eq!("q10,s50".parse::<FilterStatus>()?, status);
+        assert_eq!(
+            "q10,s50".parse(),
+            Ok(FilterStatus::Fail(vec![
+                String::from("q10"),
+                String::from("s50")
+            ]))
+        );
 
-        assert!("".parse::<FilterStatus>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<FilterStatus>(), Err(ParseError::Empty));
     }
 }

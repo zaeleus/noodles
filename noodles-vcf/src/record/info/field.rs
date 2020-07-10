@@ -39,11 +39,16 @@ impl fmt::Display for Field {
     }
 }
 
-#[derive(Debug)]
+/// An error returned when a raw VCF record info field fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The key is missing.
     MissingKey,
+    /// The key is invalid.
     InvalidKey(key::ParseError),
+    /// The value is missing.
     MissingValue,
+    /// The value is invalid.
     InvalidValue(value::ParseError),
 }
 

@@ -11,32 +11,6 @@ pub enum Symbol {
     Unspecified,
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid alternate bases allele symbol: {}", self.0)
-    }
-}
-
-impl FromStr for Symbol {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError(s.into())),
-            "*" | "NON_REF" => Ok(Self::Unspecified),
-            _ => s
-                .parse::<StructuralVariant>()
-                .map(Self::StructuralVariant)
-                .or_else(|_| Ok(Self::NonstructuralVariant(s.into()))),
-        }
-    }
-}
-
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -47,29 +21,41 @@ impl fmt::Display for Symbol {
     }
 }
 
+/// An error returned when a raw VCF record alternate base allele symbol fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
+    }
+}
+
+impl FromStr for Symbol {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "" => Err(ParseError::Empty),
+            "*" | "NON_REF" => Ok(Self::Unspecified),
+            _ => s
+                .parse::<StructuralVariant>()
+                .map(Self::StructuralVariant)
+                .or_else(|_| Ok(Self::NonstructuralVariant(s.into()))),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!(
-            "DEL".parse::<Symbol>()?,
-            Symbol::StructuralVariant(StructuralVariant::from(structural_variant::Type::Deletion))
-        );
-
-        assert_eq!(
-            "CN:0".parse::<Symbol>()?,
-            Symbol::NonstructuralVariant(String::from("CN:0"))
-        );
-
-        assert_eq!("NON_REF".parse::<Symbol>()?, Symbol::Unspecified);
-        assert_eq!("*".parse::<Symbol>()?, Symbol::Unspecified);
-
-        assert!("".parse::<Symbol>().is_err());
-
-        Ok(())
-    }
 
     #[test]
     fn test_fmt() {
@@ -82,5 +68,25 @@ mod tests {
 
         let symbol = Symbol::Unspecified;
         assert_eq!(symbol.to_string(), "*");
+    }
+
+    #[test]
+    fn test_from_str() {
+        assert_eq!(
+            "DEL".parse(),
+            Ok(Symbol::StructuralVariant(StructuralVariant::from(
+                structural_variant::Type::Deletion
+            )))
+        );
+
+        assert_eq!(
+            "CN:0".parse(),
+            Ok(Symbol::NonstructuralVariant(String::from("CN:0")))
+        );
+
+        assert_eq!("NON_REF".parse(), Ok(Symbol::Unspecified));
+        assert_eq!("*".parse(), Ok(Symbol::Unspecified));
+
+        assert_eq!("".parse::<Symbol>(), Err(ParseError::Empty));
     }
 }
