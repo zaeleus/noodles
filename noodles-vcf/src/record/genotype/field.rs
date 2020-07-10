@@ -1,5 +1,5 @@
 pub mod key;
-mod value;
+pub mod value;
 
 pub use self::{key::Key, value::Value};
 

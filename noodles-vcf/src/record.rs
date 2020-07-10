@@ -1,15 +1,15 @@
 //! VCF record and fields.
 
 pub mod alternate_bases;
-mod builder;
-mod chromosome;
-mod field;
-mod filter_status;
+pub mod builder;
+pub mod chromosome;
+pub mod field;
+pub mod filter_status;
 pub mod format;
 pub mod genotype;
-mod ids;
+pub mod ids;
 pub mod info;
-mod quality_score;
+pub mod quality_score;
 pub mod reference_bases;
 
 pub use self::{

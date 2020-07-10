@@ -1,4 +1,4 @@
-mod ty;
+pub mod ty;
 
 pub use self::ty::Type;
 
