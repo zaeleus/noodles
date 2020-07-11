@@ -358,46 +358,12 @@ impl FromStr for Header {
         builder = builder.set_file_format(file_format);
 
         while let Some(line) = lines.next() {
-            let record = line.parse().map_err(ParseError::InvalidRecord)?;
-
-            builder = match record {
-                Record::FileFormat(_) => {
-                    return Err(ParseError::UnexpectedFileFormat);
-                }
-                Record::Info(fields) => {
-                    let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
-                    builder.add_info(info)
-                }
-                Record::Filter(fields) => {
-                    let filter =
-                        Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
-                    builder.add_filter(filter)
-                }
-                Record::Format(fields) => {
-                    let format =
-                        Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
-                    builder.add_format(format)
-                }
-                Record::AlternativeAllele(fields) => {
-                    let alternative_allele = AlternativeAllele::try_from(&fields[..])
-                        .map_err(ParseError::InvalidAlternativeAllele)?;
-                    builder.add_alternative_allele(alternative_allele)
-                }
-                Record::Assembly(value) => builder.set_assembly(value),
-                Record::Contig(fields) => {
-                    let contig =
-                        Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
-                    builder.add_contig(contig)
-                }
-                Record::Header(samples_names) => {
-                    for sample_name in samples_names {
-                        builder = builder.add_sample_name(sample_name);
-                    }
-
-                    break;
-                }
-                Record::Other(key, value) => builder.insert(key, value),
-            };
+            if line.starts_with("#CHROM") {
+                builder = parse_header(builder, line)?;
+                break;
+            } else {
+                builder = parse_record(builder, line)?;
+            }
         }
 
         if lines.next().is_some() {
@@ -418,6 +384,51 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
         Record::FileFormat(value) => Ok(value),
         _ => Err(ParseError::MissingFileFormat),
     }
+}
+
+fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+    let record = line.parse().map_err(ParseError::InvalidRecord)?;
+
+    builder = match record {
+        Record::FileFormat(_) => {
+            return Err(ParseError::UnexpectedFileFormat);
+        }
+        Record::Info(fields) => {
+            let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
+            builder.add_info(info)
+        }
+        Record::Filter(fields) => {
+            let filter = Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
+            builder.add_filter(filter)
+        }
+        Record::Format(fields) => {
+            let format = Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
+            builder.add_format(format)
+        }
+        Record::AlternativeAllele(fields) => {
+            let alternative_allele = AlternativeAllele::try_from(&fields[..])
+                .map_err(ParseError::InvalidAlternativeAllele)?;
+            builder.add_alternative_allele(alternative_allele)
+        }
+        Record::Assembly(value) => builder.set_assembly(value),
+        Record::Contig(fields) => {
+            let contig = Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
+            builder.add_contig(contig)
+        }
+        Record::Other(key, value) => builder.insert(key, value),
+    };
+
+    Ok(builder)
+}
+
+fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+    let sample_names = line.split(crate::record::FIELD_DELIMITER).skip(9);
+
+    for sample_name in sample_names {
+        builder = builder.add_sample_name(sample_name);
+    }
+
+    Ok(builder)
 }
 
 #[cfg(test)]

@@ -21,7 +21,7 @@ pub use self::{
 use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const MISSING_FIELD: &str = ".";
-const FIELD_DELIMITER: char = '\t';
+pub(crate) const FIELD_DELIMITER: char = '\t';
 
 /// A VCF record.
 ///
