@@ -1,32 +1,65 @@
-mod kind;
+pub mod kind;
 mod parser;
 mod value;
 
-pub use self::kind::Kind;
+pub use self::{kind::Kind, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
-use self::value::Value;
-
-type Field = (String, String);
-
-#[derive(Debug)]
-pub enum Record {
-    FileFormat(String),
-    Info(Vec<Field>),
-    Filter(Vec<Field>),
-    Format(Vec<Field>),
-    AlternativeAllele(Vec<Field>),
-    Assembly(String),
-    Contig(Vec<Field>),
-    Other(String, String),
+/// A generic VCF header record.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Record {
+    key: Kind,
+    value: Value,
 }
 
-#[derive(Debug)]
+impl Record {
+    /// Creates a generic VCF header record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::FileFormat, Value::String(String::from("VCFv4.3")));
+    /// ```
+    pub fn new(key: Kind, value: Value) -> Self {
+        Self { key, value }
+    }
+
+    /// Returns the key of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::FileFormat, Value::String(String::from("VCFv4.3")));
+    /// assert_eq!(record.key(), &Kind::FileFormat);
+    /// ```
+    pub fn key(&self) -> &Kind {
+        &self.key
+    }
+
+    /// Returns the value of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::FileFormat, Value::String(String::from("VCFv4.3")));
+    /// assert_eq!(record.value(), &Value::String(String::from("VCFv4.3")));
+    /// ```
+    pub fn value(&self) -> &Value {
+        &self.value
+    }
+}
+
+/// An error returned when a raw VCF header record fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is invalid.
     Invalid,
+    /// The record key is invalid.
     InvalidKind(kind::ParseError),
-    InvalidType,
 }
 
 impl error::Error for ParseError {}
@@ -36,9 +69,8 @@ impl fmt::Display for ParseError {
         f.write_str("invalid record: ")?;
 
         match self {
-            Self::Invalid => f.write_str("could not parse record"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
-            Self::InvalidType => f.write_str("invalid type"),
         }
     }
 }
@@ -49,34 +81,7 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, (key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
         let kind = key.parse().map_err(ParseError::InvalidKind)?;
-
-        match kind {
-            Kind::FileFormat => Ok(parse_string(value).map(Self::FileFormat)?),
-            Kind::Info => Ok(parse_struct(value).map(Self::Info)?),
-            Kind::Filter => Ok(parse_struct(value).map(Self::Filter)?),
-            Kind::Format => Ok(parse_struct(value).map(Self::Format)?),
-            Kind::AlternativeAllele => Ok(parse_struct(value).map(Self::AlternativeAllele)?),
-            Kind::Assembly => Ok(parse_string(value).map(Self::Assembly)?),
-            Kind::Contig => Ok(parse_struct(value).map(Self::Contig)?),
-            Kind::Other(k) => {
-                let v = parse_string(value)?;
-                Ok(Self::Other(k, v))
-            }
-        }
-    }
-}
-
-fn parse_string(value: Value) -> Result<String, ParseError> {
-    match value {
-        Value::String(v) => Ok(v),
-        _ => Err(ParseError::InvalidType),
-    }
-}
-
-fn parse_struct(value: Value) -> Result<Vec<(String, String)>, ParseError> {
-    match value {
-        Value::Struct(v) => Ok(v),
-        _ => Err(ParseError::InvalidType),
+        Ok(Self::new(kind, value))
     }
 }
 
@@ -85,23 +90,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         let line =
-            r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">"#;
-        let record = line.parse()?;
-        let expected = vec![
-            (String::from("ID"), String::from("NS")),
-            (String::from("Number"), String::from("1")),
-            (String::from("Type"), String::from("Integer")),
-            (
-                String::from("Description"),
-                String::from("Number of Samples With Data"),
-            ),
-        ];
-        assert!(matches!(record, Record::Info(actual) if actual == expected));
+            r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
+
+        assert_eq!(
+            line.parse(),
+            Ok(Record::new(
+                Kind::Info,
+                Value::Struct(vec![
+                    (String::from("ID"), String::from("NS")),
+                    (String::from("Number"), String::from("1")),
+                    (String::from("Type"), String::from("Integer")),
+                    (
+                        String::from("Description"),
+                        String::from("Number of samples with data"),
+                    ),
+                ])
+            ))
+        );
 
         assert!("".parse::<Record>().is_err());
-
-        Ok(())
     }
 }

@@ -7,11 +7,11 @@ mod filter;
 pub mod format;
 pub mod info;
 mod number;
-mod record;
+pub mod record;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
-    format::Format, info::Info, number::Number,
+    format::Format, info::Info, number::Number, record::Record,
 };
 
 use std::{
@@ -20,8 +20,6 @@ use std::{
     error, fmt,
     str::{FromStr, Lines},
 };
-
-use self::record::Record;
 
 static FILE_FORMAT: &str = "VCFv4.3";
 
@@ -313,6 +311,8 @@ pub enum ParseError {
     UnexpectedFileFormat,
     /// A record is invalid.
     InvalidRecord(record::ParseError),
+    /// A record has an invalid value.
+    InvalidRecordValue,
     /// An information record (`INFO`) is invalid.
     InvalidInfo(info::ParseError),
     /// A filter record (`FILTER`) is invalid.
@@ -337,6 +337,7 @@ impl fmt::Display for ParseError {
             ParseError::MissingFileFormat => f.write_str("missing fileformat"),
             ParseError::UnexpectedFileFormat => f.write_str("unexpected file format"),
             ParseError::InvalidRecord(e) => write!(f, "{}", e),
+            ParseError::InvalidRecordValue => f.write_str("invalid record value"),
             ParseError::InvalidInfo(e) => write!(f, "{}", e),
             ParseError::InvalidFilter(e) => write!(f, "{}", e),
             ParseError::InvalidFormat(e) => write!(f, "{}", e),
@@ -375,47 +376,72 @@ impl FromStr for Header {
 }
 
 fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
-    let record = lines
+    let record: Record = lines
         .next()
         .ok_or_else(|| ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
-    match record {
-        Record::FileFormat(value) => Ok(value),
-        _ => Err(ParseError::MissingFileFormat),
+    if record.key() == &record::Kind::FileFormat {
+        match record.value() {
+            record::Value::String(value) => Ok(value.into()),
+            _ => Err(ParseError::InvalidRecordValue),
+        }
+    } else {
+        Err(ParseError::MissingFileFormat)
     }
 }
 
 fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
-    let record = line.parse().map_err(ParseError::InvalidRecord)?;
+    let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-    builder = match record {
-        Record::FileFormat(_) => {
+    builder = match record.key() {
+        record::Kind::FileFormat => {
             return Err(ParseError::UnexpectedFileFormat);
         }
-        Record::Info(fields) => {
-            let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
-            builder.add_info(info)
-        }
-        Record::Filter(fields) => {
-            let filter = Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
-            builder.add_filter(filter)
-        }
-        Record::Format(fields) => {
-            let format = Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
-            builder.add_format(format)
-        }
-        Record::AlternativeAllele(fields) => {
-            let alternative_allele = AlternativeAllele::try_from(&fields[..])
-                .map_err(ParseError::InvalidAlternativeAllele)?;
-            builder.add_alternative_allele(alternative_allele)
-        }
-        Record::Assembly(value) => builder.set_assembly(value),
-        Record::Contig(fields) => {
-            let contig = Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
-            builder.add_contig(contig)
-        }
-        Record::Other(key, value) => builder.insert(key, value),
+        record::Kind::Info => match record.value() {
+            record::Value::Struct(fields) => {
+                let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
+                builder.add_info(info)
+            }
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::Filter => match record.value() {
+            record::Value::Struct(fields) => {
+                let filter = Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
+                builder.add_filter(filter)
+            }
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::Format => match record.value() {
+            record::Value::Struct(fields) => {
+                let format = Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
+                builder.add_format(format)
+            }
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::AlternativeAllele => match record.value() {
+            record::Value::Struct(fields) => {
+                let alternative_allele = AlternativeAllele::try_from(&fields[..])
+                    .map_err(ParseError::InvalidAlternativeAllele)?;
+                builder.add_alternative_allele(alternative_allele)
+            }
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::Assembly => match record.value() {
+            record::Value::String(value) => builder.set_assembly(value),
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::Contig => match record.value() {
+            record::Value::Struct(fields) => {
+                let contig = Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
+                builder.add_contig(contig)
+            }
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
+        record::Kind::Other(key) => match record.value() {
+            record::Value::String(value) => builder.insert(key, value),
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
     };
 
     Ok(builder)

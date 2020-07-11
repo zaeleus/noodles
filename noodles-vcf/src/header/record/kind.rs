@@ -1,14 +1,23 @@
 use std::{error, fmt, str::FromStr};
 
+/// A VCF header record key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Kind {
+    /// File format (`fileformat`).
     FileFormat,
+    /// Information (`INFO`).
     Info,
+    /// Filter (`FILTER`)
     Filter,
+    /// Genotype format (`FORMAT`).
     Format,
+    /// Symbolic alternate allele (`ALT`).
     AlternativeAllele,
+    /// Breakpoint assemblies URI (`assembly`).
     Assembly,
+    /// Contig (`contig`).
     Contig,
+    /// Any other record key.
     Other(String),
 }
 
@@ -33,14 +42,20 @@ impl fmt::Display for Kind {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError(String);
+/// An error returned when a raw VCF header record kind fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid record kind: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -49,7 +64,7 @@ impl FromStr for Kind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             "fileformat" => Ok(Self::FileFormat),
             "INFO" => Ok(Self::Info),
             "FILTER" => Ok(Self::Filter),
@@ -82,21 +97,19 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("fileformat".parse::<Kind>()?, Kind::FileFormat);
-        assert_eq!("INFO".parse::<Kind>()?, Kind::Info);
-        assert_eq!("FILTER".parse::<Kind>()?, Kind::Filter);
-        assert_eq!("FORMAT".parse::<Kind>()?, Kind::Format);
-        assert_eq!("ALT".parse::<Kind>()?, Kind::AlternativeAllele);
-        assert_eq!("assembly".parse::<Kind>()?, Kind::Assembly);
-        assert_eq!("contig".parse::<Kind>()?, Kind::Contig);
+    fn test_from_str() {
+        assert_eq!("fileformat".parse(), Ok(Kind::FileFormat));
+        assert_eq!("INFO".parse(), Ok(Kind::Info));
+        assert_eq!("FILTER".parse(), Ok(Kind::Filter));
+        assert_eq!("FORMAT".parse(), Ok(Kind::Format));
+        assert_eq!("ALT".parse(), Ok(Kind::AlternativeAllele));
+        assert_eq!("assembly".parse(), Ok(Kind::Assembly));
+        assert_eq!("contig".parse(), Ok(Kind::Contig));
         assert_eq!(
-            "fileDate".parse::<Kind>()?,
-            Kind::Other(String::from("fileDate"))
+            "fileDate".parse(),
+            Ok(Kind::Other(String::from("fileDate")))
         );
 
-        assert!("".parse::<Kind>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Kind>(), Err(ParseError::Empty));
     }
 }
