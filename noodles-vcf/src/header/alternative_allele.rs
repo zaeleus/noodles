@@ -4,7 +4,7 @@ use std::{convert::TryFrom, error, fmt};
 
 use crate::record::alternate_bases::allele::{symbol, Symbol};
 
-use super::record;
+use super::{record, Record};
 
 use self::key::Key;
 
@@ -107,67 +107,86 @@ impl fmt::Display for AlternativeAllele {
 
 /// An error returned when a raw VCF header alternative allele record fails to parse.
 #[derive(Debug)]
-pub enum ParseError {
+pub enum TryFromRecordError {
+    /// The record key is invalid.
+    InvalidRecordKey,
+    /// The record value is invalid.
+    InvalidRecordValue,
     /// A required field is missing.
     MissingField(Key),
     /// The ID is invalid.
     InvalidId(symbol::ParseError),
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid alternative allele header: ")?;
-
         match self {
-            ParseError::MissingField(key) => write!(f, "missing {} field", key),
-            ParseError::InvalidId(e) => write!(f, "{}", e),
+            Self::InvalidRecordKey => f.write_str("invalid record key"),
+            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
         }
     }
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl TryFrom<&[(String, String)]> for AlternativeAllele {
-    type Error = ParseError;
+impl TryFrom<Record> for AlternativeAllele {
+    type Error = TryFromRecordError;
 
-    fn try_from(fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut it = fields.iter();
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        let (key, value) = record.into();
 
-        let id = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Id))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Id) => v.parse().map_err(ParseError::InvalidId),
-                _ => Err(ParseError::MissingField(Key::Id)),
-            })?;
-
-        let description = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Description))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Description) => Ok(v.into()),
-                _ => Err(ParseError::MissingField(Key::Description)),
-            })?;
-
-        Ok(Self { id, description })
+        match key {
+            record::Key::AlternativeAllele => match value {
+                record::Value::Struct(fields) => parse_struct(fields),
+                _ => Err(TryFromRecordError::InvalidRecordValue),
+            },
+            _ => Err(TryFromRecordError::InvalidRecordKey),
+        }
     }
+}
+
+fn parse_struct(fields: Vec<(String, String)>) -> Result<AlternativeAllele, TryFromRecordError> {
+    let mut it = fields.into_iter();
+
+    let id = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Id))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        })?;
+
+    let description = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Description))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Description) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        })?;
+
+    Ok(AlternativeAllele { id, description })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_fields() -> Vec<(String, String)> {
-        vec![
-            (String::from("ID"), String::from("DEL")),
-            (String::from("Description"), String::from("Deletion")),
-        ]
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::AlternativeAllele,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion")),
+            ]),
+        )
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let alternative_allele = AlternativeAllele::try_from(&fields[..])?;
+    fn test_fmt() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let alternative_allele = AlternativeAllele::try_from(record)?;
 
         let expected = r#"##ALT=<ID=DEL,Description="Deletion">"#;
 
@@ -177,17 +196,17 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_filter() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let filter = AlternativeAllele::try_from(&fields[..])?;
+    fn test_try_from_record_for_filter() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let alternative_allele = AlternativeAllele::try_from(record)?;
 
         assert_eq!(
-            filter.id(),
+            alternative_allele.id(),
             &Symbol::StructuralVariant(symbol::StructuralVariant::from(
                 symbol::structural_variant::Type::Deletion
             ))
         );
-        assert_eq!(filter.description(), "Deletion");
+        assert_eq!(alternative_allele.description(), "Deletion");
 
         Ok(())
     }

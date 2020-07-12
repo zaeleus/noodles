@@ -7,7 +7,7 @@ use std::{convert::TryFrom, error, fmt};
 
 use crate::record::genotype;
 
-use super::{number, record, Number};
+use super::{number, record, Number, Record};
 
 use self::key::Key;
 
@@ -159,7 +159,11 @@ impl fmt::Display for Format {
 
 /// An error returned when a raw VCF header genotype format record fails to parse.
 #[derive(Debug)]
-pub enum ParseError {
+pub enum TryFromRecordError {
+    /// The record key is invalid.
+    InvalidRecordKey,
+    /// The record value is invalid.
+    InvalidRecordValue,
     /// A required field is missing.
     MissingField(Key),
     /// The ID is invalid.
@@ -170,85 +174,100 @@ pub enum ParseError {
     InvalidType(ty::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid format header: ")?;
-
         match self {
-            ParseError::MissingField(key) => write!(f, "missing {} field", key),
-            ParseError::InvalidId(e) => write!(f, "{}", e),
-            ParseError::InvalidNumber(e) => write!(f, "{}", e),
-            ParseError::InvalidType(e) => write!(f, "{}", e),
+            Self::InvalidRecordKey => f.write_str("invalid record key"),
+            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
+            Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
+            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
         }
     }
 }
 
-impl TryFrom<&[(String, String)]> for Format {
-    type Error = ParseError;
+impl TryFrom<Record> for Format {
+    type Error = TryFromRecordError;
 
-    fn try_from(fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut it = fields.iter();
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        let (key, value) = record.into();
 
-        let id = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Id))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Id) => v.parse().map_err(ParseError::InvalidId),
-                _ => Err(ParseError::MissingField(Key::Id)),
-            })?;
-
-        let number = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Number))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Number) => v.parse().map_err(ParseError::InvalidNumber),
-                _ => Err(ParseError::MissingField(Key::Id)),
-            })?;
-
-        let ty = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Type))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Type) => v.parse().map_err(ParseError::InvalidType),
-                _ => Err(ParseError::MissingField(Key::Type)),
-            })?;
-
-        let description = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Description))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Description) => Ok(v.into()),
-                _ => Err(ParseError::MissingField(Key::Description)),
-            })?;
-
-        Ok(Self {
-            id,
-            number,
-            ty,
-            description,
-        })
+        match key {
+            record::Key::Format => match value {
+                record::Value::Struct(fields) => parse_struct(fields),
+                _ => Err(TryFromRecordError::InvalidRecordValue),
+            },
+            _ => Err(TryFromRecordError::InvalidRecordKey),
+        }
     }
+}
+
+fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordError> {
+    let mut it = fields.into_iter();
+
+    let id = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Id))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        })?;
+
+    let number = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Number))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Number) => v.parse().map_err(TryFromRecordError::InvalidNumber),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        })?;
+
+    let ty = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Type))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Type) => v.parse().map_err(TryFromRecordError::InvalidType),
+            _ => Err(TryFromRecordError::MissingField(Key::Type)),
+        })?;
+
+    let description = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Description))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Description) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        })?;
+
+    Ok(Format {
+        id,
+        number,
+        ty,
+        description,
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_fields() -> Vec<(String, String)> {
-        vec![
-            (String::from("ID"), String::from("GT")),
-            (String::from("Number"), String::from("1")),
-            (String::from("Type"), String::from("Integer")),
-            (String::from("Description"), String::from("Genotype")),
-        ]
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        )
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let format = Format::try_from(&fields[..])?;
+    fn test_fmt() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let format = Format::try_from(record)?;
 
         let expected = r#"##FORMAT=<ID=GT,Number=1,Type=Integer,Description="Genotype">"#;
 
@@ -258,10 +277,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_format() -> Result<(), ParseError> {
-        let fields = build_fields();
-
-        let format = Format::try_from(&fields[..])?;
+    fn test_try_from_record_for_format() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let format = Format::try_from(record)?;
 
         assert_eq!(format.id(), &genotype::field::Key::Genotype);
         assert_eq!(format.number(), Number::Count(1));

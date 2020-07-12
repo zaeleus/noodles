@@ -85,6 +85,12 @@ impl FromStr for Record {
     }
 }
 
+impl From<Record> for (Key, Value) {
+    fn from(record: Record) -> Self {
+        (record.key, record.value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

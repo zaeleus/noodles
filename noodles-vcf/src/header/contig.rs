@@ -2,7 +2,7 @@ mod key;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
-use super::record;
+use super::{record, Record};
 
 use self::key::Key;
 
@@ -87,7 +87,11 @@ impl fmt::Display for Contig {
 
 /// An error returned when a raw VCF header contig record fails to parse.
 #[derive(Debug)]
-pub enum ParseError {
+pub enum TryFromRecordError {
+    /// The record key is invalid.
+    InvalidRecordKey,
+    /// The record value is invalid.
+    InvalidRecordValue,
     /// A key is invalid.
     InvalidKey(key::ParseError),
     /// The length is invalid.
@@ -96,76 +100,96 @@ pub enum ParseError {
     MissingField(Key),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("invalid contig header: ")?;
 
         match self {
-            ParseError::InvalidKey(e) => write!(f, "{}", e),
-            ParseError::InvalidLength(e) => write!(f, "invalid length: {}", e),
-            ParseError::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidRecordKey => f.write_str("invalid record key"),
+            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
+            Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
         }
     }
 }
 
-impl TryFrom<&[(String, String)]> for Contig {
-    type Error = ParseError;
+impl TryFrom<Record> for Contig {
+    type Error = TryFromRecordError;
 
-    fn try_from(fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut contig = Self {
-            id: String::from("unknown"),
-            len: None,
-            fields: HashMap::new(),
-        };
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        let (key, value) = record.into();
 
-        let mut has_id = false;
+        match key {
+            record::Key::Contig => match value {
+                record::Value::Struct(fields) => parse_struct(fields),
+                _ => Err(TryFromRecordError::InvalidRecordValue),
+            },
+            _ => Err(TryFromRecordError::InvalidRecordKey),
+        }
+    }
+}
 
-        for (raw_key, value) in fields {
-            let key = raw_key.parse().map_err(ParseError::InvalidKey)?;
+fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordError> {
+    let mut contig = Contig {
+        id: String::from("unknown"),
+        len: None,
+        fields: HashMap::new(),
+    };
 
-            match key {
-                Key::Id => {
-                    contig.id = value.into();
-                    has_id = true;
-                }
-                Key::Length => {
-                    contig.len = value.parse().map(Some).map_err(ParseError::InvalidLength)?;
-                }
-                Key::Other(k) => {
-                    contig.fields.insert(k, value.into());
-                }
+    let mut has_id = false;
+
+    for (raw_key, value) in fields {
+        let key = raw_key.parse().map_err(TryFromRecordError::InvalidKey)?;
+
+        match key {
+            Key::Id => {
+                contig.id = value;
+                has_id = true;
+            }
+            Key::Length => {
+                contig.len = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidLength)?;
+            }
+            Key::Other(k) => {
+                contig.fields.insert(k, value);
             }
         }
-
-        if !has_id {
-            return Err(ParseError::MissingField(Key::Id));
-        }
-
-        Ok(contig)
     }
+
+    if !has_id {
+        return Err(TryFromRecordError::MissingField(Key::Id));
+    }
+
+    Ok(contig)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_fields() -> Vec<(String, String)> {
-        vec![
-            (String::from("ID"), String::from("sq0")),
-            (String::from("length"), String::from("13")),
-            (
-                String::from("md5"),
-                String::from("d7eba311421bbc9d3ada44709dd61534"),
-            ),
-        ]
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+            ]),
+        )
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let contig = Contig::try_from(&fields[..])?;
+    fn test_fmt() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let contig = Contig::try_from(record)?;
 
         let expected = r#"##contig=<ID=sq0,length=13,md5="d7eba311421bbc9d3ada44709dd61534">"#;
 
@@ -175,9 +199,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_contig() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let contig = Contig::try_from(&fields[..])?;
+    fn test_try_from_record_for_contig() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let contig = Contig::try_from(record)?;
 
         assert_eq!(contig.id(), "sq0");
         assert_eq!(contig.len(), Some(13));

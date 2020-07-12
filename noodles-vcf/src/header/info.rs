@@ -7,7 +7,7 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use crate::record::info;
 
-use super::{number, record, Number};
+use super::{number, record, Number, Record};
 
 use self::key::Key;
 
@@ -172,7 +172,11 @@ impl fmt::Display for Info {
 
 /// An error returned when a raw VCF header information record fails to parse.
 #[derive(Debug)]
-pub enum ParseError {
+pub enum TryFromRecordError {
+    /// The record key is invalid.
+    InvalidRecordKey,
+    /// The record value is invalid.
+    InvalidRecordValue,
     /// A required field is missing.
     MissingField(Key),
     /// The ID is invalid.
@@ -183,89 +187,104 @@ pub enum ParseError {
     InvalidType(ty::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid info header: ")?;
-
         match self {
-            ParseError::MissingField(key) => write!(f, "missing {} field", key),
-            ParseError::InvalidId(e) => write!(f, "{}", e),
-            ParseError::InvalidNumber(e) => write!(f, "{}", e),
-            ParseError::InvalidType(e) => write!(f, "{}", e),
+            Self::InvalidRecordKey => f.write_str("invalid record key"),
+            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
+            Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
+            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
         }
     }
 }
 
-impl TryFrom<&[(String, String)]> for Info {
-    type Error = ParseError;
+impl TryFrom<Record> for Info {
+    type Error = TryFromRecordError;
 
-    fn try_from(fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut it = fields.iter();
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        let (key, value) = record.into();
 
-        let id = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Id))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Id) => v.parse().map_err(ParseError::InvalidId),
-                _ => Err(ParseError::MissingField(Key::Id)),
-            })?;
-
-        let number = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Number))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Number) => v.parse().map_err(ParseError::InvalidNumber),
-                _ => Err(ParseError::MissingField(Key::Id)),
-            })?;
-
-        let ty = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Type))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Type) => v.parse().map_err(ParseError::InvalidType),
-                _ => Err(ParseError::MissingField(Key::Type)),
-            })?;
-
-        let description = it
-            .next()
-            .ok_or_else(|| ParseError::MissingField(Key::Description))
-            .and_then(|(k, v)| match k.parse() {
-                Ok(Key::Description) => Ok(v.into()),
-                _ => Err(ParseError::MissingField(Key::Description)),
-            })?;
-
-        Ok(Self {
-            id,
-            number,
-            ty,
-            description,
-            fields: it.cloned().collect(),
-        })
+        match key {
+            record::Key::Info => match value {
+                record::Value::Struct(fields) => parse_struct(fields),
+                _ => Err(TryFromRecordError::InvalidRecordValue),
+            },
+            _ => Err(TryFromRecordError::InvalidRecordKey),
+        }
     }
+}
+
+fn parse_struct(fields: Vec<(String, String)>) -> Result<Info, TryFromRecordError> {
+    let mut it = fields.into_iter();
+
+    let id = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Id))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        })?;
+
+    let number = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Number))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Number) => v.parse().map_err(TryFromRecordError::InvalidNumber),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        })?;
+
+    let ty = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Type))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Type) => v.parse().map_err(TryFromRecordError::InvalidType),
+            _ => Err(TryFromRecordError::MissingField(Key::Type)),
+        })?;
+
+    let description = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(Key::Description))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Description) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        })?;
+
+    Ok(Info {
+        id,
+        number,
+        ty,
+        description,
+        fields: it.collect(),
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_fields() -> Vec<(String, String)> {
-        vec![
-            (String::from("ID"), String::from("NS")),
-            (String::from("Number"), String::from("1")),
-            (String::from("Type"), String::from("Integer")),
-            (
-                String::from("Description"),
-                String::from("Number of samples with data"),
-            ),
-        ]
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        )
     }
 
     #[test]
-    fn test_fmt() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let info = Info::try_from(&fields[..])?;
+    fn test_fmt() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let info = Info::try_from(record)?;
 
         let expected =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
@@ -276,9 +295,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_info() -> Result<(), ParseError> {
-        let fields = build_fields();
-        let info = Info::try_from(&fields[..])?;
+    fn test_try_from_record_for_info() -> Result<(), TryFromRecordError> {
+        let record = build_record();
+        let info = Info::try_from(record)?;
 
         assert_eq!(info.id(), &info::field::Key::SamplesWithDataCount);
         assert_eq!(info.number(), Number::Count(1));
@@ -289,12 +308,23 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_fields_for_info_with_extra_fields() -> Result<(), ParseError> {
-        let mut fields = build_fields();
-        fields.push((String::from("Source"), String::from("dbsnp")));
-        fields.push((String::from("Version"), String::from("138")));
+    fn test_try_from_record_for_info_with_extra_fields() -> Result<(), TryFromRecordError> {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+                (String::from("Source"), String::from("dbsnp")),
+                (String::from("Version"), String::from("138")),
+            ]),
+        );
 
-        let info = Info::try_from(&fields[..])?;
+        let info = Info::try_from(record)?;
 
         let fields = info.fields();
         assert_eq!(fields.len(), 2);
