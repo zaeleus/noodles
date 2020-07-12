@@ -93,7 +93,7 @@ impl AlternativeAllele {
 impl fmt::Display for AlternativeAllele {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("##")?;
-        f.write_str(record::Kind::AlternativeAllele.as_ref())?;
+        f.write_str(record::Key::AlternativeAllele.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", Key::Id, self.id)?;

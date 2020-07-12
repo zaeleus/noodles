@@ -260,7 +260,7 @@ impl Default for Header {
 
 impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "##{}={}", record::Kind::FileFormat, self.file_format)?;
+        writeln!(f, "##{}={}", record::Key::FileFormat, self.file_format)?;
 
         for info in self.infos() {
             writeln!(f, "{}", info)?;
@@ -275,7 +275,7 @@ impl fmt::Display for Header {
         }
 
         if let Some(assembly) = self.assembly() {
-            writeln!(f, "##{}={}", record::Kind::Assembly, assembly)?;
+            writeln!(f, "##{}={}", record::Key::Assembly, assembly)?;
         }
 
         for contig in self.contigs() {
@@ -381,7 +381,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
         .ok_or_else(|| ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
-    if record.key() == &record::Kind::FileFormat {
+    if record.key() == &record::Key::FileFormat {
         match record.value() {
             record::Value::String(value) => Ok(value.into()),
             _ => Err(ParseError::InvalidRecordValue),
@@ -395,31 +395,31 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
     let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
     builder = match record.key() {
-        record::Kind::FileFormat => {
+        record::Key::FileFormat => {
             return Err(ParseError::UnexpectedFileFormat);
         }
-        record::Kind::Info => match record.value() {
+        record::Key::Info => match record.value() {
             record::Value::Struct(fields) => {
                 let info = Info::try_from(&fields[..]).map_err(ParseError::InvalidInfo)?;
                 builder.add_info(info)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::Filter => match record.value() {
+        record::Key::Filter => match record.value() {
             record::Value::Struct(fields) => {
                 let filter = Filter::try_from(&fields[..]).map_err(ParseError::InvalidFilter)?;
                 builder.add_filter(filter)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::Format => match record.value() {
+        record::Key::Format => match record.value() {
             record::Value::Struct(fields) => {
                 let format = Format::try_from(&fields[..]).map_err(ParseError::InvalidFormat)?;
                 builder.add_format(format)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::AlternativeAllele => match record.value() {
+        record::Key::AlternativeAllele => match record.value() {
             record::Value::Struct(fields) => {
                 let alternative_allele = AlternativeAllele::try_from(&fields[..])
                     .map_err(ParseError::InvalidAlternativeAllele)?;
@@ -427,18 +427,18 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::Assembly => match record.value() {
+        record::Key::Assembly => match record.value() {
             record::Value::String(value) => builder.set_assembly(value),
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::Contig => match record.value() {
+        record::Key::Contig => match record.value() {
             record::Value::Struct(fields) => {
                 let contig = Contig::try_from(&fields[..]).map_err(ParseError::InvalidContig)?;
                 builder.add_contig(contig)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Kind::Other(key) => match record.value() {
+        record::Key::Other(key) => match record.value() {
             record::Value::String(value) => builder.insert(key, value),
             _ => return Err(ParseError::InvalidRecordValue),
         },

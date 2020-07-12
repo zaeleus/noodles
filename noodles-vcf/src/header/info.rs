@@ -152,7 +152,7 @@ impl Info {
 impl fmt::Display for Info {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("##")?;
-        f.write_str(record::Kind::Info.as_ref())?;
+        f.write_str(record::Key::Info.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", Key::Id, self.id)?;

@@ -2,7 +2,7 @@ use std::{error, fmt, str::FromStr};
 
 /// A VCF header record key.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Kind {
+pub enum Key {
     /// File format (`fileformat`).
     FileFormat,
     /// Information (`INFO`).
@@ -21,7 +21,7 @@ pub enum Kind {
     Other(String),
 }
 
-impl AsRef<str> for Kind {
+impl AsRef<str> for Key {
     fn as_ref(&self) -> &str {
         match self {
             Self::FileFormat => "fileformat",
@@ -36,7 +36,7 @@ impl AsRef<str> for Kind {
     }
 }
 
-impl fmt::Display for Kind {
+impl fmt::Display for Key {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_ref())
     }
@@ -59,7 +59,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Kind {
+impl FromStr for Key {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -83,33 +83,27 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Kind::FileFormat.to_string(), "fileformat");
-        assert_eq!(Kind::Info.to_string(), "INFO");
-        assert_eq!(Kind::Filter.to_string(), "FILTER");
-        assert_eq!(Kind::Format.to_string(), "FORMAT");
-        assert_eq!(Kind::AlternativeAllele.to_string(), "ALT");
-        assert_eq!(Kind::Assembly.to_string(), "assembly");
-        assert_eq!(Kind::Contig.to_string(), "contig");
-        assert_eq!(
-            Kind::Other(String::from("fileDate")).to_string(),
-            "fileDate"
-        );
+        assert_eq!(Key::FileFormat.to_string(), "fileformat");
+        assert_eq!(Key::Info.to_string(), "INFO");
+        assert_eq!(Key::Filter.to_string(), "FILTER");
+        assert_eq!(Key::Format.to_string(), "FORMAT");
+        assert_eq!(Key::AlternativeAllele.to_string(), "ALT");
+        assert_eq!(Key::Assembly.to_string(), "assembly");
+        assert_eq!(Key::Contig.to_string(), "contig");
+        assert_eq!(Key::Other(String::from("fileDate")).to_string(), "fileDate");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!("fileformat".parse(), Ok(Kind::FileFormat));
-        assert_eq!("INFO".parse(), Ok(Kind::Info));
-        assert_eq!("FILTER".parse(), Ok(Kind::Filter));
-        assert_eq!("FORMAT".parse(), Ok(Kind::Format));
-        assert_eq!("ALT".parse(), Ok(Kind::AlternativeAllele));
-        assert_eq!("assembly".parse(), Ok(Kind::Assembly));
-        assert_eq!("contig".parse(), Ok(Kind::Contig));
-        assert_eq!(
-            "fileDate".parse(),
-            Ok(Kind::Other(String::from("fileDate")))
-        );
+        assert_eq!("fileformat".parse(), Ok(Key::FileFormat));
+        assert_eq!("INFO".parse(), Ok(Key::Info));
+        assert_eq!("FILTER".parse(), Ok(Key::Filter));
+        assert_eq!("FORMAT".parse(), Ok(Key::Format));
+        assert_eq!("ALT".parse(), Ok(Key::AlternativeAllele));
+        assert_eq!("assembly".parse(), Ok(Key::Assembly));
+        assert_eq!("contig".parse(), Ok(Key::Contig));
+        assert_eq!("fileDate".parse(), Ok(Key::Other(String::from("fileDate"))));
 
-        assert_eq!("".parse::<Kind>(), Err(ParseError::Empty));
+        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
     }
 }

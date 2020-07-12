@@ -56,7 +56,7 @@ impl Filter {
 impl fmt::Display for Filter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("##")?;
-        f.write_str(record::Kind::Filter.as_ref())?;
+        f.write_str(record::Key::Filter.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", Key::Id, self.id)?;
