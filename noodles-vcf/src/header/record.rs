@@ -91,6 +91,16 @@ mod tests {
 
     #[test]
     fn test_from_str() {
+        let line = "##fileformat=VCFv4.3";
+
+        assert_eq!(
+            line.parse(),
+            Ok(Record::new(
+                Kind::FileFormat,
+                Value::String(String::from("VCFv4.3"))
+            ))
+        );
+
         let line =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
 
