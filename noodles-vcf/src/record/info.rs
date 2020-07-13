@@ -1,3 +1,5 @@
+//! VCF record information and field.
+
 pub mod field;
 
 pub use self::field::Field;
@@ -8,6 +10,7 @@ use super::MISSING_FIELD;
 
 const DELIMITER: char = ';';
 
+/// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Info(Vec<Field>);
 

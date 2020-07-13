@@ -1,11 +1,19 @@
+//! VCF record reference base.
+
 use std::{convert::TryFrom, error, fmt};
 
+/// A VCF record reference base.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Base {
+    /// Adenine.
     A,
+    /// Cytosine.
     C,
+    /// Guanine.
     G,
+    /// Thymine.
     T,
+    /// Any base.
     N,
 }
 

@@ -1,3 +1,5 @@
+//! VCF record genotype and field.
+
 pub mod field;
 
 pub use self::field::Field;
@@ -8,6 +10,7 @@ use super::{Format, MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
+/// A VCF record genotype.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotype(Vec<Field>);
 
@@ -32,6 +35,25 @@ impl fmt::Display for ParseError {
 }
 
 impl Genotype {
+    /// Parses a raw genotype for the given genotype format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::convert::TryFrom;
+    /// use noodles_vcf::record::{genotype::{field::{Key, Value}, Field}, Genotype};
+    ///
+    /// let format = "GT:GQ".parse()?;
+    ///
+    /// assert_eq!(
+    ///     Genotype::from_str_format("0|0:13", &format),
+    ///     Ok(Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Value::String(String::from("0|0"))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    ///     ])?)
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn from_str_format(s: &str, format: &Format) -> Result<Self, ParseError> {
         match s {
             "" => Err(ParseError::Empty),

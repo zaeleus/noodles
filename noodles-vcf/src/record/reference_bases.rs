@@ -1,3 +1,5 @@
+//! VCF record reference bases and base.
+
 pub mod base;
 
 pub use self::base::Base;
@@ -6,6 +8,7 @@ use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
+/// VCF record reference bases.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReferenceBases(Vec<Base>);
 

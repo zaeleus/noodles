@@ -1,3 +1,5 @@
+//! VCF record genotype field.
+
 pub mod key;
 pub mod value;
 
@@ -5,6 +7,7 @@ pub use self::{key::Key, value::Value};
 
 use std::{error, fmt};
 
+/// A VCF record genotype field.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     key: Key,
@@ -14,6 +17,7 @@ pub struct Field {
 /// An error returned when a raw VCF record info field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The value is invalid.
     InvalidValue(value::ParseError),
 }
 
@@ -28,20 +32,58 @@ impl fmt::Display for ParseError {
 }
 
 impl Field {
+    /// Parses a raw genotype field for the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    ///
+    /// assert_eq!(
+    ///     Field::from_str_key("13", &Key::ConditionalGenotypeQuality),
+    ///     Ok(Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)))
+    /// );
+    /// ```
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         Value::from_str_key(s, key)
             .map(|v| Self::new(key.clone(), v))
             .map_err(ParseError::InvalidValue)
     }
 
+    /// Creates a VCF record genotype field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13));
+    /// ```
     pub fn new(key: Key, value: Value) -> Self {
         Self { key, value }
     }
 
+    /// Returns the genotype field key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13));
+    /// assert_eq!(field.key(), &Key::ConditionalGenotypeQuality);
+    /// ```
     pub fn key(&self) -> &Key {
         &self.key
     }
 
+    /// Returns the genotype field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13));
+    /// assert_eq!(field.value(), &Value::Integer(13));
+    /// ```
     pub fn value(&self) -> &Value {
         &self.value
     }

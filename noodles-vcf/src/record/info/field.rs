@@ -1,3 +1,5 @@
+//! VCF record info field.
+
 pub mod key;
 pub mod value;
 
@@ -10,6 +12,7 @@ use crate::header::info::Type;
 const SEPARATOR: char = '=';
 const MAX_COMPONENTS: usize = 2;
 
+/// A VCF record info field.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     key: Key,
@@ -17,14 +20,40 @@ pub struct Field {
 }
 
 impl Field {
+    /// Creates a VCF record info field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// ```
     pub fn new(key: Key, value: Value) -> Self {
         Self { key, value }
     }
 
+    /// Returns the field key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// assert_eq!(field.key(), &Key::SamplesWithDataCount);
+    /// ```
     pub fn key(&self) -> &Key {
         &self.key
     }
 
+    /// Returns the field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// assert_eq!(field.value(), &Value::Integer(1));
+    /// ```
     pub fn value(&self) -> &Value {
         &self.value
     }

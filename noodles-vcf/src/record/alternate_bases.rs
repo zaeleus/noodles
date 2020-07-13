@@ -1,3 +1,5 @@
+//! VCF record alternate bases and allele.
+
 pub mod allele;
 
 pub use self::allele::Allele;
@@ -8,6 +10,7 @@ use super::MISSING_FIELD;
 
 const DELIMITER: char = ',';
 
+/// VCF record alternate bases (`ALT`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AlternateBases(Vec<Allele>);
 

@@ -1,12 +1,17 @@
+//! VCF record chromosome.
+
 mod parser;
 
 use std::{error, fmt, str::FromStr};
 
 use super::MISSING_FIELD;
 
+/// A VCF record chromosome (`CHROM`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Chromosome {
+    /// A reference sequence name.
     Name(String),
+    /// A symbol.
     Symbol(String),
 }
 

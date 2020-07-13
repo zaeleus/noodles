@@ -1,3 +1,5 @@
+//! VCF record filter status.
+
 use std::{error, fmt, str::FromStr};
 
 use super::MISSING_FIELD;
@@ -5,10 +7,14 @@ use super::MISSING_FIELD;
 const PASS_STATUS: &str = "PASS";
 const DELIMITER: char = ',';
 
+/// A VCF record filter status (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum FilterStatus {
+    /// Missing (`*`).
     Missing,
+    /// Pass (`PASS`).
     Pass,
+    /// A list of filters that caused the record to fail.
     Fail(Vec<String>),
 }
 

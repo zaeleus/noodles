@@ -1,3 +1,5 @@
+//! VCF record info field value.
+
 use std::{error, fmt, num};
 
 use crate::header::{info::Type, Number};
@@ -6,16 +8,26 @@ use super::Key;
 
 const DELIMITER: char = ',';
 
+/// A VCF record info field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
+    /// An 32-bit integer.
     Integer(i32),
+    /// A single-precision floating-point.
     Float(f32),
+    /// A boolean.
     Flag,
+    /// A character.
     Character(char),
+    /// A string.
     String(String),
+    /// An array of 32-bit integers.
     IntegerArray(Vec<i32>),
+    /// An array of single-precision floating-points.
     FloatArray(Vec<f32>),
+    /// An array of characters.
     CharacterArray(Vec<char>),
+    /// An array of strings.
     StringArray(Vec<String>),
 }
 
@@ -107,6 +119,14 @@ impl fmt::Display for ParseError {
 }
 
 impl Value {
+    /// Parses a raw info field value for the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::info::field::{Key, Value};
+    /// assert_eq!(Value::from_str_key("1", &Key::SamplesWithDataCount), Ok(Value::Integer(1)));
+    /// ```
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         match key.ty() {
             Type::Integer => match key.number() {

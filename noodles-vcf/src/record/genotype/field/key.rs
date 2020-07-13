@@ -1,40 +1,75 @@
+//! VCF record genotype field key.
+
 use std::{error, fmt, str::FromStr};
 
 use crate::header::{format::Type, Number};
 
+/// A VCF record genotype field key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
     // § 1.6.2 Genotype fields (2020-04-02)
+    /// (`AD`).
     ReadDepths,
+    /// (`ADF`).
     ForwardStrandReadDepths,
+    /// (`ADR`).
     ReverseStrandReadDepths,
+    /// (`DP`).
     ReadDepth,
+    /// (`EC`).
     ExpectedAlternateAlleleCounts,
+    /// (`FT`).
     Filter,
+    /// (`GL`).
     GenotypeLikelihoods,
+    /// (`GP`).
     GenotypePosteriorProbabilities,
+    /// (`GQ`).
     ConditionalGenotypeQuality,
+    /// (`GT`).
     Genotype,
+    /// (`HQ`).
     HaplotypeQuality,
+    /// (`MQ`).
     MappingQuality,
+    /// (`PL`).
     RoundedGenotypeLikelihoods,
+    /// (`PP`).
     RoundedGenotypePosteriorProbabilities,
+    /// (`PQ`).
     PhasingQuality,
+    /// (`PS`).
     PhaseSet,
 
     // § 4 FORMAT keys used for structural variants (2020-04-02)
+    /// (`CN`).
     GenotypeCopyNumber,
+    /// (`CNQ`).
     GenotypeCopyNumberQuality,
+    /// (`CNL`).
     GenotypeCopyNumberLikelihoods,
+    /// (`CNP`).
     GenotypeCopyNumberPosteriorProbabilities,
+    /// (`NQ`).
     NovelVariantQualityScore,
+    /// (`HAP`).
     HaplotypeId,
+    /// (`AHAP`).
     AncestralHaplotypeId,
 
+    /// Any other non-reserved key.
     Other(String, Number, Type),
 }
 
 impl Key {
+    /// Returns the cardinality of the genotype field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{header::Number, record::genotype::field::Key};
+    /// assert_eq!(Key::Genotype.number(), Number::Count(1));
+    /// ```
     pub fn number(&self) -> Number {
         match self {
             Self::ReadDepths => Number::R,
@@ -66,6 +101,14 @@ impl Key {
         }
     }
 
+    /// Returns the type of the genotype field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{header::format::Type, record::genotype::field::Key};
+    /// assert_eq!(Key::Genotype.ty(), Type::String);
+    /// ```
     pub fn ty(&self) -> Type {
         match self {
             Self::ReadDepths => Type::Integer,

@@ -3,7 +3,7 @@
 pub mod alternate_bases;
 pub mod builder;
 pub mod chromosome;
-pub mod field;
+mod field;
 pub mod filter_status;
 pub mod format;
 pub mod genotype;
@@ -62,7 +62,7 @@ impl Record {
     /// let builder = vcf::Record::builder();
     /// ```
     pub fn builder() -> Builder {
-        Builder::new()
+        Builder::default()
     }
 
     /// Returns the chromosome of the record.

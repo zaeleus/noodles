@@ -1,3 +1,5 @@
+//! VCF record alternate bases allele structural variant symbol and type.
+
 pub mod ty;
 
 pub use self::ty::Type;
@@ -6,6 +8,7 @@ use std::{error, fmt, str::FromStr};
 
 const DELIMITER: char = ':';
 
+/// A VCF alternate bases allele structural variant symbol.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StructuralVariant {
     ty: Type,
@@ -13,14 +16,56 @@ pub struct StructuralVariant {
 }
 
 impl StructuralVariant {
+    /// Creates a allele structural variant symbol.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::alternate_bases::allele::symbol::{
+    ///     structural_variant::Type,
+    ///     StructuralVariant,
+    /// };
+    ///
+    /// let structural_variant = StructuralVariant::new(Type::Deletion, Vec::new());
+    /// ```
     pub fn new(ty: Type, subtypes: Vec<String>) -> Self {
         Self { ty, subtypes }
     }
 
+    /// Returns the structural variant type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::alternate_bases::allele::symbol::{
+    ///     structural_variant::Type,
+    ///     StructuralVariant,
+    /// };
+    ///
+    /// let structural_variant = StructuralVariant::new(Type::Deletion, Vec::new());
+    /// assert_eq!(structural_variant.ty(), Type::Deletion);
+    /// ```
     pub fn ty(&self) -> Type {
         self.ty
     }
 
+    /// Returns the structural variant subtypes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::alternate_bases::allele::symbol::{
+    ///     structural_variant::Type,
+    ///     StructuralVariant,
+    /// };
+    ///
+    /// let structural_variant = StructuralVariant::new(
+    ///     Type::Deletion,
+    ///     vec![String::from("ME")],
+    /// );
+    ///
+    /// assert_eq!(structural_variant.subtypes(), [String::from("ME")]);
+    /// ```
     pub fn subtypes(&self) -> &[String] {
         &self.subtypes
     }

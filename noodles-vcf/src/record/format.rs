@@ -1,9 +1,12 @@
+//! VCF record genotype format.
+
 use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
-use crate::record::genotype::field::{key, Key};
+use super::genotype::field::{key, Key};
 
 const DELIMITER: char = ':';
 
+/// A VCF record genotype format (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Format(Vec<Key>);
 
@@ -32,8 +35,11 @@ impl fmt::Display for Format {
 /// An error returned when a raw VCF record format fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The key is invalid.
     InvalidKey(key::ParseError),
+    /// The format is invalid.
     InvalidFormat(TryFromKeyVectorError),
 }
 

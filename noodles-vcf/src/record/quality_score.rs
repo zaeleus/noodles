@@ -1,3 +1,5 @@
+//! VCF record quality score.
+
 use std::{convert::TryFrom, error, fmt, num, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;

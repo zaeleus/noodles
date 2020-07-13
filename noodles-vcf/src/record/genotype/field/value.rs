@@ -1,3 +1,5 @@
+//! VCF record genotype field value.
+
 use std::{error, fmt, num};
 
 use crate::header::{format::Type, Number};
@@ -6,15 +8,24 @@ use super::Key;
 
 const DELIMITER: char = ',';
 
+/// A VCF record genotype field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
+    /// A 32-bit integer.
     Integer(i32),
+    /// A single-precision floating-point.
     Float(f32),
+    /// A character.
     Character(char),
+    /// A string.
     String(String),
+    /// An array of 32-bit integers.
     IntegerArray(Vec<i32>),
+    /// An array of single-precision floating-points.
     FloatArray(Vec<f32>),
+    /// An array of characters.
     CharacterArray(Vec<char>),
+    /// An array of strings.
     StringArray(Vec<String>),
 }
 
@@ -102,6 +113,19 @@ impl fmt::Display for ParseError {
 }
 
 impl Value {
+    /// Parses a raw genotype field value for the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::{Key, Value};
+    ///
+    /// assert_eq!(
+    ///     Value::from_str_key("13", &Key::ConditionalGenotypeQuality),
+    ///     Ok(Value::Integer(13))
+    /// );
+
+    /// ```
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         match key.ty() {
             Type::Integer => match key.number() {

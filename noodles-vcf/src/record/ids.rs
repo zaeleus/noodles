@@ -1,9 +1,12 @@
+//! VCF record IDs.
+//!
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
 const DELIMITER: char = ';';
 
+/// VCF record IDs (`ID`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Ids(Vec<String>);
 

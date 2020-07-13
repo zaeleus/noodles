@@ -1,15 +1,25 @@
 use std::fmt;
 
+/// A VCF record field.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Field {
+    /// Chromosome (`CHROM`).
     Chromosome,
+    /// Start position (`POS`).
     Position,
+    /// IDs (`ID`).
     Ids,
+    /// Reference bases (`REF`).
     ReferenceBases,
+    /// Alternate bases (`ALT`).
     AlternateBases,
+    /// Quality score (`QUAL`).
     QualityScore,
+    /// Filter status (`FILTER`).
     FilterStatus,
+    /// Additional information (`INFO`).
     Info,
+    /// Genotype format (`FORMAT`).
     Format,
 }
 

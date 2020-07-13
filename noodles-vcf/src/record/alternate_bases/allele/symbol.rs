@@ -1,13 +1,19 @@
+//! VCF record alternate bases allele symbol and structural variant.
+
 pub mod structural_variant;
 
 pub use self::structural_variant::StructuralVariant;
 
 use std::{error, fmt, str::FromStr};
 
+/// A VCF alternate bases allele symbol.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Symbol {
+    /// A structural variant.
     StructuralVariant(StructuralVariant),
+    /// A nonstructural variant.
     NonstructuralVariant(String),
+    /// An unspecific symbol.
     Unspecified,
 }
 

@@ -1,12 +1,21 @@
+//! VCF record alternate bases allele structural variant symbol type.
+
 use std::{error, fmt, str::FromStr};
 
+/// A VCF alternate bases allele structural variant symbol type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
+    /// A deletion (`DEL`).
     Deletion,
+    /// A insertion (`INS`).
     Insertion,
+    /// A duplication (`DUP`).
     Duplication,
+    /// An inversion (`INV`).
     Inversion,
+    /// A copy number variation (`CNV`).
     CopyNumberVariation,
+    /// A breakend (`BND`).
     Breakend,
 }
 

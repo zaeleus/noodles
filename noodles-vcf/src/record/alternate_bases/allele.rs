@@ -1,3 +1,5 @@
+//! VCF record alternate bases allele and symbol.
+
 pub mod symbol;
 
 pub use self::symbol::Symbol;
@@ -6,11 +8,16 @@ use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 use crate::record::reference_bases::{base, Base};
 
+/// A VCF alternate bases allele.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Allele {
+    /// A list of bases (e.g., `A`, `AC`, etc.).
     Bases(Vec<Base>),
+    /// A symbolic allele (e.g., `<DEL>`, `<CN:0>`, etc.).
     Symbol(Symbol),
+    /// A breakend (e.g., `]sq0:5]A`, `G.`, etc.).
     Breakend(String),
+    /// An overlapping deletion, i.e., a missing allele (`*`).
     OverlappingDeletion,
 }
 
@@ -31,6 +38,7 @@ impl fmt::Display for Allele {
     }
 }
 
+/// An error returned when a raw alternate bases allele fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.

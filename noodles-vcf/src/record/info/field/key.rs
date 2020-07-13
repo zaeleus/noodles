@@ -1,63 +1,121 @@
+//! VCF record info field key.
+
 use crate::header::{info::Type, Number};
 
 use std::{error, fmt, str::FromStr};
 
+/// A VCF record info field key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
     // § 1.6.1 Fixed Fields (2020-04-02)
+    /// (`AA`).
     AncestralAllele,
+    /// (`AC`).
     AlleleCount,
+    /// (`AD`).
     TotalReadDepths,
+    /// (`ADF`).
     ForwardStrandReadDepths,
+    /// (`ADR`).
     ReverseStrandReadDepths,
+    /// (`AF`).
     AlleleFrequencies,
+    /// (`AN`).
     TotalAlleleCount,
+    /// (`BQ`).
     BaseQuality,
+    /// (`CIGAR`).
     Cigar,
+    /// (`DB`).
     IsInDbSnp,
+    /// (`DP`).
     TotalDepth,
+    // /// (`END`).
     // EndPosition,
+    /// (`H2`).
     IsInHapMap2,
+    /// (`H3`).
     IsInHapMap3,
+    /// (`MQ`).
     MappingQuality,
+    /// (`MQ0`).
     ZeroMappingQualityCount,
+    /// (`NS`).
     SamplesWithDataCount,
+    /// (`SB`).
     StrandBias,
+    /// (`SOMATIC`).
     IsSomaticMutation,
+    /// (`VALIDATED`).
     IsValidated,
+    /// (`1000G`).
     IsIn1000Genomes,
 
     // § 3 INFO keys used for structural variants (2020-04-02)
+    /// (`IMPRECISE`).
     IsImprecise,
+    /// (`NOVEL`).
     IsNovel,
+    /// (`END`).
     EndPosition,
+    /// (`SVTYPE`).
     SvType,
+    /// (`SVLEN`).
     SvLengths,
+    /// (`CIPOS`).
     PositionConfidenceIntervals,
+    /// (`CIEND`).
     EndConfidenceIntervals,
+    /// (`HOMLEN`).
     MicrohomologyLengths,
+    /// (`HOMSEQ`).
     MicrohomologySequences,
+    /// (`BKPTID`).
     BreakpointIds,
+    /// (`MEINFO`).
     MobileElementInfo,
+    /// (`METRANS`).
     MobileElementTransductionInfo,
+    /// (`DBVID`).
     DbvId,
+    /// (`DBVARID`).
     DbVarId,
+    /// (`DBRIPID`).
     DbRipId,
+    /// (`MATEID`).
     MateBreakendIds,
+    /// (`PARID`).
     PartnerBreakendId,
+    /// (`EVENT`).
     BreakendEventId,
+    /// (`CILEN`).
     BreakendConfidenceIntervals,
+    // /// (`DP`).
     // BreakendReadDepth,
+    /// (`DPADJ`).
     AdjacentReadDepths,
+    /// (`CN`).
     BreakendCopyNumber,
+    /// (`CNADJ`).
     AdjacentCopyNumber,
+    /// (`CICN`).
     CopyNumberConfidenceIntervals,
+    /// (`CICNADJ`).
     AdjacentCopyNumberConfidenceIntervals,
 
+    /// Any other non-reserved key.
     Other(String, Number, Type),
 }
 
 impl Key {
+    /// Returns the cardinality of the info field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{header::Number, record::info::field::Key};
+    /// assert_eq!(Key::AlleleCount.number(), Number::A);
+    /// ```
     pub fn number(&self) -> Number {
         match self {
             Self::AncestralAllele => Number::Count(1),
@@ -112,6 +170,14 @@ impl Key {
         }
     }
 
+    /// Returns the type of the info field value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{header::info::Type, record::info::field::Key};
+    /// assert_eq!(Key::AlleleCount.ty(), Type::Integer);
+    /// ```
     pub fn ty(&self) -> Type {
         match self {
             Self::AncestralAllele => Type::String,
