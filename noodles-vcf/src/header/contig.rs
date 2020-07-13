@@ -85,7 +85,7 @@ impl fmt::Display for Contig {
     }
 }
 
-/// An error returned when a raw VCF header contig record fails to parse.
+/// An error returned when a generic VCF header record fails to convert to a contig header record.
 #[derive(Debug)]
 pub enum TryFromRecordError {
     /// The record is invalid.

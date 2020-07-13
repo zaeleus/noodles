@@ -170,7 +170,7 @@ impl fmt::Display for Info {
     }
 }
 
-/// An error returned when a raw VCF header information record fails to parse.
+/// An error returned when a generic VCF header record fails to convert to a info header record.
 #[derive(Debug)]
 pub enum TryFromRecordError {
     /// The record is invalid.

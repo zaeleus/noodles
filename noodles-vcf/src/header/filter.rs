@@ -68,7 +68,7 @@ impl fmt::Display for Filter {
     }
 }
 
-/// An error returned when a raw VCF header filter record fails to parse.
+/// An error returned when a generic VCF header record fails to convert to a filter header record.
 #[derive(Debug)]
 pub enum TryFromRecordError {
     /// The record is invalid.

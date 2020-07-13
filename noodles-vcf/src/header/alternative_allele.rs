@@ -105,7 +105,8 @@ impl fmt::Display for AlternativeAllele {
     }
 }
 
-/// An error returned when a raw VCF header alternative allele record fails to parse.
+/// An error returned when a generic VCF header record fails to convert to an alternative allele
+/// header record.
 #[derive(Debug)]
 pub enum TryFromRecordError {
     /// The record is invalid.

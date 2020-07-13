@@ -157,7 +157,8 @@ impl fmt::Display for Format {
     }
 }
 
-/// An error returned when a raw VCF header genotype format record fails to parse.
+/// An error returned when a generic VCF header record fails to convert to a genotype format header
+/// record.
 #[derive(Debug)]
 pub enum TryFromRecordError {
     /// The record is invalid.
