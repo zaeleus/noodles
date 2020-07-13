@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{AlternativeAllele, Contig, Filter, Format, Header, Info, FILE_FORMAT};
+use super::{AlternativeAllele, Contig, Filter, Format, Header, Info, Record, FILE_FORMAT};
 
 /// A VCF header builder.
 #[derive(Debug)]
@@ -13,7 +13,7 @@ pub struct Builder {
     assembly: Option<String>,
     contigs: Vec<Contig>,
     sample_names: Vec<String>,
-    map: HashMap<String, String>,
+    map: HashMap<String, Record>,
 }
 
 impl Builder {
@@ -217,20 +217,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
-    /// let header = vcf::Header::builder()
-    ///     .insert("fileDate", "20200709")
-    ///     .build();
+    /// let record = Record::new(
+    ///     Key::Other(String::from("fileDate")),
+    ///     Value::String(String::from("20200709")),
+    /// );
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&String::from("20200709")));
+    /// let header = vcf::Header::builder().insert(record.clone()).build();
+    ///
+    /// assert_eq!(header.get("fileDate"), Some(&record));
     /// ```
-    pub fn insert<K, V>(mut self, key: K, value: V) -> Self
-    where
-        K: Into<String>,
-        V: Into<String>,
-    {
-        self.map.insert(key.into(), value.into());
+    pub fn insert(mut self, record: Record) -> Self {
+        self.map.insert(record.key().to_string(), record);
         self
     }
 
@@ -294,9 +293,14 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
-            header::{format, info, Number},
+            header::{self, format, info, Number},
             record::{self, alternate_bases::allele},
         };
+
+        let record = Record::new(
+            header::record::Key::Other(String::from("fileDate")),
+            header::record::Value::String(String::from("20200709")),
+        );
 
         let header = Builder::default()
             .set_file_format("VCFv4.2")
@@ -326,7 +330,7 @@ mod tests {
             .add_contig(Contig::new(String::from("sq0")))
             .add_contig(Contig::new(String::from("sq1")))
             .add_sample_name("sample0")
-            .insert("fileDate", "20200515")
+            .insert(record.clone())
             .build();
 
         assert_eq!(header.file_format(), "VCFv4.2");
@@ -337,7 +341,7 @@ mod tests {
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
         assert_eq!(header.sample_names().len(), 1);
-        assert_eq!(header.get("fileDate"), Some(&String::from("20200515")));
+        assert_eq!(header.get("fileDate"), Some(&record));
 
         Ok(())
     }

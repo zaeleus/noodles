@@ -34,7 +34,7 @@ pub struct Header {
     assembly: Option<String>,
     contigs: Vec<Contig>,
     samples_names: Vec<String>,
-    map: HashMap<String, String>,
+    map: HashMap<String, Record>,
 }
 
 impl Header {
@@ -238,16 +238,19 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
-    /// let header = vcf::Header::builder()
-    ///     .insert("fileDate", "20200709")
-    ///     .build();
+    /// let record = Record::new(
+    ///     Key::Other(String::from("fileDate")),
+    ///     Value::String(String::from("20200709")),
+    /// );
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&String::from("20200709")));
+    /// let header = vcf::Header::builder().insert(record.clone()).build();
+    ///
+    /// assert_eq!(header.get("fileDate"), Some(&record));
     /// assert_eq!(header.get("reference"), None);
     /// ```
-    pub fn get(&self, key: &str) -> Option<&String> {
+    pub fn get(&self, key: &str) -> Option<&Record> {
         self.map.get(key)
     }
 }
@@ -282,8 +285,8 @@ impl fmt::Display for Header {
             writeln!(f, "{}", contig)?;
         }
 
-        for (key, value) in &self.map {
-            writeln!(f, "##{}={}", key, value)?;
+        for record in self.map.values() {
+            writeln!(f, "##{}={}", record.key(), record.value())?;
         }
 
         f.write_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")?;
@@ -423,10 +426,7 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
             builder.add_contig(contig)
         }
-        record::Key::Other(key) => match record.value() {
-            record::Value::String(value) => builder.insert(key, value),
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
+        record::Key::Other(_) => builder.insert(record),
     };
 
     Ok(builder)
@@ -457,7 +457,10 @@ mod tests {
         let header = Header::builder()
             .set_file_format("VCFv4.3")
             .set_assembly("file:///assemblies.fasta")
-            .insert("fileDate", "20200514")
+            .insert(Record::new(
+                record::Key::Other(String::from("fileDate")),
+                record::Value::String(String::from("20200514")),
+            ))
             .build();
 
         let expected = "\
@@ -519,8 +522,21 @@ mod tests {
         assert_eq!(header.contigs().len(), 3);
         assert!(header.sample_names().is_empty());
 
-        assert_eq!(header.get("fileDate"), Some(&String::from("20200506")));
-        assert_eq!(header.get("source"), Some(&String::from("noodles-vcf")));
+        assert_eq!(
+            header.get("fileDate"),
+            Some(&Record::new(
+                record::Key::Other(String::from("fileDate")),
+                record::Value::String(String::from("20200506")),
+            ))
+        );
+
+        assert_eq!(
+            header.get("source"),
+            Some(&Record::new(
+                record::Key::Other(String::from("source")),
+                record::Value::String(String::from("noodles-vcf")),
+            ))
+        );
 
         Ok(())
     }
