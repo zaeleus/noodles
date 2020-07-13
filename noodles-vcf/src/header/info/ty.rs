@@ -39,7 +39,7 @@ impl fmt::Display for Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}

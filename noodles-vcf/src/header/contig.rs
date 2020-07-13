@@ -86,7 +86,7 @@ impl fmt::Display for Contig {
 }
 
 /// An error returned when a generic VCF header record fails to convert to a contig header record.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
@@ -102,8 +102,6 @@ impl error::Error for TryFromRecordError {}
 
 impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid contig header: ")?;
-
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing {} field", key),
@@ -184,21 +182,82 @@ mod tests {
         let contig = Contig::try_from(record)?;
 
         let expected = r#"##contig=<ID=sq0,length=13,md5="d7eba311421bbc9d3ada44709dd61534">"#;
-
         assert_eq!(contig.to_string(), expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_contig() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_contig() {
         let record = build_record();
-        let contig = Contig::try_from(record)?;
 
-        assert_eq!(contig.id(), "sq0");
-        assert_eq!(contig.len(), Some(13));
-        assert_eq!(contig.get("md5"), Some("d7eba311421bbc9d3ada44709dd61534"));
+        assert_eq!(
+            Contig::try_from(record),
+            Ok(Contig {
+                id: String::from("sq0"),
+                len: Some(13),
+                fields: vec![(
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534")
+                )]
+                .into_iter()
+                .collect(),
+            })
+        );
+    }
 
-        Ok(())
+    #[test]
+    fn test_try_from_record_for_contig_with_an_invalid_record_key() {
+        let record = Record::new(
+            record::Key::FileFormat,
+            record::Value::Struct(vec![(String::from("ID"), String::from("sq0"))]),
+        );
+
+        assert_eq!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_contig_with_an_invalid_record_value() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::String(String::from("VCF4.3")),
+        );
+
+        assert_eq!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_contig_with_an_invalid_key() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![(String::new(), String::from("sq0"))]),
+        );
+
+        assert!(matches!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidKey(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_contig_with_an_invalid_length() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("NA")),
+            ]),
+        );
+
+        assert!(matches!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidLength(_))
+        ));
     }
 }

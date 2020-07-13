@@ -107,7 +107,7 @@ impl fmt::Display for AlternativeAllele {
 
 /// An error returned when a generic VCF header record fails to convert to an alternative allele
 /// header record.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
@@ -182,25 +182,84 @@ mod tests {
         let alternative_allele = AlternativeAllele::try_from(record)?;
 
         let expected = r#"##ALT=<ID=DEL,Description="Deletion">"#;
-
         assert_eq!(alternative_allele.to_string(), expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_filter() {
         let record = build_record();
-        let alternative_allele = AlternativeAllele::try_from(record)?;
 
         assert_eq!(
-            alternative_allele.id(),
-            &Symbol::StructuralVariant(symbol::StructuralVariant::from(
-                symbol::structural_variant::Type::Deletion
-            ))
+            AlternativeAllele::try_from(record),
+            Ok(AlternativeAllele {
+                id: Symbol::StructuralVariant(symbol::StructuralVariant::from(
+                    symbol::structural_variant::Type::Deletion
+                )),
+                description: String::from("Deletion"),
+            })
         );
-        assert_eq!(alternative_allele.description(), "Deletion");
+    }
 
-        Ok(())
+    #[test]
+    fn test_try_from_record_for_filter_with_an_invalid_record_key() {
+        let record = Record::new(
+            record::Key::FileFormat,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion")),
+            ]),
+        );
+
+        assert_eq!(
+            AlternativeAllele::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_an_invalid_record_value() {
+        let record = Record::new(
+            record::Key::AlternativeAllele,
+            record::Value::String(String::from("VCFv4.3")),
+        );
+
+        assert_eq!(
+            AlternativeAllele::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_a_missing_field() {
+        let record = Record::new(
+            record::Key::AlternativeAllele,
+            record::Value::Struct(vec![(
+                String::from("Description"),
+                String::from("Deletion"),
+            )]),
+        );
+
+        assert_eq!(
+            AlternativeAllele::try_from(record),
+            Err(TryFromRecordError::MissingField(Key::Id))
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_an_invalid_id() {
+        let record = Record::new(
+            record::Key::AlternativeAllele,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::new()),
+                (String::from("Description"), String::from("Deletion")),
+            ]),
+        );
+
+        assert!(matches!(
+            AlternativeAllele::try_from(record),
+            Err(TryFromRecordError::InvalidId(_))
+        ));
     }
 }

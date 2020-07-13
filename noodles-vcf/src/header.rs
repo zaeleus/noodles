@@ -303,7 +303,7 @@ impl fmt::Display for Header {
 }
 
 /// An error returned when a raw VCF header fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The file format (`fileformat`) is missing.
     MissingFileFormat,
@@ -530,10 +530,7 @@ mod tests {
         let s = r#"##ALT=<ID=DEL,Description="Deletion">
 "#;
 
-        assert!(matches!(
-            s.parse::<Header>(),
-            Err(ParseError::MissingFileFormat)
-        ));
+        assert_eq!(s.parse::<Header>(), Err(ParseError::MissingFileFormat));
     }
 
     #[test]
@@ -551,7 +548,7 @@ mod tests {
 ##contig=<ID=sq0,length=8>
 "#;
 
-        assert!(matches!(s.parse::<Header>(), Err(ParseError::ExpectedEof)));
+        assert_eq!(s.parse::<Header>(), Err(ParseError::ExpectedEof));
     }
 
     #[test]
@@ -561,9 +558,6 @@ mod tests {
 ##fileformat=VCFv4.3
 ";
 
-        assert!(matches!(
-            s.parse::<Header>(),
-            Err(ParseError::UnexpectedFileFormat)
-        ));
+        assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedFileFormat));
     }
 }

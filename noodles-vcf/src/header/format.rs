@@ -159,7 +159,7 @@ impl fmt::Display for Format {
 
 /// An error returned when a generic VCF header record fails to convert to a genotype format header
 /// record.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
@@ -263,22 +263,118 @@ mod tests {
         let format = Format::try_from(record)?;
 
         let expected = r#"##FORMAT=<ID=GT,Number=1,Type=Integer,Description="Genotype">"#;
-
         assert_eq!(format.to_string(), expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_format() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_format() {
         let record = build_record();
-        let format = Format::try_from(record)?;
 
-        assert_eq!(format.id(), &genotype::field::Key::Genotype);
-        assert_eq!(format.number(), Number::Count(1));
-        assert_eq!(format.ty(), Type::Integer);
-        assert_eq!(format.description(), "Genotype");
+        assert_eq!(
+            Format::try_from(record),
+            Ok(Format {
+                id: genotype::field::Key::Genotype,
+                number: Number::Count(1),
+                ty: Type::Integer,
+                description: String::from("Genotype"),
+            })
+        );
+    }
 
-        Ok(())
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_record_key() {
+        let record = Record::new(
+            record::Key::FileFormat,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert_eq!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_record_value() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::String(String::from("VCFv4.3")),
+        );
+
+        assert_eq!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_a_missing_field() {
+        let record = Record::new(record::Key::Format, record::Value::Struct(Vec::new()));
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::MissingField(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_id() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidId(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_number() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("NA")),
+                (String::from("Type"), String::from("Integer")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidNumber(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_type() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("int")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidType(_))
+        ));
     }
 }

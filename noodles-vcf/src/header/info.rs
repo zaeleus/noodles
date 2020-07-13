@@ -171,7 +171,7 @@ impl fmt::Display for Info {
 }
 
 /// An error returned when a generic VCF header record fails to convert to a info header record.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
@@ -280,27 +280,29 @@ mod tests {
 
         let expected =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
-
         assert_eq!(info.to_string(), expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_info() {
         let record = build_record();
-        let info = Info::try_from(record)?;
 
-        assert_eq!(info.id(), &info::field::Key::SamplesWithDataCount);
-        assert_eq!(info.number(), Number::Count(1));
-        assert_eq!(info.ty(), Type::Integer);
-        assert_eq!(info.description(), "Number of samples with data");
-
-        Ok(())
+        assert_eq!(
+            Info::try_from(record),
+            Ok(Info {
+                id: info::field::Key::SamplesWithDataCount,
+                number: Number::Count(1),
+                ty: Type::Integer,
+                description: String::from("Number of samples with data"),
+                fields: HashMap::new(),
+            })
+        );
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_extra_fields() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_info_with_extra_fields() {
         let record = Record::new(
             record::Key::Info,
             record::Value::Struct(vec![
@@ -316,13 +318,127 @@ mod tests {
             ]),
         );
 
-        let info = Info::try_from(record)?;
+        assert_eq!(
+            Info::try_from(record),
+            Ok(Info {
+                id: info::field::Key::SamplesWithDataCount,
+                number: Number::Count(1),
+                ty: Type::Integer,
+                description: String::from("Number of samples with data"),
+                fields: vec![
+                    (String::from("Source"), String::from("dbsnp")),
+                    (String::from("Version"), String::from("138")),
+                ]
+                .into_iter()
+                .collect()
+            })
+        );
+    }
 
-        let fields = info.fields();
-        assert_eq!(fields.len(), 2);
-        assert_eq!(fields["Source"], "dbsnp");
-        assert_eq!(fields["Version"], "138");
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_record_key() {
+        let record = Record::new(
+            record::Key::FileFormat,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
 
-        Ok(())
+        assert_eq!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_record_value() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::String(String::from("VCFv4.3")),
+        );
+
+        assert_eq!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_a_missing_field() {
+        let record = Record::new(record::Key::Info, record::Value::Struct(Vec::new()));
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::MissingField(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_id() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidId(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_number() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("NA")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidNumber(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_type() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("int")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidType(_))
+        ));
     }
 }

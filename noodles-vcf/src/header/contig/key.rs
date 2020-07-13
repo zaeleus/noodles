@@ -23,7 +23,7 @@ impl fmt::Display for Key {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}

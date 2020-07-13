@@ -69,7 +69,7 @@ impl fmt::Display for Filter {
 }
 
 /// An error returned when a generic VCF header record fails to convert to a filter header record.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
@@ -144,20 +144,66 @@ mod tests {
         let filter = Filter::try_from(record)?;
 
         let expected = r#"##FILTER=<ID=q10,Description="Quality below 10">"#;
-
         assert_eq!(filter.to_string(), expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter() -> Result<(), TryFromRecordError> {
+    fn test_try_from_record_for_filter() {
         let record = build_record();
-        let filter = Filter::try_from(record)?;
 
-        assert_eq!(filter.id(), "q10");
-        assert_eq!(filter.description(), "Quality below 10");
+        assert_eq!(
+            Filter::try_from(record),
+            Ok(Filter {
+                id: String::from("q10"),
+                description: String::from("Quality below 10"),
+            })
+        );
+    }
 
-        Ok(())
+    #[test]
+    fn test_try_from_record_for_filter_with_an_invalid_record_key() {
+        let record = Record::new(
+            record::Key::FileFormat,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("q10")),
+                (
+                    String::from("Description"),
+                    String::from("Quality below 10"),
+                ),
+            ]),
+        );
+
+        assert_eq!(
+            Filter::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_an_invalid_record_value() {
+        let record = Record::new(
+            record::Key::Filter,
+            record::Value::String(String::from("VCFv4.3")),
+        );
+
+        assert_eq!(
+            Filter::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_a_missing_field() {
+        let record = Record::new(
+            record::Key::Filter,
+            record::Value::Struct(vec![(String::from("ID"), String::from("q10"))]),
+        );
+
+        assert!(matches!(
+            Filter::try_from(record),
+            Err(TryFromRecordError::MissingField(_))
+        ));
     }
 }

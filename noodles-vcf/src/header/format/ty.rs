@@ -31,7 +31,7 @@ impl fmt::Display for Type {
 }
 
 /// An error returned when an format field type fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}
