@@ -1,6 +1,8 @@
+//! VCF header information field value type.
+
 use std::{error, fmt, str::FromStr};
 
-/// A info field value type.
+/// A VCF header information field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
     /// A 32-bit integer.
@@ -39,6 +41,7 @@ impl fmt::Display for Type {
     }
 }
 
+/// An error returned when a raw VCF header information record field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 

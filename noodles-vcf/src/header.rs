@@ -1,9 +1,9 @@
 //! VCF header and fields.
 
-mod alternative_allele;
+pub mod alternative_allele;
 mod builder;
-mod contig;
-mod filter;
+pub mod contig;
+pub mod filter;
 pub mod format;
 pub mod info;
 mod number;

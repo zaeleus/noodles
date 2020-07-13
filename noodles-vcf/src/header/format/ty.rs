@@ -1,6 +1,8 @@
+//! VCF header genotype format field value type.
+
 use std::{error, fmt, str::FromStr};
 
-/// A format field value type.
+/// A VCF header genotype format field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
     /// A 32-bit integer.
@@ -30,7 +32,8 @@ impl fmt::Display for Type {
     }
 }
 
-/// An error returned when an format field type fails to parse.
+/// An error returned when a VCF header genotype format field type fails to
+/// parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 

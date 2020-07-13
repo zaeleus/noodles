@@ -1,3 +1,5 @@
+//! VCF header contig record and key.
+
 mod key;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
@@ -58,6 +60,28 @@ impl Contig {
         self.len
     }
 
+    /// Returns the value of the field with the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::convert::TryFrom;
+    /// use noodles_vcf::header::{contig, record, Record, Contig};
+    ///
+    /// let record = Record::new(
+    ///     record::Key::Contig,
+    ///     record::Value::Struct(vec![
+    ///         (String::from("ID"), String::from("sq0")),
+    ///         (String::from("md5"), String::from("d7eba311421bbc9d3ada44709dd61534")),
+    ///     ]),
+    /// );
+    /// let contig = Contig::try_from(record)?;
+    ///
+    /// assert_eq!(contig.get("md5"), Some("d7eba311421bbc9d3ada44709dd61534"));
+    /// assert!(contig.get("species").is_none());
+    ///
+    /// # Ok::<(), contig::TryFromRecordError>(())
+    /// ```
     pub fn get(&self, key: &str) -> Option<&str> {
         self.fields.get(key).map(|s| &**s)
     }

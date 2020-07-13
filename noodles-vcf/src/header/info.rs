@@ -1,5 +1,7 @@
-mod key;
-mod ty;
+//! VCF header information record and components.
+
+pub mod key;
+pub mod ty;
 
 pub use self::ty::Type;
 

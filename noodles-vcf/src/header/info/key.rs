@@ -1,10 +1,17 @@
+//! VCF header information record key.
+
 use std::{error, fmt, str::FromStr};
 
+/// A VCF header information record key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Key {
+    /// (`ID`).
     Id,
+    /// (`Number`).
     Number,
+    /// (`Type`).
     Type,
+    /// (`Description`).
     Description,
 }
 
@@ -25,6 +32,7 @@ impl fmt::Display for Key {
     }
 }
 
+/// An error returned when a raw VCF header information record key fails to parse.
 #[derive(Debug)]
 pub struct ParseError(String);
 

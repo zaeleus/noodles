@@ -1,3 +1,5 @@
+//! VCF header record key.
+
 use std::{error, fmt, str::FromStr};
 
 /// A VCF header record key.

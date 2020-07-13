@@ -1,9 +1,15 @@
+//! VCF header header contig record key.
+
 use std::{error, fmt, str::FromStr};
 
+/// A VCF header header contig record key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Key {
+    /// (`ID`).
     Id,
+    /// (`length`).
     Length,
+    /// Any other key.
     Other(String),
 }
 
@@ -23,6 +29,7 @@ impl fmt::Display for Key {
     }
 }
 
+/// An error returned when a raw VCF header contig record key fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 

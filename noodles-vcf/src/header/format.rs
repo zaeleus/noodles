@@ -1,3 +1,5 @@
+//! VCF header genotype format record and key.
+
 mod key;
 mod ty;
 

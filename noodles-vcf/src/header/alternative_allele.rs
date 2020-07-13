@@ -1,3 +1,5 @@
+//! VCF header symbolic alternate allele record and key.
+
 mod key;
 
 use std::{convert::TryFrom, error, fmt};

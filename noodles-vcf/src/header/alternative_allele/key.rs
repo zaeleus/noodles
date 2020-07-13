@@ -1,8 +1,11 @@
 use std::{error, fmt, str::FromStr};
 
+/// A VCF header symbolic alternate allele record key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Key {
+    /// (`ID`).
     Id,
+    /// (`Description`).
     Description,
 }
 
@@ -21,6 +24,7 @@ impl fmt::Display for Key {
     }
 }
 
+/// An error returned when a raw VCF header symbolic alternate allele record key fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
