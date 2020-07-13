@@ -160,10 +160,8 @@ impl fmt::Display for Format {
 /// An error returned when a raw VCF header genotype format record fails to parse.
 #[derive(Debug)]
 pub enum TryFromRecordError {
-    /// The record key is invalid.
-    InvalidRecordKey,
-    /// The record value is invalid.
-    InvalidRecordValue,
+    /// The record is invalid.
+    InvalidRecord,
     /// A required field is missing.
     MissingField(Key),
     /// The ID is invalid.
@@ -179,8 +177,7 @@ impl error::Error for TryFromRecordError {}
 impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidRecordKey => f.write_str("invalid record key"),
-            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing {} field", key),
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
@@ -193,14 +190,9 @@ impl TryFrom<Record> for Format {
     type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
-        let (key, value) = record.into();
-
-        match key {
-            record::Key::Format => match value {
-                record::Value::Struct(fields) => parse_struct(fields),
-                _ => Err(TryFromRecordError::InvalidRecordValue),
-            },
-            _ => Err(TryFromRecordError::InvalidRecordKey),
+        match record.into() {
+            (record::Key::Format, record::Value::Struct(fields)) => parse_struct(fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }

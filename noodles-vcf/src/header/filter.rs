@@ -71,10 +71,8 @@ impl fmt::Display for Filter {
 /// An error returned when a raw VCF header filter record fails to parse.
 #[derive(Debug)]
 pub enum TryFromRecordError {
-    /// The record key is invalid.
-    InvalidRecordKey,
-    /// The record value is invalid.
-    InvalidRecordValue,
+    /// The record is invalid.
+    InvalidRecord,
     /// A field is missing.
     MissingField(Key),
 }
@@ -84,8 +82,7 @@ impl error::Error for TryFromRecordError {}
 impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidRecordKey => f.write_str("invalid record key"),
-            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing {} field", key),
         }
     }
@@ -95,14 +92,9 @@ impl TryFrom<Record> for Filter {
     type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
-        let (key, value) = record.into();
-
-        match key {
-            record::Key::Filter => match value {
-                record::Value::Struct(fields) => parse_struct(fields),
-                _ => Err(TryFromRecordError::InvalidRecordValue),
-            },
-            _ => Err(TryFromRecordError::InvalidRecordKey),
+        match record.into() {
+            (record::Key::Filter, record::Value::Struct(fields)) => parse_struct(fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }

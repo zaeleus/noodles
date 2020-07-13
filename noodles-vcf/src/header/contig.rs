@@ -88,10 +88,8 @@ impl fmt::Display for Contig {
 /// An error returned when a raw VCF header contig record fails to parse.
 #[derive(Debug)]
 pub enum TryFromRecordError {
-    /// The record key is invalid.
-    InvalidRecordKey,
-    /// The record value is invalid.
-    InvalidRecordValue,
+    /// The record is invalid.
+    InvalidRecord,
     /// A key is invalid.
     InvalidKey(key::ParseError),
     /// The length is invalid.
@@ -107,8 +105,7 @@ impl fmt::Display for TryFromRecordError {
         f.write_str("invalid contig header: ")?;
 
         match self {
-            Self::InvalidRecordKey => f.write_str("invalid record key"),
-            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing {} field", key),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
@@ -120,14 +117,9 @@ impl TryFrom<Record> for Contig {
     type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
-        let (key, value) = record.into();
-
-        match key {
-            record::Key::Contig => match value {
-                record::Value::Struct(fields) => parse_struct(fields),
-                _ => Err(TryFromRecordError::InvalidRecordValue),
-            },
-            _ => Err(TryFromRecordError::InvalidRecordKey),
+        match record.into() {
+            (record::Key::Contig, record::Value::Struct(fields)) => parse_struct(fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
