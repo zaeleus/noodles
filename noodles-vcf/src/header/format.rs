@@ -144,7 +144,7 @@ impl Format {
 
 impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("##")?;
+        f.write_str(record::PREFIX)?;
         f.write_str(record::Key::Format.as_ref())?;
         f.write_str("=<")?;
 

@@ -8,6 +8,8 @@ pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
+pub(crate) const PREFIX: &str = "##";
+
 /// A generic VCF header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {

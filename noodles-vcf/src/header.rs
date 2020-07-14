@@ -263,7 +263,13 @@ impl Default for Header {
 
 impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "##{}={}", record::Key::FileFormat, self.file_format)?;
+        writeln!(
+            f,
+            "{}{}={}",
+            record::PREFIX,
+            record::Key::FileFormat,
+            self.file_format
+        )?;
 
         for info in self.infos() {
             writeln!(f, "{}", info)?;
@@ -278,7 +284,13 @@ impl fmt::Display for Header {
         }
 
         if let Some(assembly) = self.assembly() {
-            writeln!(f, "##{}={}", record::Key::Assembly, assembly)?;
+            writeln!(
+                f,
+                "{}{}={}",
+                record::PREFIX,
+                record::Key::Assembly,
+                assembly
+            )?;
         }
 
         for contig in self.contigs() {
@@ -286,7 +298,7 @@ impl fmt::Display for Header {
         }
 
         for record in self.map.values() {
-            writeln!(f, "##{}={}", record.key(), record.value())?;
+            writeln!(f, "{}{}={}", record::PREFIX, record.key(), record.value())?;
         }
 
         f.write_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")?;
