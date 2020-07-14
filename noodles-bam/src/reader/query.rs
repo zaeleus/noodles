@@ -103,27 +103,33 @@ where
                         Err(e) => return Some(Err(e)),
                     }
                 }
-                State::Read => {
-                    let result = self.read_record();
+                State::Read => match self.read_record() {
+                    Some(result) => {
+                        if self.reader.virtual_position() >= self.current_chunk.end() {
+                            self.state = State::Seek;
+                        }
 
-                    if self.reader.virtual_position() >= self.current_chunk.end() {
-                        self.state = State::Seek;
-                    }
+                        match result {
+                            Ok(record) => {
+                                let reference_sequence_id = record.reference_sequence_id() as usize;
 
-                    if let Some(Ok(record)) = result {
-                        let reference_sequence_id = record.reference_sequence_id() as usize;
+                                let record_start = (record.position() + 1) as u64;
+                                let record_mapped_len = record.cigar().mapped_len() as u64;
+                                let record_end = record_start + record_mapped_len + 1;
 
-                        let record_start = (record.position() + 1) as u64;
-                        let record_mapped_len = record.cigar().mapped_len() as u64;
-                        let record_end = record_start + record_mapped_len + 1;
-
-                        if reference_sequence_id == self.reference_sequence_id
-                            && in_interval(record_start, record_end, self.start, self.end)
-                        {
-                            return Some(Ok(record));
+                                if reference_sequence_id == self.reference_sequence_id
+                                    && in_interval(record_start, record_end, self.start, self.end)
+                                {
+                                    return Some(Ok(record));
+                                }
+                            }
+                            Err(e) => return Some(Err(e)),
                         }
                     }
-                }
+                    None => {
+                        self.state = State::Seek;
+                    }
+                },
                 State::End => return None,
             }
         }
