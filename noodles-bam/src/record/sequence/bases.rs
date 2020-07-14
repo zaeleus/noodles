@@ -14,10 +14,16 @@ pub struct Bases<'a> {
 
 impl<'a> Bases<'a> {
     pub(crate) fn new(sequence: &'a Sequence<'_>) -> Self {
+        let tail = if sequence.is_empty() {
+            0
+        } else {
+            sequence.n_chars() - 1
+        };
+
         Self {
             sequence,
             head: 0,
-            tail: sequence.n_chars() - 1,
+            tail,
             remaining: sequence.n_chars(),
         }
     }

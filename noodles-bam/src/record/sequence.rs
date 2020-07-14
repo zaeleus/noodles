@@ -186,6 +186,13 @@ mod tests {
     }
 
     #[test]
+    fn test_bases_with_empty_sequence() {
+        let data = [];
+        let sequence = Sequence::new(&data, 0);
+        assert!(sequence.bases().next().is_none());
+    }
+
+    #[test]
     fn test_fmt() {
         let data = [0x18, 0x42];
         let sequence = Sequence::new(&data, 4);
