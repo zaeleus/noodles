@@ -46,13 +46,14 @@ where
     ///
     /// let mut writer = fastq::Writer::new(Vec::new());
     ///
-    /// let record = fastq::Record::new("@r0", "ATCG", "NDLS");
+    /// let record = fastq::Record::new("r0", "ATCG", "NDLS");
     /// writer.write_record(&record)?;
     ///
     /// assert_eq!(writer.get_ref(), b"@r0\nATCG\n+\nNDLS\n");
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+        self.inner.write_all(b"@")?;
         self.inner.write_all(record.read_name())?;
         self.inner.write_all(b"\n")?;
         self.inner.write_all(record.sequence())?;

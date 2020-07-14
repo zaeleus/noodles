@@ -1,4 +1,4 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read};
 
 use super::Record;
 
@@ -21,13 +21,14 @@ where
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
 
-        let mut len = read_line(&mut self.inner, record.read_name_mut())?;
+        let mut len = read_read_name(&mut self.inner, record.read_name_mut())?;
 
         if len > 0 {
-            self.line_buf.clear();
-
             len += read_line(&mut self.inner, record.sequence_mut())?;
+
+            self.line_buf.clear();
             len += read_line(&mut self.inner, &mut self.line_buf)?;
+
             len += read_line(&mut self.inner, record.quality_scores_mut())?;
         }
 
@@ -42,6 +43,34 @@ where
     let result = reader.read_until(b'\n', buf);
     buf.pop();
     result
+}
+
+fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match consume_byte(reader, b'@') {
+        Ok(n) => read_line(reader, buf).map(|m| m + n),
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
+        Err(e) => Err(e),
+    }
+}
+
+fn consume_byte<R>(reader: &mut R, value: u8) -> io::Result<usize>
+where
+    R: Read,
+{
+    let mut buf = [0; 1];
+    reader.read_exact(&mut buf)?;
+
+    if buf[0] == value {
+        Ok(buf.len())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "read name missing @ prefix",
+        ))
+    }
 }
 
 #[cfg(test)]
@@ -70,11 +99,11 @@ dcba
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 25);
-        assert_eq!(record, Record::new("@noodles:1/1", "AGCT", "abcd"));
+        assert_eq!(record, Record::new("noodles:1/1", "AGCT", "abcd"));
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 25);
-        assert_eq!(record, Record::new("@noodles:2/1", "TCGA", "dcba"));
+        assert_eq!(record, Record::new("noodles:2/1", "TCGA", "dcba"));
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 0);
