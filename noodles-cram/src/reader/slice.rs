@@ -24,9 +24,9 @@ where
     let reference_sequence_id = read_itf8(&mut data_reader)?;
     let alignment_start = read_itf8(&mut data_reader)?;
     let alignment_span = read_itf8(&mut data_reader)?;
-    let n_records = read_itf8(&mut data_reader)?;
+    let record_count = read_itf8(&mut data_reader)?;
     let record_counter = read_itf8(&mut data_reader)?;
-    let n_blocks = read_itf8(&mut data_reader)?;
+    let block_count = read_itf8(&mut data_reader)?;
     let block_content_ids = read_block_content_ids(&mut data_reader)?;
     let embedded_reference_bases_block_content_id = read_itf8(&mut data_reader)?;
     let reference_md5 = read_reference_md5(&mut data_reader)?;
@@ -36,9 +36,9 @@ where
         reference_sequence_id,
         alignment_start,
         alignment_span,
-        n_records,
+        record_count,
         record_counter,
-        n_blocks,
+        block_count,
         block_content_ids,
         embedded_reference_bases_block_content_id,
         reference_md5,
@@ -50,7 +50,7 @@ pub fn read_blocks<R>(reader: &mut R, slice: &mut Slice) -> io::Result<()>
 where
     R: Read,
 {
-    for _ in 0..slice.header().n_blocks() {
+    for _ in 0..slice.header().block_count() {
         let mut block = Block::default();
         read_block(reader, &mut block)?;
 

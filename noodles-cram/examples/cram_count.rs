@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
         for slice in container.slices() {
             let mut record_reader = slice.records(container.compression_header());
 
-            for _ in 0..slice.header().n_records() {
+            for _ in 0..slice.header().record_count() {
                 let mut record = cram::Record::default();
                 record_reader.read_record(&mut record)?;
                 n += 1;

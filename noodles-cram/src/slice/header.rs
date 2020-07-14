@@ -5,9 +5,9 @@ pub struct Header {
     reference_sequence_id: Itf8,
     alignment_start: Itf8,
     alignment_span: Itf8,
-    n_records: Itf8,
+    record_count: Itf8,
     record_counter: Itf8,
-    n_blocks: Itf8,
+    block_count: Itf8,
     block_content_ids: Vec<Itf8>,
     embedded_reference_bases_block_content_id: Itf8,
     reference_md5: [u8; 16],
@@ -20,9 +20,9 @@ impl Header {
         reference_sequence_id: Itf8,
         alignment_start: Itf8,
         alignment_span: Itf8,
-        n_records: Itf8,
+        record_count: Itf8,
         record_counter: Itf8,
-        n_blocks: Itf8,
+        block_count: Itf8,
         block_content_ids: Vec<Itf8>,
         embedded_reference_bases_block_content_id: Itf8,
         reference_md5: [u8; 16],
@@ -32,9 +32,9 @@ impl Header {
             reference_sequence_id,
             alignment_start,
             alignment_span,
-            n_records,
+            record_count,
             record_counter,
-            n_blocks,
+            block_count,
             block_content_ids,
             embedded_reference_bases_block_content_id,
             reference_md5,
@@ -52,11 +52,11 @@ impl Header {
         self.alignment_start
     }
 
-    pub fn n_records(&self) -> Itf8 {
-        self.n_records
+    pub fn record_count(&self) -> Itf8 {
+        self.record_count
     }
 
-    pub fn n_blocks(&self) -> Itf8 {
-        self.n_blocks
+    pub fn block_count(&self) -> Itf8 {
+        self.block_count
     }
 }
