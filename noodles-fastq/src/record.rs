@@ -7,18 +7,13 @@ pub struct Record {
 }
 
 impl Record {
-    /// Creates a new FASTQ record with the given lines.
+    /// Creates a FASTQ record.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_fastq::Record;
-    ///
-    /// let record = Record::new("@noodles/1", "AGCT", "NDLS");
-    ///
-    /// assert_eq!(record.read_name(), b"@noodles/1");
-    /// assert_eq!(record.sequence(), b"AGCT");
-    /// assert_eq!(record.quality_scores(), b"NDLS");
+    /// let record = Record::new("r0", "AGCT", "NDLS");
     /// ```
     pub fn new<S, T, U>(read_name: S, sequence: T, quality_scores: U) -> Self
     where
@@ -33,27 +28,54 @@ impl Record {
         }
     }
 
+    /// Returns the read name of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert_eq!(record.read_name(), b"r0");
+    /// ```
     pub fn read_name(&self) -> &[u8] {
         &self.read_name
     }
 
-    pub fn read_name_mut(&mut self) -> &mut Vec<u8> {
+    pub(crate) fn read_name_mut(&mut self) -> &mut Vec<u8> {
         &mut self.read_name
     }
 
+    /// Returns the sequence of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert_eq!(record.sequence(), b"AGCT");
+    /// ```
     pub fn sequence(&self) -> &[u8] {
         &self.sequence
     }
 
-    pub fn sequence_mut(&mut self) -> &mut Vec<u8> {
+    pub(crate) fn sequence_mut(&mut self) -> &mut Vec<u8> {
         &mut self.sequence
     }
 
+    /// Returns the quality scores of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert_eq!(record.quality_scores(), b"NDLS");
+    /// ```
     pub fn quality_scores(&self) -> &[u8] {
         &self.quality_scores
     }
 
-    pub fn quality_scores_mut(&mut self) -> &mut Vec<u8> {
+    pub(crate) fn quality_scores_mut(&mut self) -> &mut Vec<u8> {
         &mut self.quality_scores
     }
 
@@ -64,7 +86,7 @@ impl Record {
     /// ```
     /// use noodles_fastq::Record;
     ///
-    /// let mut record = Record::new("@noodles/1", "AGCT", "NDLS");
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
     /// record.clear();
     ///
     /// assert!(record.read_name().is_empty());
