@@ -32,7 +32,7 @@ static BASES: &[Base] = &[
 /// BAM record sequence.
 pub struct Sequence<'a> {
     seq: &'a [u8],
-    n_chars: usize,
+    base_count: usize,
 }
 
 impl<'a> Sequence<'a> {
@@ -47,8 +47,8 @@ impl<'a> Sequence<'a> {
     /// let sequence = Sequence::new(&data, 4);
     /// assert_eq!(*sequence, data);
     /// ```
-    pub fn new(seq: &'a [u8], n_chars: usize) -> Self {
-        Self { seq, n_chars }
+    pub fn new(seq: &'a [u8], base_count: usize) -> Self {
+        Self { seq, base_count }
     }
 
     /// Returns the number of bases in the sequence.
@@ -61,10 +61,10 @@ impl<'a> Sequence<'a> {
     /// let data = [0x12, 0x48]; // ACGT
     /// let sequence = Sequence::new(&data, 4);
     ///
-    /// assert_eq!(sequence.n_chars(), 4);
+    /// assert_eq!(sequence.base_count(), 4);
     /// ```
-    pub fn n_chars(&self) -> usize {
-        self.n_chars
+    pub fn base_count(&self) -> usize {
+        self.base_count
     }
 
     /// Returns a reference to the base at the given index.

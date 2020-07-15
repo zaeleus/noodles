@@ -244,8 +244,8 @@ impl Record {
         let len = ((self.l_seq() + 1) / 2) as usize;
 
         let bytes = &self.0[offset..offset + len];
-        let n_chars = self.l_seq() as usize;
-        Sequence::new(bytes, n_chars)
+        let base_count = self.l_seq() as usize;
+        Sequence::new(bytes, base_count)
     }
 
     /// Returns the quality score for each base in the sequence.
