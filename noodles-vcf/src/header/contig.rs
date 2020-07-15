@@ -147,39 +147,34 @@ impl TryFrom<Record> for Contig {
 }
 
 fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordError> {
-    let mut contig = Contig {
-        id: String::from("unknown"),
-        len: None,
-        fields: HashMap::new(),
-    };
-
-    let mut has_id = false;
+    let mut id = None;
+    let mut len = None;
+    let mut other_fields = HashMap::new();
 
     for (raw_key, value) in fields {
         let key = raw_key.parse().map_err(TryFromRecordError::InvalidKey)?;
 
         match key {
             Key::Id => {
-                contig.id = value;
-                has_id = true;
+                id = Some(value);
             }
             Key::Length => {
-                contig.len = value
+                len = value
                     .parse()
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidLength)?;
             }
             Key::Other(k) => {
-                contig.fields.insert(k, value);
+                other_fields.insert(k, value);
             }
         }
     }
 
-    if !has_id {
-        return Err(TryFromRecordError::MissingField(Key::Id));
-    }
-
-    Ok(contig)
+    Ok(Contig {
+        id: id.ok_or_else(|| TryFromRecordError::MissingField(Key::Id))?,
+        len,
+        fields: other_fields,
+    })
 }
 
 #[cfg(test)]
