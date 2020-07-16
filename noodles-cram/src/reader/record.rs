@@ -491,7 +491,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::QualityScores)
+            .get(&DataSeries::StretchesOfQualityScores)
             .expect("missing QQ");
 
         decode_byte_array(
