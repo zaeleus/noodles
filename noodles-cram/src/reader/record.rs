@@ -476,7 +476,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::Bases)
+            .get(&DataSeries::StretchesOfBases)
             .expect("missing BB");
 
         decode_byte_array(
