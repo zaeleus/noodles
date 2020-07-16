@@ -58,11 +58,11 @@ where
     ///
     /// let mut fields = reader.fields();
     ///
-    /// let field = fields.next().unwrap()?;
-    /// assert_eq!(field, Field::new(Tag::AlignmentHitCount, Value::Int32(1)));
+    /// let field = fields.next().transpose()?;
+    /// assert_eq!(field, Some(Field::new(Tag::AlignmentHitCount, Value::Int32(1))));
     ///
-    /// let field = fields.next().unwrap()?;
-    /// assert_eq!(field, Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))));
+    /// let field = fields.next().transpose()?;
+    /// assert_eq!(field, Some(Field::new(Tag::ReadGroup, Value::String(String::from("rg0")))));
     ///
     /// assert!(fields.next().is_none());
     /// # Ok::<(), io::Error>(())
