@@ -6,7 +6,7 @@ use std::{
 use byteorder::ReadBytesExt;
 
 use crate::{
-    compression_header::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
+    container::compression_header::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
     num::read_itf8,
 };
 

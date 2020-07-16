@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 use noodles_fasta as fasta;
 
 use crate::{
-    compression_header::preservation_map::substitution_matrix::Base,
-    compression_header::SubstitutionMatrix,
+    container::compression_header::preservation_map::substitution_matrix::Base,
+    container::compression_header::SubstitutionMatrix,
 };
 
 use super::Feature;

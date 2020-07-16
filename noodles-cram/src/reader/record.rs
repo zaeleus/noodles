@@ -6,12 +6,13 @@ use std::{
 use byteorder::ReadBytesExt;
 
 use crate::{
+    container::CompressionHeader,
     data_series::DataSeries,
     encoding::{self, Encoding},
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
     record::{Feature, Tag},
-    BitReader, CompressionHeader, Record,
+    BitReader, Record,
 };
 
 use super::encoding::read_encoding;

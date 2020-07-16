@@ -1,9 +1,8 @@
+pub mod compression_header;
 mod header;
 pub mod slice;
 
-pub use self::{header::Header, slice::Slice};
-
-use crate::CompressionHeader;
+pub use self::{compression_header::CompressionHeader, header::Header, slice::Slice};
 
 #[derive(Debug, Default)]
 pub struct Container {

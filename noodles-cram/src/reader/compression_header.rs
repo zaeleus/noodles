@@ -9,7 +9,7 @@ use self::{
     preservation_map::read_preservation_map, tag_encoding_map::read_tag_encoding_map,
 };
 
-use crate::{Block, CompressionHeader};
+use crate::{container::CompressionHeader, Block};
 
 use super::block::read_block;
 
