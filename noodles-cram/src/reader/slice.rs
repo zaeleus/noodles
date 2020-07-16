@@ -4,10 +4,8 @@ use std::{
 };
 
 use crate::{
-    block::ContentType,
-    container::{slice, Slice},
+    container::{block::ContentType, slice, Block, Slice},
     num::{read_itf8, Itf8},
-    Block,
 };
 
 use super::block::read_block;

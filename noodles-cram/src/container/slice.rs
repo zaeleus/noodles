@@ -4,9 +4,9 @@ pub use self::header::Header;
 
 use std::{collections::HashMap, io::Cursor};
 
-use crate::{reader::record, BitReader, Block};
+use crate::{reader::record, BitReader};
 
-use super::CompressionHeader;
+use super::{Block, CompressionHeader};
 
 #[derive(Debug)]
 pub struct Slice {

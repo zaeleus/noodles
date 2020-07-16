@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::{num::read_itf8, Block};
+use crate::{container::Block, num::read_itf8};
 
 pub fn read_block<R>(reader: &mut R, block: &mut Block) -> io::Result<()>
 where
