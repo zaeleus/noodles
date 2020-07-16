@@ -1,4 +1,3 @@
-pub use self::reader::block::read_block;
 pub use self::{
     bit_reader::BitReader, container::Container, data_series::DataSeries, encoding::Encoding,
     reader::Reader, record::Record,
