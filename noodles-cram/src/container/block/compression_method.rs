@@ -42,8 +42,6 @@ impl TryFrom<u8> for CompressionMethod {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

@@ -49,8 +49,6 @@ impl TryFrom<Itf8> for Kind {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

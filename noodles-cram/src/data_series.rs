@@ -83,8 +83,6 @@ impl TryFrom<&[u8]> for DataSeries {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]
