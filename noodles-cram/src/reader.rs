@@ -12,7 +12,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{Block, Container, Slice};
+use crate::{container::Slice, Block, Container};
 
 use self::{block::read_block, compression_header::read_compression_header};
 
