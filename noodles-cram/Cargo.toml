@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 bitflags = "1.2.1"
 byteorder = "1.2.3"
+bzip2 = "0.4.1"
 flate2 = "1.0.1"
 noodles-fasta = { path = "../noodles-fasta" }
 noodles-sam = { path = "../noodles-sam" }

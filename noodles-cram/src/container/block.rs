@@ -5,6 +5,7 @@ pub use self::{compression_method::CompressionMethod, content_type::ContentType}
 
 use std::{convert::TryFrom, io::Read};
 
+use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 
 use crate::{num::Itf8, rans::rans_decode};
@@ -70,6 +71,12 @@ impl Block {
                 let mut reader = GzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid gzip data");
+                buf
+            }
+            CompressionMethod::Bzip2 => {
+                let mut reader = BzDecoder::new(self.data());
+                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
+                reader.read_to_end(&mut buf).expect("invalid bzip2 data");
                 buf
             }
             CompressionMethod::Rans => {
