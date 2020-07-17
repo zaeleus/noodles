@@ -7,6 +7,7 @@ use std::{convert::TryFrom, io::Read};
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
+use xz2::read::XzDecoder;
 
 use crate::{num::Itf8, rans::rans_decode};
 
@@ -79,11 +80,16 @@ impl Block {
                 reader.read_to_end(&mut buf).expect("invalid bzip2 data");
                 buf
             }
+            CompressionMethod::Lzma => {
+                let mut reader = XzDecoder::new(self.data());
+                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
+                reader.read_to_end(&mut buf).expect("invalid lzma data");
+                buf
+            }
             CompressionMethod::Rans => {
                 let mut buf = self.data();
                 rans_decode(&mut buf).expect("invalid rans data")
             }
-            _ => todo!(),
         }
     }
 
