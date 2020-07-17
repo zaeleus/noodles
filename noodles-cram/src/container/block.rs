@@ -3,7 +3,7 @@ mod content_type;
 
 pub use self::{compression_method::CompressionMethod, content_type::ContentType};
 
-use std::{convert::TryFrom, io::Read};
+use std::{borrow::Cow, convert::TryFrom, io::Read};
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
@@ -62,33 +62,35 @@ impl Block {
         &mut self.data
     }
 
-    pub fn decompressed_data(&self) -> Vec<u8> {
+    pub fn decompressed_data(&self) -> Cow<[u8]> {
         let compression_method = CompressionMethod::try_from(self.compression_method())
             .expect("invalid compression method");
 
         match compression_method {
-            CompressionMethod::None => self.data().to_vec(),
+            CompressionMethod::None => Cow::from(self.data()),
             CompressionMethod::Gzip => {
                 let mut reader = GzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid gzip data");
-                buf
+                Cow::from(buf)
             }
             CompressionMethod::Bzip2 => {
                 let mut reader = BzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid bzip2 data");
-                buf
+                Cow::from(buf)
             }
             CompressionMethod::Lzma => {
                 let mut reader = XzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
                 reader.read_to_end(&mut buf).expect("invalid lzma data");
-                buf
+                Cow::from(buf)
             }
             CompressionMethod::Rans => {
                 let mut buf = self.data();
-                rans_decode(&mut buf).expect("invalid rans data")
+                rans_decode(&mut buf)
+                    .map(Cow::from)
+                    .expect("invalid rans data")
             }
         }
     }

@@ -2,7 +2,7 @@ mod header;
 
 pub use self::header::Header;
 
-use std::{collections::HashMap, io::Cursor};
+use std::{borrow::Cow, collections::HashMap, io::Cursor};
 
 use crate::{reader::record, BitReader};
 
@@ -39,7 +39,7 @@ impl Slice {
     pub fn records<'a>(
         &'a self,
         compression_header: &'a CompressionHeader,
-    ) -> record::Reader<'a, Cursor<Vec<u8>>, Cursor<Vec<u8>>> {
+    ) -> record::Reader<'a, Cursor<Cow<[u8]>>, Cursor<Cow<[u8]>>> {
         let core_data = BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
 
         let external_data: HashMap<_, _> = self
