@@ -68,9 +68,9 @@ impl<'a> Cigar<'a> {
     /// let data = [0x40, 0x02, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
     /// let cigar = Cigar::new(&data);
     ///
-    /// assert_eq!(cigar.mapped_len(), 40);
+    /// assert_eq!(cigar.reference_len(), 40);
     /// ```
-    pub fn mapped_len(&self) -> u32 {
+    pub fn reference_len(&self) -> u32 {
         self.ops()
             .filter_map(|op| match op.kind() {
                 Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {

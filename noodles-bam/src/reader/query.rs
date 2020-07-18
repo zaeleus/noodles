@@ -114,8 +114,8 @@ where
                                 let reference_sequence_id = record.reference_sequence_id() as usize;
 
                                 let record_start = (record.position() + 1) as u64;
-                                let record_mapped_len = record.cigar().mapped_len() as u64;
-                                let record_end = record_start + record_mapped_len - 1;
+                                let record_reference_len = record.cigar().reference_len() as u64;
+                                let record_end = record_start + record_reference_len - 1;
 
                                 if reference_sequence_id == self.reference_sequence_id
                                     && in_interval(record_start, record_end, self.start, self.end)
