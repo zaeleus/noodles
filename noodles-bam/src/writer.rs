@@ -242,7 +242,9 @@ where
         let bin = record
             .position()
             .map(|start| {
-                let end = record.cigar().reference_len() as i32;
+                // 0-based, [start, end)
+                let reference_len = record.cigar().reference_len() as i32;
+                let end = start + reference_len;
                 region_to_bin(start, end) as u16
             })
             .unwrap_or(UNMAPPED_BIN);
@@ -400,7 +402,8 @@ where
     Ok(())
 }
 
-// See § 5.3 in SAMv1.pdf (accessed 2020-04-24).
+// § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
+// 0-based, [start, end)
 #[allow(clippy::eq_op)]
 fn region_to_bin(start: i32, mut end: i32) -> i32 {
     end -= 1;
@@ -597,5 +600,13 @@ mod tests {
         assert_eq!(*actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_region_to_bin() {
+        // [8, 13]
+        assert_eq!(region_to_bin(7, 13), 4681);
+        // [63245986, 63245986]
+        assert_eq!(region_to_bin(63245985, 63255986), 8541);
     }
 }
