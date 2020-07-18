@@ -36,6 +36,7 @@ impl Slice {
         self.external_blocks.push(block);
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn records<'a>(
         &'a self,
         compression_header: &'a CompressionHeader,
