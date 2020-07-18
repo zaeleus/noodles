@@ -242,7 +242,7 @@ where
         let bin = record
             .position()
             .map(|start| {
-                let end = record.cigar().mapped_len() as i32;
+                let end = record.cigar().reference_len() as i32;
                 region_to_bin(start, end) as u16
             })
             .unwrap_or(UNMAPPED_BIN);

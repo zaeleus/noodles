@@ -32,9 +32,9 @@ impl Cigar {
     ///     Op::new(Kind::SoftClip, 8),
     /// ]);
     ///
-    /// assert_eq!(cigar.mapped_len(), 40);
+    /// assert_eq!(cigar.reference_len(), 40);
     /// ```
-    pub fn mapped_len(&self) -> u32 {
+    pub fn reference_len(&self) -> u32 {
         self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
