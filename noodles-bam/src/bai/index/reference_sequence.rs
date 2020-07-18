@@ -104,24 +104,55 @@ impl ReferenceSequence {
 const MAX_BINS: usize = ((1 << 18) - 1) / 7 + 1;
 
 // 0-based, [start, end)
-fn region_to_bins(start: usize, end: usize) -> BitVec {
-    let ranges = [
-        (1 + (start >> 26), 1 + (end >> 26)),
-        (9 + (start >> 23), 9 + (end >> 23)),
-        (73 + (start >> 20), 73 + (end >> 20)),
-        (585 + (start >> 17), 585 + (end >> 17)),
-        (4681 + (start >> 14), 4681 + (end >> 14)),
-    ];
+fn region_to_bins(start: usize, mut end: usize) -> BitVec {
+    end -= 1;
 
     let mut bins = BitVec::from_elem(MAX_BINS, false);
-
     bins.set(0, true);
 
-    for (start, end) in &ranges {
-        for k in *start..=*end {
-            bins.set(k, true);
-        }
+    for k in (1 + (start >> 26))..=(1 + (end >> 26)) {
+        bins.set(k, true);
+    }
+
+    for k in (9 + (start >> 23))..=(9 + (end >> 23)) {
+        bins.set(k, true);
+    }
+
+    for k in (73 + (start >> 20))..=(73 + (end >> 20)) {
+        bins.set(k, true);
+    }
+
+    for k in (585 + (start >> 17))..=(585 + (end >> 17)) {
+        bins.set(k, true);
+    }
+
+    for k in (4681 + (start >> 14))..=(4681 + (end >> 14)) {
+        bins.set(k, true);
     }
 
     bins
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_region_to_bins() {
+        // [8, 13]
+        let actual = region_to_bins(7, 13);
+        let mut expected = BitVec::from_elem(MAX_BINS, false);
+        for &k in &[0, 1, 9, 73, 585, 4681] {
+            expected.set(k, true);
+        }
+        assert_eq!(actual, expected);
+
+        // [63245986, 63245986]
+        let actual = region_to_bins(63245985, 63255986);
+        let mut expected = BitVec::from_elem(MAX_BINS, false);
+        for &k in &[0, 1, 16, 133, 1067, 8541] {
+            expected.set(k, true);
+        }
+        assert_eq!(actual, expected);
+    }
 }
