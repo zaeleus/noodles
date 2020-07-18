@@ -1,8 +1,12 @@
+mod data_series_encoding_map;
 pub mod preservation_map;
 
-pub use self::preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary};
+pub use self::{
+    data_series_encoding_map::DataSeriesEncodingMap,
+    preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
+};
 
-use crate::{DataSeriesEncodingMap, TagEncodingMap};
+use crate::TagEncodingMap;
 
 #[derive(Debug, Default)]
 pub struct CompressionHeader {

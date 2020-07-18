@@ -3,7 +3,10 @@ use std::{
     io::{self, Read},
 };
 
-use crate::{encoding, num::read_itf8, DataSeries, DataSeriesEncodingMap, Encoding};
+use crate::{
+    container::compression_header::DataSeriesEncodingMap, encoding, num::read_itf8, DataSeries,
+    Encoding,
+};
 
 pub fn read_data_series_encoding_map<R>(reader: &mut R) -> io::Result<DataSeriesEncodingMap>
 where
@@ -16,7 +19,7 @@ where
     let mut buf_reader = &buf[..];
     let map_len = read_itf8(&mut buf_reader)?;
 
-    let mut encodings = DataSeriesEncodingMap::with_capacity(map_len as usize);
+    let mut encodings = DataSeriesEncodingMap::default();
     let mut key_buf = [0; 2];
 
     for _ in 0..map_len {
