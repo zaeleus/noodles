@@ -56,6 +56,8 @@ impl ReferenceSequence {
 
     /// Returns a list of bins in this reference seqeunce that intersect the given range.
     ///
+    /// `start` and `end` are 1-based, inclusive.
+    ///
     /// # Examples
     ///
     /// ```
@@ -65,7 +67,7 @@ impl ReferenceSequence {
     /// assert!(query_bins.is_empty());
     /// ```
     pub fn query(&self, start: u64, end: u64) -> Vec<&Bin> {
-        let region_bins = region_to_bins(start as usize, end as usize);
+        let region_bins = region_to_bins((start - 1) as usize, end as usize);
 
         let mut query_bins = Vec::new();
 
@@ -82,6 +84,8 @@ impl ReferenceSequence {
 
     /// Finds in minimum start offset in the linear index for a given start position.
     ///
+    /// `start` is 1-based.
+    ///
     /// # Examples
     ///
     /// ```
@@ -91,7 +95,7 @@ impl ReferenceSequence {
     /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {
-        let i = (start / WINDOW_SIZE) as usize;
+        let i = ((start - 1) / WINDOW_SIZE) as usize;
         self.intervals.get(i).copied().unwrap_or_default()
     }
 }
@@ -99,6 +103,7 @@ impl ReferenceSequence {
 // § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
 const MAX_BINS: usize = ((1 << 18) - 1) / 7 + 1;
 
+// 0-based, [start, end)
 fn region_to_bins(start: usize, end: usize) -> BitVec {
     let ranges = [
         (1 + (start >> 26), 1 + (end >> 26)),
