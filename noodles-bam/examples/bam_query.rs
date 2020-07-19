@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let read_name = CStr::from_bytes_with_nul(record.read_name())?.to_str()?;
 
-        let reference_sequence_id = record.reference_sequence_id() as usize;
+        let reference_sequence_id = i32::from(record.reference_sequence_id()) as usize;
         let (_, reference_sequence) = reference_sequences
             .get_index(reference_sequence_id)
             .ok_or_else(|| "invalid reference sequence id")?;

@@ -492,14 +492,14 @@ mod tests {
 
         assert_eq!(record.read_name(), b"*\0");
         assert_eq!(record.flags(), sam::record::Flags::default());
-        assert_eq!(record.reference_sequence_id(), -1);
+        assert!(record.reference_sequence_id().is_none());
         assert_eq!(record.position(), -1);
         assert_eq!(
             record.mapping_quality(),
             sam::record::MappingQuality::from(255)
         );
         assert!(record.cigar().is_empty());
-        assert_eq!(record.mate_reference_sequence_id(), -1);
+        assert!(record.mate_reference_sequence_id().is_none());
         assert_eq!(record.mate_position(), -1);
         assert_eq!(record.template_len(), 0);
         assert!(record.sequence().is_empty());

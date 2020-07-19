@@ -3,9 +3,13 @@
 pub mod cigar;
 pub mod data;
 mod quality_scores;
+mod reference_sequence_id;
 pub mod sequence;
 
-pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    cigar::Cigar, data::Data, quality_scores::QualityScores,
+    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+};
 
 use std::{
     ffi::CStr,
@@ -53,17 +57,16 @@ impl Record {
     /// The reference sequence ID is the index of the associated reference sequence in the SAM
     /// header or BAM reference sequences.
     ///
-    /// A value of -1 is used for an unmapped read.
-    ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.reference_sequence_id(), -1);
+    /// assert!(record.reference_sequence_id().is_none());
     /// ```
-    pub fn reference_sequence_id(&self) -> i32 {
-        LittleEndian::read_i32(&self.0)
+    pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
+        let id = LittleEndian::read_i32(&self.0);
+        ReferenceSequenceId::from(id)
     }
 
     /// Returns the start position of this record.
@@ -149,18 +152,17 @@ impl Record {
     /// The mate reference sequence ID is the index of the associated reference sequence in the SAM
     /// header or BAM reference sequences.
     ///
-    /// A value of -1 is used when the mate is unmapped.
-    ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.mate_reference_sequence_id(), -1);
+    /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
-    pub fn mate_reference_sequence_id(&self) -> i32 {
+    pub fn mate_reference_sequence_id(&self) -> ReferenceSequenceId {
         let offset = 20;
-        LittleEndian::read_i32(&self.0[offset..])
+        let id = LittleEndian::read_i32(&self.0[offset..]);
+        ReferenceSequenceId::from(id)
     }
 
     /// Returns the start position of the mate of this record.
@@ -428,7 +430,7 @@ mod tests {
     #[test]
     fn test_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.reference_sequence_id(), 10);
+        assert_eq!(*record.reference_sequence_id(), Some(10));
         Ok(())
     }
 
@@ -488,7 +490,7 @@ mod tests {
     #[test]
     fn test_mate_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.mate_reference_sequence_id(), 10);
+        assert_eq!(*record.mate_reference_sequence_id(), Some(10));
         Ok(())
     }
 
