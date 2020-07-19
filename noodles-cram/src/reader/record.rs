@@ -7,10 +7,12 @@ use byteorder::ReadBytesExt;
 
 use crate::{
     container::{
-        compression_header::encoding::{self, Encoding},
+        compression_header::{
+            data_series_encoding_map::DataSeries,
+            encoding::{self, Encoding},
+        },
         CompressionHeader,
     },
-    data_series::DataSeries,
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
     record::{Feature, Tag},

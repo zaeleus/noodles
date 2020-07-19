@@ -1,4 +1,6 @@
-use crate::DataSeries;
+pub mod data_series;
+
+pub use self::data_series::DataSeries;
 
 use super::Encoding;
 

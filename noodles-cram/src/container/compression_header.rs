@@ -1,4 +1,4 @@
-mod data_series_encoding_map;
+pub mod data_series_encoding_map;
 pub mod encoding;
 pub mod preservation_map;
 

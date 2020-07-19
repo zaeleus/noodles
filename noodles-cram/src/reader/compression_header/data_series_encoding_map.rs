@@ -4,9 +4,10 @@ use std::{
 };
 
 use crate::{
-    container::compression_header::{encoding, DataSeriesEncodingMap, Encoding},
+    container::compression_header::{
+        data_series_encoding_map::DataSeries, encoding, DataSeriesEncodingMap, Encoding,
+    },
     num::read_itf8,
-    DataSeries,
 };
 
 pub fn read_data_series_encoding_map<R>(reader: &mut R) -> io::Result<DataSeriesEncodingMap>
