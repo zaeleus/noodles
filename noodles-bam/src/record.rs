@@ -71,20 +71,19 @@ impl Record {
 
     /// Returns the start position of this record.
     ///
-    /// Unlike in SAM (1-based), this value is 0-based.
-    ///
-    /// A value of -1 is used for an unmapped read.
+    /// This value is 1-based.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.position(), -1);
+    /// assert!(record.position().is_none());
     /// ```
-    pub fn position(&self) -> i32 {
+    pub fn position(&self) -> sam::record::Position {
         let offset = 4;
-        LittleEndian::read_i32(&self.0[offset..])
+        let start = LittleEndian::read_i32(&self.0[offset..]) + 1;
+        sam::record::Position::from(start)
     }
 
     fn l_read_name(&self) -> u8 {
@@ -167,20 +166,19 @@ impl Record {
 
     /// Returns the start position of the mate of this record.
     ///
-    /// Unlike in SAM (1-based), this value is 0-based.
-    ///
-    /// A value of -1 is used when the mate is unmapped.
+    /// This value is 1-based.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.mate_position(), -1);
+    /// assert!(record.mate_position().is_none());
     /// ```
-    pub fn mate_position(&self) -> i32 {
+    pub fn mate_position(&self) -> sam::record::Position {
         let offset = 24;
-        LittleEndian::read_i32(&self.0[offset..])
+        let start = LittleEndian::read_i32(&self.0[offset..]) + 1;
+        sam::record::Position::from(start)
     }
 
     /// Returns the template length of this record.
@@ -437,7 +435,7 @@ mod tests {
     #[test]
     fn test_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.position(), 61061);
+        assert_eq!(*record.position(), Some(61062));
         Ok(())
     }
 
@@ -497,7 +495,7 @@ mod tests {
     #[test]
     fn test_mate_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.mate_position(), 61152);
+        assert_eq!(*record.mate_position(), Some(61153));
         Ok(())
     }
 

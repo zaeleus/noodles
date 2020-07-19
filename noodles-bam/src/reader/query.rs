@@ -115,7 +115,7 @@ where
                                 {
                                     let reference_sequence_id = reference_sequence_id as usize;
 
-                                    let record_start = (record.position() + 1) as u64;
+                                    let record_start = i32::from(record.position()) as u64;
                                     let record_reference_len =
                                         record.cigar().reference_len() as u64;
                                     let record_end = record_start + record_reference_len - 1;
