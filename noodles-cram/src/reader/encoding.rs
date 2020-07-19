@@ -3,7 +3,7 @@ use std::{
     io::{self, Read},
 };
 
-use crate::{encoding, num::read_itf8, Encoding};
+use crate::{container::compression_header::encoding, num::read_itf8, Encoding};
 
 pub fn read_encoding<R>(reader: &mut R) -> io::Result<Encoding>
 where

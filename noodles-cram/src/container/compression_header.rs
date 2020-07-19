@@ -1,8 +1,10 @@
 mod data_series_encoding_map;
+pub mod encoding;
 pub mod preservation_map;
 
 pub use self::{
     data_series_encoding_map::DataSeriesEncodingMap,
+    encoding::Encoding,
     preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
 };
 
