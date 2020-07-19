@@ -7,7 +7,7 @@ use super::Encoding;
 /// A container compression header data series encoding map.
 #[derive(Debug, Default)]
 pub struct DataSeriesEncodingMap {
-    map: [Option<Encoding>; 28],
+    map: [Option<Encoding>; DataSeries::LEN],
 }
 
 impl DataSeriesEncodingMap {

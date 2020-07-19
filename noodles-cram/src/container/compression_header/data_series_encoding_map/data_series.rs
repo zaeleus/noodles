@@ -43,6 +43,11 @@ pub enum DataSeries {
     QualityScores,
 }
 
+impl DataSeries {
+    /// The number of data series variants.
+    pub(crate) const LEN: usize = 28;
+}
+
 impl TryFrom<&[u8]> for DataSeries {
     type Error = TryFromByteSliceError;
 
