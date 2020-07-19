@@ -1,6 +1,8 @@
 use std::io::{self, Read};
 
-use crate::{num::read_itf8, reader::encoding::read_encoding, TagEncodingMap};
+use crate::{
+    container::compression_header::TagEncodingMap, num::read_itf8, reader::encoding::read_encoding,
+};
 
 pub fn read_tag_encoding_map<R>(reader: &mut R) -> io::Result<TagEncodingMap>
 where

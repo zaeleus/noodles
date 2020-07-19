@@ -8,7 +8,11 @@ pub use self::{
     preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
 };
 
-use crate::TagEncodingMap;
+use std::collections::HashMap;
+
+use crate::num::Itf8;
+
+pub type TagEncodingMap = HashMap<Itf8, Encoding>;
 
 #[derive(Debug, Default)]
 pub struct CompressionHeader {

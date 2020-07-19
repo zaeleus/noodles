@@ -1,4 +1,6 @@
-use crate::{DataSeries, Encoding};
+use crate::DataSeries;
+
+use super::Encoding;
 
 /// A container compression header data series encoding map.
 #[derive(Debug, Default)]

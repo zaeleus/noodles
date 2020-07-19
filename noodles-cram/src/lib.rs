@@ -12,9 +12,3 @@ mod num;
 mod rans;
 mod reader;
 pub mod record;
-
-use std::collections::HashMap;
-
-use crate::{container::compression_header::Encoding, num::Itf8};
-
-pub type TagEncodingMap = HashMap<Itf8, Encoding>;
