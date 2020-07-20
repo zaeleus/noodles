@@ -108,10 +108,8 @@ where
 {
     let len = match read_itf8(reader) {
         Ok(len) => len as usize,
-        Err(e) => match e.kind() {
-            io::ErrorKind::UnexpectedEof => return Ok(Vec::new()),
-            _ => return Err(e),
-        },
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(Vec::new()),
+        Err(e) => return Err(e),
     };
 
     let mut buf = vec![0; len];
