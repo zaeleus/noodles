@@ -3,7 +3,7 @@ mod content_type;
 
 pub use self::{compression_method::CompressionMethod, content_type::ContentType};
 
-use std::{borrow::Cow, convert::TryFrom, io::Read};
+use std::{borrow::Cow, io::Read};
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
@@ -13,7 +13,7 @@ use crate::{num::Itf8, rans::rans_decode};
 
 #[derive(Debug, Default)]
 pub struct Block {
-    compression_method: u8,
+    compression_method: CompressionMethod,
     content_type: u8,
     content_id: Itf8,
     uncompressed_len: Itf8,
@@ -22,11 +22,11 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn compression_method(&self) -> u8 {
+    pub fn compression_method(&self) -> CompressionMethod {
         self.compression_method
     }
 
-    pub fn compression_method_mut(&mut self) -> &mut u8 {
+    pub fn compression_method_mut(&mut self) -> &mut CompressionMethod {
         &mut self.compression_method
     }
 
@@ -63,10 +63,7 @@ impl Block {
     }
 
     pub fn decompressed_data(&self) -> Cow<[u8]> {
-        let compression_method = CompressionMethod::try_from(self.compression_method())
-            .expect("invalid compression method");
-
-        match compression_method {
+        match self.compression_method {
             CompressionMethod::None => Cow::from(self.data()),
             CompressionMethod::Gzip => {
                 let mut reader = GzDecoder::new(self.data());
