@@ -5,6 +5,9 @@ use std::{convert::TryFrom, error, fmt};
 pub(crate) const MAX_COMPRESSED_POSITION: u64 = 281474976710655; // 2^48 - 1;
 pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX; // 2^16 - 1;
 
+const COMPRESSED_POSITION_SHIFT: u64 = 16;
+const UNCOMPRESSED_POSITION_MASK: u64 = 0xffff;
+
 /// A BGZF virtual position.
 ///
 /// A virtual position is a 64-bit unsigned integer representing both the position in the
@@ -45,7 +48,7 @@ impl VirtualPosition {
     /// assert_eq!(virtual_position.compressed(), 57);
     /// ```
     pub fn compressed(self) -> u64 {
-        self.0 >> 16
+        self.0 >> COMPRESSED_POSITION_SHIFT
     }
 
     /// The position in the uncompressed block data.
@@ -60,7 +63,7 @@ impl VirtualPosition {
     /// assert_eq!(virtual_position.uncompressed(), 6086);
     /// ```
     pub fn uncompressed(self) -> u16 {
-        (self.0 & 0xffff) as u16
+        (self.0 & UNCOMPRESSED_POSITION_MASK) as u16
     }
 }
 
@@ -109,7 +112,9 @@ impl TryFrom<(u64, u16)> for VirtualPosition {
             return Err(TryFromU64U16TupleError::CompressedPositionOverflow);
         }
 
-        Ok(Self(compressed_pos << 16 | u64::from(uncompressed_pos)))
+        Ok(Self(
+            compressed_pos << COMPRESSED_POSITION_SHIFT | u64::from(uncompressed_pos),
+        ))
     }
 }
 
