@@ -1,3 +1,8 @@
+//! BGZF virtual position.
+
+use std::{convert::TryFrom, error, fmt};
+
+pub(crate) const MAX_COMPRESSED_POSITION: u64 = 281474976710655; // 2^48 - 1;
 pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX; // 2^16 - 1;
 
 /// A BGZF virtual position.
@@ -30,6 +35,8 @@ impl VirtualPosition {
     ///
     /// This is typically at the start of a block.
     ///
+    /// The maximum value of a compressed position is 281474976710655 (2^48 - 1).
+    ///
     /// # Examples
     ///
     /// ```
@@ -43,7 +50,7 @@ impl VirtualPosition {
 
     /// The position in the uncompressed block data.
     ///
-    /// The maximum value of an uncompressed position is 65535 (2^16-1).
+    /// The maximum value of an uncompressed position is 65535 (2^16 - 1).
     ///
     /// # Examples
     ///
@@ -63,20 +70,46 @@ impl From<u64> for VirtualPosition {
     }
 }
 
-impl From<(u64, u16)> for VirtualPosition {
+/// An error returned when converting a (u64, u16) to a virtual position fails.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromU64U16TupleError {
+    /// The compressed position is larger than 2^48 - 1.
+    CompressedPositionOverflow,
+}
+
+impl error::Error for TryFromU64U16TupleError {}
+
+impl fmt::Display for TryFromU64U16TupleError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CompressedPositionOverflow => {
+                f.write_str("the compressed position is larger than 2^48 - 1")
+            }
+        }
+    }
+}
+
+impl TryFrom<(u64, u16)> for VirtualPosition {
+    type Error = TryFromU64U16TupleError;
+
     /// Converts a `(compressed position, uncompressed position)` tuple to a virtual position.
     ///
     /// # Examples
     ///
     /// ```
+    /// use std::convert::TryFrom;
     /// use noodles_bgzf as bgzf;
-    /// let virtual_position = bgzf::VirtualPosition::from((57, 6086));
-    /// assert_eq!(virtual_position, bgzf::VirtualPosition::from(3741638));
+    /// let virtual_position = bgzf::VirtualPosition::try_from((57, 6086));
+    /// assert_eq!(virtual_position, Ok(bgzf::VirtualPosition::from(3741638)));
     /// ```
-    fn from(pos: (u64, u16)) -> Self {
-        let compressed_pos = pos.0 << 16;
-        let uncompressed_pos = pos.1 as u64;
-        Self(compressed_pos | uncompressed_pos)
+    fn try_from(pos: (u64, u16)) -> Result<Self, Self::Error> {
+        let (compressed_pos, uncompressed_pos) = pos;
+
+        if compressed_pos > MAX_COMPRESSED_POSITION {
+            return Err(TryFromU64U16TupleError::CompressedPositionOverflow);
+        }
+
+        Ok(Self(compressed_pos << 16 | u64::from(uncompressed_pos)))
     }
 }
 
@@ -106,21 +139,28 @@ mod tests {
     }
 
     #[test]
-    fn test_from_u64_u16_tuple_for_virtual_position() {
+    fn test_try_from_u64_u16_tuple_for_virtual_position() -> Result<(), TryFromU64U16TupleError> {
         assert_eq!(
-            VirtualPosition::from((1348647, 15419)),
-            VirtualPosition::from(88384945211)
+            VirtualPosition::try_from((1348647, 15419)),
+            Ok(VirtualPosition::from(88384945211))
         );
 
         assert_eq!(
-            VirtualPosition::from((2869409, 42672)),
-            VirtualPosition::from(188049630896)
+            VirtualPosition::try_from((2869409, 42672)),
+            Ok(VirtualPosition::from(188049630896))
         );
 
         assert_eq!(
-            VirtualPosition::from((399103671, 321)),
-            VirtualPosition::from(26155658182977)
+            VirtualPosition::try_from((399103671, 321)),
+            Ok(VirtualPosition::from(26155658182977))
         );
+
+        assert_eq!(
+            VirtualPosition::try_from((281474976710656, 0)),
+            Err(TryFromU64U16TupleError::CompressedPositionOverflow)
+        );
+
+        Ok(())
     }
 
     #[test]

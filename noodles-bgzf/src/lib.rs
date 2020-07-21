@@ -41,7 +41,7 @@ pub use self::{block::Block, reader::Reader, virtual_position::VirtualPosition, 
 mod block;
 mod gz;
 mod reader;
-mod virtual_position;
+pub mod virtual_position;
 mod writer;
 
 // XLEN (2)
