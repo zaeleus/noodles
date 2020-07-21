@@ -1,3 +1,7 @@
+pub mod code;
+
+pub use self::code::Code;
+
 #[derive(Clone, Debug)]
 pub enum Feature {
     Bases(i32, Vec<u8>),

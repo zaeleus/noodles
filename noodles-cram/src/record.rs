@@ -1,4 +1,4 @@
-mod feature;
+pub mod feature;
 mod flags;
 pub mod resolve;
 mod tag;

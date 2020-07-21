@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    convert::TryFrom,
     io::{self, BufRead, Read},
 };
 
@@ -15,7 +16,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    record::{Feature, Tag},
+    record::{feature, Feature, Tag},
     BitReader, Record,
 };
 
@@ -388,63 +389,66 @@ where
     }
 
     fn read_feature(&mut self) -> io::Result<Feature> {
-        let code = self.read_feature_code()? as u8 as char;
+        let code = self
+            .read_feature_code()
+            .map(|id| id as u8 as char)
+            .and_then(|id| {
+                feature::Code::try_from(id)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })?;
+
         let position = self.read_feature_position()?;
 
         match code {
-            'b' => {
+            feature::Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
                 Ok(Feature::Bases(position, bases))
             }
-            'q' => {
+            feature::Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
                 Ok(Feature::Scores(position, quality_scores))
             }
-            'B' => {
+            feature::Code::ReadBase => {
                 let base = self.read_base()?;
                 let quality_score = self.read_quality_score()?;
                 Ok(Feature::ReadBase(position, base, quality_score))
             }
-            'X' => {
+            feature::Code::Substitution => {
                 let code = self.read_base_substitution_code()?;
                 Ok(Feature::Substitution(position, code))
             }
-            'I' => {
+            feature::Code::Insertion => {
                 let bases = self.read_insertion()?;
                 Ok(Feature::Insertion(position, bases))
             }
-            'D' => {
+            feature::Code::Deletion => {
                 let len = self.read_deletion_length()?;
                 Ok(Feature::Deletion(position, len))
             }
-            'i' => {
+            feature::Code::InsertBase => {
                 let base = self.read_base()?;
                 Ok(Feature::InsertBase(position, base))
             }
-            'Q' => {
+            feature::Code::QualityScore => {
                 let score = self.read_quality_score()?;
                 Ok(Feature::QualityScore(position, score))
             }
-            'N' => {
+            feature::Code::ReferenceSkip => {
                 let len = self.read_reference_skip_length()?;
                 Ok(Feature::ReferenceSkip(position, len))
             }
-            'S' => {
+            feature::Code::SoftClip => {
                 let bases = self.read_soft_clip()?;
                 Ok(Feature::SoftClip(position, bases))
             }
-            'P' => {
+            feature::Code::Padding => {
                 let len = self.read_padding()?;
                 Ok(Feature::Padding(position, len))
             }
-            'H' => {
+            feature::Code::HardClip => {
                 let len = self.read_hard_clip()?;
                 Ok(Feature::HardClip(position, len))
             }
-            _ => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid feature code: {}", code),
-            )),
         }
     }
 
