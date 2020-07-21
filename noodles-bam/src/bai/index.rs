@@ -5,7 +5,7 @@ pub mod reference_sequence;
 pub use self::reference_sequence::ReferenceSequence;
 
 /// A BAM index.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Index {
     reference_sequences: Vec<ReferenceSequence>,
     n_no_coor: Option<u64>,

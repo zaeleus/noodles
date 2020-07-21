@@ -5,7 +5,7 @@ mod chunk;
 pub use self::chunk::Chunk;
 
 /// A bin in a BAM index reference sequence.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
     bin: u32,
     chunks: Vec<Chunk>,
