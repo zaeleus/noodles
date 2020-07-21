@@ -4,7 +4,14 @@ mod chunk;
 
 pub use self::chunk::Chunk;
 
+// § 5.3 C source code for computing bin number and overlapping bins (2020-06-19)
+pub(crate) const MAX_BIN: usize = ((1 << 18) - 1) / 7 + 1;
+
 /// A bin in a BAM index reference sequence.
+///
+/// Bin numbers have an effective range between 0 and 37449, inclusive. An optional psuedo-bin at
+/// bin number 37450 holds two pairs of metadata: virtual positions of the start and end of the
+/// reference sequence and the number of mapped and unmapped reads in the reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
     bin: u32,
