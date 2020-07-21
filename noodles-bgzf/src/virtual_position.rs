@@ -1,3 +1,5 @@
+pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX; // 2^16 - 1;
+
 /// A BGZF virtual position.
 ///
 /// A virtual position is a 64-bit unsigned integer representing both the position in the
@@ -41,6 +43,8 @@ impl VirtualPosition {
 
     /// The position in the uncompressed block data.
     ///
+    /// The maximum value of an uncompressed position is 65535 (2^16-1).
+    ///
     /// # Examples
     ///
     /// ```
@@ -48,8 +52,8 @@ impl VirtualPosition {
     /// let virtual_position = bgzf::VirtualPosition::from(3741638);
     /// assert_eq!(virtual_position.uncompressed(), 6086);
     /// ```
-    pub fn uncompressed(self) -> u64 {
-        self.0 & 0xffff
+    pub fn uncompressed(self) -> u16 {
+        (self.0 & 0xffff) as u16
     }
 }
 
@@ -59,7 +63,7 @@ impl From<u64> for VirtualPosition {
     }
 }
 
-impl From<(u64, u64)> for VirtualPosition {
+impl From<(u64, u16)> for VirtualPosition {
     /// Converts a `(compressed position, uncompressed position)` tuple to a virtual position.
     ///
     /// # Examples
@@ -69,8 +73,10 @@ impl From<(u64, u64)> for VirtualPosition {
     /// let virtual_position = bgzf::VirtualPosition::from((57, 6086));
     /// assert_eq!(virtual_position, bgzf::VirtualPosition::from(3741638));
     /// ```
-    fn from(pos: (u64, u64)) -> Self {
-        Self(pos.0 << 16 | pos.1)
+    fn from(pos: (u64, u16)) -> Self {
+        let compressed_pos = pos.0 << 16;
+        let uncompressed_pos = pos.1 as u64;
+        Self(compressed_pos | uncompressed_pos)
     }
 }
 
@@ -100,7 +106,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_u64_u64_tuple_for_virtual_position() {
+    fn test_from_u64_u16_tuple_for_virtual_position() {
         assert_eq!(
             VirtualPosition::from((1348647, 15419)),
             VirtualPosition::from(88384945211)

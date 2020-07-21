@@ -112,7 +112,7 @@ where
 
         self.block
             .data_mut()
-            .seek(SeekFrom::Start(uncompressed_offset))?;
+            .seek(SeekFrom::Start(u64::from(uncompressed_offset)))?;
 
         Ok(pos)
     }

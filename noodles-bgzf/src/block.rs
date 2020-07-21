@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use super::VirtualPosition;
+use super::{virtual_position, VirtualPosition};
 
 /// A BGZF block.
 ///
@@ -57,7 +57,9 @@ impl Block {
     /// assert_eq!(block.virtual_position(), bgzf::VirtualPosition::from(851970));
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
-        VirtualPosition::from((self.position, self.data.position()))
+        assert!(self.data.position() <= u64::from(virtual_position::MAX_UNCOMPRESSED_POSITION));
+        let uncompressed_position = self.data.position() as u16;
+        VirtualPosition::from((self.position, uncompressed_position))
     }
 
     /// Returns the uncompressed data of this block.
