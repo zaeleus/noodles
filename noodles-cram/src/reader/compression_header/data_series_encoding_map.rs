@@ -27,10 +27,13 @@ where
     for _ in 0..map_len {
         buf_reader.read_exact(&mut key_buf)?;
 
-        let key = DataSeries::try_from(&key_buf[..]).expect("invalid data series key");
+        let key = DataSeries::try_from(&key_buf[..])
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        let kind = read_itf8(&mut buf_reader)
-            .map(|codec_id| encoding::Kind::try_from(codec_id).expect("invalid codec id"))?;
+        let kind = read_itf8(&mut buf_reader).and_then(|codec_id| {
+            encoding::Kind::try_from(codec_id)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         let args_len = read_itf8(&mut buf_reader)?;
         let mut args_buf = vec![0; args_len as usize];
