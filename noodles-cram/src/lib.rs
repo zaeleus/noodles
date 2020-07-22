@@ -8,3 +8,5 @@ mod reader;
 pub mod record;
 
 pub use self::{bit_reader::BitReader, container::Container, reader::Reader, record::Record};
+
+static MAGIC_NUMBER: &[u8] = b"CRAM";

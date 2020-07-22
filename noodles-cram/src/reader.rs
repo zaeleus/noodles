@@ -17,9 +17,9 @@ use crate::{
     Container,
 };
 
-use self::{block::read_block, compression_header::read_compression_header};
+use super::MAGIC_NUMBER;
 
-static MAGIC_NUMBER: &[u8] = b"CRAM";
+use self::{block::read_block, compression_header::read_compression_header};
 
 pub struct Reader<R>
 where
