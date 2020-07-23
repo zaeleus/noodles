@@ -1,5 +1,7 @@
 use std::fmt;
 
+use noodles_sam as sam;
+
 /// A BAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Base {
@@ -79,6 +81,32 @@ impl fmt::Display for Base {
     }
 }
 
+impl From<sam::record::sequence::Base> for Base {
+    fn from(base: sam::record::sequence::Base) -> Self {
+        use sam::record::sequence::Base as SamBase;
+
+        match base {
+            SamBase::Eq => Self::Eq,
+            SamBase::A => Self::A,
+            SamBase::C => Self::C,
+            SamBase::M => Self::M,
+            SamBase::G => Self::G,
+            SamBase::R => Self::R,
+            SamBase::S => Self::S,
+            SamBase::V => Self::V,
+            SamBase::T => Self::T,
+            SamBase::W => Self::W,
+            SamBase::Y => Self::Y,
+            SamBase::H => Self::H,
+            SamBase::K => Self::K,
+            SamBase::D => Self::D,
+            SamBase::B => Self::B,
+            // § 4.2.3 SEQ and QUAL encoding (2020-06-19): "all other characters [map] to 'N'".
+            _ => Self::N,
+        }
+    }
+}
+
 impl From<Base> for char {
     fn from(base: Base) -> Self {
         match base {
@@ -144,6 +172,30 @@ mod tests {
         assert_eq!(Base::D.to_string(), "D");
         assert_eq!(Base::B.to_string(), "B");
         assert_eq!(Base::N.to_string(), "N");
+    }
+
+    #[test]
+    fn test_from_sam_base_for_base() {
+        use sam::record::sequence::Base as SamBase;
+
+        assert_eq!(Base::from(SamBase::Eq), Base::Eq);
+        assert_eq!(Base::from(SamBase::A), Base::A);
+        assert_eq!(Base::from(SamBase::C), Base::C);
+        assert_eq!(Base::from(SamBase::G), Base::G);
+        assert_eq!(Base::from(SamBase::T), Base::T);
+        assert_eq!(Base::from(SamBase::W), Base::W);
+        assert_eq!(Base::from(SamBase::S), Base::S);
+        assert_eq!(Base::from(SamBase::M), Base::M);
+        assert_eq!(Base::from(SamBase::K), Base::K);
+        assert_eq!(Base::from(SamBase::R), Base::R);
+        assert_eq!(Base::from(SamBase::Y), Base::Y);
+        assert_eq!(Base::from(SamBase::B), Base::B);
+        assert_eq!(Base::from(SamBase::D), Base::D);
+        assert_eq!(Base::from(SamBase::H), Base::H);
+        assert_eq!(Base::from(SamBase::V), Base::V);
+        assert_eq!(Base::from(SamBase::N), Base::N);
+
+        assert_eq!(Base::from(SamBase::Z), Base::N);
     }
 
     #[test]

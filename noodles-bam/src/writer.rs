@@ -12,6 +12,8 @@ use noodles_sam::{
     record::{Cigar, MateReferenceSequenceName, QualityScores, Sequence},
 };
 
+use crate::record::sequence::Base;
+
 use super::MAGIC_NUMBER;
 
 // § 4.2 The BAM format (2020-04-30)
@@ -350,39 +352,16 @@ fn write_seq<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
 where
     W: Write,
 {
-    use sam::record::sequence::Base as SamBase;
-
-    fn base_to_u8(base: SamBase) -> u8 {
-        match base {
-            SamBase::Eq => 0,
-            SamBase::A => 1,
-            SamBase::C => 2,
-            SamBase::M => 3,
-            SamBase::G => 4,
-            SamBase::R => 5,
-            SamBase::S => 6,
-            SamBase::V => 7,
-            SamBase::T => 8,
-            SamBase::W => 9,
-            SamBase::Y => 10,
-            SamBase::H => 11,
-            SamBase::K => 12,
-            SamBase::D => 13,
-            SamBase::B => 14,
-            _ => 15,
-        }
-    }
-
     for chunk in sequence.chunks(2) {
-        let l = base_to_u8(chunk[0]);
+        let l = Base::from(chunk[0]);
 
         let r = if let Some(c) = chunk.get(1) {
-            base_to_u8(*c)
+            Base::from(*c)
         } else {
-            0
+            Base::Eq
         };
 
-        let value = l << 4 | r;
+        let value = (l as u8) << 4 | (r as u8);
 
         writer.write_u8(value)?;
     }
@@ -425,7 +404,7 @@ fn region_to_bin(start: i32, mut end: i32) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{record::sequence::Base, Reader, Record};
+    use crate::{Reader, Record};
 
     use super::*;
 
