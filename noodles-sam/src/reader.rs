@@ -151,8 +151,9 @@ where
     ///
     /// let mut buf = String::new();
     /// reader.read_record(&mut buf)?;
-    ///
     /// assert_eq!(buf, "*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*");
+    ///
+    /// assert_eq!(reader.read_record(&mut buf)?, 0);
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
@@ -228,52 +229,11 @@ where
 mod tests {
     use super::*;
 
-    static DATA: &[u8] = b"\
-@HD\tVN:1.6\tSO:coordinate
-@SQ\tSN:ref0\tLN:13
-r001
-r002
-";
-
-    #[test]
-    fn test_read_header() -> io::Result<()> {
-        let mut reader = Reader::new(&DATA[..]);
-
-        let actual = reader.read_header()?;
-        let expected = "\
-@HD\tVN:1.6\tSO:coordinate
-@SQ\tSN:ref0\tLN:13
-";
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
     #[test]
     fn test_read_header_with_no_header() -> io::Result<()> {
         let data = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_header()?.is_empty());
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_record() -> io::Result<()> {
-        let mut reader = Reader::new(&DATA[..]);
-        reader.read_header()?;
-
-        let mut buf = String::new();
-        reader.read_record(&mut buf)?;
-        assert_eq!(buf, "r001");
-
-        buf.clear();
-        reader.read_record(&mut buf)?;
-        assert_eq!(buf, "r002");
-
-        buf.clear();
-        let len = reader.read_record(&mut buf)?;
-        assert_eq!(len, 0);
-
         Ok(())
     }
 }

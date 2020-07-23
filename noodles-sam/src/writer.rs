@@ -128,46 +128,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        header,
-        record::{
-            data::{self, Field},
-            Data,
-        },
+    use crate::record::{
+        data::{self, Field},
+        Data,
     };
 
     use super::*;
-
-    #[test]
-    fn test_write_header() -> io::Result<()> {
-        let mut writer = Writer::new(vec![]);
-
-        let header = Header::builder()
-            .set_header(header::header::Header::default())
-            .build();
-
-        writer.write_header(&header)?;
-
-        let expected = b"@HD\tVN:1.6\n";
-
-        assert_eq!(writer.get_ref(), expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_record() -> io::Result<()> {
-        let mut writer = Writer::new(vec![]);
-
-        let record = Record::default();
-        writer.write_record(&record)?;
-
-        let expected = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
-
-        assert_eq!(writer.get_ref(), expected);
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_record_with_data() -> io::Result<()> {

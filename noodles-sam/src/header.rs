@@ -498,15 +498,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_is_empty() {
-        let header = Header::default();
-        assert!(header.is_empty());
-
-        let header = Header::builder().add_comment("noodles-sam").build();
-        assert!(!header.is_empty());
-    }
-
-    #[test]
     fn test_fmt() {
         let header = Header::builder()
             .set_header(header::Header::new(String::from("1.6")))
