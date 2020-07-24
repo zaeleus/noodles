@@ -2,6 +2,7 @@ use std::{
     cmp,
     ffi::CString,
     io::{self, Write},
+    mem,
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -9,7 +10,7 @@ use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Cigar, MateReferenceSequenceName, QualityScores, Sequence},
+    record::{Cigar, Data, MateReferenceSequenceName, QualityScores, Sequence},
 };
 
 use crate::record::sequence::Base;
@@ -221,12 +222,14 @@ where
         let l_read_name = read_name.len() as u8;
         let n_cigar_op = record.cigar().len() as u16;
         let l_seq = record.sequence().len() as i32;
+        let data_len = calculate_data_len(record.data()) as i32;
 
         let block_size = BLOCK_HEADER_SIZE as i32
             + (l_read_name as i32)
             + (4 * (n_cigar_op as i32))
             + ((l_seq + 1) / 2)
-            + l_seq;
+            + l_seq
+            + data_len;
 
         self.inner.write_i32::<LittleEndian>(block_size)?;
 
@@ -303,6 +306,8 @@ where
             }
         }
 
+        write_data(&mut self.inner, record.data())?;
+
         Ok(())
     }
 }
@@ -376,6 +381,152 @@ where
     for score in quality_scores.scores() {
         let value = u8::from(*score);
         writer.write_u8(value)?;
+    }
+
+    Ok(())
+}
+
+fn calculate_data_len(data: &Data) -> usize {
+    use noodles_sam::record::data::field::Value;
+
+    let mut len = 0;
+
+    for field in data.iter() {
+        // tag
+        len += 2;
+        // val_type
+        len += 1;
+
+        let value = field.value();
+
+        if value.subtype().is_some() {
+            // subtype
+            len += 1;
+            // count
+            len += mem::size_of::<u32>();
+        }
+
+        match value {
+            Value::Char(_) => {
+                len += mem::size_of::<u8>();
+            }
+            Value::Int32(_) => {
+                len += mem::size_of::<i32>();
+            }
+            Value::Float(_) => {
+                len += mem::size_of::<f32>();
+            }
+            Value::String(s) | Value::Hex(s) => {
+                len += s.as_bytes().len() + 1;
+            }
+            Value::Int8Array(values) => {
+                len += values.len();
+            }
+            Value::UInt8Array(values) => {
+                len += values.len();
+            }
+            Value::Int16Array(values) => {
+                len += mem::size_of::<i16>() * values.len();
+            }
+            Value::UInt16Array(values) => {
+                len += mem::size_of::<u16>() * values.len();
+            }
+            Value::Int32Array(values) => {
+                len += mem::size_of::<i32>() * values.len();
+            }
+            Value::UInt32Array(values) => {
+                len += mem::size_of::<u32>() * values.len();
+            }
+            Value::FloatArray(values) => {
+                len += mem::size_of::<f32>() * values.len();
+            }
+        }
+    }
+
+    len
+}
+
+fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
+where
+    W: Write,
+{
+    use noodles_sam::record::data::field::Value;
+
+    for field in data.iter() {
+        writer.write_all(field.tag().as_ref().as_bytes())?;
+
+        let value = field.value();
+        writer.write_u8(char::from(value.ty()) as u8)?;
+
+        if let Some(subtype) = value.subtype() {
+            writer.write_u8(char::from(subtype) as u8)?;
+        }
+
+        match value {
+            Value::Char(c) => {
+                writer.write_u8(*c as u8)?;
+            }
+            Value::Int32(n) => {
+                writer.write_i32::<LittleEndian>(*n)?;
+            }
+            Value::Float(n) => {
+                writer.write_f32::<LittleEndian>(*n)?;
+            }
+            Value::String(s) | Value::Hex(s) => {
+                let c_str = CString::new(s.as_bytes())
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                writer.write_all(c_str.as_bytes_with_nul())?;
+            }
+            Value::Int8Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_i8(n)?;
+                }
+            }
+            Value::UInt8Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_u8(n)?;
+                }
+            }
+            Value::Int16Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_i16::<LittleEndian>(n)?;
+                }
+            }
+            Value::UInt16Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_u16::<LittleEndian>(n)?;
+                }
+            }
+            Value::Int32Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_i32::<LittleEndian>(n)?;
+                }
+            }
+            Value::UInt32Array(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_u32::<LittleEndian>(n)?;
+                }
+            }
+            Value::FloatArray(values) => {
+                writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+                for &n in values {
+                    writer.write_f32::<LittleEndian>(n)?;
+                }
+            }
+        }
     }
 
     Ok(())
@@ -577,6 +728,54 @@ mod tests {
         let actual = record.quality_scores();
         let expected = [45, 35, 43, 50];
         assert_eq!(*actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_data() -> io::Result<()> {
+        use noodles_sam::record::data::{
+            field::{Tag as SamTag, Value as SamValue},
+            Field as SamField,
+        };
+
+        use crate::record::data::{field::Value, Field};
+
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let sam_record = sam::Record::builder()
+            .set_data(Data::from(vec![
+                SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
+                SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
+            ]))
+            .build();
+
+        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.try_finish()?;
+
+        let mut reader = Reader::new(writer.get_ref().as_slice());
+
+        let mut record = Record::default();
+        reader.read_record(&mut record)?;
+
+        let bam_data = record.data();
+        let mut fields = bam_data.fields();
+
+        assert_eq!(
+            fields.next().transpose()?,
+            Some(Field::new(
+                SamTag::ReadGroup,
+                Value::String(String::from("rg0"))
+            ),)
+        );
+
+        assert_eq!(
+            fields.next().transpose()?,
+            Some(Field::new(SamTag::AlignmentHitCount, Value::Int32(1)))
+        );
+
+        assert!(fields.next().is_none());
 
         Ok(())
     }
