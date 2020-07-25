@@ -87,45 +87,50 @@ mod tests {
         let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 0);
 
+        let data = [0x55];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_ltf8(&mut reader)?;
+        assert_eq!(i, 85);
+
         let data = [0x80, 0xaa];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 170);
 
-        let data = [0xc0, 0xaa, 0x55];
+        let data = [0xc0, 0x55, 0xaa];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 43605);
+        assert_eq!(i, 21930);
 
-        let data = [0xe0, 0xaa, 0x55, 0xcc];
+        let data = [0xe0, 0x55, 0xaa, 0xcc];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 11163084);
+        assert_eq!(i, 5614284);
 
-        let data = [0xf0, 0xaa, 0x55, 0xcc, 0x33];
+        let data = [0xf0, 0x55, 0xaa, 0xcc, 0x33];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 2857749555);
+        assert_eq!(i, 1437256755);
 
-        let data = [0xf8, 0xaa, 0x55, 0xcc, 0x33, 0xe3];
+        let data = [0xf8, 0x55, 0xaa, 0xcc, 0x33, 0xe3];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 731583886307);
+        assert_eq!(i, 367937729507);
 
-        let data = [0xfc, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c];
+        let data = [0xfc, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 187285474894620);
+        assert_eq!(i, 94192058753820);
 
-        let data = [0xfe, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c, 0xf0];
+        let data = [0xfe, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 47945081573022960);
+        assert_eq!(i, 24113167040978160);
 
-        let data = [0xff, 0xaa, 0x55, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f];
+        let data = [0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 3086597642858065935);
+        assert_eq!(i, 1579299142572503055);
 
         Ok(())
     }
