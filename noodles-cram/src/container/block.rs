@@ -18,7 +18,7 @@ pub struct Block {
     content_id: Itf8,
     uncompressed_len: Itf8,
     data: Vec<u8>,
-    crc32: [u8; 4],
+    crc32: u32,
 }
 
 impl Block {
@@ -92,11 +92,11 @@ impl Block {
         }
     }
 
-    pub fn crc32(&self) -> &[u8; 4] {
-        &self.crc32
+    pub fn crc32(&self) -> u32 {
+        self.crc32
     }
 
-    pub fn crc32_mut(&mut self) -> &mut [u8; 4] {
+    pub fn crc32_mut(&mut self) -> &mut u32 {
         &mut self.crc32
     }
 }

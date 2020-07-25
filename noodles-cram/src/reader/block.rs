@@ -3,7 +3,7 @@ use std::{
     io::{self, Read},
 };
 
-use byteorder::ReadBytesExt;
+use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
     container::{block::CompressionMethod, Block},
@@ -32,7 +32,7 @@ where
     data.resize(size_in_bytes as usize, Default::default());
     reader.read_exact(data)?;
 
-    reader.read_exact(block.crc32_mut())?;
+    *block.crc32_mut() = reader.read_u32::<LittleEndian>()?;
 
     Ok(())
 }
