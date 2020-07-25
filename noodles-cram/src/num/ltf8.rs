@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
+use byteorder::{BigEndian, ReadBytesExt};
 
 fn read_u8_as_i64<R>(reader: &mut R) -> io::Result<i64>
 where
@@ -60,15 +60,7 @@ where
         let b7 = read_u8_as_i64(reader)?;
         b1 << 48 | b2 << 40 | b3 << 32 | b4 << 24 | b5 << 16 | b6 << 8 | b7
     } else {
-        let b1 = read_u8_as_i64(reader)?;
-        let b2 = read_u8_as_i64(reader)?;
-        let b3 = read_u8_as_i64(reader)?;
-        let b4 = read_u8_as_i64(reader)?;
-        let b5 = read_u8_as_i64(reader)?;
-        let b6 = read_u8_as_i64(reader)?;
-        let b7 = read_u8_as_i64(reader)?;
-        let b8 = read_u8_as_i64(reader)?;
-        b1 << 54 | b2 << 48 | b3 << 40 | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8
+        reader.read_i64::<BigEndian>()?
     };
 
     Ok(value)
@@ -130,7 +122,7 @@ mod tests {
         let data = [0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f];
         let mut reader = BufReader::new(&data[..]);
         let i = read_ltf8(&mut reader)?;
-        assert_eq!(i, 1579299142572503055);
+        assert_eq!(i, 6172970762490408975);
 
         Ok(())
     }
