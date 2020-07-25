@@ -68,7 +68,27 @@ mod tests {
         let i = read_itf8(&mut reader)?;
         assert_eq!(i, 123050342);
 
-        let data = [0xf7, 0x55, 0x99, 0x66, 0xd2];
+        let data = [0xf7, 0x55, 0x99, 0x66, 0x02];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_itf8(&mut reader)?;
+        assert_eq!(i, 1968805474);
+
+        let data = [0xf7, 0x55, 0x99, 0x66, 0x12];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_itf8(&mut reader)?;
+        assert_eq!(i, 1968805474);
+
+        let data = [0xf7, 0x55, 0x99, 0x66, 0x22];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_itf8(&mut reader)?;
+        assert_eq!(i, 1968805474);
+
+        let data = [0xf7, 0x55, 0x99, 0x66, 0x42];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_itf8(&mut reader)?;
+        assert_eq!(i, 1968805474);
+
+        let data = [0xf7, 0x55, 0x99, 0x66, 0x82];
         let mut reader = BufReader::new(&data[..]);
         let i = read_itf8(&mut reader)?;
         assert_eq!(i, 1968805474);
