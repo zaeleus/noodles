@@ -183,6 +183,11 @@ mod tests {
         let i = read_ltf8(&mut reader)?;
         assert_eq!(i, 6172970762490408975);
 
+        let data = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56];
+        let mut reader = BufReader::new(&data[..]);
+        let i = read_ltf8(&mut reader)?;
+        assert_eq!(i, -170);
+
         Ok(())
     }
 
@@ -227,6 +232,10 @@ mod tests {
         let mut buf = Vec::new();
         write_ltf8(&mut buf, 6172970762490408975)?;
         assert_eq!(buf, [0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f]);
+
+        let mut buf = Vec::new();
+        write_ltf8(&mut buf, -170)?;
+        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56]);
 
         Ok(())
     }
