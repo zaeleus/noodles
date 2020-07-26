@@ -21,11 +21,11 @@ pub struct Slice {
 }
 
 impl Slice {
-    pub fn new(header: Header) -> Self {
+    pub fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {
         Self {
             header,
-            core_data_block: Block::default(),
-            external_blocks: Vec::new(),
+            core_data_block,
+            external_blocks,
         }
     }
 
@@ -81,10 +81,6 @@ impl TryFrom<&[Block]> for Slice {
             external_blocks.push(blocks[i + 1].clone());
         }
 
-        Ok(Slice {
-            header,
-            core_data_block,
-            external_blocks,
-        })
+        Ok(Slice::new(header, core_data_block, external_blocks))
     }
 }
