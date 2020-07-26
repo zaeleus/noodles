@@ -11,20 +11,13 @@ use self::{
 
 use crate::container::CompressionHeader;
 
-use super::block::read_block;
-
 pub fn read_compression_header<R>(reader: &mut R) -> io::Result<CompressionHeader>
 where
     R: Read,
 {
-    let block = read_block(reader)?;
-
-    let data = block.decompressed_data();
-    let mut data_reader = &data[..];
-
-    let preservation_map = read_preservation_map(&mut data_reader)?;
-    let data_series_encoding_map = read_data_series_encoding_map(&mut data_reader)?;
-    let tag_encoding_map = read_tag_encoding_map(&mut data_reader)?;
+    let preservation_map = read_preservation_map(reader)?;
+    let data_series_encoding_map = read_data_series_encoding_map(reader)?;
+    let tag_encoding_map = read_tag_encoding_map(reader)?;
 
     Ok(CompressionHeader::new(
         preservation_map,

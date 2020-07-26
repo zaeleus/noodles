@@ -18,7 +18,7 @@ use crate::{
     rans::rans_decode,
 };
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Block {
     compression_method: CompressionMethod,
     content_type: u8,

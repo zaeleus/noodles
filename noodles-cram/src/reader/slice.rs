@@ -1,34 +1,24 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use crate::{
-    container::{block::ContentType, slice, Slice},
+    container::slice,
     num::{read_itf8, Itf8},
 };
-
-use super::block::read_block;
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
     R: Read,
 {
-    let block = read_block(reader)?;
-
-    let data = block.decompressed_data();
-    let mut data_reader = &data[..];
-
-    let reference_sequence_id = read_itf8(&mut data_reader)?;
-    let alignment_start = read_itf8(&mut data_reader)?;
-    let alignment_span = read_itf8(&mut data_reader)?;
-    let record_count = read_itf8(&mut data_reader)?;
-    let record_counter = read_itf8(&mut data_reader)?;
-    let block_count = read_itf8(&mut data_reader)?;
-    let block_content_ids = read_block_content_ids(&mut data_reader)?;
-    let embedded_reference_bases_block_content_id = read_itf8(&mut data_reader)?;
-    let reference_md5 = read_reference_md5(&mut data_reader)?;
-    let optional_tags = read_optional_tags(&mut data_reader)?;
+    let reference_sequence_id = read_itf8(reader)?;
+    let alignment_start = read_itf8(reader)?;
+    let alignment_span = read_itf8(reader)?;
+    let record_count = read_itf8(reader)?;
+    let record_counter = read_itf8(reader)?;
+    let block_count = read_itf8(reader)?;
+    let block_content_ids = read_block_content_ids(reader)?;
+    let embedded_reference_bases_block_content_id = read_itf8(reader)?;
+    let reference_md5 = read_reference_md5(reader)?;
+    let optional_tags = read_optional_tags(reader)?;
 
     Ok(slice::Header::new(
         reference_sequence_id,
@@ -42,38 +32,6 @@ where
         reference_md5,
         optional_tags,
     ))
-}
-
-pub fn read_blocks<R>(reader: &mut R, slice: &mut Slice) -> io::Result<()>
-where
-    R: Read,
-{
-    for _ in 0..slice.header().block_count() {
-        let block = read_block(reader)?;
-
-        let content_type =
-            ContentType::try_from(block.content_type()).expect("invalid content type");
-
-        match content_type {
-            ContentType::CoreData => {
-                *slice.core_data_block_mut() = block;
-            }
-            ContentType::ExternalData => {
-                slice.add_external_block(block);
-            }
-            ty => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!(
-                        "invalid block content type: expected CoreData or ExternalData, got {:?}",
-                        ty
-                    ),
-                ))
-            }
-        }
-    }
-
-    Ok(())
 }
 
 fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

@@ -1,9 +1,9 @@
 pub mod block;
-mod compression_header;
+pub mod compression_header;
 mod container;
 mod encoding;
 pub mod record;
-mod slice;
+pub mod slice;
 
 use std::{
     io::{self, Read},
@@ -12,11 +12,9 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{container::Slice, Container};
+use super::{Container, MAGIC_NUMBER};
 
-use super::MAGIC_NUMBER;
-
-use self::{block::read_block, compression_header::read_compression_header};
+use self::block::read_block;
 
 pub struct Reader<R>
 where
@@ -65,23 +63,18 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    pub fn read_container(&mut self, container: &mut Container) -> io::Result<()> {
+    pub fn read_container(&mut self) -> io::Result<Container> {
         let header = container::read_header(&mut self.inner)?;
-        let compression_header = read_compression_header(&mut self.inner)?;
 
-        container.slices_mut().clear();
+        let blocks_len = header.block_count() as usize;
+        let mut blocks = Vec::with_capacity(blocks_len);
 
-        for _ in 0..header.landmarks().len() {
-            let slice_header = slice::read_header(&mut self.inner)?;
-            let mut slice = Slice::new(slice_header);
-            slice::read_blocks(&mut self.inner, &mut slice)?;
-            container.add_slice(slice);
+        for _ in 0..blocks_len {
+            let block = block::read_block(&mut self.inner)?;
+            blocks.push(block);
         }
 
-        *container.header_mut() = header;
-        *container.compression_header_mut() = compression_header;
-
-        Ok(())
+        Ok(Container::new(header, blocks))
     }
 }
 

@@ -8,43 +8,20 @@ pub use self::{block::Block, compression_header::CompressionHeader, header::Head
 #[derive(Debug, Default)]
 pub struct Container {
     header: Header,
-    compression_header: CompressionHeader,
-    slices: Vec<Slice>,
+    blocks: Vec<Block>,
 }
 
 impl Container {
+    pub fn new(header: Header, blocks: Vec<Block>) -> Self {
+        Self { header, blocks }
+    }
+
     pub fn header(&self) -> &Header {
         &self.header
     }
 
-    pub fn header_mut(&mut self) -> &mut Header {
-        &mut self.header
-    }
-
-    pub fn compression_header(&self) -> &CompressionHeader {
-        &self.compression_header
-    }
-
-    pub fn compression_header_mut(&mut self) -> &mut CompressionHeader {
-        &mut self.compression_header
-    }
-
-    pub fn slices(&self) -> &[Slice] {
-        &self.slices
-    }
-
-    pub fn slices_mut(&mut self) -> &mut Vec<Slice> {
-        &mut self.slices
-    }
-
-    pub fn add_slice(&mut self, slice: Slice) {
-        self.slices.push(slice);
-    }
-
-    pub fn clear(&mut self) {
-        self.header = Default::default();
-        self.compression_header = Default::default();
-        self.slices.clear();
+    pub fn blocks(&self) -> &[Block] {
+        &self.blocks
     }
 
     pub fn is_eof(&self) -> bool {

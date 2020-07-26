@@ -8,9 +8,11 @@ pub use self::{
     preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
 };
 
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryFrom, io};
 
-use crate::num::Itf8;
+use crate::{num::Itf8, reader::compression_header::read_compression_header};
+
+use super::Block;
 
 pub type TagEncodingMap = HashMap<Itf8, Encoding>;
 
@@ -44,5 +46,15 @@ impl CompressionHeader {
 
     pub fn tag_encoding_map(&self) -> &TagEncodingMap {
         &self.tag_encoding_map
+    }
+}
+
+impl TryFrom<&Block> for CompressionHeader {
+    type Error = io::Error;
+
+    fn try_from(block: &Block) -> Result<Self, Self::Error> {
+        let data = block.decompressed_data();
+        let mut reader = &data[..];
+        read_compression_header(&mut reader)
     }
 }

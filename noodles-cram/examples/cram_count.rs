@@ -5,7 +5,7 @@
 //!
 //! The result matches the output of `samtools view -c <src>`.
 
-use std::{env, fs::File, io};
+use std::{convert::TryFrom, env, fs::File, io};
 
 use noodles_cram as cram;
 
@@ -16,19 +16,19 @@ fn main() -> io::Result<()> {
     reader.read_file_definition()?;
     reader.read_file_header()?;
 
-    let mut container = cram::Container::default();
     let mut n = 0;
 
     loop {
-        container.clear();
-        reader.read_container(&mut container)?;
+        let container = reader.read_container()?;
 
         if container.is_eof() {
             break;
         }
 
-        for slice in container.slices() {
-            let mut record_reader = slice.records(container.compression_header());
+        let data_container = cram::DataContainer::try_from(container)?;
+
+        for slice in data_container.slices() {
+            let mut record_reader = slice.records(data_container.compression_header());
 
             for _ in 0..slice.header().record_count() {
                 let mut record = cram::Record::default();
