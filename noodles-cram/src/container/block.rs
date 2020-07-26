@@ -21,7 +21,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct Block {
     compression_method: CompressionMethod,
-    content_type: u8,
+    content_type: ContentType,
     content_id: Itf8,
     uncompressed_len: Itf8,
     data: Vec<u8>,
@@ -31,7 +31,7 @@ pub struct Block {
 impl Block {
     pub fn new(
         compression_method: CompressionMethod,
-        content_type: u8,
+        content_type: ContentType,
         content_id: Itf8,
         uncompressed_len: Itf8,
         data: Vec<u8>,
@@ -55,11 +55,11 @@ impl Block {
         &mut self.compression_method
     }
 
-    pub fn content_type(&self) -> u8 {
+    pub fn content_type(&self) -> ContentType {
         self.content_type
     }
 
-    pub fn content_type_mut(&mut self) -> &mut u8 {
+    pub fn content_type_mut(&mut self) -> &mut ContentType {
         &mut self.content_type
     }
 

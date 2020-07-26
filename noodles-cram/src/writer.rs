@@ -92,7 +92,7 @@ where
 
         let block = Block::new(
             block::CompressionMethod::None,
-            block::ContentType::FileHeader as u8,
+            block::ContentType::FileHeader,
             0,
             data_len,
             data,
@@ -162,7 +162,7 @@ where
     let method = block.compression_method() as u8;
     crc_writer.write_u8(method)?;
 
-    let content_type = block.content_type();
+    let content_type = block.content_type() as u8;
     crc_writer.write_u8(content_type)?;
 
     let block_content_id = block.content_id();

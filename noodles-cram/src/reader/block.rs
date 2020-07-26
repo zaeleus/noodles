@@ -6,7 +6,10 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
-    container::{block::CompressionMethod, Block},
+    container::{
+        block::{CompressionMethod, ContentType},
+        Block,
+    },
     num::read_itf8,
 };
 
@@ -18,7 +21,10 @@ where
         CompressionMethod::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let block_content_type_id = reader.read_u8()?;
+    let block_content_type_id = reader.read_u8().and_then(|b| {
+        ContentType::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let block_content_id = read_itf8(reader)?;
     let size_in_bytes = read_itf8(reader)?;
     let raw_size_in_bytes = read_itf8(reader)?;
