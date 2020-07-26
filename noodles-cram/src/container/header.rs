@@ -68,6 +68,38 @@ impl Header {
         self.reference_sequence_id
     }
 
+    pub fn start_position(&self) -> Itf8 {
+        self.start_position
+    }
+
+    pub fn alignment_span(&self) -> Itf8 {
+        self.alignment_span
+    }
+
+    pub fn record_count(&self) -> Itf8 {
+        self.record_count
+    }
+
+    pub fn record_counter(&self) -> Ltf8 {
+        self.record_counter
+    }
+
+    pub fn bases(&self) -> Ltf8 {
+        self.bases
+    }
+
+    pub fn block_count(&self) -> Itf8 {
+        self.block_count
+    }
+
+    pub fn landmarks(&self) -> &[Itf8] {
+        &self.landmarks
+    }
+
+    pub fn crc32(&self) -> u32 {
+        self.crc32
+    }
+
     pub fn is_eof(&self) -> bool {
         self.length == EOF_LEN
             && self.reference_sequence_id == EOF_REFERENCE_SEQUENCE_ID
@@ -79,10 +111,6 @@ impl Header {
             && self.block_count == EOF_BLOCK_COUNT
             && self.landmarks.is_empty()
             && self.crc32 == EOF_CRC32
-    }
-
-    pub fn landmarks(&self) -> &[Itf8] {
-        &self.landmarks
     }
 }
 
