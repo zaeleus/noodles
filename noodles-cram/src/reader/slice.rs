@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    container::{block::ContentType, slice, Block, Slice},
+    container::{block::ContentType, slice, Slice},
     num::{read_itf8, Itf8},
 };
 
@@ -14,8 +14,7 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
     R: Read,
 {
-    let mut block = Block::default();
-    read_block(reader, &mut block)?;
+    let block = read_block(reader)?;
 
     let data = block.decompressed_data();
     let mut data_reader = &data[..];
@@ -50,8 +49,7 @@ where
     R: Read,
 {
     for _ in 0..slice.header().block_count() {
-        let mut block = Block::default();
-        read_block(reader, &mut block)?;
+        let block = read_block(reader)?;
 
         let content_type =
             ContentType::try_from(block.content_type()).expect("invalid content type");

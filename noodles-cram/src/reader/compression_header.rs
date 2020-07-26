@@ -9,7 +9,7 @@ use self::{
     preservation_map::read_preservation_map, tag_encoding_map::read_tag_encoding_map,
 };
 
-use crate::container::{Block, CompressionHeader};
+use crate::container::CompressionHeader;
 
 use super::block::read_block;
 
@@ -17,8 +17,7 @@ pub fn read_compression_header<R>(reader: &mut R) -> io::Result<CompressionHeade
 where
     R: Read,
 {
-    let mut block = Block::default();
-    read_block(reader, &mut block)?;
+    let block = read_block(reader)?;
 
     let data = block.decompressed_data();
     let mut data_reader = &data[..];

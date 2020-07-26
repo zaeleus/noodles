@@ -12,10 +12,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{
-    container::{Block, Slice},
-    Container,
-};
+use crate::{container::Slice, Container};
 
 use super::MAGIC_NUMBER;
 
@@ -58,8 +55,7 @@ where
         self.inner.read_exact(&mut buf)?;
 
         let mut reader = &buf[..];
-        let mut block = Block::default();
-        read_block(&mut reader, &mut block)?;
+        let block = read_block(&mut reader)?;
 
         let mut data = &block.decompressed_data()[..];
         let _header_len = data.read_i32::<LittleEndian>()?;

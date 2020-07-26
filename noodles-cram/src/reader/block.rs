@@ -10,7 +10,7 @@ use crate::{
     num::read_itf8,
 };
 
-pub fn read_block<R>(reader: &mut R, block: &mut Block) -> io::Result<()>
+pub fn read_block<R>(reader: &mut R) -> io::Result<Block>
 where
     R: Read,
 {
@@ -23,16 +23,17 @@ where
     let size_in_bytes = read_itf8(reader)?;
     let raw_size_in_bytes = read_itf8(reader)?;
 
-    *block.compression_method_mut() = method;
-    *block.content_type_mut() = block_content_type_id;
-    *block.content_id_mut() = block_content_id;
-    *block.uncompressed_len_mut() = raw_size_in_bytes;
+    let mut data = vec![0; size_in_bytes as usize];
+    reader.read_exact(&mut data)?;
 
-    let data = block.data_mut();
-    data.resize(size_in_bytes as usize, Default::default());
-    reader.read_exact(data)?;
+    let crc32 = reader.read_u32::<LittleEndian>()?;
 
-    *block.crc32_mut() = reader.read_u32::<LittleEndian>()?;
-
-    Ok(())
+    Ok(Block::new(
+        method,
+        block_content_type_id,
+        block_content_id,
+        raw_size_in_bytes,
+        data,
+        crc32,
+    ))
 }
