@@ -3,13 +3,20 @@ mod content_type;
 
 pub use self::{compression_method::CompressionMethod, content_type::ContentType};
 
-use std::{borrow::Cow, io::Read};
+use std::{
+    borrow::Cow,
+    io::{self, Read},
+    mem,
+};
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
 
-use crate::{num::Itf8, rans::rans_decode};
+use crate::{
+    num::{write_itf8, Itf8},
+    rans::rans_decode,
+};
 
 #[derive(Debug, Default)]
 pub struct Block {
@@ -116,5 +123,29 @@ impl Block {
 
     pub fn crc32_mut(&mut self) -> &mut u32 {
         &mut self.crc32
+    }
+
+    pub fn len(&self) -> io::Result<usize> {
+        // method (1) + block content type ID (1)
+        let mut len = 2 * mem::size_of::<u8>();
+
+        let mut buf = Vec::new();
+        write_itf8(&mut buf, self.content_id())?;
+        len += buf.len();
+
+        buf.clear();
+        write_itf8(&mut buf, self.data().len() as i32)?;
+        len += buf.len();
+
+        buf.clear();
+        write_itf8(&mut buf, self.uncompressed_len())?;
+        len += buf.len();
+
+        len += self.data.len();
+
+        // crc32 (4)
+        len += mem::size_of::<u32>();
+
+        Ok(len)
     }
 }
