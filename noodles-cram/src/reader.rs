@@ -14,8 +14,6 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{Container, MAGIC_NUMBER};
 
-use self::block::read_block;
-
 pub struct Reader<R>
 where
     R: Read,
@@ -47,20 +45,21 @@ where
     }
 
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let container_header = container::read_header(&mut self.inner)?;
+        let header_container = self.read_container()?;
 
-        let mut buf = vec![0; container_header.len() as usize];
-        self.inner.read_exact(&mut buf)?;
+        if let Some(block) = header_container.blocks().first() {
+            let mut data = &block.decompressed_data()[..];
+            let _header_len = data.read_i32::<LittleEndian>()?;
 
-        let mut reader = &buf[..];
-        let block = read_block(&mut reader)?;
-
-        let mut data = &block.decompressed_data()[..];
-        let _header_len = data.read_i32::<LittleEndian>()?;
-
-        str::from_utf8(data)
-            .map(|s| s.into())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            str::from_utf8(data)
+                .map(|s| s.into())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid header container: missing block for SAM header",
+            ))
+        }
     }
 
     pub fn read_container(&mut self) -> io::Result<Container> {
