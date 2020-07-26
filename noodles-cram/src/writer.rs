@@ -5,7 +5,7 @@ use flate2::CrcWriter;
 use noodles_sam as sam;
 
 use super::{
-    container::{self, block, Block},
+    container::{self, block, Block, Container},
     num::{write_itf8, write_ltf8},
     MAGIC_NUMBER,
 };
@@ -102,8 +102,18 @@ where
 
         let container_header = container::Header::new(block_len, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
-        write_container_header(&mut self.inner, &container_header)?;
-        write_block(&mut self.inner, &block)?;
+        let container = Container::new(container_header, vec![block]);
+        self.write_container(&container)?;
+
+        Ok(())
+    }
+
+    pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
+        write_container_header(&mut self.inner, container.header())?;
+
+        for block in container.blocks() {
+            write_block(&mut self.inner, block)?;
+        }
 
         Ok(())
     }
