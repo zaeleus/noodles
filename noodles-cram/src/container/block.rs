@@ -22,6 +22,24 @@ pub struct Block {
 }
 
 impl Block {
+    pub fn new(
+        compression_method: CompressionMethod,
+        content_type: u8,
+        content_id: Itf8,
+        uncompressed_len: Itf8,
+        data: Vec<u8>,
+        crc32: u32,
+    ) -> Self {
+        Self {
+            compression_method,
+            content_type,
+            content_id,
+            uncompressed_len,
+            data,
+            crc32,
+        }
+    }
+
     pub fn compression_method(&self) -> CompressionMethod {
         self.compression_method
     }
