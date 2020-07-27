@@ -3,18 +3,14 @@ mod content_type;
 
 pub use self::{compression_method::CompressionMethod, content_type::ContentType};
 
-use std::{
-    borrow::Cow,
-    io::{self, Read},
-    mem,
-};
+use std::{borrow::Cow, io::Read, mem};
 
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
 
 use crate::{
-    num::{write_itf8, Itf8},
+    num::{itf8, Itf8},
     rans::rans_decode,
 };
 
@@ -141,27 +137,16 @@ impl Block {
         &mut self.crc32
     }
 
-    pub fn len(&self) -> io::Result<usize> {
-        // method (1) + block content type ID (1)
-        let mut len = 2 * mem::size_of::<u8>();
-
-        let mut buf = Vec::new();
-        write_itf8(&mut buf, self.content_id())?;
-        len += buf.len();
-
-        buf.clear();
-        write_itf8(&mut buf, self.data().len() as i32)?;
-        len += buf.len();
-
-        buf.clear();
-        write_itf8(&mut buf, self.uncompressed_len())?;
-        len += buf.len();
-
-        len += self.data.len();
-
-        // crc32 (4)
-        len += mem::size_of::<u32>();
-
-        Ok(len)
+    pub fn len(&self) -> usize {
+        // method
+        mem::size_of::<u8>()
+            // block content type ID
+            + mem::size_of::<u8>()
+            + itf8::size_of(self.content_id())
+            + itf8::size_of(self.data.len() as Itf8)
+            + itf8::size_of(self.uncompressed_len())
+            + self.data.len()
+            // crc32
+            + mem::size_of::<u32>()
     }
 }

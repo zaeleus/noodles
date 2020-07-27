@@ -1,4 +1,4 @@
-mod itf8;
+pub mod itf8;
 mod ltf8;
 
 pub use self::{

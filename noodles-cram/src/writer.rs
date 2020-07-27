@@ -120,7 +120,7 @@ where
             data,
             0,
         );
-        let block_len = block.len()? as i32;
+        let block_len = block.len() as i32;
 
         let container_header = container::Header::new(block_len, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
