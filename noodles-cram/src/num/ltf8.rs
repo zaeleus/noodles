@@ -68,7 +68,6 @@ where
     Ok(value)
 }
 
-#[allow(dead_code)]
 pub fn write_ltf8<W>(writer: &mut W, value: Ltf8) -> io::Result<()>
 where
     W: Write,

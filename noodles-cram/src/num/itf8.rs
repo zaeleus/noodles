@@ -42,7 +42,6 @@ where
     Ok(value)
 }
 
-#[allow(dead_code)]
 pub fn write_itf8<W>(writer: &mut W, value: Itf8) -> io::Result<()>
 where
     W: Write,
