@@ -111,14 +111,18 @@ where
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         let container_header = container::Header::new(0, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
-        let data = header.to_string().into_bytes();
-        let data_len = data.len() as i32;
+        let header_data = header.to_string().into_bytes();
+        let header_data_len = header_data.len() as i32;
+
+        let mut data = Vec::new();
+        data.write_i32::<LittleEndian>(header_data_len)?;
+        data.extend(header_data);
 
         let block = Block::new(
             block::CompressionMethod::None,
             block::ContentType::FileHeader,
             0,
-            data_len,
+            data.len() as i32,
             data,
             0,
         );
