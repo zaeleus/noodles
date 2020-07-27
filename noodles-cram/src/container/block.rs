@@ -18,6 +18,10 @@ use crate::{
     rans::rans_decode,
 };
 
+// § 9 End of file container (2020-07-22)
+const EOF_DATA: [u8; 6] = [0x01, 0x00, 0x01, 0x00, 0x01, 0x00];
+const EOF_CRC32: u32 = 0x4b_01_63_ee;
+
 #[derive(Clone, Debug)]
 pub struct Block {
     compression_method: CompressionMethod,
@@ -29,6 +33,18 @@ pub struct Block {
 }
 
 impl Block {
+    /// Creates a block used in the EOF container.
+    pub fn eof() -> Self {
+        Self::new(
+            CompressionMethod::None,
+            ContentType::CompressionHeader,
+            Default::default(),
+            EOF_DATA.len() as Itf8,
+            EOF_DATA.to_vec(),
+            EOF_CRC32,
+        )
+    }
+
     pub fn new(
         compression_method: CompressionMethod,
         content_type: ContentType,

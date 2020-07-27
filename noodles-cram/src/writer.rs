@@ -15,7 +15,10 @@ const FILE_DEFINITION_FORMAT: [u8; 2] = [3, 0];
 
 /// A CRAM writer.
 #[derive(Debug)]
-pub struct Writer<W> {
+pub struct Writer<W>
+where
+    W: Write,
+{
     inner: W,
 }
 
@@ -46,6 +49,25 @@ where
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
+    }
+
+    /// Attempts to finish the output stream by writing a final EOF container.
+    ///
+    /// This is typically only manually called if the underlying stream is needed before the writer
+    /// is dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let mut writer = cram::Writer::new(Vec::new());
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_finish(&mut self) -> io::Result<()> {
+        let eof_container = Container::eof();
+        self.write_container(&eof_container)
     }
 
     /// Writes a CRAM file defintion.
@@ -116,6 +138,15 @@ where
         }
 
         Ok(())
+    }
+}
+
+impl<W> Drop for Writer<W>
+where
+    W: Write,
+{
+    fn drop(&mut self) {
+        let _ = self.try_finish();
     }
 }
 

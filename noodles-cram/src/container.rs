@@ -12,6 +12,11 @@ pub struct Container {
 }
 
 impl Container {
+    /// Creates an EOF container.
+    pub fn eof() -> Self {
+        Self::new(Header::eof(), vec![Block::eof()])
+    }
+
     pub fn new(header: Header, blocks: Vec<Block>) -> Self {
         Self { header, blocks }
     }

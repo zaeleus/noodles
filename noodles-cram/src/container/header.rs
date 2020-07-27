@@ -1,6 +1,6 @@
 use crate::num::{Itf8, Ltf8};
 
-// § 9 End of file container (2020-01-20)
+// § 9 End of file container (2020-07-22)
 const EOF_LEN: i32 = 15;
 const EOF_REFERENCE_SEQUENCE_ID: Itf8 = -1;
 const EOF_START_POSITION: Itf8 = 4_542_278;
@@ -22,6 +22,7 @@ pub struct Header {
 }
 
 impl Header {
+    /// Creates a container header used in the EOF container.
     pub fn eof() -> Self {
         Self {
             length: EOF_LEN,
