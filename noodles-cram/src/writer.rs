@@ -109,6 +109,8 @@ where
     }
 
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        let container_header = container::Header::new(0, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
+
         let data = header.to_string().into_bytes();
         let data_len = data.len() as i32;
 
@@ -120,9 +122,6 @@ where
             data,
             0,
         );
-        let block_len = block.len() as i32;
-
-        let container_header = container::Header::new(block_len, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
         let container = Container::new(container_header, vec![block]);
         self.write_container(&container)?;
@@ -131,7 +130,8 @@ where
     }
 
     pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
-        write_container_header(&mut self.inner, container.header())?;
+        let len = container.blocks().iter().map(|b| b.len()).sum();
+        write_container_header(&mut self.inner, container.header(), len)?;
 
         for block in container.blocks() {
             write_block(&mut self.inner, block)?;
@@ -150,13 +150,17 @@ where
     }
 }
 
-fn write_container_header<W>(writer: &mut W, header: &container::Header) -> io::Result<()>
+fn write_container_header<W>(
+    writer: &mut W,
+    header: &container::Header,
+    len: usize,
+) -> io::Result<()>
 where
     W: Write,
 {
     let mut crc_writer = CrcWriter::new(writer);
 
-    let length = header.len();
+    let length = len as i32;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
     let reference_sequence_id = header.reference_sequence_id();
