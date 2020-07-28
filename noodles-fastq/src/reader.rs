@@ -112,8 +112,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::BufReader;
-
     use crate::Record;
 
     use super::{read_line, Reader};
@@ -148,8 +146,8 @@ dcba
 
     #[test]
     fn test_read_line() {
-        let data = "@fqlib\nAGCT\n";
-        let mut reader = BufReader::new(data.as_bytes());
+        let data = b"@fqlib\nAGCT\n";
+        let mut reader = &data[..];
 
         let mut buf = Vec::new();
         let len = read_line(&mut reader, &mut buf).unwrap();
