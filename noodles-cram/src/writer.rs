@@ -111,7 +111,11 @@ where
     /// Writes a CRAM file header container.
     ///
     /// The position of the stream is expected to be directly after the file definition.
+    ///
+    /// Reference sequence dictionary entries must have MD5 checksums (`M5`) set.
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        validate_reference_sequences(header.reference_sequences())?;
+
         let container_header = container::Header::new(0, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
         let header_data = header.to_string().into_bytes();
@@ -155,6 +159,23 @@ where
     fn drop(&mut self) {
         let _ = self.try_finish();
     }
+}
+
+fn validate_reference_sequences(
+    reference_sequences: &sam::header::ReferenceSequences,
+) -> io::Result<()> {
+    use noodles_sam::header::reference_sequence::Tag;
+
+    for reference_sequence in reference_sequences.values() {
+        if reference_sequence.get(&Tag::Md5Checksum).is_none() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "missing MD5 checksum in reference sequence",
+            ));
+        }
+    }
+
+    Ok(())
 }
 
 fn write_container_header<W>(
