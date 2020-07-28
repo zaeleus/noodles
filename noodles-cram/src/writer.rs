@@ -108,6 +108,9 @@ where
         Ok(())
     }
 
+    /// Writes a CRAM file header container.
+    ///
+    /// The position of the stream is expected to be directly after the file definition.
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         let container_header = container::Header::new(0, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
 
