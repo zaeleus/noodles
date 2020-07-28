@@ -11,9 +11,9 @@ bitflags::bitflags! {
         /// The mate is unmapped (`0x08`).
         const MATE_UNMAPPED = 0x08;
         /// The sequence is reverse complemented (`0x10`).
-        const REVERSE = 0x10;
+        const REVERSE_COMPLEMENTED = 0x10;
         /// The sequence of the mate is reverse complemented (`0x20`).
-        const MATE_REVERSE = 0x20;
+        const MATE_REVERSE_COMPLEMENTED = 0x20;
         /// First in pair (`0x40`).
         const READ_1 = 0x40;
         /// Second in pair (`0x80`).
@@ -82,29 +82,29 @@ impl Flags {
         self.contains(Self::MATE_UNMAPPED)
     }
 
-    /// Returns whether the `REVERSE` flag is set.
+    /// Returns whether the `REVERSE_COMPLEMENTED` flag is set.
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::record::Flags;
-    /// assert!(Flags::REVERSE.is_reverse());
-    /// assert!(!Flags::UNMAPPED.is_reverse());
+    /// assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
+    /// assert!(!Flags::UNMAPPED.is_reverse_complemented());
     /// ```
 
-    pub fn is_reverse(self) -> bool {
-        self.contains(Self::REVERSE)
+    pub fn is_reverse_complemented(self) -> bool {
+        self.contains(Self::REVERSE_COMPLEMENTED)
     }
 
-    /// Returns whether the `MATE_REVERSE` flag is set.
+    /// Returns whether the `MATE_REVERSE_COMPLEMENTED` flag is set.
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::record::Flags;
-    /// assert!(Flags::MATE_REVERSE.is_mate_reverse());
-    /// assert!(!Flags::UNMAPPED.is_mate_reverse());
+    /// assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
+    /// assert!(!Flags::UNMAPPED.is_mate_reverse_complemented());
     /// ```
-    pub fn is_mate_reverse(self) -> bool {
-        self.contains(Self::MATE_REVERSE)
+    pub fn is_mate_reverse_complemented(self) -> bool {
+        self.contains(Self::MATE_REVERSE_COMPLEMENTED)
     }
 
     /// Returns whether the `READ_1` flag is set.
@@ -213,8 +213,8 @@ mod tests {
         assert!(!flags.is_proper_pair());
         assert!(!flags.is_unmapped());
         assert!(!flags.is_mate_unmapped());
-        assert!(!flags.is_reverse());
-        assert!(!flags.is_mate_reverse());
+        assert!(!flags.is_reverse_complemented());
+        assert!(!flags.is_mate_reverse_complemented());
         assert!(!flags.is_read_1());
         assert!(!flags.is_read_2());
         assert!(!flags.is_secondary());
@@ -229,8 +229,8 @@ mod tests {
         assert!(Flags::PROPER_PAIR.is_proper_pair());
         assert!(Flags::UNMAPPED.is_unmapped());
         assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
-        assert!(Flags::REVERSE.is_reverse());
-        assert!(Flags::MATE_REVERSE.is_mate_reverse());
+        assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
+        assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
         assert!(Flags::READ_1.is_read_1());
         assert!(Flags::READ_2.is_read_2());
         assert!(Flags::SECONDARY.is_secondary());
