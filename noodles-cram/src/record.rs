@@ -1,9 +1,10 @@
 pub mod feature;
 mod flags;
+mod next_mate_flags;
 pub mod resolve;
 mod tag;
 
-pub use self::{feature::Feature, flags::Flags, tag::Tag};
+pub use self::{feature::Feature, flags::Flags, next_mate_flags::NextMateFlags, tag::Tag};
 
 use noodles_sam as sam;
 
@@ -47,6 +48,12 @@ impl Record {
 
     pub fn alignment_start(&self) -> i32 {
         self.alignment_start
+    }
+
+    pub fn next_mate_bit_flags(&self) -> NextMateFlags {
+        // `next_mate_bit_flags` can safely be casted to a u8 because the `MF` data series only has
+        // 2 bit flags, i.e., the largest value is 2^2 - 1;
+        NextMateFlags::from(self.next_mate_bit_flags as u8)
     }
 
     pub fn add_tag(&mut self, tag: Tag) {
