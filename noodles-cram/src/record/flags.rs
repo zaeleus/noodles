@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_flags_for_u16() {
+    fn test_from_flags_for_u8() {
         assert_eq!(u8::from(Flags::from(0x01)), 0x01);
         assert_eq!(u8::from(Flags::from(0x02)), 0x02);
         assert_eq!(u8::from(Flags::from(0x04)), 0x04);
