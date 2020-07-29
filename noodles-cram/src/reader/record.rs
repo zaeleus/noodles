@@ -5,6 +5,7 @@ use std::{
 };
 
 use byteorder::ReadBytesExt;
+use noodles_sam as sam;
 
 use crate::{
     container::{
@@ -214,6 +215,16 @@ where
 
         if cram_bit_flags.is_detached() {
             record.next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+            let next_mate_flags = record.next_mate_bit_flags();
+
+            if next_mate_flags.is_on_negative_strand() {
+                record.bam_bit_flags |=
+                    u16::from(sam::record::Flags::MATE_REVERSE_COMPLEMENTED) as i32;
+            }
+
+            if next_mate_flags.is_unmapped() {
+                record.bam_bit_flags |= u16::from(sam::record::Flags::MATE_UNMAPPED) as i32;
+            }
 
             let preservation_map = self.compression_header.preservation_map();
 
