@@ -6,7 +6,7 @@ use noodles_sam as sam;
 
 use super::{
     container::{self, block, Block, Container},
-    num::{write_itf8, write_ltf8},
+    num::{write_itf8, write_ltf8, Itf8},
     MAGIC_NUMBER,
 };
 
@@ -116,19 +116,6 @@ where
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         validate_reference_sequences(header.reference_sequences())?;
 
-        let container_header = container::Header::new(
-            0,
-            container::ReferenceSequenceId::None,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            vec![0],
-            0,
-        );
-
         let header_data = header.to_string().into_bytes();
         let header_data_len = header_data.len() as i32;
 
@@ -145,7 +132,23 @@ where
             0,
         );
 
-        let container = Container::new(container_header, vec![block]);
+        let blocks = vec![block];
+        let landmarks = vec![0];
+
+        let container_header = container::Header::new(
+            0,
+            container::ReferenceSequenceId::None,
+            0,
+            0,
+            0,
+            0,
+            0,
+            blocks.len() as Itf8,
+            landmarks,
+            0,
+        );
+
+        let container = Container::new(container_header, blocks);
         self.write_container(&container)?;
 
         Ok(())
