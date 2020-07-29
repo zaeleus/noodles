@@ -1,4 +1,4 @@
-use crate::num::Itf8;
+use crate::num::{Itf8, Ltf8};
 
 #[derive(Debug)]
 pub struct Header {
@@ -6,7 +6,7 @@ pub struct Header {
     alignment_start: Itf8,
     alignment_span: Itf8,
     record_count: Itf8,
-    record_counter: Itf8,
+    record_counter: Ltf8,
     block_count: Itf8,
     block_content_ids: Vec<Itf8>,
     embedded_reference_bases_block_content_id: Itf8,
@@ -21,7 +21,7 @@ impl Header {
         alignment_start: Itf8,
         alignment_span: Itf8,
         record_count: Itf8,
-        record_counter: Itf8,
+        record_counter: Ltf8,
         block_count: Itf8,
         block_content_ids: Vec<Itf8>,
         embedded_reference_bases_block_content_id: Itf8,

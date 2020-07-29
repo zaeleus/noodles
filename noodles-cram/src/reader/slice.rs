@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use crate::{
     container::slice,
-    num::{read_itf8, Itf8},
+    num::{read_itf8, read_ltf8, Itf8},
 };
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
@@ -13,7 +13,7 @@ where
     let alignment_start = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
     let record_count = read_itf8(reader)?;
-    let record_counter = read_itf8(reader)?;
+    let record_counter = read_ltf8(reader)?;
     let block_count = read_itf8(reader)?;
     let block_content_ids = read_block_content_ids(reader)?;
     let embedded_reference_bases_block_content_id = read_itf8(reader)?;
