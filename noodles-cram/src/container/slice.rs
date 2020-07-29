@@ -3,13 +3,12 @@ mod header;
 pub use self::header::Header;
 
 use std::{
-    borrow::Cow,
     collections::HashMap,
     convert::TryFrom,
     io::{self, Cursor},
 };
 
-use crate::{reader, BitReader};
+use crate::{reader, BitReader, Record};
 
 use super::{Block, CompressionHeader};
 
@@ -41,11 +40,7 @@ impl Slice {
         self.external_blocks.push(block);
     }
 
-    #[allow(clippy::type_complexity)]
-    pub fn records<'a>(
-        &'a self,
-        compression_header: &'a CompressionHeader,
-    ) -> reader::record::Reader<'a, Cursor<Cow<[u8]>>, Cursor<Cow<[u8]>>> {
+    pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         let core_data = BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
 
         let external_data: HashMap<_, _> = self
@@ -54,13 +49,24 @@ impl Slice {
             .map(|block| (block.content_id(), Cursor::new(block.decompressed_data())))
             .collect();
 
-        reader::record::Reader::new(
+        let mut record_reader = reader::record::Reader::new(
             compression_header,
             core_data,
             external_data,
             self.header.reference_sequence_id(),
             self.header.alignment_start(),
-        )
+        );
+
+        let records_len = self.header().record_count() as usize;
+        let mut records = Vec::with_capacity(records_len);
+
+        for _ in 0..records_len {
+            let mut record = Record::default();
+            record_reader.read_record(&mut record)?;
+            records.push(record);
+        }
+
+        Ok(records)
     }
 }
 

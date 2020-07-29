@@ -28,13 +28,8 @@ fn main() -> io::Result<()> {
         let data_container = cram::DataContainer::try_from(container)?;
 
         for slice in data_container.slices() {
-            let mut record_reader = slice.records(data_container.compression_header());
-
-            for _ in 0..slice.header().record_count() {
-                let mut record = cram::Record::default();
-                record_reader.read_record(&mut record)?;
-                n += 1;
-            }
+            let records = slice.records(data_container.compression_header())?;
+            n += records.len();
         }
     }
 
