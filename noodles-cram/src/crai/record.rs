@@ -71,7 +71,7 @@ impl FromStr for Record {
         let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let landmark = parse_u64(&mut fields, Field::Landmark)?;
-        let slice_len = parse_u64(&mut fields, Field::SliceLen)?;
+        let slice_len = parse_u64(&mut fields, Field::SliceLength)?;
 
         Ok(Record {
             reference_sequence_id,

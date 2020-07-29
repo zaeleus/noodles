@@ -5,5 +5,5 @@ pub enum Field {
     AlignmentSpan,
     Offset,
     Landmark,
-    SliceLen,
+    SliceLength,
 }
