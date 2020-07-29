@@ -1,8 +1,11 @@
-use crate::num::{Itf8, Ltf8};
+use crate::{
+    container::ReferenceSequenceId,
+    num::{Itf8, Ltf8},
+};
 
 #[derive(Debug)]
 pub struct Header {
-    reference_sequence_id: Itf8,
+    reference_sequence_id: ReferenceSequenceId,
     alignment_start: Itf8,
     alignment_span: Itf8,
     record_count: Itf8,
@@ -17,7 +20,7 @@ pub struct Header {
 impl Header {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        reference_sequence_id: Itf8,
+        reference_sequence_id: ReferenceSequenceId,
         alignment_start: Itf8,
         alignment_span: Itf8,
         record_count: Itf8,
@@ -44,7 +47,7 @@ impl Header {
 }
 
 impl Header {
-    pub fn reference_sequence_id(&self) -> Itf8 {
+    pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
         self.reference_sequence_id
     }
 

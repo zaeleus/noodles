@@ -1,7 +1,10 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use crate::{
-    container::slice,
+    container::{slice, ReferenceSequenceId},
     num::{read_itf8, read_ltf8, Itf8},
 };
 
@@ -9,7 +12,10 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
 where
     R: Read,
 {
-    let reference_sequence_id = read_itf8(reader)?;
+    let reference_sequence_id = read_itf8(reader).and_then(|n| {
+        ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let alignment_start = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
     let record_count = read_itf8(reader)?;

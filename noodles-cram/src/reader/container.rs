@@ -1,9 +1,12 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
-    container::Header,
+    container::{Header, ReferenceSequenceId},
     num::{read_itf8, read_ltf8, Itf8},
 };
 
@@ -12,7 +15,11 @@ where
     R: Read,
 {
     let length = reader.read_i32::<LittleEndian>()?;
-    let reference_sequence_id = read_itf8(reader)?;
+
+    let reference_sequence_id = read_itf8(reader).and_then(|n| {
+        ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let starting_position_on_the_reference = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
     let number_of_records = read_itf8(reader)?;

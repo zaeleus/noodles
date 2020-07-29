@@ -1,9 +1,13 @@
 pub mod block;
 pub mod compression_header;
 mod header;
+pub mod reference_sequence_id;
 pub mod slice;
 
-pub use self::{block::Block, compression_header::CompressionHeader, header::Header, slice::Slice};
+pub use self::{
+    block::Block, compression_header::CompressionHeader, header::Header,
+    reference_sequence_id::ReferenceSequenceId, slice::Slice,
+};
 
 #[derive(Debug, Default)]
 pub struct Container {

@@ -1,8 +1,9 @@
 use crate::num::{Itf8, Ltf8};
 
+use super::ReferenceSequenceId;
+
 // § 9 End of file container (2020-07-22)
 const EOF_LEN: i32 = 15;
-const EOF_REFERENCE_SEQUENCE_ID: Itf8 = -1;
 const EOF_START_POSITION: Itf8 = 4_542_278;
 const EOF_BLOCK_COUNT: Itf8 = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
@@ -10,7 +11,7 @@ const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 #[derive(Debug, Default)]
 pub struct Header {
     length: i32,
-    reference_sequence_id: Itf8,
+    reference_sequence_id: ReferenceSequenceId,
     start_position: Itf8,
     alignment_span: Itf8,
     record_count: Itf8,
@@ -26,7 +27,6 @@ impl Header {
     pub fn eof() -> Self {
         Self {
             length: EOF_LEN,
-            reference_sequence_id: EOF_REFERENCE_SEQUENCE_ID,
             start_position: EOF_START_POSITION,
             block_count: EOF_BLOCK_COUNT,
             crc32: EOF_CRC32,
@@ -37,7 +37,7 @@ impl Header {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         length: i32,
-        reference_sequence_id: Itf8,
+        reference_sequence_id: ReferenceSequenceId,
         start_position: Itf8,
         alignment_span: Itf8,
         record_count: Itf8,
@@ -65,7 +65,7 @@ impl Header {
         self.length
     }
 
-    pub fn reference_sequence_id(&self) -> Itf8 {
+    pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
         self.reference_sequence_id
     }
 
@@ -103,7 +103,7 @@ impl Header {
 
     pub fn is_eof(&self) -> bool {
         self.length == EOF_LEN
-            && self.reference_sequence_id == EOF_REFERENCE_SEQUENCE_ID
+            && self.reference_sequence_id.is_none()
             && self.start_position == EOF_START_POSITION
             && self.alignment_span == 0
             && self.record_count == 0

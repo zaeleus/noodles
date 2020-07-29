@@ -12,7 +12,7 @@ use crate::{
             data_series_encoding_map::DataSeries,
             encoding::{self, Encoding},
         },
-        CompressionHeader,
+        CompressionHeader, ReferenceSequenceId,
     },
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
@@ -30,7 +30,7 @@ where
     compression_header: &'a CompressionHeader,
     core_data_reader: BitReader<R>,
     external_data_readers: HashMap<Itf8, S>,
-    reference_sequence_id: Itf8,
+    reference_sequence_id: ReferenceSequenceId,
     prev_alignment_start: Itf8,
 }
 
@@ -43,7 +43,7 @@ where
         compression_header: &'a CompressionHeader,
         core_data_reader: BitReader<R>,
         external_data_readers: HashMap<Itf8, S>,
-        reference_sequence_id: Itf8,
+        reference_sequence_id: ReferenceSequenceId,
         initial_alignment_start: Itf8,
     ) -> Self {
         Self {
@@ -112,10 +112,10 @@ where
     }
 
     fn read_positional_data(&mut self, record: &mut Record) -> io::Result<()> {
-        record.reference_id = if self.reference_sequence_id == -2 {
+        record.reference_id = if self.reference_sequence_id.is_many() {
             self.read_reference_id()?
         } else {
-            self.reference_sequence_id
+            i32::from(self.reference_sequence_id)
         };
 
         record.read_length = self.read_read_length()?;

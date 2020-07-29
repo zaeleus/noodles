@@ -116,7 +116,18 @@ where
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         validate_reference_sequences(header.reference_sequences())?;
 
-        let container_header = container::Header::new(0, -1, 0, 0, 0, 0, 0, 1, vec![0], 0);
+        let container_header = container::Header::new(
+            0,
+            container::ReferenceSequenceId::None,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            vec![0],
+            0,
+        );
 
         let header_data = header.to_string().into_bytes();
         let header_data_len = header_data.len() as i32;
@@ -191,7 +202,7 @@ where
     let length = len as i32;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
-    let reference_sequence_id = header.reference_sequence_id();
+    let reference_sequence_id = i32::from(header.reference_sequence_id());
     write_itf8(&mut crc_writer, reference_sequence_id)?;
 
     let starting_position_on_the_reference = header.start_position();
