@@ -52,11 +52,35 @@ impl Header {
         self.alignment_start
     }
 
+    pub fn alignment_span(&self) -> Itf8 {
+        self.alignment_span
+    }
+
     pub fn record_count(&self) -> Itf8 {
         self.record_count
     }
 
+    pub fn record_counter(&self) -> Ltf8 {
+        self.record_counter
+    }
+
     pub fn block_count(&self) -> Itf8 {
         self.block_count
+    }
+
+    pub fn block_content_ids(&self) -> &[Itf8] {
+        &self.block_content_ids
+    }
+
+    pub fn embedded_reference_bases_block_content_id(&self) -> Itf8 {
+        self.embedded_reference_bases_block_content_id
+    }
+
+    pub fn reference_md5(&self) -> &[u8] {
+        &self.reference_md5
+    }
+
+    pub fn optional_tags(&self) -> &[u8] {
+        &self.optional_tags
     }
 }
