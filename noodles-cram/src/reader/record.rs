@@ -64,10 +64,9 @@ where
 
         let preservation_map = self.compression_header.preservation_map();
 
+        // Missing read names are generated when resolving mates.
         if preservation_map.read_names_included() {
             record.read_name = self.read_read_name()?;
-        } else {
-            todo!("generate name");
         }
 
         self.read_mate_data(record)?;

@@ -75,11 +75,11 @@ impl Slice {
 
     pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
         use std::{
-            cell::{Ref, RefCell, RefMut},
+            cell::{RefCell, RefMut},
             rc::Rc,
         };
 
-        fn set_mate(mut record: RefMut<Record>, mate: Ref<Record>) {
+        fn set_mate(mut record: RefMut<Record>, mut mate: RefMut<Record>) {
             let mate_bam_flags = mate.bam_bit_flags();
 
             if mate_bam_flags.is_reverse_complemented() {
@@ -89,6 +89,10 @@ impl Slice {
 
             if mate_bam_flags.is_unmapped() {
                 record.bam_bit_flags |= u16::from(sam::record::Flags::MATE_UNMAPPED) as i32;
+            }
+
+            if mate.read_name.is_empty() {
+                mate.read_name.extend(record.read_name.iter());
             }
 
             record.next_fragment_reference_sequence_id = mate.reference_id;
@@ -119,16 +123,22 @@ impl Slice {
             }
 
             let mut record = record_cell.borrow_mut();
+
+            if record.read_name.is_empty() {
+                let read_name = record.id.to_string().into_bytes();
+                record.read_name.extend(read_name);
+            }
+
             let mut j = i;
 
             while let Some(mate_index) = mate_indicies[j] {
-                let mate = records[mate_index].borrow();
+                let mate = records[mate_index].borrow_mut();
                 set_mate(record, mate);
                 record = records[mate_index].borrow_mut();
                 j = mate_index;
             }
 
-            let mate = record_cell.borrow();
+            let mate = record_cell.borrow_mut();
             set_mate(record, mate);
 
             // TODO: calculate template size
