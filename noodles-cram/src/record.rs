@@ -10,6 +10,7 @@ use noodles_sam as sam;
 
 #[derive(Clone, Debug, Default)]
 pub struct Record {
+    pub id: i64,
     pub bam_bit_flags: i32,
     pub cram_bit_flags: i32,
     pub reference_id: i32,

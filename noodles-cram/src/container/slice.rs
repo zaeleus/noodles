@@ -59,11 +59,13 @@ impl Slice {
             self.header.alignment_start(),
         );
 
+        let record_counter = self.header().record_counter();
         let records_len = self.header().record_count() as usize;
         let mut records = Vec::with_capacity(records_len);
 
-        for _ in 0..records_len {
+        for i in 0..records_len {
             let mut record = Record::default();
+            record.id = record_counter + (i as i64);
             record_reader.read_record(&mut record)?;
             records.push(record);
         }
