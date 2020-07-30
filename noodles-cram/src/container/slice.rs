@@ -8,6 +8,8 @@ use std::{
     io::{self, Cursor},
 };
 
+use noodles_sam as sam;
+
 use crate::{reader, BitReader, Record};
 
 use super::{Block, CompressionHeader};
@@ -67,6 +69,73 @@ impl Slice {
         }
 
         Ok(records)
+    }
+
+    pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
+        use std::{
+            cell::{Ref, RefCell, RefMut},
+            rc::Rc,
+        };
+
+        fn set_mate(mut record: RefMut<Record>, mate: Ref<Record>) {
+            let mate_bam_flags = mate.bam_bit_flags();
+
+            if mate_bam_flags.is_reverse_complemented() {
+                record.bam_bit_flags |=
+                    u16::from(sam::record::Flags::MATE_REVERSE_COMPLEMENTED) as i32;
+            }
+
+            if mate_bam_flags.is_unmapped() {
+                record.bam_bit_flags |= u16::from(sam::record::Flags::MATE_UNMAPPED) as i32;
+            }
+
+            record.next_fragment_reference_sequence_id = mate.reference_id;
+            record.next_mate_alignment_start = mate.alignment_start;
+        }
+
+        let records: Vec<_> = records
+            .into_iter()
+            .map(|r| Rc::new(RefCell::new(r)))
+            .collect();
+
+        let mut mate_indicies = vec![None; records.len()];
+
+        for (i, record_cell) in records.iter().enumerate() {
+            let record = record_cell.borrow();
+            let cram_flags = record.cram_bit_flags();
+
+            if cram_flags.has_mate_downstream() {
+                let distance_to_next_fragment = record.distance_to_next_fragment as usize;
+                let mate_index = i + distance_to_next_fragment + 1;
+                mate_indicies[i] = Some(mate_index);
+            }
+        }
+
+        for (i, record_cell) in records.iter().enumerate() {
+            if mate_indicies[i].is_none() {
+                continue;
+            }
+
+            let mut record = record_cell.borrow_mut();
+            let mut j = i;
+
+            while let Some(mate_index) = mate_indicies[j] {
+                let mate = records[mate_index].borrow();
+                set_mate(record, mate);
+                record = records[mate_index].borrow_mut();
+                j = mate_index;
+            }
+
+            let mate = record_cell.borrow();
+            set_mate(record, mate);
+
+            // TODO: calculate template size
+        }
+
+        records
+            .into_iter()
+            .map(|r| Rc::try_unwrap(r).unwrap().into_inner())
+            .collect()
     }
 }
 
