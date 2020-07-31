@@ -1,4 +1,4 @@
-//! VCF record and components.
+//! VCF header record and components.
 
 pub mod key;
 mod parser;
