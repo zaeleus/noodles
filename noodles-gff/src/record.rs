@@ -89,6 +89,8 @@ impl Record {
 
     /// Returns the start position of the record.
     ///
+    /// This value is 1-based.
+    ///
     /// # Examples
     ///
     /// ```
