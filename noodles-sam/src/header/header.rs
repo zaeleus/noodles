@@ -188,27 +188,23 @@ impl TryFrom<&[(String, String)]> for Header {
     type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut header = Header::default();
-
-        let mut has_version = false;
+        let mut version = None;
+        let mut fields = HashMap::new();
 
         for (raw_tag, value) in raw_fields {
             let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             if let Tag::Version = tag {
-                header.version = value.into();
-                has_version = true;
-                continue;
+                version = Some(value.into());
+            } else {
+                fields.insert(tag, value.into());
             }
-
-            header.fields.insert(tag, value.into());
         }
 
-        if !has_version {
-            return Err(ParseError::MissingRequiredTag(Tag::Version));
-        }
-
-        Ok(header)
+        Ok(Self {
+            version: version.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Version))?,
+            fields,
+        })
     }
 }
 
