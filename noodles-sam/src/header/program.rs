@@ -31,7 +31,7 @@ impl Program {
     pub fn new(id: String) -> Self {
         Self {
             id,
-            ..Default::default()
+            fields: HashMap::new(),
         }
     }
 
@@ -131,15 +131,6 @@ impl Program {
     }
 }
 
-impl Default for Program {
-    fn default() -> Self {
-        Self {
-            id: String::new(),
-            fields: HashMap::new(),
-        }
-    }
-}
-
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::Program)?;
@@ -177,27 +168,23 @@ impl TryFrom<&[(String, String)]> for Program {
     type Error = ParseError;
 
     fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut program = Program::default();
-
-        let mut has_id = false;
+        let mut id = None;
+        let mut fields = HashMap::new();
 
         for (raw_tag, value) in raw_fields {
             let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
 
             if let Tag::Id = tag {
-                program.id = value.into();
-                has_id = true;
-                continue;
+                id = Some(value.into());
+            } else {
+                fields.insert(tag, value.into());
             }
-
-            program.fields.insert(tag, value.into());
         }
 
-        if !has_id {
-            return Err(ParseError::MissingRequiredTag(Tag::Id));
-        }
-
-        Ok(program)
+        Ok(Self {
+            id: id.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Id))?,
+            fields,
+        })
     }
 }
 
