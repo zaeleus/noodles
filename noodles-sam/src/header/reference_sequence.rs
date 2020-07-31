@@ -7,7 +7,7 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
 pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
 
-use super::record;
+use super::{record, Record};
 
 /// A SAM header reference sequence.
 ///
@@ -198,6 +198,8 @@ impl fmt::Display for ReferenceSequence {
 /// An error returned when a raw SAM header reference sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The record is invalid.
+    InvalidRecord,
     /// A required tag is missing.
     MissingRequiredTag(Tag),
     /// A tag is invalid.
@@ -211,6 +213,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
@@ -218,36 +221,43 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl TryFrom<&[(String, String)]> for ReferenceSequence {
+impl TryFrom<Record> for ReferenceSequence {
     type Error = ParseError;
 
-    fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut name = None;
-        let mut len = None;
-        let mut fields = HashMap::new();
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        match record.into() {
+            (record::Kind::ReferenceSequence, record::Value::Map(fields)) => parse_map(fields),
+            _ => Err(ParseError::InvalidRecord),
+        }
+    }
+}
 
-        for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, ParseError> {
+    let mut name = None;
+    let mut len = None;
+    let mut fields = HashMap::new();
 
-            match tag {
-                Tag::Name => {
-                    name = Some(value.into());
-                }
-                Tag::Length => {
-                    len = value.parse().map(Some).map_err(ParseError::InvalidLength)?;
-                }
-                _ => {
-                    fields.insert(tag, value.into());
-                }
+    for (raw_tag, value) in raw_fields {
+        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+
+        match tag {
+            Tag::Name => {
+                name = Some(value);
+            }
+            Tag::Length => {
+                len = value.parse().map(Some).map_err(ParseError::InvalidLength)?;
+            }
+            _ => {
+                fields.insert(tag, value);
             }
         }
-
-        Ok(Self {
-            name: name.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Name))?,
-            len: len.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Length))?,
-            fields,
-        })
     }
+
+    Ok(ReferenceSequence {
+        name: name.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Name))?,
+        len: len.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Length))?,
+        fields,
+    })
 }
 
 #[cfg(test)]
@@ -270,56 +280,81 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_missing_name() {
-        let fields = [
-            (String::from("LN"), String::from("1")),
-            (
-                String::from("M5"),
-                String::from("d7eba311421bbc9d3ada44709dd61534"),
-            ),
-        ];
+    fn test_from_str_with_invalid_record() {
+        let record = Record::new(
+            record::Kind::Comment,
+            record::Value::String(String::from("noodles-sam")),
+        );
 
         assert_eq!(
-            ReferenceSequence::try_from(&fields[..]),
+            ReferenceSequence::try_from(record),
+            Err(ParseError::InvalidRecord)
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_missing_name() {
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::Map(vec![
+                (String::from("LN"), String::from("1")),
+                (
+                    String::from("M5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+            ]),
+        );
+
+        assert_eq!(
+            ReferenceSequence::try_from(record),
             Err(ParseError::MissingRequiredTag(Tag::Name))
         );
     }
 
     #[test]
     fn test_from_str_with_missing_length() {
-        let fields = [
-            (String::from("SN"), String::from("sq0")),
-            (
-                String::from("M5"),
-                String::from("d7eba311421bbc9d3ada44709dd61534"),
-            ),
-        ];
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::Map(vec![
+                (String::from("SN"), String::from("sq0")),
+                (
+                    String::from("M5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+            ]),
+        );
 
         assert_eq!(
-            ReferenceSequence::try_from(&fields[..]),
+            ReferenceSequence::try_from(record),
             Err(ParseError::MissingRequiredTag(Tag::Length))
         );
     }
 
     #[test]
     fn test_from_str_with_missing_name_and_length() {
-        let fields = [(
-            String::from("M5"),
-            String::from("d7eba311421bbc9d3ada44709dd61534"),
-        )];
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::Map(vec![(
+                String::from("M5"),
+                String::from("d7eba311421bbc9d3ada44709dd61534"),
+            )]),
+        );
 
         assert_eq!(
-            ReferenceSequence::try_from(&fields[..]),
+            ReferenceSequence::try_from(record),
             Err(ParseError::MissingRequiredTag(Tag::Name))
         );
     }
 
     #[test]
     fn test_from_str_with_invalid_length() {
-        let fields = [(String::from("LN"), String::from("thirteen"))];
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::Map(vec![(String::from("LN"), String::from("thirteen"))]),
+        );
 
         assert!(matches!(
-            ReferenceSequence::try_from(&fields[..]),
+            ReferenceSequence::try_from(record),
             Err(ParseError::InvalidLength(_))
         ));
     }

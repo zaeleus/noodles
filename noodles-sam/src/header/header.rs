@@ -17,7 +17,7 @@ pub use self::{
     group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
 };
 
-use super::record;
+use super::{record, Record};
 
 static VERSION: &str = "1.6";
 
@@ -167,6 +167,8 @@ impl fmt::Display for Header {
 /// An error returned when a raw SAM header header fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The record is invalid.
+    InvalidRecord,
     /// A required tag is missing.
     MissingRequiredTag(Tag),
     /// A tag is invalid.
@@ -178,34 +180,42 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
         }
     }
 }
 
-impl TryFrom<&[(String, String)]> for Header {
+impl TryFrom<Record> for Header {
     type Error = ParseError;
 
-    fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut version = None;
-        let mut fields = HashMap::new();
-
-        for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
-
-            if let Tag::Version = tag {
-                version = Some(value.into());
-            } else {
-                fields.insert(tag, value.into());
-            }
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        match record.into() {
+            (record::Kind::Header, record::Value::Map(fields)) => parse_map(fields),
+            _ => Err(ParseError::InvalidRecord),
         }
-
-        Ok(Self {
-            version: version.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Version))?,
-            fields,
-        })
     }
+}
+
+fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, ParseError> {
+    let mut version = None;
+    let mut fields = HashMap::new();
+
+    for (raw_tag, value) in raw_fields {
+        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+
+        if let Tag::Version = tag {
+            version = Some(value);
+        } else {
+            fields.insert(tag, value);
+        }
+    }
+
+    Ok(Header {
+        version: version.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Version))?,
+        fields,
+    })
 }
 
 #[cfg(test)]
@@ -234,11 +244,24 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_with_invalid_record() {
+        let record = Record::new(
+            record::Kind::Comment,
+            record::Value::String(String::from("noodles-sam")),
+        );
+
+        assert_eq!(Header::try_from(record), Err(ParseError::InvalidRecord));
+    }
+
+    #[test]
     fn test_from_str_with_no_version() {
-        let fields = [(String::from("SO"), String::from("coordinate"))];
+        let record = Record::new(
+            record::Kind::Header,
+            record::Value::Map(vec![(String::from("SO"), String::from("coordinate"))]),
+        );
 
         assert_eq!(
-            Header::try_from(&fields[..]),
+            Header::try_from(record),
             Err(ParseError::MissingRequiredTag(Tag::Version))
         );
     }

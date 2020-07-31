@@ -1,27 +1,66 @@
-mod kind;
+//! SAM header record and components.
+
+pub mod kind;
+mod value;
 
 use std::{error, fmt, str::FromStr};
 
-pub use self::kind::Kind;
-
-type Field = (String, String);
+pub use self::{kind::Kind, value::Value};
 
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
 
-/// A SAM header record.
+/// A generic SAM header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Record {
-    /// A header record (`@HD`).
-    Header(Vec<Field>),
-    /// A reference sequence record (`@SQ`).
-    ReferenceSequence(Vec<Field>),
-    /// A read group record (`@RG`).
-    ReadGroup(Vec<Field>),
-    /// A program record (`@PG`).
-    Program(Vec<Field>),
-    /// A comment record (`CO`).
-    Comment(String),
+pub struct Record {
+    kind: Kind,
+    value: Value,
+}
+
+impl Record {
+    /// Creates a generic SAM header record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
+    /// ```
+    pub fn new(kind: Kind, value: Value) -> Self {
+        Self { kind, value }
+    }
+
+    /// Returns the kind of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
+    /// assert_eq!(record.kind(), Kind::Comment);
+    /// ```
+    pub fn kind(&self) -> Kind {
+        self.kind
+    }
+
+    /// Returns the value of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{record::{Kind, Value}, Record};
+    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
+    /// assert_eq!(record.value(), &Value::String(String::from("noodles-sam")));
+    /// ```
+    pub fn value(&self) -> &Value {
+        &self.value
+    }
+}
+
+impl From<Record> for (Kind, Value) {
+    fn from(record: Record) -> Self {
+        (record.kind, record.value)
+    }
 }
 
 /// An error returned when a raw SAM header record fails to parse.
@@ -63,13 +102,13 @@ impl FromStr for Record {
             .ok_or_else(|| ParseError::MissingKind)
             .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
-        let record = if let Kind::Comment = kind {
+        let value = if let Kind::Comment = kind {
             pieces
                 .next()
-                .map(|s| Self::Comment(s.into()))
+                .map(|s| Value::String(s.into()))
                 .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))?
         } else {
-            let fields = pieces
+            pieces
                 .map(|field| {
                     let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
 
@@ -80,18 +119,11 @@ impl FromStr for Record {
 
                     Ok((tag.into(), value.into()))
                 })
-                .collect::<Result<_, _>>()?;
-
-            match kind {
-                Kind::Header => Self::Header(fields),
-                Kind::ReferenceSequence => Self::ReferenceSequence(fields),
-                Kind::ReadGroup => Self::ReadGroup(fields),
-                Kind::Program => Self::Program(fields),
-                Kind::Comment => unreachable!(),
-            }
+                .collect::<Result<_, _>>()
+                .map(Value::Map)?
         };
 
-        Ok(record)
+        Ok(Record::new(kind, value))
     }
 }
 
@@ -103,39 +135,45 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "@HD\tVN:1.6".parse(),
-            Ok(Record::Header(vec![(
-                String::from("VN"),
-                String::from("1.6")
-            )]))
+            Ok(Record::new(
+                Kind::Header,
+                Value::Map(vec![(String::from("VN"), String::from("1.6"))])
+            ))
         );
 
         assert_eq!(
             "@SQ\tSN:sq0\tLN:8".parse(),
-            Ok(Record::ReferenceSequence(vec![
-                (String::from("SN"), String::from("sq0")),
-                (String::from("LN"), String::from("8")),
-            ]))
+            Ok(Record::new(
+                Kind::ReferenceSequence,
+                Value::Map(vec![
+                    (String::from("SN"), String::from("sq0")),
+                    (String::from("LN"), String::from("8")),
+                ])
+            ))
         );
 
         assert_eq!(
             "@RG\tID:rg0".parse(),
-            Ok(Record::ReadGroup(vec![(
-                String::from("ID"),
-                String::from("rg0")
-            )]))
+            Ok(Record::new(
+                Kind::ReadGroup,
+                Value::Map(vec![(String::from("ID"), String::from("rg0"))])
+            ))
         );
 
         assert_eq!(
             "@PG\tID:pg0".parse(),
-            Ok(Record::Program(vec![(
-                String::from("ID"),
-                String::from("pg0")
-            )]))
+            Ok(Record::new(
+                Kind::Program,
+                Value::Map(vec![(String::from("ID"), String::from("pg0"))])
+            ))
         );
 
         assert_eq!(
-            "@CO\tnoodles".parse(),
-            Ok(Record::Comment(String::from("noodles")))
+            "@CO\tnoodles-sam".parse(),
+            Ok(Record::new(
+                Kind::Comment,
+                Value::String(String::from("noodles-sam"))
+            ))
         );
 
         assert_eq!(

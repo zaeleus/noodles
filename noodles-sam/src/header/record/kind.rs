@@ -1,11 +1,19 @@
+//! SAM header record kind.
+
 use std::{error, fmt, str::FromStr};
 
+/// A SAM header record kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
+    /// Header (`HD`).
     Header,
+    /// Reference sequence (`SQ`).
     ReferenceSequence,
+    /// Read group (`RG`).
     ReadGroup,
+    /// Program (`PG`).
     Program,
+    /// Comment (`CO`).
     Comment,
 }
 
@@ -27,9 +35,12 @@ impl fmt::Display for Kind {
     }
 }
 
+/// An error returned when a raw SAM header record kind fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The input is invalid.
     Invalid,
 }
 

@@ -64,7 +64,7 @@ mod builder;
 pub mod header;
 pub mod program;
 pub mod read_group;
-mod record;
+pub mod record;
 pub mod reference_sequence;
 
 use std::{convert::TryFrom, error, fmt, str::FromStr};
@@ -411,6 +411,8 @@ pub enum ParseError {
     InvalidReadGroup(read_group::ParseError),
     /// A program record is invalid.
     InvalidProgram(program::ParseError),
+    /// A comment record is invalid.
+    InvalidComment,
 }
 
 impl error::Error for ParseError {}
@@ -424,6 +426,7 @@ impl fmt::Display for ParseError {
             Self::InvalidReferenceSequence(e) => write!(f, "{}", e),
             Self::InvalidReadGroup(e) => write!(f, "{}", e),
             Self::InvalidProgram(e) => write!(f, "{}", e),
+            Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }
 }
@@ -457,35 +460,36 @@ impl FromStr for Header {
         let mut builder = Header::builder();
 
         for (i, line) in s.lines().enumerate() {
-            let record = line.parse().map_err(ParseError::InvalidRecord)?;
+            let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            builder = match record {
-                Record::Header(fields) => {
+            builder = match record.kind() {
+                record::Kind::Header => {
                     if i == 0 {
                         builder.set_header(
-                            header::Header::try_from(&fields[..])
-                                .map_err(ParseError::InvalidHeader)?,
+                            header::Header::try_from(record).map_err(ParseError::InvalidHeader)?,
                         )
                     } else {
                         return Err(ParseError::UnexpectedHeader);
                     }
                 }
-                Record::ReferenceSequence(fields) => {
-                    let reference_sequence = ReferenceSequence::try_from(&fields[..])
+                record::Kind::ReferenceSequence => {
+                    let reference_sequence = ReferenceSequence::try_from(record)
                         .map_err(ParseError::InvalidReferenceSequence)?;
                     builder.add_reference_sequence(reference_sequence)
                 }
-                Record::ReadGroup(fields) => {
+                record::Kind::ReadGroup => {
                     let read_group =
-                        ReadGroup::try_from(&fields[..]).map_err(ParseError::InvalidReadGroup)?;
+                        ReadGroup::try_from(record).map_err(ParseError::InvalidReadGroup)?;
                     builder.add_read_group(read_group)
                 }
-                Record::Program(fields) => {
-                    let program =
-                        Program::try_from(&fields[..]).map_err(ParseError::InvalidProgram)?;
+                record::Kind::Program => {
+                    let program = Program::try_from(record).map_err(ParseError::InvalidProgram)?;
                     builder.add_program(program)
                 }
-                Record::Comment(comment) => builder.add_comment(comment),
+                record::Kind::Comment => match record.value() {
+                    record::Value::String(comment) => builder.add_comment(comment),
+                    _ => return Err(ParseError::InvalidComment),
+                },
             };
         }
 

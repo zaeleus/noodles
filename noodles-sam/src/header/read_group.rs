@@ -7,7 +7,7 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{platform::Platform, tag::Tag};
 
-use super::record;
+use super::{record, Record};
 
 /// A SAM header read group.
 ///
@@ -149,6 +149,8 @@ impl fmt::Display for ReadGroup {
 /// An error returned when a raw SAM header read group fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The record is invalid.
+    InvalidRecord,
     /// A required tag is missing.
     MissingRequiredTag(Tag),
     /// A tag is invalid.
@@ -160,34 +162,42 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
         }
     }
 }
 
-impl TryFrom<&[(String, String)]> for ReadGroup {
+impl TryFrom<Record> for ReadGroup {
     type Error = ParseError;
 
-    fn try_from(raw_fields: &[(String, String)]) -> Result<Self, Self::Error> {
-        let mut id = None;
-        let mut fields = HashMap::new();
-
-        for (raw_tag, value) in raw_fields {
-            let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
-
-            if let Tag::Id = tag {
-                id = Some(value.into());
-            } else {
-                fields.insert(tag, value.into());
-            }
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        match record.into() {
+            (record::Kind::ReadGroup, record::Value::Map(fields)) => parse_map(fields),
+            _ => Err(ParseError::InvalidRecord),
         }
-
-        Ok(Self {
-            id: id.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Id))?,
-            fields,
-        })
     }
+}
+
+fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReadGroup, ParseError> {
+    let mut id = None;
+    let mut fields = HashMap::new();
+
+    for (raw_tag, value) in raw_fields {
+        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+
+        if let Tag::Id = tag {
+            id = Some(value);
+        } else {
+            fields.insert(tag, value);
+        }
+    }
+
+    Ok(ReadGroup {
+        id: id.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Id))?,
+        fields,
+    })
 }
 
 #[cfg(test)]
@@ -209,11 +219,24 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_with_invalid_record() {
+        let record = Record::new(
+            record::Kind::Comment,
+            record::Value::String(String::from("noodles-sam")),
+        );
+
+        assert_eq!(ReadGroup::try_from(record), Err(ParseError::InvalidRecord));
+    }
+
+    #[test]
     fn test_from_str_with_no_id() {
-        let fields = [(String::from("PG"), String::from("noodles"))];
+        let record = Record::new(
+            record::Kind::ReadGroup,
+            record::Value::Map(vec![(String::from("PG"), String::from("noodles"))]),
+        );
 
         assert_eq!(
-            ReadGroup::try_from(&fields[..]),
+            ReadGroup::try_from(record),
             Err(ParseError::MissingRequiredTag(Tag::Id))
         );
     }
