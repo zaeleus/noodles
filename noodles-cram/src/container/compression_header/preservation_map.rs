@@ -1,6 +1,7 @@
+pub mod key;
 pub mod substitution_matrix;
 
-pub use substitution_matrix::SubstitutionMatrix;
+pub use {key::Key, substitution_matrix::SubstitutionMatrix};
 
 pub type TagIdsDictionary = Vec<Vec<Vec<u8>>>;
 

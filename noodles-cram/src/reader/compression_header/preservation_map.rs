@@ -6,7 +6,9 @@ use std::{
 use byteorder::ReadBytesExt;
 
 use crate::{
-    container::compression_header::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
+    container::compression_header::{
+        preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
+    },
     num::read_itf8,
 };
 
@@ -28,17 +30,20 @@ where
     for _ in 0..map_len {
         buf_reader.read_exact(&mut key_buf)?;
 
-        match &key_buf[..] {
-            b"RN" => {
+        let key = Key::try_from(&key_buf[..])
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        match key {
+            Key::ReadNamesIncluded => {
                 *map.read_names_included_mut() = read_bool(&mut buf_reader)?;
             }
-            b"AP" => {
+            Key::ApDataSeriesDelta => {
                 *map.ap_data_series_delta_mut() = read_bool(&mut buf_reader)?;
             }
-            b"RR" => {
+            Key::ReferenceRequired => {
                 *map.reference_required_mut() = read_bool(&mut buf_reader)?;
             }
-            b"SM" => {
+            Key::SubstitutionMatrix => {
                 let mut buf = [0; 5];
                 buf_reader.read_exact(&mut buf[..])?;
 
@@ -47,14 +52,8 @@ where
 
                 *map.substitution_matrix_mut() = matrix;
             }
-            b"TD" => {
+            Key::TagIdsDictionary => {
                 *map.tag_ids_dictionary_mut() = read_tag_ids_dictionary(&mut buf_reader)?;
-            }
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid map key",
-                ))
             }
         }
     }
