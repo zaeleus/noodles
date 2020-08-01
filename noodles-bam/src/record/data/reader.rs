@@ -4,7 +4,10 @@ mod fields;
 
 pub use self::fields::Fields;
 
-use std::io::{self, BufRead};
+use std::{
+    io::{self, BufRead},
+    str,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -73,7 +76,7 @@ where
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
         let tag = match self.read_tag() {
-            Ok(data) => String::from_utf8(data)
+            Ok(ref data) => str::from_utf8(data)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 .and_then(|s| {
                     s.parse()
@@ -87,8 +90,8 @@ where
         Ok(Some(Field::new(tag, value)))
     }
 
-    fn read_tag(&mut self) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; 2];
+    fn read_tag(&mut self) -> io::Result<[u8; 2]> {
+        let mut buf = [0; 2];
         self.inner.read_exact(&mut buf)?;
         Ok(buf)
     }
