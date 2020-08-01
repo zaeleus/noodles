@@ -13,7 +13,10 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{
-    field::{value::Type, Value},
+    field::{
+        value::{Subtype, Type},
+        Value,
+    },
     Field,
 };
 
@@ -141,49 +144,48 @@ fn read_array<R>(reader: &mut R) -> io::Result<Value>
 where
     R: BufRead,
 {
-    let subtype = reader.read_u8()?;
+    let subtype = reader.read_u8().and_then(|b| {
+        Subtype::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let len = reader.read_i32::<LittleEndian>()? as usize;
 
     match subtype {
-        b'c' => {
+        Subtype::Int8 => {
             let mut buf = vec![0; len];
             reader.read_i8_into(&mut buf)?;
             Ok(Value::Int8Array(buf))
         }
-        b'C' => {
+        Subtype::UInt8 => {
             let mut buf = vec![0; len];
             reader.read_exact(&mut buf)?;
             Ok(Value::UInt8Array(buf))
         }
-        b's' => {
+        Subtype::Int16 => {
             let mut buf = vec![0; len];
             reader.read_i16_into::<LittleEndian>(&mut buf)?;
             Ok(Value::Int16Array(buf))
         }
-        b'S' => {
+        Subtype::UInt16 => {
             let mut buf = vec![0; len];
             reader.read_u16_into::<LittleEndian>(&mut buf)?;
             Ok(Value::UInt16Array(buf))
         }
-        b'i' => {
+        Subtype::Int32 => {
             let mut buf = vec![0; len];
             reader.read_i32_into::<LittleEndian>(&mut buf)?;
             Ok(Value::Int32Array(buf))
         }
-        b'I' => {
+        Subtype::UInt32 => {
             let mut buf = vec![0; len];
             reader.read_u32_into::<LittleEndian>(&mut buf)?;
             Ok(Value::UInt32Array(buf))
         }
-        b'f' => {
+        Subtype::Float => {
             let mut buf = vec![0.0; len];
             reader.read_f32_into::<LittleEndian>(&mut buf)?;
             Ok(Value::FloatArray(buf))
         }
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("invalid field type 'B{}'", subtype),
-        )),
     }
 }
 

@@ -1,8 +1,9 @@
 //! BAM record data field value and types.
 
+pub mod subtype;
 pub mod ty;
 
-pub use self::ty::Type;
+pub use self::{subtype::Subtype, ty::Type};
 
 /// A BAM record data field value.
 ///
@@ -98,26 +99,26 @@ impl Value {
         }
     }
 
-    /// Returns the encoded subtype of the value.
+    /// Returns the subtype of the value.
     ///
     /// Only arrays have subtypes.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::Value;
-    /// assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some('C'));
+    /// use noodles_bam::record::data::field::{value::Subtype, Value};
+    /// assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
     /// assert_eq!(Value::Int32(0).subtype(), None);
     /// ```
-    pub fn subtype(&self) -> Option<char> {
+    pub fn subtype(&self) -> Option<Subtype> {
         match *self {
-            Self::Int8Array(_) => Some('c'),
-            Self::UInt8Array(_) => Some('C'),
-            Self::Int16Array(_) => Some('s'),
-            Self::UInt16Array(_) => Some('S'),
-            Self::Int32Array(_) => Some('i'),
-            Self::UInt32Array(_) => Some('I'),
-            Self::FloatArray(_) => Some('f'),
+            Self::Int8Array(_) => Some(Subtype::Int8),
+            Self::UInt8Array(_) => Some(Subtype::UInt8),
+            Self::Int16Array(_) => Some(Subtype::Int16),
+            Self::UInt16Array(_) => Some(Subtype::UInt16),
+            Self::Int32Array(_) => Some(Subtype::Int32),
+            Self::UInt32Array(_) => Some(Subtype::UInt32),
+            Self::FloatArray(_) => Some(Subtype::Float),
             _ => None,
         }
     }
@@ -658,12 +659,12 @@ mod tests {
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
         assert_eq!(Value::Hex(String::from("cafe")).subtype(), None);
-        assert_eq!(Value::Int8Array(vec![0]).subtype(), Some('c'));
-        assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some('C'));
-        assert_eq!(Value::Int16Array(vec![0]).subtype(), Some('s'));
-        assert_eq!(Value::UInt16Array(vec![0]).subtype(), Some('S'));
-        assert_eq!(Value::Int32Array(vec![0]).subtype(), Some('i'));
-        assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some('I'));
-        assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some('f'));
+        assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
+        assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
+        assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
+        assert_eq!(Value::UInt16Array(vec![0]).subtype(), Some(Subtype::UInt16));
+        assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
+        assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
+        assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
     }
 }
