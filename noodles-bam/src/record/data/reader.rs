@@ -5,13 +5,17 @@ mod fields;
 pub use self::fields::Fields;
 
 use std::{
-    io::{self, BufRead},
+    convert::TryFrom,
+    io::{self, BufRead, Read},
     str,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{field::Value, Field};
+use super::{
+    field::{value::Type, Value},
+    Field,
+};
 
 /// A BAM record data reader.
 pub struct Reader<R>
@@ -75,7 +79,7 @@ where
     }
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
-        let tag = match self.read_tag() {
+        let tag = match read_tag(&mut self.inner) {
             Ok(ref data) => str::from_utf8(data)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 .and_then(|s| {
@@ -85,149 +89,101 @@ where
             Err(_) => return Ok(None),
         };
 
-        let value = self.read_value()?;
+        let ty = self.inner.read_u8().and_then(|b| {
+            Type::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        let value = read_value_type(&mut self.inner, ty)?;
 
         Ok(Some(Field::new(tag, value)))
     }
+}
 
-    fn read_tag(&mut self) -> io::Result<[u8; 2]> {
-        let mut buf = [0; 2];
-        self.inner.read_exact(&mut buf)?;
-        Ok(buf)
+fn read_tag<R>(reader: &mut R) -> io::Result<[u8; 2]>
+where
+    R: Read,
+{
+    let mut buf = [0; 2];
+    reader.read_exact(&mut buf)?;
+    Ok(buf)
+}
+
+fn read_value_type<R>(reader: &mut R, ty: Type) -> io::Result<Value>
+where
+    R: BufRead,
+{
+    match ty {
+        Type::Char => reader.read_u8().map(char::from).map(Value::Char),
+        Type::Int8 => reader.read_i8().map(Value::Int8),
+        Type::UInt8 => reader.read_u8().map(Value::UInt8),
+        Type::Int16 => reader.read_i16::<LittleEndian>().map(Value::Int16),
+        Type::UInt16 => reader.read_u16::<LittleEndian>().map(Value::UInt16),
+        Type::Int32 => reader.read_i32::<LittleEndian>().map(Value::Int32),
+        Type::UInt32 => reader.read_u32::<LittleEndian>().map(Value::UInt32),
+        Type::Float => reader.read_f32::<LittleEndian>().map(Value::Float),
+        Type::String => read_string(reader).map(Value::String),
+        Type::Hex => read_string(reader).map(Value::Hex),
+        Type::Array => read_array(reader),
     }
+}
 
-    fn read_value(&mut self) -> io::Result<Value> {
-        let ty = self.read_char()?;
+fn read_string<R>(reader: &mut R) -> io::Result<String>
+where
+    R: BufRead,
+{
+    let mut buf = Vec::new();
+    reader.read_until(b'\0', &mut buf)?;
+    buf.pop();
+    String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
 
-        match ty {
-            'A' => self.read_char().map(Value::Char),
-            'c' => self.read_i8().map(Value::Int8),
-            'C' => self.read_u8().map(Value::UInt8),
-            's' => self.read_i16().map(Value::Int16),
-            'S' => self.read_u16().map(Value::UInt16),
-            'i' => self.read_i32().map(Value::Int32),
-            'I' => self.read_u32().map(Value::UInt32),
-            'f' => self.read_f32().map(Value::Float),
-            'Z' => self
-                .read_string()
-                .and_then(|v| {
-                    String::from_utf8(v).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })
-                .map(Value::String),
-            'H' => self
-                .read_hex()
-                .and_then(|v| {
-                    String::from_utf8(v).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })
-                .map(Value::Hex),
-            'B' => {
-                let ty = self.read_char()?;
-                let len = self.read_i32()? as usize;
+fn read_array<R>(reader: &mut R) -> io::Result<Value>
+where
+    R: BufRead,
+{
+    let subtype = reader.read_u8()?;
+    let len = reader.read_i32::<LittleEndian>()? as usize;
 
-                match ty {
-                    'c' => self.read_i8_array(len).map(Value::Int8Array),
-                    'C' => self.read_u8_array(len).map(Value::UInt8Array),
-                    's' => self.read_i16_array(len).map(Value::Int16Array),
-                    'S' => self.read_u16_array(len).map(Value::UInt16Array),
-                    'i' => self.read_i32_array(len).map(Value::Int32Array),
-                    'I' => self.read_u32_array(len).map(Value::UInt32Array),
-                    'f' => self.read_f32_array(len).map(Value::FloatArray),
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid field type 'B{}'", ty),
-                    )),
-                }
-            }
-            _ => Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid field type '{}'", ty),
-            )),
+    match subtype {
+        b'c' => {
+            let mut buf = vec![0; len];
+            reader.read_i8_into(&mut buf)?;
+            Ok(Value::Int8Array(buf))
         }
-    }
-
-    fn read_char(&mut self) -> io::Result<char> {
-        self.inner.read_u8().map(|b| b as char)
-    }
-
-    fn read_i8(&mut self) -> io::Result<i8> {
-        self.inner.read_i8()
-    }
-
-    fn read_u8(&mut self) -> io::Result<u8> {
-        self.inner.read_u8()
-    }
-
-    fn read_i16(&mut self) -> io::Result<i16> {
-        self.inner.read_i16::<LittleEndian>()
-    }
-
-    fn read_u16(&mut self) -> io::Result<u16> {
-        self.inner.read_u16::<LittleEndian>()
-    }
-
-    fn read_i32(&mut self) -> io::Result<i32> {
-        self.inner.read_i32::<LittleEndian>()
-    }
-
-    fn read_u32(&mut self) -> io::Result<u32> {
-        self.inner.read_u32::<LittleEndian>()
-    }
-
-    fn read_f32(&mut self) -> io::Result<f32> {
-        self.inner.read_f32::<LittleEndian>()
-    }
-
-    fn read_string(&mut self) -> io::Result<Vec<u8>> {
-        let mut buf = Vec::new();
-        self.inner.read_until(b'\0', &mut buf)?;
-        buf.pop();
-        Ok(buf)
-    }
-
-    fn read_hex(&mut self) -> io::Result<Vec<u8>> {
-        self.read_string()
-    }
-
-    fn read_i8_array(&mut self, len: usize) -> io::Result<Vec<i8>> {
-        let mut buf = vec![0; len];
-        self.inner.read_exact(&mut buf)?;
-        Ok(buf.iter().map(|&b| b as i8).collect())
-    }
-
-    fn read_u8_array(&mut self, len: usize) -> io::Result<Vec<u8>> {
-        let mut buf = vec![0; len];
-        self.inner.read_exact(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_i16_array(&mut self, len: usize) -> io::Result<Vec<i16>> {
-        let mut buf = vec![0; len];
-        self.inner.read_i16_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_u16_array(&mut self, len: usize) -> io::Result<Vec<u16>> {
-        let mut buf = vec![0; len];
-        self.inner.read_u16_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_i32_array(&mut self, len: usize) -> io::Result<Vec<i32>> {
-        let mut buf = vec![0; len];
-        self.inner.read_i32_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_u32_array(&mut self, len: usize) -> io::Result<Vec<u32>> {
-        let mut buf = vec![0; len];
-        self.inner.read_u32_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
-    }
-
-    fn read_f32_array(&mut self, len: usize) -> io::Result<Vec<f32>> {
-        let mut buf = vec![0.0; len];
-        self.inner.read_f32_into::<LittleEndian>(&mut buf)?;
-        Ok(buf)
+        b'C' => {
+            let mut buf = vec![0; len];
+            reader.read_exact(&mut buf)?;
+            Ok(Value::UInt8Array(buf))
+        }
+        b's' => {
+            let mut buf = vec![0; len];
+            reader.read_i16_into::<LittleEndian>(&mut buf)?;
+            Ok(Value::Int16Array(buf))
+        }
+        b'S' => {
+            let mut buf = vec![0; len];
+            reader.read_u16_into::<LittleEndian>(&mut buf)?;
+            Ok(Value::UInt16Array(buf))
+        }
+        b'i' => {
+            let mut buf = vec![0; len];
+            reader.read_i32_into::<LittleEndian>(&mut buf)?;
+            Ok(Value::Int32Array(buf))
+        }
+        b'I' => {
+            let mut buf = vec![0; len];
+            reader.read_u32_into::<LittleEndian>(&mut buf)?;
+            Ok(Value::UInt32Array(buf))
+        }
+        b'f' => {
+            let mut buf = vec![0.0; len];
+            reader.read_f32_into::<LittleEndian>(&mut buf)?;
+            Ok(Value::FloatArray(buf))
+        }
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid field type 'B{}'", subtype),
+        )),
     }
 }
 

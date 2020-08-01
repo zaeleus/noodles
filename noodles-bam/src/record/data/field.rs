@@ -1,6 +1,6 @@
 //! BAM record data field and values.
 
-mod value;
+pub mod value;
 
 pub use self::value::Value;
 

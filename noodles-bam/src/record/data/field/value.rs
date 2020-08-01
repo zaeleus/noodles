@@ -1,3 +1,9 @@
+//! BAM record data field value and types.
+
+pub mod ty;
+
+pub use self::ty::Type;
+
 /// A BAM record data field value.
 ///
 /// BAM record data field values support all the same types as a SAM record data field value:
@@ -62,33 +68,33 @@ pub enum Value {
 }
 
 impl Value {
-    /// Returns the encoded type of the value.
+    /// Returns the type of the value.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::Value;
-    /// assert_eq!(Value::Int32(0).ty(), 'i');
+    /// use noodles_bam::record::data::field::{value::Type, Value};
+    /// assert_eq!(Value::Int32(0).ty(), Type::Int32);
     /// ```
-    pub fn ty(&self) -> char {
+    pub fn ty(&self) -> Type {
         match *self {
-            Self::Char(_) => 'A',
-            Self::Int8(_) => 'c',
-            Self::UInt8(_) => 'C',
-            Self::Int16(_) => 's',
-            Self::UInt16(_) => 'S',
-            Self::Int32(_) => 'i',
-            Self::UInt32(_) => 'I',
-            Self::Float(_) => 'f',
-            Self::String(_) => 'Z',
-            Self::Hex(_) => 'H',
-            Self::Int8Array(_) => 'B',
-            Self::UInt8Array(_) => 'B',
-            Self::Int16Array(_) => 'B',
-            Self::UInt16Array(_) => 'B',
-            Self::Int32Array(_) => 'B',
-            Self::UInt32Array(_) => 'B',
-            Self::FloatArray(_) => 'B',
+            Self::Char(_) => Type::Char,
+            Self::Int8(_) => Type::Int8,
+            Self::UInt8(_) => Type::UInt8,
+            Self::Int16(_) => Type::Int16,
+            Self::UInt16(_) => Type::UInt16,
+            Self::Int32(_) => Type::Int32,
+            Self::UInt32(_) => Type::UInt32,
+            Self::Float(_) => Type::Float,
+            Self::String(_) => Type::String,
+            Self::Hex(_) => Type::Hex,
+            Self::Int8Array(_) => Type::Array,
+            Self::UInt8Array(_) => Type::Array,
+            Self::Int16Array(_) => Type::Array,
+            Self::UInt16Array(_) => Type::Array,
+            Self::Int32Array(_) => Type::Array,
+            Self::UInt32Array(_) => Type::Array,
+            Self::FloatArray(_) => Type::Array,
         }
     }
 
@@ -621,23 +627,23 @@ mod tests {
 
     #[test]
     fn test_ty() {
-        assert_eq!(Value::Char('m').ty(), 'A');
-        assert_eq!(Value::Int8(0).ty(), 'c');
-        assert_eq!(Value::UInt8(0).ty(), 'C');
-        assert_eq!(Value::Int16(0).ty(), 's');
-        assert_eq!(Value::UInt16(0).ty(), 'S');
-        assert_eq!(Value::Int32(0).ty(), 'i');
-        assert_eq!(Value::UInt32(0).ty(), 'I');
-        assert_eq!(Value::Float(0.0).ty(), 'f');
-        assert_eq!(Value::String(String::from("noodles")).ty(), 'Z');
-        assert_eq!(Value::Hex(String::from("cafe")).ty(), 'H');
-        assert_eq!(Value::Int8Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::UInt8Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::Int16Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::UInt16Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::Int32Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::UInt32Array(vec![0]).ty(), 'B');
-        assert_eq!(Value::FloatArray(vec![0.0]).ty(), 'B');
+        assert_eq!(Value::Char('m').ty(), Type::Char);
+        assert_eq!(Value::Int8(0).ty(), Type::Int8);
+        assert_eq!(Value::UInt8(0).ty(), Type::UInt8);
+        assert_eq!(Value::Int16(0).ty(), Type::Int16);
+        assert_eq!(Value::UInt16(0).ty(), Type::UInt16);
+        assert_eq!(Value::Int32(0).ty(), Type::Int32);
+        assert_eq!(Value::UInt32(0).ty(), Type::UInt32);
+        assert_eq!(Value::Float(0.0).ty(), Type::Float);
+        assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
+        assert_eq!(Value::Hex(String::from("cafe")).ty(), Type::Hex);
+        assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt16Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::Int32Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::UInt32Array(vec![0]).ty(), Type::Array);
+        assert_eq!(Value::FloatArray(vec![0.0]).ty(), Type::Array);
     }
 
     #[test]
