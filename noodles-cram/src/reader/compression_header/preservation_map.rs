@@ -36,7 +36,7 @@ where
                 *map.ap_data_series_delta_mut() = read_bool(&mut buf_reader)?;
             }
             b"RR" => {
-                *map.read_names_included_mut() = read_bool(&mut buf_reader)?;
+                *map.reference_required_mut() = read_bool(&mut buf_reader)?;
             }
             b"SM" => {
                 let mut buf = [0; 5];
