@@ -71,9 +71,3 @@ impl PreservationMap {
         &mut self.tag_ids_dictionary
     }
 }
-
-impl Default for PreservationMap {
-    fn default() -> Self {
-        Self::new(true, true, true, SubstitutionMatrix::default(), Vec::new())
-    }
-}

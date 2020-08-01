@@ -16,7 +16,7 @@ use super::Block;
 
 pub type TagEncodingMap = HashMap<Itf8, Encoding>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct CompressionHeader {
     preservation_map: PreservationMap,
     data_series_encoding_map: DataSeriesEncodingMap,

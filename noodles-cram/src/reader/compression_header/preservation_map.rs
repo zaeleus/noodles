@@ -24,7 +24,12 @@ where
     let mut buf_reader = &buf[..];
     let map_len = read_itf8(&mut buf_reader)?;
 
-    let mut map = PreservationMap::default();
+    let mut read_names_included = true;
+    let mut ap_data_series_delta = true;
+    let mut reference_required = true;
+    let mut substitution_matrix = None;
+    let mut tag_ids_dictionary = None;
+
     let mut key_buf = [0; 2];
 
     for _ in 0..map_len {
@@ -35,30 +40,34 @@ where
 
         match key {
             Key::ReadNamesIncluded => {
-                *map.read_names_included_mut() = read_bool(&mut buf_reader)?;
+                read_names_included = read_bool(&mut buf_reader)?;
             }
             Key::ApDataSeriesDelta => {
-                *map.ap_data_series_delta_mut() = read_bool(&mut buf_reader)?;
+                ap_data_series_delta = read_bool(&mut buf_reader)?;
             }
             Key::ReferenceRequired => {
-                *map.reference_required_mut() = read_bool(&mut buf_reader)?;
+                reference_required = read_bool(&mut buf_reader)?;
             }
             Key::SubstitutionMatrix => {
-                let mut buf = [0; 5];
-                buf_reader.read_exact(&mut buf[..])?;
-
-                let matrix = SubstitutionMatrix::try_from(&buf[..])
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                *map.substitution_matrix_mut() = matrix;
+                substitution_matrix = read_substitution_matrix(&mut buf_reader).map(Some)?;
             }
             Key::TagIdsDictionary => {
-                *map.tag_ids_dictionary_mut() = read_tag_ids_dictionary(&mut buf_reader)?;
+                tag_ids_dictionary = read_tag_ids_dictionary(&mut buf_reader).map(Some)?;
             }
         }
     }
 
-    Ok(map)
+    Ok(PreservationMap::new(
+        read_names_included,
+        ap_data_series_delta,
+        reference_required,
+        substitution_matrix.ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "missing substitution matrix")
+        })?,
+        tag_ids_dictionary.ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "missing tag IDs dictionary")
+        })?,
+    ))
 }
 
 fn read_bool<R>(reader: &mut R) -> io::Result<bool>
@@ -74,6 +83,16 @@ where
         )),
         Err(e) => Err(e),
     }
+}
+
+fn read_substitution_matrix<R>(reader: &mut R) -> io::Result<SubstitutionMatrix>
+where
+    R: Read,
+{
+    let mut buf = [0; 5];
+    reader.read_exact(&mut buf[..])?;
+    SubstitutionMatrix::try_from(&buf[..])
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>
