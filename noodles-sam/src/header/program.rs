@@ -146,7 +146,7 @@ impl fmt::Display for Program {
 
 /// An error returned when a raw SAM header program fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required tag is missing.
@@ -155,9 +155,9 @@ pub enum ParseError {
     InvalidTag(tag::ParseError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
@@ -168,22 +168,22 @@ impl fmt::Display for ParseError {
 }
 
 impl TryFrom<Record> for Program {
-    type Error = ParseError;
+    type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
             (record::Kind::Program, record::Value::Map(fields)) => parse_map(fields),
-            _ => Err(ParseError::InvalidRecord),
+            _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, ParseError> {
+fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecordError> {
     let mut id = None;
     let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
-        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+        let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         if let Tag::Id = tag {
             id = Some(value);
@@ -193,7 +193,7 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, ParseError> {
     }
 
     Ok(Program {
-        id: id.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Id))?,
+        id: id.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Id))?,
         fields,
     })
 }
@@ -221,7 +221,10 @@ mod tests {
             record::Value::String(String::from("noodles-sam")),
         );
 
-        assert_eq!(Program::try_from(record), Err(ParseError::InvalidRecord));
+        assert_eq!(
+            Program::try_from(record),
+            Err(TryFromRecordError::InvalidRecord)
+        );
     }
 
     #[test]
@@ -233,7 +236,7 @@ mod tests {
 
         assert_eq!(
             Program::try_from(record),
-            Err(ParseError::MissingRequiredTag(Tag::Id))
+            Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
     }
 }

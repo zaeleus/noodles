@@ -404,13 +404,13 @@ pub enum ParseError {
     /// The record is invalid.
     InvalidRecord(record::ParseError),
     /// A header record is invalid.
-    InvalidHeader(header::ParseError),
+    InvalidHeader(header::TryFromRecordError),
     /// A reference sequence record is invalid.
-    InvalidReferenceSequence(reference_sequence::ParseError),
+    InvalidReferenceSequence(reference_sequence::TryFromRecordError),
     /// A reference read group record is invalid.
-    InvalidReadGroup(read_group::ParseError),
+    InvalidReadGroup(read_group::TryFromRecordError),
     /// A program record is invalid.
-    InvalidProgram(program::ParseError),
+    InvalidProgram(program::TryFromRecordError),
     /// A comment record is invalid.
     InvalidComment,
 }

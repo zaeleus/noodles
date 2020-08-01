@@ -197,7 +197,7 @@ impl fmt::Display for ReferenceSequence {
 
 /// An error returned when a raw SAM header reference sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
+pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required tag is missing.
@@ -208,9 +208,9 @@ pub enum ParseError {
     InvalidLength(num::ParseIntError),
 }
 
-impl error::Error for ParseError {}
+impl error::Error for TryFromRecordError {}
 
-impl fmt::Display for ParseError {
+impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
@@ -222,30 +222,33 @@ impl fmt::Display for ParseError {
 }
 
 impl TryFrom<Record> for ReferenceSequence {
-    type Error = ParseError;
+    type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
             (record::Kind::ReferenceSequence, record::Value::Map(fields)) => parse_map(fields),
-            _ => Err(ParseError::InvalidRecord),
+            _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, ParseError> {
+fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
     let mut name = None;
     let mut len = None;
     let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
-        let tag = raw_tag.parse().map_err(ParseError::InvalidTag)?;
+        let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         match tag {
             Tag::Name => {
                 name = Some(value);
             }
             Tag::Length => {
-                len = value.parse().map(Some).map_err(ParseError::InvalidLength)?;
+                len = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidLength)?;
             }
             _ => {
                 fields.insert(tag, value);
@@ -254,8 +257,8 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Par
     }
 
     Ok(ReferenceSequence {
-        name: name.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Name))?,
-        len: len.ok_or_else(|| ParseError::MissingRequiredTag(Tag::Length))?,
+        name: name.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Name))?,
+        len: len.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Length))?,
         fields,
     })
 }
@@ -288,7 +291,7 @@ mod tests {
 
         assert_eq!(
             ReferenceSequence::try_from(record),
-            Err(ParseError::InvalidRecord)
+            Err(TryFromRecordError::InvalidRecord)
         );
     }
 
@@ -307,7 +310,7 @@ mod tests {
 
         assert_eq!(
             ReferenceSequence::try_from(record),
-            Err(ParseError::MissingRequiredTag(Tag::Name))
+            Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
     }
 
@@ -326,7 +329,7 @@ mod tests {
 
         assert_eq!(
             ReferenceSequence::try_from(record),
-            Err(ParseError::MissingRequiredTag(Tag::Length))
+            Err(TryFromRecordError::MissingRequiredTag(Tag::Length))
         );
     }
 
@@ -342,7 +345,7 @@ mod tests {
 
         assert_eq!(
             ReferenceSequence::try_from(record),
-            Err(ParseError::MissingRequiredTag(Tag::Name))
+            Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
     }
 
@@ -355,7 +358,7 @@ mod tests {
 
         assert!(matches!(
             ReferenceSequence::try_from(record),
-            Err(ParseError::InvalidLength(_))
+            Err(TryFromRecordError::InvalidLength(_))
         ));
     }
 }
