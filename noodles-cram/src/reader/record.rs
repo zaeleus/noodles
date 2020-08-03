@@ -324,7 +324,7 @@ where
         record.tags.clear();
 
         for key in tag_keys {
-            let id = (key[0] as i32) << 16 | (key[1] as i32) << 8 | (key[2] as i32);
+            let id = key.id();
             let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
 
             let data = decode_byte_array(
@@ -334,7 +334,7 @@ where
                 None,
             )?;
 
-            let tag = Tag::new([key[0], key[1]], data);
+            let tag = Tag::new(*key, data);
             record.add_tag(tag);
         }
 

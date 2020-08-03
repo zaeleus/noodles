@@ -4,12 +4,14 @@ use std::{
 };
 
 use byteorder::ReadBytesExt;
+use noodles_bam as bam;
 
 use crate::{
     container::compression_header::{
         preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
     num::read_itf8,
+    record,
 };
 
 pub fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
@@ -117,9 +119,21 @@ where
             Err(e) => return Err(e),
         }
 
-        let keys: Vec<_> = keys_buf.chunks_exact(3).map(|k| k.to_vec()).collect();
+        let mut line = Vec::new();
 
-        dictionary.push(keys);
+        for chunk in keys_buf.chunks_exact(3) {
+            let (t0, t1, ty) = (chunk[0], chunk[1], chunk[2]);
+
+            let tag = [t0, t1];
+            let ty = bam::record::data::field::value::Type::try_from(ty)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let key = record::tag::Key::new(tag, ty);
+
+            line.push(key);
+        }
+
+        dictionary.push(line);
     }
 
     Ok(dictionary)

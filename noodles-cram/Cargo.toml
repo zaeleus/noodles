@@ -10,6 +10,7 @@ bitflags = "1.2.1"
 byteorder = "1.2.3"
 bzip2 = "0.4.1"
 flate2 = "1.0.1"
+noodles-bam = { path = "../noodles-bam" }
 noodles-fasta = { path = "../noodles-fasta" }
 noodles-sam = { path = "../noodles-sam" }
 xz2 = "0.1.6"

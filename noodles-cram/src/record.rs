@@ -2,7 +2,7 @@ pub mod feature;
 mod flags;
 mod next_mate_flags;
 pub mod resolve;
-mod tag;
+pub mod tag;
 
 pub use self::{feature::Feature, flags::Flags, next_mate_flags::NextMateFlags, tag::Tag};
 

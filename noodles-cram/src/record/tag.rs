@@ -1,13 +1,15 @@
-pub type Id = [u8; 2];
+mod key;
+
+pub use self::key::Key;
 
 #[derive(Clone, Debug)]
 pub struct Tag {
-    id: Id,
+    key: Key,
     data: Vec<u8>,
 }
 
 impl Tag {
-    pub fn new(id: Id, data: Vec<u8>) -> Self {
-        Self { id, data }
+    pub fn new(key: Key, data: Vec<u8>) -> Self {
+        Self { key, data }
     }
 }
