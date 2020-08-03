@@ -225,7 +225,12 @@ where
         let cram_bit_flags = record.cram_bit_flags();
 
         if cram_bit_flags.is_detached() {
-            record.next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+            record.next_mate_bit_flags = self
+                .read_next_mate_bit_flags()
+                .and_then(|n| {
+                    u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+                .map(record::NextMateFlags::from)?;
             let next_mate_flags = record.next_mate_bit_flags();
 
             if next_mate_flags.is_on_negative_strand() {

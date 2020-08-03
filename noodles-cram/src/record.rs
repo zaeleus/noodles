@@ -20,7 +20,7 @@ pub struct Record {
     pub alignment_start: i32,
     pub read_group: i32,
     pub read_name: Vec<u8>,
-    pub next_mate_bit_flags: i32,
+    pub next_mate_bit_flags: NextMateFlags,
     pub next_fragment_reference_sequence_id: i32,
     pub next_mate_alignment_start: i32,
     pub template_size: i32,
@@ -50,9 +50,7 @@ impl Record {
     }
 
     pub fn next_mate_bit_flags(&self) -> NextMateFlags {
-        // `next_mate_bit_flags` can safely be casted to a u8 because the `MF` data series only has
-        // 2 bit flags, i.e., the largest value is 2^2 - 1;
-        NextMateFlags::from(self.next_mate_bit_flags as u8)
+        self.next_mate_bit_flags
     }
 
     pub fn add_tag(&mut self, tag: Tag) {
