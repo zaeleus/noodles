@@ -5,6 +5,7 @@ use std::{
 };
 
 use byteorder::ReadBytesExt;
+use noodles_bam as bam;
 use noodles_sam as sam;
 
 use crate::{
@@ -334,7 +335,10 @@ where
                 None,
             )?;
 
-            let tag = Tag::new(*key, data);
+            let mut data_reader = bam::record::data::Reader::new(&data[..]);
+            let value = data_reader.read_value_type(key.ty())?;
+
+            let tag = Tag::new(*key, value);
             record.add_tag(tag);
         }
 
