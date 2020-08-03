@@ -11,6 +11,14 @@ impl Key {
         Self { tag, ty }
     }
 
+    pub fn tag(&self) -> [u8; 2] {
+        self.tag
+    }
+
+    pub fn ty(&self) -> Type {
+        self.ty
+    }
+
     pub fn id(&self) -> i32 {
         let [l, r] = self.tag;
         let ty = char::from(self.ty) as u8;
