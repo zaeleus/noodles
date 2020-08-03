@@ -83,12 +83,11 @@ impl Slice {
             let mate_bam_flags = mate.bam_bit_flags();
 
             if mate_bam_flags.is_reverse_complemented() {
-                record.bam_bit_flags |=
-                    u16::from(sam::record::Flags::MATE_REVERSE_COMPLEMENTED) as i32;
+                record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
             if mate_bam_flags.is_unmapped() {
-                record.bam_bit_flags |= u16::from(sam::record::Flags::MATE_UNMAPPED) as i32;
+                record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
             }
 
             if mate.read_name.is_empty() {

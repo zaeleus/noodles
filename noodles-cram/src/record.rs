@@ -13,7 +13,7 @@ use noodles_sam as sam;
 #[derive(Clone, Default)]
 pub struct Record {
     pub id: i64,
-    pub bam_bit_flags: i32,
+    pub bam_bit_flags: sam::record::Flags,
     pub cram_bit_flags: i32,
     pub reference_id: i32,
     pub read_length: i32,
@@ -34,9 +34,7 @@ pub struct Record {
 
 impl Record {
     pub fn bam_bit_flags(&self) -> sam::record::Flags {
-        // `bam_bit_flags` can safely be casted to a u16 because it is the same range as specified
-        // in the SAM specification, i.e., [0, 2^16 - 1].
-        sam::record::Flags::from(self.bam_bit_flags as u16)
+        self.bam_bit_flags
     }
 
     pub fn cram_bit_flags(&self) -> Flags {

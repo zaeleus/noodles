@@ -58,7 +58,13 @@ where
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        record.bam_bit_flags = self.read_bam_bit_flags()?;
+        record.bam_bit_flags = self
+            .read_bam_bit_flags()
+            .and_then(|n| {
+                u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(sam::record::Flags::from)?;
+
         record.cram_bit_flags = self.read_cram_bit_flags()?;
 
         self.read_positional_data(record)?;
@@ -218,12 +224,11 @@ where
             let next_mate_flags = record.next_mate_bit_flags();
 
             if next_mate_flags.is_on_negative_strand() {
-                record.bam_bit_flags |=
-                    u16::from(sam::record::Flags::MATE_REVERSE_COMPLEMENTED) as i32;
+                record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
             if next_mate_flags.is_unmapped() {
-                record.bam_bit_flags |= u16::from(sam::record::Flags::MATE_UNMAPPED) as i32;
+                record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
             }
 
             let preservation_map = self.compression_header.preservation_map();
