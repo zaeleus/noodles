@@ -14,7 +14,7 @@ use noodles_sam as sam;
 pub struct Record {
     pub id: i64,
     pub bam_bit_flags: sam::record::Flags,
-    pub cram_bit_flags: i32,
+    pub cram_bit_flags: Flags,
     pub reference_id: i32,
     pub read_length: i32,
     pub alignment_start: i32,
@@ -38,9 +38,7 @@ impl Record {
     }
 
     pub fn cram_bit_flags(&self) -> Flags {
-        // `cram_bit_flags` can safely be casted to to a u8 because CRAM currently only has 4 bit
-        // flags, i.e., the largest value is 2^4 - 1.
-        Flags::from(self.cram_bit_flags as u8)
+        self.cram_bit_flags
     }
 
     pub fn read_length(&self) -> i32 {

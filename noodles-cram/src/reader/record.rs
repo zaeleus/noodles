@@ -18,7 +18,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    record::{feature, Feature, Tag},
+    record::{self, feature, Feature, Tag},
     BitReader, Record,
 };
 
@@ -65,7 +65,12 @@ where
             })
             .map(sam::record::Flags::from)?;
 
-        record.cram_bit_flags = self.read_cram_bit_flags()?;
+        record.cram_bit_flags = self
+            .read_cram_bit_flags()
+            .and_then(|n| {
+                u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
+            .map(record::Flags::from)?;
 
         self.read_positional_data(record)?;
 
