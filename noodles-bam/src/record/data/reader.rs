@@ -50,6 +50,28 @@ where
         Self { inner }
     }
 
+    /// Reads a BAM record data field value.
+    ///
+    /// The stream is expected to be at the start of the value, i.e., after the tag and data type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::data::{field::{value::Type, Value}, Reader};
+    ///
+    /// let data = [0x01, 0x00, 0x00, 0x00];
+    /// let mut reader = Reader::new(&data[..]);
+    ///
+    /// let value = reader.read_value_type(Type::Int32)?;
+    ///
+    /// assert_eq!(value, Value::Int32(1));
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_value_type(&mut self, ty: Type) -> io::Result<Value> {
+        read_value_type(&mut self.inner, ty)
+    }
+
     /// Returns an iterator over data fields.
     ///
     /// # Examples
