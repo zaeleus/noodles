@@ -34,14 +34,6 @@ impl Slice {
         &self.header
     }
 
-    pub fn core_data_block_mut(&mut self) -> &mut Block {
-        &mut self.core_data_block
-    }
-
-    pub fn add_external_block(&mut self, block: Block) {
-        self.external_blocks.push(block);
-    }
-
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         let core_data = BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
 

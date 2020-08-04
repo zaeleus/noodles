@@ -63,40 +63,20 @@ impl Block {
         self.compression_method
     }
 
-    pub fn compression_method_mut(&mut self) -> &mut CompressionMethod {
-        &mut self.compression_method
-    }
-
     pub fn content_type(&self) -> ContentType {
         self.content_type
-    }
-
-    pub fn content_type_mut(&mut self) -> &mut ContentType {
-        &mut self.content_type
     }
 
     pub fn content_id(&self) -> Itf8 {
         self.content_id
     }
 
-    pub fn content_id_mut(&mut self) -> &mut Itf8 {
-        &mut self.content_id
-    }
-
     pub fn uncompressed_len(&self) -> Itf8 {
         self.uncompressed_len
     }
 
-    pub fn uncompressed_len_mut(&mut self) -> &mut Itf8 {
-        &mut self.uncompressed_len
-    }
-
     pub fn data(&self) -> &[u8] {
         &self.data
-    }
-
-    pub fn data_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.data
     }
 
     pub fn decompressed_data(&self) -> Cow<[u8]> {
@@ -131,10 +111,6 @@ impl Block {
 
     pub fn crc32(&self) -> u32 {
         self.crc32
-    }
-
-    pub fn crc32_mut(&mut self) -> &mut u32 {
-        &mut self.crc32
     }
 
     pub fn len(&self) -> usize {
