@@ -4,6 +4,9 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 
+// § 1.4 The alignment section: mandatory fields (2020-07-19)
+const MAX_LENGTH: usize = 254;
+
 /// A SAM record read name.
 ///
 /// This is also called a query name.
@@ -56,6 +59,8 @@ impl fmt::Display for ReadName {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
 }
 
 impl error::Error for ParseError {}
@@ -64,6 +69,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("read name cannot be empty"),
+            Self::Invalid => f.write_str("read name is invalid"),
         }
     }
 }
@@ -75,7 +81,13 @@ impl FromStr for ReadName {
         match s {
             "" => Err(ParseError::Empty),
             NULL_FIELD => Ok(ReadName(None)),
-            _ => Ok(ReadName(Some(s.into()))),
+            _ => {
+                if s.len() > MAX_LENGTH {
+                    Err(ParseError::Invalid)
+                } else {
+                    Ok(ReadName(Some(s.into())))
+                }
+            }
         }
     }
 }
@@ -115,6 +127,9 @@ mod tests {
         assert_eq!(*read_name, Some(String::from("r0")));
 
         assert!("".parse::<ReadName>().is_err());
+
+        let s: String = (0..MAX_LENGTH + 1).map(|_| 'N').collect();
+        assert!(s.parse::<ReadName>().is_err());
 
         Ok(())
     }
