@@ -1,3 +1,7 @@
+mod records;
+
+pub use self::records::Records;
+
 use std::io::{self, BufRead, Read};
 
 use super::Record;
@@ -70,6 +74,33 @@ where
         }
 
         Ok(len)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// The stream is expected to be at the start of a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fastq as fastq;
+    ///
+    /// let data = b"@r0\nATCG\n+\nNDLS\n";
+    /// let mut reader = fastq::Reader::new(&data[..]);
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// assert_eq!(
+    ///     records.next().transpose()?,
+    ///     Some(fastq::Record::new("r0", "ATCG", "NDLS")
+    /// ));
+    ///
+    /// assert!(records.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> Records<'_, R> {
+        Records::new(self)
     }
 }
 
