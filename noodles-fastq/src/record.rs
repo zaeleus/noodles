@@ -1,5 +1,5 @@
 /// A FASTQ record.
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Record {
     read_name: Vec<u8>,
     sequence: Vec<u8>,
