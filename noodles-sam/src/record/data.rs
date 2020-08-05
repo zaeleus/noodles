@@ -11,7 +11,7 @@ const DELIMITER: char = '\t';
 /// SAM record data.
 ///
 /// This is also called optional fields.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Data(Vec<Field>);
 
 impl Deref for Data {
