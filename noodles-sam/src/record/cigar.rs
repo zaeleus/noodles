@@ -11,7 +11,7 @@ use super::NULL_FIELD;
 use self::op::Kind;
 
 /// A SAM record CIGAR.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Cigar(Vec<Op>);
 
 impl Cigar {
