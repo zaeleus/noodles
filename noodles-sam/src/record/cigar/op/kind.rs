@@ -30,7 +30,7 @@ impl fmt::Display for Kind {
 }
 
 /// An error returned when a raw SAM record CIGAR operation kind fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}
@@ -94,21 +94,19 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("M".parse::<Kind>()?, Kind::Match);
-        assert_eq!("I".parse::<Kind>()?, Kind::Insertion);
-        assert_eq!("D".parse::<Kind>()?, Kind::Deletion);
-        assert_eq!("N".parse::<Kind>()?, Kind::Skip);
-        assert_eq!("S".parse::<Kind>()?, Kind::SoftClip);
-        assert_eq!("H".parse::<Kind>()?, Kind::HardClip);
-        assert_eq!("P".parse::<Kind>()?, Kind::Pad);
-        assert_eq!("=".parse::<Kind>()?, Kind::SeqMatch);
-        assert_eq!("X".parse::<Kind>()?, Kind::SeqMismatch);
+    fn test_from_str() {
+        assert_eq!("M".parse(), Ok(Kind::Match));
+        assert_eq!("I".parse(), Ok(Kind::Insertion));
+        assert_eq!("D".parse(), Ok(Kind::Deletion));
+        assert_eq!("N".parse(), Ok(Kind::Skip));
+        assert_eq!("S".parse(), Ok(Kind::SoftClip));
+        assert_eq!("H".parse(), Ok(Kind::HardClip));
+        assert_eq!("P".parse(), Ok(Kind::Pad));
+        assert_eq!("=".parse(), Ok(Kind::SeqMatch));
+        assert_eq!("X".parse(), Ok(Kind::SeqMismatch));
 
-        assert!("".parse::<Kind>().is_err());
-        assert!("O".parse::<Kind>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Kind>(), Err(ParseError(String::from(""))));
+        assert_eq!("O".parse::<Kind>(), Err(ParseError(String::from("O"))));
     }
 
     #[test]

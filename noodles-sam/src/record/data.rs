@@ -43,7 +43,7 @@ impl From<Vec<Field>> for Data {
 }
 
 /// An error returned when raw SAM record data fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input data contains an invalid field.
     InvalidField(field::ParseError),
@@ -93,12 +93,15 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let data: Data = "RG:Z:rg0\tNH:i:1".parse()?;
-        assert_eq!(data.len(), 2);
+    fn test_from_str() {
+        assert_eq!(
+            "RG:Z:rg0\tNH:i:1".parse(),
+            Ok(Data::from(vec![
+                Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+                Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+            ]))
+        );
 
-        assert!("".parse::<Data>()?.is_empty());
-
-        Ok(())
+        assert_eq!("".parse::<Data>(), Ok(Data::default()));
     }
 }

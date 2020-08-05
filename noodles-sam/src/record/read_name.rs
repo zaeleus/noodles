@@ -55,7 +55,7 @@ impl fmt::Display for ReadName {
 }
 
 /// An error returned when a raw SAM record read name fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -119,18 +119,13 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let read_name: ReadName = "*".parse()?;
-        assert_eq!(*read_name, None);
+    fn test_from_str() {
+        assert_eq!("*".parse(), Ok(ReadName(None)));
+        assert_eq!("r0".parse(), Ok(ReadName(Some(String::from("r0")))));
 
-        let read_name: ReadName = "r0".parse()?;
-        assert_eq!(*read_name, Some(String::from("r0")));
-
-        assert!("".parse::<ReadName>().is_err());
+        assert_eq!("".parse::<ReadName>(), Err(ParseError::Empty));
 
         let s: String = (0..MAX_LENGTH + 1).map(|_| 'N').collect();
-        assert!(s.parse::<ReadName>().is_err());
-
-        Ok(())
+        assert_eq!(s.parse::<ReadName>(), Err(ParseError::Invalid));
     }
 }

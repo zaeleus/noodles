@@ -75,7 +75,7 @@ impl From<Vec<Op>> for Cigar {
 }
 
 /// An error returned when a raw CIGAR string fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -151,22 +151,17 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        let actual = "1M13N144S".parse::<Cigar>().unwrap();
+        assert_eq!(
+            "1M13N144S".parse(),
+            Ok(Cigar::from(vec![
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Skip, 13),
+                Op::new(Kind::SoftClip, 144),
+            ]))
+        );
 
-        let expected_ops = [
-            Op::new(Kind::Match, 1),
-            Op::new(Kind::Skip, 13),
-            Op::new(Kind::SoftClip, 144),
-        ];
+        assert_eq!("*".parse(), Ok(Cigar::default()));
 
-        assert_eq!(*actual, expected_ops);
-
-        assert!("".parse::<Cigar>().is_err());
-    }
-
-    #[test]
-    fn test_from_str_with_null_cigar() {
-        let cigar = "*".parse::<Cigar>().unwrap();
-        assert!(cigar.is_empty());
+        assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
     }
 }

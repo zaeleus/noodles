@@ -41,7 +41,7 @@ impl fmt::Display for Sequence {
 }
 
 /// An error returned when a raw SAM record sequence fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -89,21 +89,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let expected = [Base::A, Base::T, Base::C, Base::G];
+    fn test_from_str() {
+        let expected = Sequence(vec![Base::A, Base::T, Base::C, Base::G]);
+        assert_eq!("ATCG".parse::<Sequence>(), Ok(expected));
 
-        let sequence = "ATCG".parse::<Sequence>()?;
-        assert_eq!(*sequence, expected);
+        let expected = Sequence(vec![Base::A, Base::T, Base::C, Base::G]);
+        assert_eq!("atcg".parse::<Sequence>(), Ok(expected));
 
-        let sequence = "atcg".parse::<Sequence>()?;
-        assert_eq!(*sequence, expected);
+        let expected = Sequence(vec![Base::A, Base::T, Base::C, Base::G]);
+        assert_eq!("aTcG".parse::<Sequence>(), Ok(expected));
 
-        let sequence = "aTcG".parse::<Sequence>()?;
-        assert_eq!(*sequence, expected);
+        assert_eq!("*".parse::<Sequence>(), Ok(Sequence::default()));
 
-        assert!("*".parse::<Sequence>()?.is_empty());
-        assert!("".parse::<Sequence>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Sequence>(), Err(ParseError::Empty));
     }
 }

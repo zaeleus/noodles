@@ -102,7 +102,7 @@ impl fmt::Display for QualityScores {
 }
 
 /// An error returned when raw SAM record quality scores fail to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -177,19 +177,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), Box<dyn error::Error>> {
-        let quality_scores = "NDLS!".parse::<QualityScores>()?;
-
-        let expected: Vec<_> = [45, 35, 43, 50, 0]
+    fn test_from_str() -> Result<(), score::TryFromUByteError> {
+        let expected = [45, 35, 43, 50, 0]
             .iter()
             .cloned()
             .map(Score::try_from)
-            .collect::<Result<_, _>>()?;
+            .collect::<Result<_, _>>()
+            .map(QualityScores::new)?;
+        assert_eq!("NDLS!".parse(), Ok(expected));
 
-        assert_eq!(quality_scores.scores(), &expected[..]);
+        assert_eq!("*".parse::<QualityScores>(), Ok(QualityScores::default()));
 
-        assert!("*".parse::<QualityScores>()?.is_empty());
-        assert!("".parse::<QualityScores>().is_err());
+        assert_eq!("".parse::<QualityScores>(), Err(ParseError::Empty));
 
         Ok(())
     }

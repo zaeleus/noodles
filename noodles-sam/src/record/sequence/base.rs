@@ -66,7 +66,7 @@ impl fmt::Display for Base {
 }
 
 /// An error returned when the conversion from a character to a SAM record sequence base fails.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromCharError(char);
 
 impl error::Error for TryFromCharError {}
@@ -153,37 +153,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_char_for_base() -> Result<(), TryFromCharError> {
-        assert_eq!(Base::try_from('A')?, Base::A);
-        assert_eq!(Base::try_from('B')?, Base::B);
-        assert_eq!(Base::try_from('C')?, Base::C);
-        assert_eq!(Base::try_from('D')?, Base::D);
-        assert_eq!(Base::try_from('E')?, Base::E);
-        assert_eq!(Base::try_from('F')?, Base::F);
-        assert_eq!(Base::try_from('G')?, Base::G);
-        assert_eq!(Base::try_from('H')?, Base::H);
-        assert_eq!(Base::try_from('I')?, Base::I);
-        assert_eq!(Base::try_from('J')?, Base::J);
-        assert_eq!(Base::try_from('K')?, Base::K);
-        assert_eq!(Base::try_from('L')?, Base::L);
-        assert_eq!(Base::try_from('M')?, Base::M);
-        assert_eq!(Base::try_from('N')?, Base::N);
-        assert_eq!(Base::try_from('O')?, Base::O);
-        assert_eq!(Base::try_from('P')?, Base::P);
-        assert_eq!(Base::try_from('Q')?, Base::Q);
-        assert_eq!(Base::try_from('R')?, Base::R);
-        assert_eq!(Base::try_from('S')?, Base::S);
-        assert_eq!(Base::try_from('T')?, Base::T);
-        assert_eq!(Base::try_from('U')?, Base::U);
-        assert_eq!(Base::try_from('V')?, Base::V);
-        assert_eq!(Base::try_from('W')?, Base::W);
-        assert_eq!(Base::try_from('X')?, Base::X);
-        assert_eq!(Base::try_from('Y')?, Base::Y);
-        assert_eq!(Base::try_from('Z')?, Base::Z);
-        assert_eq!(Base::try_from('=')?, Base::Eq);
+    fn test_try_from_char_for_base() {
+        assert_eq!(Base::try_from('A'), Ok(Base::A));
+        assert_eq!(Base::try_from('B'), Ok(Base::B));
+        assert_eq!(Base::try_from('C'), Ok(Base::C));
+        assert_eq!(Base::try_from('D'), Ok(Base::D));
+        assert_eq!(Base::try_from('E'), Ok(Base::E));
+        assert_eq!(Base::try_from('F'), Ok(Base::F));
+        assert_eq!(Base::try_from('G'), Ok(Base::G));
+        assert_eq!(Base::try_from('H'), Ok(Base::H));
+        assert_eq!(Base::try_from('I'), Ok(Base::I));
+        assert_eq!(Base::try_from('J'), Ok(Base::J));
+        assert_eq!(Base::try_from('K'), Ok(Base::K));
+        assert_eq!(Base::try_from('L'), Ok(Base::L));
+        assert_eq!(Base::try_from('M'), Ok(Base::M));
+        assert_eq!(Base::try_from('N'), Ok(Base::N));
+        assert_eq!(Base::try_from('O'), Ok(Base::O));
+        assert_eq!(Base::try_from('P'), Ok(Base::P));
+        assert_eq!(Base::try_from('Q'), Ok(Base::Q));
+        assert_eq!(Base::try_from('R'), Ok(Base::R));
+        assert_eq!(Base::try_from('S'), Ok(Base::S));
+        assert_eq!(Base::try_from('T'), Ok(Base::T));
+        assert_eq!(Base::try_from('U'), Ok(Base::U));
+        assert_eq!(Base::try_from('V'), Ok(Base::V));
+        assert_eq!(Base::try_from('W'), Ok(Base::W));
+        assert_eq!(Base::try_from('X'), Ok(Base::X));
+        assert_eq!(Base::try_from('Y'), Ok(Base::Y));
+        assert_eq!(Base::try_from('Z'), Ok(Base::Z));
+        assert_eq!(Base::try_from('='), Ok(Base::Eq));
 
-        assert!(Base::try_from('*').is_err());
-
-        Ok(())
+        assert_eq!(Base::try_from('*'), Err(TryFromCharError('*')));
     }
 }

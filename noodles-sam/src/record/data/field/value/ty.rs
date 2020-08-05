@@ -26,7 +26,7 @@ impl fmt::Display for Type {
 }
 
 /// An error returned when a raw SAM record data field value type fails to parse.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}
@@ -85,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!("A".parse(), Ok(Type::Char));
         assert_eq!("i".parse(), Ok(Type::Int32));
         assert_eq!("f".parse(), Ok(Type::Float));
@@ -99,8 +99,6 @@ mod tests {
             "noodles".parse::<Type>(),
             Err(ParseError(String::from("noodles")))
         );
-
-        Ok(())
     }
 
     #[test]

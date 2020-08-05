@@ -71,7 +71,7 @@ impl fmt::Display for Field {
 }
 
 /// An error returned when a raw SAM record data field fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The data field tag is missing.
     MissingTag,

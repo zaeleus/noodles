@@ -23,7 +23,7 @@ impl fmt::Display for Score {
 }
 
 /// An error returned when the conversion from a character to a SAM quality scores score fails.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromCharError(char);
 
 impl error::Error for TryFromCharError {}
@@ -50,7 +50,7 @@ impl TryFrom<char> for Score {
 }
 
 /// An error returned when the conversion from a byte to a SAM quality scores score fails.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromUByteError(u8);
 
 impl error::Error for TryFromUByteError {}
@@ -95,28 +95,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_char_for_score() -> Result<(), TryFromCharError> {
-        assert_eq!(Score::try_from('N').map(u8::from)?, 45);
-        assert!(Score::try_from(' ').is_err());
-        Ok(())
+    fn test_try_from_char_for_score() {
+        assert_eq!(Score::try_from('N'), Ok(Score(45)));
+        assert_eq!(Score::try_from(' '), Err(TryFromCharError(' ')));
     }
 
     #[test]
-    fn test_try_from_u8_for_score() -> Result<(), TryFromUByteError> {
-        assert_eq!(Score::try_from(8).map(u8::from)?, 8);
-        assert!(Score::try_from(144).is_err());
-        Ok(())
+    fn test_try_from_u8_for_score() {
+        assert_eq!(Score::try_from(8), Ok(Score(8)));
+        assert_eq!(Score::try_from(144), Err(TryFromUByteError(144)));
     }
 
     #[test]
-    fn test_from_score_for_u8() -> Result<(), TryFromUByteError> {
-        assert_eq!(Score::try_from(8).map(u8::from)?, 8);
-        Ok(())
+    fn test_from_score_for_u8() {
+        assert_eq!(u8::from(Score(8)), 8);
     }
 
     #[test]
-    fn test_from_score_for_char() -> Result<(), TryFromCharError> {
-        assert_eq!(Score::try_from('N').map(char::from)?, 'N');
-        Ok(())
+    fn test_from_score_for_char() {
+        assert_eq!(char::from(Score(45)), 'N');
     }
 }

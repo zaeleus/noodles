@@ -77,7 +77,7 @@ impl fmt::Display for MateReferenceSequenceName {
 }
 
 /// An error returned when a raw SAM record mate reference sequence name fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -154,24 +154,17 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let mate_reference_sequence_name: MateReferenceSequenceName = "*".parse()?;
+    fn test_from_str() {
+        assert_eq!("*".parse(), Ok(MateReferenceSequenceName::None));
+        assert_eq!("=".parse(), Ok(MateReferenceSequenceName::Eq));
         assert_eq!(
-            mate_reference_sequence_name,
-            MateReferenceSequenceName::None
+            "sq0".parse(),
+            Ok(MateReferenceSequenceName::Some(String::from("sq0")))
         );
 
-        let mate_reference_sequence_name: MateReferenceSequenceName = "=".parse()?;
-        assert_eq!(mate_reference_sequence_name, MateReferenceSequenceName::Eq);
-
-        let mate_reference_sequence_name: MateReferenceSequenceName = "sq0".parse()?;
         assert_eq!(
-            mate_reference_sequence_name,
-            MateReferenceSequenceName::Some(String::from("sq0"))
+            "".parse::<MateReferenceSequenceName>(),
+            Err(ParseError::Empty)
         );
-
-        assert!("".parse::<MateReferenceSequenceName>().is_err());
-
-        Ok(())
     }
 }

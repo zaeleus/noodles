@@ -209,7 +209,7 @@ impl fmt::Display for Tag {
 }
 
 /// An error returned when a raw SAM record data field tag fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}
@@ -366,74 +366,72 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("AM".parse::<Tag>()?, Tag::MinMappingQuality);
-        assert_eq!("AS".parse::<Tag>()?, Tag::AlignmentScore);
-        assert_eq!("BC".parse::<Tag>()?, Tag::SampleBarcodeSequence);
-        assert_eq!("BQ".parse::<Tag>()?, Tag::BaseAlignmentQualityOffsets);
-        assert_eq!("BZ".parse::<Tag>()?, Tag::OriginalUmiQualityScores);
-        assert_eq!("CB".parse::<Tag>()?, Tag::CellBarcodeId);
-        assert_eq!("CC".parse::<Tag>()?, Tag::NextHitReferenceSequenceName);
-        assert_eq!("CG".parse::<Tag>()?, Tag::Cigar);
-        assert_eq!("CM".parse::<Tag>()?, Tag::ColorEditDistance);
-        assert_eq!("CO".parse::<Tag>()?, Tag::Comment);
-        assert_eq!("CP".parse::<Tag>()?, Tag::NextHitPosition);
-        assert_eq!("CQ".parse::<Tag>()?, Tag::ColarQualityScores);
-        assert_eq!("CR".parse::<Tag>()?, Tag::CellBarcodeSequence);
-        assert_eq!("CS".parse::<Tag>()?, Tag::ColorSequence);
-        assert_eq!("CT".parse::<Tag>()?, Tag::CompleteReadAnnotations);
-        assert_eq!("CY".parse::<Tag>()?, Tag::CellBarcodeQualityScores);
-        assert_eq!("E2".parse::<Tag>()?, Tag::NextHitSequence);
-        assert_eq!("FI".parse::<Tag>()?, Tag::SegmentIndex);
-        assert_eq!("FS".parse::<Tag>()?, Tag::SegmentSuffix);
-        assert_eq!("FZ".parse::<Tag>()?, Tag::AlterantiveSequence);
-        assert_eq!("GC".parse::<Tag>()?, Tag::ReservedGC);
-        assert_eq!("GQ".parse::<Tag>()?, Tag::ReservedGQ);
-        assert_eq!("GS".parse::<Tag>()?, Tag::ReservedGS);
-        assert_eq!("HO".parse::<Tag>()?, Tag::PerfectHitCount);
-        assert_eq!("H1".parse::<Tag>()?, Tag::OneDifferenceHitCount);
-        assert_eq!("H2".parse::<Tag>()?, Tag::TwoDifferenceHitCount);
-        assert_eq!("HI".parse::<Tag>()?, Tag::HitIndex);
-        assert_eq!("IH".parse::<Tag>()?, Tag::TotalHitCount);
-        assert_eq!("LB".parse::<Tag>()?, Tag::Library);
-        assert_eq!("MC".parse::<Tag>()?, Tag::MateCigar);
-        assert_eq!("MD".parse::<Tag>()?, Tag::MismatchedPositions);
-        assert_eq!("MF".parse::<Tag>()?, Tag::ReservedMF);
-        assert_eq!("MI".parse::<Tag>()?, Tag::UmiId);
-        assert_eq!("MQ".parse::<Tag>()?, Tag::MateMappingQuality);
-        assert_eq!("NH".parse::<Tag>()?, Tag::AlignmentHitCount);
-        assert_eq!("NM".parse::<Tag>()?, Tag::EditDistance);
-        assert_eq!("OA".parse::<Tag>()?, Tag::OriginalAlignment);
-        assert_eq!("OC".parse::<Tag>()?, Tag::OriginalCigar);
-        assert_eq!("OP".parse::<Tag>()?, Tag::OriginalPosition);
-        assert_eq!("OQ".parse::<Tag>()?, Tag::OriginalQualityScores);
-        assert_eq!("OX".parse::<Tag>()?, Tag::OriginalUmiBarcodeSequence);
-        assert_eq!("PG".parse::<Tag>()?, Tag::Program);
-        assert_eq!("PQ".parse::<Tag>()?, Tag::TemplateLikelihood);
-        assert_eq!("PT".parse::<Tag>()?, Tag::PaddedReadAnnotations);
-        assert_eq!("PU".parse::<Tag>()?, Tag::PlatformUnit);
-        assert_eq!("Q2".parse::<Tag>()?, Tag::MateQualityScores);
-        assert_eq!("QT".parse::<Tag>()?, Tag::SampleBarcodeQualityScores);
-        assert_eq!("QX".parse::<Tag>()?, Tag::UmiQualityScores);
-        assert_eq!("R2".parse::<Tag>()?, Tag::MateSequence);
-        assert_eq!("RG".parse::<Tag>()?, Tag::ReadGroup);
-        assert_eq!("RT".parse::<Tag>()?, Tag::ReservedRT);
-        assert_eq!("RX".parse::<Tag>()?, Tag::UmiSequence);
-        assert_eq!("S2".parse::<Tag>()?, Tag::ReservedS2);
-        assert_eq!("SA".parse::<Tag>()?, Tag::OtherAlignments);
-        assert_eq!("SM".parse::<Tag>()?, Tag::TemplateMappingQuality);
-        assert_eq!("SQ".parse::<Tag>()?, Tag::ReservedSQ);
-        assert_eq!("TC".parse::<Tag>()?, Tag::SegmentCount);
-        assert_eq!("TS".parse::<Tag>()?, Tag::TranscriptStrand);
-        assert_eq!("U2".parse::<Tag>()?, Tag::NextHitQualityScores);
-        assert_eq!("UQ".parse::<Tag>()?, Tag::SegmentLikelihood);
-        assert_eq!("ZN".parse::<Tag>()?, Tag::Other(String::from("ZN")));
+    fn test_from_str() {
+        assert_eq!("AM".parse(), Ok(Tag::MinMappingQuality));
+        assert_eq!("AS".parse(), Ok(Tag::AlignmentScore));
+        assert_eq!("BC".parse(), Ok(Tag::SampleBarcodeSequence));
+        assert_eq!("BQ".parse(), Ok(Tag::BaseAlignmentQualityOffsets));
+        assert_eq!("BZ".parse(), Ok(Tag::OriginalUmiQualityScores));
+        assert_eq!("CB".parse(), Ok(Tag::CellBarcodeId));
+        assert_eq!("CC".parse(), Ok(Tag::NextHitReferenceSequenceName));
+        assert_eq!("CG".parse(), Ok(Tag::Cigar));
+        assert_eq!("CM".parse(), Ok(Tag::ColorEditDistance));
+        assert_eq!("CO".parse(), Ok(Tag::Comment));
+        assert_eq!("CP".parse(), Ok(Tag::NextHitPosition));
+        assert_eq!("CQ".parse(), Ok(Tag::ColarQualityScores));
+        assert_eq!("CR".parse(), Ok(Tag::CellBarcodeSequence));
+        assert_eq!("CS".parse(), Ok(Tag::ColorSequence));
+        assert_eq!("CT".parse(), Ok(Tag::CompleteReadAnnotations));
+        assert_eq!("CY".parse(), Ok(Tag::CellBarcodeQualityScores));
+        assert_eq!("E2".parse(), Ok(Tag::NextHitSequence));
+        assert_eq!("FI".parse(), Ok(Tag::SegmentIndex));
+        assert_eq!("FS".parse(), Ok(Tag::SegmentSuffix));
+        assert_eq!("FZ".parse(), Ok(Tag::AlterantiveSequence));
+        assert_eq!("GC".parse(), Ok(Tag::ReservedGC));
+        assert_eq!("GQ".parse(), Ok(Tag::ReservedGQ));
+        assert_eq!("GS".parse(), Ok(Tag::ReservedGS));
+        assert_eq!("HO".parse(), Ok(Tag::PerfectHitCount));
+        assert_eq!("H1".parse(), Ok(Tag::OneDifferenceHitCount));
+        assert_eq!("H2".parse(), Ok(Tag::TwoDifferenceHitCount));
+        assert_eq!("HI".parse(), Ok(Tag::HitIndex));
+        assert_eq!("IH".parse(), Ok(Tag::TotalHitCount));
+        assert_eq!("LB".parse(), Ok(Tag::Library));
+        assert_eq!("MC".parse(), Ok(Tag::MateCigar));
+        assert_eq!("MD".parse(), Ok(Tag::MismatchedPositions));
+        assert_eq!("MF".parse(), Ok(Tag::ReservedMF));
+        assert_eq!("MI".parse(), Ok(Tag::UmiId));
+        assert_eq!("MQ".parse(), Ok(Tag::MateMappingQuality));
+        assert_eq!("NH".parse(), Ok(Tag::AlignmentHitCount));
+        assert_eq!("NM".parse(), Ok(Tag::EditDistance));
+        assert_eq!("OA".parse(), Ok(Tag::OriginalAlignment));
+        assert_eq!("OC".parse(), Ok(Tag::OriginalCigar));
+        assert_eq!("OP".parse(), Ok(Tag::OriginalPosition));
+        assert_eq!("OQ".parse(), Ok(Tag::OriginalQualityScores));
+        assert_eq!("OX".parse(), Ok(Tag::OriginalUmiBarcodeSequence));
+        assert_eq!("PG".parse(), Ok(Tag::Program));
+        assert_eq!("PQ".parse(), Ok(Tag::TemplateLikelihood));
+        assert_eq!("PT".parse(), Ok(Tag::PaddedReadAnnotations));
+        assert_eq!("PU".parse(), Ok(Tag::PlatformUnit));
+        assert_eq!("Q2".parse(), Ok(Tag::MateQualityScores));
+        assert_eq!("QT".parse(), Ok(Tag::SampleBarcodeQualityScores));
+        assert_eq!("QX".parse(), Ok(Tag::UmiQualityScores));
+        assert_eq!("R2".parse(), Ok(Tag::MateSequence));
+        assert_eq!("RG".parse(), Ok(Tag::ReadGroup));
+        assert_eq!("RT".parse(), Ok(Tag::ReservedRT));
+        assert_eq!("RX".parse(), Ok(Tag::UmiSequence));
+        assert_eq!("S2".parse(), Ok(Tag::ReservedS2));
+        assert_eq!("SA".parse(), Ok(Tag::OtherAlignments));
+        assert_eq!("SM".parse(), Ok(Tag::TemplateMappingQuality));
+        assert_eq!("SQ".parse(), Ok(Tag::ReservedSQ));
+        assert_eq!("TC".parse(), Ok(Tag::SegmentCount));
+        assert_eq!("TS".parse(), Ok(Tag::TranscriptStrand));
+        assert_eq!("U2".parse(), Ok(Tag::NextHitQualityScores));
+        assert_eq!("UQ".parse(), Ok(Tag::SegmentLikelihood));
+        assert_eq!("ZN".parse(), Ok(Tag::Other(String::from("ZN"))));
 
-        assert!("".parse::<Tag>().is_err());
-        assert!("R".parse::<Tag>().is_err());
-        assert!("RGP".parse::<Tag>().is_err());
-        assert!("RGRP".parse::<Tag>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Tag>(), Err(ParseError(String::from(""))));
+        assert_eq!("R".parse::<Tag>(), Err(ParseError(String::from("R"))));
+        assert_eq!("RGP".parse::<Tag>(), Err(ParseError(String::from("RGP"))));
+        assert_eq!("RGRP".parse::<Tag>(), Err(ParseError(String::from("RGRP"))));
     }
 }

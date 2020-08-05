@@ -83,7 +83,7 @@ impl fmt::Display for Op {
 }
 
 /// An error returned when a raw CIGAR operation fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -137,13 +137,21 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("1M".parse::<Op>()?, Op::new(Kind::Match, 1));
-        assert_eq!("13N".parse::<Op>()?, Op::new(Kind::Skip, 13));
-        assert_eq!("144S".parse::<Op>()?, Op::new(Kind::SoftClip, 144));
+        assert_eq!("1M".parse(), Ok(Op::new(Kind::Match, 1)));
+        assert_eq!("13N".parse(), Ok(Op::new(Kind::Skip, 13)));
+        assert_eq!("144S".parse(), Ok(Op::new(Kind::SoftClip, 144)));
 
-        assert!("".parse::<Op>().is_err());
-        assert!("Z".parse::<Op>().is_err());
-        assert!("21".parse::<Op>().is_err());
+        assert_eq!("".parse::<Op>(), Err(ParseError::Empty));
+
+        assert!(matches!(
+            "Z".parse::<Op>(),
+            Err(ParseError::InvalidLength(_))
+        ));
+
+        assert!(matches!(
+            "21".parse::<Op>(),
+            Err(ParseError::InvalidKind(_))
+        ));
 
         Ok(())
     }

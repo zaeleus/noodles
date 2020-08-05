@@ -50,7 +50,7 @@ impl fmt::Display for ReferenceSequenceName {
 }
 
 /// An error returned when a raw SAM record reference sequence name fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
@@ -103,15 +103,14 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let reference_sequence_name: ReferenceSequenceName = "*".parse()?;
-        assert_eq!(*reference_sequence_name, None);
+    fn test_from_str() {
+        assert_eq!("*".parse(), Ok(ReferenceSequenceName(None)));
 
-        let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
-        assert_eq!(*reference_sequence_name, Some(String::from("sq0")));
+        assert_eq!(
+            "sq0".parse(),
+            Ok(ReferenceSequenceName(Some(String::from("sq0"))))
+        );
 
-        assert!("".parse::<ReferenceSequenceName>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<ReferenceSequenceName>(), Err(ParseError::Empty));
     }
 }

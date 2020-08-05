@@ -30,7 +30,7 @@ impl fmt::Display for Subtype {
 }
 
 /// An error returned when a raw SAM record data field value subtype fails to parse.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
 impl error::Error for ParseError {}
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!("c".parse(), Ok(Subtype::Int8));
         assert_eq!("C".parse(), Ok(Subtype::UInt8));
         assert_eq!("s".parse(), Ok(Subtype::Int16));
@@ -107,8 +107,6 @@ mod tests {
             "noodles".parse::<Subtype>(),
             Err(ParseError(String::from("noodles")))
         );
-
-        Ok(())
     }
 
     #[test]

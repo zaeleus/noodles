@@ -520,7 +520,7 @@ impl fmt::Display for Value {
 }
 
 /// An error returned when a raw SAM record data field value fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The data field type is missing..
     MissingType,
