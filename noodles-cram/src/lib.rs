@@ -1,6 +1,6 @@
 mod bit_reader;
 mod bit_writer;
-mod container;
+pub mod container;
 pub mod crai;
 mod data_container;
 mod huffman;
