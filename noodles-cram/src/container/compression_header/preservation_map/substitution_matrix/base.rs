@@ -1,6 +1,6 @@
 use std::{convert::TryFrom, error, fmt};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
     A,
     C,
