@@ -6,7 +6,7 @@ use std::{convert::TryFrom, error, fmt};
 
 type Substitutions = [[Base; 4]; 5];
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct SubstitutionMatrix {
     substitutions: Substitutions,
 }
@@ -14,6 +14,20 @@ pub struct SubstitutionMatrix {
 impl SubstitutionMatrix {
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
         self.substitutions[reference_base as usize][substitution_code as usize]
+    }
+}
+
+impl Default for SubstitutionMatrix {
+    fn default() -> Self {
+        SubstitutionMatrix {
+            substitutions: [
+                [Base::C, Base::G, Base::T, Base::N],
+                [Base::A, Base::G, Base::T, Base::N],
+                [Base::A, Base::C, Base::T, Base::N],
+                [Base::A, Base::C, Base::G, Base::N],
+                [Base::A, Base::C, Base::G, Base::T],
+            ],
+        }
     }
 }
 
