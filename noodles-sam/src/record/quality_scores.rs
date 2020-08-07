@@ -101,6 +101,12 @@ impl fmt::Display for QualityScores {
     }
 }
 
+impl From<Vec<Score>> for QualityScores {
+    fn from(scores: Vec<Score>) -> Self {
+        QualityScores::new(scores)
+    }
+}
+
 /// An error returned when raw SAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
