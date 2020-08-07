@@ -107,7 +107,7 @@ where
 
     let mut buf_reader = &buf[..];
 
-    let mut dictionary = TagIdsDictionary::new();
+    let mut dictionary = Vec::new();
     let mut keys_buf = Vec::new();
 
     loop {
@@ -136,5 +136,5 @@ where
         dictionary.push(line);
     }
 
-    Ok(dictionary)
+    Ok(TagIdsDictionary::from(dictionary))
 }

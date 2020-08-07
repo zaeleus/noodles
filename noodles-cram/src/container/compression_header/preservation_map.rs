@@ -1,11 +1,8 @@
 pub mod key;
 pub mod substitution_matrix;
+mod tag_ids_dictionary;
 
-pub use {key::Key, substitution_matrix::SubstitutionMatrix};
-
-use crate::record;
-
-pub type TagIdsDictionary = Vec<Vec<record::tag::Key>>;
+pub use {key::Key, substitution_matrix::SubstitutionMatrix, tag_ids_dictionary::TagIdsDictionary};
 
 #[derive(Debug)]
 pub struct PreservationMap {
