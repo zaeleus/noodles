@@ -1,6 +1,6 @@
 use noodles_bam::record::data::field::value::Type;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
     tag: [u8; 2],
     ty: Type,

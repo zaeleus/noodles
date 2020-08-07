@@ -3,7 +3,7 @@
 use std::{convert::TryFrom, error, fmt};
 
 /// A BAM record data field value type.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Type {
     /// Character (`A`).
     Char,
