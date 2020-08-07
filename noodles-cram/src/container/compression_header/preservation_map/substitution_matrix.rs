@@ -1,8 +1,13 @@
 mod base;
+mod histogram;
 
 pub use self::base::Base;
 
 use std::{convert::TryFrom, error, fmt};
+
+use crate::{record::Feature, Record};
+
+use self::histogram::Histogram;
 
 type Substitutions = [[Base; 4]; 5];
 
@@ -12,6 +17,29 @@ pub struct SubstitutionMatrix {
 }
 
 impl SubstitutionMatrix {
+    pub fn from_records(
+        reference_sequence: &[u8],
+        substitution_matrix: &Self,
+        records: &[Record],
+    ) -> Self {
+        let mut histogram = Histogram::default();
+
+        for record in records {
+            for feature in &record.features {
+                if let Feature::Substitution(pos, code) = feature {
+                    // FIXME: pos = 1-based, position = 0-based
+                    let reference_position = (pos - 1) as usize;
+                    let base = reference_sequence[reference_position] as char;
+                    let reference_base = Base::try_from(base).unwrap_or_default();
+                    let read_base = substitution_matrix.get(reference_base, *code);
+                    histogram.hit(reference_base, read_base);
+                }
+            }
+        }
+
+        Self::from(histogram)
+    }
+
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
         self.substitutions[reference_base as usize][substitution_code as usize]
     }
@@ -28,6 +56,31 @@ impl Default for SubstitutionMatrix {
                 [Base::A, Base::C, Base::G, Base::T],
             ],
         }
+    }
+}
+
+impl From<Histogram> for SubstitutionMatrix {
+    fn from(histogram: Histogram) -> Self {
+        let mut matrix = Self::default();
+        let bases = [Base::A, Base::C, Base::G, Base::T, Base::N];
+
+        for &reference_base in bases.iter() {
+            let mut base_frequency_pairs: Vec<_> = bases
+                .iter()
+                .zip(histogram.get_bins(reference_base).iter())
+                .filter(|(&read_base, _)| read_base != reference_base)
+                .collect();
+
+            // FIXME: u64 => i64 cast
+            base_frequency_pairs.sort_by_key(|(_, &frequency)| -(frequency as i64));
+
+            for (code, (&read_base, _)) in base_frequency_pairs.iter().enumerate() {
+                let i = reference_base as usize;
+                matrix.substitutions[i][code] = read_base;
+            }
+        }
+
+        matrix
     }
 }
 
@@ -142,6 +195,35 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_from_records() {
+        let reference_sequence = b"ACAGGAATAANNNNNN";
+        let substitution_matrix = SubstitutionMatrix::default();
+
+        let mut record = Record::default();
+        record.add_feature(Feature::Substitution(1, 2)); // A => T
+        record.add_feature(Feature::Substitution(3, 2)); // A => T
+        record.add_feature(Feature::Substitution(6, 0)); // A => C
+        record.add_feature(Feature::Substitution(7, 1)); // A => G
+        record.add_feature(Feature::Substitution(9, 1)); // A => G
+        record.add_feature(Feature::Substitution(10, 2)); // A => T
+        let records = vec![record];
+
+        let matrix =
+            SubstitutionMatrix::from_records(reference_sequence, &substitution_matrix, &records);
+
+        assert_eq!(
+            matrix.substitutions,
+            [
+                [Base::T, Base::G, Base::C, Base::N],
+                [Base::A, Base::G, Base::T, Base::N],
+                [Base::A, Base::C, Base::T, Base::N],
+                [Base::A, Base::C, Base::G, Base::N],
+                [Base::A, Base::C, Base::G, Base::T],
+            ]
+        );
+    }
+
+    #[test]
     fn test_try_from_u8_slice() -> Result<(), TryFromByteSliceError> {
         let codes = [0x93, 0x1b, 0x6c, 0xb1, 0xc6];
         let matrix = SubstitutionMatrix::try_from(&codes[..])?;
@@ -173,5 +255,28 @@ mod tests {
         };
 
         assert_eq!(<[u8; 5]>::from(matrix), [0x93, 0x1b, 0x6c, 0xb1, 0xc6]);
+    }
+
+    #[test]
+    fn test_from_histogram() {
+        let histogram = Histogram::new([
+            [0, 3, 8, 5, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ]);
+
+        let substitution_matrix = SubstitutionMatrix::from(histogram);
+
+        let expected = [
+            [Base::G, Base::T, Base::C, Base::N],
+            [Base::A, Base::G, Base::T, Base::N],
+            [Base::A, Base::C, Base::T, Base::N],
+            [Base::A, Base::C, Base::G, Base::N],
+            [Base::A, Base::C, Base::G, Base::T],
+        ];
+
+        assert_eq!(substitution_matrix.substitutions, expected);
     }
 }
