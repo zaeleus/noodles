@@ -4,95 +4,28 @@ mod score;
 
 pub use self::score::Score;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 
 /// SAM record quality scores.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct QualityScores {
-    scores: Vec<Score>,
-}
+pub struct QualityScores(Vec<Score>);
 
-impl QualityScores {
-    /// Creates quality scores from a list of scores.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::convert::TryFrom;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
-    /// let quality_scores = QualityScores::new(vec![Score::try_from(21)?]);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn new(scores: Vec<Score>) -> Self {
-        Self { scores }
-    }
+impl Deref for QualityScores {
+    type Target = [Score];
 
-    /// Returns the list of scores.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::convert::TryFrom;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
-    ///
-    /// let quality_scores = QualityScores::new(vec![Score::try_from(21)?]);
-    ///
-    /// let actual = quality_scores.scores();
-    /// let expected = [Score::try_from(21)?];
-    /// assert_eq!(actual, expected);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn scores(&self) -> &[Score] {
-        &self.scores
-    }
-
-    /// Returns whether the scores list is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::convert::TryFrom;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
-    ///
-    /// let quality_scores = QualityScores::default();
-    /// assert!(quality_scores.is_empty());
-    ///
-    /// let quality_scores = QualityScores::new(vec![Score::try_from(21)?]);
-    /// assert!(!quality_scores.is_empty());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.scores.is_empty()
-    }
-
-    /// Returns the number of scores in the list.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::convert::TryFrom;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
-    ///
-    /// let quality_scores = QualityScores::default();
-    /// assert_eq!(quality_scores.len(), 0);
-    ///
-    /// let quality_scores = QualityScores::new(vec![Score::try_from(21)?]);
-    /// assert_eq!(quality_scores.len(), 1);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn len(&self) -> usize {
-        self.scores.len()
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
 impl fmt::Display for QualityScores {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.scores.is_empty() {
+        if self.is_empty() {
             write!(f, "{}", NULL_FIELD)
         } else {
-            for score in &self.scores {
+            for score in self.iter() {
                 write!(f, "{}", score)?;
             }
 
@@ -103,7 +36,7 @@ impl fmt::Display for QualityScores {
 
 impl From<Vec<Score>> for QualityScores {
     fn from(scores: Vec<Score>) -> Self {
-        QualityScores::new(scores)
+        Self(scores)
     }
 }
 
@@ -137,8 +70,8 @@ impl FromStr for QualityScores {
             _ => s
                 .chars()
                 .map(Score::try_from)
-                .collect::<Result<_, _>>()
-                .map(QualityScores::new)
+                .collect::<Result<Vec<_>, _>>()
+                .map(QualityScores::from)
                 .map_err(ParseError::InvalidScore),
         }
     }
@@ -160,8 +93,8 @@ mod tests {
             .iter()
             .cloned()
             .map(Score::try_from)
-            .collect::<Result<_, _>>()
-            .map(QualityScores::new)?;
+            .collect::<Result<Vec<_>, _>>()
+            .map(QualityScores::from)?;
 
         assert_eq!(sequence.len(), 5);
 
@@ -174,8 +107,8 @@ mod tests {
             .iter()
             .cloned()
             .map(Score::try_from)
-            .collect::<Result<_, _>>()
-            .map(QualityScores::new)?;
+            .collect::<Result<Vec<_>, _>>()
+            .map(QualityScores::from)?;
 
         assert_eq!(quality_scores.to_string(), "NDLS!");
 
@@ -188,8 +121,8 @@ mod tests {
             .iter()
             .cloned()
             .map(Score::try_from)
-            .collect::<Result<_, _>>()
-            .map(QualityScores::new)?;
+            .collect::<Result<Vec<_>, _>>()
+            .map(QualityScores::from)?;
         assert_eq!("NDLS!".parse(), Ok(expected));
 
         assert_eq!("*".parse::<QualityScores>(), Ok(QualityScores::default()));

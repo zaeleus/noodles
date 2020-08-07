@@ -237,7 +237,7 @@ impl Builder {
     ///     .set_quality_scores("NDLS".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.quality_scores().scores(), [
+    /// assert_eq!(**record.quality_scores(), [
     ///     Score::try_from('N')?,
     ///     Score::try_from('D')?,
     ///     Score::try_from('L')?,

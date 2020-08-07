@@ -378,7 +378,7 @@ fn write_qual<W>(writer: &mut W, quality_scores: &QualityScores) -> io::Result<(
 where
     W: Write,
 {
-    for score in quality_scores.scores() {
+    for score in quality_scores.iter() {
         let value = u8::from(*score);
         writer.write_u8(value)?;
     }
