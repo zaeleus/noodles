@@ -2,7 +2,7 @@ mod kind;
 
 pub use self::kind::Kind;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Encoding {
     kind: Kind,
     args: Vec<u8>,
