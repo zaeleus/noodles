@@ -4,6 +4,8 @@ mod tag_ids_dictionary;
 
 pub use {key::Key, substitution_matrix::SubstitutionMatrix, tag_ids_dictionary::TagIdsDictionary};
 
+use crate::Record;
+
 #[derive(Debug)]
 pub struct PreservationMap {
     read_names_included: bool,
@@ -14,6 +16,20 @@ pub struct PreservationMap {
 }
 
 impl PreservationMap {
+    pub fn from_records(reference_sequence: &[u8], records: &[Record]) -> Self {
+        let substitution_matrix = SubstitutionMatrix::from_records(
+            reference_sequence,
+            &SubstitutionMatrix::default(),
+            records,
+        );
+
+        let tag_ids_dictionary = TagIdsDictionary::from_records(records);
+
+        // Read names included, AP data series delta, and reference required all default to `true`.
+        // See § 8.4 Compression header block (2020-06-22).
+        Self::new(true, true, true, substitution_matrix, tag_ids_dictionary)
+    }
+
     pub fn new(
         read_names_included: bool,
         ap_data_series_delta: bool,
