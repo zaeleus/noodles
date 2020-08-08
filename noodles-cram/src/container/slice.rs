@@ -3,7 +3,6 @@ mod header;
 pub use self::header::Header;
 
 use std::{
-    collections::HashMap,
     convert::TryFrom,
     io::{self, Cursor},
 };
@@ -35,9 +34,10 @@ impl Slice {
     }
 
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
-        let core_data = BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
+        let core_data_reader =
+            BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
 
-        let external_data: HashMap<_, _> = self
+        let external_data_readers = self
             .external_blocks
             .iter()
             .map(|block| (block.content_id(), Cursor::new(block.decompressed_data())))
@@ -45,8 +45,8 @@ impl Slice {
 
         let mut record_reader = reader::record::Reader::new(
             compression_header,
-            core_data,
-            external_data,
+            core_data_reader,
+            external_data_readers,
             self.header.reference_sequence_id(),
             self.header.alignment_start(),
         );
