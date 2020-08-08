@@ -22,6 +22,7 @@ pub struct Header {
     crc32: u32,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Header {
     /// Creates a container header used in the EOF container.
     pub fn eof() -> Self {

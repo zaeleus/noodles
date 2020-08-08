@@ -28,6 +28,7 @@ pub struct Block {
     crc32: u32,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Block {
     /// Creates a block used in the EOF container.
     pub fn eof() -> Self {
