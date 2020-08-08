@@ -1,3 +1,5 @@
+mod compression_header;
+
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
