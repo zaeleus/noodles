@@ -14,8 +14,7 @@ use super::{encoding, Encoding};
 pub struct TagEncodingMap(HashMap<Itf8, Encoding>);
 
 impl TagEncodingMap {
-    #[allow(dead_code)]
-    fn from_records(records: &[Record]) -> Self {
+    pub fn from_records(records: &[Record]) -> Self {
         let mut keys = HashSet::new();
 
         for record in records {
