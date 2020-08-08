@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    collections::HashMap,
+    io::{self, Read},
+};
 
 use crate::{
     container::compression_header::TagEncodingMap, num::read_itf8, reader::encoding::read_encoding,
@@ -15,13 +18,13 @@ where
     let mut buf_reader = &buf[..];
     let map_len = read_itf8(&mut buf_reader)?;
 
-    let mut encodings = TagEncodingMap::with_capacity(map_len as usize);
+    let mut map = HashMap::with_capacity(map_len as usize);
 
     for _ in 0..map_len {
         let key = read_itf8(&mut buf_reader)?;
         let encoding = read_encoding(&mut buf_reader)?;
-        encodings.insert(key, encoding);
+        map.insert(key, encoding);
     }
 
-    Ok(encodings)
+    Ok(TagEncodingMap::from(map))
 }

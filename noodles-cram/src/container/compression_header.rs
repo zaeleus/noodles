@@ -1,20 +1,20 @@
 pub mod data_series_encoding_map;
 pub mod encoding;
 pub mod preservation_map;
+mod tag_encoding_map;
 
 pub use self::{
     data_series_encoding_map::DataSeriesEncodingMap,
     encoding::Encoding,
     preservation_map::{PreservationMap, SubstitutionMatrix, TagIdsDictionary},
+    tag_encoding_map::TagEncodingMap,
 };
 
-use std::{collections::HashMap, convert::TryFrom, io};
+use std::{convert::TryFrom, io};
 
-use crate::{num::Itf8, reader::compression_header::read_compression_header};
+use crate::reader::compression_header::read_compression_header;
 
 use super::Block;
-
-pub type TagEncodingMap = HashMap<Itf8, Encoding>;
 
 #[derive(Debug)]
 pub struct CompressionHeader {
