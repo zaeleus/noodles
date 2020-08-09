@@ -11,6 +11,7 @@ use crate::{
         CompressionHeader,
     },
     num::{read_itf8, write_itf8, Itf8},
+    record::Flags,
     BitWriter, Record,
 };
 
@@ -39,6 +40,7 @@ where
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         self.write_bam_bit_flags(record.bam_bit_flags())?;
+        self.write_cram_bit_flags(record.cram_bit_flags())?;
 
         todo!();
     }
@@ -57,6 +59,23 @@ where
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             bam_bit_flags,
+        )
+    }
+
+    fn write_cram_bit_flags(&mut self, flags: Flags) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::CramBitFlags)
+            .expect("missing CF");
+
+        let cram_bit_flags = i32::from(u8::from(flags));
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            cram_bit_flags,
         )
     }
 }
