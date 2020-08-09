@@ -10,7 +10,7 @@ use std::{
 
 use noodles_sam as sam;
 
-use crate::{reader, BitReader, BitWriter, Record};
+use crate::{reader, writer, BitReader, BitWriter, Record};
 
 use super::{
     block, compression_header::data_series_encoding_map::DataSeries, Block, CompressionHeader,
@@ -31,7 +31,7 @@ impl Slice {
         compression_header: &CompressionHeader,
         records: &[Record],
     ) -> io::Result<Self> {
-        let core_data_writer = BitWriter::new(Vec::new());
+        let mut core_data_writer = BitWriter::new(Vec::new());
 
         let mut external_data_writers = HashMap::new();
 
@@ -44,7 +44,15 @@ impl Slice {
             external_data_writers.insert(block_content_id, Vec::new());
         }
 
-        // TODO: write records
+        let mut record_writer = writer::record::Writer::new(
+            compression_header,
+            &mut core_data_writer,
+            &mut external_data_writers,
+        );
+
+        for record in records {
+            record_writer.write_record(record)?;
+        }
 
         let core_data_block = core_data_writer.finish().map(|buf| {
             Block::new(

@@ -8,7 +8,7 @@ mod num;
 mod rans;
 pub mod reader;
 pub mod record;
-mod writer;
+pub mod writer;
 
 pub use self::{
     bit_reader::BitReader, bit_writer::BitWriter, container::Container,
