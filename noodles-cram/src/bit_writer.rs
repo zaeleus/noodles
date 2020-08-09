@@ -33,6 +33,11 @@ where
         }
     }
 
+    pub fn finish(mut self) -> io::Result<W> {
+        self.try_finish()?;
+        Ok(self.inner)
+    }
+
     pub fn write_u32(&mut self, value: u32, len: usize) -> io::Result<()> {
         if len == 0 {
             return Ok(());
