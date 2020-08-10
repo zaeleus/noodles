@@ -121,7 +121,7 @@ impl FromStr for Cigar {
 
 #[cfg(test)]
 mod tests {
-    use super::{op::Kind, *};
+    use super::*;
 
     #[test]
     fn test_is_empty() {
