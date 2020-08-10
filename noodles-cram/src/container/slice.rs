@@ -10,7 +10,7 @@ use std::{
 
 use noodles_sam as sam;
 
-use crate::{reader, writer, BitReader, BitWriter, Record};
+use crate::{num::Itf8, reader, writer, BitReader, BitWriter, Record};
 
 use super::{
     block, compression_header::data_series_encoding_map::DataSeries, Block, CompressionHeader,
@@ -29,6 +29,8 @@ pub struct Slice {
 impl Slice {
     pub fn from_records(
         compression_header: &CompressionHeader,
+        reference_sequence_id: ReferenceSequenceId,
+        alignment_start: Itf8,
         records: &[Record],
     ) -> io::Result<Self> {
         let mut core_data_writer = BitWriter::new(Vec::new());
@@ -48,6 +50,8 @@ impl Slice {
             compression_header,
             &mut core_data_writer,
             &mut external_data_writers,
+            reference_sequence_id,
+            alignment_start,
         );
 
         for record in records {
