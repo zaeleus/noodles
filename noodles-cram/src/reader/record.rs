@@ -10,10 +10,7 @@ use noodles_sam as sam;
 
 use crate::{
     container::{
-        compression_header::{
-            data_series_encoding_map::DataSeries,
-            encoding::{self, Encoding},
-        },
+        compression_header::{data_series_encoding_map::DataSeries, encoding::Encoding},
         CompressionHeader, ReferenceSequenceId,
     },
     huffman::CanonicalHuffmanDecoder,
@@ -21,8 +18,6 @@ use crate::{
     record::{self, feature, Feature, Tag},
     BitReader, Record,
 };
-
-use super::encoding::read_encoding;
 
 pub struct Reader<'a, R, S>
 where
@@ -716,40 +711,19 @@ where
     R: Read,
     S: Read,
 {
-    match encoding.kind() {
-        encoding::Kind::External => {
-            let mut reader = encoding.args();
-            let block_content_id = read_itf8(&mut reader)?;
-
+    match encoding {
+        Encoding::External(block_content_id) => {
             let reader = external_data_readers
                 .get_mut(&block_content_id)
                 .expect("could not find block");
 
             reader.read_u8()
         }
-        encoding::Kind::Huffman => {
-            let mut reader = encoding.args();
-
-            let alphabet_len = read_itf8(&mut reader)? as usize;
-            let mut alphabet = Vec::with_capacity(alphabet_len);
-
-            for _ in 0..alphabet_len {
-                let symbol = read_itf8(&mut reader)?;
-                alphabet.push(symbol);
-            }
-
-            let bit_lens_len = read_itf8(&mut reader)? as usize;
-            let mut bit_lens = Vec::with_capacity(bit_lens_len);
-
-            for _ in 0..bit_lens_len {
-                let len = read_itf8(&mut reader)?;
-                bit_lens.push(len);
-            }
-
+        Encoding::Huffman(alphabet, bit_lens) => {
             let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
             decoder.read(core_data_reader).map(|i| i as u8)
         }
-        _ => todo!("{:?}", encoding.kind()),
+        _ => todo!("decode_byte: {:?}", encoding),
     }
 }
 
@@ -762,50 +736,22 @@ where
     R: Read,
     S: Read,
 {
-    match encoding.kind() {
-        encoding::Kind::External => {
-            let mut reader = encoding.args();
-            let block_content_id = read_itf8(&mut reader)?;
-
+    match encoding {
+        Encoding::External(block_content_id) => {
             let reader = external_data_readers
                 .get_mut(&block_content_id)
                 .expect("could not find block");
 
             read_itf8(reader)
         }
-        encoding::Kind::Huffman => {
-            let mut reader = encoding.args();
-
-            let alphabet_len = read_itf8(&mut reader)? as usize;
-            let mut alphabet = Vec::with_capacity(alphabet_len);
-
-            for _ in 0..alphabet_len {
-                let symbol = read_itf8(&mut reader)?;
-                alphabet.push(symbol);
-            }
-
-            let bit_lens_len = read_itf8(&mut reader)? as usize;
-            let mut bit_lens = Vec::with_capacity(bit_lens_len);
-
-            for _ in 0..bit_lens_len {
-                let len = read_itf8(&mut reader)?;
-                bit_lens.push(len);
-            }
-
+        Encoding::Huffman(alphabet, bit_lens) => {
             let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
             decoder.read(core_data_reader)
         }
-        encoding::Kind::Beta => {
-            let mut reader = encoding.args();
-
-            let offset = read_itf8(&mut reader)?;
-            let len = read_itf8(&mut reader)?;
-
-            core_data_reader
-                .read_u32(len as usize)
-                .map(|i| (i as i32 - offset))
-        }
-        _ => todo!("{:?}", encoding.kind()),
+        Encoding::Beta(offset, len) => core_data_reader
+            .read_u32(*len as usize)
+            .map(|i| (i as i32 - offset)),
+        _ => todo!("decode_itf8: {:?}", encoding),
     }
 }
 
@@ -819,11 +765,8 @@ where
     R: Read,
     S: BufRead,
 {
-    match encoding.kind() {
-        encoding::Kind::External => {
-            let mut reader = encoding.args();
-            let block_content_id = read_itf8(&mut reader)?;
-
+    match encoding {
+        Encoding::External(block_content_id) => {
             let reader = external_data_readers
                 .get_mut(&block_content_id)
                 .expect("could not find block");
@@ -833,12 +776,7 @@ where
 
             Ok(buf)
         }
-        encoding::Kind::ByteArrayLen => {
-            let mut reader = encoding.args();
-
-            let len_encoding = read_encoding(&mut reader)?;
-            let value_encoding = read_encoding(&mut reader)?;
-
+        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
             let len = decode_itf8(&len_encoding, core_data_reader, external_data_readers)?;
 
             let buf = vec![0; len as usize];
@@ -851,23 +789,19 @@ where
 
             Ok(value)
         }
-        encoding::Kind::ByteArrayStop => {
-            let mut reader = encoding.args();
-            let stop_byte = reader.read_u8()?;
-            let block_content_id = read_itf8(&mut reader)?;
-
+        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             let reader = external_data_readers
                 .get_mut(&block_content_id)
                 .expect("could not find block");
 
             let mut buf = Vec::new();
-            reader.read_until(stop_byte, &mut buf)?;
+            reader.read_until(*stop_byte, &mut buf)?;
 
             // Remove stop byte.
             buf.pop();
 
             Ok(buf)
         }
-        _ => todo!("{:?}", encoding.kind()),
+        _ => todo!("decode_byte_array: {:?}", encoding),
     }
 }

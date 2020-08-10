@@ -12,7 +12,7 @@ pub use self::{
 
 use std::{convert::TryFrom, io};
 
-use crate::{num::write_itf8, reader::compression_header::read_compression_header, Record};
+use crate::{reader::compression_header::read_compression_header, Record};
 
 use super::Block;
 
@@ -64,13 +64,8 @@ impl CompressionHeader {
 
         for (i, &data_series) in DATA_SERIES.iter().enumerate() {
             let block_content_id = (i + 1) as i32;
-
-            let mut args = Vec::new();
-            write_itf8(&mut args, block_content_id).unwrap();
-
             // TODO: Select encoding depending on the type of data.
-            let encoding = Encoding::new(encoding::Kind::External, args);
-
+            let encoding = Encoding::External(block_content_id);
             data_series_encoding_map.insert(data_series, encoding);
         }
 

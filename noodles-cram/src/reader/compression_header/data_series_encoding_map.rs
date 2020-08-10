@@ -4,10 +4,9 @@ use std::{
 };
 
 use crate::{
-    container::compression_header::{
-        data_series_encoding_map::DataSeries, encoding, DataSeriesEncodingMap, Encoding,
-    },
+    container::compression_header::{data_series_encoding_map::DataSeries, DataSeriesEncodingMap},
     num::read_itf8,
+    reader::encoding::read_encoding,
 };
 
 pub fn read_data_series_encoding_map<R>(reader: &mut R) -> io::Result<DataSeriesEncodingMap>
@@ -30,16 +29,7 @@ where
         let key = DataSeries::try_from(&key_buf[..])
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        let kind = read_itf8(&mut buf_reader).and_then(|codec_id| {
-            encoding::Kind::try_from(codec_id)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let args_len = read_itf8(&mut buf_reader)?;
-        let mut args_buf = vec![0; args_len as usize];
-        buf_reader.read_exact(&mut args_buf)?;
-
-        let encoding = Encoding::new(kind, args_buf);
+        let encoding = read_encoding(&mut buf_reader)?;
 
         encodings.insert(key, encoding);
     }

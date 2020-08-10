@@ -3,12 +3,9 @@ use std::{
     ops::Deref,
 };
 
-use crate::{
-    num::{write_itf8, Itf8},
-    Record,
-};
+use crate::{num::Itf8, Record};
 
-use super::{encoding, Encoding};
+use super::Encoding;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TagEncodingMap(HashMap<Itf8, Encoding>);
@@ -27,13 +24,8 @@ impl TagEncodingMap {
 
         for key in keys {
             let id = key.id();
-
-            let mut args = Vec::new();
-            write_itf8(&mut args, id).unwrap();
-
             // TODO: Select encoding depending on the type of data.
-            let encoding = Encoding::new(encoding::Kind::External, args);
-
+            let encoding = Encoding::External(id);
             map.insert(id, encoding);
         }
 
@@ -85,14 +77,8 @@ mod tests {
         let actual = TagEncodingMap::from_records(&records);
 
         let expected = vec![
-            (
-                nh.id(),
-                Encoding::new(encoding::Kind::External, vec![0xe0, 0x4e, 0x48, 0x63]),
-            ),
-            (
-                co.id(),
-                Encoding::new(encoding::Kind::External, vec![0xe0, 0x43, 0x4f, 0x5a]),
-            ),
+            (nh.id(), Encoding::External(nh.id())),
+            (co.id(), Encoding::External(co.id())),
         ]
         .into_iter()
         .collect();

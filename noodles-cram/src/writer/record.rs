@@ -7,10 +7,10 @@ use noodles_sam as sam;
 
 use crate::{
     container::{
-        compression_header::{data_series_encoding_map::DataSeries, encoding, Encoding},
+        compression_header::{data_series_encoding_map::DataSeries, Encoding},
         CompressionHeader,
     },
-    num::{read_itf8, write_itf8, Itf8},
+    num::{write_itf8, Itf8},
     record::Flags,
     BitWriter, Record,
 };
@@ -90,17 +90,14 @@ where
     W: Write,
     X: Write,
 {
-    match encoding.kind() {
-        encoding::Kind::External => {
-            let mut reader = encoding.args();
-            let block_content_id = read_itf8(&mut reader)?;
-
+    match encoding {
+        Encoding::External(block_content_id) => {
             let writer = external_data_writers
                 .get_mut(&block_content_id)
                 .expect("could not find block");
 
             write_itf8(writer, value)
         }
-        _ => todo!("encode_itf8: unhandled encoding {:?}", encoding.kind()),
+        _ => todo!("encode_itf8: {:?}", encoding),
     }
 }
