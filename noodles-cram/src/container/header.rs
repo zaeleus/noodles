@@ -16,7 +16,7 @@ pub struct Header {
     alignment_span: Itf8,
     record_count: Itf8,
     record_counter: Ltf8,
-    bases: Ltf8,
+    base_count: Ltf8,
     block_count: Itf8,
     landmarks: Vec<Itf8>,
     crc32: u32,
@@ -43,7 +43,7 @@ impl Header {
         alignment_span: Itf8,
         record_count: Itf8,
         record_counter: Ltf8,
-        bases: Ltf8,
+        base_count: Ltf8,
         block_count: Itf8,
         landmarks: Vec<Itf8>,
         crc32: u32,
@@ -55,7 +55,7 @@ impl Header {
             alignment_span,
             record_count,
             record_counter,
-            bases,
+            base_count,
             block_count,
             landmarks,
             crc32,
@@ -86,8 +86,8 @@ impl Header {
         self.record_counter
     }
 
-    pub fn bases(&self) -> Ltf8 {
-        self.bases
+    pub fn base_count(&self) -> Ltf8 {
+        self.base_count
     }
 
     pub fn block_count(&self) -> Itf8 {
@@ -109,7 +109,7 @@ impl Header {
             && self.alignment_span == 0
             && self.record_count == 0
             && self.record_counter == 0
-            && self.bases == 0
+            && self.base_count == 0
             && self.block_count == EOF_BLOCK_COUNT
             && self.landmarks.is_empty()
             && self.crc32 == EOF_CRC32

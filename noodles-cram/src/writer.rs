@@ -223,7 +223,7 @@ where
     let record_counter = header.record_counter();
     write_ltf8(&mut crc_writer, record_counter)?;
 
-    let bases = header.bases();
+    let bases = header.base_count();
     write_ltf8(&mut crc_writer, bases)?;
 
     let number_of_blocks = header.block_count();
