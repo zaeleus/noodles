@@ -69,6 +69,8 @@ impl CompressionHeader {
             data_series_encoding_map.insert(data_series, encoding);
         }
 
+        data_series_encoding_map.insert(DataSeries::ReadNames, Encoding::ByteArrayStop(0x00, 7));
+
         let tag_encoding_map = TagEncodingMap::from_records(records);
 
         Self::new(preservation_map, data_series_encoding_map, tag_encoding_map)

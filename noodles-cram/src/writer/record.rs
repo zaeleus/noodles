@@ -3,6 +3,8 @@ use std::{
     io::{self, Write},
 };
 
+use byteorder::WriteBytesExt;
+
 use noodles_sam as sam;
 
 use crate::{
@@ -49,6 +51,12 @@ where
         self.write_cram_bit_flags(record.cram_bit_flags())?;
 
         self.write_positional_data(record)?;
+
+        let preservation_map = self.compression_header.preservation_map();
+
+        if preservation_map.read_names_included() {
+            self.write_read_name(&record.read_name)?;
+        }
 
         self.prev_alignment_start = record.alignment_start();
 
@@ -173,6 +181,21 @@ where
             read_group,
         )
     }
+
+    fn write_read_name(&mut self, read_name: &[u8]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReadNames)
+            .expect("missing RN");
+
+        encode_byte_array(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            read_name,
+        )
+    }
 }
 
 fn encode_itf8<W, X>(
@@ -194,5 +217,30 @@ where
             write_itf8(writer, value)
         }
         _ => todo!("encode_itf8: {:?}", encoding),
+    }
+}
+
+fn encode_byte_array<W, X>(
+    encoding: &Encoding,
+    _core_data_writer: &mut BitWriter<W>,
+    external_data_writers: &mut HashMap<Itf8, X>,
+    data: &[u8],
+) -> io::Result<()>
+where
+    W: Write,
+    X: Write,
+{
+    match encoding {
+        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
+            let writer = external_data_writers
+                .get_mut(&block_content_id)
+                .expect("could not find block");
+
+            writer.write_all(data)?;
+            writer.write_u8(*stop_byte)?;
+
+            Ok(())
+        }
+        _ => todo!("encode_byte_array: {:?}", encoding),
     }
 }
