@@ -184,9 +184,9 @@ impl Slice {
 
         for (i, record_cell) in records.iter().enumerate() {
             let record = record_cell.borrow();
-            let cram_flags = record.cram_bit_flags();
+            let flags = record.flags();
 
-            if cram_flags.has_mate_downstream() {
+            if flags.has_mate_downstream() {
                 let distance_to_next_fragment = record.distance_to_next_fragment as usize;
                 let mate_index = i + distance_to_next_fragment + 1;
                 mate_indicies[i] = Some(mate_index);

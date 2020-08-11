@@ -48,7 +48,7 @@ where
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         self.write_bam_bit_flags(record.bam_flags())?;
-        self.write_cram_bit_flags(record.cram_bit_flags())?;
+        self.write_cram_bit_flags(record.flags())?;
 
         self.write_positional_data(record)?;
 
@@ -200,9 +200,9 @@ where
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
-        let cram_bit_flags = record.cram_bit_flags();
+        let flags = record.flags();
 
-        if cram_bit_flags.is_detached() {
+        if flags.is_detached() {
             self.write_next_mate_bit_flags(record.next_mate_bit_flags())?;
 
             let preservation_map = self.compression_header.preservation_map();

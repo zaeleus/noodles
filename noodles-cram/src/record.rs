@@ -37,7 +37,7 @@ impl Record {
         self.bam_bit_flags
     }
 
-    pub fn cram_bit_flags(&self) -> Flags {
+    pub fn flags(&self) -> Flags {
         self.cram_bit_flags
     }
 
@@ -73,7 +73,7 @@ impl fmt::Debug for Record {
         fmt.debug_struct("Record")
             .field("id", &self.id)
             .field("bam_bit_flags", &self.bam_flags())
-            .field("cram_bit_flags", &self.cram_bit_flags())
+            .field("cram_bit_flags", &self.flags())
             .field("reference_id", &self.reference_id)
             .field("read_length", &self.read_length)
             .field("alignment_start", &self.alignment_start)

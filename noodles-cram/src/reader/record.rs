@@ -217,9 +217,9 @@ where
     }
 
     fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
-        let cram_bit_flags = record.cram_bit_flags();
+        let flags = record.flags();
 
-        if cram_bit_flags.is_detached() {
+        if flags.is_detached() {
             record.next_mate_bit_flags = self
                 .read_next_mate_bit_flags()
                 .and_then(|n| {
@@ -246,7 +246,7 @@ where
                 self.read_next_fragment_reference_sequence_id()?;
             record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
             record.template_size = self.read_template_size()?;
-        } else if cram_bit_flags.has_mate_downstream() {
+        } else if flags.has_mate_downstream() {
             record.distance_to_next_fragment = self.read_distance_to_next_fragment()?;
         }
 
@@ -381,9 +381,9 @@ where
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        let cram_bit_flags = record.cram_bit_flags();
+        let flags = record.flags();
 
-        if cram_bit_flags.are_quality_scores_stored_as_array() {
+        if flags.are_quality_scores_stored_as_array() {
             let read_len = record.read_length;
             let mut scores = Vec::with_capacity(read_len as usize);
 
@@ -684,9 +684,9 @@ where
             record.bases.push(base);
         }
 
-        let cram_bit_flags = record.cram_bit_flags();
+        let flags = record.flags();
 
-        if cram_bit_flags.are_quality_scores_stored_as_array() {
+        if flags.are_quality_scores_stored_as_array() {
             let read_len = record.read_length;
             let mut scores = Vec::with_capacity(read_len as usize);
 
