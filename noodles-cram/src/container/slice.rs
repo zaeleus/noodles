@@ -157,7 +157,7 @@ impl Slice {
         };
 
         fn set_mate(mut record: RefMut<Record>, mut mate: RefMut<Record>) {
-            let mate_bam_flags = mate.bam_bit_flags();
+            let mate_bam_flags = mate.bam_flags();
 
             if mate_bam_flags.is_reverse_complemented() {
                 record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;

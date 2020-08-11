@@ -47,7 +47,7 @@ where
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.write_bam_bit_flags(record.bam_bit_flags())?;
+        self.write_bam_bit_flags(record.bam_flags())?;
         self.write_cram_bit_flags(record.cram_bit_flags())?;
 
         self.write_positional_data(record)?;

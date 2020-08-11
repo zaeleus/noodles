@@ -79,7 +79,7 @@ where
         self.read_mate_data(record)?;
         self.read_tag_data(record)?;
 
-        if record.bam_bit_flags().is_unmapped() {
+        if record.bam_flags().is_unmapped() {
             self.read_unmapped_read(record)?;
         } else {
             self.read_mapped_read(record)?;

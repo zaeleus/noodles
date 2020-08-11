@@ -33,7 +33,7 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn bam_bit_flags(&self) -> sam::record::Flags {
+    pub fn bam_flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
 
@@ -72,7 +72,7 @@ impl fmt::Debug for Record {
 
         fmt.debug_struct("Record")
             .field("id", &self.id)
-            .field("bam_bit_flags", &self.bam_bit_flags())
+            .field("bam_bit_flags", &self.bam_flags())
             .field("cram_bit_flags", &self.cram_bit_flags())
             .field("reference_id", &self.reference_id)
             .field("read_length", &self.read_length)
