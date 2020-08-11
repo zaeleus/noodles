@@ -49,7 +49,7 @@ impl Record {
         self.alignment_start
     }
 
-    pub fn next_mate_bit_flags(&self) -> NextMateFlags {
+    pub fn next_mate_flags(&self) -> NextMateFlags {
         self.next_mate_bit_flags
     }
 
@@ -79,7 +79,7 @@ impl fmt::Debug for Record {
             .field("alignment_start", &self.alignment_start)
             .field("read_group", &self.read_group)
             .field("read_name", &read_name)
-            .field("next_mate_bit_flags", &self.next_mate_bit_flags())
+            .field("next_mate_bit_flags", &self.next_mate_flags())
             .field(
                 "next_fragment_reference_sequence_id",
                 &self.next_fragment_reference_sequence_id,

@@ -203,7 +203,7 @@ where
         let flags = record.flags();
 
         if flags.is_detached() {
-            self.write_next_mate_bit_flags(record.next_mate_bit_flags())?;
+            self.write_next_mate_bit_flags(record.next_mate_flags())?;
 
             let preservation_map = self.compression_header.preservation_map();
 

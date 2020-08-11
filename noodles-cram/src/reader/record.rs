@@ -226,7 +226,7 @@ where
                     u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 })
                 .map(record::NextMateFlags::from)?;
-            let next_mate_flags = record.next_mate_bit_flags();
+            let next_mate_flags = record.next_mate_flags();
 
             if next_mate_flags.is_on_negative_strand() {
                 record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
