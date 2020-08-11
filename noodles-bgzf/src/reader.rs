@@ -102,17 +102,16 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
-        let compressed_offset = pos.compressed();
-        let uncompressed_offset = pos.uncompressed();
+        let (compressed_pos, uncompressed_pos) = pos.into();
 
-        self.inner.seek(SeekFrom::Start(compressed_offset))?;
-        self.position = compressed_offset;
+        self.inner.seek(SeekFrom::Start(compressed_pos))?;
+        self.position = compressed_pos;
 
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
 
         self.block
             .data_mut()
-            .seek(SeekFrom::Start(u64::from(uncompressed_offset)))?;
+            .seek(SeekFrom::Start(u64::from(uncompressed_pos)))?;
 
         Ok(pos)
     }

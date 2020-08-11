@@ -124,6 +124,12 @@ impl From<VirtualPosition> for u64 {
     }
 }
 
+impl From<VirtualPosition> for (u64, u16) {
+    fn from(pos: VirtualPosition) -> Self {
+        (pos.compressed(), pos.uncompressed())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,6 +181,24 @@ mod tests {
         assert_eq!(
             u64::from(VirtualPosition::from(26155658182977)),
             26155658182977
+        );
+    }
+
+    #[test]
+    fn test_from_virtual_position_for_u64_u16_tuple() {
+        assert_eq!(
+            <(u64, u16)>::from(VirtualPosition::from(88384945211)),
+            (1348647, 15419)
+        );
+
+        assert_eq!(
+            <(u64, u16)>::from(VirtualPosition::from(188049630896)),
+            (2869409, 42672)
+        );
+
+        assert_eq!(
+            <(u64, u16)>::from(VirtualPosition::from(26155658182977)),
+            (399103671, 321)
         );
     }
 }
