@@ -13,7 +13,7 @@ use crate::{
         CompressionHeader, ReferenceSequenceId,
     },
     num::{write_itf8, Itf8},
-    record::Flags,
+    record::{Flags, NextMateFlags},
     BitWriter, Record,
 };
 
@@ -57,6 +57,8 @@ where
         if preservation_map.read_names_included() {
             self.write_read_name(&record.read_name)?;
         }
+
+        self.write_mate_data(record)?;
 
         self.prev_alignment_start = record.alignment_start();
 
@@ -194,6 +196,116 @@ where
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             read_name,
+        )
+    }
+
+    fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
+        let cram_bit_flags = record.cram_bit_flags();
+
+        if cram_bit_flags.is_detached() {
+            self.write_next_mate_bit_flags(record.next_mate_bit_flags())?;
+
+            let preservation_map = self.compression_header.preservation_map();
+
+            if !preservation_map.read_names_included() {
+                self.write_read_name(&record.read_name)?;
+            }
+
+            self.write_next_fragment_reference_sequence_id(
+                record.next_fragment_reference_sequence_id,
+            )?;
+            self.write_next_mate_alignment_start(record.next_mate_alignment_start)?;
+            self.write_template_size(record.template_size)?;
+        } else {
+            self.write_distance_to_next_fragment(record.distance_to_next_fragment)?;
+        }
+
+        Ok(())
+    }
+
+    fn write_next_mate_bit_flags(&mut self, next_mate_flags: NextMateFlags) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextMateBitFlags)
+            .expect("missing MF");
+
+        let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            next_mate_bit_flags,
+        )
+    }
+
+    fn write_next_fragment_reference_sequence_id(
+        &mut self,
+        next_fragment_reference_sequence_id: Itf8,
+    ) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextFragmentReferenceSequenceId)
+            .expect("missing NS");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            next_fragment_reference_sequence_id,
+        )
+    }
+
+    fn write_next_mate_alignment_start(
+        &mut self,
+        next_mate_alignment_start: Itf8,
+    ) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NextMateAlignmentStart)
+            .expect("missing NP");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            next_mate_alignment_start,
+        )
+    }
+
+    fn write_template_size(&mut self, template_size: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::TemplateSize)
+            .expect("missing TS");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            template_size,
+        )
+    }
+
+    fn write_distance_to_next_fragment(
+        &mut self,
+        distance_to_next_fragment: Itf8,
+    ) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::DistanceToNextFragment)
+            .expect("missing NF");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            distance_to_next_fragment,
         )
     }
 }
