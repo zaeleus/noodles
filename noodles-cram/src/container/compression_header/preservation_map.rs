@@ -18,14 +18,15 @@ pub struct PreservationMap {
 impl PreservationMap {
     pub fn from_records(reference_sequence: &[u8], records: &[Record]) -> Self {
         let mut substitution_matrix_builder = SubstitutionMatrix::builder(reference_sequence);
+        let mut tag_ids_dictionary_builder = TagIdsDictionary::builder();
 
         for record in records {
             substitution_matrix_builder.update(record);
+            tag_ids_dictionary_builder.update(record);
         }
 
         let substitution_matrix = substitution_matrix_builder.build();
-
-        let tag_ids_dictionary = TagIdsDictionary::from_records(records);
+        let tag_ids_dictionary = tag_ids_dictionary_builder.build();
 
         // Read names included, AP data series delta, and reference required all default to `true`.
         // See § 8.4 Compression header block (2020-06-22).
