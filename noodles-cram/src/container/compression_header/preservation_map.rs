@@ -17,11 +17,13 @@ pub struct PreservationMap {
 
 impl PreservationMap {
     pub fn from_records(reference_sequence: &[u8], records: &[Record]) -> Self {
-        let substitution_matrix = SubstitutionMatrix::from_records(
-            reference_sequence,
-            &SubstitutionMatrix::default(),
-            records,
-        );
+        let mut substitution_matrix_builder = SubstitutionMatrix::builder(reference_sequence);
+
+        for record in records {
+            substitution_matrix_builder.update(record);
+        }
+
+        let substitution_matrix = substitution_matrix_builder.build();
 
         let tag_ids_dictionary = TagIdsDictionary::from_records(records);
 
