@@ -59,9 +59,11 @@ impl CompressionHeader {
         ];
 
         let mut preservation_map_builder = PreservationMap::builder(reference_sequence);
+        let mut tag_encoding_map_builder = TagEncodingMap::builder();
 
         for record in records {
             preservation_map_builder.update(record);
+            tag_encoding_map_builder.update(record);
         }
 
         let preservation_map = preservation_map_builder.build();
@@ -77,7 +79,7 @@ impl CompressionHeader {
 
         data_series_encoding_map.insert(DataSeries::ReadNames, Encoding::ByteArrayStop(0x00, 7));
 
-        let tag_encoding_map = TagEncodingMap::from_records(records);
+        let tag_encoding_map = tag_encoding_map_builder.build();
 
         Self::new(preservation_map, data_series_encoding_map, tag_encoding_map)
     }
