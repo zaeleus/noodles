@@ -58,7 +58,13 @@ impl CompressionHeader {
             DataSeries::QualityScores,
         ];
 
-        let preservation_map = PreservationMap::from_records(reference_sequence, records);
+        let mut preservation_map_builder = PreservationMap::builder(reference_sequence);
+
+        for record in records {
+            preservation_map_builder.update(record);
+        }
+
+        let preservation_map = preservation_map_builder.build();
 
         let mut data_series_encoding_map = DataSeriesEncodingMap::default();
 
