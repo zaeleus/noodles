@@ -1,11 +1,24 @@
 use std::io::{self, Write};
 
 use crate::{
-    container::compression_header::preservation_map::TagIdsDictionary,
+    container::compression_header::preservation_map::{SubstitutionMatrix, TagIdsDictionary},
     num::{write_itf8, Itf8},
 };
 
 const NUL: u8 = 0x00;
+
+#[allow(dead_code)]
+fn write_substituion_matrix<W>(
+    writer: &mut W,
+    substitution_matrix: &SubstitutionMatrix,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    // FIXME: unnecessary clone
+    let buf = <[u8; 5]>::from(substitution_matrix.clone());
+    writer.write_all(&buf)
+}
 
 #[allow(dead_code)]
 fn write_tag_ids_dictionary<W>(
