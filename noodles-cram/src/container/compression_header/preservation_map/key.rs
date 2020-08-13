@@ -43,6 +43,18 @@ impl TryFrom<&[u8]> for Key {
     }
 }
 
+impl From<Key> for [u8; 2] {
+    fn from(key: Key) -> Self {
+        match key {
+            Key::ReadNamesIncluded => [b'R', b'N'],
+            Key::ApDataSeriesDelta => [b'A', b'P'],
+            Key::ReferenceRequired => [b'R', b'R'],
+            Key::SubstitutionMatrix => [b'S', b'M'],
+            Key::TagIdsDictionary => [b'T', b'D'],
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,5 +68,14 @@ mod tests {
         assert_eq!(Key::try_from(&b"TD"[..]), Ok(Key::TagIdsDictionary));
 
         assert_eq!(Key::try_from(&b"ZZ"[..]), Err(TryFromByteSliceError));
+    }
+
+    #[test]
+    fn test_from_key_for_u8_array() {
+        assert_eq!(<[u8; 2]>::from(Key::ReadNamesIncluded), [b'R', b'N']);
+        assert_eq!(<[u8; 2]>::from(Key::ApDataSeriesDelta), [b'A', b'P']);
+        assert_eq!(<[u8; 2]>::from(Key::ReferenceRequired), [b'R', b'R']);
+        assert_eq!(<[u8; 2]>::from(Key::SubstitutionMatrix), [b'S', b'M']);
+        assert_eq!(<[u8; 2]>::from(Key::TagIdsDictionary), [b'T', b'D']);
     }
 }
