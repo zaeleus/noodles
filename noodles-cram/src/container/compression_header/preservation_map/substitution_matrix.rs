@@ -10,7 +10,7 @@ use self::histogram::Histogram;
 
 type Substitutions = [[Base; 4]; 5];
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubstitutionMatrix {
     substitutions: Substitutions,
 }
