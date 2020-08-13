@@ -2,7 +2,7 @@ pub mod code;
 
 pub use self::code::Code;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature {
     Bases(i32, Vec<u8>),
     Scores(i32, Vec<u8>),

@@ -10,7 +10,7 @@ use std::{fmt, str};
 
 use noodles_sam as sam;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Record {
     pub id: i64,
     pub bam_bit_flags: sam::record::Flags,

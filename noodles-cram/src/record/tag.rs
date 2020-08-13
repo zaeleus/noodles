@@ -4,7 +4,7 @@ pub use self::key::Key;
 
 use noodles_bam::record::data::field::Value;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Tag {
     key: Key,
     value: Value,
