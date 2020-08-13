@@ -20,9 +20,9 @@ pub struct Builder {
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AddRecordError {
-    ReferenceSequenceIdMismatch,
+    ReferenceSequenceIdMismatch(Record),
 }
 
 impl Builder {
@@ -41,13 +41,13 @@ impl Builder {
                         self.records.push(record);
                         Ok(self.records.last().unwrap())
                     } else {
-                        Err(AddRecordError::ReferenceSequenceIdMismatch)
+                        Err(AddRecordError::ReferenceSequenceIdMismatch(record))
                     }
                 }
-                None => Err(AddRecordError::ReferenceSequenceIdMismatch),
+                None => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
             },
             None => match *record_reference_sequence_id {
-                Some(_) => Err(AddRecordError::ReferenceSequenceIdMismatch),
+                Some(_) => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
                 None => {
                     self.records.push(record);
                     Ok(self.records.last().unwrap())
