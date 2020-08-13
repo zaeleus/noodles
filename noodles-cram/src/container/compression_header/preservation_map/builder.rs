@@ -1,24 +1,17 @@
-use super::{
-    substitution_matrix, tag_ids_dictionary, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
-};
+use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
 
 use crate::Record;
 
-pub struct Builder<'a> {
-    substitution_matrix_builder: substitution_matrix::Builder<'a>,
+#[derive(Default)]
+pub struct Builder {
+    substitution_matrix_builder: substitution_matrix::Builder,
     tag_ids_dictionary_builder: tag_ids_dictionary::Builder,
 }
 
-impl<'a> Builder<'a> {
-    pub fn new(reference_sequence: &'a [u8]) -> Self {
-        Self {
-            substitution_matrix_builder: SubstitutionMatrix::builder(reference_sequence),
-            tag_ids_dictionary_builder: TagIdsDictionary::builder(),
-        }
-    }
-
-    pub fn update(&mut self, record: &Record) {
-        self.substitution_matrix_builder.update(record);
+impl Builder {
+    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
+        self.substitution_matrix_builder
+            .update(reference_sequence, record);
         self.tag_ids_dictionary_builder.update(record);
     }
 

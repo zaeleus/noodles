@@ -4,30 +4,21 @@ use crate::{record::Feature, Record};
 
 use super::{Base, Histogram, SubstitutionMatrix};
 
-#[derive(Debug)]
-pub struct Builder<'a> {
-    reference_sequence: &'a [u8],
+#[derive(Debug, Default)]
+pub struct Builder {
     substitution_matrix: SubstitutionMatrix,
     histogram: Histogram,
 }
 
-impl<'a> Builder<'a> {
-    pub fn new(reference_sequence: &'a [u8]) -> Self {
-        Self {
-            reference_sequence,
-            substitution_matrix: SubstitutionMatrix::default(),
-            histogram: Histogram::default(),
-        }
-    }
-
-    pub fn update(&mut self, record: &Record) {
+impl Builder {
+    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
         let substitution_matrix = SubstitutionMatrix::default();
 
         for feature in &record.features {
             if let Feature::Substitution(pos, code) = feature {
                 // FIXME: pos = 1-based, position = 0-based
                 let reference_position = (pos - 1) as usize;
-                let base = self.reference_sequence[reference_position] as char;
+                let base = reference_sequence[reference_position] as char;
                 let reference_base = Base::try_from(base).unwrap_or_default();
                 let read_base = substitution_matrix.get(reference_base, *code);
                 self.histogram.hit(reference_base, read_base);

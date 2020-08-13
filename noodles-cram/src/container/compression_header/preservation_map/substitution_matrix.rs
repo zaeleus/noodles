@@ -16,8 +16,8 @@ pub struct SubstitutionMatrix {
 }
 
 impl SubstitutionMatrix {
-    pub fn builder(reference_sequence: &[u8]) -> Builder<'_> {
-        Builder::new(reference_sequence)
+    pub fn builder() -> Builder {
+        Builder::default()
     }
 
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {

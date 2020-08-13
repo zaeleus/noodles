@@ -3,7 +3,7 @@ use crate::Record;
 use super::{
     data_series_encoding_map::{DataSeries, DataSeriesEncodingMap},
     encoding::Encoding,
-    preservation_map, tag_encoding_map, CompressionHeader, PreservationMap, TagEncodingMap,
+    preservation_map, tag_encoding_map, CompressionHeader,
 };
 
 const DATA_SERIES: [DataSeries; DataSeries::LEN] = [
@@ -37,21 +37,16 @@ const DATA_SERIES: [DataSeries; DataSeries::LEN] = [
     DataSeries::QualityScores,
 ];
 
-pub struct Builder<'a> {
-    preservation_map_builder: preservation_map::Builder<'a>,
+#[derive(Default)]
+pub struct Builder {
+    preservation_map_builder: preservation_map::Builder,
     tag_encoding_map_builder: tag_encoding_map::Builder,
 }
 
-impl<'a> Builder<'a> {
-    pub fn new(reference_sequence: &'a [u8]) -> Self {
-        Self {
-            preservation_map_builder: PreservationMap::builder(reference_sequence),
-            tag_encoding_map_builder: TagEncodingMap::builder(),
-        }
-    }
-
-    pub fn update(&mut self, record: &Record) {
-        self.preservation_map_builder.update(record);
+impl Builder {
+    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
+        self.preservation_map_builder
+            .update(reference_sequence, record);
         self.tag_encoding_map_builder.update(record);
     }
 

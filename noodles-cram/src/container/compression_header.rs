@@ -26,8 +26,8 @@ pub struct CompressionHeader {
 }
 
 impl CompressionHeader {
-    pub fn builder(reference_sequence: &[u8]) -> Builder {
-        Builder::new(reference_sequence)
+    pub fn builder() -> Builder {
+        Builder::default()
     }
 
     pub fn new(
