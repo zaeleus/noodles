@@ -12,7 +12,7 @@ use noodles_sam as sam;
 
 use crate::{reader, BitReader, Record};
 
-use super::{Block, CompressionHeader, ReferenceSequenceId};
+use super::{Block, CompressionHeader};
 
 #[derive(Debug)]
 pub struct Slice {
@@ -22,8 +22,8 @@ pub struct Slice {
 }
 
 impl Slice {
-    pub fn builder(reference_sequence_id: ReferenceSequenceId) -> Builder {
-        Builder::new(reference_sequence_id)
+    pub fn builder() -> Builder {
+        Builder::default()
     }
 
     pub fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {

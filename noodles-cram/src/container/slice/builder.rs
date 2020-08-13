@@ -14,10 +14,10 @@ use noodles_bam as bam;
 
 const CORE_DATA_BLOCK_CONTENT_ID: i32 = 0;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Builder {
-    reference_sequence_id: ReferenceSequenceId,
     records: Vec<Record>,
+    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,43 +26,42 @@ pub enum AddRecordError {
 }
 
 impl Builder {
-    pub fn new(reference_sequence_id: ReferenceSequenceId) -> Self {
-        Self {
-            reference_sequence_id,
-            records: Vec::new(),
-        }
-    }
-
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
         let record_reference_sequence_id =
             bam::record::ReferenceSequenceId::from(record.reference_id);
 
-        match self.reference_sequence_id {
-            ReferenceSequenceId::None => match *record_reference_sequence_id {
+        if self.reference_sequence_id.is_none() {
+            self.reference_sequence_id = Some(record_reference_sequence_id);
+        }
+
+        match *self.reference_sequence_id.unwrap() {
+            Some(slice_reference_sequence_id) => match *record_reference_sequence_id {
+                Some(id) => {
+                    if slice_reference_sequence_id == id {
+                        self.records.push(record);
+                        Ok(self.records.last().unwrap())
+                    } else {
+                        Err(AddRecordError::ReferenceSequenceIdMismatch)
+                    }
+                }
+                None => Err(AddRecordError::ReferenceSequenceIdMismatch),
+            },
+            None => match *record_reference_sequence_id {
                 Some(_) => Err(AddRecordError::ReferenceSequenceIdMismatch),
                 None => {
                     self.records.push(record);
                     Ok(self.records.last().unwrap())
                 }
             },
-            ReferenceSequenceId::Some(slice_reference_sequence_id) => {
-                match *record_reference_sequence_id {
-                    Some(id) => {
-                        if slice_reference_sequence_id == id {
-                            self.records.push(record);
-                            Ok(self.records.last().unwrap())
-                        } else {
-                            Err(AddRecordError::ReferenceSequenceIdMismatch)
-                        }
-                    }
-                    None => Err(AddRecordError::ReferenceSequenceIdMismatch),
-                }
-            }
-            ReferenceSequenceId::Many => todo!(),
         }
     }
 
     pub fn build(self, compression_header: &CompressionHeader) -> io::Result<Slice> {
+        let reference_sequence_id = match *self.reference_sequence_id.unwrap() {
+            Some(id) => ReferenceSequenceId::Some(id),
+            None => ReferenceSequenceId::None,
+        };
+
         let alignment_start = self
             .records
             .first()
@@ -86,7 +85,7 @@ impl Builder {
             compression_header,
             &mut core_data_writer,
             &mut external_data_writers,
-            self.reference_sequence_id,
+            reference_sequence_id,
             alignment_start,
         );
 
@@ -127,7 +126,7 @@ impl Builder {
 
         // TODO
         let header = Header::new(
-            self.reference_sequence_id,
+            reference_sequence_id,
             1,
             0,
             self.records.len() as i32,
