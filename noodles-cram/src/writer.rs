@@ -1,4 +1,5 @@
 mod compression_header;
+mod encoding;
 pub mod record;
 
 use std::io::{self, Write};
