@@ -1,23 +1,18 @@
+pub mod builder;
 mod header;
 
-pub use self::header::Header;
+pub use self::{builder::Builder, header::Header};
 
 use std::{
-    collections::HashMap,
     convert::TryFrom,
     io::{self, Cursor},
 };
 
 use noodles_sam as sam;
 
-use crate::{num::Itf8, reader, writer, BitReader, BitWriter, Record};
+use crate::{reader, BitReader, Record};
 
-use super::{
-    block, compression_header::data_series_encoding_map::DataSeries, Block, CompressionHeader,
-    ReferenceSequenceId,
-};
-
-const CORE_DATA_BLOCK_CONTENT_ID: i32 = 0;
+use super::{Block, CompressionHeader, ReferenceSequenceId};
 
 #[derive(Debug)]
 pub struct Slice {
@@ -27,83 +22,8 @@ pub struct Slice {
 }
 
 impl Slice {
-    pub fn from_records(
-        compression_header: &CompressionHeader,
-        reference_sequence_id: ReferenceSequenceId,
-        alignment_start: Itf8,
-        records: &[Record],
-    ) -> io::Result<Self> {
-        let mut core_data_writer = BitWriter::new(Vec::new());
-
-        let mut external_data_writers = HashMap::new();
-
-        for i in 0..DataSeries::LEN {
-            let block_content_id = (i + 1) as i32;
-            external_data_writers.insert(block_content_id, Vec::new());
-        }
-
-        for &block_content_id in compression_header.tag_encoding_map().keys() {
-            external_data_writers.insert(block_content_id, Vec::new());
-        }
-
-        let mut record_writer = writer::record::Writer::new(
-            compression_header,
-            &mut core_data_writer,
-            &mut external_data_writers,
-            reference_sequence_id,
-            alignment_start,
-        );
-
-        for record in records {
-            record_writer.write_record(record)?;
-        }
-
-        let core_data_block = core_data_writer.finish().map(|buf| {
-            Block::new(
-                block::CompressionMethod::None,
-                block::ContentType::CoreData,
-                CORE_DATA_BLOCK_CONTENT_ID,
-                buf.len() as i32,
-                buf,
-                0,
-            )
-        })?;
-
-        let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
-
-        for &block_content_id in external_data_writers.keys() {
-            block_content_ids.push(block_content_id);
-        }
-
-        let external_blocks: Vec<_> = external_data_writers
-            .into_iter()
-            .map(|(block_content_id, buf)| {
-                Block::new(
-                    block::CompressionMethod::None,
-                    block::ContentType::ExternalData,
-                    block_content_id,
-                    buf.len() as i32,
-                    buf,
-                    0,
-                )
-            })
-            .collect();
-
-        // TODO
-        let header = Header::new(
-            ReferenceSequenceId::None,
-            1,
-            0,
-            records.len() as i32,
-            0,
-            (external_blocks.len() + 1) as i32,
-            block_content_ids,
-            0,
-            Default::default(),
-            Vec::new(),
-        );
-
-        Ok(Self::new(header, core_data_block, external_blocks))
+    pub fn builder(reference_sequence_id: ReferenceSequenceId) -> Builder {
+        Builder::new(reference_sequence_id)
     }
 
     pub fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {
