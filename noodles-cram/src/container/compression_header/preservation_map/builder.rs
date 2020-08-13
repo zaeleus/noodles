@@ -2,7 +2,7 @@ use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
 
 use crate::Record;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Builder {
     substitution_matrix_builder: substitution_matrix::Builder,
     tag_ids_dictionary_builder: tag_ids_dictionary::Builder,

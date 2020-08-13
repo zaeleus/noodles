@@ -37,7 +37,7 @@ const DATA_SERIES: [DataSeries; DataSeries::LEN] = [
     DataSeries::QualityScores,
 ];
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Builder {
     preservation_map_builder: preservation_map::Builder,
     tag_encoding_map_builder: tag_encoding_map::Builder,

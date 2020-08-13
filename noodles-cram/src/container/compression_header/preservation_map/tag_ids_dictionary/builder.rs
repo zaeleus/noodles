@@ -4,7 +4,7 @@ use crate::{record, Record};
 
 use super::TagIdsDictionary;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Builder {
     keys_indices: HashMap<Vec<record::tag::Key>, usize>,
 }
