@@ -47,8 +47,8 @@ mod tests {
         record.add_feature(Feature::Substitution(9, 1)); // A => G
         record.add_feature(Feature::Substitution(10, 2)); // A => T
 
-        let mut builder = Builder::new(reference_sequence);
-        builder.update(&record);
+        let mut builder = Builder::default();
+        builder.update(reference_sequence, &record);
         let matrix = builder.build();
 
         assert_eq!(
