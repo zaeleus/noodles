@@ -6,7 +6,6 @@ use crate::{
     writer::encoding::write_encoding,
 };
 
-#[allow(dead_code)]
 pub fn write_tag_encoding_map<W>(
     writer: &mut W,
     tag_encoding_map: &TagEncodingMap,

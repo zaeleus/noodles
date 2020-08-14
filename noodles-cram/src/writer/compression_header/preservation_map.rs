@@ -17,7 +17,6 @@ const TRUE: u8 = 0x01;
 
 const NUL: u8 = 0x00;
 
-#[allow(dead_code)]
 pub fn write_preservation_map<W>(
     writer: &mut W,
     preservation_map: &PreservationMap,

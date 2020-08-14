@@ -37,7 +37,6 @@ const DATA_SERIES: [DataSeries; DataSeries::LEN] = [
     DataSeries::QualityScores,
 ];
 
-#[allow(dead_code)]
 pub fn write_data_series_encoding_map<W>(
     writer: &mut W,
     data_series_encoding_map: &DataSeriesEncodingMap,
