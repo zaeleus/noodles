@@ -1,3 +1,7 @@
+pub mod builder;
+
+pub use self::builder::Builder;
+
 use std::{convert::TryFrom, io};
 
 use super::{
@@ -11,6 +15,10 @@ pub struct DataContainer {
 }
 
 impl DataContainer {
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     pub fn compression_header(&self) -> &CompressionHeader {
         &self.compression_header
     }
