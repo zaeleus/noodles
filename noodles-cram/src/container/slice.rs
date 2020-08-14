@@ -38,6 +38,14 @@ impl Slice {
         &self.header
     }
 
+    pub fn core_data_block(&self) -> &Block {
+        &self.core_data_block
+    }
+
+    pub fn external_blocks(&self) -> &[Block] {
+        &self.external_blocks
+    }
+
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         let core_data_reader =
             BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
