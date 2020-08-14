@@ -1,4 +1,4 @@
-mod compression_header;
+pub mod compression_header;
 mod encoding;
 pub mod record;
 
