@@ -2,7 +2,10 @@ pub mod compression_header;
 mod encoding;
 pub mod record;
 
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    mem,
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
@@ -10,8 +13,9 @@ use noodles_sam as sam;
 
 use super::{
     container::{self, block, Block, Container},
+    data_container,
     num::{write_itf8, write_ltf8, Itf8},
-    MAGIC_NUMBER,
+    DataContainer, Record, MAGIC_NUMBER,
 };
 
 // [major, minor]
@@ -24,6 +28,7 @@ where
     W: Write,
 {
     inner: W,
+    data_container_builder: data_container::Builder,
 }
 
 impl<W> Writer<W>
@@ -39,7 +44,10 @@ where
     /// let writer = cram::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            data_container_builder: DataContainer::builder(),
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -167,6 +175,38 @@ where
         }
 
         Ok(())
+    }
+
+    pub fn write_record(
+        &mut self,
+        reference_sequence: &[u8],
+        mut record: Record,
+    ) -> io::Result<()> {
+        loop {
+            match self
+                .data_container_builder
+                .add_record(reference_sequence, record)
+            {
+                Ok(_) => return Ok(()),
+                Err(e) => match e {
+                    data_container::builder::AddRecordError::ContainerFull(r) => {
+                        record = r;
+
+                        let data_container_builder = mem::replace(
+                            &mut self.data_container_builder,
+                            DataContainer::builder(),
+                        );
+
+                        data_container_builder
+                            .build()
+                            .and_then(|data_container| {
+                                Container::try_from_data_container(&data_container)
+                            })
+                            .and_then(|container| self.write_container(&container))?;
+                    }
+                },
+            }
+        }
     }
 }
 
