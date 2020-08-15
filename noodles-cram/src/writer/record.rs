@@ -1,3 +1,5 @@
+mod tag;
+
 use std::{
     collections::HashMap,
     io::{self, Write},
@@ -329,6 +331,23 @@ where
 
         // FIXME: usize => Itf8 cast
         self.write_tag_line(tag_line as Itf8)?;
+
+        let tag_encoding_map = self.compression_header.tag_encoding_map();
+
+        for tag in &record.tags {
+            let id = tag.key().id();
+            let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
+
+            let mut buf = Vec::new();
+            tag::write_value(&mut buf, tag.value())?;
+
+            encode_byte_array(
+                encoding,
+                &mut self.core_data_writer,
+                &mut self.external_data_writers,
+                &buf,
+            )?;
+        }
 
         Ok(())
     }
