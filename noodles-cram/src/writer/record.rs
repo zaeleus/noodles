@@ -64,14 +64,14 @@ where
         self.write_tag_data(record)?;
 
         if record.bam_flags().is_unmapped() {
-            todo!("write_unmapped_read");
+            self.write_unmapped_read(record)?;
         } else {
             self.write_mapped_read(record)?;
         }
 
         self.prev_alignment_start = record.alignment_start();
 
-        todo!();
+        Ok(())
     }
 
     fn write_bam_bit_flags(&mut self, bam_flags: sam::record::Flags) -> io::Result<()> {
@@ -679,6 +679,22 @@ where
             &mut self.external_data_writers,
             mapping_quality,
         )
+    }
+
+    fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
+        for &base in &record.bases {
+            self.write_base(base)?;
+        }
+
+        let flags = record.flags();
+
+        if flags.are_quality_scores_stored_as_array() {
+            for &score in &record.quality_scores {
+                self.write_quality_score(score)?;
+            }
+        }
+
+        Ok(())
     }
 }
 
