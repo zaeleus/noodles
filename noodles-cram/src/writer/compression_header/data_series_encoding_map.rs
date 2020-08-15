@@ -46,21 +46,24 @@ where
 {
     let mut buf = Vec::new();
 
-    let mut map_len = 0;
+    // FIXME: usize => Itf8 cast
+    let map_len = DATA_SERIES
+        .iter()
+        .filter_map(|data_series| data_series_encoding_map.get(data_series))
+        .count() as Itf8;
+
+    write_itf8(&mut buf, map_len)?;
 
     for data_series in &DATA_SERIES {
         if let Some(encoding) = data_series_encoding_map.get(data_series) {
             write_key(&mut buf, *data_series)?;
             write_encoding(&mut buf, encoding)?;
-            map_len += 1;
         }
     }
 
     // FIXME: usize => Itf8 cast
     let data_len = buf.len() as Itf8;
     write_itf8(writer, data_len)?;
-
-    write_itf8(writer, map_len)?;
 
     writer.write_all(&buf)
 }
