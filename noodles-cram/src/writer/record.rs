@@ -59,6 +59,7 @@ where
         }
 
         self.write_mate_data(record)?;
+        self.write_tag_data(record)?;
 
         self.prev_alignment_start = record.alignment_start();
 
@@ -306,6 +307,44 @@ where
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             distance_to_next_fragment,
+        )
+    }
+
+    fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
+        let preservation_map = self.compression_header.preservation_map();
+        let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
+
+        let keys: Vec<_> = record.tags.iter().map(|tag| tag.key()).collect();
+        let tag_line = tag_ids_dictionary
+            .iter()
+            .enumerate()
+            .find(|(_, k)| **k == keys)
+            .map(|(i, _)| i)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "tag line not in tag IDs dictionary",
+                )
+            })?;
+
+        // FIXME: usize => Itf8 cast
+        self.write_tag_line(tag_line as Itf8)?;
+
+        Ok(())
+    }
+
+    fn write_tag_line(&mut self, tag_line: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::TagIds)
+            .expect("missing TL");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            tag_line,
         )
     }
 }
