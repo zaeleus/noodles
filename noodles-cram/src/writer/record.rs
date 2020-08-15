@@ -380,6 +380,8 @@ where
             self.write_feature(feature)?;
         }
 
+        self.write_mapping_quality(record.mapping_quality)?;
+
         Ok(())
     }
 
@@ -653,6 +655,21 @@ where
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             len,
+        )
+    }
+
+    fn write_mapping_quality(&mut self, mapping_quality: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::MappingQualities)
+            .expect("missing MQ");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            mapping_quality,
         )
     }
 }
