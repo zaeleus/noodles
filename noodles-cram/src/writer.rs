@@ -1,5 +1,6 @@
 mod block;
 pub mod compression_header;
+mod container;
 mod encoding;
 pub mod record;
 pub mod slice;
@@ -10,13 +11,12 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use flate2::CrcWriter;
 use noodles_sam as sam;
 
 use super::{
-    container::{self, Block, Container},
+    container::{Block, Container},
     data_container,
-    num::{write_itf8, write_ltf8, Itf8},
+    num::Itf8,
     DataContainer, Record, MAGIC_NUMBER,
 };
 
@@ -142,8 +142,8 @@ where
         data.extend(header_data);
 
         let block = Block::new(
-            container::block::CompressionMethod::None,
-            container::block::ContentType::FileHeader,
+            crate::container::block::CompressionMethod::None,
+            crate::container::block::ContentType::FileHeader,
             0,
             data.len() as i32,
             data,
@@ -153,9 +153,9 @@ where
         let blocks = vec![block];
         let landmarks = vec![0];
 
-        let container_header = container::Header::new(
+        let container_header = crate::container::Header::new(
             0,
-            container::ReferenceSequenceId::None,
+            crate::container::ReferenceSequenceId::None,
             0,
             0,
             0,
@@ -174,7 +174,7 @@ where
 
     pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
         let len = container.blocks().iter().map(|b| b.len()).sum();
-        write_container_header(&mut self.inner, container.header(), len)?;
+        self::container::write_header(&mut self.inner, container.header(), len)?;
 
         for block in container.blocks() {
             write_block(&mut self.inner, block)?;
@@ -237,54 +237,6 @@ fn validate_reference_sequences(
             ));
         }
     }
-
-    Ok(())
-}
-
-fn write_container_header<W>(
-    writer: &mut W,
-    header: &container::Header,
-    len: usize,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    let mut crc_writer = CrcWriter::new(writer);
-
-    let length = len as i32;
-    crc_writer.write_i32::<LittleEndian>(length)?;
-
-    let reference_sequence_id = i32::from(header.reference_sequence_id());
-    write_itf8(&mut crc_writer, reference_sequence_id)?;
-
-    let starting_position_on_the_reference = header.start_position();
-    write_itf8(&mut crc_writer, starting_position_on_the_reference)?;
-
-    let alignment_span = header.alignment_span();
-    write_itf8(&mut crc_writer, alignment_span)?;
-
-    let number_of_records = header.record_count();
-    write_itf8(&mut crc_writer, number_of_records)?;
-
-    let record_counter = header.record_counter();
-    write_ltf8(&mut crc_writer, record_counter)?;
-
-    let bases = header.base_count();
-    write_ltf8(&mut crc_writer, bases)?;
-
-    let number_of_blocks = header.block_count();
-    write_itf8(&mut crc_writer, number_of_blocks)?;
-
-    let landmarks_len = header.landmarks().len() as i32;
-    write_itf8(&mut crc_writer, landmarks_len)?;
-
-    for &pos in header.landmarks() {
-        write_itf8(&mut crc_writer, pos)?;
-    }
-
-    let crc32 = crc_writer.crc().sum();
-    let writer = crc_writer.into_inner();
-    writer.write_u32::<LittleEndian>(crc32)?;
 
     Ok(())
 }
