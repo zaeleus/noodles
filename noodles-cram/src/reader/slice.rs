@@ -4,7 +4,10 @@ use std::{
 };
 
 use crate::{
-    container::{slice, ReferenceSequenceId},
+    container::{
+        slice::{self, header::EmbeddedReferenceBasesBlockContentId},
+        ReferenceSequenceId,
+    },
     num::{read_itf8, read_ltf8, Itf8},
 };
 
@@ -22,7 +25,8 @@ where
     let record_counter = read_ltf8(reader)?;
     let block_count = read_itf8(reader)?;
     let block_content_ids = read_block_content_ids(reader)?;
-    let embedded_reference_bases_block_content_id = read_itf8(reader)?;
+    let embedded_reference_bases_block_content_id =
+        read_itf8(reader).map(EmbeddedReferenceBasesBlockContentId::from)?;
     let reference_md5 = read_reference_md5(reader)?;
     let optional_tags = read_optional_tags(reader)?;
 

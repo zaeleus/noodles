@@ -8,7 +8,7 @@ use crate::{
     writer, BitWriter, Record,
 };
 
-use super::{Header, Slice};
+use super::{header::EmbeddedReferenceBasesBlockContentId, Header, Slice};
 
 use noodles_bam as bam;
 
@@ -134,7 +134,7 @@ impl Builder {
             0,
             (external_blocks.len() + 1) as i32,
             block_content_ids,
-            0,
+            EmbeddedReferenceBasesBlockContentId::default(),
             Default::default(),
             Vec::new(),
         );

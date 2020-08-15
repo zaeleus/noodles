@@ -1,3 +1,7 @@
+mod embedded_reference_bases_block_content_id;
+
+pub use embedded_reference_bases_block_content_id::EmbeddedReferenceBasesBlockContentId;
+
 use crate::{
     container::ReferenceSequenceId,
     num::{Itf8, Ltf8},
@@ -12,7 +16,7 @@ pub struct Header {
     record_counter: Ltf8,
     block_count: Itf8,
     block_content_ids: Vec<Itf8>,
-    embedded_reference_bases_block_content_id: Itf8,
+    embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -27,7 +31,7 @@ impl Header {
         record_counter: Ltf8,
         block_count: Itf8,
         block_content_ids: Vec<Itf8>,
-        embedded_reference_bases_block_content_id: Itf8,
+        embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
         reference_md5: [u8; 16],
         optional_tags: Vec<u8>,
     ) -> Self {
@@ -75,7 +79,9 @@ impl Header {
         &self.block_content_ids
     }
 
-    pub fn embedded_reference_bases_block_content_id(&self) -> Itf8 {
+    pub fn embedded_reference_bases_block_content_id(
+        &self,
+    ) -> EmbeddedReferenceBasesBlockContentId {
         self.embedded_reference_bases_block_content_id
     }
 

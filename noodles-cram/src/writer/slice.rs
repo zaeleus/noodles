@@ -18,7 +18,11 @@ where
     write_ltf8(writer, header.record_counter())?;
     write_itf8(writer, header.block_count())?;
     write_block_content_ids(writer, header.block_content_ids())?;
-    write_itf8(writer, header.embedded_reference_bases_block_content_id())?;
+
+    let embedded_reference_bases_block_content_id =
+        i32::from(header.embedded_reference_bases_block_content_id());
+    write_itf8(writer, embedded_reference_bases_block_content_id)?;
+
     write_reference_md5(writer, header.reference_md5())?;
 
     if !header.optional_tags().is_empty() {

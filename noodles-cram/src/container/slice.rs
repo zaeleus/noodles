@@ -1,5 +1,5 @@
 pub mod builder;
-mod header;
+pub mod header;
 
 pub use self::{builder::Builder, header::Header};
 
