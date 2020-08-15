@@ -40,9 +40,8 @@ impl Container {
             0,
         );
 
-        // FIXME: usize => Itf8 cast
-        let mut landmarks = vec![block.len() as Itf8];
         let mut blocks = vec![block];
+        let mut landmarks = Vec::new();
 
         for slice in data_container.slices() {
             let mut slice_len = 0;
@@ -72,7 +71,7 @@ impl Container {
                 slice_len += external_block.len() as Itf8;
             }
 
-            let last_landmark = landmarks.last().unwrap();
+            let last_landmark = landmarks.last().unwrap_or(&0);
             let landmark = last_landmark + slice_len;
             landmarks.push(landmark);
         }
