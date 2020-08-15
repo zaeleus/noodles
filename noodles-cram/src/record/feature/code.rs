@@ -67,6 +67,25 @@ impl TryFrom<char> for Code {
     }
 }
 
+impl From<Code> for char {
+    fn from(code: Code) -> Self {
+        match code {
+            Code::Bases => 'b',
+            Code::Scores => 'q',
+            Code::ReadBase => 'B',
+            Code::Substitution => 'X',
+            Code::Insertion => 'I',
+            Code::Deletion => 'D',
+            Code::InsertBase => 'i',
+            Code::QualityScore => 'Q',
+            Code::ReferenceSkip => 'N',
+            Code::SoftClip => 'S',
+            Code::Padding => 'P',
+            Code::HardClip => 'H',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,5 +105,21 @@ mod tests {
         assert_eq!(Code::try_from('P'), Ok(Code::Padding));
         assert_eq!(Code::try_from('H'), Ok(Code::HardClip));
         assert_eq!(Code::try_from('Z'), Err(TryFromCharError('Z')));
+    }
+
+    #[test]
+    fn test_from_code_for_char() {
+        assert_eq!(char::from(Code::Bases), 'b');
+        assert_eq!(char::from(Code::Scores), 'q');
+        assert_eq!(char::from(Code::ReadBase), 'B');
+        assert_eq!(char::from(Code::Substitution), 'X');
+        assert_eq!(char::from(Code::Insertion), 'I');
+        assert_eq!(char::from(Code::Deletion), 'D');
+        assert_eq!(char::from(Code::InsertBase), 'i');
+        assert_eq!(char::from(Code::QualityScore), 'Q');
+        assert_eq!(char::from(Code::ReferenceSkip), 'N');
+        assert_eq!(char::from(Code::SoftClip), 'S');
+        assert_eq!(char::from(Code::Padding), 'P');
+        assert_eq!(char::from(Code::HardClip), 'H');
     }
 }
