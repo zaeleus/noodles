@@ -19,6 +19,23 @@ pub enum Feature {
 }
 
 impl Feature {
+    pub fn code(&self) -> Code {
+        match self {
+            Self::Bases(..) => Code::Bases,
+            Self::Scores(..) => Code::Scores,
+            Self::ReadBase(..) => Code::ReadBase,
+            Self::Substitution(..) => Code::Substitution,
+            Self::Insertion(..) => Code::Insertion,
+            Self::Deletion(..) => Code::Deletion,
+            Self::InsertBase(..) => Code::InsertBase,
+            Self::QualityScore(..) => Code::QualityScore,
+            Self::ReferenceSkip(..) => Code::ReferenceSkip,
+            Self::SoftClip(..) => Code::SoftClip,
+            Self::Padding(..) => Code::Padding,
+            Self::HardClip(..) => Code::HardClip,
+        }
+    }
+
     pub fn position(&self) -> i32 {
         match self {
             Self::Bases(pos, _) => *pos,
@@ -40,6 +57,22 @@ impl Feature {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_code() {
+        assert_eq!(Feature::Bases(1, Vec::new()).code(), Code::Bases);
+        assert_eq!(Feature::Scores(1, Vec::new()).code(), Code::Scores);
+        assert_eq!(Feature::ReadBase(1, 0, 0).code(), Code::ReadBase);
+        assert_eq!(Feature::Substitution(1, 0).code(), Code::Substitution);
+        assert_eq!(Feature::Insertion(1, Vec::new()).code(), Code::Insertion);
+        assert_eq!(Feature::Deletion(1, 0).code(), Code::Deletion);
+        assert_eq!(Feature::InsertBase(1, 0).code(), Code::InsertBase);
+        assert_eq!(Feature::QualityScore(1, 0).code(), Code::QualityScore);
+        assert_eq!(Feature::ReferenceSkip(1, 0).code(), Code::ReferenceSkip);
+        assert_eq!(Feature::SoftClip(1, Vec::new()).code(), Code::SoftClip);
+        assert_eq!(Feature::Padding(1, 0).code(), Code::Padding);
+        assert_eq!(Feature::HardClip(1, 0).code(), Code::HardClip);
+    }
 
     #[test]
     fn test_position() {
