@@ -382,6 +382,14 @@ where
 
         self.write_mapping_quality(record.mapping_quality)?;
 
+        let flags = record.flags();
+
+        if flags.are_quality_scores_stored_as_array() {
+            for &score in &record.quality_scores {
+                self.write_quality_score(score)?;
+            }
+        }
+
         Ok(())
     }
 
