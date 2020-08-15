@@ -64,7 +64,8 @@ where
         &self.inner
     }
 
-    /// Attempts to finish the output stream by writing a final EOF container.
+    /// Attempts to finish the output stream by writing any pending containers and a final EOF
+    /// container.
     ///
     /// This is typically only manually called if the underlying stream is needed before the writer
     /// is dropped.
@@ -79,6 +80,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
+        self.flush()?;
         let eof_container = Container::eof();
         self.write_container(&eof_container)
     }
@@ -192,22 +194,21 @@ where
                 Err(e) => match e {
                     data_container::builder::AddRecordError::ContainerFull(r) => {
                         record = r;
-
-                        let data_container_builder = mem::replace(
-                            &mut self.data_container_builder,
-                            DataContainer::builder(),
-                        );
-
-                        data_container_builder
-                            .build()
-                            .and_then(|data_container| {
-                                Container::try_from_data_container(&data_container)
-                            })
-                            .and_then(|container| self.write_container(&container))?;
+                        self.flush()?;
                     }
                 },
             }
         }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        let data_container_builder =
+            mem::replace(&mut self.data_container_builder, DataContainer::builder());
+
+        data_container_builder
+            .build()
+            .and_then(|data_container| Container::try_from_data_container(&data_container))
+            .and_then(|container| self.write_container(&container))
     }
 }
 
