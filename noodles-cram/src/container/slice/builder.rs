@@ -112,6 +112,7 @@ impl Builder {
 
         let external_blocks: Vec<_> = external_data_writers
             .into_iter()
+            .filter(|(_, buf)| !buf.is_empty())
             .map(|(block_content_id, buf)| {
                 Block::new(
                     block::CompressionMethod::None,
