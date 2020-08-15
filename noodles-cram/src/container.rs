@@ -11,7 +11,9 @@ pub use self::{
 
 use std::io;
 
-use super::{num::Itf8, writer::compression_header::write_compression_header, DataContainer};
+use super::{
+    num::Itf8, writer, writer::compression_header::write_compression_header, DataContainer,
+};
 
 #[derive(Debug, Default)]
 pub struct Container {
@@ -44,6 +46,21 @@ impl Container {
 
         for slice in data_container.slices() {
             let mut slice_len = 0;
+
+            let mut slice_header_buf = Vec::new();
+            writer::slice::write_header(&mut slice_header_buf, slice.header())?;
+
+            let slice_header_block = Block::new(
+                block::CompressionMethod::None,
+                block::ContentType::SliceHeader,
+                0, // FIXME,
+                slice_header_buf.len() as Itf8,
+                slice_header_buf,
+                0,
+            );
+
+            slice_len += slice_header_block.len() as Itf8;
+            blocks.push(slice_header_block);
 
             blocks.push(slice.core_data_block().clone());
             // FIXME: usize => Itf8 cast
