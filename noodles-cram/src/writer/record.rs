@@ -15,7 +15,7 @@ use crate::{
         CompressionHeader, ReferenceSequenceId,
     },
     num::{write_itf8, Itf8},
-    record::{Flags, NextMateFlags},
+    record::{feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
 };
 
@@ -62,6 +62,12 @@ where
 
         self.write_mate_data(record)?;
         self.write_tag_data(record)?;
+
+        if record.bam_flags().is_unmapped() {
+            todo!("write_unmapped_read");
+        } else {
+            self.write_mapped_read(record)?;
+        }
 
         self.prev_alignment_start = record.alignment_start();
 
@@ -365,6 +371,311 @@ where
             &mut self.external_data_writers,
             tag_line,
         )
+    }
+
+    fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
+        self.write_number_of_read_features(record.features().len())?;
+
+        for feature in record.features() {
+            self.write_feature(feature)?;
+        }
+
+        Ok(())
+    }
+
+    fn write_number_of_read_features(&mut self, feature_count: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::NumberOfReadFeatures)
+            .expect("missing FN");
+
+        // FIXME: usize => Itf8 cast
+        let number_of_read_features = feature_count as Itf8;
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            number_of_read_features,
+        )
+    }
+
+    fn write_feature(&mut self, feature: &Feature) -> io::Result<()> {
+        self.write_feature_code(feature.code())?;
+
+        match feature {
+            Feature::Bases(position, bases) => {
+                self.write_feature_position(*position)?;
+                self.write_stretches_of_bases(bases)?;
+            }
+            Feature::Scores(position, quality_scores) => {
+                self.write_feature_position(*position)?;
+                self.write_stretches_of_quality_scores(quality_scores)?;
+            }
+            Feature::ReadBase(position, base, quality_score) => {
+                self.write_feature_position(*position)?;
+                self.write_base(*base)?;
+                self.write_quality_score(*quality_score)?;
+            }
+            Feature::Substitution(position, code) => {
+                self.write_feature_position(*position)?;
+                self.write_base_substitution_code(*code)?;
+            }
+            Feature::Insertion(position, bases) => {
+                self.write_feature_position(*position)?;
+                self.write_insertion(bases)?;
+            }
+            Feature::Deletion(position, len) => {
+                self.write_feature_position(*position)?;
+                self.write_deletion_length(*len)?;
+            }
+            Feature::InsertBase(position, base) => {
+                self.write_feature_position(*position)?;
+                self.write_base(*base)?;
+            }
+            Feature::QualityScore(position, score) => {
+                self.write_feature_position(*position)?;
+                self.write_quality_score(*score)?;
+            }
+            Feature::ReferenceSkip(position, len) => {
+                self.write_feature_position(*position)?;
+                self.write_reference_skip_length(*len)?;
+            }
+            Feature::SoftClip(position, bases) => {
+                self.write_feature_position(*position)?;
+                self.write_soft_clip(bases)?;
+            }
+            Feature::Padding(position, len) => {
+                self.write_feature_position(*position)?;
+                self.write_padding(*len)?;
+            }
+            Feature::HardClip(position, len) => {
+                self.write_feature_position(*position)?;
+                self.write_hard_clip(*len)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn write_feature_code(&mut self, code: feature::Code) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReadFeaturesCodes)
+            .expect("missing FC");
+
+        let feature_code = char::from(code) as Itf8;
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            feature_code,
+        )
+    }
+
+    fn write_feature_position(&mut self, position: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::InReadPositions)
+            .expect("missing FP");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            position,
+        )
+    }
+
+    fn write_stretches_of_bases(&mut self, bases: &[u8]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::StretchesOfBases)
+            .expect("missing BB");
+
+        encode_byte_array(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            bases,
+        )
+    }
+
+    fn write_stretches_of_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::StretchesOfQualityScores)
+            .expect("missing QQ");
+
+        encode_byte_array(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            quality_scores,
+        )
+    }
+
+    fn write_base(&mut self, base: u8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Bases)
+            .expect("missing BA");
+
+        encode_byte(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            base,
+        )
+    }
+
+    fn write_quality_score(&mut self, quality_score: u8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::QualityScores)
+            .expect("missing QS");
+
+        encode_byte(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            quality_score,
+        )
+    }
+
+    fn write_base_substitution_code(&mut self, code: u8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::BaseSubstitutionCodes)
+            .expect("missing BS");
+
+        encode_byte(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            code,
+        )
+    }
+
+    fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Insertion)
+            .expect("missing IN");
+
+        encode_byte_array(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            bases,
+        )
+    }
+
+    fn write_deletion_length(&mut self, len: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::DeletionLengths)
+            .expect("missing DL");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            len,
+        )
+    }
+
+    fn write_reference_skip_length(&mut self, len: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::ReferenceSkipLength)
+            .expect("missing RS");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            len,
+        )
+    }
+
+    fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::SoftClip)
+            .expect("missing SC");
+
+        encode_byte_array(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            bases,
+        )
+    }
+
+    fn write_padding(&mut self, len: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::Padding)
+            .expect("missing PD");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            len,
+        )
+    }
+
+    fn write_hard_clip(&mut self, len: Itf8) -> io::Result<()> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .get(&DataSeries::HardClip)
+            .expect("missing HC");
+
+        encode_itf8(
+            &encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            len,
+        )
+    }
+}
+
+fn encode_byte<W, X>(
+    encoding: &Encoding,
+    _core_data_writer: &mut BitWriter<W>,
+    external_data_writers: &mut HashMap<Itf8, X>,
+    value: u8,
+) -> io::Result<()>
+where
+    W: Write,
+    X: Write,
+{
+    match encoding {
+        Encoding::External(block_content_id) => {
+            let writer = external_data_writers
+                .get_mut(&block_content_id)
+                .expect("could not find block");
+
+            writer.write_u8(value)
+        }
+        _ => todo!("encode_byte: {:?}", encoding),
     }
 }
 
