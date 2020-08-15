@@ -1,6 +1,7 @@
 pub mod compression_header;
 mod encoding;
 pub mod record;
+pub mod slice;
 
 use std::{
     io::{self, Write},
