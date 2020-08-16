@@ -156,8 +156,11 @@ where
         let blocks = vec![block];
         let landmarks = vec![0];
 
+        // FIXME: usize => i32 cast
+        let len = blocks.iter().map(|b| b.len() as i32).sum();
+
         let container_header = crate::container::Header::new(
-            0,
+            len,
             crate::container::ReferenceSequenceId::None,
             0,
             0,
@@ -176,8 +179,7 @@ where
     }
 
     pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
-        let len = container.blocks().iter().map(|b| b.len()).sum();
-        self::container::write_header(&mut self.inner, container.header(), len)?;
+        self::container::write_header(&mut self.inner, container.header())?;
 
         for block in container.blocks() {
             write_block(&mut self.inner, block)?;

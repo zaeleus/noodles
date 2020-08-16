@@ -76,9 +76,12 @@ impl Container {
             landmarks.push(landmark);
         }
 
+        // FIXME: usize => i32 cast
+        let len = blocks.iter().map(|b| b.len() as i32).sum();
+
         // TODO
         let header = Header::new(
-            0,
+            len,
             ReferenceSequenceId::None, // FIXME
             0,
             0,
