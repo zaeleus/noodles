@@ -96,12 +96,12 @@ impl Builder {
             alignment_start,
         );
 
-        let mut min_alignment_start = i32::MAX;
-        let mut max_alignment_end = 1;
+        let mut slice_alignment_start = i32::MAX;
+        let mut slice_alignment_end = 1;
 
         for record in &self.records {
-            min_alignment_start = cmp::min(min_alignment_start, record.alignment_start());
-            max_alignment_end = cmp::max(max_alignment_end, record.alignment_end());
+            slice_alignment_start = cmp::min(slice_alignment_start, record.alignment_start());
+            slice_alignment_end = cmp::max(slice_alignment_end, record.alignment_end());
 
             record_writer.write_record(record)?;
         }
@@ -146,8 +146,8 @@ impl Builder {
                     io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
                 })?;
 
-            let start = (min_alignment_start - 1) as usize;
-            let end = (max_alignment_end - 1) as usize;
+            let start = (slice_alignment_start - 1) as usize;
+            let end = (slice_alignment_end - 1) as usize;
 
             let mut hasher = Md5::new();
             hasher.update(&reference_sequence[start..=end]);
@@ -156,11 +156,13 @@ impl Builder {
             [0; 16]
         };
 
+        let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
+
         // TODO
         let header = Header::new(
             reference_sequence_id,
-            min_alignment_start,
-            max_alignment_end,
+            slice_alignment_start,
+            slice_alignment_span,
             self.records.len() as i32,
             0,
             (external_blocks.len() + 1) as i32,
