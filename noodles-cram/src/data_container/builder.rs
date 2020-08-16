@@ -25,6 +25,10 @@ pub enum AddRecordError {
 }
 
 impl Builder {
+    pub fn is_empty(&self) -> bool {
+        self.slice_builder.is_empty() && self.slice_builders.is_empty()
+    }
+
     pub fn add_record(
         &mut self,
         reference_sequence: &[u8],

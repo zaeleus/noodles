@@ -210,6 +210,10 @@ where
     }
 
     fn flush(&mut self) -> io::Result<()> {
+        if self.data_container_builder.is_empty() {
+            return Ok(());
+        }
+
         let data_container_builder =
             mem::replace(&mut self.data_container_builder, DataContainer::builder());
 
