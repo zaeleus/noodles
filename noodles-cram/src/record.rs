@@ -1,10 +1,13 @@
 pub mod feature;
 mod flags;
 mod next_mate_flags;
+mod read_group;
 pub mod resolve;
 pub mod tag;
 
-pub use self::{feature::Feature, flags::Flags, next_mate_flags::NextMateFlags, tag::Tag};
+pub use self::{
+    feature::Feature, flags::Flags, next_mate_flags::NextMateFlags, read_group::ReadGroup, tag::Tag,
+};
 
 use std::{fmt, str};
 
@@ -18,7 +21,7 @@ pub struct Record {
     pub reference_id: i32,
     pub read_length: i32,
     pub alignment_start: i32,
-    pub read_group: i32,
+    pub read_group: ReadGroup,
     pub read_name: Vec<u8>,
     pub next_mate_bit_flags: NextMateFlags,
     pub next_fragment_reference_sequence_id: i32,
@@ -75,6 +78,10 @@ impl Record {
         }
 
         self.alignment_start() + alignment_span - 1
+    }
+
+    pub fn read_group(&self) -> ReadGroup {
+        self.read_group
     }
 
     pub fn next_mate_flags(&self) -> NextMateFlags {
