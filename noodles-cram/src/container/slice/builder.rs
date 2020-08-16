@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io};
+use std::{cmp, collections::HashMap, io};
 
 use crate::{
     container::{
@@ -89,7 +89,13 @@ impl Builder {
             alignment_start,
         );
 
+        let mut min_alignment_start = i32::MAX;
+        let mut max_alignment_end = 1;
+
         for record in &self.records {
+            min_alignment_start = cmp::min(min_alignment_start, record.alignment_start());
+            max_alignment_end = cmp::max(max_alignment_end, record.alignment_end());
+
             record_writer.write_record(record)?;
         }
 
@@ -128,8 +134,8 @@ impl Builder {
         // TODO
         let header = Header::new(
             reference_sequence_id,
-            1,
-            0,
+            min_alignment_start,
+            max_alignment_end,
             self.records.len() as i32,
             0,
             (external_blocks.len() + 1) as i32,

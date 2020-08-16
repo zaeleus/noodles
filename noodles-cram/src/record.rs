@@ -49,6 +49,34 @@ impl Record {
         self.alignment_start
     }
 
+    pub fn alignment_end(&self) -> i32 {
+        let mut alignment_span = self.read_length();
+
+        // - if does not consume reference; + if does not consume read
+        for feature in self.features() {
+            match feature {
+                Feature::Insertion(_, bases) => {
+                    alignment_span -= bases.len() as i32;
+                }
+                Feature::InsertBase(_, _) => {
+                    alignment_span -= 1;
+                }
+                Feature::Deletion(_, len) => {
+                    alignment_span += len;
+                }
+                Feature::ReferenceSkip(_, len) => {
+                    alignment_span += len;
+                }
+                Feature::SoftClip(_, bases) => {
+                    alignment_span -= bases.len() as i32;
+                }
+                _ => {}
+            }
+        }
+
+        self.alignment_start() + alignment_span - 1
+    }
+
     pub fn next_mate_flags(&self) -> NextMateFlags {
         self.next_mate_bit_flags
     }
