@@ -1,5 +1,8 @@
 use std::{cmp, collections::HashMap, io};
 
+use md5::{Digest, Md5};
+use noodles_fasta as fasta;
+
 use crate::{
     container::{
         block, compression_header::data_series_encoding_map::DataSeries, Block, CompressionHeader,
@@ -56,7 +59,11 @@ impl Builder {
         }
     }
 
-    pub fn build(self, compression_header: &CompressionHeader) -> io::Result<Slice> {
+    pub fn build(
+        self,
+        reference_sequences: &[fasta::Record],
+        compression_header: &CompressionHeader,
+    ) -> io::Result<Slice> {
         let reference_sequence_id = match *self.reference_sequence_id.unwrap() {
             Some(id) => ReferenceSequenceId::Some(id),
             None => ReferenceSequenceId::None,
@@ -131,6 +138,24 @@ impl Builder {
             })
             .collect();
 
+        let reference_md5 = if let ReferenceSequenceId::Some(id) = reference_sequence_id {
+            let reference_sequence = reference_sequences
+                .get(id as usize)
+                .map(|record| record.sequence())
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
+                })?;
+
+            let start = (min_alignment_start - 1) as usize;
+            let end = (max_alignment_end - 1) as usize;
+
+            let mut hasher = Md5::new();
+            hasher.update(&reference_sequence[start..=end]);
+            <[u8; 16]>::from(hasher.finalize())
+        } else {
+            [0; 16]
+        };
+
         // TODO
         let header = Header::new(
             reference_sequence_id,
@@ -141,7 +166,7 @@ impl Builder {
             (external_blocks.len() + 1) as i32,
             block_content_ids,
             EmbeddedReferenceBasesBlockContentId::default(),
-            Default::default(),
+            reference_md5,
             Vec::new(),
         );
 

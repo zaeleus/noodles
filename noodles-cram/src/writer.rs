@@ -11,6 +11,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{
@@ -32,6 +33,7 @@ where
     W: Write,
 {
     inner: W,
+    reference_sequences: Vec<fasta::Record>,
     data_container_builder: data_container::Builder,
 }
 
@@ -45,11 +47,12 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new());
+    /// let writer = cram::Writer::new(Vec::new(), Vec::new());
     /// ```
-    pub fn new(inner: W) -> Self {
+    pub fn new(inner: W, reference_sequences: Vec<fasta::Record>) -> Self {
         Self {
             inner,
+            reference_sequences,
             data_container_builder: DataContainer::builder(),
         }
     }
@@ -60,7 +63,7 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new());
+    /// let writer = cram::Writer::new(Vec::new(), Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -78,7 +81,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -98,7 +101,7 @@ where
     /// # use std::io;
     /// use noodles_cram as cram;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new());
+    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
     /// writer.write_file_definition()?;
     ///
     /// assert_eq!(writer.get_ref(), &[
@@ -209,7 +212,7 @@ where
             mem::replace(&mut self.data_container_builder, DataContainer::builder());
 
         data_container_builder
-            .build()
+            .build(&self.reference_sequences)
             .and_then(|data_container| Container::try_from_data_container(&data_container))
             .and_then(|container| self.write_container(&container))
     }

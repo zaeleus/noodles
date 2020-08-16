@@ -51,7 +51,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout();
     let handle = stdout.lock();
 
-    let mut writer = cram::Writer::new(handle);
+    let mut writer = cram::Writer::new(handle, Vec::new());
     writer.write_file_definition()?;
 
     let header = build_header();

@@ -1,5 +1,7 @@
 use std::{io, mem};
 
+use noodles_fasta as fasta;
+
 use crate::{
     container::{
         compression_header,
@@ -44,13 +46,13 @@ impl Builder {
         }
     }
 
-    pub fn build(self) -> io::Result<DataContainer> {
+    pub fn build(mut self, reference_sequences: &[fasta::Record]) -> io::Result<DataContainer> {
         let compression_header = self.compression_header_builder.build();
 
         let slices = self
             .slice_builders
             .into_iter()
-            .map(|builder| builder.build(&compression_header))
+            .map(|builder| builder.build(reference_sequences, &compression_header))
             .collect::<Result<_, _>>()?;
 
         Ok(DataContainer {
