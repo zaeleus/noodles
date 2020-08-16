@@ -9,7 +9,7 @@ pub use self::{
     reference_sequence_id::ReferenceSequenceId, slice::Slice,
 };
 
-use std::io;
+use std::{cmp, io};
 
 use super::{
     num::Itf8, writer, writer::compression_header::write_compression_header, DataContainer,
@@ -43,7 +43,19 @@ impl Container {
         let mut blocks = vec![block];
         let mut landmarks = Vec::new();
 
+        let mut container_alignment_start = i32::MAX;
+        let mut container_alignment_end = 1;
+
         for slice in data_container.slices() {
+            let slice_header = slice.header();
+
+            container_alignment_start =
+                cmp::min(container_alignment_start, slice_header.alignment_start());
+
+            let slice_alignment_end =
+                slice_header.alignment_start() + slice_header.alignment_span() - 1;
+            container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
+
             let mut slice_len = 0;
 
             let mut slice_header_buf = Vec::new();
@@ -79,12 +91,14 @@ impl Container {
         // FIXME: usize => i32 cast
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
+        let container_alignment_span = container_alignment_end - container_alignment_start + 1;
+
         // TODO
         let header = Header::new(
             len,
             ReferenceSequenceId::None, // FIXME
-            0,
-            0,
+            container_alignment_start,
+            container_alignment_span,
             0,
             0,
             0,
