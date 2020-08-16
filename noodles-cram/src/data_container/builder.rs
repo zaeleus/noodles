@@ -47,6 +47,8 @@ impl Builder {
     }
 
     pub fn build(mut self, reference_sequences: &[fasta::Record]) -> io::Result<DataContainer> {
+        self.slice_builders.push(self.slice_builder);
+
         let compression_header = self.compression_header_builder.build();
 
         let slices = self
