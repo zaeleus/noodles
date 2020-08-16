@@ -29,6 +29,10 @@ pub enum AddRecordError {
 }
 
 impl Builder {
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
         let record_reference_sequence_id =
             bam::record::ReferenceSequenceId::from(record.reference_id);
