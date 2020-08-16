@@ -46,6 +46,8 @@ impl Container {
         let mut container_alignment_start = i32::MAX;
         let mut container_alignment_end = 1;
 
+        let mut container_record_count = 0;
+
         for slice in data_container.slices() {
             let slice_header = slice.header();
 
@@ -55,6 +57,8 @@ impl Container {
             let slice_alignment_end =
                 slice_header.alignment_start() + slice_header.alignment_span() - 1;
             container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
+
+            container_record_count += slice_header.record_count();
 
             let mut slice_len = 0;
 
@@ -99,7 +103,7 @@ impl Container {
             ReferenceSequenceId::None, // FIXME
             container_alignment_start,
             container_alignment_span,
-            0,
+            container_record_count,
             0,
             0,
             blocks.len() as Itf8,
