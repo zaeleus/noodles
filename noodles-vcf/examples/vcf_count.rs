@@ -1,6 +1,6 @@
 //! Counts the number of records in a VCF file.
 //!
-//! The result matches the output of `bcftools view --no-header | wc -l`.
+//! The result matches the output of `bcftools view --no-header <src> | wc -l`.
 
 use std::{
     env,
