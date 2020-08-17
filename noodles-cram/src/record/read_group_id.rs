@@ -5,9 +5,9 @@ const NULL: i32 = -1;
 const MIN: i32 = 0;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct ReadGroup(Option<i32>);
+pub struct ReadGroupId(Option<i32>);
 
-impl Deref for ReadGroup {
+impl Deref for ReadGroupId {
     type Target = Option<i32>;
 
     fn deref(&self) -> &Self::Target {
@@ -15,7 +15,7 @@ impl Deref for ReadGroup {
     }
 }
 
-impl From<i32> for ReadGroup {
+impl From<i32> for ReadGroupId {
     fn from(n: i32) -> Self {
         if n < MIN {
             Self(None)
@@ -25,8 +25,8 @@ impl From<i32> for ReadGroup {
     }
 }
 
-impl From<ReadGroup> for i32 {
-    fn from(read_group: ReadGroup) -> Self {
+impl From<ReadGroupId> for i32 {
+    fn from(read_group: ReadGroupId) -> Self {
         match *read_group {
             Some(id) => id,
             None => NULL,
@@ -40,13 +40,13 @@ mod tests {
 
     #[test]
     fn test_from_i32_for_read_group() {
-        assert_eq!(*ReadGroup::from(-1), None);
-        assert_eq!(*ReadGroup::from(13), Some(13));
+        assert_eq!(*ReadGroupId::from(-1), None);
+        assert_eq!(*ReadGroupId::from(13), Some(13));
     }
 
     #[test]
     fn test_from_read_group_for_i32() {
-        assert_eq!(i32::from(ReadGroup(None)), -1);
-        assert_eq!(i32::from(ReadGroup(Some(13))), 13);
+        assert_eq!(i32::from(ReadGroupId(None)), -1);
+        assert_eq!(i32::from(ReadGroupId(Some(13))), 13);
     }
 }

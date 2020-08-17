@@ -15,7 +15,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    record::{self, feature, Feature, ReadGroup, Tag},
+    record::{self, feature, Feature, ReadGroupId, Tag},
     BitReader, Record,
 };
 
@@ -140,7 +140,7 @@ where
             alignment_start
         };
 
-        record.read_group = self.read_read_group().map(ReadGroup::from)?;
+        record.read_group = self.read_read_group().map(ReadGroupId::from)?;
 
         Ok(())
     }

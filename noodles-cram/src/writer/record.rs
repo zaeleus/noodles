@@ -128,7 +128,7 @@ where
 
         self.write_alignment_start(alignment_start)?;
 
-        let read_group = i32::from(record.read_group());
+        let read_group = i32::from(record.read_group_id());
         self.write_read_group(read_group)?;
 
         Ok(())
