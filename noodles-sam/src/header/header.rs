@@ -6,6 +6,7 @@
 //! [`sam::Header`]: ../struct.Header.html
 //! [`sam::header::header::Header`]: struct.Header.html
 
+mod builder;
 mod group_order;
 mod sort_order;
 mod subsort_order;
@@ -14,7 +15,8 @@ mod tag;
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{
-    group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, tag::Tag,
+    builder::Builder, group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder,
+    tag::Tag,
 };
 
 use super::{record, Record};
@@ -34,6 +36,18 @@ pub struct Header {
 }
 
 impl Header {
+    /// Creates a SAM header header builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let builder = Header::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a header with a format version.
     ///
     /// # Examples
@@ -129,15 +143,18 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::{self, Header};
+    /// use noodles_sam::header::header::{Header, SortOrder, Tag};
     ///
-    /// let mut header = Header::new(String::from("1.6"));
-    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
+    /// let header = Header::builder()
+    ///     .set_version("1.6")
+    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .build();
     ///
     /// let fields = header.fields();
+    ///
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(fields.get(&header::Tag::SortOrder), Some(&String::from("coordinate")));
-    /// assert_eq!(fields.get(&header::Tag::Version), None);
+    ///
+    /// assert_eq!(fields.get(&Tag::Version), None);
     /// assert_eq!(header.version(), "1.6");
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
@@ -146,7 +163,7 @@ impl Header {
 
     /// Returns a reference to the raw field value mapped to the given key.
     ///
-    /// This can only be used for fields with unparsed values. For the header, [`version`] must be
+    /// This can only be used for fields with unparsed values. For example, [`version`] must be
     /// used instead of `get(header::Tag::Version)`.
     ///
     /// [`version`]: #method.version
@@ -154,13 +171,19 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::{self, Header};
+    /// use noodles_sam::header::header::{Header, Tag};
     ///
-    /// let mut header = Header::default();
-    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
+    /// let header = Header::builder()
+    ///     .set_version("1.6")
+    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .build();
     ///
-    /// assert_eq!(header.get(&header::Tag::SortOrder), Some(&String::from("coordinate")));
-    /// assert_eq!(header.get(&header::Tag::GroupOrder), None);
+    /// assert_eq!(
+    ///     header.get(&Tag::Other(String::from("zn"))),
+    ///     Some(&String::from("noodles"))
+    /// );
+    ///
+    /// assert_eq!(header.get(&Tag::Version), None);
     /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
@@ -186,13 +209,7 @@ impl Header {
 
 impl Default for Header {
     fn default() -> Self {
-        Header {
-            version: VERSION.into(),
-            sort_order: None,
-            group_order: None,
-            subsort_order: None,
-            fields: HashMap::new(),
-        }
+        Builder::default().build()
     }
 }
 
@@ -265,48 +282,46 @@ impl TryFrom<Record> for Header {
 }
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, TryFromRecordError> {
+    let mut builder = Header::builder();
     let mut version = None;
-    let mut sort_order = None;
-    let mut group_order = None;
-    let mut subsort_order = None;
-    let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        match tag {
-            Tag::Version => version = Some(value),
+        builder = match tag {
+            Tag::Version => {
+                version = Some(value);
+                builder
+            }
             Tag::SortOrder => {
-                sort_order = value
+                let sort_order = value
                     .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidSortOrder)?
+                    .map_err(TryFromRecordError::InvalidSortOrder)?;
+                builder.set_sort_order(sort_order)
             }
             Tag::GroupOrder => {
-                group_order = value
+                let group_order = value
                     .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidGroupOrder)?
+                    .map_err(TryFromRecordError::InvalidGroupOrder)?;
+                builder.set_group_order(group_order)
             }
             Tag::SubsortOrder => {
-                subsort_order = value
+                let subsort_order = value
                     .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidSubsortOrder)?
+                    .map_err(TryFromRecordError::InvalidSubsortOrder)?;
+                builder.set_subsort_order(subsort_order)
             }
-            _ => {
-                fields.insert(tag, value);
-            }
+            _ => builder.insert(tag, value),
         }
     }
 
-    Ok(Header {
-        version: version.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Version))?,
-        sort_order,
-        group_order,
-        subsort_order,
-        fields,
-    })
+    if let Some(v) = version {
+        builder = builder.set_version(v);
+    } else {
+        return Err(TryFromRecordError::MissingRequiredTag(Tag::Version));
+    }
+
+    Ok(builder.build())
 }
 
 #[cfg(test)]
@@ -316,22 +331,21 @@ mod tests {
     #[test]
     fn test_default() {
         let header = Header::default();
-        assert_eq!(header.version(), "1.6");
+        assert_eq!(header.version(), VERSION);
+        assert!(header.sort_order().is_none());
+        assert!(header.group_order().is_none());
+        assert!(header.subsort_order().is_none());
         assert!(header.fields.is_empty());
     }
 
     #[test]
     fn test_fmt() {
-        let mut header = Header::new(String::from("1.6"));
+        let header = Header::builder()
+            .set_version("1.6")
+            .set_sort_order(SortOrder::Unknown)
+            .build();
 
-        header
-            .fields
-            .insert(Tag::SortOrder, String::from("unknown"));
-
-        let actual = format!("{}", header);
-        let expected = "@HD\tVN:1.6\tSO:unknown";
-
-        assert_eq!(actual, expected);
+        assert_eq!(header.to_string(), "@HD\tVN:1.6\tSO:unknown");
     }
 
     #[test]
