@@ -19,6 +19,14 @@ use super::{record, Record};
 pub struct ReferenceSequence {
     name: String,
     len: i32,
+    alternative_locus: Option<String>,
+    alternative_names: Option<String>,
+    assemby_id: Option<String>,
+    description: Option<String>,
+    md5_checksum: Option<String>,
+    species: Option<String>,
+    molecule_topology: Option<MoleculeTopology>,
+    uri: Option<String>,
     fields: HashMap<Tag, String>,
 }
 
@@ -30,7 +38,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
+    ///
     /// let reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    ///
     /// assert_eq!(reference_sequence.name(), "sq0");
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
@@ -38,6 +48,14 @@ impl ReferenceSequence {
         Self {
             name,
             len,
+            alternative_locus: None,
+            alternative_names: None,
+            assemby_id: None,
+            description: None,
+            md5_checksum: None,
+            species: None,
+            molecule_topology: None,
+            uri: None,
             fields: HashMap::new(),
         }
     }
@@ -102,6 +120,110 @@ impl ReferenceSequence {
         &mut self.len
     }
 
+    /// Returns the alternative locus.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.alternative_locus().is_none());
+    /// ```
+    pub fn alternative_locus(&self) -> Option<&str> {
+        self.alternative_locus.as_deref()
+    }
+
+    /// Returns the alternative names (aliases) of the reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.alternative_names().is_none());
+    /// ```
+    pub fn alternative_names(&self) -> Option<&str> {
+        self.alternative_names.as_deref()
+    }
+
+    /// Returns the genome assembly ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.assemby_id().is_none());
+    /// ```
+    pub fn assemby_id(&self) -> Option<&str> {
+        self.assemby_id.as_deref()
+    }
+
+    /// Returns the description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.description().is_none());
+    /// ```
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
+    /// Returns the MD5 checksum.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.md5_checksum().is_none());
+    /// ```
+    pub fn md5_checksum(&self) -> Option<&str> {
+        self.md5_checksum.as_deref()
+    }
+
+    /// Returns the species.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.species().is_none());
+    /// ```
+    pub fn species(&self) -> Option<&str> {
+        self.species.as_deref()
+    }
+
+    /// Returns the molecule topology.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.molecule_topology().is_none());
+    /// ```
+    pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
+        self.molecule_topology
+    }
+
+    /// Returns the URI.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// assert!(reference_sequence.uri().is_none());
+    /// ```
+    pub fn uri(&self) -> Option<&str> {
+        self.uri.as_deref()
+    }
+
     /// Returns the raw fields of the reference sequence.
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
@@ -117,14 +239,14 @@ impl ReferenceSequence {
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
     ///
     /// let fields = reference_sequence.fields();
     ///
     /// assert_eq!(fields.len(), 1);
     /// assert_eq!(
-    ///     fields.get(&Tag::Md5Checksum),
-    ///     Some(&String::from("d7eba311421bbc9d3ada44709dd61534"))
+    ///     fields.get(&Tag::Other(String::from("zn"))),
+    ///     Some(&String::from("noodles"))
     /// );
     ///
     /// assert_eq!(fields.get(&Tag::Name), None);
@@ -139,8 +261,8 @@ impl ReferenceSequence {
 
     /// Returns a reference to the raw field value mapped to the given key.
     ///
-    /// This can only be used for fields with unparsed values. For a reference sequence, [`name`]
-    /// and [`len`] must be used instead of `get(Tag::Name)` and `get(Tag::Length)`, respectively.
+    /// This can only be used for fields with unparsed values. For example, [`name`] and [`len`]
+    /// must be used instead of `get(Tag::Name)` and `get(Tag::Length)`, respectively.
     ///
     /// [`name`]: #method.name
     /// [`len`]: #method.len
@@ -151,13 +273,13 @@ impl ReferenceSequence {
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
     ///
     /// assert_eq!(
-    ///     reference_sequence.get(&Tag::Md5Checksum),
-    ///     Some(&String::from("d7eba311421bbc9d3ada44709dd61534"))
+    ///     reference_sequence.get(&Tag::Other(String::from("zn"))),
+    ///     Some(&String::from("noodles"))
     /// );
-    /// assert_eq!(reference_sequence.get(&Tag::AssemblyId), None);
+    /// assert_eq!(reference_sequence.get(&Tag::Name), None);
     /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
         self.fields.get(tag)
@@ -174,7 +296,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Md5Checksum, String::from("d7eba311421bbc9d3ada44709dd61534"));
+    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
     /// ```
     pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
         self.fields.insert(tag, value)
@@ -206,6 +328,8 @@ pub enum TryFromRecordError {
     InvalidTag(tag::ParseError),
     /// The length tag (`LN`) has a invalid value.
     InvalidLength(num::ParseIntError),
+    /// The molecule topology is invalid.
+    InvalidMoleculeTopology(molecule_topology::ParseError),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -217,6 +341,7 @@ impl fmt::Display for TryFromRecordError {
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
+            Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
         }
     }
 }
@@ -235,6 +360,14 @@ impl TryFrom<Record> for ReferenceSequence {
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
     let mut name = None;
     let mut len = None;
+    let mut alternative_locus = None;
+    let mut alternative_names = None;
+    let mut assemby_id = None;
+    let mut description = None;
+    let mut md5_checksum = None;
+    let mut species = None;
+    let mut molecule_topology = None;
+    let mut uri = None;
     let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
@@ -250,6 +383,33 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidLength)?;
             }
+            Tag::AlternativeLocus => {
+                alternative_locus = Some(value);
+            }
+            Tag::AlternativeNames => {
+                alternative_names = Some(value);
+            }
+            Tag::AssemblyId => {
+                assemby_id = Some(value);
+            }
+            Tag::Description => {
+                description = Some(value);
+            }
+            Tag::Md5Checksum => {
+                md5_checksum = Some(value);
+            }
+            Tag::Species => {
+                species = Some(value);
+            }
+            Tag::MoleculeTopology => {
+                molecule_topology = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidMoleculeTopology)?;
+            }
+            Tag::Uri => {
+                uri = Some(value);
+            }
             _ => {
                 fields.insert(tag, value);
             }
@@ -259,6 +419,14 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
     Ok(ReferenceSequence {
         name: name.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Name))?,
         len: len.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Length))?,
+        alternative_locus,
+        alternative_names,
+        assemby_id,
+        description,
+        md5_checksum,
+        species,
+        molecule_topology,
+        uri,
         fields,
     })
 }
