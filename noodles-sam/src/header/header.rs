@@ -27,6 +27,9 @@ static VERSION: &str = "1.6";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     version: String,
+    sort_order: Option<SortOrder>,
+    group_order: Option<GroupOrder>,
+    subsort_order: Option<SubsortOrder>,
     fields: HashMap<Tag, String>,
 }
 
@@ -75,6 +78,45 @@ impl Header {
     /// ```
     pub fn version_mut(&mut self) -> &mut String {
         &mut self.version
+    }
+
+    /// Returns the sort order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let header = Header::default();
+    /// assert!(header.sort_order().is_none());
+    /// ```
+    pub fn sort_order(&self) -> Option<SortOrder> {
+        self.sort_order
+    }
+
+    /// Returns the group order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let header = Header::default();
+    /// assert!(header.group_order().is_none());
+    /// ```
+    pub fn group_order(&self) -> Option<GroupOrder> {
+        self.group_order
+    }
+
+    /// Returns the subsort order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::header::Header;
+    /// let header = Header::default();
+    /// assert!(header.subsort_order().is_none());
+    /// ```
+    pub fn subsort_order(&self) -> Option<&SubsortOrder> {
+        self.subsort_order.as_ref()
     }
 
     /// Returns the raw fields of the header.
@@ -146,6 +188,9 @@ impl Default for Header {
     fn default() -> Self {
         Header {
             version: VERSION.into(),
+            sort_order: None,
+            group_order: None,
+            subsort_order: None,
             fields: HashMap::new(),
         }
     }
@@ -155,6 +200,18 @@ impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::Header)?;
         write!(f, "\t{}:{}", Tag::Version, self.version)?;
+
+        if let Some(sort_order) = self.sort_order {
+            write!(f, "\t{}:{}", Tag::SortOrder, sort_order)?;
+        }
+
+        if let Some(group_order) = self.group_order {
+            write!(f, "\t{}:{}", Tag::GroupOrder, group_order)?;
+        }
+
+        if let Some(subsort_order) = self.group_order {
+            write!(f, "\t{}:{}", Tag::SubsortOrder, subsort_order)?;
+        }
 
         for (tag, value) in &self.fields {
             write!(f, "\t{}:{}", tag, value)?;
@@ -173,6 +230,12 @@ pub enum TryFromRecordError {
     MissingRequiredTag(Tag),
     /// A tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The sort order is invalid.
+    InvalidSortOrder(sort_order::ParseError),
+    /// The group order is invalid.
+    InvalidGroupOrder(group_order::ParseError),
+    /// The subsort order is invalid.
+    InvalidSubsortOrder(subsort_order::ParseError),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -183,6 +246,9 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::InvalidSortOrder(e) => write!(f, "invalid sort order: {}", e),
+            Self::InvalidGroupOrder(e) => write!(f, "invalid group order: {}", e),
+            Self::InvalidSubsortOrder(e) => write!(f, "invalid subsort order: {}", e),
         }
     }
 }
@@ -200,20 +266,45 @@ impl TryFrom<Record> for Header {
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, TryFromRecordError> {
     let mut version = None;
+    let mut sort_order = None;
+    let mut group_order = None;
+    let mut subsort_order = None;
     let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        if let Tag::Version = tag {
-            version = Some(value);
-        } else {
-            fields.insert(tag, value);
+        match tag {
+            Tag::Version => version = Some(value),
+            Tag::SortOrder => {
+                sort_order = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidSortOrder)?
+            }
+            Tag::GroupOrder => {
+                group_order = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidGroupOrder)?
+            }
+            Tag::SubsortOrder => {
+                subsort_order = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidSubsortOrder)?
+            }
+            _ => {
+                fields.insert(tag, value);
+            }
         }
     }
 
     Ok(Header {
         version: version.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Version))?,
+        sort_order,
+        group_order,
+        subsort_order,
         fields,
     })
 }
