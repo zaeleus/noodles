@@ -13,33 +13,61 @@ impl error::Error for TryFromByteSliceError {}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
+    /// BAM bit flags (`BF`).
     BamBitFlags,
+    /// CRAM bit flags (`CF`).
     CramBitFlags,
+    /// Reference ID (`RI`).
     ReferenceId,
+    /// Read lengths (`RL`).
     ReadLengths,
+    /// In-seq positions (`AP`).
     InSeqPositions,
+    /// Read groups (`RG`).
     ReadGroups,
+    /// Read names (`RN`).
     ReadNames,
+    /// Next mate bit flags (`MF`).
     NextMateBitFlags,
+    /// Next fragment reference sequence ID (`NS`).
     NextFragmentReferenceSequenceId,
+    /// Next mate alignment start (`NP`).
     NextMateAlignmentStart,
+    /// Template size (`TS`).
     TemplateSize,
+    /// Distance to next fragment (`NF`).
     DistanceToNextFragment,
+    /// Tag IDs (`TL`).
     TagIds,
+    /// Number of read features (`FN`).
     NumberOfReadFeatures,
+    /// Read features codes (`FC`).
     ReadFeaturesCodes,
+    /// In-read positions (`FP`).
     InReadPositions,
+    /// Deletion lengths (`DL`).
     DeletionLengths,
+    /// Stretches of bases (`BB`).
     StretchesOfBases,
+    /// Stretches of quality scores (`QQ`).
     StretchesOfQualityScores,
+    /// Base substitution codes (`BS`).
     BaseSubstitutionCodes,
+    /// Insertion (`IN`).
     Insertion,
+    /// Reference skip length (`RS`).
     ReferenceSkipLength,
+    /// Pading (`PD`).
     Padding,
+    /// Hard clip (`HC`).
     HardClip,
+    /// Soft clip (`SC`).
     SoftClip,
+    /// Mapping qualities (`MQ`).
     MappingQualities,
+    /// Bases (`BA`).
     Bases,
+    /// Quality scores (`QS`).
     QualityScores,
 }
 
