@@ -322,8 +322,40 @@ impl ReferenceSequence {
 impl fmt::Display for ReferenceSequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::ReferenceSequence)?;
-        write!(f, "\t{}:{}", Tag::Name, self.name)?;
-        write!(f, "\t{}:{}", Tag::Length, self.len)?;
+        write!(f, "\t{}:{}", Tag::Name, self.name())?;
+        write!(f, "\t{}:{}", Tag::Length, self.len())?;
+
+        if let Some(alternative_locus) = self.alternative_locus() {
+            write!(f, "\t{}:{}", Tag::AlternativeLocus, alternative_locus)?;
+        }
+
+        if let Some(alternative_names) = self.alternative_names() {
+            write!(f, "\t{}:{}", Tag::AlternativeNames, alternative_names)?;
+        }
+
+        if let Some(assembly_id) = self.assemby_id() {
+            write!(f, "\t{}:{}", Tag::AssemblyId, assembly_id)?;
+        }
+
+        if let Some(description) = self.description() {
+            write!(f, "\t{}:{}", Tag::Description, description)?;
+        }
+
+        if let Some(md5_checksum) = self.md5_checksum() {
+            write!(f, "\t{}:{}", Tag::Md5Checksum, md5_checksum)?;
+        }
+
+        if let Some(species) = self.species() {
+            write!(f, "\t{}:{}", Tag::Species, species)?;
+        }
+
+        if let Some(molecule_topology) = self.molecule_topology() {
+            write!(f, "\t{}:{}", Tag::MoleculeTopology, molecule_topology)?;
+        }
+
+        if let Some(uri) = self.uri() {
+            write!(f, "\t{}:{}", Tag::Uri, uri)?;
+        }
 
         for (tag, value) in &self.fields {
             write!(f, "\t{}:{}", tag, value)?;
