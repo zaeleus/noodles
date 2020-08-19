@@ -1,11 +1,12 @@
 //! SAM header reference sequence and fields.
 
+mod builder;
 mod molecule_topology;
 mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
-pub use self::{molecule_topology::MoleculeTopology, tag::Tag};
+pub use self::{builder::Builder, molecule_topology::MoleculeTopology, tag::Tag};
 
 use super::{record, Record};
 
@@ -32,6 +33,18 @@ pub struct ReferenceSequence {
 
 #[allow(clippy::len_without_is_empty)]
 impl ReferenceSequence {
+    /// Creates a SAM header reference sequence builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReferenceSequence;
+    /// let builder = ReferenceSequence::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a reference sequence with a name and length.
     ///
     /// # Examples
@@ -358,77 +371,56 @@ impl TryFrom<Record> for ReferenceSequence {
 }
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
+    let mut builder = ReferenceSequence::builder();
+
     let mut name = None;
     let mut len = None;
-    let mut alternative_locus = None;
-    let mut alternative_names = None;
-    let mut assemby_id = None;
-    let mut description = None;
-    let mut md5_checksum = None;
-    let mut species = None;
-    let mut molecule_topology = None;
-    let mut uri = None;
-    let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        match tag {
+        builder = match tag {
             Tag::Name => {
                 name = Some(value);
+                builder
             }
             Tag::Length => {
                 len = value
                     .parse()
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidLength)?;
+                builder
             }
-            Tag::AlternativeLocus => {
-                alternative_locus = Some(value);
-            }
-            Tag::AlternativeNames => {
-                alternative_names = Some(value);
-            }
-            Tag::AssemblyId => {
-                assemby_id = Some(value);
-            }
-            Tag::Description => {
-                description = Some(value);
-            }
-            Tag::Md5Checksum => {
-                md5_checksum = Some(value);
-            }
-            Tag::Species => {
-                species = Some(value);
-            }
+            Tag::AlternativeLocus => builder.set_alternative_locus(value),
+            Tag::AlternativeNames => builder.set_alternative_names(value),
+            Tag::AssemblyId => builder.set_assembly_id(value),
+            Tag::Description => builder.set_description(value),
+            Tag::Md5Checksum => builder.set_md5_checksum(value),
+            Tag::Species => builder.set_species(value),
             Tag::MoleculeTopology => {
-                molecule_topology = value
+                let molecule_topology = value
                     .parse()
-                    .map(Some)
                     .map_err(TryFromRecordError::InvalidMoleculeTopology)?;
+                builder.set_molecule_topology(molecule_topology)
             }
-            Tag::Uri => {
-                uri = Some(value);
-            }
-            _ => {
-                fields.insert(tag, value);
-            }
+            Tag::Uri => builder.set_uri(value),
+            _ => builder.insert(tag, value),
         }
     }
 
-    Ok(ReferenceSequence {
-        name: name.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Name))?,
-        len: len.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Length))?,
-        alternative_locus,
-        alternative_names,
-        assemby_id,
-        description,
-        md5_checksum,
-        species,
-        molecule_topology,
-        uri,
-        fields,
-    })
+    if let Some(n) = name {
+        builder = builder.set_name(n);
+    } else {
+        return Err(TryFromRecordError::MissingRequiredTag(Tag::Name));
+    }
+
+    if let Some(l) = len {
+        builder = builder.set_length(l);
+    } else {
+        return Err(TryFromRecordError::MissingRequiredTag(Tag::Length));
+    }
+
+    Ok(builder.build())
 }
 
 #[cfg(test)]
