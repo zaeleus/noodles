@@ -1,12 +1,15 @@
 //! SAM header reference sequence and fields.
 
 mod builder;
+mod md5_checksum;
 mod molecule_topology;
 mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
-pub use self::{builder::Builder, molecule_topology::MoleculeTopology, tag::Tag};
+pub use self::{
+    builder::Builder, md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, tag::Tag,
+};
 
 use super::{record, Record};
 
@@ -24,7 +27,7 @@ pub struct ReferenceSequence {
     alternative_names: Option<String>,
     assemby_id: Option<String>,
     description: Option<String>,
-    md5_checksum: Option<String>,
+    md5_checksum: Option<Md5Checksum>,
     species: Option<String>,
     molecule_topology: Option<MoleculeTopology>,
     uri: Option<String>,
@@ -194,8 +197,8 @@ impl ReferenceSequence {
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
     /// assert!(reference_sequence.md5_checksum().is_none());
     /// ```
-    pub fn md5_checksum(&self) -> Option<&str> {
-        self.md5_checksum.as_deref()
+    pub fn md5_checksum(&self) -> Option<Md5Checksum> {
+        self.md5_checksum
     }
 
     /// Returns the species.
@@ -341,6 +344,8 @@ pub enum TryFromRecordError {
     InvalidTag(tag::ParseError),
     /// The length tag (`LN`) has a invalid value.
     InvalidLength(num::ParseIntError),
+    /// The MD5 checksum is invalid.
+    InvalidMd5Checksum(md5_checksum::ParseError),
     /// The molecule topology is invalid.
     InvalidMoleculeTopology(molecule_topology::ParseError),
 }
@@ -354,6 +359,7 @@ impl fmt::Display for TryFromRecordError {
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "{}", e),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
+            Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
         }
     }
@@ -395,7 +401,12 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
             Tag::AlternativeNames => builder.set_alternative_names(value),
             Tag::AssemblyId => builder.set_assembly_id(value),
             Tag::Description => builder.set_description(value),
-            Tag::Md5Checksum => builder.set_md5_checksum(value),
+            Tag::Md5Checksum => {
+                let md5_checksum = value
+                    .parse()
+                    .map_err(TryFromRecordError::InvalidMd5Checksum)?;
+                builder.set_md5_checksum(md5_checksum)
+            }
             Tag::Species => builder.set_species(value),
             Tag::MoleculeTopology => {
                 let molecule_topology = value

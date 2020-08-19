@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{MoleculeTopology, ReferenceSequence, Tag};
+use super::{Md5Checksum, MoleculeTopology, ReferenceSequence, Tag};
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
@@ -11,7 +11,7 @@ pub struct Builder {
     alternative_names: Option<String>,
     assemby_id: Option<String>,
     description: Option<String>,
-    md5_checksum: Option<String>,
+    md5_checksum: Option<Md5Checksum>,
     species: Option<String>,
     molecule_topology: Option<MoleculeTopology>,
     uri: Option<String>,
@@ -157,21 +157,24 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::ReferenceSequence;
+    /// use noodles_sam::header::{reference_sequence::Md5Checksum, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .set_md5_checksum("d7eba311421bbc9d3ada44709dd61534")
+    ///     .set_md5_checksum(Md5Checksum::from([
+    ///         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
+    ///         0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
+    ///     ]))
     ///     .build();
     ///
-    /// assert_eq!(reference_sequence.md5_checksum(), Some("d7eba311421bbc9d3ada44709dd61534"));
+    /// assert_eq!(reference_sequence.md5_checksum(), Some(Md5Checksum::from([
+    ///     0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
+    ///     0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
+    /// ])));
     /// ```
-    pub fn set_md5_checksum<I>(mut self, md5_checksum: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.md5_checksum = Some(md5_checksum.into());
+    pub fn set_md5_checksum(mut self, md5_checksum: Md5Checksum) -> Self {
+        self.md5_checksum = Some(md5_checksum);
         self
     }
 
