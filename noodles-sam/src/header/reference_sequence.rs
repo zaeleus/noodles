@@ -486,7 +486,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_invalid_record() {
+    fn test_try_from_record_for_reference_sequence_with_invalid_record() {
         let record = Record::new(
             record::Kind::Comment,
             record::Value::String(String::from("noodles-sam")),
@@ -499,7 +499,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_missing_name() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name() {
         let record = Record::new(
             record::Kind::ReferenceSequence,
             record::Value::Map(vec![
@@ -518,7 +518,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_missing_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_length() {
         let record = Record::new(
             record::Kind::ReferenceSequence,
             record::Value::Map(vec![
@@ -537,7 +537,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_missing_name_and_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name_and_length() {
         let record = Record::new(
             record::Kind::ReferenceSequence,
             record::Value::Map(vec![(
@@ -553,7 +553,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_invalid_length() {
+    fn test_try_from_record_for_reference_sequence_with_invalid_length() {
         let record = Record::new(
             record::Kind::ReferenceSequence,
             record::Value::Map(vec![(String::from("LN"), String::from("thirteen"))]),

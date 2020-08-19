@@ -215,7 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_invalid_record() {
+    fn test_try_from_record_for_program_with_invalid_record() {
         let record = Record::new(
             record::Kind::Comment,
             record::Value::String(String::from("noodles-sam")),
@@ -228,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_no_id() {
+    fn test_try_from_record_for_program_with_no_id() {
         let record = Record::new(
             record::Kind::Program,
             record::Value::Map(vec![(String::from("PN"), String::from("noodles"))]),

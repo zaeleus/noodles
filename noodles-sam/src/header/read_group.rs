@@ -219,7 +219,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_invalid_record() {
+    fn test_try_from_record_for_read_group_with_invalid_record() {
         let record = Record::new(
             record::Kind::Comment,
             record::Value::String(String::from("noodles-sam")),
@@ -232,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_no_id() {
+    fn test_try_from_record_for_read_group_with_no_id() {
         let record = Record::new(
             record::Kind::ReadGroup,
             record::Value::Map(vec![(String::from("PG"), String::from("noodles"))]),
