@@ -9,9 +9,24 @@ pub enum MoleculeTopology {
     Circular,
 }
 
+impl AsRef<str> for MoleculeTopology {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Linear => "linear",
+            Self::Circular => "circular",
+        }
+    }
+}
+
 impl Default for MoleculeTopology {
     fn default() -> Self {
         Self::Linear
+    }
+}
+
+impl fmt::Display for MoleculeTopology {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
     }
 }
 
@@ -55,6 +70,12 @@ mod tests {
     #[test]
     fn test_default() {
         assert_eq!(MoleculeTopology::default(), MoleculeTopology::Linear);
+    }
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(MoleculeTopology::Linear.to_string(), "linear");
+        assert_eq!(MoleculeTopology::Circular.to_string(), "circular");
     }
 
     #[test]
