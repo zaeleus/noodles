@@ -472,17 +472,19 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+        let reference_sequence = ReferenceSequence::builder()
+            .set_name("sq0")
+            .set_length(13)
+            .set_md5_checksum(Md5Checksum::from([
+                0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6,
+                0x15, 0x34,
+            ]))
+            .build();
 
-        reference_sequence.fields.insert(
-            Tag::Md5Checksum,
-            String::from("d7eba311421bbc9d3ada44709dd61534"),
+        assert_eq!(
+            reference_sequence.to_string(),
+            "@SQ\tSN:sq0\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534"
         );
-
-        let actual = format!("{}", reference_sequence);
-        let expected = "@SQ\tSN:sq0\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534";
-
-        assert_eq!(actual, expected);
     }
 
     #[test]
