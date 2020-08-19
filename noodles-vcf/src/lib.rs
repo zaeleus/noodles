@@ -1,6 +1,24 @@
 #![deny(missing_docs)]
 
 //! **noodles-vcf** handles the reading and writing of the VCF format.
+//!
+//! # Examples
+//!
+//! ## Read all records from a file
+//!
+//! ```no_run
+//! # use std::{fs::File, io::{self, BufReader}};
+//! use noodles_vcf as vcf;
+//!
+//! let mut reader = File::open("sample.vcf").map(BufReader::new).map(vcf::Reader::new)?;
+//! reader.read_header()?;
+//!
+//! for result in reader.records() {
+//!     let record = result?;
+//!     println!("{:?}", record);
+//! }
+//! # Ok::<(), io::Error>(())
+//! ```
 
 pub mod header;
 mod reader;
