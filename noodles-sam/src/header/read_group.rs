@@ -1,11 +1,12 @@
 //! SAM header read group and fields.
 
+mod builder;
 mod platform;
 mod tag;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
-pub use self::{platform::Platform, tag::Tag};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use super::{record, Record};
 
@@ -33,6 +34,18 @@ pub struct ReadGroup {
 }
 
 impl ReadGroup {
+    /// Creates a SAM header read group builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::ReadGroup;
+    /// let builder = ReadGroup::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a read group with an ID.
     ///
     /// # Examples
@@ -442,94 +455,44 @@ impl TryFrom<Record> for ReadGroup {
 }
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReadGroup, TryFromRecordError> {
+    let mut builder = ReadGroup::builder();
     let mut id = None;
-    let mut barcode = None;
-    let mut sequencing_center = None;
-    let mut description = None;
-    let mut produced_at = None;
-    let mut flow_order = None;
-    let mut key_sequence = None;
-    let mut library = None;
-    let mut program = None;
-    let mut predicted_median_insert_size = None;
-    let mut platform = None;
-    let mut platform_model = None;
-    let mut platform_unit = None;
-    let mut sample = None;
-    let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        match tag {
+        builder = match tag {
             Tag::Id => {
                 id = Some(value);
+                builder
             }
-            Tag::Barcode => {
-                barcode = Some(value);
-            }
-            Tag::SequencingCenter => {
-                sequencing_center = Some(value);
-            }
-            Tag::Description => {
-                description = Some(value);
-            }
-            Tag::ProducedAt => {
-                produced_at = Some(value);
-            }
-            Tag::FlowOrder => {
-                flow_order = Some(value);
-            }
-            Tag::KeySequence => {
-                key_sequence = Some(value);
-            }
-            Tag::Library => {
-                library = Some(value);
-            }
-            Tag::Program => {
-                program = Some(value);
-            }
-            Tag::PredictedMedianInsertSize => {
-                predicted_median_insert_size = Some(value);
-            }
+            Tag::Barcode => builder.set_barcode(value),
+            Tag::SequencingCenter => builder.set_sequencing_center(value),
+            Tag::Description => builder.set_description(value),
+            Tag::ProducedAt => builder.set_produced_at(value),
+            Tag::FlowOrder => builder.set_flow_order(value),
+            Tag::KeySequence => builder.set_key_sequence(value),
+            Tag::Library => builder.set_library(value),
+            Tag::Program => builder.set_program(value),
+            Tag::PredictedMedianInsertSize => builder.set_predicted_median_insert_size(value),
             Tag::Platform => {
-                platform = value
-                    .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidPlatform)?;
+                let platform = value.parse().map_err(TryFromRecordError::InvalidPlatform)?;
+                builder.set_platform(platform)
             }
-            Tag::PlatformModel => {
-                platform_model = Some(value);
-            }
-            Tag::PlatformUnit => {
-                platform_unit = Some(value);
-            }
-            Tag::Sample => {
-                sample = Some(value);
-            }
-            _ => {
-                fields.insert(tag, value);
-            }
+            Tag::PlatformModel => builder.set_platform_model(value),
+            Tag::PlatformUnit => builder.set_platform_unit(value),
+            Tag::Sample => builder.set_sample(value),
+            _ => builder.insert(tag, value),
         }
     }
 
-    Ok(ReadGroup {
-        id: id.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Id))?,
-        barcode,
-        sequencing_center,
-        description,
-        produced_at,
-        flow_order,
-        key_sequence,
-        library,
-        program,
-        predicted_median_insert_size,
-        platform,
-        platform_model,
-        platform_unit,
-        sample,
-        fields,
-    })
+    if let Some(i) = id {
+        builder = builder.set_id(i);
+    } else {
+        return Err(TryFromRecordError::MissingRequiredTag(Tag::Id));
+    }
+
+    Ok(builder.build())
 }
 
 #[cfg(test)]
@@ -538,16 +501,12 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let mut read_group = ReadGroup::new(String::from("rg0"));
+        let read_group = ReadGroup::builder()
+            .set_id("rg0")
+            .set_program("noodles")
+            .build();
 
-        read_group
-            .fields
-            .insert(Tag::Program, String::from("noodles"));
-
-        let actual = format!("{}", read_group);
-        let expected = "@RG\tID:rg0\tPG:noodles";
-
-        assert_eq!(actual, expected);
+        assert_eq!(read_group.to_string(), "@RG\tID:rg0\tPG:noodles");
     }
 
     #[test]
