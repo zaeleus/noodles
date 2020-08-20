@@ -23,6 +23,28 @@ pub enum Platform {
     PacBio,
 }
 
+impl AsRef<str> for Platform {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Capillary => "CAPILLARY",
+            Self::DnbSeq => "DNBSEQ",
+            Self::LS454 => "LS454",
+            Self::Illumina => "ILLUMINA",
+            Self::Solid => "SOLID",
+            Self::Helicos => "HELICOS",
+            Self::IonTorrent => "IONTORRENT",
+            Self::Ont => "ONT",
+            Self::PacBio => "PACBIO",
+        }
+    }
+}
+
+impl fmt::Display for Platform {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_ref())
+    }
+}
+
 /// An error returned when a raw SAM header read group platform fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -66,6 +88,19 @@ impl FromStr for Platform {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Platform::Capillary.to_string(), "CAPILLARY");
+        assert_eq!(Platform::DnbSeq.to_string(), "DNBSEQ");
+        assert_eq!(Platform::LS454.to_string(), "LS454");
+        assert_eq!(Platform::Illumina.to_string(), "ILLUMINA");
+        assert_eq!(Platform::Solid.to_string(), "SOLID");
+        assert_eq!(Platform::Helicos.to_string(), "HELICOS");
+        assert_eq!(Platform::IonTorrent.to_string(), "IONTORRENT");
+        assert_eq!(Platform::Ont.to_string(), "ONT");
+        assert_eq!(Platform::PacBio.to_string(), "PACBIO");
+    }
 
     #[test]
     fn test_from_str() {
