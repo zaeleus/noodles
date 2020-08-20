@@ -15,6 +15,11 @@ use super::{record, Record};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Program {
     id: String,
+    name: Option<String>,
+    command_line: Option<String>,
+    previous_id: Option<String>,
+    description: Option<String>,
+    version: Option<String>,
     fields: HashMap<Tag, String>,
 }
 
@@ -31,6 +36,11 @@ impl Program {
     pub fn new(id: String) -> Self {
         Self {
             id,
+            name: None,
+            command_line: None,
+            previous_id: None,
+            description: None,
+            version: None,
             fields: HashMap::new(),
         }
     }
@@ -65,6 +75,71 @@ impl Program {
         &mut self.id
     }
 
+    /// Returns the program name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert!(program.name().is_none());
+    /// ```
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
+    /// Returns the command line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert!(program.command_line().is_none());
+    /// ```
+    pub fn command_line(&self) -> Option<&str> {
+        self.command_line.as_deref()
+    }
+
+    /// Returns the previous program ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert!(program.previous_id().is_none());
+    /// ```
+    pub fn previous_id(&self) -> Option<&str> {
+        self.previous_id.as_deref()
+    }
+
+    /// Returns the description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert!(program.description().is_none());
+    /// ```
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
+    /// Returns the program version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let program = Program::new(String::from("pg0"));
+    /// assert!(program.version().is_none());
+    /// ```
+    pub fn version(&self) -> Option<&str> {
+        self.version.as_deref()
+    }
+
     /// Returns the raw fields of the program.
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
@@ -78,11 +153,11 @@ impl Program {
     /// use noodles_sam::header::{program::Tag, Program};
     ///
     /// let mut program = Program::new(String::from("pg0"));
-    /// program.insert(Tag::Name, String::from("noodles-sam"));
+    /// program.insert(Tag::Other(String::from("zn")), String::from("noodles"));
     ///
     /// let fields = program.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(fields.get(&Tag::Name), Some(&String::from("noodles-sam")));
+    /// assert_eq!(program.get(&Tag::Other(String::from("zn"))), Some(&String::from("noodles")));
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(program.id(), "pg0");
@@ -93,7 +168,7 @@ impl Program {
 
     /// Returns a reference to the raw field value mapped to the given key.
     ///
-    /// This can only be used for fields with unparsed values. For a program, [`id`] must be used
+    /// This can only be used for fields with unparsed values. For example, [`id`] must be used
     /// instead of `get(Tag::Id)`.
     ///
     /// [`id`]: #method.id
@@ -104,9 +179,9 @@ impl Program {
     /// use noodles_sam::header::{program::Tag, Program};
     ///
     /// let mut program = Program::new(String::from("pg0"));
-    /// program.insert(Tag::Name, String::from("noodles-sam"));
+    /// program.insert(Tag::Other(String::from("zn")), String::from("noodles"));
     ///
-    /// assert_eq!(program.get(&Tag::Name), Some(&String::from("noodles-sam")));
+    /// assert_eq!(program.get(&Tag::Other(String::from("zn"))), Some(&String::from("noodles")));
     /// assert_eq!(program.get(&Tag::Id), None);
     /// ```
     pub fn get(&self, tag: &Tag) -> Option<&String> {
@@ -135,6 +210,26 @@ impl fmt::Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", record::Kind::Program)?;
         write!(f, "\t{}:{}", Tag::Id, self.id)?;
+
+        if let Some(name) = self.name() {
+            write!(f, "\t{}:{}", Tag::Name, name)?;
+        }
+
+        if let Some(command_line) = self.command_line() {
+            write!(f, "\t{}:{}", Tag::CommandLine, command_line)?;
+        }
+
+        if let Some(previous_id) = self.previous_id() {
+            write!(f, "\t{}:{}", Tag::PreviousId, previous_id)?;
+        }
+
+        if let Some(description) = self.description() {
+            write!(f, "\t{}:{}", Tag::Description, description)?;
+        }
+
+        if let Some(version) = self.version() {
+            write!(f, "\t{}:{}", Tag::Version, version)?;
+        }
 
         for (tag, value) in &self.fields {
             write!(f, "\t{}:{}", tag, value)?;
@@ -180,20 +275,48 @@ impl TryFrom<Record> for Program {
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecordError> {
     let mut id = None;
+    let mut name = None;
+    let mut command_line = None;
+    let mut previous_id = None;
+    let mut description = None;
+    let mut version = None;
     let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        if let Tag::Id = tag {
-            id = Some(value);
-        } else {
-            fields.insert(tag, value);
+        match tag {
+            Tag::Id => {
+                id = Some(value);
+            }
+            Tag::Name => {
+                name = Some(value);
+            }
+            Tag::CommandLine => {
+                command_line = Some(value);
+            }
+            Tag::PreviousId => {
+                previous_id = Some(value);
+            }
+            Tag::Description => {
+                description = Some(value);
+            }
+            Tag::Version => {
+                version = Some(value);
+            }
+            _ => {
+                fields.insert(tag, value);
+            }
         }
     }
 
     Ok(Program {
         id: id.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Id))?,
+        name,
+        command_line,
+        previous_id,
+        description,
+        version,
         fields,
     })
 }
