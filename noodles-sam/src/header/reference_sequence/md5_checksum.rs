@@ -15,7 +15,7 @@ impl Deref for Md5Checksum {
 impl fmt::Display for Md5Checksum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for byte in self.iter() {
-            write!(f, "{:x}", byte)?;
+            write!(f, "{:02x}", byte)?;
         }
 
         Ok(())
@@ -82,8 +82,13 @@ mod tests {
             0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6,
             0x15, 0x34,
         ]);
-
         assert_eq!(md5_checksum.to_string(), "d7eba311421bbc9d3ada44709dd61534");
+
+        let md5_checksum = Md5Checksum::from([
+            0xb0, 0x0c, 0x61, 0xdf, 0xed, 0x4a, 0x92, 0xfd, 0xfb, 0x24, 0x4d, 0x35, 0x79, 0x05,
+            0x56, 0xeb,
+        ]);
+        assert_eq!(md5_checksum.to_string(), "b00c61dfed4a92fdfb244d35790556eb");
     }
 
     #[test]
