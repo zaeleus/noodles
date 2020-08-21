@@ -27,7 +27,7 @@ pub struct Record {
     pub read_group: ReadGroupId,
     pub read_name: Vec<u8>,
     pub next_mate_bit_flags: NextMateFlags,
-    pub next_fragment_reference_sequence_id: i32,
+    pub next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
     pub next_mate_alignment_start: i32,
     pub template_size: i32,
     pub distance_to_next_fragment: i32,

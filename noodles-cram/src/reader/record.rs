@@ -244,8 +244,10 @@ where
                 record.read_name = self.read_read_name()?;
             }
 
-            record.next_fragment_reference_sequence_id =
-                self.read_next_fragment_reference_sequence_id()?;
+            record.next_fragment_reference_sequence_id = self
+                .read_next_fragment_reference_sequence_id()
+                .map(bam::record::ReferenceSequenceId::from)?;
+
             record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
             record.template_size = self.read_template_size()?;
         } else if flags.has_mate_downstream() {

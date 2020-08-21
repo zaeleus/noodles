@@ -13,7 +13,7 @@ pub struct Builder {
     read_group_id: ReadGroupId,
     read_name: Vec<u8>,
     next_mate_flags: NextMateFlags,
-    next_fragment_reference_sequence_id: i32,
+    next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
     next_mate_alignment_start: i32,
     template_size: i32,
     distance_to_next_fragment: i32,
@@ -36,7 +36,7 @@ impl Default for Builder {
             read_group_id: ReadGroupId::default(),
             read_name: Vec::new(),
             next_mate_flags: NextMateFlags::default(),
-            next_fragment_reference_sequence_id: -1,
+            next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId::default(),
             next_mate_alignment_start: 0,
             template_size: 0,
             distance_to_next_fragment: 0,
@@ -92,6 +92,14 @@ impl Builder {
 
     pub fn set_next_mate_flags(mut self, next_mate_flags: NextMateFlags) -> Self {
         self.next_mate_flags = next_mate_flags;
+        self
+    }
+
+    pub fn set_next_fragment_reference_sequence_id(
+        mut self,
+        next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
+    ) -> Self {
+        self.next_fragment_reference_sequence_id = next_fragment_reference_sequence_id;
         self
     }
 

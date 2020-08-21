@@ -222,9 +222,10 @@ where
                 self.write_read_name(&record.read_name)?;
             }
 
-            self.write_next_fragment_reference_sequence_id(
-                record.next_fragment_reference_sequence_id,
-            )?;
+            let next_fragment_reference_sequence_id =
+                i32::from(record.next_fragment_reference_sequence_id);
+            self.write_next_fragment_reference_sequence_id(next_fragment_reference_sequence_id)?;
+
             self.write_next_mate_alignment_start(record.next_mate_alignment_start)?;
             self.write_template_size(record.template_size)?;
         } else {
