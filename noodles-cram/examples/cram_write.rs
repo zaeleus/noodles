@@ -6,43 +6,45 @@
 
 use std::io;
 
+use md5::{Digest, Md5};
+
 use noodles_cram as cram;
+use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    header::{self, Program, ReferenceSequence},
+    header::{self, reference_sequence::Md5Checksum, Program, ReferenceSequence},
 };
 
-fn build_header() -> sam::Header {
-    use noodles_sam::header::reference_sequence::Tag;
+static FASTA_DATA: &[u8] = b"\
+>sq0
+TTCACCCA
+>sq1
+GATCTTACTTTTT
+>sq2
+GGCGCCCCGCTGTGCAAAAAT
+";
 
-    let builder = sam::Header::builder()
+fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
+    let mut builder = sam::Header::builder()
         .set_header(header::header::Header::default())
         .add_program(Program::new(String::from("noodles-cram")))
         .add_comment("an example CRAM written by noodles-cram");
 
-    // TTCACCCA
-    let mut sq0 = ReferenceSequence::new(String::from("sq0"), 8);
-    sq0.insert(
-        Tag::Md5Checksum,
-        String::from("be19336b7e15968f7ac7dc82493d9cd8"),
-    );
-    let builder = builder.add_reference_sequence(sq0);
+    for record in reference_sequence_records {
+        let sequence = record.sequence();
 
-    // GATCTTACTTTTT
-    let mut sq1 = ReferenceSequence::new(String::from("sq1"), 13);
-    sq1.insert(
-        Tag::Md5Checksum,
-        String::from("d80f22a19aeeb623b3e4f746c762f21d"),
-    );
-    let builder = builder.add_reference_sequence(sq1);
+        let mut hasher = Md5::new();
+        hasher.update(&sequence);
+        let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
 
-    // GGCGCCCCGCTGTGCAAAAAT
-    let mut sq2 = ReferenceSequence::new(String::from("sq2"), 21);
-    sq2.insert(
-        Tag::Md5Checksum,
-        String::from("b00c61dfed4a92fdfb244d35790556eb"),
-    );
-    let builder = builder.add_reference_sequence(sq2);
+        let reference_sequence = ReferenceSequence::builder()
+            .set_name(record.reference_sequence_name())
+            .set_length(sequence.len() as i32)
+            .set_md5_checksum(md5_checksum)
+            .build();
+
+        builder = builder.add_reference_sequence(reference_sequence);
+    }
 
     builder.build()
 }
@@ -51,10 +53,14 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout();
     let handle = stdout.lock();
 
+    let reference_sequence_records: Vec<_> = fasta::Reader::new(FASTA_DATA)
+        .records()
+        .collect::<Result<_, _>>()?;
+
     let mut writer = cram::Writer::new(handle, Vec::new());
     writer.write_file_definition()?;
 
-    let header = build_header();
+    let header = build_header(&reference_sequence_records);
     writer.write_file_header(&header)?;
 
     Ok(())
