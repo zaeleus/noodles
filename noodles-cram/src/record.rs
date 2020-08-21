@@ -1,3 +1,4 @@
+mod builder;
 pub mod feature;
 mod flags;
 mod next_mate_flags;
@@ -6,15 +7,15 @@ pub mod resolve;
 pub mod tag;
 
 pub use self::{
-    feature::Feature, flags::Flags, next_mate_flags::NextMateFlags, read_group_id::ReadGroupId,
-    tag::Tag,
+    builder::Builder, feature::Feature, flags::Flags, next_mate_flags::NextMateFlags,
+    read_group_id::ReadGroupId, tag::Tag,
 };
 
 use std::{fmt, str};
 
 use noodles_sam as sam;
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Record {
     pub id: i64,
     pub bam_bit_flags: sam::record::Flags,
@@ -37,6 +38,10 @@ pub struct Record {
 }
 
 impl Record {
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     pub fn bam_flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
@@ -99,6 +104,12 @@ impl Record {
 
     pub fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
+    }
+}
+
+impl Default for Record {
+    fn default() -> Self {
+        Builder::default().build()
     }
 }
 
