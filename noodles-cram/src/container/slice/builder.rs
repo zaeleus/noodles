@@ -34,8 +34,7 @@ impl Builder {
     }
 
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
-        let record_reference_sequence_id =
-            bam::record::ReferenceSequenceId::from(record.reference_id);
+        let record_reference_sequence_id = record.reference_id;
 
         if self.reference_sequence_id.is_none() {
             self.reference_sequence_id = Some(record_reference_sequence_id);

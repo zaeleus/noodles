@@ -1,3 +1,4 @@
+use noodles_bam as bam;
 use noodles_sam as sam;
 
 use super::{Feature, Flags, NextMateFlags, ReadGroupId, Record, Tag};
@@ -6,7 +7,7 @@ pub struct Builder {
     id: i64,
     bam_flags: sam::record::Flags,
     flags: Flags,
-    reference_id: i32,
+    reference_id: bam::record::ReferenceSequenceId,
     read_length: i32,
     alignment_start: i32,
     read_group_id: ReadGroupId,
@@ -29,7 +30,7 @@ impl Default for Builder {
             id: 0,
             bam_flags: sam::record::Flags::UNMAPPED,
             flags: Flags::default(),
-            reference_id: -1,
+            reference_id: bam::record::ReferenceSequenceId::default(),
             read_length: 0,
             alignment_start: 0,
             read_group_id: ReadGroupId::default(),
@@ -64,7 +65,7 @@ impl Builder {
         self
     }
 
-    pub fn set_reference_id(mut self, reference_id: i32) -> Self {
+    pub fn set_reference_id(mut self, reference_id: bam::record::ReferenceSequenceId) -> Self {
         self.reference_id = reference_id;
         self
     }
