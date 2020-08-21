@@ -1,10 +1,11 @@
 //! SAM header program and fields.
 
+mod builder;
 mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
-pub use self::tag::Tag;
+pub use self::{builder::Builder, tag::Tag};
 
 use super::{record, Record};
 
@@ -24,6 +25,18 @@ pub struct Program {
 }
 
 impl Program {
+    /// Creates a SAM header program builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::Program;
+    /// let builder = Program::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a program with an ID.
     ///
     /// # Examples
@@ -274,51 +287,33 @@ impl TryFrom<Record> for Program {
 }
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecordError> {
+    let mut builder = Program::builder();
     let mut id = None;
-    let mut name = None;
-    let mut command_line = None;
-    let mut previous_id = None;
-    let mut description = None;
-    let mut version = None;
-    let mut fields = HashMap::new();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
-        match tag {
+        builder = match tag {
             Tag::Id => {
                 id = Some(value);
+                builder
             }
-            Tag::Name => {
-                name = Some(value);
-            }
-            Tag::CommandLine => {
-                command_line = Some(value);
-            }
-            Tag::PreviousId => {
-                previous_id = Some(value);
-            }
-            Tag::Description => {
-                description = Some(value);
-            }
-            Tag::Version => {
-                version = Some(value);
-            }
-            _ => {
-                fields.insert(tag, value);
-            }
+            Tag::Name => builder.set_name(value),
+            Tag::CommandLine => builder.set_command_line(value),
+            Tag::PreviousId => builder.set_previous_id(value),
+            Tag::Description => builder.set_description(value),
+            Tag::Version => builder.set_version(value),
+            _ => builder.insert(tag, value),
         }
     }
 
-    Ok(Program {
-        id: id.ok_or_else(|| TryFromRecordError::MissingRequiredTag(Tag::Id))?,
-        name,
-        command_line,
-        previous_id,
-        description,
-        version,
-        fields,
-    })
+    if let Some(i) = id {
+        builder = builder.set_id(i);
+    } else {
+        return Err(TryFromRecordError::MissingRequiredTag(Tag::Id));
+    }
+
+    Ok(builder.build())
 }
 
 #[cfg(test)]
@@ -327,14 +322,8 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let mut program = Program::new(String::from("pg0"));
-
-        program.fields.insert(Tag::Name, String::from("noodles"));
-
-        let actual = format!("{}", program);
-        let expected = "@PG\tID:pg0\tPN:noodles";
-
-        assert_eq!(actual, expected);
+        let program = Program::builder().set_id("pg0").set_name("noodles").build();
+        assert_eq!(program.to_string(), "@PG\tID:pg0\tPN:noodles");
     }
 
     #[test]
