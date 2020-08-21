@@ -236,10 +236,8 @@ where
 fn validate_reference_sequences(
     reference_sequences: &sam::header::ReferenceSequences,
 ) -> io::Result<()> {
-    use noodles_sam::header::reference_sequence::Tag;
-
     for reference_sequence in reference_sequences.values() {
-        if reference_sequence.get(&Tag::Md5Checksum).is_none() {
+        if reference_sequence.md5_checksum().is_none() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "missing MD5 checksum in reference sequence",
