@@ -383,7 +383,8 @@ where
             self.write_feature(feature)?;
         }
 
-        self.write_mapping_quality(record.mapping_quality)?;
+        let mapping_quality = i32::from(u8::from(record.mapping_quality));
+        self.write_mapping_quality(mapping_quality)?;
 
         let flags = record.flags();
 

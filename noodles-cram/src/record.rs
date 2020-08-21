@@ -34,7 +34,7 @@ pub struct Record {
     pub tags: Vec<Tag>,
     pub bases: Vec<u8>,
     pub features: Vec<Feature>,
-    pub mapping_quality: i32,
+    pub mapping_quality: sam::record::MappingQuality,
     pub quality_scores: Vec<u8>,
 }
 

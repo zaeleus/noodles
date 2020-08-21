@@ -20,7 +20,7 @@ pub struct Builder {
     tags: Vec<Tag>,
     bases: Vec<u8>,
     features: Vec<Feature>,
-    mapping_quality: i32,
+    mapping_quality: sam::record::MappingQuality,
     quality_scores: Vec<u8>,
 }
 
@@ -43,7 +43,7 @@ impl Default for Builder {
             tags: Vec::new(),
             bases: Vec::new(),
             features: Vec::new(),
-            mapping_quality: 255,
+            mapping_quality: sam::record::MappingQuality::default(),
             quality_scores: Vec::new(),
         }
     }
@@ -133,7 +133,7 @@ impl Builder {
         self
     }
 
-    pub fn set_mapping_quality(mut self, mapping_quality: i32) -> Self {
+    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = mapping_quality;
         self
     }
