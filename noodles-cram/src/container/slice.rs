@@ -79,29 +79,7 @@ impl Slice {
     }
 
     pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
-        use std::{
-            cell::{RefCell, RefMut},
-            rc::Rc,
-        };
-
-        fn set_mate(mut record: RefMut<Record>, mut mate: RefMut<Record>) {
-            let mate_bam_flags = mate.bam_flags();
-
-            if mate_bam_flags.is_reverse_complemented() {
-                record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
-            }
-
-            if mate_bam_flags.is_unmapped() {
-                record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
-            }
-
-            if mate.read_name.is_empty() {
-                mate.read_name.extend(record.read_name.iter());
-            }
-
-            record.next_fragment_reference_sequence_id = mate.reference_id;
-            record.next_mate_alignment_start = mate.alignment_start;
-        }
+        use std::{cell::RefCell, rc::Rc};
 
         let mut mate_indices = vec![None; records.len()];
 
@@ -135,14 +113,14 @@ impl Slice {
             let mut j = i;
 
             while let Some(mate_index) = mate_indices[j] {
-                let mate = records[mate_index].borrow_mut();
-                set_mate(record, mate);
+                let mut mate = records[mate_index].borrow_mut();
+                set_mate(&mut record, &mut mate);
                 record = records[mate_index].borrow_mut();
                 j = mate_index;
             }
 
-            let mate = record_cell.borrow_mut();
-            set_mate(record, mate);
+            let mut mate = record_cell.borrow_mut();
+            set_mate(&mut record, &mut mate);
 
             // TODO: calculate template size
         }
@@ -152,6 +130,25 @@ impl Slice {
             .map(|r| Rc::try_unwrap(r).unwrap().into_inner())
             .collect()
     }
+}
+
+fn set_mate(mut record: &mut Record, mate: &mut Record) {
+    let mate_bam_flags = mate.bam_flags();
+
+    if mate_bam_flags.is_reverse_complemented() {
+        record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+    }
+
+    if mate_bam_flags.is_unmapped() {
+        record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+    }
+
+    if mate.read_name.is_empty() {
+        mate.read_name.extend(record.read_name.iter());
+    }
+
+    record.next_fragment_reference_sequence_id = mate.reference_id;
+    record.next_mate_alignment_start = mate.alignment_start;
 }
 
 impl TryFrom<&[Block]> for Slice {
