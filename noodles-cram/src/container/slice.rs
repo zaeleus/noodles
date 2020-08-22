@@ -103,7 +103,7 @@ impl Slice {
             record.next_mate_alignment_start = mate.alignment_start;
         }
 
-        let mut mate_indicies = vec![None; records.len()];
+        let mut mate_indices = vec![None; records.len()];
 
         for (i, record) in records.iter().enumerate() {
             let flags = record.flags();
@@ -111,7 +111,7 @@ impl Slice {
             if flags.has_mate_downstream() {
                 let distance_to_next_fragment = record.distance_to_next_fragment as usize;
                 let mate_index = i + distance_to_next_fragment + 1;
-                mate_indicies[i] = Some(mate_index);
+                mate_indices[i] = Some(mate_index);
             }
         }
 
@@ -121,7 +121,7 @@ impl Slice {
             .collect();
 
         for (i, record_cell) in records.iter().enumerate() {
-            if mate_indicies[i].is_none() {
+            if mate_indices[i].is_none() {
                 continue;
             }
 
@@ -134,7 +134,7 @@ impl Slice {
 
             let mut j = i;
 
-            while let Some(mate_index) = mate_indicies[j] {
+            while let Some(mate_index) = mate_indices[j] {
                 let mate = records[mate_index].borrow_mut();
                 set_mate(record, mate);
                 record = records[mate_index].borrow_mut();
