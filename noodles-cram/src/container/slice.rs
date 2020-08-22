@@ -79,7 +79,7 @@ impl Slice {
     }
 
     pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
-        use std::{cell::RefCell, rc::Rc};
+        use std::cell::RefCell;
 
         let mut mate_indices = vec![None; records.len()];
 
@@ -93,10 +93,7 @@ impl Slice {
             }
         }
 
-        let records: Vec<_> = records
-            .into_iter()
-            .map(|r| Rc::new(RefCell::new(r)))
-            .collect();
+        let records: Vec<_> = records.into_iter().map(RefCell::new).collect();
 
         for (i, record_cell) in records.iter().enumerate() {
             if mate_indices[i].is_none() {
@@ -127,10 +124,7 @@ impl Slice {
             mate.template_size = -template_size;
         }
 
-        records
-            .into_iter()
-            .map(|r| Rc::try_unwrap(r).unwrap().into_inner())
-            .collect()
+        records.into_iter().map(|r| r.into_inner()).collect()
     }
 }
 
