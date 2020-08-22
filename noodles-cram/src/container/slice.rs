@@ -122,7 +122,9 @@ impl Slice {
             let mut mate = record_cell.borrow_mut();
             set_mate(&mut record, &mut mate);
 
-            // TODO: calculate template size
+            let template_size = calculate_template_size(&record, &mate);
+            record.template_size = template_size;
+            mate.template_size = -template_size;
         }
 
         records
@@ -149,6 +151,12 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
 
     record.next_fragment_reference_sequence_id = mate.reference_id;
     record.next_mate_alignment_start = mate.alignment_start;
+}
+
+fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
+    let start = record.alignment_start();
+    let end = mate.alignment_end();
+    end - start + 1
 }
 
 impl TryFrom<&[Block]> for Slice {
