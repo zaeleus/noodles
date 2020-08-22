@@ -103,15 +103,9 @@ impl Slice {
             record.next_mate_alignment_start = mate.alignment_start;
         }
 
-        let records: Vec<_> = records
-            .into_iter()
-            .map(|r| Rc::new(RefCell::new(r)))
-            .collect();
-
         let mut mate_indicies = vec![None; records.len()];
 
-        for (i, record_cell) in records.iter().enumerate() {
-            let record = record_cell.borrow();
+        for (i, record) in records.iter().enumerate() {
             let flags = record.flags();
 
             if flags.has_mate_downstream() {
@@ -120,6 +114,11 @@ impl Slice {
                 mate_indicies[i] = Some(mate_index);
             }
         }
+
+        let records: Vec<_> = records
+            .into_iter()
+            .map(|r| Rc::new(RefCell::new(r)))
+            .collect();
 
         for (i, record_cell) in records.iter().enumerate() {
             if mate_indicies[i].is_none() {
