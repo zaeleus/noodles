@@ -421,11 +421,11 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedHeader => f.write_str("unexpected @HD"),
-            Self::InvalidRecord(e) => write!(f, "{}", e),
-            Self::InvalidHeader(e) => write!(f, "{}", e),
-            Self::InvalidReferenceSequence(e) => write!(f, "{}", e),
-            Self::InvalidReadGroup(e) => write!(f, "{}", e),
-            Self::InvalidProgram(e) => write!(f, "{}", e),
+            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
+            Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
+            Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
+            Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
+            Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }
