@@ -46,7 +46,6 @@ where
 {
     let mut buf = Vec::new();
 
-    // FIXME: usize => Itf8 cast
     let map_len = DATA_SERIES
         .iter()
         .filter_map(|data_series| data_series_encoding_map.get(data_series))
@@ -61,7 +60,6 @@ where
         }
     }
 
-    // FIXME: usize => Itf8 cast
     let data_len = buf.len() as Itf8;
     write_itf8(writer, data_len)?;
 

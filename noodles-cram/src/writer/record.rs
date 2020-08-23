@@ -338,7 +338,6 @@ where
                 )
             })?;
 
-        // FIXME: usize => Itf8 cast
         self.write_tag_line(tag_line as Itf8)?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
@@ -404,7 +403,6 @@ where
             .get(&DataSeries::NumberOfReadFeatures)
             .expect("missing FN");
 
-        // FIXME: usize => Itf8 cast
         let number_of_read_features = feature_count as Itf8;
 
         encode_itf8(

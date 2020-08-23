@@ -90,12 +90,10 @@ impl Container {
             blocks.push(slice_header_block);
 
             blocks.push(slice.core_data_block().clone());
-            // FIXME: usize => Itf8 cast
             slice_len += slice.core_data_block().len() as Itf8;
 
             for external_block in slice.external_blocks() {
                 blocks.push(external_block.clone());
-                // FIXME: usize => Itf8 cast
                 slice_len += external_block.len() as Itf8;
             }
 
@@ -104,7 +102,6 @@ impl Container {
             landmarks.push(landmark);
         }
 
-        // FIXME: usize => i32 cast
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
         let container_alignment_span = container_alignment_end - container_alignment_start + 1;

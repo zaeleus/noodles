@@ -32,7 +32,6 @@ fn write_args<W>(writer: &mut W, buf: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    // FIXME: usize => Itf8 cast
     let len = buf.len() as Itf8;
     write_itf8(writer, len)?;
     writer.write_all(buf)

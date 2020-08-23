@@ -51,7 +51,6 @@ impl From<Histogram> for SubstitutionMatrix {
                 .filter(|(&read_base, _)| read_base != reference_base)
                 .collect();
 
-            // FIXME: u64 => i64 cast
             base_frequency_pairs.sort_by_key(|(_, &frequency)| -(frequency as i64));
 
             for (code, (&read_base, _)) in base_frequency_pairs.iter().enumerate() {

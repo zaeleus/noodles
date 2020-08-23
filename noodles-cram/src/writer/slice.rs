@@ -36,7 +36,6 @@ fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[Itf8]) -> io:
 where
     W: Write,
 {
-    // FIXME: usize => Itf8 cast
     let len = block_content_ids.len() as Itf8;
     write_itf8(writer, len)?;
 
@@ -58,7 +57,6 @@ fn write_optional_tags<W>(writer: &mut W, optional_tags: &[u8]) -> io::Result<()
 where
     W: Write,
 {
-    // FIXME: usize => Itf8 cast
     let len = optional_tags.len() as Itf8;
     write_itf8(writer, len)?;
 

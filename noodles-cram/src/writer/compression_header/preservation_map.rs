@@ -100,7 +100,6 @@ where
         buf.push(NUL);
     }
 
-    // FIXME: usize => Itf8 cast
     let data_len = buf.len() as Itf8;
     write_itf8(writer, data_len)?;
     writer.write_all(&buf)?;

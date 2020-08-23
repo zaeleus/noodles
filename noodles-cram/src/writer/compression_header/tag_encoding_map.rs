@@ -15,7 +15,6 @@ where
 {
     let mut buf = Vec::new();
 
-    // FIXME: usize => Itf8 cast
     let map_len = tag_encoding_map.len() as Itf8;
     write_itf8(&mut buf, map_len)?;
 
@@ -24,7 +23,6 @@ where
         write_encoding(&mut buf, encoding)?;
     }
 
-    // FIXME: usize => Itf8 cast
     let data_len = buf.len() as Itf8;
     write_itf8(writer, data_len)?;
 

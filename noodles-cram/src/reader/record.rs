@@ -383,10 +383,9 @@ where
             record.add_feature(feature);
         }
 
-        record.mapping_quality = self.read_mapping_quality().map(|n| {
-            // FIXME: Itf8 => u8 cast
-            sam::record::MappingQuality::from(n as u8)
-        })?;
+        record.mapping_quality = self
+            .read_mapping_quality()
+            .map(|n| sam::record::MappingQuality::from(n as u8))?;
 
         let flags = record.flags();
 

@@ -156,7 +156,6 @@ where
         let blocks = vec![block];
         let landmarks = vec![0];
 
-        // FIXME: usize => i32 cast
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
         let container_header = crate::container::Header::new(
