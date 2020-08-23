@@ -14,7 +14,7 @@ use crate::{
     rans::rans_decode,
 };
 
-// § 9 End of file container (2020-07-22)
+// § 9 End of file container (2020-06-22)
 const EOF_DATA: [u8; 6] = [0x01, 0x00, 0x01, 0x00, 0x01, 0x00];
 const EOF_CRC32: u32 = 0x4b_01_63_ee;
 

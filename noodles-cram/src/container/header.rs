@@ -2,7 +2,7 @@ use crate::num::{Itf8, Ltf8};
 
 use super::ReferenceSequenceId;
 
-// § 9 End of file container (2020-07-22)
+// § 9 End of file container (2020-06-22)
 const EOF_LEN: i32 = 15;
 const EOF_START_POSITION: Itf8 = 4_542_278;
 const EOF_BLOCK_COUNT: Itf8 = 1;
