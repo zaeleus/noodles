@@ -58,14 +58,14 @@ fn main() -> io::Result<()> {
         .records()
         .collect::<Result<_, _>>()?;
 
-    let mut writer = cram::Writer::new(handle, Vec::new());
-    writer.write_file_definition()?;
-
     let header = build_header(&reference_sequence_records);
+
+    let mut writer = cram::Writer::new(handle, reference_sequence_records);
+    writer.write_file_definition()?;
     writer.write_file_header(&header)?;
 
     let record = cram::Record::default();
-    writer.write_record(&Vec::new(), record)?;
+    writer.write_record(record)?;
 
     Ok(())
 }

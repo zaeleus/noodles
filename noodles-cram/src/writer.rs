@@ -187,16 +187,13 @@ where
         Ok(())
     }
 
-    pub fn write_record(
-        &mut self,
-        reference_sequence: &[u8],
-        mut record: Record,
-    ) -> io::Result<()> {
+    pub fn write_record(&mut self, mut record: Record) -> io::Result<()> {
         loop {
-            match self
-                .data_container_builder
-                .add_record(reference_sequence, record)
-            {
+            match add_record(
+                &mut self.data_container_builder,
+                &self.reference_sequences,
+                record,
+            ) {
                 Ok(_) => return Ok(()),
                 Err(e) => match e {
                     data_container::builder::AddRecordError::ContainerFull(r) => {
@@ -245,4 +242,18 @@ fn validate_reference_sequences(
     }
 
     Ok(())
+}
+
+fn add_record(
+    data_container_builder: &mut data_container::Builder,
+    reference_sequences: &[fasta::Record],
+    record: Record,
+) -> Result<(), data_container::builder::AddRecordError> {
+    let reference_sequence = record
+        .reference_sequence_id()
+        .and_then(|id| reference_sequences.get(id as usize))
+        .map(|rs| rs.sequence())
+        .unwrap_or_default();
+
+    data_container_builder.add_record(reference_sequence, record)
 }

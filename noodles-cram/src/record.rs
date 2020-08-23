@@ -51,6 +51,10 @@ impl Record {
         self.cram_bit_flags
     }
 
+    pub fn reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
+        self.reference_id
+    }
+
     pub fn read_length(&self) -> i32 {
         self.read_length
     }
