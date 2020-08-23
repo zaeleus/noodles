@@ -8,7 +8,7 @@ fn read_u8_as_i32<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
 {
-    reader.read_u8().map(|b| b as i32)
+    reader.read_u8().map(i32::from)
 }
 
 pub fn read_itf8<R>(reader: &mut R) -> io::Result<i32>

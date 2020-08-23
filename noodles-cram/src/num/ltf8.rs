@@ -8,7 +8,7 @@ fn read_u8_as_i64<R>(reader: &mut R) -> io::Result<i64>
 where
     R: Read,
 {
-    reader.read_u8().map(|b| b as i64)
+    reader.read_u8().map(i64::from)
 }
 
 pub fn read_ltf8<R>(reader: &mut R) -> io::Result<i64>

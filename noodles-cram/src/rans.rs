@@ -129,7 +129,7 @@ where
     R: Read,
 {
     while r < (1 << 23) {
-        r = (r << 8) + reader.read_u8()? as u32;
+        r = (r << 8) + reader.read_u8().map(u32::from)?;
     }
 
     Ok(r)

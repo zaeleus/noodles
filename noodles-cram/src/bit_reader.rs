@@ -27,7 +27,7 @@ where
         let mut result = 0;
 
         for i in (0..n).rev() {
-            result |= (self.read_bit()? as u32) << i;
+            result |= self.read_bit().map(u32::from)? << i;
         }
 
         Ok(result)
