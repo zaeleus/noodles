@@ -43,6 +43,8 @@ impl Container {
         let mut blocks = vec![block];
         let mut landmarks = Vec::new();
 
+        let mut container_reference_sequence_id: Option<ReferenceSequenceId> = None;
+
         let mut container_alignment_start = i32::MAX;
         let mut container_alignment_end = 1;
 
@@ -50,6 +52,16 @@ impl Container {
 
         for slice in data_container.slices() {
             let slice_header = slice.header();
+
+            if let Some(reference_sequence_id) = container_reference_sequence_id {
+                if !reference_sequence_id.is_many()
+                    && reference_sequence_id != slice.header().reference_sequence_id()
+                {
+                    container_reference_sequence_id = Some(ReferenceSequenceId::Many);
+                }
+            } else {
+                container_reference_sequence_id = Some(slice.header().reference_sequence_id());
+            }
 
             container_alignment_start =
                 cmp::min(container_alignment_start, slice_header.alignment_start());
@@ -100,7 +112,7 @@ impl Container {
         // TODO
         let header = Header::new(
             len,
-            ReferenceSequenceId::None, // FIXME
+            container_reference_sequence_id.expect("no slices in builder"),
             container_alignment_start,
             container_alignment_span,
             container_record_count,
