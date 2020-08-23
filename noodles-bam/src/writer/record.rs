@@ -65,8 +65,8 @@ where
     let data_len = calculate_data_len(record.data()) as i32;
 
     let block_size = BLOCK_HEADER_SIZE as i32
-        + (l_read_name as i32)
-        + (4 * (n_cigar_op as i32))
+        + i32::from(l_read_name)
+        + (4 * i32::from(n_cigar_op))
         + ((l_seq + 1) / 2)
         + l_seq
         + data_len;

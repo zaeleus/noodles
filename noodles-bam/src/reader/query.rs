@@ -117,7 +117,7 @@ where
 
                                     let record_start = i32::from(record.position()) as u64;
                                     let record_reference_len =
-                                        record.cigar().reference_len() as u64;
+                                        u64::from(record.cigar().reference_len());
                                     let record_end = record_start + record_reference_len - 1;
 
                                     if reference_sequence_id == self.reference_sequence_id
