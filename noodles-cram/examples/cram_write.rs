@@ -1,6 +1,7 @@
 //! Creates a new CRAM file.
 //!
-//! This writes a file definition and a header container built from a SAM header to stdout.
+//! This writes a file definition, a header container built from a SAM header, and one unmapped
+//! record to stdout.
 //!
 //! Verify the output by piping to `samtools view -h --no-PG`.
 
@@ -62,6 +63,9 @@ fn main() -> io::Result<()> {
 
     let header = build_header(&reference_sequence_records);
     writer.write_file_header(&header)?;
+
+    let record = cram::Record::default();
+    writer.write_record(&Vec::new(), record)?;
 
     Ok(())
 }
