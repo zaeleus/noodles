@@ -80,7 +80,7 @@ impl Block {
         &self.data
     }
 
-    pub fn decompressed_data(&self) -> Cow<[u8]> {
+    pub fn decompressed_data(&self) -> Cow<'_, [u8]> {
         match self.compression_method {
             CompressionMethod::None => Cow::from(self.data()),
             CompressionMethod::Gzip => {

@@ -116,7 +116,7 @@ where
     /// assert!(lines.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn lines(&mut self) -> Lines<R> {
+    pub fn lines(&mut self) -> Lines<'_, R> {
         Lines::new(self)
     }
 
@@ -141,7 +141,7 @@ where
     /// assert!(records.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(&mut self) -> Records<R> {
+    pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self.lines())
     }
 }
