@@ -1,6 +1,10 @@
+mod builder;
 mod embedded_reference_bases_block_content_id;
 
-pub use embedded_reference_bases_block_content_id::EmbeddedReferenceBasesBlockContentId;
+pub use {
+    builder::Builder,
+    embedded_reference_bases_block_content_id::EmbeddedReferenceBasesBlockContentId,
+};
 
 use crate::{
     container::ReferenceSequenceId,
@@ -22,35 +26,10 @@ pub struct Header {
 }
 
 impl Header {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        reference_sequence_id: ReferenceSequenceId,
-        alignment_start: Itf8,
-        alignment_span: Itf8,
-        record_count: Itf8,
-        record_counter: Ltf8,
-        block_count: Itf8,
-        block_content_ids: Vec<Itf8>,
-        embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
-        reference_md5: [u8; 16],
-        optional_tags: Vec<u8>,
-    ) -> Self {
-        Self {
-            reference_sequence_id,
-            alignment_start,
-            alignment_span,
-            record_count,
-            record_counter,
-            block_count,
-            block_content_ids,
-            embedded_reference_bases_block_content_id,
-            reference_md5,
-            optional_tags,
-        }
+    pub fn builder() -> Builder {
+        Builder::default()
     }
-}
 
-impl Header {
     pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
         self.reference_sequence_id
     }

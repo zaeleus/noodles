@@ -30,18 +30,18 @@ where
     let reference_md5 = read_reference_md5(reader)?;
     let optional_tags = read_optional_tags(reader)?;
 
-    Ok(slice::Header::new(
-        reference_sequence_id,
-        alignment_start,
-        alignment_span,
-        record_count,
-        record_counter,
-        block_count,
-        block_content_ids,
-        embedded_reference_bases_block_content_id,
-        reference_md5,
-        optional_tags,
-    ))
+    Ok(slice::Header::builder()
+        .set_reference_sequence_id(reference_sequence_id)
+        .set_alignment_start(alignment_start)
+        .set_alignment_span(alignment_span)
+        .set_record_count(record_count)
+        .set_record_counter(record_counter)
+        .set_block_count(block_count)
+        .set_block_content_ids(block_content_ids)
+        .set_embedded_reference_bases_block_content_id(embedded_reference_bases_block_content_id)
+        .set_reference_md5(reference_md5)
+        .set_optional_tags(optional_tags)
+        .build())
 }
 
 fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

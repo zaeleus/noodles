@@ -11,7 +11,7 @@ use crate::{
     writer, BitWriter, Record,
 };
 
-use super::{header::EmbeddedReferenceBasesBlockContentId, Header, Slice};
+use super::{Header, Slice};
 
 use noodles_bam as bam;
 
@@ -161,19 +161,18 @@ impl Builder {
 
         let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
 
-        // TODO
-        let header = Header::new(
-            reference_sequence_id,
-            slice_alignment_start,
-            slice_alignment_span,
-            self.records.len() as i32,
-            0,
-            (external_blocks.len() + 1) as i32,
-            block_content_ids,
-            EmbeddedReferenceBasesBlockContentId::default(),
-            reference_md5,
-            Vec::new(),
-        );
+        let header = Header::builder()
+            .set_reference_sequence_id(reference_sequence_id)
+            .set_alignment_start(slice_alignment_start)
+            .set_alignment_span(slice_alignment_span)
+            .set_record_count(self.records.len() as i32)
+            // TODO: set record counter
+            // .set_record_counter()
+            // external blocks + core data block
+            .set_block_count((external_blocks.len() + 1) as i32)
+            .set_block_content_ids(block_content_ids)
+            .set_reference_md5(reference_md5)
+            .build();
 
         Ok(Slice::new(header, core_data_block, external_blocks))
     }
