@@ -106,19 +106,19 @@ impl Container {
 
         let container_alignment_span = container_alignment_end - container_alignment_start + 1;
 
-        // TODO
-        let header = Header::new(
-            len,
-            container_reference_sequence_id.expect("no slices in builder"),
-            container_alignment_start,
-            container_alignment_span,
-            container_record_count,
-            0,
-            0,
-            blocks.len() as Itf8,
-            landmarks,
-            0,
-        );
+        let header = Header::builder()
+            .set_length(len)
+            .set_reference_sequence_id(
+                container_reference_sequence_id.expect("no slices in builder"),
+            )
+            .set_start_position(container_alignment_start)
+            .set_alignment_span(container_alignment_span)
+            .set_record_count(container_record_count)
+            // TODO: set record counter
+            // TODO: set base count
+            .set_block_count(blocks.len() as Itf8)
+            .set_landmarks(landmarks)
+            .build();
 
         Ok(Self::new(header, blocks))
     }

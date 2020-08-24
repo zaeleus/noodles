@@ -29,18 +29,18 @@ where
     let landmarks = read_landmarks(reader)?;
     let crc32 = reader.read_u32::<LittleEndian>()?;
 
-    Ok(Header::new(
-        length,
-        reference_sequence_id,
-        starting_position_on_the_reference,
-        alignment_span,
-        number_of_records,
-        record_counter,
-        bases,
-        number_of_blocks,
-        landmarks,
-        crc32,
-    ))
+    Ok(Header::builder()
+        .set_length(length)
+        .set_reference_sequence_id(reference_sequence_id)
+        .set_start_position(starting_position_on_the_reference)
+        .set_alignment_span(alignment_span)
+        .set_record_count(number_of_records)
+        .set_record_counter(record_counter)
+        .set_base_count(bases)
+        .set_block_count(number_of_blocks)
+        .set_landmarks(landmarks)
+        .set_crc32(crc32)
+        .build())
 }
 
 fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

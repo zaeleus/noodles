@@ -1,3 +1,7 @@
+mod builder;
+
+pub use self::builder::Builder;
+
 use crate::num::{Itf8, Ltf8};
 
 use super::ReferenceSequenceId;
@@ -24,6 +28,10 @@ pub struct Header {
 
 #[allow(clippy::len_without_is_empty)]
 impl Header {
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a container header used in the EOF container.
     pub fn eof() -> Self {
         Self {
@@ -32,33 +40,6 @@ impl Header {
             block_count: EOF_BLOCK_COUNT,
             crc32: EOF_CRC32,
             ..Default::default()
-        }
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        length: i32,
-        reference_sequence_id: ReferenceSequenceId,
-        start_position: Itf8,
-        alignment_span: Itf8,
-        record_count: Itf8,
-        record_counter: Ltf8,
-        base_count: Ltf8,
-        block_count: Itf8,
-        landmarks: Vec<Itf8>,
-        crc32: u32,
-    ) -> Self {
-        Self {
-            length,
-            reference_sequence_id,
-            start_position,
-            alignment_span,
-            record_count,
-            record_counter,
-            base_count,
-            block_count,
-            landmarks,
-            crc32,
         }
     }
 

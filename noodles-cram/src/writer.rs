@@ -158,18 +158,12 @@ where
 
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
-        let container_header = crate::container::Header::new(
-            len,
-            crate::container::ReferenceSequenceId::None,
-            0,
-            0,
-            0,
-            0,
-            0,
-            blocks.len() as Itf8,
-            landmarks,
-            0,
-        );
+        let container_header = crate::container::Header::builder()
+            .set_length(len)
+            .set_reference_sequence_id(crate::container::ReferenceSequenceId::None)
+            .set_block_count(blocks.len() as Itf8)
+            .set_landmarks(landmarks)
+            .build();
 
         let container = Container::new(container_header, blocks);
         self.write_container(&container)?;
