@@ -111,8 +111,8 @@ impl Record {
     /// use noodles_sam::{self as sam, record::Flags};
     ///
     /// let record = sam::Record::default();
-    /// assert!(record.flags().is_empty());
-    /// assert_eq!(u16::from(record.flags()), 0);
+    /// assert_eq!(record.flags(), Flags::UNMAPPED);
+    /// assert_eq!(u16::from(record.flags()), 4);
     ///
     /// let record = sam::Record::builder().set_flags(Flags::PAIRED | Flags::READ_1).build();
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);

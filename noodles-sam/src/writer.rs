@@ -26,7 +26,7 @@ use super::{Header, Record};
 /// writer.write_record(&record)?;
 ///
 /// let expected = b"@CO\tnoodles-sam
-/// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+/// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
 /// ";
 ///
 /// assert_eq!(&writer.get_ref()[..], &expected[..]);
@@ -98,7 +98,7 @@ where
     /// let mut writer = sam::Writer::new(Vec::new());
     /// let record = sam::Record::default();
     /// writer.write_record(&record)?;
-    /// assert_eq!(writer.get_ref(), b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
+    /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
@@ -148,7 +148,7 @@ mod tests {
 
         writer.write_record(&record)?;
 
-        let expected = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0\n";
+        let expected = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0\n";
 
         assert_eq!(&writer.get_ref()[..], &expected[..]);
 

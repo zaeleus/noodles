@@ -4,7 +4,7 @@ use super::{
 };
 
 /// A SAM record builder.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Builder {
     read_name: ReadName,
     flags: Flags,
@@ -298,6 +298,25 @@ impl Builder {
     }
 }
 
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            read_name: ReadName::default(),
+            flags: Flags::UNMAPPED,
+            reference_sequence_name: ReferenceSequenceName::default(),
+            position: Position::default(),
+            mapping_quality: MappingQuality::default(),
+            cigar: Cigar::default(),
+            mate_reference_sequence_name: MateReferenceSequenceName::default(),
+            mate_position: Position::default(),
+            template_len: Default::default(),
+            sequence: Sequence::default(),
+            quality_scores: QualityScores::default(),
+            data: Data::default(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::record::{cigar, data};
@@ -309,7 +328,7 @@ mod tests {
         let record = Builder::new().build();
 
         assert!(record.read_name().is_none());
-        assert!(record.flags().is_empty());
+        assert_eq!(record.flags(), Flags::UNMAPPED);
         assert!(record.reference_sequence_name().is_none());
         assert!(record.position().is_none());
         assert!(record.mapping_quality().is_none());
