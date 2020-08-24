@@ -118,13 +118,28 @@ impl Builder {
         self
     }
 
+    pub fn set_tags(mut self, tags: Vec<Tag>) -> Self {
+        self.tags = tags;
+        self
+    }
+
     pub fn add_tag(mut self, tag: Tag) -> Self {
         self.tags.push(tag);
         self
     }
 
+    pub fn set_bases(mut self, bases: Vec<u8>) -> Self {
+        self.bases = bases;
+        self
+    }
+
     pub fn add_base(mut self, base: u8) -> Self {
         self.bases.push(base);
+        self
+    }
+
+    pub fn set_features(mut self, features: Vec<Feature>) -> Self {
+        self.features = features;
         self
     }
 
@@ -135,6 +150,11 @@ impl Builder {
 
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = mapping_quality;
+        self
+    }
+
+    pub fn set_quality_scores(mut self, quality_scores: Vec<u8>) -> Self {
+        self.quality_scores = quality_scores;
         self
     }
 
