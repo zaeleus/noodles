@@ -1,7 +1,7 @@
 //! Creates a new CRAM file.
 //!
-//! This writes a file definition, a header container built from a SAM header, and one unmapped
-//! record to stdout.
+//! This writes a file definition, a header container built from a SAM header, one mapped record,
+//! and one unmapped record to stdout.
 //!
 //! Verify the output by piping to `samtools view -h --no-PG`.
 
@@ -63,6 +63,18 @@ fn main() -> io::Result<()> {
     let mut writer = cram::Writer::new(handle, reference_sequence_records);
     writer.write_file_definition()?;
     writer.write_file_header(&header)?;
+
+    let record = cram::Record::builder()
+        .set_bam_flags(sam::record::Flags::empty())
+        .set_flags(cram::record::Flags::QUALITY_SCORES_STORED_AS_ARRAY)
+        .set_reference_id(0.into())
+        .set_alignment_start(1)
+        .set_read_length(4)
+        .set_bases(b"TTCA".to_vec())
+        .set_quality_scores(vec![45, 35, 43, 50])
+        .build();
+
+    writer.write_record(record)?;
 
     let record = cram::Record::default();
     writer.write_record(record)?;
