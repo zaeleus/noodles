@@ -49,6 +49,11 @@ impl Container {
         let mut container_alignment_end = 1;
 
         let mut container_record_count = 0;
+        let container_record_counter = data_container
+            .slices()
+            .first()
+            .map(|s| s.header().record_counter())
+            .expect("no slices is in bulder");
 
         for slice in data_container.slices() {
             let slice_header = slice.header();
@@ -114,7 +119,7 @@ impl Container {
             .set_start_position(container_alignment_start)
             .set_alignment_span(container_alignment_span)
             .set_record_count(container_record_count)
-            // TODO: set record counter
+            .set_record_counter(container_record_counter)
             // TODO: set base count
             .set_block_count(blocks.len() as Itf8)
             .set_landmarks(landmarks)

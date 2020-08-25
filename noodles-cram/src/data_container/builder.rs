@@ -6,17 +6,19 @@ use crate::{
     container::{
         compression_header,
         slice::{self, Slice},
+        CompressionHeader,
     },
     Record,
 };
 
 use super::DataContainer;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Builder {
     compression_header_builder: compression_header::Builder,
     slice_builder: slice::Builder,
     slice_builders: Vec<slice::Builder>,
+    record_counter: i64,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -25,6 +27,15 @@ pub enum AddRecordError {
 }
 
 impl Builder {
+    pub fn new(record_counter: i64) -> Self {
+        Self {
+            compression_header_builder: CompressionHeader::builder(),
+            slice_builder: Slice::builder(),
+            slice_builders: Vec::new(),
+            record_counter,
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.slice_builder.is_empty() && self.slice_builders.is_empty()
     }
@@ -57,10 +68,11 @@ impl Builder {
 
         let compression_header = self.compression_header_builder.build();
 
+        let record_counter = self.record_counter;
         let slices = self
             .slice_builders
             .into_iter()
-            .map(|builder| builder.build(reference_sequences, &compression_header))
+            .map(|builder| builder.build(reference_sequences, &compression_header, record_counter))
             .collect::<Result<_, _>>()?;
 
         Ok(DataContainer {

@@ -15,8 +15,8 @@ pub struct DataContainer {
 }
 
 impl DataContainer {
-    pub fn builder() -> Builder {
-        Builder::default()
+    pub fn builder(record_counter: i64) -> Builder {
+        Builder::new(record_counter)
     }
 
     pub fn compression_header(&self) -> &CompressionHeader {

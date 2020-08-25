@@ -26,6 +26,8 @@ use self::block::write_block;
 // [major, minor]
 const FILE_DEFINITION_FORMAT: [u8; 2] = [3, 0];
 
+const RECORD_COUNTER_START: i64 = 0;
+
 /// A CRAM writer.
 #[derive(Debug)]
 pub struct Writer<W>
@@ -35,6 +37,7 @@ where
     inner: W,
     reference_sequences: Vec<fasta::Record>,
     data_container_builder: data_container::Builder,
+    record_counter: i64,
 }
 
 impl<W> Writer<W>
@@ -53,7 +56,8 @@ where
         Self {
             inner,
             reference_sequences,
-            data_container_builder: DataContainer::builder(),
+            data_container_builder: DataContainer::builder(RECORD_COUNTER_START),
+            record_counter: RECORD_COUNTER_START,
         }
     }
 
@@ -188,7 +192,10 @@ where
                 &self.reference_sequences,
                 record,
             ) {
-                Ok(_) => return Ok(()),
+                Ok(_) => {
+                    self.record_counter += 1;
+                    return Ok(());
+                }
                 Err(e) => match e {
                     data_container::builder::AddRecordError::ContainerFull(r) => {
                         record = r;
@@ -204,8 +211,10 @@ where
             return Ok(());
         }
 
-        let data_container_builder =
-            mem::replace(&mut self.data_container_builder, DataContainer::builder());
+        let data_container_builder = mem::replace(
+            &mut self.data_container_builder,
+            DataContainer::builder(self.record_counter),
+        );
 
         data_container_builder
             .build(&self.reference_sequences)

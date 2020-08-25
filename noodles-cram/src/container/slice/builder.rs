@@ -66,6 +66,7 @@ impl Builder {
         self,
         reference_sequences: &[fasta::Record],
         compression_header: &CompressionHeader,
+        record_counter: i64,
     ) -> io::Result<Slice> {
         let reference_sequence_id = match *self.reference_sequence_id.unwrap() {
             Some(id) => ReferenceSequenceId::Some(id),
@@ -166,8 +167,7 @@ impl Builder {
             .set_alignment_start(slice_alignment_start)
             .set_alignment_span(slice_alignment_span)
             .set_record_count(self.records.len() as i32)
-            // TODO: set record counter
-            // .set_record_counter()
+            .set_record_counter(record_counter)
             // external blocks + core data block
             .set_block_count((external_blocks.len() + 1) as i32)
             .set_block_content_ids(block_content_ids)
