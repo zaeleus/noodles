@@ -12,7 +12,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use super::MAGIC_NUMBER;
+use super::{Record, MAGIC_NUMBER};
 
 /// A BAM writer.
 ///
@@ -156,6 +156,24 @@ where
         }
 
         Ok(())
+    }
+
+    /// Writes a BAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// let mut writer = bam::Writer::new(Vec::new());
+    /// let record = bam::Record::default();
+    /// writer.write_record(&record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+        let block_size = record.len() as u32;
+        self.inner.write_u32::<LittleEndian>(block_size)?;
+        self.inner.write_all(record)
     }
 
     /// Writes a SAM record.
