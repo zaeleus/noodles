@@ -139,6 +139,8 @@ where
     ///
     /// Reference sequence dictionary entries must have MD5 checksums (`M5`) set.
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        use crate::container::block::ContentType;
+
         validate_reference_sequences(header.reference_sequences())?;
 
         let header_data = header.to_string().into_bytes();
@@ -148,14 +150,11 @@ where
         data.write_i32::<LittleEndian>(header_data_len)?;
         data.extend(header_data);
 
-        let block = Block::new(
-            crate::container::block::CompressionMethod::None,
-            crate::container::block::ContentType::FileHeader,
-            0,
-            data.len() as i32,
-            data,
-            0,
-        );
+        let block = Block::builder()
+            .set_content_type(ContentType::FileHeader)
+            .set_uncompressed_len(data.len() as Itf8)
+            .set_data(data)
+            .build();
 
         let blocks = vec![block];
         let landmarks = vec![0];

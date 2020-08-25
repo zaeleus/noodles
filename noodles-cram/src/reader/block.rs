@@ -34,12 +34,12 @@ where
 
     let crc32 = reader.read_u32::<LittleEndian>()?;
 
-    Ok(Block::new(
-        method,
-        block_content_type_id,
-        block_content_id,
-        raw_size_in_bytes,
-        data,
-        crc32,
-    ))
+    Ok(Block::builder()
+        .set_compression_method(method)
+        .set_content_type(block_content_type_id)
+        .set_content_id(block_content_id)
+        .set_uncompressed_len(raw_size_in_bytes)
+        .set_data(data)
+        .set_crc32(crc32)
+        .build())
 }

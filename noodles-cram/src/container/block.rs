@@ -1,7 +1,10 @@
+mod builder;
 mod compression_method;
 mod content_type;
 
-pub use self::{compression_method::CompressionMethod, content_type::ContentType};
+pub use self::{
+    builder::Builder, compression_method::CompressionMethod, content_type::ContentType,
+};
 
 use std::{borrow::Cow, io::Read, mem};
 
@@ -30,34 +33,18 @@ pub struct Block {
 
 #[allow(clippy::len_without_is_empty)]
 impl Block {
-    /// Creates a block used in the EOF container.
-    pub fn eof() -> Self {
-        Self::new(
-            CompressionMethod::None,
-            ContentType::CompressionHeader,
-            Default::default(),
-            EOF_DATA.len() as Itf8,
-            EOF_DATA.to_vec(),
-            EOF_CRC32,
-        )
+    pub fn builder() -> Builder {
+        Builder::default()
     }
 
-    pub fn new(
-        compression_method: CompressionMethod,
-        content_type: ContentType,
-        content_id: Itf8,
-        uncompressed_len: Itf8,
-        data: Vec<u8>,
-        crc32: u32,
-    ) -> Self {
-        Self {
-            compression_method,
-            content_type,
-            content_id,
-            uncompressed_len,
-            data,
-            crc32,
-        }
+    /// Creates a block used in the EOF container.
+    pub fn eof() -> Self {
+        Self::builder()
+            .set_content_type(ContentType::CompressionHeader)
+            .set_uncompressed_len(EOF_DATA.len() as Itf8)
+            .set_data(EOF_DATA.to_vec())
+            .set_crc32(EOF_CRC32)
+            .build()
     }
 
     pub fn compression_method(&self) -> CompressionMethod {

@@ -31,14 +31,11 @@ impl Container {
         let mut buf = Vec::new();
         write_compression_header(&mut buf, data_container.compression_header())?;
 
-        let block = Block::new(
-            block::CompressionMethod::None,
-            block::ContentType::CompressionHeader,
-            0, // FIXME
-            buf.len() as Itf8,
-            buf,
-            0,
-        );
+        let block = Block::builder()
+            .set_content_type(block::ContentType::CompressionHeader)
+            .set_uncompressed_len(buf.len() as Itf8)
+            .set_data(buf)
+            .build();
 
         let mut blocks = vec![block];
         let mut landmarks = Vec::new();
@@ -82,14 +79,11 @@ impl Container {
             let mut slice_header_buf = Vec::new();
             writer::slice::write_header(&mut slice_header_buf, slice.header())?;
 
-            let slice_header_block = Block::new(
-                block::CompressionMethod::None,
-                block::ContentType::SliceHeader,
-                0, // FIXME,
-                slice_header_buf.len() as Itf8,
-                slice_header_buf,
-                0,
-            );
+            let slice_header_block = Block::builder()
+                .set_content_type(block::ContentType::SliceHeader)
+                .set_uncompressed_len(slice_header_buf.len() as Itf8)
+                .set_data(slice_header_buf)
+                .build();
 
             slice_len += slice_header_block.len() as Itf8;
             blocks.push(slice_header_block);
