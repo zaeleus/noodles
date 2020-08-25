@@ -33,7 +33,7 @@ use super::MAGIC_NUMBER;
 /// writer.write_reference_sequences(header.reference_sequences())?;
 ///
 /// let record = sam::Record::default();
-/// writer.write_record(header.reference_sequences(), &record)?;
+/// writer.write_sam_record(header.reference_sequences(), &record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Writer<W>
@@ -171,10 +171,10 @@ where
     ///
     /// let reference_sequences = sam::header::ReferenceSequences::new();
     /// let record = sam::Record::default();
-    /// writer.write_record(&reference_sequences, &record)?;
+    /// writer.write_sam_record(&reference_sequences, &record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(
+    pub fn write_sam_record(
         &mut self,
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
@@ -266,12 +266,12 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record() -> io::Result<()> {
+    fn test_write_sam_record() -> io::Result<()> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
         let sam_record = sam::Record::default();
-        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().as_slice());
@@ -299,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record_with_sequence_length_less_than_quality_scores_length(
+    fn test_write_sam_record_with_sequence_length_less_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -310,14 +310,14 @@ mod tests {
             .build();
 
         assert!(writer
-            .write_record(header.reference_sequences(), &record)
+            .write_sam_record(header.reference_sequences(), &record)
             .is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_write_record_with_sequence_length_greater_than_quality_scores_length(
+    fn test_write_sam_record_with_sequence_length_greater_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -328,20 +328,20 @@ mod tests {
             .build();
 
         assert!(writer
-            .write_record(header.reference_sequences(), &record)
+            .write_sam_record(header.reference_sequences(), &record)
             .is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_write_record_with_sequence_and_no_quality_scores(
+    fn test_write_sam_record_with_sequence_and_no_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
-        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
 
         writer.try_finish()?;
 
@@ -362,8 +362,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record_with_sequence_and_quality_scores() -> Result<(), Box<dyn std::error::Error>>
-    {
+    fn test_write_sam_record_with_sequence_and_quality_scores(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -372,7 +372,7 @@ mod tests {
             .set_quality_scores("NDLS".parse()?)
             .build();
 
-        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().as_slice());
@@ -392,7 +392,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_record_with_data() -> io::Result<()> {
+    fn test_write_sam_record_with_data() -> io::Result<()> {
         use noodles_sam::record::data::{
             field::{Tag as SamTag, Value as SamValue},
             Field as SamField,
@@ -410,7 +410,7 @@ mod tests {
             ]))
             .build();
 
-        writer.write_record(header.reference_sequences(), &sam_record)?;
+        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().as_slice());

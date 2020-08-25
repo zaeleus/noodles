@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
 
     for _ in 0..3 {
         let record = sam::Record::default();
-        writer.write_record(header.reference_sequences(), &record)?;
+        writer.write_sam_record(header.reference_sequences(), &record)?;
     }
 
     Ok(())
