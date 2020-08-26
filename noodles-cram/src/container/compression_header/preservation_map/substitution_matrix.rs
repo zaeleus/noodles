@@ -149,6 +149,12 @@ fn set_substitutions(
 
 impl From<SubstitutionMatrix> for [u8; 5] {
     fn from(substitution_matrix: SubstitutionMatrix) -> Self {
+        <[u8; 5]>::from(&substitution_matrix)
+    }
+}
+
+impl From<&SubstitutionMatrix> for [u8; 5] {
+    fn from(substitution_matrix: &SubstitutionMatrix) -> Self {
         let mut encoded_substitution_matrix = [0; 5];
 
         for (read_bases, codes) in substitution_matrix
@@ -204,6 +210,7 @@ mod tests {
             ],
         };
 
+        assert_eq!(<[u8; 5]>::from(&matrix), [0x93, 0x1b, 0x6c, 0xb1, 0xc6]);
         assert_eq!(<[u8; 5]>::from(matrix), [0x93, 0x1b, 0x6c, 0xb1, 0xc6]);
     }
 

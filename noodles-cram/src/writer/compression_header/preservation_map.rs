@@ -75,8 +75,7 @@ fn write_substituion_matrix<W>(
 where
     W: Write,
 {
-    // FIXME: unnecessary clone
-    let buf = <[u8; 5]>::from(substitution_matrix.clone());
+    let buf = <[u8; 5]>::from(substitution_matrix);
     writer.write_all(&buf)
 }
 
