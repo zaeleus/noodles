@@ -164,4 +164,14 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_size_of() {
+        assert_eq!(size_of(0), 1);
+        assert_eq!(size_of(1877), 2);
+        assert_eq!(size_of(480665), 3);
+        assert_eq!(size_of(123050342), 4);
+        assert_eq!(size_of(1968805474), 5);
+        assert_eq!(size_of(-1), 5);
+    }
 }
