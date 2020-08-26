@@ -11,7 +11,7 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        for tag in &record.tags {
+        for tag in record.tags() {
             self.keys.insert(tag.key());
         }
     }

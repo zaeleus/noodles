@@ -57,7 +57,7 @@ where
         let preservation_map = self.compression_header.preservation_map();
 
         if preservation_map.read_names_included() {
-            self.write_read_name(&record.read_name)?;
+            self.write_read_name(record.read_name())?;
         }
 
         self.write_mate_data(record)?;
@@ -114,7 +114,7 @@ where
             self.write_reference_id(reference_id)?;
         }
 
-        self.write_read_length(record.read_length)?;
+        self.write_read_length(record.read_length())?;
 
         let ap_data_series_delta = self
             .compression_header
@@ -122,9 +122,9 @@ where
             .ap_data_series_delta();
 
         let alignment_start = if ap_data_series_delta {
-            record.alignment_start - self.prev_alignment_start
+            record.alignment_start() - self.prev_alignment_start
         } else {
-            record.alignment_start
+            record.alignment_start()
         };
 
         self.write_alignment_start(alignment_start)?;
@@ -219,17 +219,17 @@ where
             let preservation_map = self.compression_header.preservation_map();
 
             if !preservation_map.read_names_included() {
-                self.write_read_name(&record.read_name)?;
+                self.write_read_name(record.read_name())?;
             }
 
             let next_fragment_reference_sequence_id =
-                i32::from(record.next_fragment_reference_sequence_id);
+                i32::from(record.next_fragment_reference_sequence_id());
             self.write_next_fragment_reference_sequence_id(next_fragment_reference_sequence_id)?;
 
-            self.write_next_mate_alignment_start(record.next_mate_alignment_start)?;
-            self.write_template_size(record.template_size)?;
+            self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;
+            self.write_template_size(record.template_size())?;
         } else {
-            self.write_distance_to_next_fragment(record.distance_to_next_fragment)?;
+            self.write_distance_to_next_fragment(record.distance_to_next_fragment())?;
         }
 
         Ok(())
@@ -325,7 +325,7 @@ where
         let preservation_map = self.compression_header.preservation_map();
         let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
 
-        let keys: Vec<_> = record.tags.iter().map(|tag| tag.key()).collect();
+        let keys: Vec<_> = record.tags().iter().map(|tag| tag.key()).collect();
         let tag_line = tag_ids_dictionary
             .iter()
             .enumerate()
@@ -342,7 +342,7 @@ where
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
 
-        for tag in &record.tags {
+        for tag in record.tags() {
             let id = tag.key().id();
             let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
 
@@ -382,13 +382,13 @@ where
             self.write_feature(feature)?;
         }
 
-        let mapping_quality = i32::from(u8::from(record.mapping_quality));
+        let mapping_quality = i32::from(u8::from(record.mapping_quality()));
         self.write_mapping_quality(mapping_quality)?;
 
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            for &score in &record.quality_scores {
+            for &score in record.quality_scores() {
                 self.write_quality_score(score)?;
             }
         }
@@ -684,14 +684,14 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &base in &record.bases {
+        for &base in record.bases() {
             self.write_base(base)?;
         }
 
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            for &score in &record.quality_scores {
+            for &score in record.quality_scores() {
                 self.write_quality_score(score)?;
             }
         }

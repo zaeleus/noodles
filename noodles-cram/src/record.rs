@@ -43,6 +43,10 @@ impl Record {
         Builder::default()
     }
 
+    pub fn id(&self) -> i64 {
+        self.id
+    }
+
     pub fn bam_flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
@@ -95,12 +99,40 @@ impl Record {
         self.read_group
     }
 
+    pub fn read_name(&self) -> &[u8] {
+        &self.read_name
+    }
+
     pub fn next_mate_flags(&self) -> NextMateFlags {
         self.next_mate_bit_flags
     }
 
+    pub fn next_fragment_reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
+        self.next_fragment_reference_sequence_id
+    }
+
+    pub fn next_mate_alignment_start(&self) -> i32 {
+        self.next_mate_alignment_start
+    }
+
+    pub fn template_size(&self) -> i32 {
+        self.template_size
+    }
+
+    pub fn distance_to_next_fragment(&self) -> i32 {
+        self.distance_to_next_fragment
+    }
+
+    pub fn tags(&self) -> &[Tag] {
+        &self.tags
+    }
+
     pub fn add_tag(&mut self, tag: Tag) {
         self.tags.push(tag);
+    }
+
+    pub fn bases(&self) -> &[u8] {
+        &self.bases
     }
 
     pub fn features(&self) -> &[Feature] {
@@ -109,6 +141,14 @@ impl Record {
 
     pub fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
+    }
+
+    pub fn mapping_quality(&self) -> sam::record::MappingQuality {
+        self.mapping_quality
+    }
+
+    pub fn quality_scores(&self) -> &[u8] {
+        &self.quality_scores
     }
 }
 
@@ -120,7 +160,7 @@ impl Default for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let read_name = str::from_utf8(&self.read_name);
+        let read_name = str::from_utf8(self.read_name());
 
         fmt.debug_struct("Record")
             .field("id", &self.id)

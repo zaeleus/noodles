@@ -87,7 +87,7 @@ impl Slice {
             let flags = record.flags();
 
             if flags.has_mate_downstream() {
-                let distance_to_next_fragment = record.distance_to_next_fragment as usize;
+                let distance_to_next_fragment = record.distance_to_next_fragment() as usize;
                 let mate_index = i + distance_to_next_fragment + 1;
                 mate_indices[i] = Some(mate_index);
             }
@@ -139,12 +139,12 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
         record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
     }
 
-    if mate.read_name.is_empty() {
+    if mate.read_name().is_empty() {
         mate.read_name.extend(record.read_name.iter());
     }
 
     record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
-    record.next_mate_alignment_start = mate.alignment_start;
+    record.next_mate_alignment_start = mate.alignment_start();
 }
 
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {

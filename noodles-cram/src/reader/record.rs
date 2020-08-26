@@ -390,7 +390,7 @@ where
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            let read_len = record.read_length;
+            let read_len = record.read_length();
             let mut scores = Vec::with_capacity(read_len as usize);
 
             for _ in 0..read_len {
@@ -685,7 +685,7 @@ where
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
         record.bases.clear();
 
-        for _ in 0..record.read_length {
+        for _ in 0..record.read_length() {
             let base = self.read_base()?;
             record.bases.push(base);
         }
@@ -693,7 +693,7 @@ where
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            let read_len = record.read_length;
+            let read_len = record.read_length();
             let mut scores = Vec::with_capacity(read_len as usize);
 
             for _ in 0..read_len {

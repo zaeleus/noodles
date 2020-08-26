@@ -11,7 +11,7 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        let keys: Vec<_> = record.tags.iter().map(|tag| tag.key()).collect();
+        let keys: Vec<_> = record.tags().iter().map(|tag| tag.key()).collect();
         let next_index = self.keys_indices.len();
         self.keys_indices.entry(keys).or_insert(next_index);
     }
