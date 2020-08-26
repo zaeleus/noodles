@@ -36,13 +36,15 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
-pub use self::{block::Block, reader::Reader, virtual_position::VirtualPosition, writer::Writer};
-
 mod block;
 mod gz;
 mod reader;
 pub mod virtual_position;
 mod writer;
+
+pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
+
+use self::block::Block;
 
 // XLEN (2)
 const GZIP_XLEN_SIZE: usize = 2;
