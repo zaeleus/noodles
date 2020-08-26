@@ -21,7 +21,7 @@ pub struct Record {
     pub id: i64,
     pub bam_bit_flags: sam::record::Flags,
     pub cram_bit_flags: Flags,
-    pub reference_id: bam::record::ReferenceSequenceId,
+    pub reference_sequence_id: bam::record::ReferenceSequenceId,
     pub read_length: i32,
     pub alignment_start: i32,
     pub read_group: ReadGroupId,
@@ -52,7 +52,7 @@ impl Record {
     }
 
     pub fn reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
-        self.reference_id
+        self.reference_sequence_id
     }
 
     pub fn read_length(&self) -> i32 {
@@ -126,7 +126,7 @@ impl fmt::Debug for Record {
             .field("id", &self.id)
             .field("bam_bit_flags", &self.bam_flags())
             .field("cram_bit_flags", &self.flags())
-            .field("reference_id", &self.reference_id)
+            .field("reference_id", &self.reference_sequence_id)
             .field("read_length", &self.read_length)
             .field("alignment_start", &self.alignment_start)
             .field("read_group", &self.read_group)

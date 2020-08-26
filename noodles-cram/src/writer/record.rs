@@ -110,7 +110,7 @@ where
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_id.is_many() {
-            let reference_id = i32::from(record.reference_id);
+            let reference_id = i32::from(record.reference_sequence_id());
             self.write_reference_id(reference_id)?;
         }
 

@@ -143,7 +143,7 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
         mate.read_name.extend(record.read_name.iter());
     }
 
-    record.next_fragment_reference_sequence_id = mate.reference_id;
+    record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
     record.next_mate_alignment_start = mate.alignment_start;
 }
 

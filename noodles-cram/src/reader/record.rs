@@ -125,7 +125,7 @@ where
             i32::from(self.reference_sequence_id)
         };
 
-        record.reference_id = bam::record::ReferenceSequenceId::from(reference_id);
+        record.reference_sequence_id = bam::record::ReferenceSequenceId::from(reference_id);
 
         record.read_length = self.read_read_length()?;
 

@@ -7,7 +7,7 @@ pub struct Builder {
     id: i64,
     bam_flags: sam::record::Flags,
     flags: Flags,
-    reference_id: bam::record::ReferenceSequenceId,
+    reference_sequence_id: bam::record::ReferenceSequenceId,
     read_length: i32,
     alignment_start: i32,
     read_group_id: ReadGroupId,
@@ -30,7 +30,7 @@ impl Default for Builder {
             id: 0,
             bam_flags: sam::record::Flags::UNMAPPED,
             flags: Flags::default(),
-            reference_id: bam::record::ReferenceSequenceId::default(),
+            reference_sequence_id: bam::record::ReferenceSequenceId::default(),
             read_length: 0,
             alignment_start: 0,
             read_group_id: ReadGroupId::default(),
@@ -65,8 +65,11 @@ impl Builder {
         self
     }
 
-    pub fn set_reference_id(mut self, reference_id: bam::record::ReferenceSequenceId) -> Self {
-        self.reference_id = reference_id;
+    pub fn set_reference_sequence_id(
+        mut self,
+        reference_sequence_id: bam::record::ReferenceSequenceId,
+    ) -> Self {
+        self.reference_sequence_id = reference_sequence_id;
         self
     }
 
@@ -168,7 +171,7 @@ impl Builder {
             id: self.id,
             bam_bit_flags: self.bam_flags,
             cram_bit_flags: self.flags,
-            reference_id: self.reference_id,
+            reference_sequence_id: self.reference_sequence_id,
             read_length: self.read_length,
             alignment_start: self.alignment_start,
             read_group: self.read_group_id,

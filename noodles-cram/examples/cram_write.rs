@@ -67,7 +67,7 @@ fn main() -> io::Result<()> {
     let record = cram::Record::builder()
         .set_bam_flags(sam::record::Flags::empty())
         .set_flags(cram::record::Flags::QUALITY_SCORES_STORED_AS_ARRAY)
-        .set_reference_id(0.into())
+        .set_reference_sequence_id(0.into())
         .set_alignment_start(1)
         .set_read_length(4)
         .set_bases(b"TTCA".to_vec())
