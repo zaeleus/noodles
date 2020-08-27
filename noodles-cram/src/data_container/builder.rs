@@ -19,6 +19,7 @@ pub struct Builder {
     slice_builder: slice::Builder,
     slice_builders: Vec<slice::Builder>,
     record_counter: i64,
+    base_count: i64,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -33,11 +34,16 @@ impl Builder {
             slice_builder: Slice::builder(),
             slice_builders: Vec::new(),
             record_counter,
+            base_count: 0,
         }
     }
 
     pub fn is_empty(&self) -> bool {
         self.slice_builder.is_empty() && self.slice_builders.is_empty()
+    }
+
+    pub fn base_count(&self) -> i64 {
+        self.base_count
     }
 
     pub fn add_record(
@@ -49,6 +55,9 @@ impl Builder {
             Ok(r) => {
                 self.compression_header_builder
                     .update(reference_sequence, r);
+
+                self.base_count += i64::from(r.read_length());
+
                 Ok(())
             }
             Err(e) => match e {

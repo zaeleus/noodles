@@ -27,7 +27,10 @@ impl Container {
         Self::new(Header::eof(), vec![Block::eof()])
     }
 
-    pub fn try_from_data_container(data_container: &DataContainer) -> io::Result<Self> {
+    pub fn try_from_data_container(
+        data_container: &DataContainer,
+        base_count: i64,
+    ) -> io::Result<Self> {
         let mut buf = Vec::new();
         write_compression_header(&mut buf, data_container.compression_header())?;
 
@@ -114,7 +117,7 @@ impl Container {
             .set_alignment_span(container_alignment_span)
             .set_record_count(container_record_count)
             .set_record_counter(container_record_counter)
-            // TODO: set base count
+            .set_base_count(base_count)
             .set_block_count(blocks.len() as Itf8)
             .set_landmarks(landmarks)
             .build();

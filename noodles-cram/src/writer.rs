@@ -215,9 +215,13 @@ where
             DataContainer::builder(self.record_counter),
         );
 
+        let base_count = data_container_builder.base_count();
+
         data_container_builder
             .build(&self.reference_sequences)
-            .and_then(|data_container| Container::try_from_data_container(&data_container))
+            .and_then(|data_container| {
+                Container::try_from_data_container(&data_container, base_count)
+            })
             .and_then(|container| self.write_container(&container))
     }
 }
