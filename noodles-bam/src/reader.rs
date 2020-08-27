@@ -81,8 +81,11 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a `String`. It can subsequently be parsed as a
-    /// `sam::Header`.
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`sam::Header`].
+    ///
+    /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
+    /// [`sam::Header`]: ../../noodles_sam/header/struct.Header.html
     ///
     /// # Examples
     ///
@@ -114,8 +117,11 @@ where
     ///
     /// The position of the stream is expected to be directly after the header.
     ///
-    /// This returns a list of `sam::header::ReferenceSequence` objects, which can be used to build
-    /// a minimal `sam::Header` if the SAM header is empty.
+    /// This returns a list of [`sam::header::ReferenceSequence`] objects, which can be used to
+    /// build a minimal [`sam::Header`] if the SAM header is empty.
+    ///
+    /// [`sam::header::ReferenceSequence`]: ../../noodles_sam/header/reference_sequence/struct.ReferenceSequence.html
+    /// [`sam::Header`]: ../../noodles_sam/header/struct.Header.html
     ///
     /// # Examples
     ///
@@ -147,11 +153,15 @@ where
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
     ///
-    /// It is more ergonomic to read records using an iterator (see `records` and `query`), but
-    /// using this method directly allows the reuse of a single `bam::Record` buffer.
+    /// It is more ergonomic to read records using an iterator (see [`records`] and [`query`]), but
+    /// using this method directly allows the reuse of a single [`bam::Record`] buffer.
     ///
     /// If successful, the record block size is returned. If a block size of 0 is returned, the
     /// stream reached EOF.
+    ///
+    /// [`records`]: #method.records
+    /// [`query`]: #method.query
+    /// [`bam::Record`]: ../record/struct.Record.html
     ///
     /// # Examples
     ///
