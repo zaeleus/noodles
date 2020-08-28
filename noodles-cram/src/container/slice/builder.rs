@@ -17,6 +17,7 @@ use super::{Header, Slice};
 use noodles_bam as bam;
 
 const CORE_DATA_BLOCK_CONTENT_ID: i32 = 0;
+const MAX_RECORD_COUNT: usize = 2560;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -27,6 +28,7 @@ pub struct Builder {
 #[derive(Clone, Debug, PartialEq)]
 pub enum AddRecordError {
     ReferenceSequenceIdMismatch(Record),
+    SliceFull(Record),
 }
 
 impl Builder {
@@ -35,6 +37,10 @@ impl Builder {
     }
 
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
+        if self.records.len() >= MAX_RECORD_COUNT {
+            return Err(AddRecordError::SliceFull(record));
+        }
+
         let record_reference_sequence_id = record.reference_sequence_id();
 
         if self.reference_sequence_id.is_none() {

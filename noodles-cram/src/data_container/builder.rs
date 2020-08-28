@@ -61,7 +61,8 @@ impl Builder {
                 Ok(())
             }
             Err(e) => match e {
-                slice::builder::AddRecordError::ReferenceSequenceIdMismatch(r) => {
+                slice::builder::AddRecordError::ReferenceSequenceIdMismatch(r)
+                | slice::builder::AddRecordError::SliceFull(r) => {
                     let slice_builder = mem::replace(&mut self.slice_builder, Slice::builder());
                     self.slice_builders.push(slice_builder);
                     Err(AddRecordError::ContainerFull(r))
