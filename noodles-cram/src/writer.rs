@@ -6,20 +6,15 @@ pub mod record;
 pub mod slice;
 
 use std::{
+    convert::TryFrom,
     io::{self, Write},
     mem,
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use super::{
-    container::{Block, Container},
-    data_container,
-    num::Itf8,
-    DataContainer, Record, MAGIC_NUMBER,
-};
+use super::{container::Container, data_container, DataContainer, Record, MAGIC_NUMBER};
 
 use self::block::write_block;
 
@@ -139,39 +134,9 @@ where
     ///
     /// Reference sequence dictionary entries must have MD5 checksums (`M5`) set.
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use crate::container::block::ContentType;
-
-        validate_reference_sequences(header.reference_sequences())?;
-
-        let header_data = header.to_string().into_bytes();
-        let header_data_len = header_data.len() as i32;
-
-        let mut data = Vec::new();
-        data.write_i32::<LittleEndian>(header_data_len)?;
-        data.extend(header_data);
-
-        let block = Block::builder()
-            .set_content_type(ContentType::FileHeader)
-            .set_uncompressed_len(data.len() as Itf8)
-            .set_data(data)
-            .build();
-
-        let blocks = vec![block];
-        let landmarks = vec![0];
-
-        let len = blocks.iter().map(|b| b.len() as i32).sum();
-
-        let container_header = crate::container::Header::builder()
-            .set_length(len)
-            .set_reference_sequence_id(crate::container::ReferenceSequenceId::None)
-            .set_block_count(blocks.len() as Itf8)
-            .set_landmarks(landmarks)
-            .build();
-
-        let container = Container::new(container_header, blocks);
-        self.write_container(&container)?;
-
-        Ok(())
+        Container::try_from(header)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|container| self.write_container(&container))
     }
 
     pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
@@ -233,21 +198,6 @@ where
     fn drop(&mut self) {
         let _ = self.try_finish();
     }
-}
-
-fn validate_reference_sequences(
-    reference_sequences: &sam::header::ReferenceSequences,
-) -> io::Result<()> {
-    for reference_sequence in reference_sequences.values() {
-        if reference_sequence.md5_checksum().is_none() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "missing MD5 checksum in reference sequence",
-            ));
-        }
-    }
-
-    Ok(())
 }
 
 fn add_record(

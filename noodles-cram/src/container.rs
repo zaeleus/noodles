@@ -9,7 +9,9 @@ pub use self::{
     reference_sequence_id::ReferenceSequenceId, slice::Slice,
 };
 
-use std::{cmp, io};
+use std::{cmp, convert::TryFrom, error, fmt, io};
+
+use noodles_sam as sam;
 
 use super::{
     num::Itf8, writer, writer::compression_header::write_compression_header, DataContainer,
@@ -140,4 +142,69 @@ impl Container {
     pub fn is_eof(&self) -> bool {
         self.header.is_eof()
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromSamHeader {
+    ReferenceSequenceMissingMd5Checksum,
+}
+
+impl error::Error for TryFromSamHeader {}
+
+impl fmt::Display for TryFromSamHeader {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ReferenceSequenceMissingMd5Checksum => {
+                f.write_str("reference sequence is missing MD5 checksum")
+            }
+        }
+    }
+}
+
+impl TryFrom<&sam::Header> for Container {
+    type Error = TryFromSamHeader;
+
+    fn try_from(header: &sam::Header) -> Result<Self, Self::Error> {
+        use crate::container::block::ContentType;
+
+        validate_reference_sequences(header.reference_sequences())?;
+
+        let header_data = header.to_string().into_bytes();
+        let header_data_len = header_data.len() as i32;
+
+        let mut data = header_data_len.to_le_bytes().to_vec();
+        data.extend(header_data);
+
+        let block = Block::builder()
+            .set_content_type(ContentType::FileHeader)
+            .set_uncompressed_len(data.len() as Itf8)
+            .set_data(data)
+            .build();
+
+        let blocks = vec![block];
+        let landmarks = vec![0];
+
+        let len = blocks.iter().map(|b| b.len() as i32).sum();
+
+        let container_header = Header::builder()
+            .set_length(len)
+            .set_reference_sequence_id(ReferenceSequenceId::None)
+            .set_block_count(blocks.len() as Itf8)
+            .set_landmarks(landmarks)
+            .build();
+
+        Ok(Self::new(container_header, blocks))
+    }
+}
+
+fn validate_reference_sequences(
+    reference_sequences: &sam::header::ReferenceSequences,
+) -> Result<(), TryFromSamHeader> {
+    for reference_sequence in reference_sequences.values() {
+        if reference_sequence.md5_checksum().is_none() {
+            return Err(TryFromSamHeader::ReferenceSequenceMissingMd5Checksum);
+        }
+    }
+
+    Ok(())
 }
