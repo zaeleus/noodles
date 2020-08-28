@@ -8,7 +8,7 @@ use super::Reader;
 
 enum State {
     Seek,
-    Read,
+    Read(VirtualPosition),
     End,
 }
 
@@ -27,7 +27,6 @@ where
     start: u64,
     end: u64,
     i: usize,
-    current_chunk: Chunk,
     state: State,
     record: Record,
 }
@@ -43,8 +42,6 @@ where
         start: u64,
         end: u64,
     ) -> Self {
-        let current_chunk = Chunk::new(VirtualPosition::from(0), VirtualPosition::from(1));
-
         Self {
             reader,
             chunks,
@@ -52,25 +49,22 @@ where
             start,
             end,
             i: 0,
-            current_chunk,
             state: State::Seek,
             record: Record::default(),
         }
     }
 
-    fn next_chunk(&mut self) -> io::Result<bool> {
+    fn next_chunk(&mut self) -> io::Result<Option<VirtualPosition>> {
         if self.i >= self.chunks.len() {
-            return Ok(false);
+            return Ok(None);
         }
 
-        self.current_chunk = self.chunks[self.i];
-
-        let pos = self.current_chunk.start();
-        self.reader.seek(pos)?;
+        let chunk = self.chunks[self.i];
+        self.reader.seek(chunk.start())?;
 
         self.i += 1;
 
-        Ok(true)
+        Ok(Some(chunk.end()))
     }
 
     fn read_record(&mut self) -> Option<io::Result<Record>> {
@@ -93,19 +87,14 @@ where
             match self.state {
                 State::Seek => {
                     self.state = match self.next_chunk() {
-                        Ok(has_next_chunk) => {
-                            if has_next_chunk {
-                                State::Read
-                            } else {
-                                State::End
-                            }
-                        }
+                        Ok(Some(chunk_end)) => State::Read(chunk_end),
+                        Ok(None) => State::End,
                         Err(e) => return Some(Err(e)),
                     }
                 }
-                State::Read => match self.read_record() {
+                State::Read(chunk_end) => match self.read_record() {
                     Some(result) => {
-                        if self.reader.virtual_position() >= self.current_chunk.end() {
+                        if self.reader.virtual_position() >= chunk_end {
                             self.state = State::Seek;
                         }
 
