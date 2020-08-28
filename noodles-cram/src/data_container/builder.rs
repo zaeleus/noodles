@@ -13,6 +13,8 @@ use crate::{
 
 use super::DataContainer;
 
+const MAX_SLICE_COUNT: usize = 4;
+
 #[derive(Debug)]
 pub struct Builder {
     compression_header_builder: compression_header::Builder,
@@ -25,6 +27,8 @@ pub struct Builder {
 #[derive(Clone, Debug, PartialEq)]
 pub enum AddRecordError {
     ContainerFull(Record),
+    SliceFull(Record),
+    ReferenceSequenceIdMismatch(Record),
 }
 
 impl Builder {
@@ -51,6 +55,10 @@ impl Builder {
         reference_sequence: &[u8],
         record: Record,
     ) -> Result<(), AddRecordError> {
+        if self.slice_builders.len() >= MAX_SLICE_COUNT {
+            return Err(AddRecordError::ContainerFull(record));
+        }
+
         match self.slice_builder.add_record(record) {
             Ok(r) => {
                 self.compression_header_builder
@@ -61,10 +69,12 @@ impl Builder {
                 Ok(())
             }
             Err(e) => match e {
-                slice::builder::AddRecordError::ReferenceSequenceIdMismatch(r)
-                | slice::builder::AddRecordError::SliceFull(r) => {
+                slice::builder::AddRecordError::SliceFull(r) => {
                     let slice_builder = mem::replace(&mut self.slice_builder, Slice::builder());
                     self.slice_builders.push(slice_builder);
+                    Err(AddRecordError::SliceFull(r))
+                }
+                slice::builder::AddRecordError::ReferenceSequenceIdMismatch(r) => {
                     Err(AddRecordError::ContainerFull(r))
                 }
             },

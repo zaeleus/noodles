@@ -161,9 +161,13 @@ where
                     return Ok(());
                 }
                 Err(e) => match e {
-                    data_container::builder::AddRecordError::ContainerFull(r) => {
+                    data_container::builder::AddRecordError::ContainerFull(r)
+                    | data_container::builder::AddRecordError::ReferenceSequenceIdMismatch(r) => {
                         record = r;
                         self.flush()?;
+                    }
+                    data_container::builder::AddRecordError::SliceFull(r) => {
+                        record = r;
                     }
                 },
             }
