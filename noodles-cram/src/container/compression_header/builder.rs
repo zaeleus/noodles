@@ -57,12 +57,27 @@ impl Builder {
 
         for (i, &data_series) in DATA_SERIES.iter().enumerate() {
             let block_content_id = (i + 1) as i32;
-            // TODO: Select encoding depending on the type of data.
             let encoding = Encoding::External(block_content_id);
             data_series_encoding_map.insert(data_series, encoding);
         }
 
         data_series_encoding_map.insert(DataSeries::ReadNames, Encoding::ByteArrayStop(0x00, 7));
+
+        data_series_encoding_map.insert(
+            DataSeries::StretchesOfBases,
+            Encoding::ByteArrayStop(0x00, 18),
+        );
+
+        data_series_encoding_map.insert(
+            DataSeries::StretchesOfQualityScores,
+            Encoding::ByteArrayLen(
+                Box::new(Encoding::External(19)),
+                Box::new(Encoding::External(19)),
+            ),
+        );
+
+        data_series_encoding_map.insert(DataSeries::Insertion, Encoding::ByteArrayStop(0x00, 21));
+        data_series_encoding_map.insert(DataSeries::SoftClip, Encoding::ByteArrayStop(0x00, 25));
 
         let tag_encoding_map = self.tag_encoding_map_builder.build();
 
