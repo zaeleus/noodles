@@ -7,7 +7,6 @@ use crate::{
     num::{write_itf8, Itf8},
 };
 
-#[allow(dead_code)]
 pub fn write_encoding<W>(writer: &mut W, encoding: &Encoding) -> io::Result<()>
 where
     W: Write,

@@ -11,7 +11,6 @@ use self::{
 
 use crate::container::CompressionHeader;
 
-#[allow(dead_code)]
 pub fn write_compression_header<W>(
     writer: &mut W,
     compression_header: &CompressionHeader,
