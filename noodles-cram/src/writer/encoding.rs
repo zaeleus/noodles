@@ -17,7 +17,9 @@ where
         Encoding::External(block_content_id) => write_external_encoding(writer, *block_content_id),
         Encoding::Golomb(..) => unimplemented!("GOLOMB"),
         Encoding::Huffman(..) => todo!("HUFFMAN"),
-        Encoding::ByteArrayLen(..) => todo!("BYTE_ARRAY_LEN"),
+        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
+            write_byte_array_len_encoding(writer, len_encoding, value_encoding)
+        }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             write_byte_array_stop_encoding(writer, *stop_byte, *block_content_id)
         }
@@ -54,6 +56,26 @@ where
 
     // TODO: convert from encoding
     write_itf8(writer, 1)?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+fn write_byte_array_len_encoding<W>(
+    writer: &mut W,
+    len_encoding: &Encoding,
+    value_encoding: &Encoding,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+
+    write_encoding(&mut args, len_encoding)?;
+    write_encoding(&mut args, value_encoding)?;
+
+    // TODO: convert from encoding
+    write_itf8(writer, 4)?;
     write_args(writer, &args)?;
 
     Ok(())
