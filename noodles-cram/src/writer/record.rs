@@ -739,7 +739,7 @@ where
 
 fn encode_byte_array<W, X>(
     encoding: &Encoding,
-    _core_data_writer: &mut BitWriter<W>,
+    core_data_writer: &mut BitWriter<W>,
     external_data_writers: &mut HashMap<Itf8, X>,
     data: &[u8],
 ) -> io::Result<()>
@@ -748,6 +748,24 @@ where
     X: Write,
 {
     match encoding {
+        Encoding::External(block_content_id) => {
+            let writer = external_data_writers
+                .get_mut(&block_content_id)
+                .expect("could not find block");
+
+            writer.write_all(data)
+        }
+        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
+            let len = data.len() as Itf8;
+            encode_itf8(&len_encoding, core_data_writer, external_data_writers, len)?;
+
+            encode_byte_array(
+                &value_encoding,
+                core_data_writer,
+                external_data_writers,
+                data,
+            )
+        }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             let writer = external_data_writers
                 .get_mut(&block_content_id)

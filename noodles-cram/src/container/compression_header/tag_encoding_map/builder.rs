@@ -21,8 +21,11 @@ impl Builder {
 
         for key in self.keys {
             let id = key.id();
-            // TODO: Select encoding depending on the type of data.
-            let encoding = Encoding::External(id);
+
+            let len_encoding = Encoding::External(id);
+            let value_encoding = Encoding::External(id);
+            let encoding = Encoding::ByteArrayLen(Box::new(len_encoding), Box::new(value_encoding));
+
             map.insert(id, encoding);
         }
 
@@ -60,8 +63,20 @@ mod tests {
         let actual = builder.build();
 
         let expected = vec![
-            (nh.id(), Encoding::External(nh.id())),
-            (co.id(), Encoding::External(co.id())),
+            (
+                nh.id(),
+                Encoding::ByteArrayLen(
+                    Box::new(Encoding::External(nh.id())),
+                    Box::new(Encoding::External(nh.id())),
+                ),
+            ),
+            (
+                co.id(),
+                Encoding::ByteArrayLen(
+                    Box::new(Encoding::External(co.id())),
+                    Box::new(Encoding::External(co.id())),
+                ),
+            ),
         ]
         .into_iter()
         .collect();
