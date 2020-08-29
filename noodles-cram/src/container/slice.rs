@@ -112,7 +112,7 @@ impl Slice {
             while let Some(mate_index) = mate_indices[j] {
                 let mut mate = records[mate_index].borrow_mut();
                 set_mate(&mut record, &mut mate);
-                record = records[mate_index].borrow_mut();
+                record = mate;
                 j = mate_index;
             }
 
