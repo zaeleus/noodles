@@ -20,12 +20,11 @@ pub fn resolve_bases(
 
     let mut ref_pos = (alignment_start - 1) as usize;
     let mut read_pos = 0;
-    let mut feature_pos = 0;
 
     let reference_sequence = reference_sequence_record.sequence();
 
     for feature in features {
-        feature_pos += feature.position() as usize;
+        let feature_pos = feature.position() as usize;
 
         while read_pos < feature_pos - 1 {
             buf[read_pos] = reference_sequence[ref_pos];

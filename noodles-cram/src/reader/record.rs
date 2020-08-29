@@ -378,8 +378,11 @@ where
 
         record.features.clear();
 
+        let mut prev_position = 0;
+
         for _ in 0..read_features_len {
-            let feature = self.read_feature()?;
+            let feature = self.read_feature(prev_position)?;
+            prev_position = feature.position();
             record.add_feature(feature);
         }
 
@@ -418,7 +421,7 @@ where
         )
     }
 
-    fn read_feature(&mut self) -> io::Result<Feature> {
+    fn read_feature(&mut self, prev_position: i32) -> io::Result<Feature> {
         let code = self
             .read_feature_code()
             .map(|id| id as u8 as char)
@@ -427,7 +430,7 @@ where
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-        let position = self.read_feature_position()?;
+        let position = prev_position + self.read_feature_position()?;
 
         match code {
             feature::Code::Bases => {

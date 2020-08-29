@@ -378,8 +378,12 @@ where
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
         self.write_number_of_read_features(record.features().len())?;
 
+        let mut prev_position = 0;
+
         for feature in record.features() {
-            self.write_feature(feature)?;
+            let position = feature.position() - prev_position;
+            self.write_feature(feature, position)?;
+            prev_position = feature.position();
         }
 
         let mapping_quality = i32::from(u8::from(record.mapping_quality()));
@@ -413,57 +417,46 @@ where
         )
     }
 
-    fn write_feature(&mut self, feature: &Feature) -> io::Result<()> {
+    fn write_feature(&mut self, feature: &Feature, position: Itf8) -> io::Result<()> {
         self.write_feature_code(feature.code())?;
+        self.write_feature_position(position)?;
 
         match feature {
-            Feature::Bases(position, bases) => {
-                self.write_feature_position(*position)?;
+            Feature::Bases(_, bases) => {
                 self.write_stretches_of_bases(bases)?;
             }
-            Feature::Scores(position, quality_scores) => {
-                self.write_feature_position(*position)?;
+            Feature::Scores(_, quality_scores) => {
                 self.write_stretches_of_quality_scores(quality_scores)?;
             }
-            Feature::ReadBase(position, base, quality_score) => {
-                self.write_feature_position(*position)?;
+            Feature::ReadBase(_, base, quality_score) => {
                 self.write_base(*base)?;
                 self.write_quality_score(*quality_score)?;
             }
-            Feature::Substitution(position, code) => {
-                self.write_feature_position(*position)?;
+            Feature::Substitution(_, code) => {
                 self.write_base_substitution_code(*code)?;
             }
-            Feature::Insertion(position, bases) => {
-                self.write_feature_position(*position)?;
+            Feature::Insertion(_, bases) => {
                 self.write_insertion(bases)?;
             }
-            Feature::Deletion(position, len) => {
-                self.write_feature_position(*position)?;
+            Feature::Deletion(_, len) => {
                 self.write_deletion_length(*len)?;
             }
-            Feature::InsertBase(position, base) => {
-                self.write_feature_position(*position)?;
+            Feature::InsertBase(_, base) => {
                 self.write_base(*base)?;
             }
-            Feature::QualityScore(position, score) => {
-                self.write_feature_position(*position)?;
+            Feature::QualityScore(_, score) => {
                 self.write_quality_score(*score)?;
             }
-            Feature::ReferenceSkip(position, len) => {
-                self.write_feature_position(*position)?;
+            Feature::ReferenceSkip(_, len) => {
                 self.write_reference_skip_length(*len)?;
             }
-            Feature::SoftClip(position, bases) => {
-                self.write_feature_position(*position)?;
+            Feature::SoftClip(_, bases) => {
                 self.write_soft_clip(bases)?;
             }
-            Feature::Padding(position, len) => {
-                self.write_feature_position(*position)?;
+            Feature::Padding(_, len) => {
                 self.write_padding(*len)?;
             }
-            Feature::HardClip(position, len) => {
-                self.write_feature_position(*position)?;
+            Feature::HardClip(_, len) => {
                 self.write_hard_clip(*len)?;
             }
         }
