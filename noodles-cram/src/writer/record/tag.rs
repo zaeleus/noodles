@@ -11,8 +11,6 @@ pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u8(char::from(value.ty()) as u8)?;
-
     if let Some(subtype) = value.subtype() {
         writer.write_u8(char::from(subtype) as u8)?;
     }
