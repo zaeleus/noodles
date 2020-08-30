@@ -99,7 +99,7 @@ where
         for i in 0.. {
             let buf = self.inner.fill_buf()?;
 
-            if (i == 0 || eol) && !buf.is_empty() && buf[0] != HEADER_PREFIX {
+            if (i == 0 || eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
@@ -234,6 +234,15 @@ mod tests {
         let data = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_header()?.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_no_records() -> io::Result<()> {
+        let data = b"@HD\tVN1.6\n";
+        let mut reader = Reader::new(&data[..]);
+        let header = reader.read_header()?;
+        assert_eq!(header, "@HD\tVN1.6\n");
         Ok(())
     }
 }
