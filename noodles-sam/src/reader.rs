@@ -55,7 +55,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
-    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
     /// let reader = sam::Reader::new(&data[..]);
@@ -83,7 +83,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
-    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
@@ -143,7 +143,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
-    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
@@ -151,7 +151,7 @@ where
     ///
     /// let mut buf = String::new();
     /// reader.read_record(&mut buf)?;
-    /// assert_eq!(buf, "*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*");
+    /// assert_eq!(buf, "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*");
     ///
     /// assert_eq!(reader.read_record(&mut buf)?, 0);
     /// # Ok::<(), io::Error>(())
@@ -178,7 +178,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
-    /// *\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
@@ -231,7 +231,7 @@ mod tests {
 
     #[test]
     fn test_read_header_with_no_header() -> io::Result<()> {
-        let data = b"*\t0\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
+        let data = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_header()?.is_empty());
         Ok(())
