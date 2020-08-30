@@ -46,7 +46,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("phase cannot be empty"),
+            Self::Empty => f.write_str("empty input"),
             Self::Invalid(s) => write!(f, "expected {{0, 1, 2}}, got {}", s),
         }
     }
