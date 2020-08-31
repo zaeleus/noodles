@@ -44,7 +44,9 @@ impl TryFrom<Container> for DataContainer {
 
         for _ in 0..slices_len {
             let slice = Slice::try_from(&blocks[start..]).expect("missing slice");
-            let block_count = slice.header().block_count();
+
+            // (core data block + external blocks) + header block
+            let block_count = slice.header().block_count() + 1;
 
             slices.push(slice);
 
