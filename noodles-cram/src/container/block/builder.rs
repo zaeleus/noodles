@@ -1,6 +1,10 @@
+use std::io::{self, Write};
+
 use crate::num::Itf8;
 
 use super::{Block, CompressionMethod, ContentType};
+
+use flate2::write::GzEncoder;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -41,6 +45,34 @@ impl Builder {
     pub fn set_crc32(mut self, crc32: u32) -> Self {
         self.crc32 = crc32;
         self
+    }
+
+    /// Compresses the given data using the given compression method.
+    ///
+    /// This sets the compression method, the uncompressed size to the length of the given data,
+    /// and the data to the compressed output of the given data.
+    pub fn compress_and_set_data(
+        mut self,
+        data: Vec<u8>,
+        compression_method: CompressionMethod,
+    ) -> io::Result<Self> {
+        self.compression_method = compression_method;
+        self.uncompressed_len = data.len() as Itf8;
+
+        self.data = match compression_method {
+            CompressionMethod::None => data,
+            CompressionMethod::Gzip => {
+                let mut encoder = GzEncoder::new(Vec::new(), flate2::Compression::default());
+                encoder.write_all(&data)?;
+                encoder.finish()?
+            }
+            _ => unimplemented!(
+                "compress_and_set_data: unhandled compression method: {:?}",
+                compression_method
+            ),
+        };
+
+        Ok(self)
     }
 
     pub fn build(self) -> Block {

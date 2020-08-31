@@ -5,10 +5,10 @@ use noodles_fasta as fasta;
 
 use crate::{
     container::{
-        block, compression_header::data_series_encoding_map::DataSeries, Block, CompressionHeader,
-        ReferenceSequenceId,
+        block::{self, CompressionMethod},
+        compression_header::data_series_encoding_map::DataSeries,
+        Block, CompressionHeader, ReferenceSequenceId,
     },
-    num::Itf8,
     writer, BitWriter, Record,
 };
 
@@ -117,13 +117,12 @@ impl Builder {
             record_writer.write_record(record)?;
         }
 
-        let core_data_block = core_data_writer.finish().map(|buf| {
+        let core_data_block = core_data_writer.finish().and_then(|buf| {
             Block::builder()
                 .set_content_type(block::ContentType::CoreData)
                 .set_content_id(CORE_DATA_BLOCK_CONTENT_ID)
-                .set_uncompressed_len(buf.len() as Itf8)
-                .set_data(buf)
-                .build()
+                .compress_and_set_data(buf, CompressionMethod::Gzip)
+                .map(|builder| builder.build())
         })?;
 
         let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
@@ -135,11 +134,10 @@ impl Builder {
                 Block::builder()
                     .set_content_type(block::ContentType::ExternalData)
                     .set_content_id(block_content_id)
-                    .set_uncompressed_len(buf.len() as Itf8)
-                    .set_data(buf)
-                    .build()
+                    .compress_and_set_data(buf, CompressionMethod::Gzip)
+                    .map(|builder| builder.build())
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         for block in &external_blocks {
             block_content_ids.push(block.content_id());
