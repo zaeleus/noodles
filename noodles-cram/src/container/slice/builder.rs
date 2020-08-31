@@ -128,10 +128,6 @@ impl Builder {
 
         let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
 
-        for &block_content_id in external_data_writers.keys() {
-            block_content_ids.push(block_content_id);
-        }
-
         let external_blocks: Vec<_> = external_data_writers
             .into_iter()
             .filter(|(_, buf)| !buf.is_empty())
@@ -144,6 +140,10 @@ impl Builder {
                     .build()
             })
             .collect();
+
+        for block in &external_blocks {
+            block_content_ids.push(block.content_id());
+        }
 
         let reference_md5 = if let ReferenceSequenceId::Some(id) = reference_sequence_id {
             let reference_sequence = reference_sequences
