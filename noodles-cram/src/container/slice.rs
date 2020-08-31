@@ -157,18 +157,24 @@ impl TryFrom<&[Block]> for Slice {
     type Error = io::Error;
 
     fn try_from(blocks: &[Block]) -> Result<Self, Self::Error> {
-        let data = blocks[0].decompressed_data();
+        let mut it = blocks.iter();
+
+        let header_block = it
+            .next()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing header block"))?;
+        let data = header_block.decompressed_data();
         let mut reader = &data[..];
         let header = reader::slice::read_header(&mut reader)?;
 
-        let core_data_block = blocks[1].clone();
+        let core_data_block = it
+            .next()
+            .cloned()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing core data block"))?;
 
-        let external_blocks_len = header.block_count() as usize;
-        let mut external_blocks = Vec::with_capacity(external_blocks_len);
+        let external_block_count = (header.block_count() - 1) as usize;
+        let external_blocks: Vec<_> = it.take(external_block_count).cloned().collect();
 
-        for i in 0..external_blocks_len {
-            external_blocks.push(blocks[i + 1].clone());
-        }
+        assert_eq!(external_block_count, external_blocks.len());
 
         Ok(Slice::new(header, core_data_block, external_blocks))
     }
