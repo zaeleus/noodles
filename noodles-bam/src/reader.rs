@@ -2,8 +2,9 @@
 
 mod query;
 mod records;
+mod unmapped_records;
 
-pub use self::{query::Query, records::Records};
+pub use self::{query::Query, records::Records, unmapped_records::UnmappedRecords};
 
 use std::{
     ffi::CStr,
@@ -264,6 +265,15 @@ where
         self.inner.seek(pos)
     }
 
+    // Seeks to the first record by setting the cursor to the beginning of the stream and
+    // (re)reading the header and binary reference sequences.
+    fn seek_to_first_record(&mut self) -> io::Result<VirtualPosition> {
+        self.seek(VirtualPosition::default())?;
+        self.read_header()?;
+        self.read_reference_sequences()?;
+        Ok(self.virtual_position())
+    }
+
     /// Returns an iterator over records that intersect the given region.
     ///
     /// # Examples
@@ -324,6 +334,40 @@ where
         let merged_chunks = bai::optimize_chunks(&chunks, min_offset);
 
         Ok(Query::new(self, merged_chunks, i, start, end))
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam::{self as bam, bai};
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// let index = bai::read("sample.bam.bai")?;
+    /// let query = reader.query_unmapped(&index)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn query_unmapped(&mut self, index: &bai::Index) -> io::Result<UnmappedRecords<'_, R>> {
+        let last_interval = index
+            .reference_sequences()
+            .iter()
+            .rev()
+            .find_map(|rs| rs.intervals().last());
+
+        if let Some(interval) = last_interval {
+            self.seek(*interval)?;
+        } else {
+            self.seek_to_first_record()?;
+        }
+
+        Ok(UnmappedRecords::new(self))
     }
 }
 
