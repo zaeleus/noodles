@@ -1,4 +1,4 @@
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
@@ -12,7 +12,7 @@ static ALL_NAME: &str = ".";
 ///
 /// Genomic regions can either be mapped to a reference sequence, unmapped (*), or an inclusion of
 /// all reads (.).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
     Mapped {
         name: String,
@@ -119,11 +119,11 @@ impl fmt::Display for Region {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     MissingReferenceSequenceName,
-    InvalidStartPosition(Box<dyn std::error::Error>),
-    InvalidEndPosition(Box<dyn std::error::Error>),
+    InvalidStartPosition(num::ParseIntError),
+    InvalidEndPosition(num::ParseIntError),
 }
 
 impl error::Error for ParseError {}
@@ -168,9 +168,7 @@ impl FromStr for Region {
             .ok_or_else(|| ParseError::MissingReferenceSequenceName)?;
 
         let start = match components.next() {
-            Some(t) => t
-                .parse()
-                .map_err(|e| ParseError::InvalidStartPosition(Box::new(e)))?,
+            Some(t) => t.parse().map_err(ParseError::InvalidStartPosition)?,
             None => MIN_POSITION,
         };
 
@@ -178,7 +176,7 @@ impl FromStr for Region {
             Some(t) => t
                 .parse()
                 .map(Some)
-                .map_err(|e| ParseError::InvalidEndPosition(Box::new(e)))?,
+                .map_err(ParseError::InvalidEndPosition)?,
             None => None,
         };
 
@@ -202,7 +200,7 @@ mod tests {
                 ReferenceSequence::new(String::from("sq1"), 13),
             ),
             (
-                String::from("sq0"),
+                String::from("sq2"),
                 ReferenceSequence::new(String::from("sq2"), 21),
             ),
         ]
@@ -240,50 +238,35 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_reference_sequences() {
-        match "sq2:3-5".parse() {
-            Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sq2");
-                assert_eq!(start, 3);
-                assert_eq!(end, Some(5));
-            }
-            _ => panic!(),
-        }
-    }
+    fn test_from_str() {
+        assert_eq!(
+            "sq2:3-5".parse(),
+            Ok(Region::Mapped {
+                name: String::from("sq2"),
+                start: 3,
+                end: Some(5)
+            })
+        );
 
-    #[test]
-    fn test_from_str_reference_sequences_with_no_end() {
-        match "sq2:3".parse() {
-            Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sq2");
-                assert_eq!(start, 3);
-                assert_eq!(end, None);
-            }
-            _ => panic!(),
-        }
-    }
+        assert_eq!(
+            "sq2:3".parse(),
+            Ok(Region::Mapped {
+                name: String::from("sq2"),
+                start: 3,
+                end: None,
+            })
+        );
 
-    #[test]
-    fn test_from_str_reference_sequences_with_no_start_or_end() {
-        match "sq2".parse() {
-            Ok(Region::Mapped { name, start, end }) => {
-                assert_eq!(name, "sq2");
-                assert_eq!(start, 1);
-                assert_eq!(end, None);
-            }
-            _ => panic!(),
-        }
-    }
+        assert_eq!(
+            "sq2".parse(),
+            Ok(Region::Mapped {
+                name: String::from("sq2"),
+                start: 1,
+                end: None,
+            })
+        );
 
-    #[test]
-    fn test_from_str_for_unmapped_region() {
-        let region = "*".parse().unwrap();
-        assert!(matches!(region, Region::Unmapped));
-    }
-
-    #[test]
-    fn test_from_str_for_all_regions() {
-        let region = ".".parse().unwrap();
-        assert!(matches!(region, Region::All));
+        assert_eq!("*".parse(), Ok(Region::Unmapped));
+        assert_eq!(".".parse(), Ok(Region::All));
     }
 }
