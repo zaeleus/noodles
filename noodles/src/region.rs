@@ -24,6 +24,53 @@ pub enum Region {
 }
 
 impl Region {
+    /// Parses a string to a region.
+    ///
+    /// A region string is specified as
+    /// `<reference-sequence-name>[:<start-position>[-<end-position>]]`.
+    ///
+    /// The reference sequence name can be "*" to represent unmapped records; or ".", all records.
+    /// Otherwise, the reference sequence name must exist in the reference sequence dictionary.
+    ///
+    /// If no start position is given, the minimum position of 1 is used. If no end position is
+    /// given, the entire span of the reference sequence, i.e., its length, is used.
+    pub fn from_str_reference_sequences(
+        s: &str,
+        reference_sequences: &ReferenceSequences,
+    ) -> Result<Self, ParseError> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        } else if s == UNMAPPED_NAME {
+            return Ok(Self::Unmapped);
+        } else if s == ALL_NAME {
+            return Ok(Self::All);
+        }
+
+        if let Some(i) = s.rfind(':') {
+            let suffix = &s[i + 1..];
+
+            if let Ok((start, end)) = parse_interval(suffix) {
+                let prefix = &s[0..i];
+
+                if let Some(reference_sequence) = reference_sequences.get(prefix) {
+                    if reference_sequences.contains_key(s) {
+                        return Err(ParseError::Ambiguous);
+                    } else {
+                        let resolved_end = end.unwrap_or(reference_sequence.len() as u64);
+                        return Ok(Region::mapped(prefix, start, Some(resolved_end)));
+                    }
+                }
+            }
+        }
+
+        if let Some(reference_sequence) = reference_sequences.get(s) {
+            let end = reference_sequence.len() as u64;
+            Ok(Region::mapped(s, MIN_POSITION, Some(end)))
+        } else {
+            Err(ParseError::Invalid)
+        }
+    }
+
     /// Creates a new mapped region.
     ///
     /// `start` and `end` are the start and (optional) end positions of the region in the given
@@ -121,6 +168,10 @@ impl fmt::Display for Region {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    Empty,
+    Ambiguous,
+    Invalid,
+    InvalidReferenceSequenceName,
     MissingReferenceSequenceName,
     InvalidStartPosition(num::ParseIntError),
     InvalidEndPosition(num::ParseIntError),
@@ -131,6 +182,10 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Ambiguous => f.write_str("ambiguous input"),
+            Self::Invalid => f.write_str("invalid input"),
+            Self::InvalidReferenceSequenceName => f.write_str("invalid reference sequence name"),
             Self::MissingReferenceSequenceName => write!(f, "invalid region"),
             Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
@@ -184,9 +239,116 @@ impl FromStr for Region {
     }
 }
 
+fn parse_interval(s: &str) -> Result<(u64, Option<u64>), ParseError> {
+    let mut components = s.splitn(2, '-');
+
+    let start = match components.next() {
+        Some(t) => t.parse().map_err(ParseError::InvalidStartPosition)?,
+        None => MIN_POSITION,
+    };
+
+    let end = match components.next() {
+        Some(t) => t
+            .parse()
+            .map(Some)
+            .map_err(ParseError::InvalidEndPosition)?,
+        None => None,
+    };
+
+    Ok((start, end))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_from_str_reference_sequences() {
+        let reference_sequences: ReferenceSequences = vec![
+            ReferenceSequence::new(String::from("sq0"), 8),
+            ReferenceSequence::new(String::from("sq1:"), 13),
+            ReferenceSequence::new(String::from("sq2:5"), 21),
+            ReferenceSequence::new(String::from("sq3"), 34),
+            ReferenceSequence::new(String::from("sq3:5-8"), 55),
+        ]
+        .into_iter()
+        .map(|rs| (rs.name().into(), rs))
+        .collect();
+
+        assert_eq!(
+            Region::from_str_reference_sequences("*", &reference_sequences),
+            Ok(Region::Unmapped)
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences(".", &reference_sequences),
+            Ok(Region::All)
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq0:3-5", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq0"),
+                start: 3,
+                end: Some(5)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq0:3", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq0"),
+                start: 3,
+                end: Some(8)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq0", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq0"),
+                start: 1,
+                end: Some(8)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq1:", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq1:"),
+                start: 1,
+                end: Some(13)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq2:5", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq2:5"),
+                start: 1,
+                end: Some(21)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq3:8-13", &reference_sequences),
+            Ok(Region::Mapped {
+                name: String::from("sq3"),
+                start: 8,
+                end: Some(13)
+            })
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("sq3:5-8", &reference_sequences),
+            Err(ParseError::Ambiguous)
+        );
+
+        assert_eq!(
+            Region::from_str_reference_sequences("", &reference_sequences),
+            Err(ParseError::Empty)
+        );
+    }
 
     #[test]
     fn test_resolve() {
