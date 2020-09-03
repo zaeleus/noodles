@@ -289,7 +289,7 @@ where
     ///
     /// let reference_sequences = header.reference_sequences();
     /// let index = bai::read("sample.bam.bai")?;
-    /// let region = Region::mapped("sq0", 17711, Some(28657));
+    /// let region = Region::mapped("sq0", 17711, 28657);
     /// let query = reader.query(&reference_sequences, &index, &region)?;
     ///
     /// for result in query {
@@ -304,12 +304,7 @@ where
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<'_, R>> {
-        let (i, _, start, end) = region.resolve(reference_sequences).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("could not resolve region: {:?}", region),
-            )
-        })?;
+        let (i, start, end) = resolve_region(reference_sequences, region)?;
 
         let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
             io::Error::new(
@@ -419,4 +414,29 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
                 .map(|s| s.to_string())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
+}
+
+fn resolve_region(
+    reference_sequences: &ReferenceSequences,
+    region: &Region,
+) -> io::Result<(usize, u64, u64)> {
+    match region {
+        Region::Mapped { name, start, end } => {
+            let i = reference_sequences.get_index_of(name).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!(
+                        "region reference sequence does not exist in reference sequences: {:?}",
+                        region
+                    ),
+                )
+            })?;
+
+            Ok((i, *start, *end))
+        }
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "region is not mapped",
+        )),
+    }
 }

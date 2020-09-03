@@ -1,6 +1,6 @@
 use std::{error, fmt, num};
 
-use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
+use noodles_sam::header::ReferenceSequences;
 
 // Position coordinates are 1-based.
 const MIN_POSITION: u64 = 1;
@@ -14,11 +14,7 @@ static ALL_NAME: &str = ".";
 /// all reads (.).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
-    Mapped {
-        name: String,
-        start: u64,
-        end: Option<u64>,
-    },
+    Mapped { name: String, start: u64, end: u64 },
     Unmapped,
     All,
 }
@@ -57,7 +53,7 @@ impl Region {
                         return Err(ParseError::Ambiguous);
                     } else {
                         let resolved_end = end.unwrap_or(reference_sequence.len() as u64);
-                        return Ok(Region::mapped(prefix, start, Some(resolved_end)));
+                        return Ok(Region::mapped(prefix, start, resolved_end));
                     }
                 }
             }
@@ -65,7 +61,7 @@ impl Region {
 
         if let Some(reference_sequence) = reference_sequences.get(s) {
             let end = reference_sequence.len() as u64;
-            Ok(Region::mapped(s, MIN_POSITION, Some(end)))
+            Ok(Region::mapped(s, MIN_POSITION, end))
         } else {
             Err(ParseError::Invalid)
         }
@@ -83,16 +79,10 @@ impl Region {
     ///
     /// ```
     /// use noodles::Region;
-    ///
-    /// let region = Region::mapped("sq0", 1, Some(5));
-    ///
-    /// assert!(matches!(region, Region::Mapped {
-    ///     name,
-    ///     start: 1,
-    ///     end: Some(5),
-    /// }));
+    /// let region = Region::mapped("sq0", 1, 5);
+    /// assert!(matches!(region, Region::Mapped { name, start: 1, end: 5 }));
     /// ```
-    pub fn mapped<I>(name: I, start: u64, end: Option<u64>) -> Region
+    pub fn mapped<I>(name: I, start: u64, end: u64) -> Region
     where
         I: Into<String>,
     {
@@ -113,7 +103,7 @@ impl Region {
     /// ```
     /// use noodles::Region;
     ///
-    /// let region = Region::mapped("sq0", 1, Some(5));
+    /// let region = Region::mapped("sq0", 1, 5);
     /// assert_eq!(region.name(), "sq0");
     ///
     /// assert_eq!(Region::Unmapped.name(), "*");
@@ -126,40 +116,12 @@ impl Region {
             Self::All => ALL_NAME,
         }
     }
-
-    /// Resolves the region by finding it in a given list of reference sequences.
-    ///
-    /// If the region name exists in `reference_sequences`, this returns `(<index in the list>,
-    /// <the matched reference sequence>, <start position>, <end position>)`; otherwise, `None`.
-    ///
-    /// The start and end positions are assumed to be 1-based.
-    pub fn resolve<'a>(
-        &self,
-        reference_sequences: &'a ReferenceSequences,
-    ) -> Option<(usize, &'a ReferenceSequence, u64, u64)> {
-        match self {
-            Self::Mapped { name, start, end } => {
-                let (i, _, reference_sequence) = reference_sequences.get_full(name).unwrap();
-                let resolved_end = end.unwrap_or(reference_sequence.len() as u64);
-                Some((i, reference_sequence, *start, resolved_end))
-            }
-            Self::Unmapped | Self::All => None,
-        }
-    }
 }
 
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Mapped { name, start, end } => {
-                write!(f, "{}:{}", name, start)?;
-
-                if let Some(e) = end {
-                    write!(f, "-{}", e)?;
-                }
-
-                Ok(())
-            }
+            Self::Mapped { name, start, end } => write!(f, "{}:{}-{}", name, start, end),
             Self::Unmapped => write!(f, "{}", UNMAPPED_NAME),
             Self::All => write!(f, "{}", ALL_NAME),
         }
@@ -210,6 +172,8 @@ fn parse_interval(s: &str) -> Result<(u64, Option<u64>), ParseError> {
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam::header::ReferenceSequence;
+
     use super::*;
 
     #[test]
@@ -240,7 +204,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq0"),
                 start: 3,
-                end: Some(5)
+                end: 5
             })
         );
 
@@ -249,7 +213,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq0"),
                 start: 3,
-                end: Some(8)
+                end: 8
             })
         );
 
@@ -258,7 +222,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq0"),
                 start: 1,
-                end: Some(8)
+                end: 8
             })
         );
 
@@ -267,7 +231,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq1:"),
                 start: 1,
-                end: Some(13)
+                end: 13
             })
         );
 
@@ -276,7 +240,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq2:5"),
                 start: 1,
-                end: Some(21)
+                end: 21
             })
         );
 
@@ -285,7 +249,7 @@ mod tests {
             Ok(Region::Mapped {
                 name: String::from("sq3"),
                 start: 8,
-                end: Some(13)
+                end: 13
             })
         );
 
@@ -301,51 +265,9 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve() {
-        let reference_sequences: ReferenceSequences = vec![
-            (
-                String::from("sq0"),
-                ReferenceSequence::new(String::from("sq0"), 8),
-            ),
-            (
-                String::from("sq1"),
-                ReferenceSequence::new(String::from("sq1"), 13),
-            ),
-            (
-                String::from("sq2"),
-                ReferenceSequence::new(String::from("sq2"), 21),
-            ),
-        ]
-        .into_iter()
-        .collect();
-
-        let region = Region::mapped("sq1", 5, Some(8));
-        let actual = region.resolve(&reference_sequences);
-        let expected = Some((1, &reference_sequences["sq1"], 5, 8));
-        assert_eq!(actual, expected);
-
-        let region = Region::mapped("sq1", 5, None);
-        let actual = region.resolve(&reference_sequences);
-        let expected = Some((1, &reference_sequences["sq1"], 5, 13));
-        assert_eq!(actual, expected);
-
-        let region = Region::Unmapped;
-        assert_eq!(region.resolve(&reference_sequences), None);
-
-        let region = Region::All;
-        assert_eq!(region.resolve(&reference_sequences), None);
-    }
-
-    #[test]
     fn test_fmt() {
-        let region = Region::mapped("sq2", 3, Some(5));
-        assert_eq!(format!("{}", region), "sq2:3-5");
-
-        let region = Region::mapped("sq2", 3, None);
-        assert_eq!(format!("{}", region), "sq2:3");
-
-        assert_eq!(format!("{}", Region::Unmapped), "*");
-
-        assert_eq!(format!("{}", Region::All), ".");
+        assert_eq!(Region::mapped("sq0", 3, 5).to_string(), "sq0:3-5");
+        assert_eq!(Region::Unmapped.to_string(), "*");
+        assert_eq!(Region::All.to_string(), ".");
     }
 }
