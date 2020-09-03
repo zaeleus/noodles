@@ -1,4 +1,4 @@
-use std::{error, fmt, num, str::FromStr};
+use std::{error, fmt, num};
 
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
@@ -171,8 +171,6 @@ pub enum ParseError {
     Empty,
     Ambiguous,
     Invalid,
-    InvalidReferenceSequenceName,
-    MissingReferenceSequenceName,
     InvalidStartPosition(num::ParseIntError),
     InvalidEndPosition(num::ParseIntError),
 }
@@ -185,57 +183,9 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Ambiguous => f.write_str("ambiguous input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidReferenceSequenceName => f.write_str("invalid reference sequence name"),
-            Self::MissingReferenceSequenceName => write!(f, "invalid region"),
             Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
         }
-    }
-}
-
-impl FromStr for Region {
-    type Err = ParseError;
-
-    /// Parses a string to a region.
-    ///
-    /// A region string is specified as
-    /// `<reference-sequence-name>[:<start-position>[-<end-position>]]`.
-    ///
-    /// The reference sequence name can be "*" to represent unmapped records; or ".", all records.
-    /// Otherwise, the reference sequence name is assumed to exist in the reference sequence
-    /// dictionary.
-    ///
-    /// If no start position is given, the minimum position of 1 is used. If no end position is
-    /// given, the region is unbounded, and the maximum position of the reference sequence, i.e.,
-    /// its length, is expected to be used.
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == UNMAPPED_NAME {
-            return Ok(Self::Unmapped);
-        } else if s == ALL_NAME {
-            return Ok(Self::All);
-        }
-
-        let mut components = s.split(|c| c == ':' || c == '-');
-
-        let name = components
-            .next()
-            .map(|t| t.into())
-            .ok_or_else(|| ParseError::MissingReferenceSequenceName)?;
-
-        let start = match components.next() {
-            Some(t) => t.parse().map_err(ParseError::InvalidStartPosition)?,
-            None => MIN_POSITION,
-        };
-
-        let end = match components.next() {
-            Some(t) => t
-                .parse()
-                .map(Some)
-                .map_err(ParseError::InvalidEndPosition)?,
-            None => None,
-        };
-
-        Ok(Self::Mapped { name, start, end })
     }
 }
 
@@ -397,38 +347,5 @@ mod tests {
         assert_eq!(format!("{}", Region::Unmapped), "*");
 
         assert_eq!(format!("{}", Region::All), ".");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!(
-            "sq2:3-5".parse(),
-            Ok(Region::Mapped {
-                name: String::from("sq2"),
-                start: 3,
-                end: Some(5)
-            })
-        );
-
-        assert_eq!(
-            "sq2:3".parse(),
-            Ok(Region::Mapped {
-                name: String::from("sq2"),
-                start: 3,
-                end: None,
-            })
-        );
-
-        assert_eq!(
-            "sq2".parse(),
-            Ok(Region::Mapped {
-                name: String::from("sq2"),
-                start: 1,
-                end: None,
-            })
-        );
-
-        assert_eq!("*".parse(), Ok(Region::Unmapped));
-        assert_eq!(".".parse(), Ok(Region::All));
     }
 }
