@@ -1,8 +1,11 @@
 //! BAM index reference sequence and fields.
 
 pub mod bin;
+pub mod metadata;
 
-pub use self::bin::Bin;
+pub use self::{bin::Bin, metadata::Metadata};
+
+use std::convert::TryFrom;
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
@@ -55,6 +58,44 @@ impl ReferenceSequence {
     /// ```
     pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
         &self.intervals
+    }
+
+    /// Returns metadata for this reference sequence.
+    ///
+    /// Metadata is parsed from optional bin 37450.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai::index::{
+    ///     reference_sequence::{bin::Chunk, Bin, Metadata},
+    ///     ReferenceSequence,
+    /// };
+    /// use noodles_bgzf::VirtualPosition;
+    ///
+    /// let reference_sequences = ReferenceSequence::new(
+    ///     vec![
+    ///         Bin::new(0, Vec::new()),
+    ///         Bin::new(37450, vec![
+    ///             Chunk::new(VirtualPosition::from(610), VirtualPosition::from(1597)),
+    ///             Chunk::new(VirtualPosition::from(55), VirtualPosition::from(0)),
+    ///         ]),
+    ///     ],
+    ///     Vec::new(),
+    /// );
+    ///
+    /// assert_eq!(reference_sequences.metadata(), Some(Metadata::new(
+    ///     VirtualPosition::from(610),
+    ///     VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// )));
+    /// ```
+    pub fn metadata(&self) -> Option<Metadata> {
+        self.bins()
+            .iter()
+            .find(|b| b.bin() == metadata::MAGIC_NUMBER)
+            .and_then(|bin| Metadata::try_from(bin).ok())
     }
 
     /// Returns a list of bins in this reference seqeunce that intersect the given range.
