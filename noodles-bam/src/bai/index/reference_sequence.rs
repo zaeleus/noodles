@@ -43,6 +43,7 @@ impl ReferenceSequence {
     pub fn bins(&self) -> &[Bin] {
         &self.bins
     }
+
     /// Returns a list of 16 kbp intervals that make up the linear index.
     ///
     /// # Examples
