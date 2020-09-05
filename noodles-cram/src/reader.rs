@@ -3,7 +3,10 @@ pub mod compression_header;
 mod container;
 mod encoding;
 pub mod record;
+mod records;
 pub mod slice;
+
+pub use self::records::Records;
 
 use std::{
     io::{self, Read},
@@ -74,6 +77,10 @@ where
         }
 
         Ok(Container::new(header, blocks))
+    }
+
+    pub fn records(&mut self) -> Records<'_, R> {
+        Records::new(self)
     }
 }
 
