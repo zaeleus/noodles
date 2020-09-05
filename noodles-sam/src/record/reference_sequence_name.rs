@@ -54,6 +54,8 @@ impl fmt::Display for ReferenceSequenceName {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
 }
 
 impl error::Error for ParseError {}
@@ -61,7 +63,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("reference sequence name cannot be empty"),
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
         }
     }
 }
@@ -73,7 +76,13 @@ impl FromStr for ReferenceSequenceName {
         match s {
             "" => Err(ParseError::Empty),
             NULL_FIELD => Ok(ReferenceSequenceName(None)),
-            _ => Ok(ReferenceSequenceName(Some(s.into()))),
+            _ => {
+                if s.starts_with('*') || s.starts_with('=') {
+                    Err(ParseError::Invalid)
+                } else {
+                    Ok(ReferenceSequenceName(Some(s.into())))
+                }
+            }
         }
     }
 }
@@ -111,6 +120,31 @@ mod tests {
             Ok(ReferenceSequenceName(Some(String::from("sq0"))))
         );
 
+        assert_eq!(
+            "sq0*".parse(),
+            Ok(ReferenceSequenceName(Some(String::from("sq0*"))))
+        );
+
+        assert_eq!(
+            "sq0=".parse(),
+            Ok(ReferenceSequenceName(Some(String::from("sq0="))))
+        );
+
         assert_eq!("".parse::<ReferenceSequenceName>(), Err(ParseError::Empty));
+
+        assert_eq!(
+            "*sq0".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
+
+        assert_eq!(
+            "=sq0".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
+
+        assert_eq!(
+            "=".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
     }
 }
