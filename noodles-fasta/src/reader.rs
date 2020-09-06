@@ -6,6 +6,9 @@ pub use self::records::Records;
 
 use std::io::{self, BufRead, Seek, SeekFrom};
 
+const DEFINITION_PREFIX: u8 = b'>';
+const NEWLINE: u8 = b'\n';
+
 /// A FASTA reader.
 pub struct Reader<R> {
     inner: R,
@@ -93,11 +96,11 @@ where
         loop {
             let reader_buf = self.inner.fill_buf()?;
 
-            if reader_buf.is_empty() || reader_buf[0] == b'>' {
+            if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
                 break;
             }
 
-            let len = match reader_buf.iter().position(|&b| b == b'\n') {
+            let len = match reader_buf.iter().position(|&b| b == NEWLINE) {
                 Some(i) => {
                     buf.extend(&reader_buf[..i]);
                     i + 1
