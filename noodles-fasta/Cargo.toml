@@ -6,3 +6,4 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
+memchr = "2.3.3"

@@ -6,6 +6,8 @@ pub use self::records::Records;
 
 use std::io::{self, BufRead, Seek, SeekFrom};
 
+use memchr::memchr;
+
 const DEFINITION_PREFIX: u8 = b'>';
 const NEWLINE: u8 = b'\n';
 
@@ -100,7 +102,7 @@ where
                 break;
             }
 
-            let len = match reader_buf.iter().position(|&b| b == NEWLINE) {
+            let len = match memchr(NEWLINE, reader_buf) {
                 Some(i) => {
                     buf.extend(&reader_buf[..i]);
                     i + 1
