@@ -8,19 +8,19 @@ use super::Encoding;
 /// A container compression header data series encoding map.
 #[derive(Debug)]
 pub struct DataSeriesEncodingMap {
-    bam_bit_flags_encoding: Option<Encoding>,
-    cram_bit_flags_encoding: Option<Encoding>,
+    bam_bit_flags_encoding: Encoding,
+    cram_bit_flags_encoding: Encoding,
     reference_id_encoding: Option<Encoding>,
-    read_lengths_encoding: Option<Encoding>,
-    in_seq_positions_encoding: Option<Encoding>,
-    read_groups_encoding: Option<Encoding>,
+    read_lengths_encoding: Encoding,
+    in_seq_positions_encoding: Encoding,
+    read_groups_encoding: Encoding,
     read_names_encoding: Option<Encoding>,
     next_mate_bit_flags_encoding: Option<Encoding>,
     next_fragment_reference_sequence_id_encoding: Option<Encoding>,
     next_mate_alignment_start_encoding: Option<Encoding>,
     template_size_encoding: Option<Encoding>,
     distance_to_next_fragment_encoding: Option<Encoding>,
-    tag_ids_encoding: Option<Encoding>,
+    tag_ids_encoding: Encoding,
     number_of_read_features_encoding: Option<Encoding>,
     read_features_codes_encoding: Option<Encoding>,
     in_read_positions_encoding: Option<Encoding>,
@@ -43,28 +43,28 @@ impl DataSeriesEncodingMap {
         Builder::default()
     }
 
-    pub fn bam_bit_flags_encoding(&self) -> Option<&Encoding> {
-        self.bam_bit_flags_encoding.as_ref()
+    pub fn bam_bit_flags_encoding(&self) -> &Encoding {
+        &self.bam_bit_flags_encoding
     }
 
-    pub fn cram_bit_flags_encoding(&self) -> Option<&Encoding> {
-        self.cram_bit_flags_encoding.as_ref()
+    pub fn cram_bit_flags_encoding(&self) -> &Encoding {
+        &self.cram_bit_flags_encoding
     }
 
     pub fn reference_id_encoding(&self) -> Option<&Encoding> {
         self.reference_id_encoding.as_ref()
     }
 
-    pub fn read_lengths_encoding(&self) -> Option<&Encoding> {
-        self.read_lengths_encoding.as_ref()
+    pub fn read_lengths_encoding(&self) -> &Encoding {
+        &self.read_lengths_encoding
     }
 
-    pub fn in_seq_positions_encoding(&self) -> Option<&Encoding> {
-        self.in_seq_positions_encoding.as_ref()
+    pub fn in_seq_positions_encoding(&self) -> &Encoding {
+        &self.in_seq_positions_encoding
     }
 
-    pub fn read_groups_encoding(&self) -> Option<&Encoding> {
-        self.read_groups_encoding.as_ref()
+    pub fn read_groups_encoding(&self) -> &Encoding {
+        &self.read_groups_encoding
     }
 
     pub fn read_names_encoding(&self) -> Option<&Encoding> {
@@ -91,8 +91,8 @@ impl DataSeriesEncodingMap {
         self.distance_to_next_fragment_encoding.as_ref()
     }
 
-    pub fn tag_ids_encoding(&self) -> Option<&Encoding> {
-        self.tag_ids_encoding.as_ref()
+    pub fn tag_ids_encoding(&self) -> &Encoding {
+        &self.tag_ids_encoding
     }
 
     pub fn number_of_read_features_encoding(&self) -> Option<&Encoding> {

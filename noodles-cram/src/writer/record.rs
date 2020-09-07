@@ -75,8 +75,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .bam_bit_flags_encoding()
-            .expect("missing BF");
+            .bam_bit_flags_encoding();
 
         let bam_bit_flags = i32::from(u16::from(bam_flags));
 
@@ -92,8 +91,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .cram_bit_flags_encoding()
-            .expect("missing CF");
+            .cram_bit_flags_encoding();
 
         let cram_bit_flags = i32::from(u8::from(flags));
 
@@ -151,8 +149,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .read_lengths_encoding()
-            .expect("missing RL");
+            .read_lengths_encoding();
 
         encode_itf8(
             &encoding,
@@ -166,8 +163,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .in_seq_positions_encoding()
-            .expect("missing AP");
+            .in_seq_positions_encoding();
 
         encode_itf8(
             &encoding,
@@ -181,8 +177,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .read_groups_encoding()
-            .expect("missing RG");
+            .read_groups_encoding();
 
         encode_itf8(
             &encoding,
@@ -361,8 +356,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .tag_ids_encoding()
-            .expect("missing TL");
+            .tag_ids_encoding();
 
         encode_itf8(
             &encoding,

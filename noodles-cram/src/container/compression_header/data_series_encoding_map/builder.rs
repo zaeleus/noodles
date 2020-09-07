@@ -176,12 +176,22 @@ impl Builder {
 
     pub fn build(self) -> DataSeriesEncodingMap {
         DataSeriesEncodingMap {
-            bam_bit_flags_encoding: self.bam_bit_flags_encoding,
-            cram_bit_flags_encoding: self.cram_bit_flags_encoding,
+            bam_bit_flags_encoding: self
+                .bam_bit_flags_encoding
+                .expect("missing BAM bit flags encoding"),
+            cram_bit_flags_encoding: self
+                .cram_bit_flags_encoding
+                .expect("missing CRAM bit flags encoding"),
             reference_id_encoding: self.reference_id_encoding,
-            read_lengths_encoding: self.read_lengths_encoding,
-            in_seq_positions_encoding: self.in_seq_positions_encoding,
-            read_groups_encoding: self.read_groups_encoding,
+            read_lengths_encoding: self
+                .read_lengths_encoding
+                .expect("missing read lengths encoding"),
+            in_seq_positions_encoding: self
+                .in_seq_positions_encoding
+                .expect("missing in-seq positions encoding"),
+            read_groups_encoding: self
+                .read_groups_encoding
+                .expect("missing read groups encoding"),
             read_names_encoding: self.read_names_encoding,
             next_mate_bit_flags_encoding: self.next_mate_bit_flags_encoding,
             next_fragment_reference_sequence_id_encoding: self
@@ -189,7 +199,7 @@ impl Builder {
             next_mate_alignment_start_encoding: self.next_mate_alignment_start_encoding,
             template_size_encoding: self.template_size_encoding,
             distance_to_next_fragment_encoding: self.distance_to_next_fragment_encoding,
-            tag_ids_encoding: self.tag_ids_encoding,
+            tag_ids_encoding: self.tag_ids_encoding.expect("missing tag IDs encoding"),
             number_of_read_features_encoding: self.number_of_read_features_encoding,
             read_features_codes_encoding: self.read_features_codes_encoding,
             in_read_positions_encoding: self.in_read_positions_encoding,

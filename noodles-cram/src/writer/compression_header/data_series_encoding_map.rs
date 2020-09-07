@@ -35,32 +35,10 @@ where
 }
 
 fn count_data_series_encodings(data_series_encoding_map: &DataSeriesEncodingMap) -> Itf8 {
-    let mut n = 0;
-
-    if data_series_encoding_map.bam_bit_flags_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.cram_bit_flags_encoding().is_some() {
-        n += 1;
-    }
+    // BAM bit flags, CRAM bit flags, read lengths, in-seq positions, read groups, tag IDs
+    let mut n = 6;
 
     if data_series_encoding_map.reference_id_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.read_lengths_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .in_seq_positions_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map.read_groups_encoding().is_some() {
         n += 1;
     }
 
@@ -97,10 +75,6 @@ fn count_data_series_encodings(data_series_encoding_map: &DataSeriesEncodingMap)
         .distance_to_next_fragment_encoding()
         .is_some()
     {
-        n += 1;
-    }
-
-    if data_series_encoding_map.tag_ids_encoding().is_some() {
         n += 1;
     }
 
@@ -201,35 +175,25 @@ fn write_encodings<W>(
 where
     W: Write,
 {
-    if let Some(encoding) = data_series_encoding_map.bam_bit_flags_encoding() {
-        write_key(writer, DataSeries::BamBitFlags)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::BamBitFlags)?;
+    write_encoding(writer, data_series_encoding_map.bam_bit_flags_encoding())?;
 
-    if let Some(encoding) = data_series_encoding_map.cram_bit_flags_encoding() {
-        write_key(writer, DataSeries::CramBitFlags)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::CramBitFlags)?;
+    write_encoding(writer, data_series_encoding_map.cram_bit_flags_encoding())?;
 
     if let Some(encoding) = data_series_encoding_map.reference_id_encoding() {
         write_key(writer, DataSeries::ReferenceId)?;
         write_encoding(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.read_lengths_encoding() {
-        write_key(writer, DataSeries::ReadLengths)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::ReadLengths)?;
+    write_encoding(writer, data_series_encoding_map.read_lengths_encoding())?;
 
-    if let Some(encoding) = data_series_encoding_map.in_seq_positions_encoding() {
-        write_key(writer, DataSeries::InSeqPositions)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::InSeqPositions)?;
+    write_encoding(writer, data_series_encoding_map.in_seq_positions_encoding())?;
 
-    if let Some(encoding) = data_series_encoding_map.read_groups_encoding() {
-        write_key(writer, DataSeries::ReadGroups)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::ReadGroups)?;
+    write_encoding(writer, data_series_encoding_map.read_groups_encoding())?;
 
     if let Some(encoding) = data_series_encoding_map.read_names_encoding() {
         write_key(writer, DataSeries::ReadNames)?;
@@ -262,10 +226,8 @@ where
         write_encoding(writer, encoding)?;
     }
 
-    if let Some(encoding) = data_series_encoding_map.tag_ids_encoding() {
-        write_key(writer, DataSeries::TagIds)?;
-        write_encoding(writer, encoding)?;
-    }
+    write_key(writer, DataSeries::TagIds)?;
+    write_encoding(writer, data_series_encoding_map.tag_ids_encoding())?;
 
     if let Some(encoding) = data_series_encoding_map.number_of_read_features_encoding() {
         write_key(writer, DataSeries::NumberOfReadFeatures)?;
