@@ -10,10 +10,7 @@ use byteorder::WriteBytesExt;
 use noodles_sam as sam;
 
 use crate::{
-    container::{
-        compression_header::{data_series_encoding_map::DataSeries, Encoding},
-        CompressionHeader, ReferenceSequenceId,
-    },
+    container::{compression_header::Encoding, CompressionHeader, ReferenceSequenceId},
     num::{write_itf8, Itf8},
     record::{feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
@@ -78,7 +75,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::BamBitFlags)
+            .bam_bit_flags_encoding()
             .expect("missing BF");
 
         let bam_bit_flags = i32::from(u16::from(bam_flags));
@@ -95,7 +92,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::CramBitFlags)
+            .cram_bit_flags_encoding()
             .expect("missing CF");
 
         let cram_bit_flags = i32::from(u8::from(flags));
@@ -139,7 +136,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReferenceId)
+            .reference_id_encoding()
             .expect("missing RI");
 
         encode_itf8(
@@ -154,7 +151,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReadLengths)
+            .read_lengths_encoding()
             .expect("missing RL");
 
         encode_itf8(
@@ -169,7 +166,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::InSeqPositions)
+            .in_seq_positions_encoding()
             .expect("missing AP");
 
         encode_itf8(
@@ -184,7 +181,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReadGroups)
+            .read_groups_encoding()
             .expect("missing RG");
 
         encode_itf8(
@@ -199,7 +196,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReadNames)
+            .read_names_encoding()
             .expect("missing RN");
 
         encode_byte_array(
@@ -239,7 +236,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::NextMateBitFlags)
+            .next_mate_bit_flags_encoding()
             .expect("missing MF");
 
         let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
@@ -259,7 +256,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::NextFragmentReferenceSequenceId)
+            .next_fragment_reference_sequence_id_encoding()
             .expect("missing NS");
 
         encode_itf8(
@@ -277,7 +274,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::NextMateAlignmentStart)
+            .next_mate_alignment_start_encoding()
             .expect("missing NP");
 
         encode_itf8(
@@ -292,7 +289,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::TemplateSize)
+            .template_size_encoding()
             .expect("missing TS");
 
         encode_itf8(
@@ -310,7 +307,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::DistanceToNextFragment)
+            .distance_to_next_fragment_encoding()
             .expect("missing NF");
 
         encode_itf8(
@@ -364,7 +361,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::TagIds)
+            .tag_ids_encoding()
             .expect("missing TL");
 
         encode_itf8(
@@ -404,7 +401,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::NumberOfReadFeatures)
+            .number_of_read_features_encoding()
             .expect("missing FN");
 
         let number_of_read_features = feature_count as Itf8;
@@ -468,7 +465,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReadFeaturesCodes)
+            .read_features_codes_encoding()
             .expect("missing FC");
 
         let feature_code = char::from(code) as Itf8;
@@ -485,7 +482,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::InReadPositions)
+            .in_read_positions_encoding()
             .expect("missing FP");
 
         encode_itf8(
@@ -500,7 +497,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::StretchesOfBases)
+            .stretches_of_bases_encoding()
             .expect("missing BB");
 
         encode_byte_array(
@@ -515,7 +512,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::StretchesOfQualityScores)
+            .stretches_of_quality_scores_encoding()
             .expect("missing QQ");
 
         encode_byte_array(
@@ -530,7 +527,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::Bases)
+            .bases_encoding()
             .expect("missing BA");
 
         encode_byte(
@@ -545,7 +542,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::QualityScores)
+            .quality_scores_encoding()
             .expect("missing QS");
 
         encode_byte(
@@ -560,7 +557,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::BaseSubstitutionCodes)
+            .base_substitution_codes_encoding()
             .expect("missing BS");
 
         encode_byte(
@@ -575,7 +572,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::Insertion)
+            .insertion_encoding()
             .expect("missing IN");
 
         encode_byte_array(
@@ -590,7 +587,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::DeletionLengths)
+            .deletion_lengths_encoding()
             .expect("missing DL");
 
         encode_itf8(
@@ -605,7 +602,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::ReferenceSkipLength)
+            .reference_skip_length_encoding()
             .expect("missing RS");
 
         encode_itf8(
@@ -620,7 +617,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::SoftClip)
+            .soft_clip_encoding()
             .expect("missing SC");
 
         encode_byte_array(
@@ -635,7 +632,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::Padding)
+            .padding_encoding()
             .expect("missing PD");
 
         encode_itf8(
@@ -650,7 +647,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::HardClip)
+            .hard_clip_encoding()
             .expect("missing HC");
 
         encode_itf8(
@@ -665,7 +662,7 @@ where
         let encoding = self
             .compression_header
             .data_series_encoding_map()
-            .get(&DataSeries::MappingQualities)
+            .mapping_qualities_encoding()
             .expect("missing MQ");
 
         encode_itf8(
