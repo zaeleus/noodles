@@ -37,9 +37,9 @@ where
     let c_read_name = CString::new(record.read_name().as_ref())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let reference_sequence_id = match &**record.reference_sequence_name() {
+    let reference_sequence_id = match record.reference_sequence_name() {
         Some(name) => reference_sequences
-            .get_full(name)
+            .get_full(name.as_str())
             .map(|(i, _, _)| i as i32)
             .ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")

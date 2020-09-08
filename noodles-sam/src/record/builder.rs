@@ -8,7 +8,7 @@ use super::{
 pub struct Builder {
     read_name: ReadName,
     flags: Flags,
-    reference_sequence_name: ReferenceSequenceName,
+    reference_sequence_name: Option<ReferenceSequenceName>,
     position: Position,
     mapping_quality: MappingQuality,
     cigar: Cigar,
@@ -86,14 +86,14 @@ impl Builder {
     ///     .set_reference_sequence_name("sq0".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.reference_sequence_name().as_ref(), "sq0");
+    /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
     /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn set_reference_sequence_name(
         mut self,
         reference_sequence_name: ReferenceSequenceName,
     ) -> Self {
-        self.reference_sequence_name = reference_sequence_name;
+        self.reference_sequence_name = Some(reference_sequence_name);
         self
     }
 
@@ -303,7 +303,7 @@ impl Default for Builder {
         Self {
             read_name: ReadName::default(),
             flags: Flags::UNMAPPED,
-            reference_sequence_name: ReferenceSequenceName::default(),
+            reference_sequence_name: Default::default(),
             position: Position::default(),
             mapping_quality: MappingQuality::default(),
             cigar: Cigar::default(),
@@ -372,7 +372,10 @@ mod tests {
 
         assert_eq!(record.read_name(), &read_name);
         assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
-        assert_eq!(record.reference_sequence_name(), &reference_sequence_name);
+        assert_eq!(
+            record.reference_sequence_name(),
+            Some(&reference_sequence_name)
+        );
         assert_eq!(i32::from(record.position()), 13);
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().len(), 1);

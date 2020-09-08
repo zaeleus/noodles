@@ -47,7 +47,7 @@ const MAX_FIELDS: usize = 12;
 pub struct Record {
     qname: ReadName,
     flag: Flags,
-    rname: ReferenceSequenceName,
+    rname: Option<ReferenceSequenceName>,
     pos: Position,
     mapq: MappingQuality,
     cigar: Cigar,
@@ -129,15 +129,14 @@ impl Record {
     /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
-    /// assert!(record.reference_sequence_name().is_empty());
-    /// assert_eq!(record.reference_sequence_name().as_ref(), "*");
+    /// assert_eq!(record.reference_sequence_name(), None);
     ///
     /// let record = sam::Record::builder().set_reference_sequence_name("sq0".parse()?).build();
-    /// assert_eq!(record.reference_sequence_name().as_ref(), "sq0");
+    /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn reference_sequence_name(&self) -> &ReferenceSequenceName {
-        &self.rname
+    pub fn reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
+        self.rname.as_ref()
     }
 
     /// Returns the start position of this record.
@@ -414,8 +413,15 @@ impl FromStr for Record {
             .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
             .map(Flags::from)?;
 
-        let rname = parse_string(&mut fields, Field::ReferenceSequenceName)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidReferenceSequenceName))?;
+        let rname = parse_string(&mut fields, Field::ReferenceSequenceName).and_then(|s| {
+            if s == NULL_FIELD {
+                Ok(None)
+            } else {
+                s.parse()
+                    .map(Some)
+                    .map_err(ParseError::InvalidReferenceSequenceName)
+            }
+        })?;
 
         let pos = parse_string(&mut fields, Field::Position)
             .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidPosition))
