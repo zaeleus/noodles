@@ -39,8 +39,8 @@ where
 
     let reference_sequence_id = match record.reference_sequence_name() {
         Some(name) => reference_sequences
-            .get_full(name.as_str())
-            .map(|(i, _, _)| i as i32)
+            .get_index_of(name.as_str())
+            .map(|i| i as i32)
             .ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
             })?,
@@ -49,8 +49,8 @@ where
 
     let mate_reference_sequence_id = match record.mate_reference_sequence_name() {
         MateReferenceSequenceName::Some(name) => reference_sequences
-            .get_full(name)
-            .map(|(i, _, _)| i as i32)
+            .get_index_of(name)
+            .map(|i| i as i32)
             .ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
             })?,
