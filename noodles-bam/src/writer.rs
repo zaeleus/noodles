@@ -21,7 +21,7 @@ use super::{Record, MAGIC_NUMBER};
 ///
 /// # Examples
 ///
-/// ```no_run
+/// ```
 /// # use std::io;
 /// use noodles_bam as bam;
 /// use noodles_sam as sam;
