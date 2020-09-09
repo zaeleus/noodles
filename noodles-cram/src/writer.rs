@@ -24,6 +24,24 @@ const FILE_DEFINITION_FORMAT: [u8; 2] = [3, 0];
 const RECORD_COUNTER_START: i64 = 0;
 
 /// A CRAM writer.
+///
+/// # Examples
+///
+/// ```
+/// # use std::io;
+/// use noodles_cram as cram;
+/// use noodles_sam as sam;
+///
+/// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+/// writer.write_file_definition()?;
+///
+/// let header = sam::Header::builder().add_comment("noodles-cram").build();
+/// writer.write_file_header(&header)?;
+///
+/// let record = cram::Record::default();
+/// writer.write_record(record)?;
+/// # Ok::<(), io::Error>(())
+/// ```
 #[derive(Debug)]
 pub struct Writer<W>
 where
@@ -139,6 +157,18 @@ where
             .and_then(|container| self.write_container(&container))
     }
 
+    /// Writes a CRAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// let record = cram::Record::default();
+    /// writer.write_record(record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_record(&mut self, mut record: Record) -> io::Result<()> {
         loop {
             match add_record(
