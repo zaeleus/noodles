@@ -139,16 +139,6 @@ where
             .and_then(|container| self.write_container(&container))
     }
 
-    pub fn write_container(&mut self, container: &Container) -> io::Result<()> {
-        self::container::write_header(&mut self.inner, container.header())?;
-
-        for block in container.blocks() {
-            write_block(&mut self.inner, block)?;
-        }
-
-        Ok(())
-    }
-
     pub fn write_record(&mut self, mut record: Record) -> io::Result<()> {
         loop {
             match add_record(
@@ -172,6 +162,16 @@ where
                 },
             }
         }
+    }
+
+    fn write_container(&mut self, container: &Container) -> io::Result<()> {
+        self::container::write_header(&mut self.inner, container.header())?;
+
+        for block in container.blocks() {
+            write_block(&mut self.inner, block)?;
+        }
+
+        Ok(())
     }
 
     fn flush(&mut self) -> io::Result<()> {
