@@ -96,11 +96,11 @@ mod tests {
 
         assert_eq!(code_book.len(), 6);
 
-        // assert_eq!(code_book[&65], 0b0);
-        // assert_eq!(code_book[&66], 0b100);
-        // assert_eq!(code_book[&67], 0b101);
-        // assert_eq!(code_book[&68], 0b110);
-        // assert_eq!(code_book[&69], 0b1110);
-        // assert_eq!(code_book[&70], 0b1111);
+        assert_eq!(code_book[&65], (0b0, 1));
+        assert_eq!(code_book[&66], (0b100, 3));
+        assert_eq!(code_book[&67], (0b101, 3));
+        assert_eq!(code_book[&68], (0b110, 3));
+        assert_eq!(code_book[&69], (0b1110, 4));
+        assert_eq!(code_book[&70], (0b1111, 4));
     }
 }
