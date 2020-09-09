@@ -28,7 +28,11 @@ impl CanonicalHuffmanDecoder {
             entries.push((symbol, code));
         }
 
-        let sorted_lens: Vec<_> = code_book_by_len.keys().cloned().collect();
+        let sorted_lens = {
+            let mut lens: Vec<_> = code_book_by_len.keys().copied().collect();
+            lens.sort_unstable();
+            lens
+        };
 
         let mut prev_len = 0;
         let mut input_code = 0;
