@@ -2,6 +2,7 @@ mod tag;
 
 use std::{
     collections::HashMap,
+    error, fmt,
     io::{self, Write},
 };
 
@@ -10,11 +11,37 @@ use byteorder::WriteBytesExt;
 use noodles_sam as sam;
 
 use crate::{
-    container::{compression_header::Encoding, CompressionHeader, ReferenceSequenceId},
+    container::{
+        compression_header::{data_series_encoding_map::DataSeries, Encoding},
+        CompressionHeader, ReferenceSequenceId,
+    },
     num::{write_itf8, Itf8},
-    record::{feature, Feature, Flags, NextMateFlags},
+    record::{self, feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
 };
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum WriteRecordError {
+    MissingDataSeriesEncoding(DataSeries),
+    MissingTagEncoding(record::tag::Key),
+    MissingExternalBlock(i32),
+}
+
+impl error::Error for WriteRecordError {}
+
+impl fmt::Display for WriteRecordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingDataSeriesEncoding(data_series) => {
+                write!(f, "missing data series encoding: {:?}", data_series)
+            }
+            Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {:?}", key),
+            Self::MissingExternalBlock(block_content_id) => {
+                write!(f, "missing external block: {}", block_content_id)
+            }
+        }
+    }
+}
 
 pub struct Writer<'a, W, X> {
     compression_header: &'a CompressionHeader,
@@ -80,7 +107,7 @@ where
         let bam_bit_flags = i32::from(u16::from(bam_flags));
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             bam_bit_flags,
@@ -96,7 +123,7 @@ where
         let cram_bit_flags = i32::from(u8::from(flags));
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             cram_bit_flags,
@@ -131,18 +158,23 @@ where
     }
 
     fn write_reference_id(&mut self, reference_id: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
-            .expect("missing RI");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            reference_id,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    reference_id,
+                )
+            })
     }
 
     fn write_read_length(&mut self, read_length: Itf8) -> io::Result<()> {
@@ -152,7 +184,7 @@ where
             .read_lengths_encoding();
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             read_length,
@@ -166,7 +198,7 @@ where
             .in_seq_positions_encoding();
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             alignment_start,
@@ -180,7 +212,7 @@ where
             .read_groups_encoding();
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             read_group,
@@ -188,18 +220,23 @@ where
     }
 
     fn write_read_name(&mut self, read_name: &[u8]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .read_names_encoding()
-            .expect("missing RN");
-
-        encode_byte_array(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            read_name,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte_array(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    read_name,
+                )
+            })
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
@@ -228,89 +265,116 @@ where
     }
 
     fn write_next_mate_bit_flags(&mut self, next_mate_flags: NextMateFlags) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_bit_flags_encoding()
-            .expect("missing MF");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
+                )
+            })
+            .and_then(|encoding| {
+                let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
 
-        let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            next_mate_bit_flags,
-        )
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    next_mate_bit_flags,
+                )
+            })
     }
 
     fn write_next_fragment_reference_sequence_id(
         &mut self,
         next_fragment_reference_sequence_id: Itf8,
     ) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_fragment_reference_sequence_id_encoding()
-            .expect("missing NS");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            next_fragment_reference_sequence_id,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(
+                        DataSeries::NextFragmentReferenceSequenceId,
+                    ),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    next_fragment_reference_sequence_id,
+                )
+            })
     }
 
     fn write_next_mate_alignment_start(
         &mut self,
         next_mate_alignment_start: Itf8,
     ) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_alignment_start_encoding()
-            .expect("missing NP");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            next_mate_alignment_start,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    next_mate_alignment_start,
+                )
+            })
     }
 
     fn write_template_size(&mut self, template_size: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .template_size_encoding()
-            .expect("missing TS");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            template_size,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    template_size,
+                )
+            })
     }
 
     fn write_distance_to_next_fragment(
         &mut self,
         distance_to_next_fragment: Itf8,
     ) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
-            .expect("missing NF");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            distance_to_next_fragment,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    distance_to_next_fragment,
+                )
+            })
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
@@ -336,7 +400,12 @@ where
 
         for tag in record.tags() {
             let id = tag.key().id();
-            let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
+            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    WriteRecordError::MissingTagEncoding(tag.key()),
+                )
+            })?;
 
             let mut buf = Vec::new();
             tag::write_value(&mut buf, tag.value())?;
@@ -359,7 +428,7 @@ where
             .tag_ids_encoding();
 
         encode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
             tag_line,
@@ -392,20 +461,25 @@ where
     }
 
     fn write_number_of_read_features(&mut self, feature_count: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
-            .expect("missing FN");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
+                )
+            })
+            .and_then(|encoding| {
+                let number_of_read_features = feature_count as Itf8;
 
-        let number_of_read_features = feature_count as Itf8;
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            number_of_read_features,
-        )
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    number_of_read_features,
+                )
+            })
     }
 
     fn write_feature(&mut self, feature: &Feature, position: Itf8) -> io::Result<()> {
@@ -456,215 +530,287 @@ where
     }
 
     fn write_feature_code(&mut self, code: feature::Code) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .read_features_codes_encoding()
-            .expect("missing FC");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                )
+            })
+            .and_then(|encoding| {
+                let feature_code = char::from(code) as Itf8;
 
-        let feature_code = char::from(code) as Itf8;
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            feature_code,
-        )
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    feature_code,
+                )
+            })
     }
 
     fn write_feature_position(&mut self, position: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
-            .expect("missing FP");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            position,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    position,
+                )
+            })
     }
 
     fn write_stretches_of_bases(&mut self, bases: &[u8]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_bases_encoding()
-            .expect("missing BB");
-
-        encode_byte_array(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            bases,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte_array(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    bases,
+                )
+            })
     }
 
     fn write_stretches_of_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
-            .expect("missing QQ");
-
-        encode_byte_array(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            quality_scores,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(
+                        DataSeries::StretchesOfQualityScores,
+                    ),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte_array(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    quality_scores,
+                )
+            })
     }
 
     fn write_base(&mut self, base: u8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .bases_encoding()
-            .expect("missing BA");
-
-        encode_byte(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            base,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    base,
+                )
+            })
     }
 
     fn write_quality_score(&mut self, quality_score: u8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
-            .expect("missing QS");
-
-        encode_byte(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            quality_score,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    quality_score,
+                )
+            })
     }
 
     fn write_base_substitution_code(&mut self, code: u8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .base_substitution_codes_encoding()
-            .expect("missing BS");
-
-        encode_byte(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            code,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    code,
+                )
+            })
     }
 
     fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .insertion_encoding()
-            .expect("missing IN");
-
-        encode_byte_array(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            bases,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte_array(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    bases,
+                )
+            })
     }
 
     fn write_deletion_length(&mut self, len: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
-            .expect("missing DL");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            len,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    len,
+                )
+            })
     }
 
     fn write_reference_skip_length(&mut self, len: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
-            .expect("missing RS");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            len,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    len,
+                )
+            })
     }
 
     fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .soft_clip_encoding()
-            .expect("missing SC");
-
-        encode_byte_array(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            bases,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
+                )
+            })
+            .and_then(|encoding| {
+                encode_byte_array(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    bases,
+                )
+            })
     }
 
     fn write_padding(&mut self, len: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .padding_encoding()
-            .expect("missing PD");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            len,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    len,
+                )
+            })
     }
 
     fn write_hard_clip(&mut self, len: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
-            .expect("missing HC");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            len,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    len,
+                )
+            })
     }
 
     fn write_mapping_quality(&mut self, mapping_quality: Itf8) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
-            .expect("missing MQ");
-
-        encode_itf8(
-            &encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
-            mapping_quality,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
+                )
+            })
+            .and_then(|encoding| {
+                encode_itf8(
+                    encoding,
+                    &mut self.core_data_writer,
+                    &mut self.external_data_writers,
+                    mapping_quality,
+                )
+            })
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
@@ -697,8 +843,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let writer = external_data_writers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        WriteRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             writer.write_u8(value)
         }
@@ -719,8 +870,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let writer = external_data_writers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        WriteRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             write_itf8(writer, value)
         }
@@ -741,8 +897,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let writer = external_data_writers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        WriteRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             writer.write_all(data)
         }
@@ -759,8 +920,13 @@ where
         }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             let writer = external_data_writers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        WriteRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             writer.write_all(data)?;
             writer.write_u8(*stop_byte)?;
