@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     convert::TryFrom,
+    error, fmt,
     io::{self, BufRead, Read},
 };
 
@@ -9,12 +10,38 @@ use noodles_bam as bam;
 use noodles_sam as sam;
 
 use crate::{
-    container::{compression_header::encoding::Encoding, CompressionHeader, ReferenceSequenceId},
+    container::{
+        compression_header::{data_series_encoding_map::DataSeries, encoding::Encoding},
+        CompressionHeader, ReferenceSequenceId,
+    },
     huffman::CanonicalHuffmanDecoder,
     num::{read_itf8, Itf8},
-    record::{self, feature, Feature, ReadGroupId, Tag},
+    record::{self, feature, tag, Feature, ReadGroupId, Tag},
     BitReader, Record,
 };
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ReadRecordError {
+    MissingDataSeriesEncoding(DataSeries),
+    MissingTagEncoding(tag::Key),
+    MissingExternalBlock(i32),
+}
+
+impl error::Error for ReadRecordError {}
+
+impl fmt::Display for ReadRecordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingDataSeriesEncoding(data_series) => {
+                write!(f, "missing data series encoding: {:?}", data_series)
+            }
+            Self::MissingTagEncoding(key) => write!(f, "missing tag encoding: {:?}", key),
+            Self::MissingExternalBlock(block_content_id) => {
+                write!(f, "missing external block: {}", block_content_id)
+            }
+        }
+    }
+}
 
 pub struct Reader<'a, R, S>
 where
@@ -94,7 +121,7 @@ where
             .bam_bit_flags_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
@@ -107,7 +134,7 @@ where
             .cram_bit_flags_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
@@ -143,17 +170,22 @@ where
     }
 
     fn read_reference_id(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
-            .expect("missing RI");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_read_length(&mut self) -> io::Result<Itf8> {
@@ -163,7 +195,7 @@ where
             .read_lengths_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
@@ -176,7 +208,7 @@ where
             .in_seq_positions_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
@@ -189,25 +221,30 @@ where
             .read_groups_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
     }
 
     fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .read_names_encoding()
-            .expect("missing RN");
-
-        decode_byte_array(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-            None,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte_array(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                    None,
+                )
+            })
     }
 
     fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
@@ -250,73 +287,100 @@ where
     }
 
     fn read_next_mate_bit_flags(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_bit_flags_encoding()
-            .expect("missing MF");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_fragment_reference_sequence_id_encoding()
-            .expect("missing NS");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(
+                        DataSeries::NextFragmentReferenceSequenceId,
+                    ),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .next_mate_alignment_start_encoding()
-            .expect("missing NP");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_template_size(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .template_size_encoding()
-            .expect("missing TS");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
-            .expect("missing NF");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_tag_data(&mut self, record: &mut Record) -> io::Result<()> {
@@ -332,7 +396,12 @@ where
 
         for key in tag_keys {
             let id = key.id();
-            let encoding = tag_encoding_map.get(&id).expect("missing tag encoding");
+            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingTagEncoding(*key),
+                )
+            })?;
 
             let data = decode_byte_array(
                 encoding,
@@ -358,7 +427,7 @@ where
             .tag_ids_encoding();
 
         decode_itf8(
-            &encoding,
+            encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
@@ -399,17 +468,22 @@ where
     }
 
     fn read_number_of_read_features(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
-            .expect("missing FN");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_feature(&mut self, prev_position: i32) -> io::Result<Feature> {
@@ -477,203 +551,275 @@ where
     }
 
     fn read_feature_code(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .read_features_codes_encoding()
-            .expect("missing FC");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_feature_position(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
-            .expect("missing FP");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_bases_encoding()
-            .expect("missing BB");
-
-        decode_byte_array(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-            None,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte_array(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                    None,
+                )
+            })
     }
 
     fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
-            .expect("missing QQ");
-
-        decode_byte_array(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-            None,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(
+                        DataSeries::StretchesOfQualityScores,
+                    ),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte_array(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                    None,
+                )
+            })
     }
 
     fn read_base(&mut self) -> io::Result<u8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .bases_encoding()
-            .expect("missing BA");
-
-        decode_byte(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_quality_score(&mut self) -> io::Result<u8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
-            .expect("missing QS");
-
-        decode_byte(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_base_substitution_code(&mut self) -> io::Result<u8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .base_substitution_codes_encoding()
-            .expect("missing BS");
-
-        decode_byte(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_insertion(&mut self) -> io::Result<Vec<u8>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .insertion_encoding()
-            .expect("missing IN");
-
-        decode_byte_array(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-            None,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte_array(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                    None,
+                )
+            })
     }
 
     fn read_deletion_length(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
-            .expect("missing DL");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_reference_skip_length(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
-            .expect("missing RS");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .soft_clip_encoding()
-            .expect("missing SC");
-
-        decode_byte_array(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-            None,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
+                )
+            })
+            .and_then(|encoding| {
+                decode_byte_array(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                    None,
+                )
+            })
     }
 
     fn read_padding(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .padding_encoding()
-            .expect("missing PD");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_hard_clip(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
-            .expect("missing HC");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_mapping_quality(&mut self) -> io::Result<Itf8> {
-        let encoding = self
-            .compression_header
+        self.compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
-            .expect("missing MQ");
-
-        decode_itf8(
-            &encoding,
-            &mut self.core_data_reader,
-            &mut self.external_data_readers,
-        )
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
+                )
+            })
+            .and_then(|encoding| {
+                decode_itf8(
+                    encoding,
+                    &mut self.core_data_reader,
+                    &mut self.external_data_readers,
+                )
+            })
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
@@ -714,8 +860,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let reader = external_data_readers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             reader.read_u8()
         }
@@ -742,8 +893,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let reader = external_data_readers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             read_itf8(reader)
         }
@@ -771,8 +927,13 @@ where
     match encoding {
         Encoding::External(block_content_id) => {
             let reader = external_data_readers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             let mut buf = buf.expect("missing buf");
             reader.read_exact(&mut buf)?;
@@ -794,8 +955,13 @@ where
         }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             let reader = external_data_readers
-                .get_mut(&block_content_id)
-                .expect("could not find block");
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
 
             let mut buf = Vec::new();
             reader.read_until(*stop_byte, &mut buf)?;
