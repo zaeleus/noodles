@@ -64,7 +64,7 @@ fn count(counts: &mut Counts, record: &bam::Record) {
                 if record.mate_reference_sequence_id() != record.reference_sequence_id() {
                     counts.mate_reference_sequence_id_mismatch += 1;
 
-                    if u8::from(record.mapping_quality()) > 5 {
+                    if u8::from(record.mapping_quality()) >= 5 {
                         counts.mate_reference_sequence_id_mismatch_hq += 1;
                     }
                 }
