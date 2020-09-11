@@ -40,7 +40,7 @@ use noodles_sam as sam;
 /// Additionally, it encodes the BAM index bin (`bin`).
 ///
 /// A `bam::Record` wraps a raw byte buffer, and the fields should be considered immutable.
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Record(Vec<u8>);
 
 impl Record {
