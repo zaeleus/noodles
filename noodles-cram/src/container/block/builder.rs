@@ -4,6 +4,7 @@ use crate::num::Itf8;
 
 use super::{Block, CompressionMethod, ContentType};
 
+use bzip2::write::BzEncoder;
 use flate2::write::GzEncoder;
 
 #[derive(Debug, Default)]
@@ -63,6 +64,11 @@ impl Builder {
             CompressionMethod::None => data,
             CompressionMethod::Gzip => {
                 let mut encoder = GzEncoder::new(Vec::new(), flate2::Compression::default());
+                encoder.write_all(&data)?;
+                encoder.finish()?
+            }
+            CompressionMethod::Bzip2 => {
+                let mut encoder = BzEncoder::new(Vec::new(), bzip2::Compression::default());
                 encoder.write_all(&data)?;
                 encoder.finish()?
             }
