@@ -6,6 +6,9 @@ use super::{Block, CompressionMethod, ContentType};
 
 use bzip2::write::BzEncoder;
 use flate2::write::GzEncoder;
+use xz2::write::XzEncoder;
+
+const DEFAULT_LZMA_COMPRESSION_LEVEL: u32 = 6;
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -69,6 +72,11 @@ impl Builder {
             }
             CompressionMethod::Bzip2 => {
                 let mut encoder = BzEncoder::new(Vec::new(), bzip2::Compression::default());
+                encoder.write_all(&data)?;
+                encoder.finish()?
+            }
+            CompressionMethod::Lzma => {
+                let mut encoder = XzEncoder::new(Vec::new(), DEFAULT_LZMA_COMPRESSION_LEVEL);
                 encoder.write_all(&data)?;
                 encoder.finish()?
             }
