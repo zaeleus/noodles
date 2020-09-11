@@ -51,10 +51,12 @@ where
         let header_container = self.read_container()?;
 
         if let Some(block) = header_container.blocks().first() {
-            let mut data = &block.decompressed_data()[..];
-            let _header_len = data.read_i32::<LittleEndian>()?;
+            let data = block.decompressed_data()?;
+            let mut reader = &data[..];
 
-            str::from_utf8(data)
+            let _header_len = reader.read_i32::<LittleEndian>()?;
+
+            str::from_utf8(reader)
                 .map(|s| s.into())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         } else {

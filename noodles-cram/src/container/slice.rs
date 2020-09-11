@@ -4,6 +4,7 @@ pub mod header;
 pub use self::{builder::Builder, header::Header};
 
 use std::{
+    collections::HashMap,
     convert::TryFrom,
     io::{self, Cursor},
 };
@@ -47,14 +48,18 @@ impl Slice {
     }
 
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
-        let core_data_reader =
-            BitReader::new(Cursor::new(self.core_data_block.decompressed_data()));
+        let core_data_reader = self
+            .core_data_block
+            .decompressed_data()
+            .map(Cursor::new)
+            .map(BitReader::new)?;
 
-        let external_data_readers = self
-            .external_blocks
-            .iter()
-            .map(|block| (block.content_id(), Cursor::new(block.decompressed_data())))
-            .collect();
+        let mut external_data_readers = HashMap::with_capacity(self.external_blocks().len());
+
+        for block in self.external_blocks() {
+            let reader = block.decompressed_data().map(Cursor::new)?;
+            external_data_readers.insert(block.content_id(), reader);
+        }
 
         let mut record_reader = reader::record::Reader::new(
             compression_header,
@@ -162,7 +167,7 @@ impl TryFrom<&[Block]> for Slice {
         let header_block = it
             .next()
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing header block"))?;
-        let data = header_block.decompressed_data();
+        let data = header_block.decompressed_data()?;
         let mut reader = &data[..];
         let header = reader::slice::read_header(&mut reader)?;
 

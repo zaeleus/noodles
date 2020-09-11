@@ -59,7 +59,7 @@ impl TryFrom<&Block> for CompressionHeader {
     type Error = io::Error;
 
     fn try_from(block: &Block) -> Result<Self, Self::Error> {
-        let data = block.decompressed_data();
+        let data = block.decompressed_data()?;
         let mut reader = &data[..];
         read_compression_header(&mut reader)
     }
