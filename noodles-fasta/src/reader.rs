@@ -73,8 +73,8 @@ where
     /// The position of the stream is expected to be at the start of a sequence, which is directly
     /// after a definition.
     ///
-    /// If successful, this returns the number of bytes read from the stream. If the number of
-    /// bytes read is 0, the stream reached EOF (though this case is likely an error).
+    /// If successful, this returns the number of bytes read from the stream (including the excluded newlines). 
+    /// If the number of bytes read is 0, the stream reached EOF (though this case is likely an error).
     ///
     /// # Examples
     ///
@@ -104,7 +104,65 @@ where
 
             let len = match memchr(NEWLINE, reader_buf) {
                 Some(i) => {
+                    // Discard newline
                     buf.extend(&reader_buf[..i]);
+                    i + 1
+                }
+                None => {
+                    buf.extend(reader_buf);
+                    reader_buf.len()
+                }
+            };
+
+            self.inner.consume(len);
+
+            bytes_read += len;
+        }
+
+        Ok(bytes_read)
+    }
+
+    /// Reads a raw sequence.
+    ///
+    /// Unlike [read_sequence], the given buffer consumes a sequence including the newlines
+    /// until another definition or EOF is reached.
+    ///
+    /// The position of the stream is expected to be at the start of a sequence, which is directly
+    /// after a definition.
+    ///
+    /// If successful, this returns the number of bytes read from the stream. If the number of
+    /// bytes read is 0, the stream reached EOF (though this case is likely an error).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let data = b">sq0\nACGT\nTGCA\n\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::Reader::new(&data[..]);
+    /// reader.read_definition(&mut String::new())?;
+    ///
+    /// let mut buf = Vec::new();
+    /// reader.read_sequence_raw(&mut buf)?;
+    ///
+    /// assert_eq!(buf, b"ACGT\nTGCA\n\n");
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_sequence_raw(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+        let mut bytes_read = 0;
+
+        loop {
+            let reader_buf = self.inner.fill_buf()?;
+
+            if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+                break;
+            }
+
+            let len = match memchr(NEWLINE, reader_buf) {
+                Some(i) => {
+                    // Discard newline
+                    buf.extend(&reader_buf[..i + 1]);
                     i + 1
                 }
                 None => {
