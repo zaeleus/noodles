@@ -73,7 +73,7 @@ where
     /// The position of the stream is expected to be at the start of a sequence, which is directly
     /// after a definition.
     ///
-    /// If successful, this returns the number of bytes read from the stream (including the excluded newlines). 
+    /// If successful, this returns the number of bytes read from the stream (including the excluded newlines).
     /// If the number of bytes read is 0, the stream reached EOF (though this case is likely an error).
     ///
     /// # Examples
