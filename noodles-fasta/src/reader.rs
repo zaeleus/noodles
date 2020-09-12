@@ -144,9 +144,10 @@ where
     /// reader.read_definition(&mut String::new())?;
     ///
     /// let mut buf = Vec::new();
-    /// reader.read_sequence_raw(&mut buf)?;
+    /// let read = reader.read_sequence_raw(&mut buf)?;
     ///
     /// assert_eq!(buf, b"ACGT\nTGCA\n\n");
+    /// assert_eq!(read, 11);
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence_raw(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
@@ -159,11 +160,11 @@ where
                 break;
             }
 
-            let len = match memchr(NEWLINE, reader_buf) {
+            let len = match memchr(DEFINITION_PREFIX, reader_buf) {
                 Some(i) => {
-                    // Discard newline
-                    buf.extend(&reader_buf[..i + 1]);
-                    i + 1
+                    // Hit next >, do not consume it
+                    buf.extend(&reader_buf[..i]);
+                    i
                 }
                 None => {
                     buf.extend(reader_buf);
