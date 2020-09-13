@@ -10,6 +10,7 @@ use super::{
 pub struct Builder {
     current_reference_sequence_id: ReferenceSequenceId,
     reference_sequences_builders: Vec<reference_sequence::Builder>,
+    unplaced_unmapped_record_count: u64,
 }
 
 impl Builder {
@@ -36,6 +37,7 @@ impl Builder {
     /// ```
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
         if record.flags().is_unmapped() {
+            self.unplaced_unmapped_record_count += 1;
             return;
         }
 
@@ -82,6 +84,9 @@ impl Builder {
             .map(|b| b.build())
             .collect();
 
-        Index::new(reference_sequences, None)
+        Index::new(
+            reference_sequences,
+            Some(self.unplaced_unmapped_record_count),
+        )
     }
 }
