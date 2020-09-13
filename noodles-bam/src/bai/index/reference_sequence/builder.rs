@@ -23,7 +23,7 @@ impl Builder {
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
-            builder.set_bin(bin_id);
+            builder.set_id(bin_id);
             builder
         });
 

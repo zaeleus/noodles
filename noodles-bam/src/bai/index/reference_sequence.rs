@@ -101,7 +101,7 @@ impl ReferenceSequence {
     pub fn metadata(&self) -> Option<Metadata> {
         self.bins()
             .iter()
-            .find(|b| b.bin() == metadata::MAGIC_NUMBER)
+            .find(|b| b.id() == metadata::MAGIC_NUMBER)
             .and_then(|bin| Metadata::try_from(bin).ok())
     }
 
@@ -123,10 +123,10 @@ impl ReferenceSequence {
         let mut query_bins = Vec::new();
 
         for bin in self.bins() {
-            let bin_index = bin.bin() as usize;
+            let bin_id = bin.id() as usize;
 
             // Only accept bin numbers [0, MAX_BIN), which skips the psuedo-bin at 37450.
-            if bin_index < region_bins.len() && region_bins[bin_index] {
+            if bin_id < region_bins.len() && region_bins[bin_id] {
                 query_bins.push(bin);
             }
         }

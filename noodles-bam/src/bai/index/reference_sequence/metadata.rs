@@ -129,8 +129,8 @@ impl TryFrom<&Bin> for Metadata {
     type Error = TryFromBinError;
 
     fn try_from(bin: &Bin) -> Result<Self, Self::Error> {
-        if bin.bin() != MAGIC_NUMBER {
-            return Err(TryFromBinError::InvalidMagicNumber(bin.bin()));
+        if bin.id() != MAGIC_NUMBER {
+            return Err(TryFromBinError::InvalidMagicNumber(bin.id()));
         }
 
         let mut chunks_iter = bin.chunks().iter();

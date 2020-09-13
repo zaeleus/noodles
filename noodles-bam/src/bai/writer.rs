@@ -138,7 +138,7 @@ fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u32::<LittleEndian>(bin.bin())?;
+    writer.write_u32::<LittleEndian>(bin.id())?;
 
     let n_chunk = bin.chunks().len() as u32;
     writer.write_u32::<LittleEndian>(n_chunk)?;

@@ -2,13 +2,13 @@ use super::{Bin, Chunk};
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    bin: u32,
+    id: u32,
     chunks: Vec<Chunk>,
 }
 
 impl Builder {
-    pub fn set_bin(&mut self, bin: u32) -> &mut Self {
-        self.bin = bin;
+    pub fn set_id(&mut self, id: u32) -> &mut Self {
+        self.id = id;
         self
     }
 
@@ -26,7 +26,7 @@ impl Builder {
 
     pub fn build(self) -> Bin {
         Bin {
-            bin: self.bin,
+            id: self.id,
             chunks: self.chunks,
         }
     }
