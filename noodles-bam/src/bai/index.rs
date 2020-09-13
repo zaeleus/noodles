@@ -1,8 +1,9 @@
 //! BAM index and fields.
 
+mod builder;
 pub mod reference_sequence;
 
-pub use self::reference_sequence::ReferenceSequence;
+pub use self::{builder::Builder, reference_sequence::ReferenceSequence};
 
 /// A BAM index.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -12,6 +13,18 @@ pub struct Index {
 }
 
 impl Index {
+    /// Creates a BAM index builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::bai;
+    /// let builder = bai::Index::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a new BAM index.
     ///
     /// # Examples
