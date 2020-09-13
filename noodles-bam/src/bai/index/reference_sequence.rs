@@ -1,7 +1,10 @@
 //! BAM index reference sequence and fields.
 
 pub mod bin;
+mod builder;
 pub mod metadata;
+
+pub(crate) use self::builder::Builder;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
@@ -22,6 +25,10 @@ pub struct ReferenceSequence {
 }
 
 impl ReferenceSequence {
+    pub(crate) fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a new BAM index reference seqeuence.
     ///
     /// # Examples
