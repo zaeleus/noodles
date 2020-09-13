@@ -1,6 +1,9 @@
 //! BAM index bin and fields.
 
+mod builder;
 mod chunk;
+
+pub(crate) use self::builder::Builder;
 
 pub use self::chunk::Chunk;
 
@@ -19,6 +22,10 @@ pub struct Bin {
 }
 
 impl Bin {
+    pub(crate) fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a new bin.
     ///
     /// # Examples
