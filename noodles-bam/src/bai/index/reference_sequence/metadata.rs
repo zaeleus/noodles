@@ -4,7 +4,7 @@ use std::{convert::TryFrom, error, fmt};
 
 use noodles_bgzf::VirtualPosition;
 
-use super::Bin;
+use super::{bin::Chunk, Bin};
 
 pub(crate) const MAGIC_NUMBER: u32 = 37450;
 
@@ -151,5 +151,20 @@ impl TryFrom<&Bin> for Metadata {
             mapped_record_count: n_mapped,
             unmapped_record_count: n_unmapped,
         })
+    }
+}
+
+impl From<Metadata> for Bin {
+    fn from(metadata: Metadata) -> Self {
+        let positions_chunk = Chunk::new(metadata.start_position(), metadata.end_position());
+
+        let counts_chunk = Chunk::new(
+            VirtualPosition::from(metadata.mapped_record_count()),
+            VirtualPosition::from(metadata.unmapped_record_count()),
+        );
+
+        let chunks = vec![positions_chunk, counts_chunk];
+
+        Bin::new(MAGIC_NUMBER, chunks)
     }
 }
