@@ -11,6 +11,9 @@ use super::{
 
 const WINDOW_SIZE: i32 = 16384;
 
+// § 5.1.1 Basic binning index: "... bins 4681-37448 span 16Kbp regions."
+const MAX_INTERVAL_COUNT: usize = 37448 - 4681 + 1;
+
 #[derive(Debug)]
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
@@ -85,7 +88,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             bin_builders: HashMap::new(),
-            intervals: vec![bgzf::VirtualPosition::default(); 40000],
+            intervals: vec![bgzf::VirtualPosition::default(); MAX_INTERVAL_COUNT],
             start_position: bgzf::VirtualPosition::max(),
             end_position: bgzf::VirtualPosition::default(),
             mapped_record_count: 0,
