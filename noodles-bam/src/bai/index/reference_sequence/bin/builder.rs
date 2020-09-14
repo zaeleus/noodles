@@ -16,10 +16,11 @@ impl Builder {
         if let Some(last_chunk) = self.chunks.last_mut() {
             if chunk.start() <= last_chunk.end() {
                 *last_chunk = Chunk::new(last_chunk.start(), chunk.end());
+                return self;
             }
-        } else {
-            self.chunks.push(chunk);
         }
+
+        self.chunks.push(chunk);
 
         self
     }
