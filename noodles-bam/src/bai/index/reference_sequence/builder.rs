@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp, collections::HashMap};
 
 use noodles_bgzf as bgzf;
 
@@ -6,7 +6,7 @@ use crate::Record;
 
 use super::{
     bin::{self, Chunk},
-    Bin, ReferenceSequence,
+    Bin, Metadata, ReferenceSequence,
 };
 
 const WINDOW_SIZE: i32 = 16384;
@@ -15,10 +15,16 @@ const WINDOW_SIZE: i32 = 16384;
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
     intervals: Vec<bgzf::VirtualPosition>,
+    start_position: bgzf::VirtualPosition,
+    end_position: bgzf::VirtualPosition,
+    mapped_record_count: u64,
+    unmapped_record_count: u64,
 }
 
 impl Builder {
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
+        self.update_metadata(record, chunk);
+
         let bin_id = record.bin() as u32;
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
@@ -42,16 +48,36 @@ impl Builder {
     }
 
     pub fn build(self) -> ReferenceSequence {
-        let bins = self
+        let mut bins: Vec<_> = self
             .bin_builders
             .into_iter()
             .map(|(_, b)| b.build())
             .collect();
 
+        let metadata = Metadata::new(
+            self.start_position,
+            self.end_position,
+            self.mapped_record_count,
+            self.unmapped_record_count,
+        );
+
+        bins.push(metadata.into());
+
         ReferenceSequence {
             bins,
             intervals: self.intervals,
         }
+    }
+
+    fn update_metadata(&mut self, record: &Record, chunk: Chunk) {
+        if record.flags().is_unmapped() {
+            self.unmapped_record_count += 1;
+        } else {
+            self.mapped_record_count += 1;
+        }
+
+        self.start_position = cmp::min(self.start_position, chunk.start());
+        self.end_position = cmp::max(self.end_position, chunk.end());
     }
 }
 
@@ -60,6 +86,10 @@ impl Default for Builder {
         Self {
             bin_builders: HashMap::new(),
             intervals: vec![bgzf::VirtualPosition::default(); 40000],
+            start_position: bgzf::VirtualPosition::max(),
+            end_position: bgzf::VirtualPosition::default(),
+            mapped_record_count: 0,
+            unmapped_record_count: 0,
         }
     }
 }
