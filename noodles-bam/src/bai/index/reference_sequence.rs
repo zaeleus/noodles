@@ -122,7 +122,7 @@ impl ReferenceSequence {
         for bin in self.bins() {
             let bin_id = bin.id() as usize;
 
-            // Only accept bin numbers [0, MAX_BIN), which skips the psuedo-bin at 37450.
+            // Only accept bin numbers [0, MAX_BIN), which skips the pseudo-bin at 37450.
             if bin_id < region_bins.len() && region_bins[bin_id] {
                 query_bins.push(bin);
             }
