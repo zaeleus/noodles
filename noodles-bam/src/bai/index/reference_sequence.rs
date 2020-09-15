@@ -8,8 +8,6 @@ pub(crate) use self::builder::Builder;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
-use std::convert::TryFrom;
-
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 
@@ -22,6 +20,7 @@ const WINDOW_SIZE: u64 = 16384;
 pub struct ReferenceSequence {
     bins: Vec<Bin>,
     intervals: Vec<bgzf::VirtualPosition>,
+    metadata: Option<Metadata>,
 }
 
 impl ReferenceSequence {
@@ -35,19 +34,31 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// ```
-    pub fn new(bins: Vec<Bin>, intervals: Vec<bgzf::VirtualPosition>) -> Self {
-        Self { bins, intervals }
+    pub fn new(
+        bins: Vec<Bin>,
+        intervals: Vec<bgzf::VirtualPosition>,
+        metadata: Option<Metadata>,
+    ) -> Self {
+        Self {
+            bins,
+            intervals,
+            metadata,
+        }
     }
 
     /// Returns the list of bins in this reference sequence.
+    ///
+    /// This list does not include the metadata pseudo-bin (bin 37450). Use [`metadata`] instead.
+    ///
+    /// [`metadata`]: #method.metadata
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
     pub fn bins(&self) -> &[Bin] {
@@ -60,7 +71,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.intervals().is_empty());
     /// ```
     pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
@@ -69,40 +80,26 @@ impl ReferenceSequence {
 
     /// Returns metadata for this reference sequence.
     ///
-    /// Metadata is parsed from optional bin 37450.
+    /// Metadata is parsed from the optional pseudo-bin 37450.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::bai::index::{
-    ///     reference_sequence::{bin::Chunk, Bin, Metadata},
-    ///     ReferenceSequence,
-    /// };
+    /// use noodles_bam::bai::index::{reference_sequence::Metadata, ReferenceSequence};
     /// use noodles_bgzf::VirtualPosition;
     ///
-    /// let reference_sequences = ReferenceSequence::new(
-    ///     vec![
-    ///         Bin::new(0, Vec::new()),
-    ///         Bin::new(37450, vec![
-    ///             Chunk::new(VirtualPosition::from(610), VirtualPosition::from(1597)),
-    ///             Chunk::new(VirtualPosition::from(55), VirtualPosition::from(0)),
-    ///         ]),
-    ///     ],
-    ///     Vec::new(),
-    /// );
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// assert!(reference_sequence.metadata().is_none());
     ///
-    /// assert_eq!(reference_sequences.metadata(), Some(Metadata::new(
-    ///     VirtualPosition::from(610),
-    ///     VirtualPosition::from(1597),
-    ///     55,
-    ///     0,
-    /// )));
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Some(Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0))
+    /// );
+    /// assert!(reference_sequence.metadata().is_some());
     /// ```
-    pub fn metadata(&self) -> Option<Metadata> {
-        self.bins()
-            .iter()
-            .find(|b| b.id() == metadata::MAGIC_NUMBER)
-            .and_then(|bin| Metadata::try_from(bin).ok())
+    pub fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 
     /// Returns a list of bins in this reference seqeunce that intersect the given range.
@@ -113,7 +110,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// let query_bins = reference_sequence.query(8, 13);
     /// assert!(query_bins.is_empty());
     /// ```
@@ -143,7 +140,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {

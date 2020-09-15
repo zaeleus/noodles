@@ -116,11 +116,21 @@ fn write_reference_sequence<W>(
 where
     W: Write,
 {
-    let n_bin = reference_sequence.bins().len() as u32;
+    let mut n_bin = reference_sequence.bins().len() as u32;
+
+    if reference_sequence.metadata().is_some() {
+        n_bin += 1;
+    }
+
     writer.write_u32::<LittleEndian>(n_bin)?;
 
     for bin in reference_sequence.bins() {
         write_bin(writer, bin)?;
+    }
+
+    if let Some(metadata) = reference_sequence.metadata() {
+        let bin = Bin::from(metadata.clone());
+        write_bin(writer, &bin)?;
     }
 
     let n_intv = reference_sequence.intervals().len() as u32;
@@ -179,7 +189,7 @@ mod tests {
         )];
         let bins = vec![Bin::new(16385, chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
-        let reference_sequences = vec![ReferenceSequence::new(bins, intervals)];
+        let reference_sequences = vec![ReferenceSequence::new(bins, intervals, None)];
         let index = Index::new(reference_sequences, None);
 
         let mut actual_writer = Writer::new(Vec::new());

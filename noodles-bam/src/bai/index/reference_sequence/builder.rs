@@ -51,7 +51,7 @@ impl Builder {
     }
 
     pub fn build(self) -> ReferenceSequence {
-        let mut bins: Vec<_> = self
+        let bins: Vec<_> = self
             .bin_builders
             .into_iter()
             .map(|(_, b)| b.build())
@@ -64,12 +64,7 @@ impl Builder {
             self.unmapped_record_count,
         );
 
-        bins.push(metadata.into());
-
-        ReferenceSequence {
-            bins,
-            intervals: self.intervals,
-        }
+        ReferenceSequence::new(bins, self.intervals, Some(metadata))
     }
 
     fn update_metadata(&mut self, record: &Record, chunk: Chunk) {

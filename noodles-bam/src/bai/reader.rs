@@ -1,9 +1,18 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use super::{index::ReferenceSequence, Bin, Chunk, Index, MAGIC_NUMBER};
+use super::{
+    index::{
+        reference_sequence::{self, Metadata},
+        ReferenceSequence,
+    },
+    Bin, Chunk, Index, MAGIC_NUMBER,
+};
 
 /// A BAM index (BAI) reader.
 ///
@@ -104,28 +113,39 @@ where
     let mut references = Vec::with_capacity(n_ref as usize);
 
     for _ in 0..n_ref {
-        let bins = read_bins(reader)?;
+        let (bins, metadata) = read_bins(reader)?;
         let intervals = read_intervals(reader)?;
-        references.push(ReferenceSequence::new(bins, intervals));
+        references.push(ReferenceSequence::new(bins, intervals, metadata));
     }
 
     Ok(references)
 }
 
-fn read_bins<R>(reader: &mut R) -> io::Result<Vec<Bin>>
+fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {
+    use reference_sequence::metadata::TryFromBinError;
+
     let n_bin = reader.read_u32::<LittleEndian>()?;
+
     let mut bins = Vec::with_capacity(n_bin as usize);
+    let mut metadata = None;
 
     for _ in 0..n_bin {
-        let bin = reader.read_u32::<LittleEndian>()?;
+        let id = reader.read_u32::<LittleEndian>()?;
         let chunks = read_chunks(reader)?;
-        bins.push(Bin::new(bin, chunks));
+
+        let bin = Bin::new(id, chunks);
+
+        match Metadata::try_from(&bin) {
+            Ok(m) => metadata = Some(m),
+            Err(TryFromBinError::InvalidMagicNumber(_)) => bins.push(bin),
+            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
+        }
     }
 
-    Ok(bins)
+    Ok((bins, metadata))
 }
 
 fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
