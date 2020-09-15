@@ -11,8 +11,8 @@ use super::{
 
 const WINDOW_SIZE: i32 = 16384;
 
-// § 5.1.1 Basic binning index: "... bins 4681-37448 span 16Kbp regions."
-const MAX_INTERVAL_COUNT: usize = 37448 - 4681 + 1;
+// § 5.2 The BAI index format for BAM files (2020-07-19)
+const MAX_INTERVAL_COUNT: usize = 131072;
 
 #[derive(Debug)]
 pub struct Builder {
