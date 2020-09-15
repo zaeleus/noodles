@@ -7,8 +7,8 @@ pub(crate) use self::builder::Builder;
 
 pub use self::chunk::Chunk;
 
-// § 5.3 C source code for computing bin number and overlapping bins (2020-06-19)
-pub(crate) const MAX_BIN: usize = ((1 << 18) - 1) / 7 + 1;
+// § 5.3 C source code for computing bin number and overlapping bins: MAX_BIN (2020-07-19)
+pub(crate) const MAX_ID: usize = ((1 << 18) - 1) / 7 + 1;
 
 /// A bin in a BAM index reference sequence.
 ///

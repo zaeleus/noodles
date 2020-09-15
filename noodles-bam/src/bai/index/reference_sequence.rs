@@ -11,8 +11,6 @@ pub use self::{bin::Bin, metadata::Metadata};
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 
-use self::bin::MAX_BIN;
-
 const WINDOW_SIZE: u64 = 16384;
 
 /// A reference sequence in the BAM index.
@@ -145,7 +143,7 @@ impl ReferenceSequence {
 fn region_to_bins(start: usize, mut end: usize) -> BitVec {
     end -= 1;
 
-    let mut bins = BitVec::from_elem(MAX_BIN, false);
+    let mut bins = BitVec::from_elem(bin::MAX_ID, false);
     bins.set(0, true);
 
     for k in (1 + (start >> 26))..=(1 + (end >> 26)) {
@@ -179,7 +177,7 @@ mod tests {
     fn test_region_to_bins() {
         // [8, 13]
         let actual = region_to_bins(7, 13);
-        let mut expected = BitVec::from_elem(MAX_BIN, false);
+        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
         for &k in &[0, 1, 9, 73, 585, 4681] {
             expected.set(k, true);
         }
@@ -187,7 +185,7 @@ mod tests {
 
         // [63245986, 63245986]
         let actual = region_to_bins(63245985, 63255986);
-        let mut expected = BitVec::from_elem(MAX_BIN, false);
+        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
         for &k in &[0, 1, 16, 133, 1067, 8541] {
             expected.set(k, true);
         }
