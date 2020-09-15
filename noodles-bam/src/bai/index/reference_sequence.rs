@@ -117,18 +117,10 @@ impl ReferenceSequence {
     pub fn query(&self, start: u64, end: u64) -> Vec<&Bin> {
         let region_bins = region_to_bins((start - 1) as usize, end as usize);
 
-        let mut query_bins = Vec::new();
-
-        for bin in self.bins() {
-            let bin_id = bin.id() as usize;
-
-            // Only accept bin numbers [0, MAX_BIN), which skips the pseudo-bin at 37450.
-            if bin_id < region_bins.len() && region_bins[bin_id] {
-                query_bins.push(bin);
-            }
-        }
-
-        query_bins
+        self.bins()
+            .iter()
+            .filter(|b| region_bins[b.id() as usize])
+            .collect()
     }
 
     /// Finds in minimum start offset in the linear index for a given start position.
