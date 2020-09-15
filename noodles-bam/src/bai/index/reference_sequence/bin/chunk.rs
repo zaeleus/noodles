@@ -13,8 +13,8 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
     /// use noodles_bam::bai::index::reference_sequence::bin::Chunk;
+    /// use noodles_bgzf as bgzf;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// ```
     pub fn new(start: bgzf::VirtualPosition, end: bgzf::VirtualPosition) -> Self {
@@ -29,8 +29,8 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
     /// use noodles_bam::bai::index::reference_sequence::bin::Chunk;
+    /// use noodles_bgzf as bgzf;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.start(), bgzf::VirtualPosition::from(8));
     /// ```
@@ -43,8 +43,8 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
     /// use noodles_bam::bai::index::reference_sequence::bin::Chunk;
+    /// use noodles_bgzf as bgzf;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.end(), bgzf::VirtualPosition::from(13));
     /// ```
