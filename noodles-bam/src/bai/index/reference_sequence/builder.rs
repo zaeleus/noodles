@@ -51,6 +51,10 @@ impl Builder {
     }
 
     pub fn build(self) -> ReferenceSequence {
+        if self.bin_builders.is_empty() {
+            return ReferenceSequence::default();
+        }
+
         let bins: Vec<_> = self
             .bin_builders
             .into_iter()
