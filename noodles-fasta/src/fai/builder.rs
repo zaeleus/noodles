@@ -132,7 +132,6 @@ where
         loop {
             let prev_line_width = seq_len;
             let prev_line_bases = len_with_right_trim(&line) as u64;
-            println!("{:?}", String::from_utf8(line.clone()).unwrap());
             length += prev_line_bases;
             self.offset += prev_line_width;
 
