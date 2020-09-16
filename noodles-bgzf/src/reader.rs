@@ -186,6 +186,8 @@ where
 
     read_trailer(reader)?;
 
+    block.set_len(block_size as u64);
+
     let udata = block.data_mut();
     let udata_buf = udata.get_mut();
     udata_buf.clear();
