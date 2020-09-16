@@ -14,7 +14,7 @@ use noodles_bgzf as bgzf;
 const WINDOW_SIZE: u64 = 16384;
 
 /// A reference sequence in the BAM index.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequence {
     bins: Vec<Bin>,
     intervals: Vec<bgzf::VirtualPosition>,
