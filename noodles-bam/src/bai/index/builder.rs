@@ -36,7 +36,7 @@ impl Builder {
     /// builder.add_record(&record, chunk);
     /// ```
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
-        if record.flags().is_unmapped() {
+        if record.position().is_none() {
             self.unplaced_unmapped_record_count += 1;
             return;
         }
