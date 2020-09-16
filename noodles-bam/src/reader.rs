@@ -182,10 +182,8 @@ where
     pub fn read_record(&mut self, mut record: &mut Record) -> io::Result<usize> {
         let block_size = match self.inner.read_u32::<LittleEndian>() {
             Ok(bs) => bs as usize,
-            Err(e) => match e.kind() {
-                io::ErrorKind::UnexpectedEof => return Ok(0),
-                _ => return Err(e),
-            },
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+            Err(e) => return Err(e),
         };
 
         record.resize(block_size);
