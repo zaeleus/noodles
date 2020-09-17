@@ -22,7 +22,7 @@ const NUL: u8 = b'\x00';
 ///
 /// [`tabix::read`]: fn.read.html
 pub struct Reader<R> {
-    inner: R,
+    inner: bgzf::Reader<R>,
 }
 
 impl<R> Reader<R>
@@ -39,8 +39,10 @@ where
     /// let reader = File::open("sample.vcf.gz.tbi").map(tabix::Reader::new)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn new(inner: R) -> Self {
-        Self { inner }
+    pub fn new(reader: R) -> Self {
+        Self {
+            inner: bgzf::Reader::new(reader),
+        }
     }
 
     /// Reads the tabix index.
