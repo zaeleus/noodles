@@ -1,8 +1,8 @@
 //! FASTA index (FAI) and fields.
 
+mod builder;
 mod reader;
 mod record;
 mod writer;
-mod builder;
 
-pub use self::{reader::Reader, record::Record, writer::Writer, builder::IndexBuilder};
+pub use self::{builder::IndexBuilder, reader::Reader, record::Record, writer::Writer};
