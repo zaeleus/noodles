@@ -13,12 +13,14 @@ pub use self::{
 
 use std::{
     ffi::CStr,
-    fmt, mem,
+    fmt, io, mem,
     ops::{Deref, DerefMut},
 };
 
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam as sam;
+
+use crate::writer;
 
 /// A BAM record.
 ///
@@ -44,6 +46,33 @@ use noodles_sam as sam;
 pub struct Record(Vec<u8>);
 
 impl Record {
+    /// Converts a SAM record to a BAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{self as sam, header::ReferenceSequences};
+    ///
+    /// let reference_sequences = ReferenceSequences::default();
+    /// let sam_record = sam::Record::default();
+    ///
+    /// let record = bam::Record::try_from_sam_record(&reference_sequences, &sam_record)?;
+    /// assert_eq!(record, bam::Record::default());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_from_sam_record(
+        reference_sequences: &sam::header::ReferenceSequences,
+        record: &sam::Record,
+    ) -> io::Result<Self> {
+        let mut buf = Vec::new();
+        writer::record::write_sam_record(&mut buf, reference_sequences, record)?;
+        // Remove the prepending block size.
+        let start = mem::size_of::<u32>();
+        Ok(Self::from(buf[start..].to_vec()))
+    }
+
     pub(crate) fn resize(&mut self, new_len: usize) {
         self.0.resize(new_len, Default::default());
     }
