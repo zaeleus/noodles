@@ -95,3 +95,107 @@ impl Default for Builder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use noodles_sam::{
+        self as sam,
+        header::ReferenceSequences,
+        record::{Flags, Position},
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+        let mut reference_sequences = ReferenceSequences::default();
+        reference_sequences.insert(
+            String::from("sq0"),
+            sam::header::ReferenceSequence::new(String::from("sq0"), 8),
+        );
+
+        let mut builder = Builder::default();
+
+        let record = Record::try_from_sam_record(
+            &reference_sequences,
+            &sam::Record::builder()
+                .set_flags(Flags::empty())
+                .set_position(Position::from(2))
+                .set_cigar("4M".parse()?)
+                .build(),
+        )?;
+
+        builder.add_record(
+            &record,
+            Chunk::new(
+                bgzf::VirtualPosition::from(55),
+                bgzf::VirtualPosition::from(89),
+            ),
+        );
+
+        let record = Record::try_from_sam_record(
+            &reference_sequences,
+            &sam::Record::builder()
+                .set_position(Position::from(6))
+                .set_cigar("2M".parse()?)
+                .build(),
+        )?;
+
+        builder.add_record(
+            &record,
+            Chunk::new(
+                bgzf::VirtualPosition::from(89),
+                bgzf::VirtualPosition::from(144),
+            ),
+        );
+
+        let actual = builder.build();
+
+        let mut expected_linear_index = vec![bgzf::VirtualPosition::default(); MAX_INTERVAL_COUNT];
+        expected_linear_index[0] = bgzf::VirtualPosition::from(89);
+
+        let expected = ReferenceSequence::new(
+            vec![Bin::new(
+                4681,
+                vec![Chunk::new(
+                    bgzf::VirtualPosition::from(55),
+                    bgzf::VirtualPosition::from(144),
+                )],
+            )],
+            expected_linear_index,
+            Some(Metadata::new(
+                bgzf::VirtualPosition::from(55),
+                bgzf::VirtualPosition::from(144),
+                1,
+                1,
+            )),
+        );
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_build_with_no_bins() {
+        let reference_sequence = Builder::default().build();
+        assert_eq!(reference_sequence, ReferenceSequence::default());
+    }
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.bin_builders.is_empty());
+
+        assert!(builder
+            .intervals
+            .iter()
+            .all(|&pos| pos == bgzf::VirtualPosition::default()));
+
+        assert_eq!(builder.start_position, bgzf::VirtualPosition::max());
+        assert_eq!(builder.end_position, bgzf::VirtualPosition::default());
+        assert_eq!(builder.mapped_record_count, 0);
+        assert_eq!(builder.unmapped_record_count, 0);
+    }
+}
