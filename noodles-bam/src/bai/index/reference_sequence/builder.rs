@@ -72,6 +72,13 @@ impl Builder {
         let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
         let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
 
+        if linear_index_end_offset >= self.intervals.len() {
+            self.intervals.resize(
+                linear_index_end_offset + 1,
+                bgzf::VirtualPosition::default(),
+            );
+        }
+
         for i in linear_index_start_offset..=linear_index_end_offset {
             self.intervals[i] = chunk.start();
         }
@@ -93,7 +100,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             bin_builders: HashMap::new(),
-            intervals: vec![bgzf::VirtualPosition::default(); MAX_INTERVAL_COUNT],
+            intervals: Vec::with_capacity(MAX_INTERVAL_COUNT),
             start_position: bgzf::VirtualPosition::max(),
             end_position: bgzf::VirtualPosition::default(),
             mapped_record_count: 0,
@@ -157,9 +164,6 @@ mod tests {
 
         let actual = builder.build();
 
-        let mut expected_linear_index = vec![bgzf::VirtualPosition::default(); MAX_INTERVAL_COUNT];
-        expected_linear_index[0] = bgzf::VirtualPosition::from(89);
-
         let expected = ReferenceSequence::new(
             vec![Bin::new(
                 4681,
@@ -168,7 +172,7 @@ mod tests {
                     bgzf::VirtualPosition::from(144),
                 )],
             )],
-            expected_linear_index,
+            vec![bgzf::VirtualPosition::from(89)],
             Some(Metadata::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(144),
