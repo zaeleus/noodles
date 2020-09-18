@@ -26,28 +26,9 @@ pub struct Builder {
 
 impl Builder {
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
+        self.update_bins(record, chunk);
+        self.update_linear_index(record, chunk);
         self.update_metadata(record, chunk);
-
-        let bin_id = record.bin() as u32;
-
-        let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
-            let mut builder = Bin::builder();
-            builder.set_id(bin_id);
-            builder
-        });
-
-        builder.add_chunk(chunk);
-
-        let start = i32::from(record.position());
-        let reference_len = record.cigar().reference_len() as i32;
-        let end = start + reference_len - 1;
-
-        let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
-        let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
-
-        for i in linear_index_start_offset..=linear_index_end_offset {
-            self.intervals[i] = chunk.start();
-        }
     }
 
     pub fn build(self) -> ReferenceSequence {
@@ -69,6 +50,31 @@ impl Builder {
         );
 
         ReferenceSequence::new(bins, self.intervals, Some(metadata))
+    }
+
+    fn update_bins(&mut self, record: &Record, chunk: Chunk) {
+        let bin_id = record.bin() as u32;
+
+        let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
+            let mut builder = Bin::builder();
+            builder.set_id(bin_id);
+            builder
+        });
+
+        builder.add_chunk(chunk);
+    }
+
+    fn update_linear_index(&mut self, record: &Record, chunk: Chunk) {
+        let start = i32::from(record.position());
+        let reference_len = record.cigar().reference_len() as i32;
+        let end = start + reference_len - 1;
+
+        let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
+        let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
+
+        for i in linear_index_start_offset..=linear_index_end_offset {
+            self.intervals[i] = chunk.start();
+        }
     }
 
     fn update_metadata(&mut self, record: &Record, chunk: Chunk) {
