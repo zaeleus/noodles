@@ -1,6 +1,5 @@
 //! Creates a index for a FASTA file
 
-use std::convert::From;
 use std::error::Error;
 use std::fmt;
 use std::io;
@@ -53,21 +52,21 @@ where
     ///
     /// assert_eq!(buf, b"ACGT\n");
     /// ```
-    pub fn read_sequence_line_raw(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+   fn read_sequence_line(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut bytes_read = 0;
         let mut end_line = false;
 
         loop {
             let reader_buf = self.inner.fill_buf()?;
 
-            if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX || end_line {
+            if end_line || reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
                 break;
             }
 
             let len = match memchr(NEWLINE, reader_buf) {
                 Some(i) => {
                     // Do not consume newline
-                    buf.extend(&reader_buf[..i + 1]);
+                    buf.extend(&reader_buf[..=i]);
                     end_line = true;
                     i + 1
                 }
@@ -110,7 +109,7 @@ where
     ///     Some(fai::Record::new("sq1".to_string(), 10, 15, 4, 5))
     /// );
     /// ```
-    pub fn build_index(&mut self) -> Result<Option<Record>, IndexError> {
+    pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
         let mut def_str = String::new();
         let mut line = Vec::new();
         let mut length = 0u64;
