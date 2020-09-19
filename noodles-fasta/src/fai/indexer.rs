@@ -11,12 +11,12 @@ use crate::record::definition::{Definition, ParseError};
 use memchr::memchr;
 
 /// A index builder
-pub struct IndexBuilder<R> {
+pub struct Indexer<R> {
     inner: R,
     offset: u64,
 }
 
-impl<R> IndexBuilder<R>
+impl<R> Indexer<R>
 where
     R: io::BufRead,
 {
@@ -27,7 +27,7 @@ where
     /// ```
     /// use noodles_fasta as fasta;
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut builder = fasta::fai::IndexBuilder::new(&data[..]);
+    /// let mut builder = fasta::fai::Indexer::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner, offset: 0 }
@@ -39,20 +39,7 @@ where
     ///
     /// Returns the number of bytes read from the stream. If the position of the stream is at
     /// a definition or EOF has been reached, the number of bytes read is 0.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta::fai;
-    /// let data = b"ACGT\nNNNN";
-    /// let mut builder = fai::IndexBuilder::new(&data[..]);
-    ///
-    /// let mut buf = Vec::new();
-    /// builder.read_sequence_line_raw(&mut buf);
-    ///
-    /// assert_eq!(buf, b"ACGT\n");
-    /// ```
-   fn read_sequence_line(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+    fn read_sequence_line(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut bytes_read = 0;
         let mut end_line = false;
 
@@ -96,14 +83,14 @@ where
     /// ```
     /// use noodles_fasta::fai;
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN";
-    /// let mut builder = fai::IndexBuilder::new(&data[..]);
+    /// let mut builder = fai::Indexer::new(&data[..]);
     ///
-    /// let first_index = builder.build_index().unwrap();
+    /// let first_index = builder.index_record().unwrap();
     /// assert_eq!(
     ///     first_index,
     ///     Some(fai::Record::new("sq0".to_string(), 4, 5, 4, 5))
     /// );
-    /// let second_index = builder.build_index().unwrap();
+    /// let second_index = builder.index_record().unwrap();
     /// assert_eq!(
     ///     second_index,
     ///     Some(fai::Record::new("sq1".to_string(), 10, 15, 4, 5))
@@ -124,7 +111,7 @@ where
         let def: Definition = def_str.trim_end().parse()?;
 
         // The first sequence line determines how long each line should be
-        let mut seq_len = self.read_sequence_line_raw(&mut line)? as u64;
+        let mut seq_len = self.read_sequence_line(&mut line)? as u64;
         let line_width = seq_len;
         let line_bases = len_with_right_trim(&line) as u64;
 
@@ -135,7 +122,7 @@ where
             self.offset += prev_line_width;
 
             line.clear();
-            seq_len = self.read_sequence_line_raw(&mut line)? as u64;
+            seq_len = self.read_sequence_line(&mut line)? as u64;
             if seq_len == 0 {
                 break;
             // If there are more lines, check the previous line has equal length to first
@@ -208,5 +195,45 @@ impl From<io::Error> for IndexError {
 impl From<ParseError> for IndexError {
     fn from(error: ParseError) -> Self {
         Self::InvalidDefinition(error)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_sequence_line() {
+        let data = b"ACGT\nNNNN";
+        let mut builder = Indexer::new(&data[..]);
+
+        let mut buf = Vec::new();
+        builder.read_sequence_line(&mut buf).unwrap();
+
+        assert_eq!(buf, b"ACGT\n");
+    }
+
+    #[test]
+    fn test_index_record_windows() {
+        let data = b">one\r\n\
+            ATGCATGCATGCATGCATGCATGCATGCAT\r\n\
+            GCATGCATGCATGCATGCATGCATGCATGC\r\n\
+            ATGCAT\r\n\
+            >two another chromosome\r\n\
+            ATGCATGCATGCAT\r\n\
+            GCATGCATGCATGC";
+        let mut builder = Indexer::new(&data[..]);
+
+        let first_index = builder.index_record().unwrap();
+        assert_eq!(
+            first_index,
+            Some(Record::new("one".to_string(), 66, 6, 30, 32))
+        );
+        let second_index = builder.index_record().unwrap();
+        assert_eq!(
+            second_index,
+            Some(Record::new("two".to_string(), 28, 103, 14, 16))
+        );
+        assert_eq!(None, builder.index_record().unwrap());
     }
 }
