@@ -7,7 +7,7 @@ pub use self::chunk::Chunk;
 /// A tabix index reference sequence bin.
 #[derive(Debug)]
 pub struct Bin {
-    bin: u32,
+    id: u32,
     chunks: Vec<Chunk>,
 }
 
@@ -20,21 +20,21 @@ impl Bin {
     /// use noodles_tabix::index::reference_sequence::Bin;
     /// let bin = Bin::new(10946, Vec::new());
     /// ```
-    pub fn new(bin: u32, chunks: Vec<Chunk>) -> Self {
-        Self { bin, chunks }
+    pub fn new(id: u32, chunks: Vec<Chunk>) -> Self {
+        Self { id, chunks }
     }
 
-    /// Returns the bin index of this bin.
+    /// Returns the bin ID.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_tabix::index::reference_sequence::Bin;
     /// let bin = Bin::new(10946, Vec::new());
-    /// assert_eq!(bin.bin(), 10946);
+    /// assert_eq!(bin.id(), 10946);
     /// ```
-    pub fn bin(&self) -> u32 {
-        self.bin
+    pub fn id(&self) -> u32 {
+        self.id
     }
 
     /// Returns the list of chunks in the bin.
