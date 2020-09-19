@@ -59,6 +59,29 @@ where
     reader.read_index()
 }
 
+/// Writes a BAM index to a file.
+///
+/// This is a convenience function and is equivalent to creating a file at the given path, writing
+/// the header, and writing the index.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_bam::bai;
+/// let index = bai::Index::default();
+/// bai::write("sample.bam.bai", &index)?;
+/// # Ok::<(), io::Error>(())
+/// ```
+pub fn write<P>(dst: P, index: &Index) -> io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let mut writer = File::create(dst).map(Writer::new)?;
+    writer.write_header()?;
+    writer.write_index(index)
+}
+
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
