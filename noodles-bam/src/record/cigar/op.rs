@@ -200,10 +200,10 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Op::new(Kind::Match, 32)), "32M");
-        assert_eq!(format!("{}", Op::new(Kind::Deletion, 7)), "7D");
-        assert_eq!(format!("{}", Op::new(Kind::Skip, 11)), "11N");
-        assert_eq!(format!("{}", Op::new(Kind::Pad, 188)), "188P");
+        assert_eq!(Op::new(Kind::Match, 32).to_string(), "32M");
+        assert_eq!(Op::new(Kind::Deletion, 7).to_string(), "7D");
+        assert_eq!(Op::new(Kind::Skip, 11).to_string(), "11N");
+        assert_eq!(Op::new(Kind::Pad, 188).to_string(), "188P");
     }
 
     #[test]
