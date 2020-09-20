@@ -112,11 +112,11 @@ impl TryFrom<u32> for Op {
 }
 
 impl TryFrom<&[u8]> for Op {
-    type Error = ();
+    type Error = TryFromUintError;
 
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        let u = LittleEndian::read_u32(bytes);
-        Self::try_from(u).map_err(|_| ())
+    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+        let u = LittleEndian::read_u32(buf);
+        Self::try_from(u)
     }
 }
 
@@ -181,8 +181,21 @@ mod tests {
 
     #[test]
     fn test_try_from_u8_slice() {
-        let bytes = [0x40, 0x02, 0x00, 0x00];
-        assert_eq!(Op::try_from(&bytes[..]), Ok(Op::new(Kind::Match, 36)));
+        let buf = [0x40, 0x02, 0x00, 0x00];
+        assert_eq!(Op::try_from(&buf[..]), Ok(Op::new(Kind::Match, 36)));
+
+        let buf = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+        assert_eq!(Op::try_from(&buf[..]), Ok(Op::new(Kind::Match, 36)));
+
+        let buf = [0x49, 0x02, 0x00, 0x00];
+        assert_eq!(Op::try_from(&buf[..]), Err(TryFromUintError(9)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_try_from_byte_slice_with_buf_len_less_than_4() {
+        let buf = [];
+        Op::try_from(&buf[..]).unwrap();
     }
 
     #[test]
