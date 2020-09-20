@@ -1,16 +1,5 @@
 use std::{convert::TryFrom, error, fmt};
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct TryFromByteSliceError(Vec<u8>);
-
-impl fmt::Display for TryFromByteSliceError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid data series: {:#x?}", self.0)
-    }
-}
-
-impl error::Error for TryFromByteSliceError {}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum DataSeries {
     /// BAM bit flags (`BF`).
@@ -74,6 +63,17 @@ pub enum DataSeries {
 impl DataSeries {
     /// The number of data series variants.
     pub(crate) const LEN: usize = 28;
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TryFromByteSliceError(Vec<u8>);
+
+impl error::Error for TryFromByteSliceError {}
+
+impl fmt::Display for TryFromByteSliceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid data series: {:#x?}", self.0)
+    }
 }
 
 impl TryFrom<&[u8]> for DataSeries {
