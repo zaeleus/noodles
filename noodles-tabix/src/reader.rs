@@ -82,7 +82,7 @@ where
             .set_start_position_index(col_beg as usize)
             .set_end_position_index(col_end as usize)
             .set_line_comment_prefix(meta as u8)
-            .set_header_line_count(skip as u32)
+            .set_line_skip_count(skip as u32)
             .set_reference_sequence_names(names)
             .set_reference_sequences(references);
 

@@ -7,7 +7,7 @@ pub struct Builder {
     start_position_index: usize,
     end_position_index: usize,
     line_comment_prefix: u8,
-    header_line_count: u32,
+    line_skip_count: u32,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
@@ -103,7 +103,7 @@ impl Builder {
         self
     }
 
-    /// Sets a tabix index header line count.
+    /// Sets a tabix index line skip count.
     ///
     /// # Examples
     ///
@@ -111,13 +111,13 @@ impl Builder {
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_header_line_count(0)
+    ///     .set_line_skip_count(0)
     ///     .build();
     ///
-    /// assert_eq!(index.header_line_count(), 0);
+    /// assert_eq!(index.line_skip_count(), 0);
     /// ```
-    pub fn set_header_line_count(mut self, header_line_count: u32) -> Self {
-        self.header_line_count = header_line_count;
+    pub fn set_line_skip_count(mut self, line_skip_count: u32) -> Self {
+        self.line_skip_count = line_skip_count;
         self
     }
 
@@ -192,7 +192,7 @@ impl Builder {
             start_position_index: self.start_position_index,
             end_position_index: self.end_position_index,
             line_comment_prefix: self.line_comment_prefix,
-            header_line_count: self.header_line_count,
+            line_skip_count: self.line_skip_count,
             reference_sequence_names: self.reference_sequence_names,
             reference_sequences: self.reference_sequences,
             unmapped_read_count: self.unmapped_read_count,
@@ -208,7 +208,7 @@ impl Default for Builder {
             start_position_index: 4,
             end_position_index: 5,
             line_comment_prefix: b'#',
-            header_line_count: 0,
+            line_skip_count: 0,
             reference_sequence_names: Vec::new(),
             reference_sequences: Vec::new(),
             unmapped_read_count: None,

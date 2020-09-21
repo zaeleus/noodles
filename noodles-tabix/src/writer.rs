@@ -79,7 +79,7 @@ where
         let meta = i32::from(index.line_comment_prefix());
         self.inner.write_i32::<LittleEndian>(meta)?;
 
-        let skip = index.header_line_count() as i32;
+        let skip = index.line_skip_count() as i32;
         self.inner.write_i32::<LittleEndian>(skip)?;
 
         // Add 1 for each trailing nul.
@@ -190,7 +190,7 @@ mod tests {
             .set_start_position_index(4)
             .set_end_position_index(5)
             .set_line_comment_prefix(b'#')
-            .set_header_line_count(0)
+            .set_line_skip_count(0)
             .set_reference_sequence_names(vec![String::from("sq0"), String::from("sq1")])
             .set_reference_sequences(references)
             .build();

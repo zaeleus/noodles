@@ -14,7 +14,7 @@ pub struct Index {
     start_position_index: usize,
     end_position_index: usize,
     line_comment_prefix: u8,
-    header_line_count: u32,
+    line_skip_count: u32,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
@@ -120,7 +120,7 @@ impl Index {
         self.line_comment_prefix
     }
 
-    /// Returns the number of header lines to skip.
+    /// Returns the number of lines to skip.
     ///
     /// # Examples
     ///
@@ -128,13 +128,13 @@ impl Index {
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_header_line_count(0)
+    ///     .set_line_skip_count(0)
     ///     .build();
     ///
-    /// assert_eq!(index.header_line_count(),0);
+    /// assert_eq!(index.line_skip_count(),0);
     /// ```
-    pub fn header_line_count(&self) -> u32 {
-        self.header_line_count
+    pub fn line_skip_count(&self) -> u32 {
+        self.line_skip_count
     }
 
     /// Returns the reference sequence names.
