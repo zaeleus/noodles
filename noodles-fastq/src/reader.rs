@@ -62,16 +62,18 @@ where
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
 
-        let mut len = read_read_name(&mut self.inner, record.read_name_mut())?;
+        let mut len = match read_read_name(&mut self.inner, record.read_name_mut()) {
+            Ok(0) => return Ok(0),
+            Ok(n) => n,
+            Err(e) => return Err(e),
+        };
 
-        if len > 0 {
-            len += read_line(&mut self.inner, record.sequence_mut())?;
+        len += read_line(&mut self.inner, record.sequence_mut())?;
 
-            self.line_buf.clear();
-            len += read_line(&mut self.inner, &mut self.line_buf)?;
+        self.line_buf.clear();
+        len += read_line(&mut self.inner, &mut self.line_buf)?;
 
-            len += read_line(&mut self.inner, record.quality_scores_mut())?;
-        }
+        len += read_line(&mut self.inner, record.quality_scores_mut())?;
 
         Ok(len)
     }
