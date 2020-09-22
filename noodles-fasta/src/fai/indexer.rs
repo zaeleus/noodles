@@ -37,14 +37,11 @@ pub fn index<R: BufRead>(buf: R) -> Result<Vec<Record>, IndexError> {
     let mut indexer = Indexer::new(buf);
     let mut result = Vec::new();
 
-    loop {
-        match indexer.index_record()? {
-            Some(i) => result.push(i),
-            None => break,
-        };
+    while let Some(i) = indexer.index_record()? {
+        result.push(i);
     }
 
-    return Ok(result);
+    Ok(result)
 }
 
 /// An index builder.
