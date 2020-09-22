@@ -5,9 +5,9 @@ mod ops;
 
 pub use self::{op::Op, ops::Ops};
 
-use std::{fmt, io, ops::Deref};
+use std::{convert::TryFrom, fmt, io, ops::Deref};
 
-use noodles_sam::record::cigar::op::Kind;
+use noodles_sam::{self as sam, record::cigar::op::Kind};
 
 /// BAM record CIGAR.
 pub struct Cigar<'a>(&'a [u8]);
@@ -117,10 +117,23 @@ impl<'a> Deref for Cigar<'a> {
     }
 }
 
+impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
+    type Error = io::Error;
+
+    fn try_from(cigar: Cigar<'_>) -> Result<Self, Self::Error> {
+        let mut ops = Vec::new();
+
+        for result in cigar.ops() {
+            let op = result?;
+            ops.push(sam::record::cigar::Op::new(op.kind(), op.len()));
+        }
+
+        Ok(sam::record::Cigar::from(ops))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]
@@ -133,6 +146,24 @@ mod tests {
         assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x240)?));
         assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x362)?));
         assert_eq!(ops.next().transpose()?, None);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_cigar_for_sam_record_cigar() -> io::Result<()> {
+        use sam::record::cigar::{op, Op};
+
+        let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
+        let cigar = Cigar::new(&bytes);
+
+        let actual = sam::record::Cigar::try_from(cigar)?;
+        let expected = sam::record::Cigar::from(vec![
+            Op::new(op::Kind::Match, 36),
+            Op::new(op::Kind::Deletion, 54),
+        ]);
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
