@@ -6,6 +6,9 @@ use std::io::{self, BufRead, Read};
 
 use super::Record;
 
+const READ_NAME_PREFIX: u8 = b'@';
+const NEWLINE: u8 = b'\n';
+
 /// A FASTQ reader.
 pub struct Reader<R> {
     inner: R,
@@ -110,7 +113,7 @@ fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let result = reader.read_until(b'\n', buf);
+    let result = reader.read_until(NEWLINE, buf);
     buf.pop();
     result
 }
@@ -119,7 +122,7 @@ fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    match consume_byte(reader, b'@') {
+    match consume_byte(reader, READ_NAME_PREFIX) {
         Ok(n) => read_line(reader, buf).map(|m| m + n),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
         Err(e) => Err(e),
