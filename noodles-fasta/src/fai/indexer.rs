@@ -1,16 +1,53 @@
-//! Creates a index for a FASTA file
+//! Index creation for a FASTA file as specified at http://www.htslib.org/doc/faidx.html
 
-use std::error::Error;
-use std::fmt;
-use std::io;
-
-use super::Record;
-use crate::reader::{DEFINITION_PREFIX, NEWLINE};
-use crate::record::definition::{Definition, ParseError};
+use std::{error::Error, fmt, io, io::BufRead};
 
 use memchr::memchr;
 
-/// A index builder
+use crate::reader::{DEFINITION_PREFIX, NEWLINE};
+use crate::record::definition::{Definition, ParseError};
+
+use super::Record;
+
+/// Creates an index from a FASTA file.
+///
+/// The position of the stream is expected to be at the beginning of the file.
+///
+/// # Examples
+/// ```
+/// use noodles_fasta::fai::{index, Record};
+/// let data = b"\
+/// >one
+/// ATGCAT
+/// GCATGC
+/// ATG
+/// >two another chromosome
+/// ATGC
+/// GCAT";
+///
+/// let indx = index(&data[..]).expect("Failed to read or invalid format");
+/// let expected = vec![
+///     Record::new("one".to_string(), 15, 5, 6, 7),
+///     Record::new("two".to_string(), 8, 47, 4, 5)
+/// ];
+///
+/// assert_eq!(indx, expected);
+/// ```
+pub fn index<R: BufRead>(buf: R) -> Result<Vec<Record>, IndexError> {
+    let mut indexer = Indexer::new(buf);
+    let mut result = Vec::new();
+
+    loop {
+        match indexer.index_record()? {
+            Some(i) => result.push(i),
+            None => break,
+        };
+    }
+
+    return Ok(result);
+}
+
+/// An index builder.
 pub struct Indexer<R> {
     inner: R,
     offset: u64,
@@ -21,14 +58,6 @@ where
     R: BufRead,
 {
     /// Creates a FASTA index builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta as fasta;
-    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut builder = fasta::fai::Indexer::new(&data[..]);
-    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner, offset: 0 }
     }
@@ -52,7 +81,7 @@ where
 
             let len = match memchr(NEWLINE, reader_buf) {
                 Some(i) => {
-                    // Do not consume newline
+                    // Do not consume newline.
                     buf.extend(&reader_buf[..=i]);
                     end_line = true;
                     i + 1
@@ -71,31 +100,12 @@ where
         Ok(bytes_read)
     }
 
-    /// Creates a single index [`Record`](struct.Record.html)
+    /// Creates a single index [`Record`](struct.Record.html).
     ///
     /// Returns `None` if EOF has been reached. Will return an error if:
     /// * Stream is not at the start of a definition
     /// * No sequence after a definition
     /// * Sequence lines are not the same length (excluding the last line)
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta::fai;
-    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN";
-    /// let mut builder = fai::Indexer::new(&data[..]);
-    ///
-    /// let first_index = builder.index_record().unwrap();
-    /// assert_eq!(
-    ///     first_index,
-    ///     Some(fai::Record::new("sq0".to_string(), 4, 5, 4, 5))
-    /// );
-    /// let second_index = builder.index_record().unwrap();
-    /// assert_eq!(
-    ///     second_index,
-    ///     Some(fai::Record::new("sq1".to_string(), 10, 15, 4, 5))
-    /// );
-    /// ```
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
         let mut def_str = String::new();
         let mut line = Vec::new();
@@ -110,7 +120,7 @@ where
         let index_offset = self.offset;
         let def: Definition = def_str.trim_end().parse()?;
 
-        // The first sequence line determines how long each line should be
+        // The first sequence line determines how long each line should be.
         let mut seq_len = self.read_sequence_line(&mut line)? as u64;
         let line_width = seq_len;
         let line_bases = len_with_right_trim(&line) as u64;
@@ -125,7 +135,7 @@ where
             seq_len = self.read_sequence_line(&mut line)? as u64;
             if seq_len == 0 {
                 break;
-            // If there are more lines, check the previous line has equal length to first
+            // If there are more lines, check the previous line has equal length to first.
             } else if prev_line_width != line_width || prev_line_bases != line_bases {
                 return Err(IndexError::InvalidLineLength(self.offset));
             }
@@ -208,32 +218,33 @@ mod tests {
         let mut builder = Indexer::new(&data[..]);
 
         let mut buf = Vec::new();
-        builder.read_sequence_line(&mut buf).unwrap();
+        builder
+            .read_sequence_line(&mut buf)
+            .expect("Failed to read sequence");
 
         assert_eq!(buf, b"ACGT\n");
     }
 
     #[test]
-    fn test_index_record_windows() {
-        let data = b">one\r\n\
-            ATGCATGCATGCATGCATGCATGCATGCAT\r\n\
-            GCATGCATGCATGCATGCATGCATGCATGC\r\n\
-            ATGCAT\r\n\
-            >two another chromosome\r\n\
-            ATGCATGCATGCAT\r\n\
-            GCATGCATGCATGC";
+    fn test_index_record() {
+        let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN";
         let mut builder = Indexer::new(&data[..]);
 
-        let first_index = builder.index_record().unwrap();
+        let first_index = builder.index_record().expect("Could not parse fasta file");
         assert_eq!(
             first_index,
-            Some(Record::new("one".to_string(), 66, 6, 30, 32))
+            Some(Record::new("sq0".to_string(), 4, 5, 4, 5))
         );
-        let second_index = builder.index_record().unwrap();
+        let second_index = builder.index_record().expect("Could not parse fasta file");
         assert_eq!(
             second_index,
-            Some(Record::new("two".to_string(), 28, 103, 14, 16))
+            Some(Record::new("sq1".to_string(), 10, 15, 4, 5))
         );
-        assert_eq!(None, builder.index_record().unwrap());
+    }
+
+    #[test]
+    fn test_len_with_right_trim() {
+        assert_eq!(len_with_right_trim(b"ATGC\n"), 4);
+        assert_eq!(len_with_right_trim(b"ATGC\r\n"), 4);
     }
 }
