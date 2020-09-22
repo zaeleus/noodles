@@ -19,7 +19,7 @@ pub struct Indexer<R> {
 
 impl<R> Indexer<R>
 where
-    R: io::BufRead,
+    R: BufRead,
 {
     /// Creates a FASTA index builder.
     ///
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_read_sequence_line() {
-        let data = b"ACGT\nNNNN";
+        let data = b"ACGT\nNNNN\n";
         let mut builder = Indexer::new(&data[..]);
 
         let mut buf = Vec::new();

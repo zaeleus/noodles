@@ -8,7 +8,7 @@ const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 5;
 
 /// A FASTA index record.
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Record {
     reference_sequence_name: String,
     len: u64,
