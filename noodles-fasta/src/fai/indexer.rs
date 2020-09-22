@@ -1,6 +1,5 @@
 //! Creates a index for a FASTA file
 
-use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
 use std::io;
@@ -102,28 +101,28 @@ where
         let mut line = Vec::new();
         let mut length = 0u64;
 
-        let def_len: u64 = self.inner.read_line(&mut def_str)?.try_into().unwrap();
+        let def_len = self.inner.read_line(&mut def_str)?;
         if def_len == 0 {
             return Ok(None);
         }
 
-        self.offset += def_len;
+        self.offset += def_len as u64;
         let index_offset = self.offset;
         let def: Definition = def_str.trim_end().parse()?;
 
         // The first sequence line determines how long each line should be
-        let mut seq_len = self.read_sequence_line(&mut line)?.try_into().unwrap();
+        let mut seq_len = self.read_sequence_line(&mut line)? as u64;
         let line_width = seq_len;
-        let line_bases = len_with_right_trim(&line).try_into().unwrap();
+        let line_bases = len_with_right_trim(&line) as u64;
 
         loop {
             let prev_line_width = seq_len;
-            let prev_line_bases: u64 = len_with_right_trim(&line).try_into().unwrap();
+            let prev_line_bases = len_with_right_trim(&line) as u64;
             length += prev_line_bases;
             self.offset += prev_line_width;
 
             line.clear();
-            seq_len = self.read_sequence_line(&mut line)?.try_into().unwrap();
+            seq_len = self.read_sequence_line(&mut line)? as u64;
             if seq_len == 0 {
                 break;
             // If there are more lines, check the previous line has equal length to first
