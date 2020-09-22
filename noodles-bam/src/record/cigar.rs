@@ -5,7 +5,7 @@ mod ops;
 
 pub use self::{op::Op, ops::Ops};
 
-use std::{fmt, ops::Deref};
+use std::{fmt, io, ops::Deref};
 
 use noodles_sam::record::cigar::op::Kind;
 
@@ -35,6 +35,7 @@ impl<'a> Cigar<'a> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
@@ -44,9 +45,10 @@ impl<'a> Cigar<'a> {
     ///
     /// let mut ops = cigar.ops();
     ///
-    /// assert_eq!(ops.next(), Some(Op::new(Kind::Match, 36)));
-    /// assert_eq!(ops.next(), Some(Op::new(Kind::SoftClip, 8)));
-    /// assert_eq!(ops.next(), None);
+    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::Match, 36)));
+    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::SoftClip, 8)));
+    /// assert_eq!(ops.next().transpose()?, None);
+    /// # Ok::<(), io::Error>(())
     /// ```
     pub fn ops(&self) -> Ops<'_> {
         Ops::new(self.0)
@@ -61,6 +63,7 @@ impl<'a> Cigar<'a> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
@@ -68,17 +71,24 @@ impl<'a> Cigar<'a> {
     /// let data = [0x40, 0x02, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
     /// let cigar = Cigar::new(&data);
     ///
-    /// assert_eq!(cigar.reference_len(), 40);
+    /// assert_eq!(cigar.reference_len()?, 40);
+    /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn reference_len(&self) -> u32 {
-        self.ops()
-            .filter_map(|op| match op.kind() {
+    pub fn reference_len(&self) -> io::Result<u32> {
+        let mut len = 0;
+
+        for result in self.ops() {
+            let op = result?;
+
+            match op.kind() {
                 Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
-                    Some(op.len())
+                    len += op.len();
                 }
-                _ => None,
-            })
-            .sum()
+                _ => {}
+            }
+        }
+
+        Ok(len)
     }
 }
 
@@ -90,7 +100,8 @@ impl<'a> fmt::Debug for Cigar<'a> {
 
 impl<'a> fmt::Display for Cigar<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for op in self.ops() {
+        for result in self.ops() {
+            let op = result.map_err(|_| fmt::Error)?;
             write!(f, "{}", op)?;
         }
 
@@ -113,12 +124,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_bytes() {
+    fn test_from_bytes() -> Result<(), Box<dyn std::error::Error>> {
         let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
         let cigar = Cigar::new(&bytes);
+
         let mut ops = cigar.ops();
-        assert_eq!(ops.next(), Some(Op::try_from(0x240).unwrap()));
-        assert_eq!(ops.next(), Some(Op::try_from(0x362).unwrap()));
-        assert_eq!(ops.next(), None);
+
+        assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x240)?));
+        assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x362)?));
+        assert_eq!(ops.next().transpose()?, None);
+
+        Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, mem};
+use std::{convert::TryFrom, io, mem};
 
 use super::Op;
 
@@ -19,21 +19,23 @@ impl<'a> Ops<'a> {
 }
 
 impl<'a> Iterator for Ops<'a> {
-    type Item = Op;
+    type Item = io::Result<Op>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let size = mem::size_of::<u32>();
         let start = self.i * size;
 
         if start < self.cigar.len() {
-            let end = start + size;
+            let data = &self.cigar[start..];
 
-            let data = &self.cigar[start..end];
-            let op = Op::try_from(data).unwrap();
+            let option = Op::try_from(data)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .transpose();
 
             self.i += 1;
 
-            Some(op)
+            option
         } else {
             None
         }

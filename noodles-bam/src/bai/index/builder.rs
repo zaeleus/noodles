@@ -1,3 +1,5 @@
+use std::io;
+
 use crate::{record::ReferenceSequenceId, Record};
 
 use super::{
@@ -35,10 +37,10 @@ impl Builder {
     ///
     /// builder.add_record(&record, chunk);
     /// ```
-    pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
+    pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
         if record.position().is_none() {
             self.unplaced_unmapped_record_count += 1;
-            return;
+            return Ok(());
         }
 
         if record.reference_sequence_id() != self.current_reference_sequence_id {
@@ -47,7 +49,7 @@ impl Builder {
 
         let reference_sequence_builder = self.reference_sequences_builders.last_mut().unwrap();
 
-        reference_sequence_builder.add_record(record, chunk);
+        reference_sequence_builder.add_record(record, chunk)
     }
 
     fn add_reference_sequences_builders_until(

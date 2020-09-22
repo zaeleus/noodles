@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .ok_or_else(|| "invalid reference sequence id")?;
 
         let start = i32::from(record.position());
-        let len = record.cigar().reference_len() as i32;
+        let len = record.cigar().reference_len().map(|len| len as i32)?;
         let end = start + len - 1;
 
         println!(

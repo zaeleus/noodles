@@ -1,4 +1,4 @@
-use std::{cmp, collections::HashMap};
+use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
 
@@ -25,10 +25,11 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn add_record(&mut self, record: &Record, chunk: Chunk) {
+    pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
         self.update_bins(record, chunk);
-        self.update_linear_index(record, chunk);
+        self.update_linear_index(record, chunk)?;
         self.update_metadata(record, chunk);
+        Ok(())
     }
 
     pub fn build(self) -> ReferenceSequence {
@@ -64,9 +65,9 @@ impl Builder {
         builder.add_chunk(chunk);
     }
 
-    fn update_linear_index(&mut self, record: &Record, chunk: Chunk) {
+    fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
         let start = i32::from(record.position());
-        let reference_len = record.cigar().reference_len() as i32;
+        let reference_len = record.cigar().reference_len().map(|len| len as i32)?;
         let end = start + reference_len - 1;
 
         let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
@@ -82,6 +83,8 @@ impl Builder {
         for i in linear_index_start_offset..=linear_index_end_offset {
             self.intervals[i] = chunk.start();
         }
+
+        Ok(())
     }
 
     fn update_metadata(&mut self, record: &Record, chunk: Chunk) {
@@ -144,7 +147,7 @@ mod tests {
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(89),
             ),
-        );
+        )?;
 
         let record = Record::try_from_sam_record(
             &reference_sequences,
@@ -160,7 +163,7 @@ mod tests {
                 bgzf::VirtualPosition::from(89),
                 bgzf::VirtualPosition::from(144),
             ),
-        );
+        )?;
 
         let actual = builder.build();
 

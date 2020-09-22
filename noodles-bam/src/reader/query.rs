@@ -105,8 +105,11 @@ where
                                     let reference_sequence_id = reference_sequence_id as usize;
 
                                     let record_start = i32::from(record.position()) as u64;
-                                    let record_reference_len =
-                                        u64::from(record.cigar().reference_len());
+                                    let record_reference_len = match record.cigar().reference_len()
+                                    {
+                                        Ok(len) => u64::from(len),
+                                        Err(e) => return Some(Err(e)),
+                                    };
                                     let record_end = record_start + record_reference_len - 1;
 
                                     if reference_sequence_id == self.reference_sequence_id

@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let end_position = reader.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
 
-        builder.add_record(&record, chunk);
+        builder.add_record(&record, chunk)?;
 
         start_position = end_position;
     }
