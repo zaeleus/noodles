@@ -4,8 +4,10 @@ use std::{error::Error, fmt, io, io::BufRead};
 
 use memchr::memchr;
 
-use crate::reader::{DEFINITION_PREFIX, NEWLINE};
-use crate::record::definition::{Definition, ParseError};
+use crate::{
+    reader::{DEFINITION_PREFIX, NEWLINE},
+    record::definition::{Definition, ParseError},
+};
 
 use super::Record;
 
@@ -44,7 +46,7 @@ pub fn index<R: BufRead>(buf: R) -> Result<Vec<Record>, IndexError> {
     Ok(result)
 }
 
-/// An index builder.
+/// A FASTA indexer.
 pub struct Indexer<R> {
     inner: R,
     offset: u64,
@@ -54,25 +56,25 @@ impl<R> Indexer<R>
 where
     R: BufRead,
 {
-    /// Creates a FASTA index builder.
+    /// Creates a FASTA indexer.
     pub fn new(inner: R) -> Self {
         Self { inner, offset: 0 }
     }
 
     /// Reads a single sequence line.
     ///
-    /// Trailing whitespaces are not modified.
+    /// Trailing whitespaces are not discarded.
     ///
-    /// Returns the number of bytes read from the stream. If the position of the stream is at
-    /// a definition or EOF has been reached, the number of bytes read is 0.
+    /// If successful, this returns the number of bytes read from the stream. If the number of
+    /// bytes read is 0, the entire sequence of the current record was read.
     fn read_sequence_line(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut bytes_read = 0;
-        let mut end_line = false;
+        let mut is_eol = false;
 
         loop {
             let reader_buf = self.inner.fill_buf()?;
 
-            if end_line || reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+            if is_eol || reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
                 break;
             }
 
@@ -80,7 +82,7 @@ where
                 Some(i) => {
                     // Do not consume newline.
                     buf.extend(&reader_buf[..=i]);
-                    end_line = true;
+                    is_eol = true;
                     i + 1
                 }
                 None => {
@@ -97,12 +99,18 @@ where
         Ok(bytes_read)
     }
 
-    /// Creates a single index [`Record`](struct.Record.html).
+    /// Indexes a raw FASTA record.
+    /// 
+    /// The position of the stream is expected to be at the start or at the start of another
+    /// definition.
     ///
-    /// Returns `None` if EOF has been reached. Will return an error if:
-    /// * Stream is not at the start of a definition
-    /// * No sequence after a definition
-    /// * Sequence lines are not the same length (excluding the last line)
+    /// # Errors
+    ///
+    /// An error is returned if the record fails to be completely read. This includes when
+    ///
+    ///   * the stream is not at the start of a definition,
+    ///   * the record is missing a sequence,
+    ///   * or the sequence lines are not the same length, excluding the last line.
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
         let mut def_str = String::new();
         let mut line = Vec::new();
@@ -183,10 +191,10 @@ impl Error for IndexError {
 impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptyDefinition(offset) => write!(f, "Empty definition at offset {}", offset),
+            Self::EmptyDefinition(offset) => write!(f, "empty definition at offset {}", offset),
             Self::InvalidDefinition(e) => e.fmt(f),
             Self::InvalidLineLength(offset) => {
-                write!(f, "Different line lengths at offset {}", offset)
+                write!(f, "different line lengths at offset {}", offset)
             }
             Self::IoError(e) => e.fmt(f),
         }
@@ -210,33 +218,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_sequence_line() {
+    fn test_read_sequence_line() -> io::Result<()> {
         let data = b"ACGT\nNNNN\n";
-        let mut builder = Indexer::new(&data[..]);
+        let mut indexer = Indexer::new(&data[..]);
 
         let mut buf = Vec::new();
-        builder
-            .read_sequence_line(&mut buf)
-            .expect("Failed to read sequence");
-
+        indexer.read_sequence_line(&mut buf)?;
         assert_eq!(buf, b"ACGT\n");
+
+        Ok(())
     }
 
     #[test]
-    fn test_index_record() {
-        let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN";
-        let mut builder = Indexer::new(&data[..]);
+    fn test_index_record() -> Result<(), IndexRecordError> {
+        let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+        let mut indexer = Indexer::new(&data[..]);
 
-        let first_index = builder.index_record().expect("Could not parse fasta file");
-        assert_eq!(
-            first_index,
-            Some(Record::new("sq0".to_string(), 4, 5, 4, 5))
-        );
-        let second_index = builder.index_record().expect("Could not parse fasta file");
-        assert_eq!(
-            second_index,
-            Some(Record::new("sq1".to_string(), 10, 15, 4, 5))
-        );
+        let record = indexer.index_record()?;
+        assert_eq!(record, Some(Record::new(String::from("sq0"), 4, 5, 4, 5)));
+
+        let record = indexer.index_record()?;
+        assert_eq!(record, Some(Record::new(String::from("sq1"), 10, 15, 4, 5)));
+
+        assert!(indexer.index_record()?.is_none());
+
+        Ok(())
     }
 
     #[test]
