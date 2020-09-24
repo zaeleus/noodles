@@ -44,3 +44,15 @@ impl From<CoordinateSystem> for u16 {
         coordinate_system as u16
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from_u16_for_coodinate_system() {
+        assert_eq!(CoordinateSystem::try_from(0), Ok(CoordinateSystem::Gff));
+        assert_eq!(CoordinateSystem::try_from(1), Ok(CoordinateSystem::Bed));
+        assert_eq!(CoordinateSystem::try_from(2), Err(TryFromIntError(2)));
+    }
+}
