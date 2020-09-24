@@ -1,7 +1,7 @@
 use noodles_bgzf as bgzf;
 
 /// A tabix index reference sequence bin chunk.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
     start: bgzf::VirtualPosition,
     end: bgzf::VirtualPosition,
