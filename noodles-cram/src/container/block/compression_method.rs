@@ -1,12 +1,22 @@
+//! CRAM container block compression method.
+
 use std::{convert::TryFrom, error, fmt};
 
+/// A CRAM container block compression method.
+///
+/// The compression method is associated with a block to identify how its data is compressed.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CompressionMethod {
+    /// Uncompressed.
     None,
+    /// gzip.
     Gzip,
+    /// bzip2.
     Bzip2,
+    /// Lempel-Ziv-Markov chain algorithm (LZMA).
     Lzma,
+    /// Ranged asymmetric numeral systems (rANS).
     Rans,
 }
 
