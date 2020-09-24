@@ -1,16 +1,5 @@
 use std::{convert::TryFrom, error, fmt};
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct TryFromByteError(u8);
-
-impl fmt::Display for TryFromByteError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid content type: expected 0..=5, got {}", self.0)
-    }
-}
-
-impl error::Error for TryFromByteError {}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum ContentType {
@@ -20,6 +9,17 @@ pub enum ContentType {
     Reserved,
     ExternalData,
     CoreData,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TryFromByteError(u8);
+
+impl error::Error for TryFromByteError {}
+
+impl fmt::Display for TryFromByteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "invalid content type: expected 0..=5, got {}", self.0)
+    }
 }
 
 impl TryFrom<u8> for ContentType {
