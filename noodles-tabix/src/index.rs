@@ -2,9 +2,12 @@
 
 mod builder;
 pub mod format;
+mod indexer;
 pub mod reference_sequence;
 
-pub use self::{builder::Builder, format::Format, reference_sequence::ReferenceSequence};
+pub use self::{
+    builder::Builder, format::Format, indexer::Indexer, reference_sequence::ReferenceSequence,
+};
 
 /// A tabix index.
 #[derive(Debug)]
@@ -31,6 +34,11 @@ impl Index {
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
+    }
+
+    /// Returns an indexer to create an index from records.
+    pub fn indexer() -> Indexer {
+        Indexer::default()
     }
 
     /// Returns the format.
