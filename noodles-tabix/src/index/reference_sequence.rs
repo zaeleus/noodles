@@ -1,19 +1,26 @@
 //! Tabix index reference sequence and fields.
 
 pub mod bin;
+mod builder;
 
 pub use self::bin::Bin;
+
+pub(crate) use self::builder::Builder;
 
 use noodles_bgzf as bgzf;
 
 /// A tabix index reference sequence.
-#[derive(Debug)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequence {
     bins: Vec<Bin>,
     intervals: Vec<bgzf::VirtualPosition>,
 }
 
 impl ReferenceSequence {
+    pub(crate) fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a tabix index reference sequence.
     ///
     /// # Examples
