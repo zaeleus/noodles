@@ -16,7 +16,7 @@ impl Default for CompressionMethod {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromByteError(u8);
 
 impl error::Error for TryFromByteError {}
