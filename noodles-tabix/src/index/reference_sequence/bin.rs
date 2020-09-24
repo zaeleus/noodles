@@ -1,8 +1,11 @@
 //! Tabix index bin and fields.
 
+mod builder;
 mod chunk;
 
 pub use self::chunk::Chunk;
+
+pub(crate) use self::builder::Builder;
 
 /// A tabix index reference sequence bin.
 #[derive(Debug)]
@@ -12,6 +15,10 @@ pub struct Bin {
 }
 
 impl Bin {
+    pub(crate) fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Creates a new bin.
     ///
     /// # Examples
