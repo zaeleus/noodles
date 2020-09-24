@@ -8,7 +8,7 @@ pub use self::chunk::Chunk;
 pub(crate) use self::builder::Builder;
 
 /// A tabix index reference sequence bin.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
     id: u32,
     chunks: Vec<Chunk>,
