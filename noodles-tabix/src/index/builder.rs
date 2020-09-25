@@ -1,3 +1,5 @@
+//! Tabix index builder.
+
 use super::{format::CoordinateSystem, Format, Index, ReferenceSequence};
 
 /// A tabix index builder.
@@ -14,6 +16,24 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Creates a builder that targets the SAM format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let builder = tabix::index::builder::Builder::sam();
+    /// ```
+    pub fn sam() -> Self {
+        Builder::default()
+            .set_format(Format::Sam)
+            .set_reference_sequence_name_index(3)
+            .set_start_position_index(4)
+            .set_end_position_index(None)
+            .set_line_comment_prefix(b'@')
+            .set_line_skip_count(0)
+    }
+
     /// Sets a tabix index format.
     ///
     /// # Examples
@@ -213,5 +233,24 @@ impl Default for Builder {
             reference_sequences: Vec::new(),
             unmapped_read_count: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sam() {
+        let builder = Builder::sam();
+        assert_eq!(builder.format, Format::Sam);
+        assert_eq!(builder.reference_sequence_name_index, 3);
+        assert_eq!(builder.start_position_index, 4);
+        assert_eq!(builder.end_position_index, None);
+        assert_eq!(builder.line_comment_prefix, b'@');
+        assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
+        assert!(builder.reference_sequences.is_empty());
+        assert!(builder.unmapped_read_count.is_none());
     }
 }

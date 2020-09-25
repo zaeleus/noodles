@@ -1,6 +1,6 @@
 //! Tabix index and fields.
 
-mod builder;
+pub mod builder;
 pub mod format;
 mod indexer;
 pub mod reference_sequence;
