@@ -69,7 +69,15 @@ where
 
         let col_seq = self.inner.read_i32::<LittleEndian>()?;
         let col_beg = self.inner.read_i32::<LittleEndian>()?;
-        let col_end = self.inner.read_i32::<LittleEndian>()?;
+
+        let col_end = self.inner.read_i32::<LittleEndian>().map(|i| {
+            if i == 0 {
+                None
+            } else {
+                Some(i as usize)
+            }
+        })?;
+
         let meta = self.inner.read_i32::<LittleEndian>()?;
         let skip = self.inner.read_i32::<LittleEndian>()?;
         let names = read_names(&mut self.inner)?;
@@ -80,7 +88,7 @@ where
             .set_format(format)
             .set_reference_sequence_name_index(col_seq as usize)
             .set_start_position_index(col_beg as usize)
-            .set_end_position_index(col_end as usize)
+            .set_end_position_index(col_end)
             .set_line_comment_prefix(meta as u8)
             .set_line_skip_count(skip as u32)
             .set_reference_sequence_names(names)

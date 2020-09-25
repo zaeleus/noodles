@@ -5,7 +5,7 @@ pub struct Builder {
     format: Format,
     reference_sequence_name_index: usize,
     start_position_index: usize,
-    end_position_index: usize,
+    end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
     reference_sequence_names: Vec<String>,
@@ -75,12 +75,12 @@ impl Builder {
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_end_position_index(5)
+    ///     .set_end_position_index(Some(5))
     ///     .build();
     ///
-    /// assert_eq!(index.end_position_index(), 5);
+    /// assert_eq!(index.end_position_index(), Some(5));
     /// ```
-    pub fn set_end_position_index(mut self, end_position_index: usize) -> Self {
+    pub fn set_end_position_index(mut self, end_position_index: Option<usize>) -> Self {
         self.end_position_index = end_position_index;
         self
     }
@@ -206,7 +206,7 @@ impl Default for Builder {
             format: Format::Generic(CoordinateSystem::Gff),
             reference_sequence_name_index: 1,
             start_position_index: 4,
-            end_position_index: 5,
+            end_position_index: Some(5),
             line_comment_prefix: b'#',
             line_skip_count: 0,
             reference_sequence_names: Vec::new(),

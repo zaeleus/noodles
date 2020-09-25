@@ -15,7 +15,7 @@ pub struct Index {
     format: Format,
     reference_sequence_name_index: usize,
     start_position_index: usize,
-    end_position_index: usize,
+    end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
     reference_sequence_names: Vec<String>,
@@ -94,7 +94,8 @@ impl Index {
 
     /// Returns the end position field index.
     ///
-    /// This index is 1-based.
+    /// This index is 1-based. It is not set if the format does not have an column for the end
+    /// position.
     ///
     /// # Examples
     ///
@@ -102,12 +103,12 @@ impl Index {
     /// use noodles_tabix as tabix;
     ///
     /// let index = tabix::Index::builder()
-    ///     .set_end_position_index(5)
+    ///     .set_end_position_index(Some(5))
     ///     .build();
     ///
-    /// assert_eq!(index.end_position_index(), 5);
+    /// assert_eq!(index.end_position_index(), Some(5));
     /// ```
-    pub fn end_position_index(&self) -> usize {
+    pub fn end_position_index(&self) -> Option<usize> {
         self.end_position_index
     }
 
