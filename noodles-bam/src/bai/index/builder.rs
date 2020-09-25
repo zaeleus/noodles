@@ -77,7 +77,8 @@ impl Builder {
     /// let index = bai::Index::builder().build(1);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index {
-        let last_reference_sequence_id = ReferenceSequenceId::from(reference_sequence_count as i32);
+        let last_reference_sequence_id =
+            ReferenceSequenceId::from((reference_sequence_count - 1) as i32);
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
         let reference_sequences = self
