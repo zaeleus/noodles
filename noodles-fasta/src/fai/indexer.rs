@@ -1,6 +1,13 @@
 //! Index creation for a FASTA file as specified at http://www.htslib.org/doc/faidx.html
 
-use std::{error::Error, fmt, io, io::BufRead};
+use std::{
+    error::Error,
+    fmt,
+    fs::File,
+    io,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
 use memchr::memchr;
 
@@ -13,30 +20,29 @@ use super::Record;
 
 /// Creates an index from a FASTA file.
 ///
-/// The position of the stream is expected to be at the beginning of the file.
-///
 /// # Examples
-/// ```
-/// use noodles_fasta::fai::{index, Record};
-/// let data = b"\
-/// >one
-/// ATGCAT
-/// GCATGC
-/// ATG
-/// >two another chromosome
-/// ATGC
-/// GCAT";
 ///
-/// let indx = index(&data[..]).expect("Failed to read or invalid format");
-/// let expected = vec![
-///     Record::new("one".to_string(), 15, 5, 6, 7),
-///     Record::new("two".to_string(), 8, 47, 4, 5)
-/// ];
+/// Write a FASTA index file to disk.
 ///
-/// assert_eq!(indx, expected);
+/// ```no_run
+/// use std::{fs::File, io::Result};
+/// use noodles_fasta::fai::{index, Writer};
+///
+/// fn main() -> Result<()> {
+///     let mut fai_writer = File::create("foo.fai").map(Writer::new)?;
+///
+///     for record in index("foo.fa")? {
+///         fai_writer.write_record(&record)?;
+///     }
+///     Ok(())
+/// }
+///
 /// ```
-pub fn index<R: BufRead>(buf: R) -> Result<Vec<Record>, IndexError> {
-    let mut indexer = Indexer::new(buf);
+pub fn index<P>(src: P) -> io::Result<Vec<Record>>
+where
+    P: AsRef<Path>,
+{
+    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
     let mut result = Vec::new();
 
     while let Some(i) = indexer.index_record()? {
@@ -100,7 +106,7 @@ where
     }
 
     /// Indexes a raw FASTA record.
-    /// 
+    ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// definition.
     ///
@@ -147,7 +153,7 @@ where
         }
 
         if length == 0 {
-            return Err(IndexError::EmptyDefinition(self.offset));
+            return Err(IndexError::EmptySequence(self.offset));
         }
 
         let record = Record::new(
@@ -171,7 +177,7 @@ fn len_with_right_trim(vec: &[u8]) -> usize {
 
 #[derive(Debug)]
 pub enum IndexError {
-    EmptyDefinition(u64),
+    EmptySequence(u64),
     InvalidDefinition(ParseError),
     InvalidLineLength(u64),
     IoError(io::Error),
@@ -180,7 +186,7 @@ pub enum IndexError {
 impl Error for IndexError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::EmptyDefinition(_) => None,
+            Self::EmptySequence(_) => None,
             Self::InvalidDefinition(e) => Some(e),
             Self::InvalidLineLength(_) => None,
             Self::IoError(e) => Some(e),
@@ -191,7 +197,7 @@ impl Error for IndexError {
 impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EmptyDefinition(offset) => write!(f, "empty definition at offset {}", offset),
+            Self::EmptySequence(offset) => write!(f, "empty sequence at offset {}", offset),
             Self::InvalidDefinition(e) => e.fmt(f),
             Self::InvalidLineLength(offset) => {
                 write!(f, "different line lengths at offset {}", offset)
@@ -213,6 +219,15 @@ impl From<ParseError> for IndexError {
     }
 }
 
+impl From<IndexError> for io::Error {
+    fn from(error: IndexError) -> Self {
+        match error {
+            IndexError::IoError(e) => e,
+            _ => io::Error::new(io::ErrorKind::InvalidInput, error),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -230,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn test_index_record() -> Result<(), IndexRecordError> {
+    fn test_index_record() -> Result<(), IndexError> {
         let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
         let mut indexer = Indexer::new(&data[..]);
 
