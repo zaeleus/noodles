@@ -1,4 +1,8 @@
 //! Builds and writes a BAM index from a BAM file.
+//!
+//! The input BAM must be coordinate-sorted, i.e., `SO:coordinate`.
+//!
+//! The output is similar to the output of `samtools index <src>`.
 
 use std::{env, fs::File, io};
 
@@ -6,7 +10,17 @@ use noodles_bam::{
     self as bam,
     bai::{self, index::reference_sequence::bin::Chunk},
 };
-use noodles_sam as sam;
+use noodles_sam::{self as sam, header::header::SortOrder};
+
+fn is_coordinate_sorted(header: &sam::Header) -> bool {
+    if let Some(hdr) = header.header() {
+        if let Some(sort_order) = hdr.sort_order() {
+            return sort_order == SortOrder::Coordinate;
+        }
+    }
+
+    false
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
@@ -14,6 +28,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(bam::Reader::new)?;
     let header: sam::Header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
+
+    if !is_coordinate_sorted(&header) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "the input BAM must be coordinate-sorted to be indexed",
+        )
+        .into());
+    }
 
     let mut record = bam::Record::default();
 
