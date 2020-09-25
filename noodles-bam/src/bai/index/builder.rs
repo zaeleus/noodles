@@ -93,3 +93,62 @@ impl Builder {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use noodles_bgzf as bgzf;
+    use noodles_sam::{
+        self as sam,
+        header::ReferenceSequences,
+        record::{Flags, Position},
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+        let mut reference_sequences = ReferenceSequences::default();
+        reference_sequences.insert(
+            String::from("sq0"),
+            sam::header::ReferenceSequence::new(String::from("sq0"), 8),
+        );
+        reference_sequences.insert(
+            String::from("sq1"),
+            sam::header::ReferenceSequence::new(String::from("sq1"), 13),
+        );
+
+        let mut builder = Builder::default();
+
+        let record = Record::try_from_sam_record(
+            &reference_sequences,
+            &sam::Record::builder()
+                .set_flags(Flags::empty())
+                .set_reference_sequence_name("sq0".parse()?)
+                .set_position(Position::from(2))
+                .set_cigar("4M".parse()?)
+                .build(),
+        )?;
+
+        builder.add_record(
+            &record,
+            Chunk::new(
+                bgzf::VirtualPosition::from(55),
+                bgzf::VirtualPosition::from(89),
+            ),
+        )?;
+
+        builder.add_record(
+            &Record::default(),
+            Chunk::new(
+                bgzf::VirtualPosition::from(89),
+                bgzf::VirtualPosition::from(144),
+            ),
+        )?;
+
+        let index = builder.build(reference_sequences.len());
+        assert_eq!(index.reference_sequences().len(), 2);
+        assert_eq!(index.unplaced_unmapped_read_count(), Some(1));
+
+        Ok(())
+    }
+}
