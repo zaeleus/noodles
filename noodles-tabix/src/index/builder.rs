@@ -34,6 +34,24 @@ impl Builder {
             .set_line_skip_count(0)
     }
 
+    /// Creates a builder that targets the VCF format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let builder = tabix::index::builder::Builder::vcf();
+    /// ```
+    pub fn vcf() -> Self {
+        Builder::default()
+            .set_format(Format::Vcf)
+            .set_reference_sequence_name_index(1)
+            .set_start_position_index(2)
+            .set_end_position_index(None)
+            .set_line_comment_prefix(b'#')
+            .set_line_skip_count(0)
+    }
+
     /// Sets a tabix index format.
     ///
     /// # Examples
@@ -248,6 +266,20 @@ mod tests {
         assert_eq!(builder.start_position_index, 4);
         assert_eq!(builder.end_position_index, None);
         assert_eq!(builder.line_comment_prefix, b'@');
+        assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
+        assert!(builder.reference_sequences.is_empty());
+        assert!(builder.unmapped_read_count.is_none());
+    }
+
+    #[test]
+    fn test_vcf() {
+        let builder = Builder::vcf();
+        assert_eq!(builder.format, Format::Vcf);
+        assert_eq!(builder.reference_sequence_name_index, 1);
+        assert_eq!(builder.start_position_index, 2);
+        assert_eq!(builder.end_position_index, None);
+        assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
         assert!(builder.reference_sequence_names.is_empty());
         assert!(builder.reference_sequences.is_empty());
