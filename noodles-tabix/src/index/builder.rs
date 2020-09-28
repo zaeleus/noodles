@@ -16,6 +16,24 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Creates a builder that targets the BED format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let builder = tabix::index::builder::Builder::bed();
+    /// ```
+    pub fn bed() -> Self {
+        Builder::default()
+            .set_format(Format::Generic(CoordinateSystem::Bed))
+            .set_reference_sequence_name_index(1)
+            .set_start_position_index(2)
+            .set_end_position_index(Some(3))
+            .set_line_comment_prefix(b'#')
+            .set_line_skip_count(0)
+    }
+
     /// Creates a builder that targets the GFF format.
     ///
     /// # Examples
@@ -275,6 +293,20 @@ impl Default for Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_bed() {
+        let builder = Builder::bed();
+        assert_eq!(builder.format, Format::Generic(CoordinateSystem::Bed));
+        assert_eq!(builder.reference_sequence_name_index, 1);
+        assert_eq!(builder.start_position_index, 2);
+        assert_eq!(builder.end_position_index, Some(3));
+        assert_eq!(builder.line_comment_prefix, b'#');
+        assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
+        assert!(builder.reference_sequences.is_empty());
+        assert!(builder.unmapped_read_count.is_none());
+    }
 
     #[test]
     fn test_gff() {
