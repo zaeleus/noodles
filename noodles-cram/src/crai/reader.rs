@@ -4,6 +4,7 @@ use super::Record;
 
 pub struct Reader<R> {
     inner: R,
+    line_buf: String,
 }
 
 impl<R> Reader<R>
@@ -11,18 +12,22 @@ where
     R: BufRead,
 {
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            line_buf: String::new(),
+        }
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let mut buf = String::new();
+        self.line_buf.clear();
 
-        match self.inner.read_line(&mut buf) {
+        match self.inner.read_line(&mut self.line_buf) {
             Ok(0) => Ok(0),
             Ok(n) => {
-                buf.pop();
+                self.line_buf.pop();
 
-                *record = buf
+                *record = self
+                    .line_buf
                     .parse()
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
