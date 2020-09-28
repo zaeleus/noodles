@@ -7,7 +7,7 @@ use std::{error, fmt, str::FromStr};
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
     reference_sequence_id: i32,
     alignment_start: i32,
@@ -110,14 +110,18 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        let record: Record = "0\t10946\t6765\t17711\t233\t317811".parse()?;
+        let actual: Record = "0\t10946\t6765\t17711\t233\t317811".parse()?;
 
-        assert_eq!(record.reference_sequence_id(), 0);
-        assert_eq!(record.alignment_start(), 10946);
-        assert_eq!(record.alignment_span(), 6765);
-        assert_eq!(record.offset(), 17711);
-        assert_eq!(record.landmark(), 233);
-        assert_eq!(record.slice_len(), 317811);
+        let expected = Record {
+            reference_sequence_id: 0,
+            alignment_start: 10946,
+            alignment_span: 6765,
+            offset: 17711,
+            landmark: 233,
+            slice_len: 317811,
+        };
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
