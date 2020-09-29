@@ -1,9 +1,12 @@
 //! GFF directives.
 
 pub mod genome_build;
+pub mod gff_version;
 pub mod sequence_region;
 
-pub use self::{genome_build::GenomeBuild, sequence_region::SequenceRegion};
+pub use self::{
+    genome_build::GenomeBuild, gff_version::GffVersion, sequence_region::SequenceRegion,
+};
 
 use std::{error, fmt, str::FromStr};
 
@@ -15,7 +18,7 @@ pub(crate) const PREFIX: &str = "##";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Directive {
     /// The GFF version (`gff-version`).
-    GffVersion(String),
+    GffVersion(GffVersion),
     /// A reference to a sequence segment (`sequence-region`).
     SequenceRegion(SequenceRegion),
     /// The ontology used for the feature types (`feature-ontology`).
@@ -62,6 +65,8 @@ pub enum ParseError {
     InvalidName(String),
     /// The directive value is missing.
     MissingValue,
+    /// The GFF version is invalid.
+    InvalidGffVersion(gff_version::ParseError),
     /// A sequence region is invalid.
     InvalidSequenceRegion(sequence_region::ParseError),
     /// A genome build is invalid.
@@ -77,6 +82,7 @@ impl fmt::Display for ParseError {
             Self::MissingName => f.write_str("directive name is missing"),
             Self::InvalidName(s) => write!(f, "invalid directive name: {}", s),
             Self::MissingValue => f.write_str("directive value is missing"),
+            Self::InvalidGffVersion(e) => write!(f, "{}", e),
             Self::InvalidSequenceRegion(e) => write!(f, "{}", e),
             Self::InvalidGenomeBuild(e) => write!(f, "{}", e),
         }
@@ -98,8 +104,9 @@ impl FromStr for Directive {
         match name {
             "gff-version" => components
                 .next()
-                .map(|s| Self::GffVersion(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or_else(|| ParseError::MissingValue)
+                .and_then(|s| s.parse().map_err(ParseError::InvalidGffVersion))
+                .map(Self::GffVersion),
             "sequence-region" => components
                 .next()
                 .ok_or_else(|| ParseError::MissingValue)
@@ -140,7 +147,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(
-            Directive::GffVersion(String::from("3")).to_string(),
+            Directive::GffVersion(GffVersion::default()).to_string(),
             "##gff-version 3"
         );
 

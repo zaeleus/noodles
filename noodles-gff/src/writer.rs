@@ -46,7 +46,7 @@ where
     ///
     /// let mut writer = gff::Writer::new(Vec::new());
     ///
-    /// let version = gff::Directive::GffVersion(String::from("3"));
+    /// let version = gff::Directive::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
     ///
     /// assert_eq!(writer.get_ref(), b"##gff-version 3\n");
@@ -66,7 +66,7 @@ where
     ///
     /// let mut writer = gff::Writer::new(Vec::new());
     ///
-    /// let version = gff::Directive::GffVersion(String::from("3"));
+    /// let version = gff::Directive::GffVersion(Default::default());
     /// writer.write_directive(&version)?;
     ///
     /// let record = gff::Record::default();

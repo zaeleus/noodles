@@ -61,7 +61,7 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         let s = "##gff-version 3";
         let actual = s.parse::<Line>()?;
-        let expected = Line::Directive(Directive::GffVersion(String::from("3")));
+        let expected = Line::Directive(Directive::GffVersion(Default::default()));
         assert_eq!(actual, expected);
 
         let s = "#format: gff3";
