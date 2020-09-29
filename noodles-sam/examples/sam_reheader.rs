@@ -1,0 +1,37 @@
+//! Replaces the header of a SAM file.
+//!
+//! This is similar to the functionality of `samtools reheader`.
+//!
+//! Verify the output by piping to `samtools view -h --no-PG`.
+
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
+
+use noodles_sam as sam;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let src = env::args().nth(1).expect("missing src");
+
+    let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
+    let mut header: sam::Header = reader.read_header()?.parse()?;
+
+    header
+        .comments_mut()
+        .push(String::from("a comment added by noodles-sam"));
+
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = sam::Writer::new(handle);
+
+    writer.write_header(&header)?;
+
+    for result in reader.records() {
+        let record = result?;
+        writer.write_record(&record)?;
+    }
+
+    Ok(())
+}
