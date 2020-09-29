@@ -8,8 +8,8 @@ use std::io::{self, BufRead, Seek, SeekFrom};
 
 use memchr::memchr;
 
-const DEFINITION_PREFIX: u8 = b'>';
-const NEWLINE: u8 = b'\n';
+pub(crate) const DEFINITION_PREFIX: u8 = b'>';
+pub(crate) const NEWLINE: u8 = b'\n';
 
 /// A FASTA reader.
 pub struct Reader<R> {
