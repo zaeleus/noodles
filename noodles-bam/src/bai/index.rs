@@ -55,7 +55,10 @@ impl Index {
         &self.reference_sequences
     }
 
-    /// Returns the number of unmapped reads in the associated BAM file.
+    /// Returns the number of unplaced unmapped reads in the associated BAM file.
+    ///
+    /// An unplaced unmapped read is a read that is has neither a reference sequence ID nor
+    /// position set.
     ///
     /// # Examples
     ///
