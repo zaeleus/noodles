@@ -18,9 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
     let mut header: sam::Header = reader.read_header()?.parse()?;
 
-    header
-        .comments_mut()
-        .push(String::from("a comment added by noodles-sam"));
+    header.add_comment("a comment added by noodles-sam");
 
     let stdout = io::stdout();
     let handle = stdout.lock();

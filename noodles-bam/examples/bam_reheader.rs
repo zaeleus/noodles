@@ -16,9 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut header: sam::Header = reader.read_header()?.parse()?;
     reader.read_reference_sequences()?;
 
-    header
-        .comments_mut()
-        .push(String::from("a comment added by noodles-bam"));
+    header.add_comment("a comment added by noodles-bam");
 
     let stdout = io::stdout();
     let handle = stdout.lock();

@@ -313,6 +313,12 @@ impl Header {
 
     /// Returns a mutable reference to the SAM header comments.
     ///
+    /// To simply append a comment record, consider using `add_comment` instead.
+    ///
+    /// [`add_comment`]: #method.add_comment
+    ///
+    /// # Examples
+    ///
     /// ```
     /// use noodles_sam as sam;
     ///
@@ -325,6 +331,27 @@ impl Header {
     /// ```
     pub fn comments_mut(&mut self) -> &mut Vec<String> {
         &mut self.comments
+    }
+
+    /// Adds a comment.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let mut header = sam::Header::default();
+    /// header.add_comment("noodles-sam");
+    ///
+    /// let comments = header.comments();
+    /// assert_eq!(comments.len(), 1);
+    /// assert_eq!(&comments[0], "noodles-sam");
+    /// ```
+    pub fn add_comment<S>(&mut self, comment: S)
+    where
+        S: Into<String>,
+    {
+        self.comments.push(comment.into());
     }
 
     /// Returns whether there are no records in this SAM header.
