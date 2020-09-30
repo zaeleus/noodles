@@ -116,3 +116,21 @@ impl Block {
             + mem::size_of::<u32>()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_len() {
+        let data = b"noodles".to_vec();
+
+        let block = Block::builder()
+            .set_content_type(ContentType::ExternalData)
+            .set_uncompressed_len(data.len() as Itf8)
+            .set_data(data)
+            .build();
+
+        assert_eq!(block.len(), 16);
+    }
+}
