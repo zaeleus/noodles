@@ -25,7 +25,7 @@ use crate::{
 const EOF_DATA: [u8; 6] = [0x01, 0x00, 0x01, 0x00, 0x01, 0x00];
 const EOF_CRC32: u32 = 0x4b_01_63_ee;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Block {
     compression_method: CompressionMethod,
     content_type: ContentType,
