@@ -1,18 +1,24 @@
 use std::collections::HashMap;
 
+use noodles_bgzf as bgzf;
+
 use super::{
     bin::{self, Chunk},
     Bin, ReferenceSequence,
 };
 
+const WINDOW_SIZE: u32 = 16384;
+
 #[derive(Debug, Default)]
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
+    intervals: Vec<bgzf::VirtualPosition>,
 }
 
 impl Builder {
     pub fn add_record(&mut self, start: u32, end: u32, chunk: Chunk) -> &mut Self {
         self.update_bins(start, end, chunk);
+        self.update_linear_index(start, end, chunk);
         self
     }
 
@@ -23,8 +29,7 @@ impl Builder {
             .map(|(_, b)| b.build())
             .collect();
 
-        // TODO: linear index
-        ReferenceSequence::new(bins, Vec::new())
+        ReferenceSequence::new(bins, self.intervals)
     }
 
     fn update_bins(&mut self, start: u32, end: u32, chunk: Chunk) {
@@ -37,6 +42,22 @@ impl Builder {
         });
 
         builder.add_chunk(chunk);
+    }
+
+    fn update_linear_index(&mut self, start: u32, end: u32, chunk: Chunk) {
+        let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
+        let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
+
+        if linear_index_end_offset >= self.intervals.len() {
+            self.intervals.resize(
+                linear_index_end_offset + 1,
+                bgzf::VirtualPosition::default(),
+            );
+        }
+
+        for i in linear_index_start_offset..=linear_index_end_offset {
+            self.intervals[i] = chunk.start();
+        }
     }
 }
 
