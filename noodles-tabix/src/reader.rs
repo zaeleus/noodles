@@ -8,8 +8,10 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
 use crate::index::{
+    self,
+    header::Format,
     reference_sequence::{bin::Chunk, Bin},
-    Format, ReferenceSequence,
+    ReferenceSequence,
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -63,34 +65,14 @@ where
 
         let n_ref = self.inner.read_i32::<LittleEndian>()?;
 
-        let format = self.inner.read_i32::<LittleEndian>().and_then(|n| {
-            Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        let header = read_header(&mut self.inner)?;
 
-        let col_seq = self.inner.read_i32::<LittleEndian>()?;
-        let col_beg = self.inner.read_i32::<LittleEndian>()?;
-
-        let col_end = self.inner.read_i32::<LittleEndian>().map(|i| {
-            if i == 0 {
-                None
-            } else {
-                Some(i as usize)
-            }
-        })?;
-
-        let meta = self.inner.read_i32::<LittleEndian>()?;
-        let skip = self.inner.read_i32::<LittleEndian>()?;
         let names = read_names(&mut self.inner)?;
         let references = read_references(&mut self.inner, n_ref as usize)?;
         let n_no_coors = self.inner.read_u64::<LittleEndian>().ok();
 
         let mut builder = Index::builder()
-            .set_format(format)
-            .set_reference_sequence_name_index(col_seq as usize)
-            .set_start_position_index(col_beg as usize)
-            .set_end_position_index(col_end)
-            .set_line_comment_prefix(meta as u8)
-            .set_line_skip_count(skip as u32)
+            .set_header(header)
             .set_reference_sequence_names(names)
             .set_reference_sequences(references);
 
@@ -117,6 +99,35 @@ where
             "invalid tabix header",
         ))
     }
+}
+
+fn read_header<R>(reader: &mut R) -> io::Result<index::Header>
+where
+    R: Read,
+{
+    let format = reader.read_i32::<LittleEndian>().and_then(|n| {
+        Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let col_seq = reader.read_i32::<LittleEndian>()?;
+    let col_beg = reader.read_i32::<LittleEndian>()?;
+
+    let col_end =
+        reader
+            .read_i32::<LittleEndian>()
+            .map(|i| if i == 0 { None } else { Some(i as usize) })?;
+
+    let meta = reader.read_i32::<LittleEndian>()?;
+    let skip = reader.read_i32::<LittleEndian>()?;
+
+    Ok(index::Header::builder()
+        .set_format(format)
+        .set_reference_sequence_name_index(col_seq as usize)
+        .set_start_position_index(col_beg as usize)
+        .set_end_position_index(col_end)
+        .set_line_comment_prefix(meta as u8)
+        .set_line_skip_count(skip as u32)
+        .build())
 }
 
 fn read_names<R>(reader: &mut R) -> io::Result<Vec<String>>

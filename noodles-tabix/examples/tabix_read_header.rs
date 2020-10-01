@@ -18,7 +18,7 @@ fn main() -> io::Result<()> {
     let index = tabix::read(tabix_src)?;
 
     let reader = File::open(src).map(bgzf::Reader::new).map(BufReader::new)?;
-    let line_comment_prefix = char::from(index.line_comment_prefix());
+    let line_comment_prefix = char::from(index.header().line_comment_prefix());
 
     for result in reader.lines() {
         let line = result?;

@@ -1,23 +1,18 @@
 //! Tabix index and fields.
 
 pub mod builder;
-pub mod format;
+pub mod header;
 mod indexer;
 pub mod reference_sequence;
 
 pub use self::{
-    builder::Builder, format::Format, indexer::Indexer, reference_sequence::ReferenceSequence,
+    builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
 };
 
 /// A tabix index.
 #[derive(Debug)]
 pub struct Index {
-    format: Format,
-    reference_sequence_name_index: usize,
-    start_position_index: usize,
-    end_position_index: Option<usize>,
-    line_comment_prefix: u8,
-    line_skip_count: u32,
+    header: Header,
     reference_sequence_names: Vec<String>,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
@@ -41,109 +36,18 @@ impl Index {
         Indexer::default()
     }
 
-    /// Returns the format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix::{self as tabix, index::Format};
-    /// let index = tabix::Index::builder().set_format(Format::Vcf).build();
-    /// assert_eq!(index.format(), Format::Vcf);
-    /// ```
-    pub fn format(&self) -> Format {
-        self.format
-    }
-
-    /// Returns the reference sequence name field index.
-    ///
-    /// This index is 1-based.
+    /// Returns the header.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_reference_sequence_name_index(1)
-    ///     .build();
-    ///
-    /// assert_eq!(index.reference_sequence_name_index(), 1);
+    /// let header = tabix::index::Header::default();
+    /// let index = tabix::Index::builder().set_header(header.clone()).build();
+    /// assert_eq!(index.header(), &header);
     /// ```
-    pub fn reference_sequence_name_index(&self) -> usize {
-        self.reference_sequence_name_index
-    }
-
-    /// Returns the start position field index.
-    ///
-    /// This index is 1-based.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_start_position_index(4)
-    ///     .build();
-    ///
-    /// assert_eq!(index.start_position_index(), 4);
-    /// ```
-    pub fn start_position_index(&self) -> usize {
-        self.start_position_index
-    }
-
-    /// Returns the end position field index.
-    ///
-    /// This index is 1-based. It is not set if the format does not have an column for the end
-    /// position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_end_position_index(Some(5))
-    ///     .build();
-    ///
-    /// assert_eq!(index.end_position_index(), Some(5));
-    /// ```
-    pub fn end_position_index(&self) -> Option<usize> {
-        self.end_position_index
-    }
-
-    /// Returns the line comment prefix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_line_comment_prefix(b'#')
-    ///     .build();
-    ///
-    /// assert_eq!(index.line_comment_prefix(), b'#');
-    /// ```
-    pub fn line_comment_prefix(&self) -> u8 {
-        self.line_comment_prefix
-    }
-
-    /// Returns the number of lines to skip.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix as tabix;
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_line_skip_count(0)
-    ///     .build();
-    ///
-    /// assert_eq!(index.line_skip_count(),0);
-    /// ```
-    pub fn line_skip_count(&self) -> u32 {
-        self.line_skip_count
+    pub fn header(&self) -> &Header {
+        &self.header
     }
 
     /// Returns the reference sequence names.

@@ -1,4 +1,4 @@
-//! Tabix index format and coordinate system.
+//! Tabix index header format and coordinate system.
 
 pub mod coordinate_system;
 
@@ -26,7 +26,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_tabix::index::{format::CoordinateSystem, Format};
+    /// use noodles_tabix::index::header::{format::CoordinateSystem, Format};
     ///
     /// let format = Format::Generic(CoordinateSystem::Bed);
     /// assert_eq!(format.coordinate_system(), CoordinateSystem::Bed);

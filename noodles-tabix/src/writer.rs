@@ -4,6 +4,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::{
     index::{
+        self,
         reference_sequence::{bin::Chunk, Bin},
         ReferenceSequence,
     },
@@ -64,26 +65,7 @@ where
         let n_ref = index.reference_sequences().len() as i32;
         self.inner.write_i32::<LittleEndian>(n_ref)?;
 
-        let format = i32::from(index.format());
-        self.inner.write_i32::<LittleEndian>(format)?;
-
-        let col_seq = index.reference_sequence_name_index() as i32;
-        self.inner.write_i32::<LittleEndian>(col_seq)?;
-
-        let col_beg = index.start_position_index() as i32;
-        self.inner.write_i32::<LittleEndian>(col_beg)?;
-
-        let col_end = index
-            .end_position_index()
-            .map(|i| i as i32)
-            .unwrap_or_default();
-        self.inner.write_i32::<LittleEndian>(col_end)?;
-
-        let meta = i32::from(index.line_comment_prefix());
-        self.inner.write_i32::<LittleEndian>(meta)?;
-
-        let skip = index.line_skip_count() as i32;
-        self.inner.write_i32::<LittleEndian>(skip)?;
+        write_header(&mut self.inner, index.header())?;
 
         // Add 1 for each trailing nul.
         let l_nm = index
@@ -115,6 +97,34 @@ where
     W: Write,
 {
     writer.write_all(MAGIC_NUMBER)
+}
+
+fn write_header<W>(writer: &mut W, header: &index::Header) -> io::Result<()>
+where
+    W: Write,
+{
+    let format = i32::from(header.format());
+    writer.write_i32::<LittleEndian>(format)?;
+
+    let col_seq = header.reference_sequence_name_index() as i32;
+    writer.write_i32::<LittleEndian>(col_seq)?;
+
+    let col_beg = header.start_position_index() as i32;
+    writer.write_i32::<LittleEndian>(col_beg)?;
+
+    let col_end = header
+        .end_position_index()
+        .map(|i| i as i32)
+        .unwrap_or_default();
+    writer.write_i32::<LittleEndian>(col_end)?;
+
+    let meta = i32::from(header.line_comment_prefix());
+    writer.write_i32::<LittleEndian>(meta)?;
+
+    let skip = header.line_skip_count() as i32;
+    writer.write_i32::<LittleEndian>(skip)?;
+
+    Ok(())
 }
 
 pub fn write_reference_sequence<W>(writer: &mut W, reference: &ReferenceSequence) -> io::Result<()>
@@ -174,8 +184,6 @@ mod tests {
 
     use noodles_bgzf as bgzf;
 
-    use crate::index::Format;
-
     use super::*;
 
     #[test]
@@ -187,13 +195,8 @@ mod tests {
         let bins = vec![Bin::new(16385, chunks)];
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals)];
+
         let index = Index::builder()
-            .set_format(Format::Vcf)
-            .set_reference_sequence_name_index(1)
-            .set_start_position_index(4)
-            .set_end_position_index(Some(5))
-            .set_line_comment_prefix(b'#')
-            .set_line_skip_count(0)
             .set_reference_sequence_names(vec![String::from("sq0"), String::from("sq1")])
             .set_reference_sequences(references)
             .build();
@@ -207,7 +210,7 @@ mod tests {
         // n_ref
         expected_writer.write_i32::<LittleEndian>(1)?;
         // format
-        expected_writer.write_i32::<LittleEndian>(2)?;
+        expected_writer.write_i32::<LittleEndian>(0)?;
         // col_seq
         expected_writer.write_i32::<LittleEndian>(1)?;
         // col_beg
