@@ -2,6 +2,8 @@
 //!
 //! The input BAM must be coordinate-sorted, i.e., `SO:coordinate`.
 //!
+//! This writes the output to stdout rather than `<src>.bai`.
+//!
 //! The output is similar to the output of `samtools index <src>`.
 
 use std::{env, fs::File, io};
