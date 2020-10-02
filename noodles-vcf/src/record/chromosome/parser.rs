@@ -1,7 +1,7 @@
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until},
-    combinator::{map, rest},
+    bytes::complete::{tag, take_until, take_while},
+    combinator::{all_consuming, map},
     sequence::delimited,
     IResult,
 };
@@ -12,8 +12,12 @@ pub(crate) enum Value<'a> {
     Symbol(&'a str),
 }
 
+fn is_not_whitespace(c: char) -> bool {
+    !c.is_whitespace()
+}
+
 fn name(input: &str) -> IResult<&str, Value<'_>> {
-    map(rest, Value::Name)(input)
+    map(all_consuming(take_while(is_not_whitespace)), Value::Name)(input)
 }
 
 fn symbol(input: &str) -> IResult<&str, Value<'_>> {
@@ -35,5 +39,14 @@ mod tests {
     fn test_parse() {
         assert_eq!(parse("sq0"), Ok(("", Value::Name("sq0"))));
         assert_eq!(parse("<sq0>"), Ok(("", Value::Symbol("sq0"))));
+
+        assert_eq!(
+            parse("sq 0"),
+            Err(nom::Err::Error((" 0", nom::error::ErrorKind::Eof)))
+        );
+        assert_eq!(
+            parse("sq\u{a0}0"),
+            Err(nom::Err::Error(("\u{a0}0", nom::error::ErrorKind::Eof)))
+        );
     }
 }

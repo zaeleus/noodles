@@ -81,5 +81,6 @@ mod tests {
 
         assert_eq!("".parse::<Chromosome>(), Err(ParseError::Empty));
         assert_eq!(".".parse::<Chromosome>(), Err(ParseError::Missing));
+        assert_eq!("sq 0".parse::<Chromosome>(), Err(ParseError::Invalid));
     }
 }
