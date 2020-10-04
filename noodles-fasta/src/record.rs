@@ -46,6 +46,27 @@ impl Record {
         self.definition.reference_sequence_name()
     }
 
+    /// Returns the description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    ///
+    /// let definition = fasta::record::Definition::new(
+    ///     String::from("sq0"),
+    ///     Some(String::from("LN:4"))
+    /// );
+    ///
+    /// let sequence = b"ACGT".to_vec();
+    /// let record = fasta::Record::new(definition, sequence);
+    ///
+    /// assert_eq!(record.description(), Some("LN:4"));
+    /// ```
+    pub fn description(&self) -> Option<&str> {
+        self.definition.description()
+    }
+
     /// Returns the sequence.
     ///
     /// # Examples
