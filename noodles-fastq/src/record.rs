@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// A FASTQ record.
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Record {
@@ -97,5 +99,44 @@ impl Record {
         self.read_name.clear();
         self.sequence.clear();
         self.quality_scores.clear();
+    }
+}
+
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("@")?;
+
+        for &b in self.read_name() {
+            write!(f, "{}", b as char)?;
+        }
+
+        writeln!(f)?;
+
+        for &b in self.sequence() {
+            write!(f, "{}", b as char)?;
+        }
+
+        writeln!(f)?;
+
+        writeln!(f, "+")?;
+
+        for &b in self.quality_scores() {
+            write!(f, "{}", b as char)?;
+        }
+
+        writeln!(f)?;
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let record = Record::new("r0", "ATCG", "NDLS");
+        assert_eq!(record.to_string(), "@r0\nATCG\n+\nNDLS\n");
     }
 }
