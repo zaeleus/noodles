@@ -43,7 +43,7 @@ impl Record {
     /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
-        &self.definition.reference_sequence_name()
+        self.definition.reference_sequence_name()
     }
 
     /// Returns the sequence.
