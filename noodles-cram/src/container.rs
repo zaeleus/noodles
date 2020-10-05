@@ -208,3 +208,72 @@ fn validate_reference_sequences(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from_sam_header_for_container() -> Result<(), TryFromSamHeader> {
+        let reference_sequence = sam::header::ReferenceSequence::builder()
+            .set_name("sq0")
+            .set_length(8)
+            .set_md5_checksum(
+                [
+                    0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d,
+                    0xd6, 0x15, 0x34,
+                ]
+                .into(),
+            )
+            .build();
+
+        let sam_header = sam::Header::builder()
+            .add_reference_sequence(reference_sequence)
+            .build();
+
+        let container = Container::try_from(&sam_header)?;
+
+        let expected_header = Header::builder()
+            .set_length(65)
+            .set_reference_sequence_id(ReferenceSequenceId::None)
+            .set_start_position(0)
+            .set_alignment_span(0)
+            .set_record_count(0)
+            .set_record_counter(0)
+            .set_base_count(0)
+            .set_block_count(1)
+            .set_landmarks(vec![0])
+            .set_crc32(0)
+            .build();
+
+        assert_eq!(container.header(), &expected_header);
+
+        let mut data = 52_i32.to_le_bytes().to_vec();
+        data.extend(sam_header.to_string().bytes());
+
+        let expected_blocks = vec![Block::builder()
+            .set_compression_method(block::CompressionMethod::None)
+            .set_content_type(block::ContentType::FileHeader)
+            .set_content_id(0)
+            .set_uncompressed_len(56)
+            .set_data(data)
+            .set_crc32(0)
+            .build()];
+
+        assert_eq!(container.blocks(), expected_blocks);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_sam_header_for_container_with_missing_reference_sequence_md5_checksum() {
+        let header = sam::Header::builder()
+            .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+            .build();
+
+        assert_eq!(
+            Container::try_from(&header),
+            Err(TryFromSamHeader::ReferenceSequenceMissingMd5Checksum)
+        );
+    }
+}
