@@ -12,7 +12,7 @@ const EOF_START_POSITION: Itf8 = 4_542_278;
 const EOF_BLOCK_COUNT: Itf8 = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,

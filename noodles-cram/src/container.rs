@@ -17,7 +17,7 @@ use super::{
     num::Itf8, writer, writer::compression_header::write_compression_header, DataContainer,
 };
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Container {
     header: Header,
     blocks: Vec<Block>,
