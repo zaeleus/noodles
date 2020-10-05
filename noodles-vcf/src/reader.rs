@@ -8,7 +8,9 @@ use std::io::{self, BufRead, BufReader, Read, Seek};
 
 use noodles_bgzf as bgzf;
 
-const NEWLINE: u8 = b'\n';
+const LINE_FEED: u8 = b'\n';
+const CARRIAGE_RETURN: char = '\r';
+
 const HEADER_PREFIX: u8 = b'#';
 
 /// A VCF reader.
@@ -110,7 +112,7 @@ where
                 break;
             }
 
-            let (read_eol, len) = match buf.iter().position(|&b| b == NEWLINE) {
+            let (read_eol, len) = match buf.iter().position(|&b| b == LINE_FEED) {
                 Some(i) => {
                     header_buf.extend(&buf[..=i]);
                     (true, i + 1)
@@ -166,9 +168,19 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        let result = self.inner.read_line(buf);
-        buf.pop();
-        result
+        match self.inner.read_line(buf) {
+            Ok(0) => Ok(0),
+            Ok(n) => {
+                buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
+
+                Ok(n)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -267,16 +279,50 @@ sq0\t13
         reader.read_header()?;
 
         let mut buf = String::new();
-        reader.read_record(&mut buf)?;
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 6);
         assert_eq!(buf, "sq0\t8");
 
         buf.clear();
-        reader.read_record(&mut buf)?;
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 7);
         assert_eq!(buf, "sq0\t13");
 
         buf.clear();
-        let len = reader.read_record(&mut buf)?;
-        assert_eq!(len, 0);
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 0);
+        assert!(buf.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_record_with_crlf() -> io::Result<()> {
+        let data = b"\
+##fileformat=VCFv4.3\r\n\
+##fileDate=20200501\r\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\r\n\
+sq0\t8\r\n\
+sq0\t13\r\n\
+";
+
+        let mut reader = Reader::new(&data[..]);
+        reader.read_header()?;
+
+        let mut buf = String::new();
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 7);
+        assert_eq!(buf, "sq0\t8");
+
+        buf.clear();
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 8);
+        assert_eq!(buf, "sq0\t13");
+
+        buf.clear();
+        let bytes_read = reader.read_record(&mut buf)?;
+        assert_eq!(bytes_read, 0);
+        assert!(buf.is_empty());
 
         Ok(())
     }
