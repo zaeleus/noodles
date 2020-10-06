@@ -25,3 +25,17 @@ impl Key {
         i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_id() {
+        let key = Key::new([b'C', b'O'], Type::String);
+        assert_eq!(key.id(), 4411226);
+
+        let key = Key::new([b'N', b'H'], Type::Int32);
+        assert_eq!(key.id(), 5130345);
+    }
+}
