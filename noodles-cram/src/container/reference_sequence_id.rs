@@ -17,15 +17,15 @@ pub enum ReferenceSequenceId {
 }
 
 impl ReferenceSequenceId {
-    pub fn is_some(&self) -> bool {
+    pub fn is_some(self) -> bool {
         matches!(self, Self::Some(_))
     }
 
-    pub fn is_none(&self) -> bool {
+    pub fn is_none(self) -> bool {
         matches!(self, Self::None)
     }
 
-    pub fn is_many(&self) -> bool {
+    pub fn is_many(self) -> bool {
         matches!(self, Self::Many)
     }
 }
