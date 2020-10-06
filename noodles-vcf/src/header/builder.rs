@@ -12,6 +12,7 @@ pub struct Builder {
     alternative_alleles: Vec<AlternativeAllele>,
     assembly: Option<String>,
     contigs: Vec<Contig>,
+    pedigree_db: Option<String>,
     sample_names: Vec<String>,
     map: HashMap<String, Record>,
 }
@@ -187,6 +188,27 @@ impl Builder {
         self
     }
 
+    /// Sets a pedigree database record (`pedigreeDB`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_pedigree_db("file:///pedigree.db")
+    ///     .build();
+    ///
+    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
+    /// ```
+    pub fn set_pedigree_db<I>(mut self, pedigree_db: I) -> Self
+    where
+        I: Into<String>,
+    {
+        self.pedigree_db = Some(pedigree_db.into());
+        self
+    }
+
     /// Adds a sample name.
     ///
     /// # Examples
@@ -250,6 +272,7 @@ impl Builder {
             alternative_alleles: self.alternative_alleles,
             assembly: self.assembly,
             contigs: self.contigs,
+            pedigree_db: self.pedigree_db,
             samples_names: self.sample_names,
             map: self.map,
         }
@@ -266,6 +289,7 @@ impl Default for Builder {
             alternative_alleles: Vec::new(),
             assembly: None,
             contigs: Vec::new(),
+            pedigree_db: None,
             sample_names: Vec::new(),
             map: HashMap::new(),
         }

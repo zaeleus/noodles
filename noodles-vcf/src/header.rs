@@ -33,6 +33,7 @@ pub struct Header {
     alternative_alleles: Vec<AlternativeAllele>,
     assembly: Option<String>,
     contigs: Vec<Contig>,
+    pedigree_db: Option<String>,
     samples_names: Vec<String>,
     map: HashMap<String, Record>,
 }
@@ -209,6 +210,23 @@ impl Header {
         &self.contigs
     }
 
+    /// Returns a URI to the relationships between genomes (`pedigreeDB`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_pedigree_db("file:///pedigree.db")
+    ///     .build();
+    ///
+    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
+    /// ```
+    pub fn pedigree_db(&self) -> Option<&str> {
+        self.pedigree_db.as_deref()
+    }
+
     /// Returns a list sample names that come after the FORMAT column in the header record.
     ///
     /// # Examples
@@ -295,6 +313,16 @@ impl fmt::Display for Header {
 
         for contig in self.contigs() {
             writeln!(f, "{}", contig)?;
+        }
+
+        if let Some(pedigree_db) = self.pedigree_db() {
+            writeln!(
+                f,
+                "{}{}={}",
+                record::PREFIX,
+                record::Key::PedigreeDb,
+                pedigree_db
+            )?;
         }
 
         for record in self.map.values() {
@@ -438,6 +466,10 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
             builder.add_contig(contig)
         }
+        record::Key::PedigreeDb => match record.value() {
+            record::Value::String(value) => builder.set_pedigree_db(value),
+            _ => return Err(ParseError::InvalidRecordValue),
+        },
         record::Key::Other(_) => builder.insert(record),
     };
 

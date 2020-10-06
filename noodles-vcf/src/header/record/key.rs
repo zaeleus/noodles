@@ -19,6 +19,8 @@ pub enum Key {
     Assembly,
     /// Contig (`contig`).
     Contig,
+    /// Pedigree database URI (`pedigreeDB`).
+    PedigreeDb,
     /// Any other record key.
     Other(String),
 }
@@ -33,6 +35,7 @@ impl AsRef<str> for Key {
             Self::AlternativeAllele => "ALT",
             Self::Assembly => "assembly",
             Self::Contig => "contig",
+            Self::PedigreeDb => "pedigreeDB",
             Self::Other(s) => s,
         }
     }
@@ -74,6 +77,7 @@ impl FromStr for Key {
             "ALT" => Ok(Self::AlternativeAllele),
             "assembly" => Ok(Self::Assembly),
             "contig" => Ok(Self::Contig),
+            "pedigreeDB" => Ok(Self::PedigreeDb),
             _ => Ok(Self::Other(s.into())),
         }
     }
@@ -92,6 +96,7 @@ mod tests {
         assert_eq!(Key::AlternativeAllele.to_string(), "ALT");
         assert_eq!(Key::Assembly.to_string(), "assembly");
         assert_eq!(Key::Contig.to_string(), "contig");
+        assert_eq!(Key::PedigreeDb.to_string(), "pedigreeDB");
         assert_eq!(Key::Other(String::from("fileDate")).to_string(), "fileDate");
     }
 
@@ -104,6 +109,7 @@ mod tests {
         assert_eq!("ALT".parse(), Ok(Key::AlternativeAllele));
         assert_eq!("assembly".parse(), Ok(Key::Assembly));
         assert_eq!("contig".parse(), Ok(Key::Contig));
+        assert_eq!("pedigreeDB".parse(), Ok(Key::PedigreeDb));
         assert_eq!("fileDate".parse(), Ok(Key::Other(String::from("fileDate"))));
 
         assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
