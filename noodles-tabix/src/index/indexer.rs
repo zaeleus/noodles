@@ -1,17 +1,30 @@
 use super::{
     reference_sequence::{self, bin::Chunk},
-    Index, ReferenceSequence,
+    Header, Index, ReferenceSequence,
 };
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
 pub struct Indexer {
+    header: Header,
     current_reference_sequence_name: String,
     reference_sequence_names: Vec<String>,
     reference_sequence_builders: Vec<reference_sequence::Builder>,
 }
 
 impl Indexer {
+    /// Sets an index header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let builder = tabix::Index::indexer().set_header(tabix::index::Header::default());
+    /// ```
+    pub fn set_header(&mut self, header: Header) {
+        self.header = header;
+    }
+
     /// Adds a record.
     pub fn add_record(
         &mut self,
@@ -47,6 +60,7 @@ impl Indexer {
             .collect();
 
         Index::builder()
+            .set_header(self.header)
             .set_reference_sequence_names(self.reference_sequence_names)
             .set_reference_sequences(reference_sequences)
             .build()
