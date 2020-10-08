@@ -15,7 +15,7 @@ const EQ_FIELD: &str = "=";
 ///   3. the mate is on a different reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MateReferenceSequenceName {
-    /// The mate is not not set.
+    /// The mate is not set.
     None,
     /// The mate is on the same reference sequence.
     Eq,
