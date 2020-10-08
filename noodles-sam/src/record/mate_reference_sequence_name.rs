@@ -31,26 +31,17 @@ impl MateReferenceSequenceName {
 
     /// Returns whether the mate is not set.
     pub fn is_none(&self) -> bool {
-        match self {
-            Self::None => true,
-            _ => false,
-        }
+        matches!(self, Self::None)
     }
 
     /// Returns whether the mate is on the same reference sequence.
     pub fn is_eq(&self) -> bool {
-        match self {
-            Self::Eq => true,
-            _ => false,
-        }
+        matches!(self, Self::Eq)
     }
 
     /// Returns whether the mate is on a different reference sequence.
     pub fn is_some(&self) -> bool {
-        match self {
-            Self::Some(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Some(_))
     }
 }
 
