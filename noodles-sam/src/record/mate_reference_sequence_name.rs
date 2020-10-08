@@ -25,21 +25,57 @@ pub enum MateReferenceSequenceName {
 
 impl MateReferenceSequenceName {
     /// Returns whether the mate is not set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MateReferenceSequenceName;
+    /// assert!(MateReferenceSequenceName::None.is_empty());
+    /// assert!(!MateReferenceSequenceName::Eq.is_empty());
+    /// assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.is_none()
     }
 
     /// Returns whether the mate is not set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MateReferenceSequenceName;
+    /// assert!(MateReferenceSequenceName::None.is_none());
+    /// assert!(!MateReferenceSequenceName::Eq.is_none());
+    /// assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_none());
+    /// ```
     pub fn is_none(&self) -> bool {
         matches!(self, Self::None)
     }
 
     /// Returns whether the mate is on the same reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MateReferenceSequenceName;
+    /// assert!(!MateReferenceSequenceName::None.is_eq());
+    /// assert!(MateReferenceSequenceName::Eq.is_eq());
+    /// assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_eq());
+    /// ```
     pub fn is_eq(&self) -> bool {
         matches!(self, Self::Eq)
     }
 
     /// Returns whether the mate is on a different reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MateReferenceSequenceName;
+    /// assert!(!MateReferenceSequenceName::None.is_some());
+    /// assert!(!MateReferenceSequenceName::Eq.is_some());
+    /// assert!(MateReferenceSequenceName::Some(String::from("sq0")).is_some());
+    /// ```
     pub fn is_some(&self) -> bool {
         matches!(self, Self::Some(_))
     }
@@ -100,34 +136,6 @@ impl FromStr for MateReferenceSequenceName {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_is_empty() {
-        assert!(MateReferenceSequenceName::None.is_empty());
-        assert!(!MateReferenceSequenceName::Eq.is_empty());
-        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_empty());
-    }
-
-    #[test]
-    fn test_is_none() {
-        assert!(MateReferenceSequenceName::None.is_none());
-        assert!(!MateReferenceSequenceName::Eq.is_none());
-        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_none());
-    }
-
-    #[test]
-    fn test_is_eq() {
-        assert!(!MateReferenceSequenceName::None.is_eq());
-        assert!(MateReferenceSequenceName::Eq.is_eq());
-        assert!(!MateReferenceSequenceName::Some(String::from("sq0")).is_eq());
-    }
-
-    #[test]
-    fn test_is_some() {
-        assert!(!MateReferenceSequenceName::None.is_some());
-        assert!(!MateReferenceSequenceName::Eq.is_some());
-        assert!(MateReferenceSequenceName::Some(String::from("sq0")).is_some());
-    }
 
     #[test]
     fn test_default() {
