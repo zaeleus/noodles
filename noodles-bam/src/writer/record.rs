@@ -9,7 +9,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
-    record::{Cigar, Data, MateReferenceSequenceName, QualityScores, Sequence},
+    record::{Cigar, Data, QualityScores, Sequence},
 };
 
 use crate::record::sequence::Base;
@@ -48,14 +48,13 @@ where
     };
 
     let mate_reference_sequence_id = match record.mate_reference_sequence_name() {
-        MateReferenceSequenceName::Some(name) => reference_sequences
-            .get_index_of(name)
+        Some(name) => reference_sequences
+            .get_index_of(name.as_str())
             .map(|i| i as i32)
             .ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
             })?,
-        MateReferenceSequenceName::Eq => reference_sequence_id,
-        MateReferenceSequenceName::None => -1,
+        None => -1,
     };
 
     let read_name = c_read_name.as_bytes_with_nul();

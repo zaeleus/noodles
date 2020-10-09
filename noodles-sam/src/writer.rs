@@ -102,6 +102,19 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+        let rnext = record
+            .mate_reference_sequence_name()
+            .map(|mate_reference_sequence_name| {
+                if let Some(reference_sequence_name) = record.reference_sequence_name() {
+                    if mate_reference_sequence_name == reference_sequence_name {
+                        return "=";
+                    }
+                }
+
+                mate_reference_sequence_name.as_str()
+            })
+            .unwrap_or(record::NULL_FIELD);
+
         write!(
             self.inner,
             "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
@@ -111,7 +124,7 @@ where
             pos = i32::from(record.position()),
             mapq = u8::from(record.mapping_quality()),
             cigar = record.cigar(),
-            rnext = record.mate_reference_sequence_name().as_ref(),
+            rnext = rnext,
             pnext = i32::from(record.mate_position()),
             tlen = record.template_len(),
             seq = record.sequence(),

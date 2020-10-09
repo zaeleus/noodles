@@ -1,6 +1,6 @@
 use super::{
-    Cigar, Data, Flags, MappingQuality, MateReferenceSequenceName, Position, QualityScores,
-    ReadName, Record, ReferenceSequenceName, Sequence,
+    Cigar, Data, Flags, MappingQuality, Position, QualityScores, ReadName, Record,
+    ReferenceSequenceName, Sequence,
 };
 
 /// A SAM record builder.
@@ -12,7 +12,7 @@ pub struct Builder {
     position: Position,
     mapping_quality: MappingQuality,
     cigar: Cigar,
-    mate_reference_sequence_name: MateReferenceSequenceName,
+    mate_reference_sequence_name: Option<ReferenceSequenceName>,
     mate_position: Position,
     template_len: i32,
     sequence: Sequence,
@@ -163,14 +163,14 @@ impl Builder {
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.mate_reference_sequence_name().as_ref(), "sq0");
-    /// Ok::<(), sam::record::mate_reference_sequence_name::ParseError>(())
+    /// assert_eq!(record.mate_reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
+    /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn set_mate_reference_sequence_name(
         mut self,
-        mate_reference_sequence_name: MateReferenceSequenceName,
+        mate_reference_sequence_name: ReferenceSequenceName,
     ) -> Self {
-        self.mate_reference_sequence_name = mate_reference_sequence_name;
+        self.mate_reference_sequence_name = Some(mate_reference_sequence_name);
         self
     }
 
@@ -307,7 +307,7 @@ impl Default for Builder {
             position: Position::default(),
             mapping_quality: MappingQuality::default(),
             cigar: Cigar::default(),
-            mate_reference_sequence_name: MateReferenceSequenceName::default(),
+            mate_reference_sequence_name: Default::default(),
             mate_position: Position::default(),
             template_len: Default::default(),
             sequence: Sequence::default(),
@@ -346,7 +346,7 @@ mod tests {
         let read_name: ReadName = "r0".parse()?;
         let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let cigar = Cigar::from(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
-        let mate_reference_sequence_name: MateReferenceSequenceName = MateReferenceSequenceName::Eq;
+        let mate_reference_sequence_name = reference_sequence_name.clone();
         let sequence: Sequence = "ATCGATC".parse()?;
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
@@ -382,7 +382,7 @@ mod tests {
 
         assert_eq!(
             record.mate_reference_sequence_name(),
-            &mate_reference_sequence_name
+            Some(&mate_reference_sequence_name)
         );
 
         assert_eq!(i32::from(record.mate_position()), 17);

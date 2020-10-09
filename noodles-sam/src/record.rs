@@ -6,7 +6,6 @@ pub mod data;
 mod field;
 mod flags;
 mod mapping_quality;
-pub mod mate_reference_sequence_name;
 mod position;
 pub mod quality_scores;
 pub mod read_name;
@@ -15,14 +14,14 @@ pub mod sequence;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
-    mapping_quality::MappingQuality, mate_reference_sequence_name::MateReferenceSequenceName,
-    position::Position, quality_scores::QualityScores, read_name::ReadName,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    mapping_quality::MappingQuality, position::Position, quality_scores::QualityScores,
+    read_name::ReadName, reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
 use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const NULL_FIELD: &str = "*";
+const EQ_FIELD: &str = "=";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
 
@@ -51,7 +50,7 @@ pub struct Record {
     pos: Position,
     mapq: MappingQuality,
     cigar: Cigar,
-    rnext: MateReferenceSequenceName,
+    rnext: Option<ReferenceSequenceName>,
     pnext: Position,
     tlen: i32,
     seq: Sequence,
@@ -204,10 +203,7 @@ impl Record {
         &self.cigar
     }
 
-    /// Returns the reference sequence name of the mate of this record.
-    ///
-    /// The mate reference sequence name can be empty ("*"), the same as the reference sequence
-    /// name ("="), or some other non-empty name.
+    /// Returns the mate reference sequence name of this record.
     ///
     /// # Examples
     ///
@@ -215,24 +211,20 @@ impl Record {
     /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
-    /// assert!(record.mate_reference_sequence_name().is_empty());
-    /// assert_eq!(record.mate_reference_sequence_name().as_ref(), "*");
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_mate_reference_sequence_name("=".parse()?)
-    ///     .build();
-    /// assert!(record.mate_reference_sequence_name().is_eq());
-    /// assert_eq!(record.mate_reference_sequence_name().as_ref(), "=");
+    /// assert!(record.mate_reference_sequence_name().is_none());
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
     ///     .build();
-    /// assert!(record.mate_reference_sequence_name().is_some());
-    /// assert_eq!(record.mate_reference_sequence_name().as_ref(), "sq0");
+    ///
+    /// assert_eq!(
+    ///     record.mate_reference_sequence_name().map(|name| name.as_str()),
+    ///     Some("sq0")
+    /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn mate_reference_sequence_name(&self) -> &MateReferenceSequenceName {
-        &self.rnext
+    pub fn mate_reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
+        self.rnext.as_ref()
     }
 
     /// Returns the start position of the mate of this record.
@@ -365,7 +357,7 @@ pub enum ParseError {
     /// The record CIGAR string is invalid.
     InvalidCigar(cigar::ParseError),
     /// The record mate reference sequence name is invalid.
-    InvalidMateReferenceSequenceName(mate_reference_sequence_name::ParseError),
+    InvalidMateReferenceSequenceName(reference_sequence_name::ParseError),
     /// The record mate position is invalid.
     InvalidMatePosition(num::ParseIntError),
     /// The record template length is invalid.
@@ -434,10 +426,15 @@ impl FromStr for Record {
         let cigar = parse_string(&mut fields, Field::Cigar)
             .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;
 
-        let rnext = parse_string(&mut fields, Field::MateReferenceSequenceName).and_then(|s| {
-            s.parse()
-                .map_err(ParseError::InvalidMateReferenceSequenceName)
-        })?;
+        let rnext =
+            parse_string(&mut fields, Field::MateReferenceSequenceName).and_then(|s| match s {
+                NULL_FIELD => Ok(None),
+                EQ_FIELD => Ok(rname.clone()),
+                _ => s
+                    .parse()
+                    .map(Some)
+                    .map_err(ParseError::InvalidMateReferenceSequenceName),
+            })?;
 
         let pnext = parse_string(&mut fields, Field::MatePosition)
             .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidMatePosition))
