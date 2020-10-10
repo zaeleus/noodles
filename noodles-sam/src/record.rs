@@ -340,7 +340,7 @@ impl Default for Record {
 }
 
 /// An error returned when a raw SAM record fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ParseError {
     /// A required record field is missing.
     MissingField(Field),

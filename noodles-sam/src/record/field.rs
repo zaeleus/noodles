@@ -3,7 +3,7 @@ use std::fmt;
 /// A SAM record field.
 ///
 /// A SAM record has 11 required fields and 1 optional field (`Data`).
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Field {
     /// Read name (`QNAME`).
     Name,
