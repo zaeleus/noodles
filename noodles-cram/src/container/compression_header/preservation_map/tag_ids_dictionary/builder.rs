@@ -17,7 +17,7 @@ impl Builder {
     }
 
     pub fn build(self) -> TagIdsDictionary {
-        let mut lines: Vec<_> = self.keys_indices.into_iter().map(|entry| entry).collect();
+        let mut lines: Vec<_> = self.keys_indices.into_iter().collect();
         lines.sort_by_key(|(_, index)| *index);
         let dictionary: Vec<_> = lines.into_iter().map(|(keys, _)| keys).collect();
         TagIdsDictionary::from(dictionary)
