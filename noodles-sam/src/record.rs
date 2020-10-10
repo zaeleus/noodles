@@ -6,7 +6,7 @@ pub mod data;
 mod field;
 mod flags;
 mod mapping_quality;
-mod position;
+pub mod position;
 pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;
@@ -351,7 +351,7 @@ pub enum ParseError {
     /// The record reference sequence name is invalid.
     InvalidReferenceSequenceName(reference_sequence_name::ParseError),
     /// The record position is invalid.
-    InvalidPosition(num::ParseIntError),
+    InvalidPosition(position::ParseError),
     /// The record mapping quality is invalid.
     InvalidMappingQuality(num::ParseIntError),
     /// The record CIGAR string is invalid.
@@ -416,8 +416,7 @@ impl FromStr for Record {
         })?;
 
         let pos = parse_string(&mut fields, Field::Position)
-            .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidPosition))
-            .map(Position::from)?;
+            .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))?;
 
         let mapq = parse_string(&mut fields, Field::MappingQuality)
             .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
