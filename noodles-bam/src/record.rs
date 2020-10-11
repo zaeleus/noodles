@@ -464,7 +464,7 @@ mod tests {
     #[test]
     fn test_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(*record.position(), Some(61062));
+        assert_eq!(i32::from(record.position()), 61062);
         Ok(())
     }
 
@@ -524,7 +524,7 @@ mod tests {
     #[test]
     fn test_mate_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(*record.mate_position(), Some(61153));
+        assert_eq!(i32::from(record.mate_position()), 61153);
         Ok(())
     }
 

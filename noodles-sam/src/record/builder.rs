@@ -108,7 +108,7 @@ impl Builder {
     ///     .set_position(Position::from(13))
     ///     .build();
     ///
-    /// assert_eq!(*record.position(), Some(13));
+    /// assert_eq!(i32::from(record.position()), 13);
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
         self.position = position;
@@ -185,7 +185,7 @@ impl Builder {
     ///     .set_mate_position(Position::from(17))
     ///     .build();
     ///
-    /// assert_eq!(*record.mate_position(), Some(17));
+    /// assert_eq!(i32::from(record.mate_position()), 17);
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
         self.mate_position = mate_position;

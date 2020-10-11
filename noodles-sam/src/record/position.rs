@@ -1,32 +1,33 @@
 //! SAM record position.
 
-use std::{error, fmt, num, ops::Deref, str::FromStr};
+use std::{
+    error, fmt,
+    num::{self, NonZeroI32},
+    ops::Deref,
+    str::FromStr,
+};
 
 const UNMAPPED: i32 = 0;
-const MIN: i32 = 1;
 
 /// A SAM record position.
 ///
 /// This represents a 1-based start position on the reference sequence.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct Position(Option<i32>);
+pub struct Position(Option<NonZeroI32>);
 
 impl From<i32> for Position {
     fn from(n: i32) -> Self {
-        if n < MIN {
+        if n < UNMAPPED {
             Self(None)
         } else {
-            Self(Some(n))
+            Self(NonZeroI32::new(n))
         }
     }
 }
 
 impl From<Position> for i32 {
     fn from(position: Position) -> Self {
-        match *position {
-            Some(n) => n,
-            None => UNMAPPED,
-        }
+        position.map(i32::from).unwrap_or(UNMAPPED)
     }
 }
 
@@ -57,7 +58,7 @@ impl FromStr for Position {
 }
 
 impl Deref for Position {
-    type Target = Option<i32>;
+    type Target = Option<NonZeroI32>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -71,7 +72,7 @@ mod tests {
     #[test]
     fn test_from_i32_for_position() {
         assert_eq!(*Position::from(0), None);
-        assert_eq!(*Position::from(13), Some(13));
+        assert_eq!(*Position::from(13), NonZeroI32::new(13));
     }
 
     #[test]
@@ -83,7 +84,7 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!("0".parse(), Ok(Position(None)));
-        assert_eq!("13".parse(), Ok(Position(Some(13))));
+        assert_eq!("13".parse(), Ok(Position(NonZeroI32::new(13))));
 
         assert!(matches!("".parse::<Position>(), Err(ParseError::Parse(_))));
         assert!(matches!(

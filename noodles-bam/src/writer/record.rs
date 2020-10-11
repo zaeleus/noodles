@@ -85,6 +85,7 @@ where
 
     let bin = record
         .position()
+        .map(i32::from)
         .map(|start| {
             // 0-based, [start, end)
             let reference_len = record.cigar().reference_len() as i32;

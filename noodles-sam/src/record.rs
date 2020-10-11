@@ -152,7 +152,7 @@ impl Record {
     /// assert_eq!(i32::from(record.position()), 0);
     ///
     /// let record = sam::Record::builder().set_position(Position::from(13)).build();
-    /// assert_eq!(*record.position(), Some(13));
+    /// assert_eq!(i32::from(record.position()), 13);
     /// ```
     pub fn position(&self) -> Position {
         self.pos
@@ -241,7 +241,7 @@ impl Record {
     /// assert_eq!(i32::from(record.mate_position()), 0);
     ///
     /// let record = sam::Record::builder().set_mate_position(Position::from(21)).build();
-    /// assert_eq!(*record.mate_position(), Some(21));
+    /// assert_eq!(i32::from(record.mate_position()), 21);
     /// ```
     pub fn mate_position(&self) -> Position {
         self.pnext
