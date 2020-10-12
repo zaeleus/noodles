@@ -88,8 +88,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("cigar cannot be empty"),
-            Self::InvalidOp(e) => write!(f, "{}", e),
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidOp(e) => write!(f, "invalid op: {}", e),
         }
     }
 }

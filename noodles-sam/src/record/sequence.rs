@@ -54,8 +54,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("sequence cannot be empty"),
-            Self::InvalidBase(e) => write!(f, "{}", e),
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidBase(e) => write!(f, "invalid base: {}", e),
         }
     }
 }

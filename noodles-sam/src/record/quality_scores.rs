@@ -54,8 +54,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("quality scores cannot be empty"),
-            Self::InvalidScore(e) => write!(f, "{}", e),
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
         }
     }
 }

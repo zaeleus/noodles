@@ -89,9 +89,9 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingTag => f.write_str("missing tag"),
-            Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::MissingValue => f.write_str("missing value"),
-            Self::InvalidValue(e) => write!(f, "{}", e),
+            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
         }
     }
 }

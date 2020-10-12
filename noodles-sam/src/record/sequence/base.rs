@@ -73,7 +73,7 @@ impl error::Error for TryFromCharError {}
 
 impl fmt::Display for TryFromCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid base: expected {{A..=Z, =}}, got {}", self.0)
+        write!(f, "expected {{A..=Z, =}}, got {}", self.0)
     }
 }
 

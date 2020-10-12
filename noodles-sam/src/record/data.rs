@@ -54,7 +54,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidField(e) => write!(f, "{}", e),
+            Self::InvalidField(e) => write!(f, "invalid field: {}", e),
         }
     }
 }

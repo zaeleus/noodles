@@ -37,7 +37,7 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid cigar op kind: {}", self.0)
+        f.write_str(&self.0)
     }
 }
 

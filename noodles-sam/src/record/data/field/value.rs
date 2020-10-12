@@ -546,7 +546,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingType => f.write_str("missing type"),
-            Self::InvalidType(e) => write!(f, "{}", e),
+            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
             Self::MissingValue => f.write_str("missing value"),
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "{}", e),

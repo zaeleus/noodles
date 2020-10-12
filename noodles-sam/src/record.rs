@@ -376,18 +376,22 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingField(field) => write!(f, "missing field: {}", field),
-            Self::InvalidReadName(e) => write!(f, "{}", e),
-            Self::InvalidFlags(e) => write!(f, "{}", e),
-            Self::InvalidReferenceSequenceName(e) => write!(f, "{}", e),
-            Self::InvalidPosition(e) => write!(f, "{}", e),
-            Self::InvalidMappingQuality(e) => write!(f, "{}", e),
-            Self::InvalidCigar(e) => write!(f, "{}", e),
-            Self::InvalidMateReferenceSequenceName(e) => write!(f, "{}", e),
-            Self::InvalidMatePosition(e) => write!(f, "{}", e),
-            Self::InvalidTemplateLength(e) => write!(f, "{}", e),
-            Self::InvalidSequence(e) => write!(f, "{}", e),
-            Self::InvalidQualityScores(e) => write!(f, "{}", e),
-            Self::InvalidData(e) => write!(f, "{}", e),
+            Self::InvalidReadName(e) => write!(f, "invalid read name: {}", e),
+            Self::InvalidFlags(e) => write!(f, "invalid flags: {}", e),
+            Self::InvalidReferenceSequenceName(e) => {
+                write!(f, "invalid reference sequence name: {}", e)
+            }
+            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
+            Self::InvalidMappingQuality(e) => write!(f, "invalid mapping quality: {}", e),
+            Self::InvalidCigar(e) => write!(f, "invalid CIGAR: {}", e),
+            Self::InvalidMateReferenceSequenceName(e) => {
+                write!(f, "invalid mate reference sequence name: {}", e)
+            }
+            Self::InvalidMatePosition(e) => write!(f, "invalid mate position: {}", e),
+            Self::InvalidTemplateLength(e) => write!(f, "invalid template length: {}", e),
+            Self::InvalidSequence(e) => write!(f, "invalid sequence: {}", e),
+            Self::InvalidQualityScores(e) => write!(f, "invalid quality scores: {}", e),
+            Self::InvalidData(e) => write!(f, "invalid data: {}", e),
         }
     }
 }

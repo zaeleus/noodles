@@ -32,7 +32,7 @@ impl fmt::Display for TryFromCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid score: expected {{{}..={}}}, got {}",
+            "expected {{{}..={}}}, got {}",
             START_CHAR, END_CHAR, self.0
         )
     }

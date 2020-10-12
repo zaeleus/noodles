@@ -98,9 +98,9 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => write!(f, "cannot parse op from empty string"),
-            Self::InvalidLength(e) => write!(f, "invalid op length: {}", e),
-            Self::InvalidKind(e) => write!(f, "invalid op kind: {}", e),
+            Self::Empty => write!(f, "empty input"),
+            Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
+            Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
         }
     }
 }
