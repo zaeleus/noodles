@@ -12,6 +12,7 @@ pub use self::{
 };
 
 use std::{
+    convert::TryFrom,
     ffi::CStr,
     fmt, io, mem,
     ops::{Deref, DerefMut},
@@ -19,6 +20,8 @@ use std::{
 
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam as sam;
+
+pub(crate) const UNMAPPED_POSITION: i32 = -1;
 
 use crate::writer;
 
@@ -109,10 +112,15 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.position().is_none());
     /// ```
-    pub fn position(&self) -> sam::record::Position {
+    pub fn position(&self) -> Option<sam::record::Position> {
         let offset = 4;
-        let start = LittleEndian::read_i32(&self.0[offset..]) + 1;
-        sam::record::Position::from(start)
+        let pos = LittleEndian::read_i32(&self.0[offset..]);
+
+        if pos == UNMAPPED_POSITION {
+            None
+        } else {
+            sam::record::Position::try_from(pos + 1).ok()
+        }
     }
 
     fn l_read_name(&self) -> u8 {
@@ -204,10 +212,15 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_position().is_none());
     /// ```
-    pub fn mate_position(&self) -> sam::record::Position {
+    pub fn mate_position(&self) -> Option<sam::record::Position> {
         let offset = 24;
-        let start = LittleEndian::read_i32(&self.0[offset..]) + 1;
-        sam::record::Position::from(start)
+        let pos = LittleEndian::read_i32(&self.0[offset..]);
+
+        if pos == UNMAPPED_POSITION {
+            None
+        } else {
+            sam::record::Position::try_from(pos + 1).ok()
+        }
     }
 
     /// Returns the template length of this record.
@@ -464,7 +477,7 @@ mod tests {
     #[test]
     fn test_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(i32::from(record.position()), 61062);
+        assert_eq!(record.position().map(i32::from), Some(61062));
         Ok(())
     }
 
@@ -524,7 +537,7 @@ mod tests {
     #[test]
     fn test_mate_position() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(i32::from(record.mate_position()), 61153);
+        assert_eq!(record.mate_position().map(i32::from), Some(61153));
         Ok(())
     }
 

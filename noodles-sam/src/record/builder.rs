@@ -9,11 +9,11 @@ pub struct Builder {
     read_name: ReadName,
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
-    position: Position,
+    position: Option<Position>,
     mapping_quality: MappingQuality,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
-    mate_position: Position,
+    mate_position: Option<Position>,
     template_len: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -102,16 +102,18 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_position(Position::from(13))
+    ///     .set_position(Position::try_from(13)?)
     ///     .build();
     ///
-    /// assert_eq!(i32::from(record.position()), 13);
+    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
-        self.position = position;
+        self.position = Some(position);
         self
     }
 
@@ -179,16 +181,18 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_mate_position(Position::from(17))
+    ///     .set_mate_position(Position::try_from(17)?)
     ///     .build();
     ///
-    /// assert_eq!(i32::from(record.mate_position()), 17);
+    /// assert_eq!(record.mate_position().map(i32::from), Some(17));
+    /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
-        self.mate_position = mate_position;
+        self.mate_position = Some(mate_position);
         self
     }
 
@@ -304,11 +308,11 @@ impl Default for Builder {
             read_name: ReadName::default(),
             flags: Flags::UNMAPPED,
             reference_sequence_name: Default::default(),
-            position: Position::default(),
+            position: Default::default(),
             mapping_quality: MappingQuality::default(),
             cigar: Cigar::default(),
             mate_reference_sequence_name: Default::default(),
-            mate_position: Position::default(),
+            mate_position: Default::default(),
             template_len: Default::default(),
             sequence: Sequence::default(),
             quality_scores: QualityScores::default(),
@@ -319,6 +323,8 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use crate::record::{cigar, data};
 
     use super::*;
@@ -359,11 +365,11 @@ mod tests {
             .set_read_name(read_name.clone())
             .set_flags(Flags::PAIRED | Flags::READ_1)
             .set_reference_sequence_name(reference_sequence_name.clone())
-            .set_position(Position::from(13))
+            .set_position(Position::try_from(13)?)
             .set_mapping_quality(MappingQuality::from(37))
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
-            .set_mate_position(Position::from(17))
+            .set_mate_position(Position::try_from(17)?)
             .set_template_len(4)
             .set_sequence(sequence.clone())
             .set_quality_scores(quality_scores.clone())
@@ -376,7 +382,7 @@ mod tests {
             record.reference_sequence_name(),
             Some(&reference_sequence_name)
         );
-        assert_eq!(i32::from(record.position()), 13);
+        assert_eq!(record.position().map(i32::from), Some(13));
         assert_eq!(u8::from(record.mapping_quality()), 37);
         assert_eq!(record.cigar().len(), 1);
 
@@ -385,7 +391,7 @@ mod tests {
             Some(&mate_reference_sequence_name)
         );
 
-        assert_eq!(i32::from(record.mate_position()), 17);
+        assert_eq!(record.mate_position().map(i32::from), Some(17));
         assert_eq!(record.template_len(), 4);
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);

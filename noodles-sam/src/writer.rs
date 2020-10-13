@@ -115,17 +115,27 @@ where
             })
             .unwrap_or(record::NULL_FIELD);
 
+        let pos = record
+            .position()
+            .map(i32::from)
+            .unwrap_or(record::position::UNMAPPED);
+
+        let pnext = record
+            .mate_position()
+            .map(i32::from)
+            .unwrap_or(record::position::UNMAPPED);
+
         write!(
             self.inner,
             "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
             qname = record.read_name().as_ref(),
             flag = u16::from(record.flags()),
             rname = record.reference_sequence_name().map(|name| name.as_str()).unwrap_or(record::NULL_FIELD),
-            pos = i32::from(record.position()),
+            pos = pos,
             mapq = u8::from(record.mapping_quality()),
             cigar = record.cigar(),
             rnext = rnext,
-            pnext = i32::from(record.mate_position()),
+            pnext = pnext,
             tlen = record.template_len(),
             seq = record.sequence(),
             qual = record.quality_scores(),

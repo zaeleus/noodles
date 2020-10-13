@@ -21,6 +21,7 @@ pub use self::{
 use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const NULL_FIELD: &str = "*";
+const ZERO_FIELD: &str = "0";
 const EQ_FIELD: &str = "=";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
@@ -47,11 +48,11 @@ pub struct Record {
     qname: ReadName,
     flag: Flags,
     rname: Option<ReferenceSequenceName>,
-    pos: Position,
+    pos: Option<Position>,
     mapq: MappingQuality,
     cigar: Cigar,
     rnext: Option<ReferenceSequenceName>,
-    pnext: Position,
+    pnext: Option<Position>,
     tlen: i32,
     seq: Sequence,
     qual: QualityScores,
@@ -140,21 +141,24 @@ impl Record {
 
     /// Returns the start position of this record.
     ///
-    /// This value is 1-based. A position value of 0 is possibly an unmapped read.
+    /// This value is 1-based.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::default();
     /// assert!(record.position().is_none());
-    /// assert_eq!(i32::from(record.position()), 0);
     ///
-    /// let record = sam::Record::builder().set_position(Position::from(13)).build();
-    /// assert_eq!(i32::from(record.position()), 13);
+    /// let record = sam::Record::builder()
+    ///     .set_position(Position::try_from(13)?)
+    ///     .build();
+    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
-    pub fn position(&self) -> Position {
+    pub fn position(&self) -> Option<Position> {
         self.pos
     }
 
@@ -229,21 +233,24 @@ impl Record {
 
     /// Returns the start position of the mate of this record.
     ///
-    /// This value is 1-based. A mate position value of 0 is possibly an unmapped mapped.
+    /// This value is 1-based.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::default();
     /// assert!(record.mate_position().is_none());
-    /// assert_eq!(i32::from(record.mate_position()), 0);
     ///
-    /// let record = sam::Record::builder().set_mate_position(Position::from(21)).build();
-    /// assert_eq!(i32::from(record.mate_position()), 21);
+    /// let record = sam::Record::builder()
+    ///     .set_mate_position(Position::try_from(21)?)
+    ///     .build();
+    /// assert_eq!(record.mate_position().map(i32::from), Some(21));
+    /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
-    pub fn mate_position(&self) -> Position {
+    pub fn mate_position(&self) -> Option<Position> {
         self.pnext
     }
 
@@ -359,7 +366,7 @@ pub enum ParseError {
     /// The record mate reference sequence name is invalid.
     InvalidMateReferenceSequenceName(reference_sequence_name::ParseError),
     /// The record mate position is invalid.
-    InvalidMatePosition(num::ParseIntError),
+    InvalidMatePosition(position::ParseError),
     /// The record template length is invalid.
     InvalidTemplateLength(num::ParseIntError),
     /// The record sequence is invalid.
@@ -419,8 +426,10 @@ impl FromStr for Record {
             }
         })?;
 
-        let pos = parse_string(&mut fields, Field::Position)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))?;
+        let pos = parse_string(&mut fields, Field::Position).and_then(|s| match s {
+            ZERO_FIELD => Ok(None),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
+        })?;
 
         let mapq = parse_string(&mut fields, Field::MappingQuality)
             .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
@@ -439,9 +448,10 @@ impl FromStr for Record {
                     .map_err(ParseError::InvalidMateReferenceSequenceName),
             })?;
 
-        let pnext = parse_string(&mut fields, Field::MatePosition)
-            .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidMatePosition))
-            .map(Position::from)?;
+        let pnext = parse_string(&mut fields, Field::MatePosition).and_then(|s| match s {
+            ZERO_FIELD => Ok(None),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
+        })?;
 
         let tlen = parse_string(&mut fields, Field::TemplateLength)
             .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidTemplateLength))?;

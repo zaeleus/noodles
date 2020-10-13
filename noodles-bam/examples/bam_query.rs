@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get_index(reference_sequence_id)
             .ok_or_else(|| "invalid reference sequence id")?;
 
-        let start = i32::from(record.position());
+        let start = record.position().map(i32::from).expect("missing position");
         let len = record.cigar().reference_len().map(|len| len as i32)?;
         let end = start + len - 1;
 

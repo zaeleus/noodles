@@ -66,7 +66,7 @@ impl Builder {
     }
 
     fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        let start = i32::from(record.position());
+        let start = record.position().map(i32::from).expect("missing position");
         let reference_len = record.cigar().reference_len().map(|len| len as i32)?;
         let end = start + reference_len - 1;
 
@@ -114,6 +114,8 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use noodles_sam::{
         self as sam,
         header::ReferenceSequences,
@@ -136,7 +138,7 @@ mod tests {
             &reference_sequences,
             &sam::Record::builder()
                 .set_flags(Flags::empty())
-                .set_position(Position::from(2))
+                .set_position(Position::try_from(2)?)
                 .set_cigar("4M".parse()?)
                 .build(),
         )?;
@@ -152,7 +154,7 @@ mod tests {
         let record = Record::try_from_sam_record(
             &reference_sequences,
             &sam::Record::builder()
-                .set_position(Position::from(6))
+                .set_position(Position::try_from(6)?)
                 .set_cigar("2M".parse()?)
                 .build(),
         )?;

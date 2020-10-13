@@ -75,7 +75,10 @@ where
     let ref_id = reference_sequence_id as i32;
     writer.write_i32::<LittleEndian>(ref_id)?;
 
-    let pos = i32::from(record.position()) - 1;
+    let pos = record
+        .position()
+        .map(|v| i32::from(v) - 1)
+        .unwrap_or(crate::record::UNMAPPED_POSITION);
     writer.write_i32::<LittleEndian>(pos)?;
 
     writer.write_u8(l_read_name)?;
@@ -106,7 +109,10 @@ where
     let next_ref_id = mate_reference_sequence_id as i32;
     writer.write_i32::<LittleEndian>(next_ref_id)?;
 
-    let next_pos = i32::from(record.mate_position()) - 1;
+    let next_pos = record
+        .mate_position()
+        .map(|v| i32::from(v) - 1)
+        .unwrap_or(crate::record::UNMAPPED_POSITION);
     writer.write_i32::<LittleEndian>(next_pos)?;
 
     let tlen = record.template_len();

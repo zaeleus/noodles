@@ -104,7 +104,11 @@ where
                                 {
                                     let reference_sequence_id = reference_sequence_id as usize;
 
-                                    let record_start = i32::from(record.position()) as u64;
+                                    let record_start = record
+                                        .position()
+                                        .map(i32::from)
+                                        .map(|n| n as u64)
+                                        .expect("missing position");
                                     let record_reference_len = match record.cigar().reference_len()
                                     {
                                         Ok(len) => u64::from(len),

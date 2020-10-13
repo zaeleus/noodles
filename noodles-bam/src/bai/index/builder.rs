@@ -96,6 +96,8 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use noodles_bgzf as bgzf;
     use noodles_sam::{
         self as sam,
@@ -124,7 +126,7 @@ mod tests {
             &sam::Record::builder()
                 .set_flags(Flags::empty())
                 .set_reference_sequence_name("sq0".parse()?)
-                .set_position(Position::from(2))
+                .set_position(Position::try_from(2)?)
                 .set_cigar("4M".parse()?)
                 .build(),
         )?;
