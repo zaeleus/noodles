@@ -308,7 +308,7 @@ mod tests {
         assert!(record.cigar().is_empty());
         assert!(record.mate_reference_sequence_id().is_none());
         assert!(record.mate_position().is_none());
-        assert_eq!(record.template_len(), 0);
+        assert_eq!(record.template_length(), 0);
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
         assert!(record.data().is_empty());

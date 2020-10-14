@@ -230,9 +230,9 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.template_len(), 0);
+    /// assert_eq!(record.template_length(), 0);
     /// ```
-    pub fn template_len(&self) -> i32 {
+    pub fn template_length(&self) -> i32 {
         let offset = 28;
         LittleEndian::read_i32(&self.0[offset..])
     }
@@ -385,7 +385,7 @@ impl fmt::Debug for Record {
             .field("l_seq", &self.l_seq())
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
-            .field("tlen", &self.template_len())
+            .field("tlen", &self.template_length())
             .field("read_name", &read_name)
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
@@ -542,9 +542,9 @@ mod tests {
     }
 
     #[test]
-    fn test_template_len() -> io::Result<()> {
+    fn test_template_length() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.template_len(), 166);
+        assert_eq!(record.template_length(), 166);
         Ok(())
     }
 
