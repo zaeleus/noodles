@@ -14,7 +14,7 @@ pub struct Builder {
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
     mate_position: Option<Position>,
-    template_len: i32,
+    template_length: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
     data: Data,
@@ -202,11 +202,11 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let record = sam::Record::builder().set_template_len(36).build();
-    /// assert_eq!(record.template_len(), 36);
+    /// let record = sam::Record::builder().set_template_length(36).build();
+    /// assert_eq!(record.template_length(), 36);
     /// ```
-    pub fn set_template_len(mut self, template_len: i32) -> Self {
-        self.template_len = template_len;
+    pub fn set_template_length(mut self, template_length: i32) -> Self {
+        self.template_length = template_length;
         self
     }
 
@@ -294,7 +294,7 @@ impl Builder {
             cigar: self.cigar,
             rnext: self.mate_reference_sequence_name,
             pnext: self.mate_position,
-            tlen: self.template_len,
+            tlen: self.template_length,
             seq: self.sequence,
             qual: self.quality_scores,
             data: self.data,
@@ -313,7 +313,7 @@ impl Default for Builder {
             cigar: Cigar::default(),
             mate_reference_sequence_name: Default::default(),
             mate_position: Default::default(),
-            template_len: Default::default(),
+            template_length: Default::default(),
             sequence: Sequence::default(),
             quality_scores: QualityScores::default(),
             data: Data::default(),
@@ -341,7 +341,7 @@ mod tests {
         assert!(record.cigar().is_empty());
         assert!(record.mate_reference_sequence_name().is_none());
         assert!(record.mate_position().is_none());
-        assert_eq!(record.template_len(), 0);
+        assert_eq!(record.template_length(), 0);
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
         assert!(record.data().is_empty());
@@ -370,7 +370,7 @@ mod tests {
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
             .set_mate_position(Position::try_from(17)?)
-            .set_template_len(4)
+            .set_template_length(4)
             .set_sequence(sequence.clone())
             .set_quality_scores(quality_scores.clone())
             .set_data(data)
@@ -392,7 +392,7 @@ mod tests {
         );
 
         assert_eq!(record.mate_position().map(i32::from), Some(17));
-        assert_eq!(record.template_len(), 4);
+        assert_eq!(record.template_length(), 4);
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
         assert_eq!(record.data().len(), 1);

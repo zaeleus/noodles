@@ -136,7 +136,7 @@ where
             cigar = record.cigar(),
             rnext = rnext,
             pnext = pnext,
-            tlen = record.template_len(),
+            tlen = record.template_length(),
             seq = record.sequence(),
             qual = record.quality_scores(),
         )?;

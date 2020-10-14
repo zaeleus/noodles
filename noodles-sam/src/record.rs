@@ -262,12 +262,12 @@ impl Record {
     /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
-    /// assert_eq!(record.template_len(), 0);
+    /// assert_eq!(record.template_length(), 0);
     ///
-    /// let record = sam::Record::builder().set_template_len(101).build();
-    /// assert_eq!(record.template_len(), 101);
+    /// let record = sam::Record::builder().set_template_length(101).build();
+    /// assert_eq!(record.template_length(), 101);
     /// ```
-    pub fn template_len(&self) -> i32 {
+    pub fn template_length(&self) -> i32 {
         self.tlen
     }
 

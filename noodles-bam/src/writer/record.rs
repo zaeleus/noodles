@@ -115,7 +115,7 @@ where
         .unwrap_or(crate::record::UNMAPPED_POSITION);
     writer.write_i32::<LittleEndian>(next_pos)?;
 
-    let tlen = record.template_len();
+    let tlen = record.template_length();
     writer.write_i32::<LittleEndian>(tlen)?;
 
     writer.write_all(read_name)?;
