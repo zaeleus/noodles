@@ -34,8 +34,9 @@ pub fn write_sam_record<W>(
 where
     W: Write,
 {
-    let c_read_name = CString::new(record.read_name().as_ref())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let name = record.read_name().map(|name| name.as_str()).unwrap_or("*");
+    let c_read_name =
+        CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let reference_sequence_id = match record.reference_sequence_name() {
         Some(name) => reference_sequences

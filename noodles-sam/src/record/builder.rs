@@ -6,7 +6,7 @@ use super::{
 /// A SAM record builder.
 #[derive(Debug)]
 pub struct Builder {
-    read_name: ReadName,
+    read_name: Option<ReadName>,
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
     position: Option<Position>,
@@ -49,11 +49,11 @@ impl Builder {
     ///     .set_read_name("r0".parse()?)
     ///     .build();
     ///
-    /// assert_eq!(record.read_name().as_ref(), "r0");
+    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
     /// Ok::<(), sam::record::read_name::ParseError>(())
     /// ```
     pub fn set_read_name(mut self, read_name: ReadName) -> Self {
-        self.read_name = read_name;
+        self.read_name = Some(read_name);
         self
     }
 
@@ -305,7 +305,7 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            read_name: ReadName::default(),
+            read_name: Default::default(),
             flags: Flags::UNMAPPED,
             reference_sequence_name: Default::default(),
             position: Default::default(),
@@ -376,7 +376,7 @@ mod tests {
             .set_data(data)
             .build();
 
-        assert_eq!(record.read_name(), &read_name);
+        assert_eq!(record.read_name(), Some(&read_name));
         assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
         assert_eq!(
             record.reference_sequence_name(),

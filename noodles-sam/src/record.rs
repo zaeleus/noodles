@@ -45,7 +45,7 @@ const MAX_FIELDS: usize = 12;
 /// Additionally, optional data fields can be included with any record.
 #[derive(Debug)]
 pub struct Record {
-    qname: ReadName,
+    qname: Option<ReadName>,
     flag: Flags,
     rname: Option<ReferenceSequenceName>,
     pos: Option<Position>,
@@ -72,7 +72,7 @@ impl Record {
     ///     .set_flags(Flags::UNMAPPED)
     ///     .build();
     ///
-    /// assert_eq!(record.read_name().as_ref(), "r0");
+    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// assert!(record.reference_sequence_name().is_none());
     /// assert!(record.position().is_none());
@@ -92,15 +92,16 @@ impl Record {
     /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
-    /// assert!(record.read_name().is_empty());
-    /// assert_eq!(record.read_name().as_ref(), "*");
+    /// assert!(record.read_name().is_none());
     ///
-    /// let record = sam::Record::builder().set_read_name("r0".parse()?).build();
-    /// assert_eq!(record.read_name().as_ref(), "r0");
+    /// let record = sam::Record::builder()
+    ///     .set_read_name("r0".parse()?)
+    ///     .build();
+    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_name(&self) -> &ReadName {
-        &self.qname
+    pub fn read_name(&self) -> Option<&ReadName> {
+        self.qname.as_ref()
     }
 
     /// Returns the SAM flags of this record.
@@ -409,8 +410,13 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let qname = parse_string(&mut fields, Field::Name)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidReadName))?;
+        let qname = parse_string(&mut fields, Field::Name).and_then(|s| {
+            if s == NULL_FIELD {
+                Ok(None)
+            } else {
+                s.parse().map(Some).map_err(ParseError::InvalidReadName)
+            }
+        })?;
 
         let flag = parse_string(&mut fields, Field::Flags)
             .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
