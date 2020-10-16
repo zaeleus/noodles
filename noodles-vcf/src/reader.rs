@@ -218,6 +218,32 @@ where
 
 impl<R> Reader<BufReader<bgzf::Reader<R>>>
 where
+    R: Read,
+{
+    /// Returns the current virtual position of the underlying BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, BufReader};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = Vec::new();
+    /// let reader = vcf::Reader::new(BufReader::new(bgzf::Reader::new(&data[..])));
+    /// let virtual_position = reader.virtual_position();
+    ///
+    /// assert_eq!(virtual_position.compressed(), 0);
+    /// assert_eq!(virtual_position.uncompressed(), 0);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
+        self.inner.get_ref().virtual_position()
+    }
+}
+
+impl<R> Reader<BufReader<bgzf::Reader<R>>>
+where
     R: Read + Seek,
 {
     /// Seeks the underlying BGZF stream to the given virtual position.
