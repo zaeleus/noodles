@@ -48,8 +48,8 @@ impl Genotype {
     /// assert_eq!(
     ///     Genotype::from_str_format("0|0:13", &format),
     ///     Ok(Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Value::String(String::from("0|0"))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     ///     ])?)
     /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -137,7 +137,7 @@ mod tests {
 
         let genotype = Genotype(vec![Field::new(
             field::Key::Genotype,
-            field::Value::String(String::from("0|0")),
+            Some(field::Value::String(String::from("0|0"))),
         )]);
 
         assert_eq!(genotype.to_string(), "0|0");
@@ -145,11 +145,11 @@ mod tests {
         let genotype = Genotype(vec![
             Field::new(
                 field::Key::Genotype,
-                field::Value::String(String::from("0|0")),
+                Some(field::Value::String(String::from("0|0"))),
             ),
             Field::new(
                 field::Key::ConditionalGenotypeQuality,
-                field::Value::Integer(13),
+                Some(field::Value::Integer(13)),
             ),
         ]);
 

@@ -317,8 +317,8 @@ impl Record {
     ///     .build()?;
     ///
     /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Value::String(String::from("0|0"))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     /// ])]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -489,11 +489,11 @@ mod tests {
         let expected = vec![
             genotype::Field::new(
                 genotype::field::Key::Genotype,
-                genotype::field::Value::String(String::from("0|1")),
+                Some(genotype::field::Value::String(String::from("0|1"))),
             ),
             genotype::Field::new(
                 genotype::field::Key::ConditionalGenotypeQuality,
-                genotype::field::Value::Integer(13),
+                Some(genotype::field::Value::Integer(13)),
             ),
         ];
 

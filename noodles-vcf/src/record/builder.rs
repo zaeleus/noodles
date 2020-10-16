@@ -316,8 +316,8 @@ impl Builder {
     ///     .build()?;
     ///
     /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Value::String(String::from("0|0"))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     /// ])]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -347,8 +347,8 @@ impl Builder {
     ///     .build()?;
     ///
     /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Value::String(String::from("0|0"))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Value::Integer(13)),
+    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     /// ])]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
