@@ -16,8 +16,14 @@ fn main() -> io::Result<()> {
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
     reader.read_header()?;
 
-    let count = reader.records().count();
-    println!("{}", count);
+    let mut n = 0;
+
+    for result in reader.records() {
+        let _ = result?;
+        n += 1;
+    }
+
+    println!("{}", n);
 
     Ok(())
 }
