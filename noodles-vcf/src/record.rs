@@ -27,7 +27,7 @@ pub(crate) const FIELD_DELIMITER: char = '\t';
 ///
 /// A VCF record has 8 required fields:
 ///
-///   1. chromosome (`CRHOM`),
+///   1. chromosome (`CHROM`),
 ///   2. position (`POS`),
 ///   3. IDs (`ID`),
 ///   4. reference bases (`REF`),
