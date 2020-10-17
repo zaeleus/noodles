@@ -45,17 +45,17 @@ const MAX_FIELDS: usize = 12;
 /// Additionally, optional data fields can be included with any record.
 #[derive(Debug)]
 pub struct Record {
-    qname: Option<ReadName>,
-    flag: Flags,
-    rname: Option<ReferenceSequenceName>,
-    pos: Option<Position>,
-    mapq: MappingQuality,
+    read_name: Option<ReadName>,
+    flags: Flags,
+    reference_sequence_name: Option<ReferenceSequenceName>,
+    position: Option<Position>,
+    mapping_quality: MappingQuality,
     cigar: Cigar,
-    rnext: Option<ReferenceSequenceName>,
-    pnext: Option<Position>,
-    tlen: i32,
-    seq: Sequence,
-    qual: QualityScores,
+    mate_reference_sequence_name: Option<ReferenceSequenceName>,
+    mate_position: Option<Position>,
+    template_length: i32,
+    sequence: Sequence,
+    quality_scores: QualityScores,
     data: Data,
 }
 
@@ -101,7 +101,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn read_name(&self) -> Option<&ReadName> {
-        self.qname.as_ref()
+        self.read_name.as_ref()
     }
 
     /// Returns the SAM flags of this record.
@@ -119,7 +119,7 @@ impl Record {
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
     pub fn flags(&self) -> Flags {
-        self.flag
+        self.flags
     }
 
     /// Returns the reference sequence name of this record.
@@ -137,7 +137,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
-        self.rname.as_ref()
+        self.reference_sequence_name.as_ref()
     }
 
     /// Returns the start position of this record.
@@ -160,7 +160,7 @@ impl Record {
     /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
     pub fn position(&self) -> Option<Position> {
-        self.pos
+        self.position
     }
 
     /// Returns the mapping quality of this record.
@@ -181,7 +181,7 @@ impl Record {
     /// assert_eq!(*record.mapping_quality(), Some(8));
     /// ```
     pub fn mapping_quality(&self) -> MappingQuality {
-        self.mapq
+        self.mapping_quality
     }
 
     /// Returns the CIGAR operations that describe how the read as mapped.
@@ -229,7 +229,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn mate_reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
-        self.rnext.as_ref()
+        self.mate_reference_sequence_name.as_ref()
     }
 
     /// Returns the start position of the mate of this record.
@@ -252,7 +252,7 @@ impl Record {
     /// # Ok::<(), sam::record::position::TryFromIntError>(())
     /// ```
     pub fn mate_position(&self) -> Option<Position> {
-        self.pnext
+        self.mate_position
     }
 
     /// Returns the template length of this record.
@@ -269,7 +269,7 @@ impl Record {
     /// assert_eq!(record.template_length(), 101);
     /// ```
     pub fn template_length(&self) -> i32 {
-        self.tlen
+        self.template_length
     }
 
     /// Returns the bases in the sequence of this record.
@@ -293,7 +293,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn sequence(&self) -> &Sequence {
-        &self.seq
+        &self.sequence
     }
 
     /// Returns the quality score for each base in the sequence.
@@ -316,7 +316,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn quality_scores(&self) -> &QualityScores {
-        &self.qual
+        &self.quality_scores
     }
 
     /// Returns the optional data fields for this record.
@@ -474,17 +474,17 @@ impl FromStr for Record {
         };
 
         Ok(Record {
-            qname,
-            flag,
-            rname,
-            pos,
-            mapq,
+            read_name: qname,
+            flags: flag,
+            reference_sequence_name: rname,
+            position: pos,
+            mapping_quality: mapq,
             cigar,
-            rnext,
-            pnext,
-            tlen,
-            seq,
-            qual,
+            mate_reference_sequence_name: rnext,
+            mate_position: pnext,
+            template_length: tlen,
+            sequence: seq,
+            quality_scores: qual,
             data,
         })
     }

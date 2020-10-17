@@ -286,17 +286,17 @@ impl Builder {
     /// ```
     pub fn build(self) -> Record {
         Record {
-            qname: self.read_name,
-            flag: self.flags,
-            rname: self.reference_sequence_name,
-            pos: self.position,
-            mapq: self.mapping_quality,
+            read_name: self.read_name,
+            flags: self.flags,
+            reference_sequence_name: self.reference_sequence_name,
+            position: self.position,
+            mapping_quality: self.mapping_quality,
             cigar: self.cigar,
-            rnext: self.mate_reference_sequence_name,
-            pnext: self.mate_position,
-            tlen: self.template_length,
-            seq: self.sequence,
-            qual: self.quality_scores,
+            mate_reference_sequence_name: self.mate_reference_sequence_name,
+            mate_position: self.mate_position,
+            template_length: self.template_length,
+            sequence: self.sequence,
+            quality_scores: self.quality_scores,
             data: self.data,
         }
     }
