@@ -32,6 +32,10 @@ cargo run --release --example bam_write > sample.bam
 cargo run --release --example bam_read_header sample.bam
 ```
 
+## CLI Tutorial
+
+A CLI tutorial output can be found in the noodles-tutorial folder, and a writeup of what was done can be found in command-line-tutorial.md.
+
 ## Related tools
 
 noodles itself does not provide any applications, but related tools do depend
