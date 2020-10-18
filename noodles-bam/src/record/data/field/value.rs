@@ -3,6 +3,10 @@
 pub mod subtype;
 pub mod ty;
 
+use std::convert::TryFrom;
+
+use noodles_sam as sam;
+
 pub use self::{subtype::Subtype, ty::Type};
 
 /// A BAM record data field value.
@@ -622,6 +626,38 @@ impl Value {
     }
 }
 
+/// An error returned when a BAM data field value fails to covert to a SAM data field value.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TryFromValueError;
+
+impl TryFrom<Value> for sam::record::data::field::Value {
+    type Error = TryFromValueError;
+
+    fn try_from(value: Value) -> Result<Self, Self::Error> {
+        use sam::record::data::field::Value as SamValue;
+
+        match value {
+            Value::Char(c) => Ok(SamValue::Char(c)),
+            Value::Int8(n) => Ok(SamValue::Int32(i32::from(n))),
+            Value::UInt8(n) => Ok(SamValue::Int32(i32::from(n))),
+            Value::Int16(n) => Ok(SamValue::Int32(i32::from(n))),
+            Value::UInt16(n) => Ok(SamValue::Int32(i32::from(n))),
+            Value::Int32(n) => Ok(SamValue::Int32(n)),
+            Value::UInt32(_) => todo!(),
+            Value::Float(n) => Ok(SamValue::Float(n)),
+            Value::String(s) => Ok(SamValue::String(s)),
+            Value::Hex(s) => Ok(SamValue::Hex(s)),
+            Value::Int8Array(a) => Ok(SamValue::Int8Array(a)),
+            Value::UInt8Array(a) => Ok(SamValue::UInt8Array(a)),
+            Value::Int16Array(a) => Ok(SamValue::Int16Array(a)),
+            Value::UInt16Array(a) => Ok(SamValue::UInt16Array(a)),
+            Value::Int32Array(a) => Ok(SamValue::Int32Array(a)),
+            Value::UInt32Array(a) => Ok(SamValue::UInt32Array(a)),
+            Value::FloatArray(a) => Ok(SamValue::FloatArray(a)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -666,5 +702,67 @@ mod tests {
         assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
         assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
         assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+    }
+
+    #[test]
+    fn test_try_from_value_for_sam_record_data_field_value() {
+        use sam::record::data::field::Value as SamValue;
+
+        assert_eq!(
+            SamValue::try_from(Value::Char('m')),
+            Ok(SamValue::Char('m'))
+        );
+
+        assert_eq!(SamValue::try_from(Value::Int8(0)), Ok(SamValue::Int32(0)));
+        assert_eq!(SamValue::try_from(Value::UInt8(0)), Ok(SamValue::Int32(0)));
+        assert_eq!(SamValue::try_from(Value::Int16(0)), Ok(SamValue::Int32(0)));
+        assert_eq!(SamValue::try_from(Value::UInt16(0)), Ok(SamValue::Int32(0)));
+        assert_eq!(SamValue::try_from(Value::Int32(0)), Ok(SamValue::Int32(0)));
+        // TODO: SamValue::try_from(Value::UInt32(0)
+
+        assert_eq!(
+            SamValue::try_from(Value::String(String::from("noodles"))),
+            Ok(SamValue::String(String::from("noodles")))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::Hex(String::from("cafe"))),
+            Ok(SamValue::Hex(String::from("cafe")))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::Int8Array(vec![0])),
+            Ok(SamValue::Int8Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::UInt8Array(vec![0])),
+            Ok(SamValue::UInt8Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::Int16Array(vec![0])),
+            Ok(SamValue::Int16Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::UInt16Array(vec![0])),
+            Ok(SamValue::UInt16Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::Int32Array(vec![0])),
+            Ok(SamValue::Int32Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::UInt32Array(vec![0])),
+            Ok(SamValue::UInt32Array(vec![0]))
+        );
+
+        assert_eq!(
+            SamValue::try_from(Value::FloatArray(vec![0.0])),
+            Ok(SamValue::FloatArray(vec![0.0]))
+        );
     }
 }
