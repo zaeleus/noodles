@@ -2,3 +2,5 @@
 Cargo.lock
 target
 tmp
+.DS_Store
+noodles-tutorial/.DS_Store
