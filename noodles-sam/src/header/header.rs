@@ -151,59 +151,17 @@ impl Header {
     ///     .build();
     ///
     /// let fields = header.fields();
-    ///
     /// assert_eq!(fields.len(), 1);
+    /// assert_eq!(
+    ///     fields.get(&Tag::Other(String::from("zn"))),
+    ///     Some(&String::from("noodles"))
+    /// );
     ///
     /// assert_eq!(fields.get(&Tag::Version), None);
     /// assert_eq!(header.version(), "1.6");
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
-    }
-
-    /// Returns a reference to the raw field value mapped to the given key.
-    ///
-    /// This can only be used for fields with unparsed values. For example, [`version`] must be
-    /// used instead of `get(header::Tag::Version)`.
-    ///
-    /// [`version`]: #method.version
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::header::{Header, Tag};
-    ///
-    /// let header = Header::builder()
-    ///     .set_version("1.6")
-    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
-    ///     .build();
-    ///
-    /// assert_eq!(
-    ///     header.get(&Tag::Other(String::from("zn"))),
-    ///     Some(&String::from("noodles"))
-    /// );
-    ///
-    /// assert_eq!(header.get(&Tag::Version), None);
-    /// ```
-    pub fn get(&self, tag: &Tag) -> Option<&String> {
-        self.fields.get(tag)
-    }
-
-    /// Inserts a tag-raw value pair into the header.
-    ///
-    /// This follows similar semantics to [`std::collections::HashMap::insert`].
-    ///
-    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::header::{self, Header};
-    /// let mut header = Header::default();
-    /// header.insert(header::Tag::SortOrder, String::from("coordinate"));
-    /// ```
-    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
-        self.fields.insert(tag, value)
     }
 }
 

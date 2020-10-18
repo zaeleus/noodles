@@ -156,7 +156,7 @@ impl Builder {
     ///     .insert(zn.clone(), String::from("noodles"))
     ///     .build();
     ///
-    /// assert_eq!(program.get(&zn), Some(&String::from("noodles")));
+    /// assert_eq!(program.fields().get(&zn), Some(&String::from("noodles")));
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where

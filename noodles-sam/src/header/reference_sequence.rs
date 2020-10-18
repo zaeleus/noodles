@@ -254,11 +254,13 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
+    /// let reference_sequence = ReferenceSequence::builder()
+    ///     .set_name(String::from("sq0"))
+    ///     .set_length(13)
+    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .build();
     ///
     /// let fields = reference_sequence.fields();
-    ///
     /// assert_eq!(fields.len(), 1);
     /// assert_eq!(
     ///     fields.get(&Tag::Other(String::from("zn"))),
@@ -273,49 +275,6 @@ impl ReferenceSequence {
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
-    }
-
-    /// Returns a reference to the raw field value mapped to the given key.
-    ///
-    /// This can only be used for fields with unparsed values. For example, [`name`] and [`len`]
-    /// must be used instead of `get(Tag::Name)` and `get(Tag::Length)`, respectively.
-    ///
-    /// [`name`]: #method.name
-    /// [`len`]: #method.len
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
-    ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
-    ///
-    /// assert_eq!(
-    ///     reference_sequence.get(&Tag::Other(String::from("zn"))),
-    ///     Some(&String::from("noodles"))
-    /// );
-    /// assert_eq!(reference_sequence.get(&Tag::Name), None);
-    /// ```
-    pub fn get(&self, tag: &Tag) -> Option<&String> {
-        self.fields.get(tag)
-    }
-
-    /// Inserts a tag-raw value pair into the reference sequence.
-    ///
-    /// This follows similar semantics to [`std::collections::HashMap::insert`].
-    ///
-    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// reference_sequence.insert(Tag::Other(String::from("zn")), String::from("noodles"));
-    /// ```
-    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
-        self.fields.insert(tag, value)
     }
 }
 

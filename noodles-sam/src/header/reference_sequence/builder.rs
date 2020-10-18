@@ -259,7 +259,10 @@ impl Builder {
     ///     .insert(zn.clone(), String::from("noodles"))
     ///     .build();
     ///
-    /// assert_eq!(reference_sequence.get(&zn), Some(&String::from("noodles")));
+    /// assert_eq!(
+    ///     reference_sequence.fields().get(&zn),
+    ///     Some(&String::from("noodles"))
+    /// );
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where

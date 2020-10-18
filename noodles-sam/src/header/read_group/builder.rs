@@ -337,7 +337,10 @@ impl Builder {
     ///     .insert(zn.clone(), String::from("noodles"))
     ///     .build();
     ///
-    /// assert_eq!(read_group.get(&zn), Some(&String::from("noodles")));
+    /// assert_eq!(
+    ///     read_group.fields().get(&zn),
+    ///     Some(&String::from("noodles"))
+    /// );
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where

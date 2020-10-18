@@ -287,13 +287,15 @@ impl ReadGroup {
     /// ```
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
-    /// let mut read_group = ReadGroup::new(String::from("rg0"));
-    /// read_group.insert(Tag::Other(String::from("zn")), String::from("noodles"));
+    /// let read_group = ReadGroup::builder()
+    ///     .set_id(String::from("rg0"))
+    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .build();
     ///
     /// let fields = read_group.fields();
     /// assert_eq!(fields.len(), 1);
     /// assert_eq!(
-    ///     read_group.get(&Tag::Other(String::from("zn"))),
+    ///     fields.get(&Tag::Other(String::from("zn"))),
     ///     Some(&String::from("noodles"))
     /// );
     ///
@@ -302,48 +304,6 @@ impl ReadGroup {
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
-    }
-
-    /// Returns a reference to the raw field value mapped to the given key.
-    ///
-    /// This can only be used for fields with unparsed values. For example, [`id`] must be used
-    /// instead of `get(Tag::Id)`.
-    ///
-    /// [`id`]: #method.id
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{read_group::Tag, ReadGroup};
-    ///
-    /// let mut read_group = ReadGroup::new(String::from("rg0"));
-    /// read_group.insert(Tag::Other(String::from("zn")), String::from("noodles"));
-    ///
-    /// assert_eq!(
-    ///     read_group.get(&Tag::Other(String::from("zn"))),
-    ///     Some(&String::from("noodles"))
-    /// );
-    /// assert_eq!(read_group.get(&Tag::Id), None);
-    /// ```
-    pub fn get(&self, tag: &Tag) -> Option<&String> {
-        self.fields.get(tag)
-    }
-
-    /// Inserts a tag-raw value pair into the read group.
-    ///
-    /// This follows similar semantics to [`std::collections::HashMap::insert`].
-    ///
-    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{read_group::Tag, ReadGroup};
-    /// let mut read_group = ReadGroup::new(String::from("rg0"));
-    /// read_group.insert(Tag::Other(String::from("zn")), String::from("noodles"));
-    /// ```
-    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
-        self.fields.insert(tag, value)
     }
 }
 

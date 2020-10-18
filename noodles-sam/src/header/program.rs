@@ -165,57 +165,23 @@ impl Program {
     /// ```
     /// use noodles_sam::header::{program::Tag, Program};
     ///
-    /// let mut program = Program::new(String::from("pg0"));
-    /// program.insert(Tag::Other(String::from("zn")), String::from("noodles"));
+    /// let program = Program::builder()
+    ///     .set_id(String::from("pg0"))
+    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .build();
     ///
     /// let fields = program.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(program.get(&Tag::Other(String::from("zn"))), Some(&String::from("noodles")));
+    /// assert_eq!(
+    ///     fields.get(&Tag::Other(String::from("zn"))),
+    ///     Some(&String::from("noodles"))
+    /// );
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(program.id(), "pg0");
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
-    }
-
-    /// Returns a reference to the raw field value mapped to the given key.
-    ///
-    /// This can only be used for fields with unparsed values. For example, [`id`] must be used
-    /// instead of `get(Tag::Id)`.
-    ///
-    /// [`id`]: #method.id
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{program::Tag, Program};
-    ///
-    /// let mut program = Program::new(String::from("pg0"));
-    /// program.insert(Tag::Other(String::from("zn")), String::from("noodles"));
-    ///
-    /// assert_eq!(program.get(&Tag::Other(String::from("zn"))), Some(&String::from("noodles")));
-    /// assert_eq!(program.get(&Tag::Id), None);
-    /// ```
-    pub fn get(&self, tag: &Tag) -> Option<&String> {
-        self.fields.get(tag)
-    }
-
-    /// Inserts a tag-raw value pair into the program.
-    ///
-    /// This follows similar semantics to [`std::collections::HashMap::insert`].
-    ///
-    /// [`std::collections::HashMap::insert`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html#method.insert
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{program::Tag, Program};
-    /// let mut program = Program::new(String::from("pg0"));
-    /// program.insert(Tag::Name, String::from("noodles-sam"));
-    /// ```
-    pub fn insert(&mut self, tag: Tag, value: String) -> Option<String> {
-        self.fields.insert(tag, value)
     }
 }
 
