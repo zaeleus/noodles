@@ -1,0 +1,19 @@
+[package]
+name = "noodles-tutorial"
+version = "0.1.0"
+authors = ["otsukaresamaja <christophersugai@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+noodles = { path = "../noodles" }
+noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-sam = { path = "../noodles-sam" }
+noodles-bam = { path = "../noodles-bam" }
+noodles-cram = { path = "../noodles-cram" }
+noodles-fasta = { path = "../noodles-fasta" }
+noodles-fastq = { path = "../noodles-fastq" }
+noodles-gff = { path = "../noodles-gff" }
+noodles-tabix = { path = "../noodles-tabix" }
+structopt = "0.3.20"

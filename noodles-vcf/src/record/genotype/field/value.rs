@@ -7,7 +7,6 @@ use crate::header::{format::Type, Number};
 use super::Key;
 
 const DELIMITER: char = ',';
-const MISSING_VALUE: &str = ".";
 
 /// A VCF record genotype field value.
 #[derive(Clone, Debug, PartialEq)]
@@ -21,13 +20,13 @@ pub enum Value {
     /// A string.
     String(String),
     /// An array of 32-bit integers.
-    IntegerArray(Vec<Option<i32>>),
+    IntegerArray(Vec<i32>),
     /// An array of single-precision floating-points.
-    FloatArray(Vec<Option<f32>>),
+    FloatArray(Vec<f32>),
     /// An array of characters.
-    CharacterArray(Vec<Option<char>>),
+    CharacterArray(Vec<char>),
     /// An array of strings.
-    StringArray(Vec<Option<String>>),
+    StringArray(Vec<String>),
 }
 
 impl fmt::Display for Value {
@@ -43,11 +42,7 @@ impl fmt::Display for Value {
                         write!(f, "{}", DELIMITER)?;
                     }
 
-                    if let Some(v) = value {
-                        write!(f, "{}", v)?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
+                    write!(f, "{}", value)?;
                 }
 
                 Ok(())
@@ -58,11 +53,7 @@ impl fmt::Display for Value {
                         write!(f, "{}", DELIMITER)?;
                     }
 
-                    if let Some(v) = value {
-                        write!(f, "{}", v)?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
+                    write!(f, "{}", value)?;
                 }
 
                 Ok(())
@@ -73,11 +64,7 @@ impl fmt::Display for Value {
                         write!(f, "{}", DELIMITER)?;
                     }
 
-                    if let Some(v) = value {
-                        write!(f, "{}", v)?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
+                    write!(f, "{}", value)?;
                 }
 
                 Ok(())
@@ -88,11 +75,7 @@ impl fmt::Display for Value {
                         write!(f, "{}", DELIMITER)?;
                     }
 
-                    if let Some(v) = value {
-                        write!(f, "{}", v)?;
-                    } else {
-                        f.write_str(MISSING_VALUE)?;
-                    }
+                    write!(f, "{}", value)?;
                 }
 
                 Ok(())
@@ -177,13 +160,7 @@ fn parse_i32(s: &str) -> Result<Value, ParseError> {
 
 fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
-        .map(|t| {
-            if t == MISSING_VALUE {
-                Ok(None)
-            } else {
-                t.parse().map(Some).map_err(ParseError::InvalidInteger)
-            }
-        })
+        .map(|s| s.parse().map_err(ParseError::InvalidInteger))
         .collect::<Result<_, _>>()
         .map(Value::IntegerArray)
 }
@@ -196,13 +173,7 @@ fn parse_f32(s: &str) -> Result<Value, ParseError> {
 
 fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
-        .map(|t| {
-            if t == MISSING_VALUE {
-                Ok(None)
-            } else {
-                t.parse().map(Some).map_err(ParseError::InvalidFloat)
-            }
-        })
+        .map(|s| s.parse().map_err(ParseError::InvalidFloat))
         .collect::<Result<_, _>>()
         .map(Value::FloatArray)
 }
@@ -225,13 +196,7 @@ fn parse_char(s: &str) -> Result<Value, ParseError> {
 
 fn parse_char_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
-        .map(|t| {
-            if t == MISSING_VALUE {
-                Ok(None)
-            } else {
-                parse_raw_char(t).map(Some)
-            }
-        })
+        .map(parse_raw_char)
         .collect::<Result<_, _>>()
         .map(Value::CharacterArray)
 }
@@ -241,16 +206,7 @@ fn parse_string(s: &str) -> Value {
 }
 
 fn parse_string_array(s: &str) -> Value {
-    let values = s
-        .split(DELIMITER)
-        .map(|t| {
-            if t == MISSING_VALUE {
-                None
-            } else {
-                Some(t.into())
-            }
-        })
-        .collect();
+    let values = s.split(DELIMITER).map(|t| t.into()).collect();
     Value::StringArray(values)
 }
 
@@ -272,41 +228,29 @@ mod tests {
         let value = Value::String(String::from("noodles"));
         assert_eq!(value.to_string(), "noodles");
 
-        let value = Value::IntegerArray(vec![Some(2)]);
+        let value = Value::IntegerArray(vec![2]);
         assert_eq!(value.to_string(), "2");
 
-        let value = Value::IntegerArray(vec![Some(2), Some(5)]);
+        let value = Value::IntegerArray(vec![2, 5]);
         assert_eq!(value.to_string(), "2,5");
 
-        let value = Value::IntegerArray(vec![Some(2), None]);
-        assert_eq!(value.to_string(), "2,.");
-
-        let value = Value::FloatArray(vec![Some(0.333)]);
+        let value = Value::FloatArray(vec![0.333]);
         assert_eq!(value.to_string(), "0.333");
 
-        let value = Value::FloatArray(vec![Some(0.333), None]);
-        assert_eq!(value.to_string(), "0.333,.");
+        let value = Value::FloatArray(vec![0.333, 0.667]);
+        assert_eq!(value.to_string(), "0.333,0.667");
 
-        let value = Value::CharacterArray(vec![Some('n')]);
+        let value = Value::CharacterArray(vec!['n']);
         assert_eq!(value.to_string(), "n");
 
-        let value = Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), Some('s')]);
+        let value = Value::CharacterArray(vec!['n', 'd', 'l', 's']);
         assert_eq!(value.to_string(), "n,d,l,s");
 
-        let value = Value::CharacterArray(vec![Some('n'), Some('d'), Some('l'), None]);
-        assert_eq!(value.to_string(), "n,d,l,.");
-
-        let value = Value::StringArray(vec![Some(String::from("noodles"))]);
+        let value = Value::StringArray(vec![String::from("noodles")]);
         assert_eq!(value.to_string(), "noodles");
 
-        let value = Value::StringArray(vec![
-            Some(String::from("noodles")),
-            Some(String::from("vcf")),
-        ]);
+        let value = Value::StringArray(vec![String::from("noodles"), String::from("vcf")]);
         assert_eq!(value.to_string(), "noodles,vcf");
-
-        let value = Value::StringArray(vec![Some(String::from("noodles")), None]);
-        assert_eq!(value.to_string(), "noodles,.");
     }
 
     #[test]
@@ -326,13 +270,7 @@ mod tests {
         let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
         assert_eq!(
             Value::from_str_key("8,13", &key),
-            Ok(Value::IntegerArray(vec![Some(8), Some(13)]))
-        );
-
-        let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
-        assert_eq!(
-            Value::from_str_key("8,.", &key),
-            Ok(Value::IntegerArray(vec![Some(8), None]))
+            Ok(Value::IntegerArray(vec![8, 13]))
         );
     }
 
@@ -353,13 +291,7 @@ mod tests {
         let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
         assert_eq!(
             Value::from_str_key("0.333,0.667", &key),
-            Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
-        );
-
-        let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
-        assert_eq!(
-            Value::from_str_key("0.333,.", &key),
-            Ok(Value::FloatArray(vec![Some(0.333), None]))
+            Ok(Value::FloatArray(vec![0.333, 0.667]))
         );
     }
 
@@ -380,23 +312,7 @@ mod tests {
         let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
         assert_eq!(
             Value::from_str_key("n,d,l,s", &key),
-            Ok(Value::CharacterArray(vec![
-                Some('n'),
-                Some('d'),
-                Some('l'),
-                Some('s')
-            ]))
-        );
-
-        let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
-        assert_eq!(
-            Value::from_str_key("n,d,l,.", &key),
-            Ok(Value::CharacterArray(vec![
-                Some('n'),
-                Some('d'),
-                Some('l'),
-                None
-            ]))
+            Ok(Value::CharacterArray(vec!['n', 'd', 'l', 's']))
         );
     }
 
@@ -421,17 +337,8 @@ mod tests {
         assert_eq!(
             Value::from_str_key("noodles,vcf", &key),
             Ok(Value::StringArray(vec![
-                Some(String::from("noodles")),
-                Some(String::from("vcf"))
-            ]))
-        );
-
-        let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
-        assert_eq!(
-            Value::from_str_key("noodles,.", &key),
-            Ok(Value::StringArray(vec![
-                Some(String::from("noodles")),
-                None,
+                String::from("noodles"),
+                String::from("vcf")
             ]))
         );
     }
