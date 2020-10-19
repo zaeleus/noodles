@@ -3,7 +3,7 @@
 pub mod subtype;
 pub mod ty;
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, error, fmt, num};
 
 use noodles_sam as sam;
 
@@ -628,7 +628,20 @@ impl Value {
 
 /// An error returned when a BAM data field value fails to covert to a SAM data field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromValueError;
+pub enum TryFromValueError {
+    /// The BAM data u32 value exceeds the range of a SAM data i32 value.
+    InvalidUInt32(num::TryFromIntError),
+}
+
+impl error::Error for TryFromValueError {}
+
+impl fmt::Display for TryFromValueError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidUInt32(e) => write!(f, "invalid u32 value: {}", e),
+        }
+    }
+}
 
 impl TryFrom<Value> for sam::record::data::field::Value {
     type Error = TryFromValueError;
@@ -643,7 +656,9 @@ impl TryFrom<Value> for sam::record::data::field::Value {
             Value::Int16(n) => Ok(SamValue::Int32(i32::from(n))),
             Value::UInt16(n) => Ok(SamValue::Int32(i32::from(n))),
             Value::Int32(n) => Ok(SamValue::Int32(n)),
-            Value::UInt32(_) => todo!(),
+            Value::UInt32(n) => i32::try_from(n)
+                .map(SamValue::Int32)
+                .map_err(TryFromValueError::InvalidUInt32),
             Value::Float(n) => Ok(SamValue::Float(n)),
             Value::String(s) => Ok(SamValue::String(s)),
             Value::Hex(s) => Ok(SamValue::Hex(s)),
@@ -718,7 +733,7 @@ mod tests {
         assert_eq!(SamValue::try_from(Value::Int16(0)), Ok(SamValue::Int32(0)));
         assert_eq!(SamValue::try_from(Value::UInt16(0)), Ok(SamValue::Int32(0)));
         assert_eq!(SamValue::try_from(Value::Int32(0)), Ok(SamValue::Int32(0)));
-        // TODO: SamValue::try_from(Value::UInt32(0)
+        assert_eq!(SamValue::try_from(Value::UInt32(0)), Ok(SamValue::Int32(0)));
 
         assert_eq!(
             SamValue::try_from(Value::String(String::from("noodles"))),
@@ -764,5 +779,10 @@ mod tests {
             SamValue::try_from(Value::FloatArray(vec![0.0])),
             Ok(SamValue::FloatArray(vec![0.0]))
         );
+
+        assert!(matches!(
+            SamValue::try_from(Value::UInt32(u32::MAX)),
+            Err(TryFromValueError::InvalidUInt32(_))
+        ));
     }
 }
