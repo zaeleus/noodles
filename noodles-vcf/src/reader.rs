@@ -168,19 +168,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        match self.inner.read_line(buf) {
-            Ok(0) => Ok(0),
-            Ok(n) => {
-                buf.pop();
-
-                if buf.ends_with(CARRIAGE_RETURN) {
-                    buf.pop();
-                }
-
-                Ok(n)
-            }
-            Err(e) => Err(e),
-        }
+        read_line(&mut self.inner, buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -271,6 +259,28 @@ where
     }
 }
 
+// Reads all bytes until a line feed ('\n') is reached.
+//
+// The buffer will not include the trailing newline ('\n' or '\r\n').
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match reader.read_line(buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            buf.pop();
+
+            if buf.ends_with(CARRIAGE_RETURN) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -323,32 +333,20 @@ sq0\t13
     }
 
     #[test]
-    fn test_read_record_with_crlf() -> io::Result<()> {
-        let data = b"\
-##fileformat=VCFv4.3\r\n\
-##fileDate=20200501\r\n\
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\r\n\
-sq0\t8\r\n\
-sq0\t13\r\n\
-";
-
-        let mut reader = Reader::new(&data[..]);
-        reader.read_header()?;
-
+    fn test_read_line() -> io::Result<()> {
         let mut buf = String::new();
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 7);
-        assert_eq!(buf, "sq0\t8");
 
+        let data = b"noodles\n";
+        let mut reader = BufReader::new(&data[..]);
         buf.clear();
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 8);
-        assert_eq!(buf, "sq0\t13");
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
 
+        let data = b"noodles\r\n";
+        let mut reader = BufReader::new(&data[..]);
         buf.clear();
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 0);
-        assert!(buf.is_empty());
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
 
         Ok(())
     }
