@@ -86,13 +86,15 @@ impl<'a> Sequence<'a> {
         let j = i / 2;
         let b = self.seq.get(j)?;
 
-        let k = if i % 2 == 0 {
-            (b & 0xf0) >> 4
+        if i % 2 == 0 {
+            let k = (b & 0xf0) >> 4;
+            Some(&BASES[k as usize])
+        } else if i < self.base_count {
+            let k = b & 0x0f;
+            Some(&BASES[k as usize])
         } else {
-            b & 0x0f
-        };
-
-        BASES.get(k as usize)
+            None
+        }
     }
 
     /// Returns a iterator over the bases in this sequence.
@@ -165,9 +167,12 @@ mod tests {
 
     #[test]
     fn test_get() {
-        let data = [0x18, 0x42];
-        let sequence = Sequence::new(&data, 4);
+        let data = [0x18, 0x40];
+        let sequence = Sequence::new(&data, 3);
+        assert_eq!(sequence.get(0), Some(&Base::A));
+        assert_eq!(sequence.get(1), Some(&Base::T));
         assert_eq!(sequence.get(2), Some(&Base::G));
+        assert_eq!(sequence.get(3), None);
         assert_eq!(sequence.get(8), None);
     }
 
