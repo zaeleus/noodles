@@ -13,8 +13,14 @@ fn main() -> io::Result<()> {
     reader.read_header()?;
     reader.read_reference_sequences()?;
 
-    let count = reader.records().count();
-    println!("{}", count);
+    let mut n = 0;
+
+    for result in reader.records() {
+        let _ = result?;
+        n += 1;
+    }
+
+    println!("{}", n);
 
     Ok(())
 }
