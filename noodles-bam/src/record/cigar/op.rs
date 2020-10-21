@@ -78,18 +78,18 @@ impl Op {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct TryFromUintError(u32);
+pub struct TryFromUIntError(u32);
 
-impl fmt::Display for TryFromUintError {
+impl fmt::Display for TryFromUIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid op: expected 0..=8, got {}", self.0)
     }
 }
 
-impl error::Error for TryFromUintError {}
+impl error::Error for TryFromUIntError {}
 
 impl TryFrom<u32> for Op {
-    type Error = TryFromUintError;
+    type Error = TryFromUIntError;
 
     fn try_from(u: u32) -> Result<Self, Self::Error> {
         let len = u >> 4;
@@ -104,7 +104,7 @@ impl TryFrom<u32> for Op {
             6 => Kind::Pad,
             7 => Kind::SeqMatch,
             8 => Kind::SeqMismatch,
-            n => return Err(TryFromUintError(n)),
+            n => return Err(TryFromUIntError(n)),
         };
 
         Ok(Self::new(kind, len))
@@ -112,7 +112,7 @@ impl TryFrom<u32> for Op {
 }
 
 impl TryFrom<&[u8]> for Op {
-    type Error = TryFromUintError;
+    type Error = TryFromUIntError;
 
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
         let u = LittleEndian::read_u32(buf);
@@ -176,7 +176,7 @@ mod tests {
         assert_eq!(Op::try_from(7 << 4 | 6), Ok(Op::new(Kind::Pad, 7)));
         assert_eq!(Op::try_from(8 << 4 | 7), Ok(Op::new(Kind::SeqMatch, 8)));
         assert_eq!(Op::try_from(9 << 4 | 8), Ok(Op::new(Kind::SeqMismatch, 9)));
-        assert_eq!(Op::try_from(10 << 4 | 9), Err(TryFromUintError(9)));
+        assert_eq!(Op::try_from(10 << 4 | 9), Err(TryFromUIntError(9)));
     }
 
     #[test]
@@ -188,7 +188,7 @@ mod tests {
         assert_eq!(Op::try_from(&buf[..]), Ok(Op::new(Kind::Match, 36)));
 
         let buf = [0x49, 0x02, 0x00, 0x00];
-        assert_eq!(Op::try_from(&buf[..]), Err(TryFromUintError(9)));
+        assert_eq!(Op::try_from(&buf[..]), Err(TryFromUIntError(9)));
     }
 
     #[test]
