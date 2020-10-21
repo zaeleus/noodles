@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt, mem};
 
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam::record::cigar::op::Kind;
@@ -77,7 +77,7 @@ impl Op {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromUIntError(u32);
 
 impl fmt::Display for TryFromUIntError {
@@ -111,12 +111,33 @@ impl TryFrom<u32> for Op {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromByteSliceError {
+    Invalid(usize),
+    InvalidUInt(TryFromUIntError),
+}
+
+impl error::Error for TryFromByteSliceError {}
+
+impl fmt::Display for TryFromByteSliceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Invalid(len) => write!(f, "expected length to >= 4, got {}", len),
+            Self::InvalidUInt(e) => write!(f, "invalid u32: {}", e),
+        }
+    }
+}
+
 impl TryFrom<&[u8]> for Op {
-    type Error = TryFromUIntError;
+    type Error = TryFromByteSliceError;
 
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+        if buf.len() < mem::size_of::<u32>() {
+            return Err(TryFromByteSliceError::Invalid(buf.len()));
+        }
+
         let u = LittleEndian::read_u32(buf);
-        Self::try_from(u)
+        Self::try_from(u).map_err(TryFromByteSliceError::InvalidUInt)
     }
 }
 
@@ -187,15 +208,17 @@ mod tests {
         let buf = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
         assert_eq!(Op::try_from(&buf[..]), Ok(Op::new(Kind::Match, 36)));
 
-        let buf = [0x49, 0x02, 0x00, 0x00];
-        assert_eq!(Op::try_from(&buf[..]), Err(TryFromUIntError(9)));
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_try_from_byte_slice_with_buf_len_less_than_4() {
         let buf = [];
-        Op::try_from(&buf[..]).unwrap();
+        assert_eq!(
+            Op::try_from(&buf[..]),
+            Err(TryFromByteSliceError::Invalid(0))
+        );
+
+        let buf = [0x49, 0x02, 0x00, 0x00];
+        assert_eq!(
+            Op::try_from(&buf[..]),
+            Err(TryFromByteSliceError::InvalidUInt(TryFromUIntError(9)))
+        );
     }
 
     #[test]
