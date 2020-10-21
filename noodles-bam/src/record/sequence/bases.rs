@@ -37,10 +37,12 @@ impl<'a> Iterator for Bases<'a> {
             return None;
         }
 
-        let symbol = self.sequence[self.head];
+        let symbol = self.sequence.get(self.head).copied();
+
         self.head += 1;
         self.remaining -= 1;
-        Some(symbol)
+
+        symbol
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -54,9 +56,11 @@ impl<'a> DoubleEndedIterator for Bases<'a> {
             return None;
         }
 
-        let symbol = self.sequence[self.tail];
+        let symbol = self.sequence.get(self.tail).copied();
+
         self.tail -= 1;
         self.remaining -= 1;
-        Some(symbol)
+
+        symbol
     }
 }

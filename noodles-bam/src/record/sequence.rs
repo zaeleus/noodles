@@ -5,10 +5,7 @@ mod bases;
 
 pub use self::{base::Base, bases::Bases};
 
-use std::{
-    fmt,
-    ops::{Deref, Index},
-};
+use std::{fmt, ops::Deref};
 
 static BASES: &[Base] = &[
     Base::Eq,
@@ -141,23 +138,6 @@ impl<'a> fmt::Display for Sequence<'a> {
         }
 
         Ok(())
-    }
-}
-
-impl<'a> Index<usize> for Sequence<'a> {
-    type Output = Base;
-
-    fn index(&self, i: usize) -> &Self::Output {
-        let j = i / 2;
-        let b = self.seq[j];
-
-        let k = if i % 2 == 0 {
-            (b & 0xf0) >> 4
-        } else {
-            b & 0x0f
-        };
-
-        &BASES[k as usize]
     }
 }
 
