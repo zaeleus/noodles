@@ -1,6 +1,6 @@
 //! BAM CIGAR and operations.
 
-mod op;
+pub mod op;
 mod ops;
 
 pub use self::{op::Op, ops::Ops};

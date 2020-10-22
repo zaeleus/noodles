@@ -1,3 +1,5 @@
+//! BAM record CIGAR operation.
+
 use std::{convert::TryFrom, error, fmt, mem};
 
 use byteorder::{ByteOrder, LittleEndian};
@@ -73,6 +75,7 @@ impl Op {
     }
 }
 
+/// An error returned when a raw u32 fails to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TryFromUIntError(u32);
 
@@ -107,9 +110,12 @@ impl TryFrom<u32> for Op {
     }
 }
 
+/// An error returned when a raw byte slice fails to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromByteSliceError {
+    /// The input is invalid.
     Invalid(usize),
+    /// The value is invalid.
     InvalidUInt(TryFromUIntError),
 }
 
