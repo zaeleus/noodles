@@ -45,10 +45,10 @@ impl<'a> Cigar<'a> {
     ///
     /// let mut ops = cigar.ops();
     ///
-    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::Match, 36)));
-    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::SoftClip, 8)));
+    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::Match, 36)?));
+    /// assert_eq!(ops.next().transpose()?, Some(Op::new(Kind::SoftClip, 8)?));
     /// assert_eq!(ops.next().transpose()?, None);
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn ops(&self) -> Ops<'_> {
         Ops::new(self.0)
