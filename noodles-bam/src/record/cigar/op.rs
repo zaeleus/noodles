@@ -18,11 +18,7 @@ impl Op {
     /// ```
     /// use noodles_bam::record::cigar::Op;
     /// use noodles_sam::record::cigar::op::Kind;
-    ///
     /// let op = Op::new(Kind::Match, 13);
-    ///
-    /// assert_eq!(op.kind(), Kind::Match);
-    /// assert_eq!(op.len(), 13);
     /// ```
     pub fn new(kind: Kind, len: u32) -> Self {
         Self { kind, len }
@@ -157,34 +153,6 @@ impl From<Op> for u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_new() {
-        let op = Op::new(Kind::Match, 13);
-        assert_eq!(op.kind, Kind::Match);
-        assert_eq!(op.len, 13);
-    }
-
-    #[test]
-    fn test_kind() {
-        let op = Op::new(Kind::SoftClip, 13);
-        assert_eq!(op.kind(), Kind::SoftClip);
-    }
-
-    #[test]
-    fn test_len() {
-        let op = Op::new(Kind::Match, 1);
-        assert_eq!(op.len(), 1);
-    }
-
-    #[test]
-    fn test_is_empty() {
-        let op = Op::new(Kind::Match, 0);
-        assert!(op.is_empty());
-
-        let op = Op::new(Kind::Match, 1);
-        assert!(!op.is_empty());
-    }
 
     #[test]
     fn test_try_from_u32() {
