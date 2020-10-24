@@ -14,7 +14,7 @@ pub struct Record {
     alignment_span: i32,
     offset: u64,
     landmark: u64,
-    slice_len: u64,
+    slice_length: u64,
 }
 
 impl Record {
@@ -38,8 +38,8 @@ impl Record {
         self.landmark
     }
 
-    pub fn slice_len(&self) -> u64 {
-        self.slice_len
+    pub fn slice_length(&self) -> u64 {
+        self.slice_length
     }
 }
 
@@ -71,7 +71,7 @@ impl FromStr for Record {
         let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let landmark = parse_u64(&mut fields, Field::Landmark)?;
-        let slice_len = parse_u64(&mut fields, Field::SliceLength)?;
+        let slice_length = parse_u64(&mut fields, Field::SliceLength)?;
 
         Ok(Record {
             reference_sequence_id,
@@ -79,7 +79,7 @@ impl FromStr for Record {
             alignment_span,
             offset,
             landmark,
-            slice_len,
+            slice_length,
         })
     }
 }
@@ -118,7 +118,7 @@ mod tests {
             alignment_span: 6765,
             offset: 17711,
             landmark: 233,
-            slice_len: 317811,
+            slice_length: 317811,
         };
 
         assert_eq!(actual, expected);
