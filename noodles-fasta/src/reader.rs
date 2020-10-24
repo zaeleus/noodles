@@ -11,6 +11,8 @@ use memchr::memchr;
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 pub(crate) const NEWLINE: u8 = b'\n';
 
+const CARRIAGE_RETURN: char = '\r';
+
 /// A FASTA reader.
 pub struct Reader<R> {
     inner: R,
@@ -104,7 +106,15 @@ where
 
             let len = match memchr(NEWLINE, reader_buf) {
                 Some(i) => {
-                    buf.extend(&reader_buf[..i]);
+                    let line = &reader_buf[..i];
+
+                    if line.ends_with(&[CARRIAGE_RETURN as u8]) {
+                        let end = line.len() - 1;
+                        buf.extend(&line[..end]);
+                    } else {
+                        buf.extend(line);
+                    }
+
                     i + 1
                 }
                 None => {
@@ -184,18 +194,31 @@ where
     }
 }
 
+// Reads all bytes until a line feed ('\n') is reached.
+//
+// The buffer will not include the trailing newline ('\n' or '\r\n').
 fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let result = reader.read_line(buf);
-    buf.pop();
-    result
+    match reader.read_line(buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            buf.pop();
+
+            if buf.ends_with(CARRIAGE_RETURN) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::io::{BufReader, Cursor};
 
     use super::*;
 
@@ -237,6 +260,30 @@ mod tests {
     }
 
     #[test]
+    fn test_read_sequence_with_crlf() -> io::Result<()> {
+        let mut sequence_buf = Vec::new();
+
+        let data = b"ACGT\r\n";
+        let mut reader = Reader::new(&data[..]);
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"ACGT");
+
+        let data = b"ACGT\r\n>sq1\r\n";
+        let mut reader = Reader::new(&data[..]);
+        sequence_buf.clear();
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"ACGT");
+
+        let data = b"NNNN\r\nNNNN\r\nNN\r\n";
+        let mut reader = Reader::new(&data[..]);
+        sequence_buf.clear();
+        reader.read_sequence(&mut sequence_buf)?;
+        assert_eq!(sequence_buf, b"NNNNNNNNNN");
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_sequence_after_seek() {
         let data = b">sq0\nACGT\n>sq1\nNNNN\n";
         let cursor = Cursor::new(&data[..]);
@@ -248,5 +295,24 @@ mod tests {
         reader.read_sequence(&mut buf).unwrap();
 
         assert_eq!(buf, b"NNNN");
+    }
+
+    #[test]
+    fn test_read_line() -> io::Result<()> {
+        let mut buf = String::new();
+
+        let data = b"noodles\n";
+        let mut reader = BufReader::new(&data[..]);
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles\r\n";
+        let mut reader = BufReader::new(&data[..]);
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        Ok(())
     }
 }
