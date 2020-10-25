@@ -4,12 +4,14 @@ pub use self::field::Field;
 
 use std::{error, fmt, str::FromStr};
 
+use noodles_bam as bam;
+
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    reference_sequence_id: i32,
+    reference_sequence_id: bam::record::ReferenceSequenceId,
     alignment_start: i32,
     alignment_span: i32,
     offset: u64,
@@ -18,7 +20,7 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn reference_sequence_id(&self) -> i32 {
+    pub fn reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
         self.reference_sequence_id
     }
 
@@ -66,7 +68,8 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let reference_sequence_id = parse_i32(&mut fields, Field::ReferenceSequenceId)?;
+        let reference_sequence_id = parse_i32(&mut fields, Field::ReferenceSequenceId)
+            .map(bam::record::ReferenceSequenceId::from)?;
         let alignment_start = parse_i32(&mut fields, Field::AlignmentStart)?;
         let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
@@ -113,7 +116,7 @@ mod tests {
         let actual: Record = "0\t10946\t6765\t17711\t233\t317811".parse()?;
 
         let expected = Record {
-            reference_sequence_id: 0,
+            reference_sequence_id: bam::record::ReferenceSequenceId::from(0),
             alignment_start: 10946,
             alignment_span: 6765,
             offset: 17711,
