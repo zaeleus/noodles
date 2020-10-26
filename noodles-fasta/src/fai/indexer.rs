@@ -1,4 +1,4 @@
-//! Index creation for a FASTA file as specified at http://www.htslib.org/doc/faidx.html
+//! FASTA indexer.
 
 use std::{
     error::Error,
