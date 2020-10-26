@@ -89,7 +89,8 @@ where
 
         let mut line = Vec::new();
         let mut length = 0;
-        let index_offset = self.offset;
+
+        let sequence_offset = self.offset;
 
         // The first sequence line determines how long each line should be.
         let mut seq_len = self.read_sequence_line(&mut line)? as u64;
@@ -119,7 +120,7 @@ where
         let record = Record::new(
             definition.reference_sequence_name().into(),
             length,
-            index_offset,
+            sequence_offset,
             line_bases,
             line_width,
         );
