@@ -6,12 +6,12 @@
 
 use std::{env, io};
 
-use noodles_fasta::fai;
+use noodles_fasta::{self as fasta, fai};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = fai::index(src)?;
+    let index = fasta::index(src)?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();

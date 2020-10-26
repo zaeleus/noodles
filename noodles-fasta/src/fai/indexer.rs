@@ -3,10 +3,7 @@
 use std::{
     error::Error,
     fmt,
-    fs::File,
-    io,
-    io::{BufRead, BufReader},
-    path::Path,
+    io::{self, BufRead},
 };
 
 use memchr::memchr;
@@ -17,40 +14,6 @@ use crate::{
 };
 
 use super::Record;
-
-/// Creates an index from a FASTA file.
-///
-/// # Examples
-///
-/// Write a FASTA index file to disk.
-///
-/// ```no_run
-/// use std::{fs::File, io::Result};
-/// use noodles_fasta::fai::{index, Writer};
-///
-/// fn main() -> Result<()> {
-///     let mut fai_writer = File::create("foo.fai").map(Writer::new)?;
-///
-///     for record in index("foo.fa")? {
-///         fai_writer.write_record(&record)?;
-///     }
-///     Ok(())
-/// }
-///
-/// ```
-pub fn index<P>(src: P) -> io::Result<Vec<Record>>
-where
-    P: AsRef<Path>,
-{
-    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
-    let mut result = Vec::new();
-
-    while let Some(i) = indexer.index_record()? {
-        result.push(i);
-    }
-
-    Ok(result)
-}
 
 /// A FASTA indexer.
 pub struct Indexer<R> {

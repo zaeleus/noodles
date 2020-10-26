@@ -57,3 +57,45 @@ mod reader;
 pub mod record;
 
 pub use self::{reader::Reader, record::Record};
+
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
+
+use self::fai::indexer::Indexer;
+
+/// Creates an index from a FASTA file.
+///
+/// # Examples
+///
+/// Write a FASTA index file to disk.
+///
+/// ```no_run
+/// use std::{fs::File, io::Result};
+/// use noodles_fasta::{self as fasta, fai};
+///
+/// fn main() -> Result<()> {
+///     let mut fai_writer = File::create("foo.fai").map(fai::Writer::new)?;
+///
+///     for record in fasta::index("foo.fa")? {
+///         fai_writer.write_record(&record)?;
+///     }
+///     Ok(())
+/// }
+///
+/// ```
+pub fn index<P>(src: P) -> io::Result<Vec<fai::Record>>
+where
+    P: AsRef<Path>,
+{
+    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
+    let mut result = Vec::new();
+
+    while let Some(i) = indexer.index_record()? {
+        result.push(i);
+    }
+
+    Ok(result)
+}
