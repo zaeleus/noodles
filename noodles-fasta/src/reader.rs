@@ -197,7 +197,7 @@ where
 // Reads all bytes until a line feed ('\n') is reached.
 //
 // The buffer will not include the trailing newline ('\n' or '\r\n').
-fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+pub(crate) fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {

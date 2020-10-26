@@ -9,7 +9,7 @@ use std::{
 use memchr::memchr;
 
 use crate::{
-    reader::{DEFINITION_PREFIX, NEWLINE},
+    reader::{read_line, DEFINITION_PREFIX, NEWLINE},
     record::definition::{Definition, ParseError},
 };
 
@@ -81,18 +81,15 @@ where
     ///   * the record is missing a sequence,
     ///   * or the sequence lines are not the same length, excluding the last line.
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
-        let mut def_str = String::new();
+        let definition = match self.read_definition() {
+            Ok(None) => return Ok(None),
+            Ok(Some(d)) => d,
+            Err(e) => return Err(e.into()),
+        };
+
         let mut line = Vec::new();
-        let mut length = 0u64;
-
-        let def_len = self.inner.read_line(&mut def_str)?;
-        if def_len == 0 {
-            return Ok(None);
-        }
-
-        self.offset += def_len as u64;
+        let mut length = 0;
         let index_offset = self.offset;
-        let def: Definition = def_str.trim_end().parse()?;
 
         // The first sequence line determines how long each line should be.
         let mut seq_len = self.read_sequence_line(&mut line)? as u64;
@@ -120,7 +117,7 @@ where
         }
 
         let record = Record::new(
-            def.reference_sequence_name().to_string(),
+            definition.reference_sequence_name().into(),
             length,
             index_offset,
             line_bases,
@@ -128,6 +125,20 @@ where
         );
 
         Ok(Some(record))
+    }
+
+    fn read_definition(&mut self) -> io::Result<Option<Definition>> {
+        let mut buf = String::new();
+
+        match read_line(&mut self.inner, &mut buf) {
+            Ok(0) => return Ok(None),
+            Ok(n) => self.offset += n as u64,
+            Err(e) => return Err(e),
+        }
+
+        buf.parse()
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
