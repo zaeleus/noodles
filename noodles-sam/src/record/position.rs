@@ -59,7 +59,7 @@ impl error::Error for TryFromIntError {}
 
 impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "invalid value: {}", self.0)
     }
 }
 
