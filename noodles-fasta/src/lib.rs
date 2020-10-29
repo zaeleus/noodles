@@ -66,25 +66,15 @@ use std::{
 
 use self::fai::indexer::Indexer;
 
-/// Creates an index from a FASTA file.
+/// Indexes a FASTA file.
 ///
 /// # Examples
 ///
-/// Write a FASTA index file to disk.
-///
 /// ```no_run
-/// use std::{fs::File, io::Result};
-/// use noodles_fasta::{self as fasta, fai};
-///
-/// fn main() -> Result<()> {
-///     let mut fai_writer = File::create("foo.fai").map(fai::Writer::new)?;
-///
-///     for record in fasta::index("foo.fa")? {
-///         fai_writer.write_record(&record)?;
-///     }
-///     Ok(())
-/// }
-///
+/// # use std::io;
+/// use noodles_fasta as fasta;
+/// let index = fasta::index("reference.fa")?;
+/// # Ok::<(), io::Error>(())
 /// ```
 pub fn index<P>(src: P) -> io::Result<Vec<fai::Record>>
 where
