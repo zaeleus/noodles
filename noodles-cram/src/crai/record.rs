@@ -2,7 +2,7 @@ mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, str::FromStr};
 
 use noodles_bam as bam;
 
@@ -11,7 +11,7 @@ const MAX_FIELDS: usize = 6;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    reference_sequence_id: bam::record::ReferenceSequenceId,
+    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     alignment_start: i32,
     alignment_span: i32,
     offset: u64,
@@ -20,7 +20,7 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
+    pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
     }
 
@@ -49,6 +49,7 @@ impl Record {
 pub enum ParseError {
     Missing(Field),
     Invalid(Field, std::num::ParseIntError),
+    InvalidReferenceSequenceId(bam::record::reference_sequence_id::TryFromIntError),
 }
 
 impl error::Error for ParseError {}
@@ -58,6 +59,9 @@ impl fmt::Display for ParseError {
         match self {
             Self::Missing(field) => write!(f, "missing field: {:?}", field),
             Self::Invalid(field, message) => write!(f, "invalid {:?} field: {}", field, message),
+            Self::InvalidReferenceSequenceId(e) => {
+                write!(f, "invalid reference sequence ID: {}", e)
+            }
         }
     }
 }
@@ -68,8 +72,17 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let reference_sequence_id = parse_i32(&mut fields, Field::ReferenceSequenceId)
-            .map(bam::record::ReferenceSequenceId::from)?;
+        let reference_sequence_id =
+            parse_i32(&mut fields, Field::ReferenceSequenceId).and_then(|id| {
+                if id == bam::record::reference_sequence_id::UNMAPPED {
+                    Ok(None)
+                } else {
+                    bam::record::ReferenceSequenceId::try_from(id)
+                        .map(Some)
+                        .map_err(ParseError::InvalidReferenceSequenceId)
+                }
+            })?;
+
         let alignment_start = parse_i32(&mut fields, Field::AlignmentStart)?;
         let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
@@ -112,11 +125,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         let actual: Record = "0\t10946\t6765\t17711\t233\t317811".parse()?;
 
         let expected = Record {
-            reference_sequence_id: bam::record::ReferenceSequenceId::from(0),
+            reference_sequence_id: Some(bam::record::ReferenceSequenceId::try_from(0)?),
             alignment_start: 10946,
             alignment_span: 6765,
             offset: 17711,

@@ -5,10 +5,11 @@
 //!
 //! Verify the output by piping to `samtools view -h --no-PG`.
 
-use std::io;
+use std::{convert::TryFrom, io};
 
 use md5::{Digest, Md5};
 
+use noodles_bam as bam;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
@@ -50,7 +51,7 @@ fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
     builder.build()
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout();
     let handle = stdout.lock();
 
@@ -67,7 +68,7 @@ fn main() -> io::Result<()> {
     let record = cram::Record::builder()
         .set_bam_flags(sam::record::Flags::empty())
         .set_flags(cram::record::Flags::QUALITY_SCORES_STORED_AS_ARRAY)
-        .set_reference_sequence_id(0.into())
+        .set_reference_sequence_id(bam::record::ReferenceSequenceId::try_from(0)?)
         .set_alignment_start(1)
         .set_read_length(4)
         .set_bases(b"TTCA".to_vec())

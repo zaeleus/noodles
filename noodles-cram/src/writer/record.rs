@@ -8,6 +8,7 @@ use std::{
 
 use byteorder::WriteBytesExt;
 
+use noodles_bam as bam;
 use noodles_sam as sam;
 
 use crate::{
@@ -132,7 +133,10 @@ where
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_id.is_many() {
-            let reference_id = i32::from(record.reference_sequence_id());
+            let reference_id = record
+                .reference_sequence_id()
+                .map(i32::from)
+                .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
             self.write_reference_id(reference_id)?;
         }
 
@@ -251,8 +255,10 @@ where
                 self.write_read_name(record.read_name())?;
             }
 
-            let next_fragment_reference_sequence_id =
-                i32::from(record.next_fragment_reference_sequence_id());
+            let next_fragment_reference_sequence_id = record
+                .next_fragment_reference_sequence_id()
+                .map(i32::from)
+                .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
             self.write_next_fragment_reference_sequence_id(next_fragment_reference_sequence_id)?;
 
             self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;

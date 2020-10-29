@@ -21,13 +21,13 @@ pub struct Record {
     pub id: i64,
     pub bam_bit_flags: sam::record::Flags,
     pub cram_bit_flags: Flags,
-    pub reference_sequence_id: bam::record::ReferenceSequenceId,
+    pub reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub read_length: i32,
     pub alignment_start: i32,
     pub read_group: ReadGroupId,
     pub read_name: Vec<u8>,
     pub next_mate_bit_flags: NextMateFlags,
-    pub next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
+    pub next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub next_mate_alignment_start: i32,
     pub template_size: i32,
     pub distance_to_next_fragment: i32,
@@ -55,7 +55,7 @@ impl Record {
         self.cram_bit_flags
     }
 
-    pub fn reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
+    pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
     }
 
@@ -107,7 +107,7 @@ impl Record {
         self.next_mate_bit_flags
     }
 
-    pub fn next_fragment_reference_sequence_id(&self) -> bam::record::ReferenceSequenceId {
+    pub fn next_fragment_reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.next_fragment_reference_sequence_id
     }
 

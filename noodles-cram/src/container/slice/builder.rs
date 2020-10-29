@@ -22,7 +22,7 @@ const MAX_RECORD_COUNT: usize = 2560;
 #[derive(Debug, Default)]
 pub struct Builder {
     records: Vec<Record>,
-    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    reference_sequence_id: Option<Option<bam::record::ReferenceSequenceId>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -47,19 +47,21 @@ impl Builder {
             self.reference_sequence_id = Some(record_reference_sequence_id);
         }
 
-        match *self.reference_sequence_id.unwrap() {
-            Some(slice_reference_sequence_id) => match *record_reference_sequence_id {
-                Some(id) => {
-                    if slice_reference_sequence_id == id {
-                        self.records.push(record);
-                        Ok(self.records.last().unwrap())
-                    } else {
-                        Err(AddRecordError::ReferenceSequenceIdMismatch(record))
+        match self.reference_sequence_id.unwrap() {
+            Some(slice_reference_sequence_id) => {
+                match record_reference_sequence_id.map(i32::from) {
+                    Some(id) => {
+                        if i32::from(slice_reference_sequence_id) == id {
+                            self.records.push(record);
+                            Ok(self.records.last().unwrap())
+                        } else {
+                            Err(AddRecordError::ReferenceSequenceIdMismatch(record))
+                        }
                     }
+                    None => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
                 }
-                None => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
-            },
-            None => match *record_reference_sequence_id {
+            }
+            None => match record_reference_sequence_id {
                 Some(_) => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
                 None => {
                     self.records.push(record);
@@ -75,8 +77,8 @@ impl Builder {
         compression_header: &CompressionHeader,
         record_counter: i64,
     ) -> io::Result<Slice> {
-        let reference_sequence_id = match *self.reference_sequence_id.unwrap() {
-            Some(id) => ReferenceSequenceId::Some(id),
+        let reference_sequence_id = match self.reference_sequence_id.unwrap() {
+            Some(id) => ReferenceSequenceId::Some(i32::from(id)),
             None => ReferenceSequenceId::None,
         };
 

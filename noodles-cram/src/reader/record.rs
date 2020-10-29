@@ -147,7 +147,9 @@ where
             i32::from(self.reference_sequence_id)
         };
 
-        record.reference_sequence_id = bam::record::ReferenceSequenceId::from(reference_id);
+        record.reference_sequence_id = bam::record::ReferenceSequenceId::try_from(reference_id)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         record.read_length = self.read_read_length()?;
 
@@ -275,7 +277,11 @@ where
 
             record.next_fragment_reference_sequence_id = self
                 .read_next_fragment_reference_sequence_id()
-                .map(bam::record::ReferenceSequenceId::from)?;
+                .and_then(|id| {
+                    bam::record::ReferenceSequenceId::try_from(id)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })
+                .map(Some)?;
 
             record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
             record.template_size = self.read_template_size()?;

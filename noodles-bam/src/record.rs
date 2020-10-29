@@ -3,7 +3,7 @@
 pub mod cigar;
 pub mod data;
 mod quality_scores;
-mod reference_sequence_id;
+pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
@@ -96,9 +96,14 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
-    pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
+    pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         let id = LittleEndian::read_i32(&self.0);
-        ReferenceSequenceId::from(id)
+
+        if id == reference_sequence_id::UNMAPPED {
+            None
+        } else {
+            ReferenceSequenceId::try_from(id).ok()
+        }
     }
 
     /// Returns the start position of this record.
@@ -195,10 +200,15 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
-    pub fn mate_reference_sequence_id(&self) -> ReferenceSequenceId {
+    pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         let offset = 20;
         let id = LittleEndian::read_i32(&self.0[offset..]);
-        ReferenceSequenceId::from(id)
+
+        if id == reference_sequence_id::UNMAPPED {
+            None
+        } else {
+            ReferenceSequenceId::try_from(id).ok()
+        }
     }
 
     /// Returns the start position of the mate of this record.
@@ -470,7 +480,7 @@ mod tests {
     #[test]
     fn test_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(*record.reference_sequence_id(), Some(10));
+        assert_eq!(record.reference_sequence_id().map(i32::from), Some(10));
         Ok(())
     }
 
@@ -530,7 +540,7 @@ mod tests {
     #[test]
     fn test_mate_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(*record.mate_reference_sequence_id(), Some(10));
+        assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(10));
         Ok(())
     }
 

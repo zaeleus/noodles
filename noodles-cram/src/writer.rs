@@ -241,6 +241,7 @@ fn add_record(
 ) -> Result<(), data_container::builder::AddRecordError> {
     let reference_sequence = record
         .reference_sequence_id()
+        .map(i32::from)
         .and_then(|id| reference_sequences.get(id as usize))
         .map(|rs| rs.sequence())
         .unwrap_or_default();

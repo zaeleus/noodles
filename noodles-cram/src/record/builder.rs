@@ -7,13 +7,13 @@ pub struct Builder {
     id: i64,
     bam_flags: sam::record::Flags,
     flags: Flags,
-    reference_sequence_id: bam::record::ReferenceSequenceId,
+    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     read_length: i32,
     alignment_start: i32,
     read_group_id: ReadGroupId,
     read_name: Vec<u8>,
     next_mate_flags: NextMateFlags,
-    next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
+    next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     next_mate_alignment_start: i32,
     template_size: i32,
     distance_to_next_fragment: i32,
@@ -30,13 +30,13 @@ impl Default for Builder {
             id: 0,
             bam_flags: sam::record::Flags::UNMAPPED,
             flags: Flags::default(),
-            reference_sequence_id: bam::record::ReferenceSequenceId::default(),
+            reference_sequence_id: None,
             read_length: 0,
             alignment_start: 0,
             read_group_id: ReadGroupId::default(),
             read_name: Vec::new(),
             next_mate_flags: NextMateFlags::default(),
-            next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId::default(),
+            next_fragment_reference_sequence_id: None,
             next_mate_alignment_start: 0,
             template_size: 0,
             distance_to_next_fragment: 0,
@@ -69,7 +69,7 @@ impl Builder {
         mut self,
         reference_sequence_id: bam::record::ReferenceSequenceId,
     ) -> Self {
-        self.reference_sequence_id = reference_sequence_id;
+        self.reference_sequence_id = Some(reference_sequence_id);
         self
     }
 
@@ -102,7 +102,7 @@ impl Builder {
         mut self,
         next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
     ) -> Self {
-        self.next_fragment_reference_sequence_id = next_fragment_reference_sequence_id;
+        self.next_fragment_reference_sequence_id = Some(next_fragment_reference_sequence_id);
         self
     }
 

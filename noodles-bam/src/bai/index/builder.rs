@@ -1,4 +1,4 @@
-use std::io;
+use std::{convert::TryFrom, io};
 
 use crate::{record::ReferenceSequenceId, Record};
 
@@ -10,7 +10,7 @@ use super::{
 /// A BAM index builder.
 #[derive(Default)]
 pub struct Builder {
-    current_reference_sequence_id: ReferenceSequenceId,
+    current_reference_sequence_id: Option<ReferenceSequenceId>,
     reference_sequences_builders: Vec<reference_sequence::Builder>,
     unplaced_unmapped_record_count: u64,
 }
@@ -44,7 +44,9 @@ impl Builder {
         }
 
         if record.reference_sequence_id() != self.current_reference_sequence_id {
-            self.add_reference_sequences_builders_until(record.reference_sequence_id());
+            if let Some(reference_sequence_id) = record.reference_sequence_id() {
+                self.add_reference_sequences_builders_until(reference_sequence_id);
+            }
         }
 
         let reference_sequence_builder = self.reference_sequences_builders.last_mut().unwrap();
@@ -57,7 +59,10 @@ impl Builder {
         reference_sequence_id: ReferenceSequenceId,
     ) {
         let id = i32::from(reference_sequence_id);
-        let mut current_id = i32::from(self.current_reference_sequence_id);
+        let mut current_id = self
+            .current_reference_sequence_id
+            .map(i32::from)
+            .unwrap_or(crate::record::reference_sequence_id::UNMAPPED);
 
         while current_id < id {
             self.reference_sequences_builders
@@ -65,7 +70,7 @@ impl Builder {
             current_id += 1;
         }
 
-        self.current_reference_sequence_id = reference_sequence_id;
+        self.current_reference_sequence_id = Some(reference_sequence_id);
     }
 
     /// Builds a BAM index.
@@ -78,7 +83,8 @@ impl Builder {
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index {
         let last_reference_sequence_id =
-            ReferenceSequenceId::from((reference_sequence_count - 1) as i32);
+            ReferenceSequenceId::try_from((reference_sequence_count - 1) as i32)
+                .expect("invalid reference sequence count");
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
         let reference_sequences = self

@@ -100,9 +100,10 @@ where
 
                         match result {
                             Ok(record) => {
-                                if let Some(reference_sequence_id) = *record.reference_sequence_id()
+                                if let Some(reference_sequence_id) = record.reference_sequence_id()
                                 {
-                                    let reference_sequence_id = reference_sequence_id as usize;
+                                    let reference_sequence_id =
+                                        i32::from(reference_sequence_id) as usize;
 
                                     let record_start = record
                                         .position()
