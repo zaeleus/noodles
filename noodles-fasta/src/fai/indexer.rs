@@ -19,6 +19,7 @@ use super::Record;
 pub struct Indexer<R> {
     inner: R,
     offset: u64,
+    line_buf: Vec<u8>,
 }
 
 impl<R> Indexer<R>
@@ -27,36 +28,40 @@ where
 {
     /// Creates a FASTA indexer.
     pub fn new(inner: R) -> Self {
-        Self { inner, offset: 0 }
+        Self {
+            inner,
+            offset: 0,
+            line_buf: Vec::new(),
+        }
     }
 
-    /// Reads a single sequence line.
+    /// Consumes a single sequence line.
     ///
-    /// Trailing whitespaces are not discarded.
-    ///
-    /// If successful, this returns the number of bytes read from the stream. If the number of
-    /// bytes read is 0, the entire sequence of the current record was read.
-    fn read_sequence_line(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+    /// If successful, this returns the number of bytes read from the stream (i.e., the line width)
+    /// and the number of bases in the line. If the number of bytes read is 0, the entire sequence
+    /// of the current record was read.
+    fn consume_sequence_line(&mut self) -> io::Result<(usize, usize)> {
+        self.line_buf.clear();
+
         let mut bytes_read = 0;
         let mut is_eol = false;
 
         loop {
-            let reader_buf = self.inner.fill_buf()?;
+            let buf = self.inner.fill_buf()?;
 
-            if is_eol || reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+            if is_eol || buf.is_empty() || buf[0] == DEFINITION_PREFIX {
                 break;
             }
 
-            let len = match memchr(NEWLINE, reader_buf) {
+            let len = match memchr(NEWLINE, buf) {
                 Some(i) => {
-                    // Do not consume newline.
-                    buf.extend(&reader_buf[..=i]);
+                    self.line_buf.extend(&buf[..=i]);
                     is_eol = true;
                     i + 1
                 }
                 None => {
-                    buf.extend(reader_buf);
-                    reader_buf.len()
+                    self.line_buf.extend(buf);
+                    buf.len()
                 }
             };
 
@@ -65,7 +70,9 @@ where
             bytes_read += len;
         }
 
-        Ok(bytes_read)
+        let base_count = len_with_right_trim(&self.line_buf);
+
+        Ok((bytes_read, base_count))
     }
 
     /// Indexes a raw FASTA record.
@@ -87,24 +94,25 @@ where
             Err(e) => return Err(e.into()),
         };
 
-        let mut line = Vec::new();
+        let sequence_offset = self.offset;
         let mut length = 0;
 
-        let sequence_offset = self.offset;
+        let (line_width, line_bases) = self.consume_sequence_line()?;
 
-        // The first sequence line determines how long each line should be.
-        let mut seq_len = self.read_sequence_line(&mut line)? as u64;
-        let line_width = seq_len;
-        let line_bases = len_with_right_trim(&line) as u64;
+        let mut seq_len = line_width;
+        let mut base_count = line_bases;
 
         loop {
             let prev_line_width = seq_len;
-            let prev_line_bases = len_with_right_trim(&line) as u64;
-            length += prev_line_bases;
-            self.offset += prev_line_width;
+            let prev_line_bases = base_count;
 
-            line.clear();
-            seq_len = self.read_sequence_line(&mut line)? as u64;
+            self.offset += prev_line_width as u64;
+            length += prev_line_bases;
+
+            let (bytes_read, bases_read) = self.consume_sequence_line()?;
+            seq_len = bytes_read;
+            base_count = bases_read;
+
             if seq_len == 0 {
                 break;
             // If there are more lines, check the previous line has equal length to first.
@@ -119,10 +127,10 @@ where
 
         let record = Record::new(
             definition.reference_sequence_name().into(),
-            length,
+            length as u64,
             sequence_offset,
-            line_bases,
-            line_width,
+            line_bases as u64,
+            line_width as u64,
         );
 
         Ok(Some(record))
@@ -208,13 +216,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_sequence_line() -> io::Result<()> {
+    fn test_consume_sequence_line() -> io::Result<()> {
         let data = b"ACGT\nNNNN\n";
         let mut indexer = Indexer::new(&data[..]);
 
-        let mut buf = Vec::new();
-        indexer.read_sequence_line(&mut buf)?;
-        assert_eq!(buf, b"ACGT\n");
+        let (bytes_read, base_count) = indexer.consume_sequence_line()?;
+        assert_eq!(bytes_read, 5);
+        assert_eq!(base_count, 4);
 
         Ok(())
     }
