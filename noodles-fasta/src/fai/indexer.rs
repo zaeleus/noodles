@@ -94,30 +94,27 @@ where
             Err(e) => return Err(e.into()),
         };
 
-        let sequence_offset = self.offset;
+        let offset = self.offset;
         let mut length = 0;
 
         let (line_width, line_bases) = self.consume_sequence_line()?;
-
-        let mut seq_len = line_width;
-        let mut base_count = line_bases;
+        let (mut prev_line_width, mut prev_line_bases) = (line_width, line_bases);
 
         loop {
-            let prev_line_width = seq_len;
-            let prev_line_bases = base_count;
-
             self.offset += prev_line_width as u64;
             length += prev_line_bases;
 
-            let (bytes_read, bases_read) = self.consume_sequence_line()?;
-            seq_len = bytes_read;
-            base_count = bases_read;
+            match self.consume_sequence_line() {
+                Ok((0, _)) => break,
+                Ok((bytes_read, base_count)) => {
+                    if line_width != prev_line_width || line_bases != prev_line_bases {
+                        return Err(IndexError::InvalidLineLength(self.offset));
+                    }
 
-            if seq_len == 0 {
-                break;
-            // If there are more lines, check the previous line has equal length to first.
-            } else if prev_line_width != line_width || prev_line_bases != line_bases {
-                return Err(IndexError::InvalidLineLength(self.offset));
+                    prev_line_width = bytes_read;
+                    prev_line_bases = base_count;
+                }
+                Err(e) => return Err(IndexError::IoError(e)),
             }
         }
 
@@ -128,7 +125,7 @@ where
         let record = Record::new(
             definition.reference_sequence_name().into(),
             length as u64,
-            sequence_offset,
+            offset,
             line_bases as u64,
             line_width as u64,
         );
