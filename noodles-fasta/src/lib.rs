@@ -81,11 +81,11 @@ where
     P: AsRef<Path>,
 {
     let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
-    let mut result = Vec::new();
+    let mut index = Vec::new();
 
     while let Some(i) = indexer.index_record()? {
-        result.push(i);
+        index.push(i);
     }
 
-    Ok(result)
+    Ok(index)
 }
