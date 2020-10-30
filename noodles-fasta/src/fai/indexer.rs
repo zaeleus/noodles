@@ -241,6 +241,17 @@ mod tests {
     }
 
     #[test]
+    fn test_index_record_with_empty_seqeunce() {
+        let data = b">sq0\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        assert!(matches!(
+            indexer.index_record(),
+            Err(IndexError::EmptySequence(5))
+        ));
+    }
+
+    #[test]
     fn test_len_with_right_trim() {
         assert_eq!(len_with_right_trim(b"ATGC\n"), 4);
         assert_eq!(len_with_right_trim(b"ATGC\r\n"), 4);
