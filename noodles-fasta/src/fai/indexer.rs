@@ -84,8 +84,9 @@ where
     ///
     /// An error is returned if the record fails to be completely read. This includes when
     ///
-    ///   * the stream is not at the start of a definition,
-    ///   * the record is missing a sequence,
+    ///   * the stream is not at the start of a definition;
+    ///   * the record is missing a sequence;
+    ///   * the sequence lines have a different number of bases, excluding the last line;
     ///   * or the sequence lines are not the same length, excluding the last line.
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
         let definition = match self.read_definition() {
@@ -107,8 +108,10 @@ where
             match self.consume_sequence_line() {
                 Ok((0, _)) => break,
                 Ok((bytes_read, base_count)) => {
-                    if line_width != prev_line_width || line_bases != prev_line_bases {
-                        return Err(IndexError::InvalidLineLength(self.offset));
+                    if line_bases != prev_line_bases {
+                        return Err(IndexError::InvalidLineBases(line_bases, prev_line_bases));
+                    } else if line_width != prev_line_width {
+                        return Err(IndexError::InvalidLineWidth(line_width, prev_line_width));
                     }
 
                     prev_line_width = bytes_read;
@@ -159,7 +162,8 @@ fn len_with_right_trim(vec: &[u8]) -> usize {
 pub enum IndexError {
     EmptySequence(u64),
     InvalidDefinition(ParseError),
-    InvalidLineLength(u64),
+    InvalidLineBases(usize, usize),
+    InvalidLineWidth(usize, usize),
     IoError(io::Error),
 }
 
@@ -168,7 +172,8 @@ impl Error for IndexError {
         match self {
             Self::EmptySequence(_) => None,
             Self::InvalidDefinition(e) => Some(e),
-            Self::InvalidLineLength(_) => None,
+            Self::InvalidLineBases(..) => None,
+            Self::InvalidLineWidth(..) => None,
             Self::IoError(e) => Some(e),
         }
     }
@@ -179,9 +184,16 @@ impl fmt::Display for IndexError {
         match self {
             Self::EmptySequence(offset) => write!(f, "empty sequence at offset {}", offset),
             Self::InvalidDefinition(e) => e.fmt(f),
-            Self::InvalidLineLength(offset) => {
-                write!(f, "different line lengths at offset {}", offset)
-            }
+            Self::InvalidLineBases(expected, actual) => write!(
+                f,
+                "invalid line bases: expected {}, got {}",
+                expected, actual
+            ),
+            Self::InvalidLineWidth(expected, actual) => write!(
+                f,
+                "invalid line width: expected {}, got {}",
+                expected, actual
+            ),
             Self::IoError(e) => e.fmt(f),
         }
     }
@@ -238,6 +250,28 @@ mod tests {
         assert!(indexer.index_record()?.is_none());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_index_record_with_invalid_line_bases() {
+        let data = b">sq0\nACGT\nACG\nACGT\nAC\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        assert!(matches!(
+            indexer.index_record(),
+            Err(IndexError::InvalidLineBases(4, 3))
+        ));
+    }
+
+    #[test]
+    fn test_index_record_with_invalid_line_width() {
+        let data = b">sq0\nACGT\nACGT \nACGT\nAC\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        assert!(matches!(
+            indexer.index_record(),
+            Err(IndexError::InvalidLineWidth(5, 6))
+        ));
     }
 
     #[test]
