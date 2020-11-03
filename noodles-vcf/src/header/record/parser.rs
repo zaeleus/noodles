@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::{escaped_transform, tag, take_till, take_until},
     character::complete::{alpha1, none_of},
     combinator::{map, rest},
-    multi::separated_nonempty_list,
+    multi::separated_list1,
     sequence::{delimited, separated_pair},
     IResult,
 };
@@ -31,7 +31,7 @@ fn field(input: &str) -> IResult<&str, (String, String)> {
 
 fn structure(input: &str) -> IResult<&str, Value> {
     map(
-        delimited(tag("<"), separated_nonempty_list(tag(","), field), tag(">")),
+        delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
         Value::Struct,
     )(input)
 }

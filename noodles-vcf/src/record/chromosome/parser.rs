@@ -42,11 +42,17 @@ mod tests {
 
         assert_eq!(
             parse("sq 0"),
-            Err(nom::Err::Error((" 0", nom::error::ErrorKind::Eof)))
+            Err(nom::Err::Error(nom::error::Error::new(
+                " 0",
+                nom::error::ErrorKind::Eof
+            )))
         );
         assert_eq!(
             parse("sq\u{a0}0"),
-            Err(nom::Err::Error(("\u{a0}0", nom::error::ErrorKind::Eof)))
+            Err(nom::Err::Error(nom::error::Error::new(
+                "\u{a0}0",
+                nom::error::ErrorKind::Eof
+            )))
         );
     }
 }
