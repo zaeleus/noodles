@@ -11,6 +11,7 @@ pub mod ids;
 pub mod info;
 pub mod quality_score;
 pub mod reference_bases;
+pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,

@@ -2,7 +2,10 @@
 
 use std::{error, fmt, num};
 
-use crate::header::{info::Type, Number};
+use crate::{
+    header::{info::Type, Number},
+    record::value::parse_f32_case_insensitive_extended,
+};
 
 use super::Key;
 
@@ -171,14 +174,14 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
-    s.parse()
+    parse_f32_case_insensitive_extended(s)
         .map(Value::Float)
         .map_err(ParseError::InvalidFloat)
 }
 
 fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
-        .map(|s| s.parse().map_err(ParseError::InvalidFloat))
+        .map(|s| parse_f32_case_insensitive_extended(s).map_err(ParseError::InvalidFloat))
         .collect::<Result<_, _>>()
         .map(Value::FloatArray)
 }
