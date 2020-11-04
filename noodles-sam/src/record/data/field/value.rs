@@ -14,29 +14,29 @@ const ARRAY_VALUE_DELIMITER: char = ',';
 /// A SAM record data field value.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    /// A SAM data field character (`A`).
+    /// A character (`A`).
     Char(char),
-    /// A SAM data field 32-bit integer (`i`).
+    /// A 32-bit integer (`i`).
     Int32(i32),
-    /// A SAM data field single-precision floating-point (`f`).
+    /// A single-precision floating-point (`f`).
     Float(f32),
-    /// A SAM data field string (`Z`).
+    /// A string (`Z`).
     String(String),
-    /// A SAM data field hex string (`H`).
+    /// A hex string (`H`).
     Hex(String),
-    /// A SAM data field 8-bit integer array (`Bc`).
+    /// An 8-bit integer array (`Bc`).
     Int8Array(Vec<i8>),
-    /// A SAM data field 8-bit unsigned integer array (`BC`).
+    /// An 8-bit unsigned integer array (`BC`).
     UInt8Array(Vec<u8>),
-    /// A SAM data field 16-bit integer array (`Bs`).
+    /// A 16-bit integer array (`Bs`).
     Int16Array(Vec<i16>),
-    /// A SAM data field 16-bit unsigned integer array (`BS`).
+    /// A 16-bit unsigned integer array (`BS`).
     UInt16Array(Vec<u16>),
-    /// A SAM data field 32-bit integer array (`Bi`).
+    /// A 32-bit integer array (`Bi`).
     Int32Array(Vec<i32>),
-    /// A SAM data field 32-bit unsigned integer array (`BI`).
+    /// A 32-bit unsigned integer array (`BI`).
     UInt32Array(Vec<u32>),
-    /// A SAM data field single-precision floating-point array (`Bf`).
+    /// A single-precision floating-point array (`Bf`).
     FloatArray(Vec<f32>),
 }
 
