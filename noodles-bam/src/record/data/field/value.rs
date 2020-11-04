@@ -36,39 +36,39 @@ pub use self::{subtype::Subtype, ty::Type};
 ///   * 32-bit unsigned integer (`I`).
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    /// A BAM data field character (`A`).
+    /// A character (`A`).
     Char(char),
-    /// A BAM data field 8-bit integer (`c`).
+    /// An 8-bit integer (`c`).
     Int8(i8),
-    /// A BAM data field 8-bit unsigned integer (`C`).
+    /// An 8-bit unsigned integer (`C`).
     UInt8(u8),
-    /// A BAM data field 16-bit integer (`s`).
+    /// A 16-bit integer (`s`).
     Int16(i16),
-    /// A BAM data field 16-bit unsigned integer (`S`).
+    /// A 16-bit unsigned integer (`S`).
     UInt16(u16),
-    /// A BAM data field 32-bit integer (`i`).
+    /// A 32-bit integer (`i`).
     Int32(i32),
-    /// A BAM data field 32-bit unsigned integer (`I`).
+    /// A 32-bit unsigned integer (`I`).
     UInt32(u32),
-    /// A BAM data field single-precision floating-point (`f`).
+    /// A single-precision floating-point (`f`).
     Float(f32),
-    /// A BAM data field string (`Z`).
+    /// A string (`Z`).
     String(String),
-    /// A BAM data field hex string (`H`).
+    /// A hex string (`H`).
     Hex(String),
-    /// A BAM data field 8-bit integer array (`Bc`).
+    /// An 8-bit integer array (`Bc`).
     Int8Array(Vec<i8>),
-    /// A BAM data field 8-bit unsigned integer array (`BC`).
+    /// An 8-bit unsigned integer array (`BC`).
     UInt8Array(Vec<u8>),
-    /// A BAM data field 16-bit integer array (`Bs`).
+    /// A 16-bit integer array (`Bs`).
     Int16Array(Vec<i16>),
-    /// A BAM data field 16-bit unsigned integer array (`BS`).
+    /// A 16-bit unsigned integer array (`BS`).
     UInt16Array(Vec<u16>),
-    /// A BAM data field 32-bit integer array (`Bi`).
+    /// A 32-bit integer array (`Bi`).
     Int32Array(Vec<i32>),
-    /// A BAM data field 32-bit unsigned integer array (`BI`).
+    /// A 32-bit unsigned integer array (`BI`).
     UInt32Array(Vec<u32>),
-    /// A BAM data field single-precision floating-point array (`Bf`).
+    /// A single-precision floating-point array (`Bf`).
     FloatArray(Vec<f32>),
 }
 
