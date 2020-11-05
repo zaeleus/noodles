@@ -14,9 +14,14 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(gff::Reader::new)?;
+    let mut n = 0;
 
-    let count = reader.records().count();
-    println!("{}", count);
+    for result in reader.records() {
+        let _ = result?;
+        n += 1;
+    }
+
+    println!("{}", n);
 
     Ok(())
 }
