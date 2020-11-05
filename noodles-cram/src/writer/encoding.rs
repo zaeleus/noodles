@@ -22,7 +22,7 @@ where
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             write_byte_array_stop_encoding(writer, *stop_byte, *block_content_id)
         }
-        Encoding::Beta(..) => todo!("BETA"),
+        Encoding::Beta(offset, len) => write_beta_encoding(writer, *offset, *len),
         Encoding::Subexp(..) => unimplemented!("SUBEXP"),
         Encoding::GolombRice(..) => unimplemented!("GOLOMB_RICE"),
         Encoding::Gamma(_) => unimplemented!("GAMMA"),
@@ -97,4 +97,35 @@ where
     write_args(writer, &args)?;
 
     Ok(())
+}
+
+fn write_beta_encoding<W>(writer: &mut W, offset: Itf8, len: Itf8) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+    write_itf8(&mut args, offset)?;
+    write_itf8(&mut args, len)?;
+
+    // TODO: convert from encoding
+    write_itf8(writer, 6)?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_beta_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_beta_encoding(&mut buf, 0, 8)?;
+
+        let expected = [6, 2, 0, 8];
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
 }
