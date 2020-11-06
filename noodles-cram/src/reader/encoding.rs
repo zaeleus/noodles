@@ -135,6 +135,111 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_read_null_encoding() -> io::Result<()> {
+        let data = [
+            0, // null encoding ID
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::Null);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_external_encoding() -> io::Result<()> {
+        let data = [
+            1, // external encoding ID
+            1, // args.len
+            5, // block content ID
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::External(5));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_huffman_encoding() -> io::Result<()> {
+        let data = [
+            3,  // Huffman encoding ID
+            4,  // args.len
+            1,  // alphabet.len
+            65, // 'A'
+            1,  // bit_lens.len
+            0,  // 0
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::Huffman(vec![65], vec![0]));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_byte_array_len_encoding() -> io::Result<()> {
+        let data = [
+            4,  // byte array len encoding ID
+            6,  // args.len
+            1,  // external encoding ID
+            1,  // args.len
+            13, // block content ID
+            1,  // external encoding ID
+            1,  // args.len
+            21, // block content ID
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+
+        assert_eq!(
+            encoding,
+            Encoding::ByteArrayLen(
+                Box::new(Encoding::External(13)),
+                Box::new(Encoding::External(21))
+            )
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_byte_array_stop_encoding() -> io::Result<()> {
+        let data = [
+            5, // byte array stop encoding ID
+            2, // args.len
+            0, // NUL
+            8, // block content ID
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::ByteArrayStop(0x00, 8));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_beta_encoding() -> io::Result<()> {
+        let data = [
+            6, // Beta encoding ID
+            2, // args.len
+            0, // offset
+            8, // len
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::Beta(0, 8));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_gamma_encoding() -> io::Result<()> {
         let data = [
             9, // Elias gamma encoding ID
