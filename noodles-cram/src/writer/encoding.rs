@@ -25,7 +25,7 @@ where
         Encoding::Beta(offset, len) => write_beta_encoding(writer, *offset, *len),
         Encoding::Subexp(..) => unimplemented!("SUBEXP"),
         Encoding::GolombRice(..) => unimplemented!("GOLOMB_RICE"),
-        Encoding::Gamma(_) => unimplemented!("GAMMA"),
+        Encoding::Gamma(offset) => write_gamma_encoding(writer, *offset),
     }
 }
 
@@ -141,6 +141,20 @@ where
     Ok(())
 }
 
+fn write_gamma_encoding<W>(writer: &mut W, offset: Itf8) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+    write_itf8(&mut args, offset)?;
+
+    // TODO: convert from encoding
+    write_itf8(writer, 9)?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -246,6 +260,22 @@ mod tests {
             2, // args.len
             0, // offset
             8, // len
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_gamma_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_gamma_encoding(&mut buf, 1)?;
+
+        let expected = [
+            9, // Elias gamma encoding ID
+            1, // args.len
+            1, // offset
         ];
 
         assert_eq!(buf, expected);
