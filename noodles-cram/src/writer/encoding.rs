@@ -150,7 +150,15 @@ mod tests {
         let mut buf = Vec::new();
         write_huffman_encoding(&mut buf, &[65], &[0])?;
 
-        let expected = [3, 4, 1, 65, 1, 0];
+        let expected = [
+            3,  // Huffman encoding ID
+            4,  // args.len
+            1,  // alphabet.len
+            65, // 'A'
+            1,  // bit_lens.len
+            0,  // 0
+        ];
+
         assert_eq!(buf, expected);
 
         Ok(())
@@ -161,7 +169,13 @@ mod tests {
         let mut buf = Vec::new();
         write_beta_encoding(&mut buf, 0, 8)?;
 
-        let expected = [6, 2, 0, 8];
+        let expected = [
+            6, // Beta encoding ID
+            2, // args.len
+            0, // offset
+            8, // len
+        ];
+
         assert_eq!(buf, expected);
 
         Ok(())
