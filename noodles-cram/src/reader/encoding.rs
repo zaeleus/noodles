@@ -20,7 +20,7 @@ where
         6 => read_beta_encoding(reader),
         7 => unimplemented!("SUBEXP"),
         8 => unimplemented!("GOLOMB_RICE"),
-        9 => unimplemented!("GAMMA"),
+        9 => read_gamma_encoding(reader),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid encoding kind",
@@ -116,4 +116,36 @@ where
     let len = read_itf8(&mut args_reader)?;
 
     Ok(Encoding::Beta(offset, len))
+}
+
+fn read_gamma_encoding<R>(reader: &mut R) -> io::Result<Encoding>
+where
+    R: Read,
+{
+    let args = read_args(reader)?;
+    let mut args_reader = &args[..];
+
+    let offset = read_itf8(&mut args_reader)?;
+
+    Ok(Encoding::Gamma(offset))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_gamma_encoding() -> io::Result<()> {
+        let data = [
+            9, // Elias gamma encoding ID
+            1, // args.len
+            1, // offset
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::Gamma(1));
+
+        Ok(())
+    }
 }
