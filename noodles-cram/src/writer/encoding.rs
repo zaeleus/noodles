@@ -15,7 +15,7 @@ where
         Encoding::Null => write_null_encoding(writer),
         Encoding::External(block_content_id) => write_external_encoding(writer, *block_content_id),
         Encoding::Golomb(..) => unimplemented!("GOLOMB"),
-        Encoding::Huffman(..) => todo!("HUFFMAN"),
+        Encoding::Huffman(alphabet, bit_lens) => write_huffman_encoding(writer, alphabet, bit_lens),
         Encoding::ByteArrayLen(len_encoding, value_encoding) => {
             write_byte_array_len_encoding(writer, len_encoding, value_encoding)
         }
@@ -55,6 +55,33 @@ where
 
     // TODO: convert from encoding
     write_itf8(writer, 1)?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+fn write_huffman_encoding<W>(writer: &mut W, alphabet: &[i32], bit_lens: &[i32]) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+
+    let alphabet_len = alphabet.len() as Itf8;
+    write_itf8(&mut args, alphabet_len)?;
+
+    for &symbol in alphabet {
+        write_itf8(&mut args, symbol)?;
+    }
+
+    let bit_lens_len = bit_lens.len() as Itf8;
+    write_itf8(&mut args, bit_lens_len)?;
+
+    for &len in bit_lens {
+        write_itf8(&mut args, len)?;
+    }
+
+    // TODO: convert from encoding
+    write_itf8(writer, 3)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -117,6 +144,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_huffman_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_huffman_encoding(&mut buf, &[65], &[0])?;
+
+        let expected = [3, 4, 1, 65, 1, 0];
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_write_beta_encoding() -> io::Result<()> {
