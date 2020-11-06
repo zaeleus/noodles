@@ -146,6 +146,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_write_null_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_null_encoding(&mut buf)?;
+
+        let expected = [
+            0, // null encoding ID
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_external_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_external_encoding(&mut buf, 5)?;
+
+        let expected = [
+            1, // external encoding ID
+            1, // args.len
+            5, // block content ID
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_write_huffman_encoding() -> io::Result<()> {
         let mut buf = Vec::new();
         write_huffman_encoding(&mut buf, &[65], &[0])?;
@@ -157,6 +187,48 @@ mod tests {
             65, // 'A'
             1,  // bit_lens.len
             0,  // 0
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_byte_array_len_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let len_encoding = Encoding::External(13);
+        let value_encoding = Encoding::External(21);
+
+        write_byte_array_len_encoding(&mut buf, &len_encoding, &value_encoding)?;
+
+        let expected = [
+            4,  // byte array len encoding ID
+            6,  // args.len
+            1,  // external encoding ID
+            1,  // args.len
+            13, // block content ID
+            1,  // external encoding ID
+            1,  // args.len
+            21, // block content ID
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_byte_array_stop_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_byte_array_stop_encoding(&mut buf, 0x00, 8)?;
+
+        let expected = [
+            5, // byte array stop encoding ID
+            2, // args.len
+            0, // NUL
+            8, // block content ID
         ];
 
         assert_eq!(buf, expected);
