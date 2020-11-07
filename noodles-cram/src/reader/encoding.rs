@@ -18,7 +18,7 @@ where
         4 => read_byte_array_len_encoding(reader),
         5 => read_byte_array_stop_encoding(reader),
         6 => read_beta_encoding(reader),
-        7 => unimplemented!("SUBEXP"),
+        7 => read_subexp_encoding(reader),
         8 => unimplemented!("GOLOMB_RICE"),
         9 => read_gamma_encoding(reader),
         _ => Err(io::Error::new(
@@ -116,6 +116,19 @@ where
     let len = read_itf8(&mut args_reader)?;
 
     Ok(Encoding::Beta(offset, len))
+}
+
+fn read_subexp_encoding<R>(reader: &mut R) -> io::Result<Encoding>
+where
+    R: Read,
+{
+    let args = read_args(reader)?;
+    let mut args_reader = &args[..];
+
+    let offset = read_itf8(&mut args_reader)?;
+    let k = read_itf8(&mut args_reader)?;
+
+    Ok(Encoding::Subexp(offset, k))
 }
 
 fn read_gamma_encoding<R>(reader: &mut R) -> io::Result<Encoding>
@@ -235,6 +248,22 @@ mod tests {
 
         let encoding = read_encoding(&mut reader)?;
         assert_eq!(encoding, Encoding::Beta(0, 8));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_subexp_encoding() -> io::Result<()> {
+        let data = [
+            7, // subexponential encoding ID
+            2, // args.len
+            0, // offset
+            1, // k
+        ];
+        let mut reader = &data[..];
+
+        let encoding = read_encoding(&mut reader)?;
+        assert_eq!(encoding, Encoding::Subexp(0, 1));
 
         Ok(())
     }
