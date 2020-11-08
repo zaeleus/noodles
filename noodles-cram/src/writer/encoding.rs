@@ -23,7 +23,7 @@ where
             write_byte_array_stop_encoding(writer, *stop_byte, *block_content_id)
         }
         Encoding::Beta(offset, len) => write_beta_encoding(writer, *offset, *len),
-        Encoding::Subexp(..) => unimplemented!("SUBEXP"),
+        Encoding::Subexp(offset, k) => write_subexp_encoding(writer, *offset, *k),
         Encoding::GolombRice(..) => unimplemented!("GOLOMB_RICE"),
         Encoding::Gamma(offset) => write_gamma_encoding(writer, *offset),
     }
@@ -136,6 +136,21 @@ where
 
     // TODO: convert from encoding
     write_itf8(writer, 6)?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+fn write_subexp_encoding<W>(writer: &mut W, offset: Itf8, k: Itf8) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+    write_itf8(&mut args, offset)?;
+    write_itf8(&mut args, k)?;
+
+    // TODO: convert from encoding
+    write_itf8(writer, 7)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -260,6 +275,23 @@ mod tests {
             2, // args.len
             0, // offset
             8, // len
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_subexp_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_subexp_encoding(&mut buf, 0, 1)?;
+
+        let expected = [
+            7, // subexponential encoding ID
+            2, // args.len
+            0, // offset
+            1, // k
         ];
 
         assert_eq!(buf, expected);
