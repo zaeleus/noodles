@@ -271,6 +271,30 @@ impl Header {
     pub fn get(&self, key: &str) -> Option<&Record> {
         self.map.get(key)
     }
+
+    /// Inserts a key-value pair representing an unstructured record into the header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    ///
+    /// let record = Record::new(
+    ///     Key::Other(String::from("fileDate")),
+    ///     Value::String(String::from("20200709")),
+    /// );
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// assert!(header.get("fileDate").is_none());
+    ///
+    /// header.insert(record.clone());
+    ///
+    /// assert_eq!(header.get("fileDate"), Some(&record));
+    /// ```
+    pub fn insert(&mut self, record: Record) {
+        self.map.insert(record.key().to_string(), record);
+    }
 }
 
 impl Default for Header {
