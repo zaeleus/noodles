@@ -68,7 +68,7 @@ where
         }
     }
 
-    pub fn read_container(&mut self) -> io::Result<Container> {
+    fn read_container(&mut self) -> io::Result<Container> {
         let header = container::read_header(&mut self.inner)?;
 
         let blocks_len = header.block_count() as usize;
