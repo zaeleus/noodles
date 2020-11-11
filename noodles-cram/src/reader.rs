@@ -32,7 +32,7 @@ where
         Self { inner: reader }
     }
 
-    pub fn read_file_definition(&mut self) -> io::Result<[u8; 20]> {
+    pub fn read_file_definition(&mut self) -> io::Result<((u8, u8), [u8; 20])> {
         let magic = read_magic(&mut self.inner)?;
 
         if magic != MAGIC_NUMBER {
@@ -42,9 +42,10 @@ where
             ));
         }
 
-        read_format(&mut self.inner)?;
+        let format = read_format(&mut self.inner)?;
+        let file_id = read_file_id(&mut self.inner)?;
 
-        read_file_id(&mut self.inner)
+        Ok((format, file_id))
     }
 
     pub fn read_file_header(&mut self) -> io::Result<String> {
@@ -138,10 +139,13 @@ mod tests {
         let mut reader = Reader::new(&data[..]);
         let file_id = reader.read_file_definition()?;
 
-        let expected = [
-            0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
-            0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f,
-        ];
+        let expected = (
+            (3, 0),
+            [
+                0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
+                0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f,
+            ],
+        );
 
         assert_eq!(file_id, expected);
 
