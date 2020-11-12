@@ -6,10 +6,8 @@ use crate::Record;
 
 use super::{
     bin::{self, Chunk},
-    Bin, Metadata, ReferenceSequence,
+    Bin, Metadata, ReferenceSequence, WINDOW_SIZE,
 };
-
-const WINDOW_SIZE: i32 = 16384;
 
 // § 5.2 The BAI index format for BAM files (2020-07-19)
 const MAX_INTERVAL_COUNT: usize = 131072;
