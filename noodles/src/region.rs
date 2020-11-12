@@ -3,7 +3,7 @@ use std::{error, fmt, num};
 use noodles_sam::header::ReferenceSequences;
 
 // Position coordinates are 1-based.
-const MIN_POSITION: u64 = 1;
+const MIN_POSITION: i32 = 1;
 
 static UNMAPPED_NAME: &str = "*";
 static ALL_NAME: &str = ".";
@@ -14,7 +14,7 @@ static ALL_NAME: &str = ".";
 /// all reads (.).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
-    Mapped { name: String, start: u64, end: u64 },
+    Mapped { name: String, start: i32, end: i32 },
     Unmapped,
     All,
 }
@@ -52,7 +52,7 @@ impl Region {
                     if reference_sequences.contains_key(s) {
                         return Err(ParseError::Ambiguous);
                     } else {
-                        let resolved_end = end.unwrap_or(reference_sequence.len() as u64);
+                        let resolved_end = end.unwrap_or(reference_sequence.len() as i32);
                         return Ok(Region::mapped(prefix, start, resolved_end));
                     }
                 }
@@ -60,7 +60,7 @@ impl Region {
         }
 
         if let Some(reference_sequence) = reference_sequences.get(s) {
-            let end = reference_sequence.len() as u64;
+            let end = reference_sequence.len() as i32;
             Ok(Region::mapped(s, MIN_POSITION, end))
         } else {
             Err(ParseError::Invalid)
@@ -82,7 +82,7 @@ impl Region {
     /// let region = Region::mapped("sq0", 1, 5);
     /// assert!(matches!(region, Region::Mapped { name, start: 1, end: 5 }));
     /// ```
-    pub fn mapped<I>(name: I, start: u64, end: u64) -> Region
+    pub fn mapped<I>(name: I, start: i32, end: i32) -> Region
     where
         I: Into<String>,
     {
@@ -151,7 +151,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-fn parse_interval(s: &str) -> Result<(u64, Option<u64>), ParseError> {
+fn parse_interval(s: &str) -> Result<(i32, Option<i32>), ParseError> {
     let mut components = s.splitn(2, '-');
 
     let start = match components.next() {

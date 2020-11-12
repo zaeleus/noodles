@@ -11,7 +11,7 @@ pub use self::{bin::Bin, metadata::Metadata};
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 
-const WINDOW_SIZE: u64 = 16384;
+const WINDOW_SIZE: i32 = 16384;
 
 /// A reference sequence in the BAM index.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -112,7 +112,7 @@ impl ReferenceSequence {
     /// let query_bins = reference_sequence.query(8, 13);
     /// assert!(query_bins.is_empty());
     /// ```
-    pub fn query(&self, start: u64, end: u64) -> Vec<&Bin> {
+    pub fn query(&self, start: i32, end: i32) -> Vec<&Bin> {
         let region_bins = region_to_bins((start - 1) as usize, end as usize);
 
         self.bins()
@@ -133,7 +133,7 @@ impl ReferenceSequence {
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
     /// ```
-    pub fn min_offset(&self, start: u64) -> bgzf::VirtualPosition {
+    pub fn min_offset(&self, start: i32) -> bgzf::VirtualPosition {
         let i = ((start - 1) / WINDOW_SIZE) as usize;
         self.intervals.get(i).copied().unwrap_or_default()
     }

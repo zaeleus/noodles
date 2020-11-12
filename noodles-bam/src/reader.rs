@@ -417,7 +417,7 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
 fn resolve_region(
     reference_sequences: &ReferenceSequences,
     region: &Region,
-) -> io::Result<(usize, u64, u64)> {
+) -> io::Result<(usize, i32, i32)> {
     match region {
         Region::Mapped { name, start, end } => {
             let i = reference_sequences.get_index_of(name).ok_or_else(|| {

@@ -24,8 +24,8 @@ where
     reader: &'a mut Reader<R>,
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
-    start: u64,
-    end: u64,
+    start: i32,
+    end: i32,
     i: usize,
     state: State,
     record: Record,
@@ -39,8 +39,8 @@ where
         reader: &'a mut Reader<R>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
-        start: u64,
-        end: u64,
+        start: i32,
+        end: i32,
     ) -> Self {
         Self {
             reader,
@@ -105,14 +105,11 @@ where
                                     let reference_sequence_id =
                                         i32::from(reference_sequence_id) as usize;
 
-                                    let record_start = record
-                                        .position()
-                                        .map(i32::from)
-                                        .map(|n| n as u64)
-                                        .expect("missing position");
+                                    let record_start =
+                                        record.position().map(i32::from).expect("missing position");
                                     let record_reference_len = match record.cigar().reference_len()
                                     {
-                                        Ok(len) => u64::from(len),
+                                        Ok(len) => len as i32,
                                         Err(e) => return Some(Err(e)),
                                     };
                                     let record_end = record_start + record_reference_len - 1;
@@ -142,6 +139,6 @@ where
     }
 }
 
-fn in_interval(a_start: u64, a_end: u64, b_start: u64, b_end: u64) -> bool {
+fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
     a_start <= b_end && b_start <= a_end
 }
