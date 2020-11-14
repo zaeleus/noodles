@@ -15,7 +15,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{Container, FileDefinition, MAGIC_NUMBER};
+use super::{file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
 pub struct Reader<R>
 where
@@ -42,10 +42,10 @@ where
             ));
         }
 
-        let (major, minor) = read_format(&mut self.inner)?;
+        let format = read_format(&mut self.inner)?;
         let file_id = read_file_id(&mut self.inner)?;
 
-        Ok(FileDefinition::new(major, minor, file_id))
+        Ok(FileDefinition::new(format, file_id))
     }
 
     pub fn read_file_header(&mut self) -> io::Result<String> {
@@ -96,13 +96,13 @@ where
     Ok(buf)
 }
 
-fn read_format<R>(reader: &mut R) -> io::Result<(u8, u8)>
+fn read_format<R>(reader: &mut R) -> io::Result<Version>
 where
     R: Read,
 {
     let mut buf = [0; 2];
     reader.read_exact(&mut buf)?;
-    Ok((buf[0], buf[1]))
+    Ok(Version::new(buf[0], buf[1]))
 }
 
 fn read_file_id<R>(reader: &mut R) -> io::Result<[u8; 20]>
@@ -140,8 +140,7 @@ mod tests {
 
         let actual = reader.read_file_definition()?;
         let expected = FileDefinition::new(
-            3,
-            0,
+            Version::new(3, 0),
             [
                 0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
                 0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f,

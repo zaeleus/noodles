@@ -3,7 +3,7 @@ mod bit_writer;
 pub mod container;
 pub mod crai;
 mod data_container;
-mod file_definition;
+pub mod file_definition;
 mod huffman;
 mod num;
 mod rans;
