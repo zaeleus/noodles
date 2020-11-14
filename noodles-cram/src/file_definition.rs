@@ -21,3 +21,15 @@ impl FileDefinition {
         &self.file_id
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let actual = FileDefinition::default();
+        let expected = FileDefinition::new(Version::new(3, 0), [0; 20]);
+        assert_eq!(actual, expected);
+    }
+}
