@@ -14,12 +14,12 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use super::{container::Container, data_container, DataContainer, Record, MAGIC_NUMBER};
+use super::{
+    container::Container, data_container, file_definition::Version, DataContainer, FileDefinition,
+    Record, MAGIC_NUMBER,
+};
 
 use self::block::write_block;
-
-// [major, minor]
-const FILE_DEFINITION_FORMAT: [u8; 2] = [3, 0];
 
 const RECORD_COUNTER_START: i64 = 0;
 
@@ -133,15 +133,14 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_definition(&mut self) -> io::Result<()> {
+        let file_definition = FileDefinition::default();
+
         // magic number
         self.inner.write_all(MAGIC_NUMBER)?;
 
-        // format (major, minor)
-        self.inner.write_all(&FILE_DEFINITION_FORMAT)?;
+        write_format(&mut self.inner, file_definition.version())?;
 
-        // File ID is currently blank.
-        let file_id = [0; 20];
-        self.inner.write_all(&file_id)?;
+        self.inner.write_all(file_definition.file_id())?;
 
         Ok(())
     }
@@ -247,4 +246,12 @@ fn add_record(
         .unwrap_or_default();
 
     data_container_builder.add_record(reference_sequence, record)
+}
+
+fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
+where
+    W: Write,
+{
+    let format = [version.major(), version.minor()];
+    writer.write_all(&format)
 }

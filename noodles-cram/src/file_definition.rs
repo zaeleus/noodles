@@ -2,7 +2,7 @@ mod version;
 
 pub use self::version::Version;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct FileDefinition {
     version: Version,
     file_id: [u8; 20],
