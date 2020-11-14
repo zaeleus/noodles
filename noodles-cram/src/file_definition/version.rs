@@ -17,3 +17,19 @@ impl Version {
         self.minor
     }
 }
+
+impl Default for Version {
+    fn default() -> Self {
+        Self::new(3, 0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        assert_eq!(Version::default(), Version::new(3, 0));
+    }
+}
