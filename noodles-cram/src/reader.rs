@@ -17,6 +17,10 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use super::{file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
+/// A CRAM reader.
+///
+/// The CRAM format is comprised of four main parts: 1) a file definition, 2) a file header, 3) a
+/// list of data containers, and 4) a end-of-file (EOF) container.
 pub struct Reader<R>
 where
     R: Read,
@@ -28,10 +32,35 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Creates a CRAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    /// let mut reader = File::open("sample.bam").map(cram::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn new(reader: R) -> Self {
         Self { inner: reader }
     }
 
+    /// Reads the CRAM file definition.
+    ///
+    /// The CRAM magic number is also checked.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// let file_definition = reader.read_file_definition()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
         let magic = read_magic(&mut self.inner)?;
 
@@ -48,6 +77,29 @@ where
         Ok(FileDefinition::new(format, file_id))
     }
 
+    /// Reads the raw SAM header.
+    ///
+    /// The position of the stream is expected to be at the CRAM header container, i.e., directly
+    /// after the file definition.
+    ///
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`sam::Header`].
+    ///
+    /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
+    /// [`sam::Header`]: ../../noodles_sam/header/struct.Header.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// reader.read_file_definition()?;
+    ///
+    /// let header = reader.read_file_header()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
         let header_container = self.read_container()?;
 
@@ -82,6 +134,26 @@ where
         Ok(Container::new(header, blocks))
     }
 
+    /// Returns a iterator over records starting from the current stream position.
+    ///
+    /// The stream is expected to be at the start of a data container.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// reader.read_file_definition()?;
+    /// reader.read_file_header()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
