@@ -9,7 +9,7 @@ pub mod slice;
 pub use self::records::Records;
 
 use std::{
-    io::{self, Read},
+    io::{self, Read, Seek, SeekFrom},
     str,
 };
 
@@ -156,6 +156,28 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
+    /// Returns the current position of the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor};
+    /// use noodles_cram as cram;
+    /// let data = Cursor::new(Vec::new());
+    /// let mut reader = cram::Reader::new(data);
+    /// let position = reader.position()?;
+    /// assert_eq!(position, 0);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn position(&mut self) -> io::Result<u64> {
+        self.inner.seek(SeekFrom::Current(0))
     }
 }
 
