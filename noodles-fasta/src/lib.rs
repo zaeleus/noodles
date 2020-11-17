@@ -76,7 +76,7 @@ use self::fai::indexer::Indexer;
 /// let index = fasta::index("reference.fa")?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<Vec<fai::Record>>
+pub fn index<P>(src: P) -> io::Result<fai::Index>
 where
     P: AsRef<Path>,
 {
