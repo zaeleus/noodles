@@ -49,7 +49,7 @@ where
     R: Read,
 {
     let len = read_itf8(reader).map(|i| i as usize)?;
-    let mut buf = vec![0; len];
+    let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
         let value = read_itf8(reader)?;
