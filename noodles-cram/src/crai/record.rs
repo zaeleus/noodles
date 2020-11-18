@@ -20,6 +20,24 @@ pub struct Record {
 }
 
 impl Record {
+    pub fn new(
+        reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+        alignment_start: i32,
+        alignment_span: i32,
+        offset: u64,
+        landmark: u64,
+        slice_length: u64,
+    ) -> Self {
+        Self {
+            reference_sequence_id,
+            alignment_start,
+            alignment_span,
+            offset,
+            landmark,
+            slice_length,
+        }
+    }
+
     pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
     }
