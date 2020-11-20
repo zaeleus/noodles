@@ -124,7 +124,7 @@ where
 {
     fields
         .next()
-        .ok_or_else(|| ParseError::Missing(field))
+        .ok_or(ParseError::Missing(field))
         .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
 }
 
@@ -134,7 +134,7 @@ where
 {
     fields
         .next()
-        .ok_or_else(|| ParseError::Missing(field))
+        .ok_or(ParseError::Missing(field))
         .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
 }
 

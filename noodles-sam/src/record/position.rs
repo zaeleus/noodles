@@ -70,9 +70,7 @@ impl TryFrom<i32> for Position {
         if n < 0 {
             Err(TryFromIntError(n))
         } else {
-            NonZeroI32::new(n)
-                .map(Self)
-                .ok_or_else(|| TryFromIntError(n))
+            NonZeroI32::new(n).map(Self).ok_or(TryFromIntError(n))
         }
     }
 }

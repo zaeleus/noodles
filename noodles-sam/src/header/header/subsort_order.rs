@@ -57,12 +57,12 @@ impl FromStr for SubsortOrder {
 
         let mut pieces = s.splitn(2, ':');
 
-        let order = pieces.next().ok_or_else(|| ParseError::MissingOrder)?;
+        let order = pieces.next().ok_or(ParseError::MissingOrder)?;
 
         let subsort = pieces
             .next()
             .map(|s| s.into())
-            .ok_or_else(|| ParseError::MissingSubsort)?;
+            .ok_or(ParseError::MissingSubsort)?;
 
         match order {
             "unsorted" => Ok(Self::Unsorted(subsort)),

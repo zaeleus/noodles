@@ -445,7 +445,7 @@ impl FromStr for Header {
 fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
     let record: Record = lines
         .next()
-        .ok_or_else(|| ParseError::MissingFileFormat)
+        .ok_or(ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
     if record.key() == &record::Key::FileFormat {

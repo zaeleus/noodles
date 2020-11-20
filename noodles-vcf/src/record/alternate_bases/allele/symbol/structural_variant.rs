@@ -125,7 +125,7 @@ impl FromStr for StructuralVariant {
 
         let ty = components
             .next()
-            .ok_or_else(|| ParseError::MissingType)
+            .ok_or(ParseError::MissingType)
             .and_then(|s| s.parse().map_err(ParseError::InvalidType))?;
 
         let subtypes = components.map(|s| s.into()).collect();

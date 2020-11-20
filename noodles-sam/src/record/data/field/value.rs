@@ -565,10 +565,10 @@ impl FromStr for Value {
 
         let ty = components
             .next()
-            .ok_or_else(|| ParseError::MissingType)
+            .ok_or(ParseError::MissingType)
             .and_then(|t| t.parse().map_err(ParseError::InvalidType))?;
 
-        let value = components.next().ok_or_else(|| ParseError::MissingValue)?;
+        let value = components.next().ok_or(ParseError::MissingValue)?;
 
         match ty {
             Type::Char => parse_char(value).map(Value::Char),
@@ -582,7 +582,7 @@ impl FromStr for Value {
 }
 
 fn parse_char(s: &str) -> Result<char, ParseError> {
-    s.chars().next().ok_or_else(|| ParseError::InvalidCharValue)
+    s.chars().next().ok_or(ParseError::InvalidCharValue)
 }
 
 fn parse_i8(s: &str) -> Result<i8, ParseError> {
@@ -618,7 +618,7 @@ fn parse_array(s: &str) -> Result<Value, ParseError> {
 
     let subtype = raw_values
         .next()
-        .ok_or_else(|| ParseError::MissingSubtype)
+        .ok_or(ParseError::MissingSubtype)
         .and_then(|t| t.parse().map_err(ParseError::InvalidSubtype))?;
 
     match subtype {

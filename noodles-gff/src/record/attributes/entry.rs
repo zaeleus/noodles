@@ -93,12 +93,12 @@ impl FromStr for Entry {
         let key = components
             .next()
             .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
-            .ok_or_else(|| ParseError::MissingKey)?;
+            .ok_or(ParseError::MissingKey)?;
 
         let value = components
             .next()
             .map(|s| s.into())
-            .ok_or_else(|| ParseError::MissingValue)?;
+            .ok_or(ParseError::MissingValue)?;
 
         Ok(Entry::new(key, value))
     }

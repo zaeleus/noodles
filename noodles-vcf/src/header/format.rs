@@ -205,7 +205,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
 
     let id = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Id))
+        .ok_or(TryFromRecordError::MissingField(Key::Id))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
             _ => Err(TryFromRecordError::MissingField(Key::Id)),
@@ -213,7 +213,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
 
     let number = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Number))
+        .ok_or(TryFromRecordError::MissingField(Key::Number))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Number) => v.parse().map_err(TryFromRecordError::InvalidNumber),
             _ => Err(TryFromRecordError::MissingField(Key::Id)),
@@ -221,7 +221,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
 
     let ty = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Type))
+        .ok_or(TryFromRecordError::MissingField(Key::Type))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Type) => v.parse().map_err(TryFromRecordError::InvalidType),
             _ => Err(TryFromRecordError::MissingField(Key::Type)),
@@ -229,7 +229,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
 
     let description = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Description))
+        .ok_or(TryFromRecordError::MissingField(Key::Description))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Description) => Ok(v),
             _ => Err(TryFromRecordError::MissingField(Key::Description)),

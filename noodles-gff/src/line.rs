@@ -43,8 +43,8 @@ impl FromStr for Line {
             s.parse()
                 .map(Self::Directive)
                 .map_err(ParseError::InvalidDirective)
-        } else if s.starts_with('#') {
-            Ok(Self::Comment(s[1..].into()))
+        } else if let Some(t) = s.strip_prefix('#') {
+            Ok(Self::Comment(t.into()))
         } else {
             s.parse()
                 .map(Self::Record)

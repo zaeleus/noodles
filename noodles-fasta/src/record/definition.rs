@@ -100,7 +100,7 @@ impl FromStr for Definition {
         let reference_sequence_name = components
             .next()
             .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
-            .ok_or_else(|| ParseError::MissingReferenceSequenceName)?;
+            .ok_or(ParseError::MissingReferenceSequenceName)?;
 
         let description = components.next().map(|s| s.trim().into());
 

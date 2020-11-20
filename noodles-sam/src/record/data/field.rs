@@ -104,12 +104,12 @@ impl FromStr for Field {
 
         let tag = components
             .next()
-            .ok_or_else(|| ParseError::MissingTag)
+            .ok_or(ParseError::MissingTag)
             .and_then(|t| t.parse().map_err(ParseError::InvalidTag))?;
 
         let value = components
             .next()
-            .ok_or_else(|| ParseError::MissingValue)
+            .ok_or(ParseError::MissingValue)
             .and_then(|t| t.parse().map_err(ParseError::InvalidValue))?;
 
         Ok(Self::new(tag, value))

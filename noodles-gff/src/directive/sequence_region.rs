@@ -129,16 +129,16 @@ impl FromStr for SequenceRegion {
 
         let reference_sequence_name = args
             .next()
-            .ok_or_else(|| ParseError::MissingReferenceSequenceName)?;
+            .ok_or(ParseError::MissingReferenceSequenceName)?;
 
         let start = args
             .next()
-            .ok_or_else(|| ParseError::MissingStart)
+            .ok_or(ParseError::MissingStart)
             .and_then(|s| s.parse().map_err(ParseError::InvalidStart))?;
 
         let end = args
             .next()
-            .ok_or_else(|| ParseError::MissingEnd)
+            .ok_or(ParseError::MissingEnd)
             .and_then(|s| s.parse().map_err(ParseError::InvalidEnd))?;
 
         Ok(SequenceRegion::new(

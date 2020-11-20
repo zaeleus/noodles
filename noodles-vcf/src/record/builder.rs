@@ -367,10 +367,8 @@ impl Builder {
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
         Ok(Record {
-            chromosome: self
-                .chromosome
-                .ok_or_else(|| BuildError::MissingChromosome)?,
-            position: self.position.ok_or_else(|| BuildError::MissingPosition)?,
+            chromosome: self.chromosome.ok_or(BuildError::MissingChromosome)?,
+            position: self.position.ok_or(BuildError::MissingPosition)?,
             ids: self.ids,
             reference_bases: ReferenceBases::try_from(self.reference_bases)
                 .map_err(|_| BuildError::MissingReferenceBases)?,

@@ -147,7 +147,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<AlternativeAllele, TryF
 
     let id = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Id))
+        .ok_or(TryFromRecordError::MissingField(Key::Id))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
             _ => Err(TryFromRecordError::MissingField(Key::Id)),
@@ -155,7 +155,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<AlternativeAllele, TryF
 
     let description = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(Key::Description))
+        .ok_or(TryFromRecordError::MissingField(Key::Description))
         .and_then(|(k, v)| match k.parse() {
             Ok(Key::Description) => Ok(v),
             _ => Err(TryFromRecordError::MissingField(Key::Description)),

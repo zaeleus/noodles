@@ -138,12 +138,12 @@ impl TryFrom<&Bin> for Metadata {
         let (ref_beg, ref_end) = chunks_iter
             .next()
             .map(|c| (c.start(), c.end()))
-            .ok_or_else(|| TryFromBinError::MissingPositionsChunk)?;
+            .ok_or(TryFromBinError::MissingPositionsChunk)?;
 
         let (n_mapped, n_unmapped) = chunks_iter
             .next()
             .map(|c| (u64::from(c.start()), u64::from(c.end())))
-            .ok_or_else(|| TryFromBinError::MissingCountsChunk)?;
+            .ok_or(TryFromBinError::MissingCountsChunk)?;
 
         Ok(Self {
             start_position: ref_beg,

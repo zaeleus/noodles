@@ -129,7 +129,7 @@ impl FromStr for GffVersion {
 
         let major = components
             .next()
-            .ok_or_else(|| ParseError::MissingMajorVersion)
+            .ok_or(ParseError::MissingMajorVersion)
             .and_then(|t| t.parse().map_err(ParseError::InvalidMajorVersion))?;
 
         let minor = match components.next() {

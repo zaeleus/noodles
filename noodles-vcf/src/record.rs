@@ -439,7 +439,7 @@ fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<&'a str, ParseErr
 where
     I: Iterator<Item = &'a str>,
 {
-    fields.next().ok_or_else(|| ParseError::MissingField(field))
+    fields.next().ok_or(ParseError::MissingField(field))
 }
 
 #[cfg(test)]

@@ -99,38 +99,38 @@ impl FromStr for Directive {
 
         let mut components = s[PREFIX.len()..].splitn(2, |c: char| c.is_ascii_whitespace());
 
-        let name = components.next().ok_or_else(|| ParseError::MissingName)?;
+        let name = components.next().ok_or(ParseError::MissingName)?;
 
         match name {
             "gff-version" => components
                 .next()
-                .ok_or_else(|| ParseError::MissingValue)
+                .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGffVersion))
                 .map(Self::GffVersion),
             "sequence-region" => components
                 .next()
-                .ok_or_else(|| ParseError::MissingValue)
+                .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidSequenceRegion))
                 .map(Self::SequenceRegion),
             "feature-ontology" => components
                 .next()
                 .map(|s| Self::FeatureOntology(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or(ParseError::MissingValue),
             "attribute-ontology" => components
                 .next()
                 .map(|s| Self::AttributeOntology(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or(ParseError::MissingValue),
             "source-ontology" => components
                 .next()
                 .map(|s| Self::SourceOntology(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or(ParseError::MissingValue),
             "species" => components
                 .next()
                 .map(|s| Self::Species(s.into()))
-                .ok_or_else(|| ParseError::MissingValue),
+                .ok_or(ParseError::MissingValue),
             "genome-build" => components
                 .next()
-                .ok_or_else(|| ParseError::MissingValue)
+                .ok_or(ParseError::MissingValue)
                 .and_then(|s| s.parse().map_err(ParseError::InvalidGenomeBuild))
                 .map(Self::GenomeBuild),
             "#" => Ok(Self::ForwardReferencesAreResolved),

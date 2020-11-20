@@ -95,12 +95,12 @@ impl FromStr for GenomeBuild {
         let source = args
             .next()
             .map(|s| s.into())
-            .ok_or_else(|| ParseError::MissingSource)?;
+            .ok_or(ParseError::MissingSource)?;
 
         let name = args
             .next()
             .map(|s| s.into())
-            .ok_or_else(|| ParseError::MissingName)?;
+            .ok_or(ParseError::MissingName)?;
 
         Ok(GenomeBuild::new(source, name))
     }

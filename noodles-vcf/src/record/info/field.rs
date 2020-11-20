@@ -104,7 +104,7 @@ impl FromStr for Field {
 
         let key: Key = components
             .next()
-            .ok_or_else(|| ParseError::MissingKey)
+            .ok_or(ParseError::MissingKey)
             .and_then(|s| s.parse().map_err(ParseError::InvalidKey))?;
 
         let value = if let Type::Flag = key.ty() {
@@ -119,7 +119,7 @@ impl FromStr for Field {
         } else {
             components
                 .next()
-                .ok_or_else(|| ParseError::MissingValue)
+                .ok_or(ParseError::MissingValue)
                 .and_then(|s| Value::from_str_key(s, &key).map_err(ParseError::InvalidValue))?
         };
 

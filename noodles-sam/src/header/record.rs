@@ -99,7 +99,7 @@ impl FromStr for Record {
 
         let kind = pieces
             .next()
-            .ok_or_else(|| ParseError::MissingKind)
+            .ok_or(ParseError::MissingKind)
             .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
         let value = if let Kind::Comment = kind {
@@ -112,7 +112,7 @@ impl FromStr for Record {
                 .map(|field| {
                     let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
 
-                    let tag = field_pieces.next().ok_or_else(|| ParseError::MissingTag)?;
+                    let tag = field_pieces.next().ok_or(ParseError::MissingTag)?;
                     let value = field_pieces
                         .next()
                         .ok_or_else(|| ParseError::MissingValue(tag.into()))?;

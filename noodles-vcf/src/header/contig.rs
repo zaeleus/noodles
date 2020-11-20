@@ -171,7 +171,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
     }
 
     Ok(Contig {
-        id: id.ok_or_else(|| TryFromRecordError::MissingField(Key::Id))?,
+        id: id.ok_or(TryFromRecordError::MissingField(Key::Id))?,
         len,
         fields: other_fields,
     })
