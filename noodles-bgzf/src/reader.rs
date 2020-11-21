@@ -12,8 +12,6 @@ use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 ///
 /// This implements [`std::io::Read`], consuming compressed data and emitting uncompressed data.
 ///
-/// [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-///
 /// # Examples
 ///
 /// ```no_run

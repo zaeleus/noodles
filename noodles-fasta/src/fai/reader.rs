@@ -25,15 +25,13 @@ where
     /// Reads a raw FASTA index record.
     ///
     /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
-    /// [`fai::Record`].
+    /// [`super::Record`].
     ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// record.
     ///
     /// If successful, this returns the number of bytes read from the stream. If the number of
     /// bytes read is 0, the stream reached EOF.
-    ///
-    /// [`fai::Record`]: struct.Record.html
     ///
     /// # Examples
     ///

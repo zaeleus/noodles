@@ -48,9 +48,8 @@ impl ReferenceSequence {
 
     /// Returns the list of bins in this reference sequence.
     ///
-    /// This list does not include the metadata pseudo-bin (bin 37450). Use [`metadata`] instead.
-    ///
-    /// [`metadata`]: #method.metadata
+    /// This list does not include the metadata pseudo-bin (bin 37450). Use [`Self::metadata`]
+    /// instead.
     ///
     /// # Examples
     ///

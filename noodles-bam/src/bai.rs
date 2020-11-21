@@ -10,7 +10,7 @@
 //!
 //! When reading entire BAM files sequentially, a BAM index is not necessary.
 //!
-//! [querying]: ../reader/struct.Reader.html#method.query
+//! [querying]: crate::Reader::query
 //!
 //! # Examples
 //!
@@ -86,8 +86,6 @@ where
 ///
 /// This is the same as calling [`optimize_chunks`] with a `min_offset` of 0.
 ///
-/// [`optimize_chunks`]: fn.optimize_chunks.html
-///
 /// # Examples
 ///
 /// ```
@@ -119,8 +117,6 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 ///
 /// Unlike [`merge_chunks`], `min_offset` (typically from the linear index) is given to remove
 /// chunks that cannot be in the query.
-///
-/// [`merge_chunks`]: fn.merge_chunks.html
 ///
 /// # Examples
 ///

@@ -6,9 +6,7 @@ use super::Reader;
 
 /// An iterator over unmapped records of a BAM reader.
 ///
-/// This is created by calling [`bam::Reader::query_unmapped`].
-///
-/// [`bam::Reader::query_unmapped`]: struct.Reader.html#method.query_unmapped
+/// This is created by calling [`Reader::query_unmapped`].
 pub struct UnmappedRecords<'a, R>
 where
     R: Read,

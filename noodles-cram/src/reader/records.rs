@@ -10,9 +10,7 @@ use super::Reader;
 
 /// An iterator over records of a CRAM reader.
 ///
-/// This is created by calling [`cram::Reader::records`].
-///
-/// [`cram::Reader::records`]: struct.Reader.html#method.records
+/// This is created by calling [`Reader::records`].
 pub struct Records<'a, R>
 where
     R: Read,

@@ -22,10 +22,8 @@ use super::{
 ///   2. a list of reference sequences,
 ///   3. and optionally, the number of unmapped reads in the associated BAM.
 ///
-/// While these fields can be read individually, consider using [`bai::read`] to read the entire
+/// While these fields can be read individually, consider using [`super::read`] to read the entire
 /// index at once.
-///
-/// [`bai::read`]: fn.read.html
 ///
 /// # Examples
 ///

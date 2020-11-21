@@ -6,9 +6,7 @@ use super::Reader;
 
 /// An iterator over records of a BAM reader.
 ///
-/// This is created by calling [`bam::Reader::records`].
-///
-/// [`bam::Reader::records`]: struct.Reader.html#method.records
+/// This is created by calling [`Reader::records`].
 pub struct Records<'a, R>
 where
     R: Read,

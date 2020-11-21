@@ -54,15 +54,13 @@ where
     ///
     /// This reads from the underlying stream until a newline is reached and appends it to the
     /// given buffer, sans the final newline character. The buffer can subsequently be parsed as a
-    /// [`gff::Line`].
+    /// [`crate::Line`].
     ///
-    /// It is more ergonomic to read records using an iterator (see [`lines`]), but using this
-    /// method allows control of the line buffer and whether the raw line should be parsed.
+    /// It is more ergonomic to read records using an iterator (see [`Self::lines`]), but using
+    /// this method allows control of the line buffer and whether the raw line should be parsed.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
-    ///
-    /// [`gff::Line`]: struct.Line.html
     ///
     /// # Examples
     ///
@@ -90,10 +88,7 @@ where
     ///
     /// This stops at either EOF or when the `FASTA` directive is read, whichever comes first.
     ///
-    /// Unlike [`read_line`], each line is parsed as a [`gff::Line`].
-    ///
-    /// [`read_line`]: #method.read_line
-    /// [`gff::Line`]: struct.Line.html
+    /// Unlike [`Self::read_line`], each line is parsed as a [`crate::Line`].
     ///
     /// # Examples
     ///

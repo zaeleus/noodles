@@ -61,8 +61,6 @@ impl<'a> Deref for QualityScores<'a> {
 /// An iterator over quality scores as offset printable ASCII characters.
 ///
 /// This is created by calling [`QualityScores::chars`].
-///
-/// [`QualityScores::chars`]: struct.QualityScores.html#method.chars
 pub struct Chars<I> {
     chars: I,
 }

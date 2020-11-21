@@ -313,9 +313,7 @@ impl Header {
 
     /// Returns a mutable reference to the SAM header comments.
     ///
-    /// To simply append a comment record, consider using `add_comment` instead.
-    ///
-    /// [`add_comment`]: #method.add_comment
+    /// To simply append a comment record, consider using [`Self::add_comment`] instead.
     ///
     /// # Examples
     ///

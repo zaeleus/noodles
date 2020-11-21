@@ -28,8 +28,6 @@ static BGZF_EOF: &[u8] = &[
 ///
 /// This implements [`std::io::Write`], consuming uncompressed data and emitting compressed data.
 ///
-/// [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
-///
 /// # Examples
 ///
 /// ```

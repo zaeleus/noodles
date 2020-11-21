@@ -20,9 +20,7 @@ const NUL: u8 = b'\x00';
 
 /// A tabix reader.
 ///
-/// Consider using [`tabix::read`] to read the entire index at once.
-///
-/// [`tabix::read`]: fn.read.html
+/// Consider using [`crate::read`] to read the entire index at once.
 pub struct Reader<R> {
     inner: bgzf::Reader<R>,
 }

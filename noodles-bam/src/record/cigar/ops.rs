@@ -4,9 +4,7 @@ use super::Op;
 
 /// An iterator over the operations of a CIGAR.
 ///
-/// This is created by calling [`Cigar::ops`].
-///
-/// [`Cigar::ops`]: struct.Cigar.html#method.ops
+/// This is created by calling [`super::Cigar::ops`].
 pub struct Ops<'a> {
     cigar: &'a [u8],
     i: usize,

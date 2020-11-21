@@ -1,10 +1,7 @@
 //! SAM header header and fields.
 //!
 //! The namespace of this module is intentionally awkward to disambiguate a SAM header
-//! ([`sam::Header`]) and a header record ([`sam::header::header::Header`]).
-//!
-//! [`sam::Header`]: ../struct.Header.html
-//! [`sam::header::header::Header`]: struct.Header.html
+//! ([`crate::Header`]) and a header record ([`crate::header::header::Header`]).
 
 mod builder;
 mod group_order;
@@ -136,9 +133,8 @@ impl Header {
     /// Returns the raw fields of the header.
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
-    /// this will not include the version field, as it is parsed and available as [`version`].
-    ///
-    /// [`version`]: #method.version
+    /// this will not include the version field, as it is parsed and available as
+    /// [`Self::version`].
     ///
     /// # Examples
     ///

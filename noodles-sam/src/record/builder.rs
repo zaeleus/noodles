@@ -23,10 +23,7 @@ pub struct Builder {
 impl Builder {
     /// Creates a SAM record builder.
     ///
-    /// Typically, [`sam::Record::builder`] is used instead of calling
-    /// [`sam::record::Builder::new`].
-    ///
-    /// [`sam::Record::builder`]: struct.Record.html#method.builder
+    /// Typically, [`Record::builder`] is used instead of calling this.
     ///
     /// # Examples
     ///

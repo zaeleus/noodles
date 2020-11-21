@@ -8,9 +8,7 @@ use super::Reader;
 ///
 /// This stops at either EOF or when the `FASTA` directive is read, whichever comes first.
 ///
-/// This is created by calling [`gff::Reader::lines`].
-///
-/// [`gff::Reader::lines`]: struct.Reader.html#method.lines
+/// This is created by calling [`Reader::lines`].
 pub struct Lines<'a, R> {
     inner: &'a mut Reader<R>,
     line_buf: String,

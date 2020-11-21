@@ -9,9 +9,7 @@ use super::Lines;
 /// This filters lines for only records. It stops at either EOF or when the `FASTA` directive is
 /// read, whichever comes first.
 ///
-/// This is created by calling [`gff::Reader::records`].
-///
-/// [`gff::Reader::lines`]: struct.Reader.html#method.records
+/// This is created by calling [`crate::Reader::records`].
 pub struct Records<'a, R> {
     lines: Lines<'a, R>,
 }

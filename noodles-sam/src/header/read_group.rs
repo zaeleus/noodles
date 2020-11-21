@@ -278,9 +278,7 @@ impl ReadGroup {
     /// Returns the raw fields of the read group.
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
-    /// this will not include the ID field, as it is parsed and available as [`id`].
-    ///
-    /// [`id`]: #method.id
+    /// this will not include the ID field, as it is parsed and available as [`Self::id`].
     ///
     /// # Examples
     ///

@@ -6,9 +6,7 @@ use super::Reader;
 
 /// An iterator over records of a VCF reader.
 ///
-/// This is created by calling [`vcf::Reader::records`].
-///
-/// [`vcf::Reader::records`]: struct.Reader.html#method.records
+/// This is created by calling [`Reader::records`].
 pub struct Records<'a, R> {
     inner: &'a mut Reader<R>,
     line_buf: String,

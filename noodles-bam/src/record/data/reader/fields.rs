@@ -6,9 +6,7 @@ use super::Reader;
 
 /// An iterator over BAM record data fields.
 ///
-/// This is created by calling [`bam::record::data::Reader::fields`].
-///
-/// [`bam::record::data::Reader::fields`]: struct.Reader.html#method.fields
+/// This is created by calling [`Reader::fields`].
 pub struct Fields<R>
 where
     R: BufRead,

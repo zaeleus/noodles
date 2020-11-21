@@ -82,11 +82,8 @@ where
     /// The position of the stream is expected to be at the CRAM header container, i.e., directly
     /// after the file definition.
     ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`sam::Header`].
-    ///
-    /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
-    /// [`sam::Header`]: ../../noodles_sam/header/struct.Header.html
+    /// This returns the raw SAM header as a [`std::string::String`]. It can subsequently be parsed
+    /// as a [`noodles_sam::Header`].
     ///
     /// # Examples
     ///

@@ -37,8 +37,6 @@ impl Op {
     ///
     /// [`LengthError`] is returned if the length is > 2^28 - 1.
     ///
-    /// [`LengthError`]: struct.LengthError.html
-    ///
     /// # Examples
     ///
     /// ```

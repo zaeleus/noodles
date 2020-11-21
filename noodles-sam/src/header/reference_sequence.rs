@@ -244,10 +244,7 @@ impl ReferenceSequence {
     ///
     /// This includes any field that is not specially handled by the structure itself. For example,
     /// this will not include the name and length fields, as they are parsed and available as
-    /// [`name`] and [`len`], respectively.
-    ///
-    /// [`name`]: #method.name
-    /// [`len`]: #method.len
+    /// [`Self::name`] and [`Self::len`], respectively.
     ///
     /// # Examples
     ///

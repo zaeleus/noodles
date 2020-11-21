@@ -3,8 +3,6 @@ use super::{Base, Sequence};
 /// An iterator over bases of a sequence.
 ///
 /// This is created by calling [`Sequence::bases`].
-///
-/// [`Sequence::bases`]: struct.Sequence.html#method.bases
 pub struct Bases<'a> {
     sequence: &'a Sequence<'a>,
     head: usize,

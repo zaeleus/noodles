@@ -6,9 +6,7 @@ use super::Reader;
 
 /// An iterator over records of a FASTA reader.
 ///
-/// This is created by calling [`fasta::Reader::records`].
-///
-/// [`fasta::Reader::records`]: struct.Reader.html#method.records
+/// This is created by calling [`Reader::records`].
 pub struct Records<'a, R> {
     inner: &'a mut Reader<R>,
     line_buf: String,

@@ -38,15 +38,13 @@ where
     /// Reads a raw definition line.
     ///
     /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
-    /// [`fasta::record::Definition`].
+    /// [`crate::record::Definition`].
     ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// definition.
     ///
     /// If successful, this returns the number of bytes read from the stream. If the number of
     /// bytes read is 0, the stream reached EOF.
-    ///
-    /// [`fasta::record::Definition`]: record/definition/struct.Definition.html
     ///
     /// # Examples
     ///

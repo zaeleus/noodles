@@ -9,9 +9,7 @@
 //! noodles-bgzf abstracts away the concept of blocks, implementing [`std::io::Read`] for the
 //! reader and [`std::io::Write`] for the writer.
 //!
-//! [`virtual positions`]: struct.VirtualPosition.html
-//! [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html
-//! [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html
+//! [`virtual positions`]: VirtualPosition
 //!
 //! # Examples
 //!

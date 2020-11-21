@@ -15,9 +15,7 @@ pub struct Builder {
 impl Builder {
     /// Creates a new SAM header builder.
     ///
-    /// Typically, [`sam::Header::builder`] is used instead of calling `sam::header::Builder::new`.
-    ///
-    /// [`sam::Header::builder`]: struct.Header.html#method.builder
+    /// Typically, [`Header::builder`] is used instead of calling this.
     ///
     /// # Examples
     ///

@@ -17,10 +17,7 @@ pub struct Builder {
 impl Builder {
     /// Creates a GFF record builder.
     ///
-    /// Typically, [`gff::Record::builder`] is used instead of calling
-    /// [`gff::record::Builder::new`].
-    ///
-    /// [`gff::Record::builder`]: struct.Record.html#method.builder
+    /// Typically, [`Record::builder`] is used instead of calling this.
     ///
     /// # Examples
     ///

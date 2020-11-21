@@ -68,13 +68,10 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
-    /// [`sam::Header`].
+    /// This returns the raw SAM header as a [`std::string::String`]. It can subsequently be parsed
+    /// as a [`crate::Header`].
     ///
     /// The SAM header is optional, and if it is missing, an empty string is returned.
-    ///
-    /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
-    /// [`sam::Header`]: header/struct.Header.html
     ///
     /// # Examples
     ///
@@ -128,13 +125,11 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// It is more ergonomic to read records using an iterator (see [`records`]), but using this
-    /// method allows control of the line buffer and whether the raw record should be parsed.
+    /// It is more ergonomic to read records using an iterator (see [`Self::records`]), but using
+    /// this method allows control of the line buffer and whether the raw record should be parsed.
     ///
     /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
     /// stream reached EOF.
-    ///
-    /// [`records`]: #method.records
     ///
     /// # Examples
     ///
@@ -166,10 +161,7 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// Unlike [`read_record`], each record is parsed as a [`sam::Record`].
-    ///
-    /// [`read_record`]: #method.read_record
-    /// [`sam::Record`]: record/struct.Record.html
+    /// Unlike [`Self::read_record`], each record is parsed as a [`crate::Record`].
     ///
     /// # Examples
     ///
