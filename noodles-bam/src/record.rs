@@ -2,7 +2,7 @@
 
 pub mod cigar;
 pub mod data;
-mod quality_scores;
+pub mod quality_scores;
 pub mod reference_sequence_id;
 pub mod sequence;
 

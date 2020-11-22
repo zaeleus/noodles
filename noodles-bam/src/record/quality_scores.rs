@@ -1,3 +1,4 @@
+//! BAM record quality scores and iterator.
 use std::{ops::Deref, slice};
 
 const QUALITY_OFFSET: u8 = b'!';
