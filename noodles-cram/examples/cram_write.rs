@@ -52,14 +52,14 @@ fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let stdout = io::stdout();
-    let handle = stdout.lock();
-
     let reference_sequence_records: Vec<_> = fasta::Reader::new(FASTA_DATA)
         .records()
         .collect::<Result<_, _>>()?;
 
     let header = build_header(&reference_sequence_records);
+
+    let stdout = io::stdout();
+    let handle = stdout.lock();
 
     let mut writer = cram::Writer::new(handle, reference_sequence_records);
     writer.write_file_definition()?;
