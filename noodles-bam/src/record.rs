@@ -1,6 +1,7 @@
 //! BAM record and fields.
 
 pub mod cigar;
+mod convert;
 pub mod data;
 pub mod quality_scores;
 pub mod reference_sequence_id;
