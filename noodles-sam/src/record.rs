@@ -43,7 +43,7 @@ const MAX_FIELDS: usize = 12;
 ///   11. quality scores (`QUAL`).
 ///
 /// Additionally, optional data fields can be included with any record.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     read_name: Option<ReadName>,
     flags: Flags,
