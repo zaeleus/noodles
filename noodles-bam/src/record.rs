@@ -407,7 +407,7 @@ mod tests {
         // pos
         writer.write_i32::<LittleEndian>(61061)?;
         // l_read_name
-        writer.write_u8(10)?;
+        writer.write_u8(read_name.as_bytes_with_nul().len() as u8)?;
         // mapq
         writer.write_u8(12)?;
         // bin
