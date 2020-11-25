@@ -372,6 +372,7 @@ impl fmt::Debug for Record {
             .field("read_name", &self.read_name())
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
+            .field("data", &self.data())
             .finish()
     }
 }
