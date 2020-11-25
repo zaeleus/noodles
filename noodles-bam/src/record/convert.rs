@@ -1,10 +1,39 @@
-use std::{convert::TryInto, io};
+use std::{convert::TryInto, io, mem};
 
 use noodles_sam as sam;
+
+use crate::writer;
 
 use super::{Data, Record, ReferenceSequenceId};
 
 impl Record {
+    /// Converts a SAM record to a BAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{self as sam, header::ReferenceSequences};
+    ///
+    /// let reference_sequences = ReferenceSequences::default();
+    /// let sam_record = sam::Record::default();
+    ///
+    /// let record = bam::Record::try_from_sam_record(&reference_sequences, &sam_record)?;
+    /// assert_eq!(record, bam::Record::default());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_from_sam_record(
+        reference_sequences: &sam::header::ReferenceSequences,
+        record: &sam::Record,
+    ) -> io::Result<Self> {
+        let mut buf = Vec::new();
+        writer::record::write_sam_record(&mut buf, reference_sequences, record)?;
+        // Remove the prepending block size.
+        let start = mem::size_of::<u32>();
+        Ok(Self::from(buf[start..].to_vec()))
+    }
+
     /// Converts a BAM record to a SAM record.
     ///
     /// # Examples
