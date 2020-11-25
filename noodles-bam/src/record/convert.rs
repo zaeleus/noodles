@@ -4,7 +4,7 @@ use noodles_sam as sam;
 
 use crate::writer;
 
-use super::{Data, Record, ReferenceSequenceId};
+use super::{Record, ReferenceSequenceId};
 
 impl Record {
     /// Converts a SAM record to a BAM record.
@@ -135,7 +135,7 @@ impl Record {
             builder = builder.set_quality_scores(quality_scores);
         }
 
-        let data = convert_bam_data_to_sam_data(&self.data())?;
+        let data = self.data().try_into()?;
         builder = builder.set_data(data);
 
         Ok(builder.build())
@@ -157,45 +157,6 @@ fn get_reference_sequence_name(
                 })
         })
         .transpose()
-}
-
-fn convert_bam_data_to_sam_data(data: &Data<'_>) -> io::Result<sam::record::Data> {
-    let mut sam_fields = Vec::new();
-
-    for result in data.fields() {
-        use noodles_sam::record::data::field::Value as SamValue;
-
-        use crate::record::data::field::Value as BamValue;
-
-        let bam_field = result?;
-        let tag = bam_field.tag();
-
-        let value = match bam_field.value() {
-            BamValue::Char(c) => SamValue::Char(*c),
-            BamValue::Int8(n) => SamValue::Int32(*n as i32),
-            BamValue::UInt8(n) => SamValue::Int32(*n as i32),
-            BamValue::Int16(n) => SamValue::Int32(*n as i32),
-            BamValue::UInt16(n) => SamValue::Int32(*n as i32),
-            BamValue::Int32(n) => SamValue::Int32(*n),
-            // FIXME: lossy conversion
-            BamValue::UInt32(n) => SamValue::Int32(*n as i32),
-            BamValue::Float(n) => SamValue::Float(*n),
-            BamValue::String(s) => SamValue::String(s.clone()),
-            BamValue::Hex(s) => SamValue::Hex(s.clone()),
-            BamValue::Int8Array(values) => SamValue::Int8Array(values.clone()),
-            BamValue::UInt8Array(values) => SamValue::UInt8Array(values.clone()),
-            BamValue::Int16Array(values) => SamValue::Int16Array(values.clone()),
-            BamValue::UInt16Array(values) => SamValue::UInt16Array(values.clone()),
-            BamValue::Int32Array(values) => SamValue::Int32Array(values.clone()),
-            BamValue::UInt32Array(values) => SamValue::UInt32Array(values.clone()),
-            BamValue::FloatArray(values) => SamValue::FloatArray(values.clone()),
-        };
-
-        let sam_field = sam::record::data::Field::new(tag.clone(), value);
-        sam_fields.push(sam_field);
-    }
-
-    Ok(sam::record::Data::from(sam_fields))
 }
 
 #[cfg(test)]
