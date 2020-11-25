@@ -5,7 +5,7 @@ pub mod reader;
 
 pub use self::{field::Field, reader::Reader};
 
-use std::{convert::TryFrom, io, ops::Deref};
+use std::{convert::TryFrom, fmt, io, ops::Deref};
 
 use noodles_sam as sam;
 
@@ -14,7 +14,6 @@ use self::reader::Fields;
 /// BAM record data.
 ///
 /// This is also called optional fields.
-#[derive(Debug)]
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {
@@ -74,6 +73,12 @@ impl<'a> Deref for Data<'a> {
 
     fn deref(&self) -> &Self::Target {
         self.0
+    }
+}
+
+impl<'a> fmt::Debug for Data<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.fields()).finish()
     }
 }
 
