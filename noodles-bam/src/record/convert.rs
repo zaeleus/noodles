@@ -1,4 +1,4 @@
-use std::{convert::TryInto, ffi::CStr, io};
+use std::{convert::TryInto, io};
 
 use noodles_sam as sam;
 
@@ -28,7 +28,8 @@ impl Record {
     ) -> io::Result<sam::Record> {
         let mut builder = sam::Record::builder();
 
-        let raw_read_name = CStr::from_bytes_with_nul(self.read_name())
+        let raw_read_name = self
+            .read_name()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             .and_then(|c_read_name| {
                 c_read_name

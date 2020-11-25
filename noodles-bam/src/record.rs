@@ -14,7 +14,7 @@ pub use self::{
 
 use std::{
     convert::TryFrom,
-    ffi::CStr,
+    ffi::{self, CStr},
     fmt, io, mem,
     ops::{Deref, DerefMut},
 };
@@ -255,14 +255,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// # use std::ffi;
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.read_name(), b"*\x00");
+    /// assert_eq!(record.read_name()?.to_bytes(), b"*");
+    /// # Ok::<(), ffi::FromBytesWithNulError>(())
     /// ```
-    pub fn read_name(&self) -> &[u8] {
+    pub fn read_name(&self) -> Result<&CStr, ffi::FromBytesWithNulError> {
         let offset = 32;
         let len = self.l_read_name() as usize;
-        &self.0[offset..offset + len]
+        let data = &self.0[offset..offset + len];
+        CStr::from_bytes_with_nul(data)
     }
 
     /// Returns the CIGAR operations that describe how the read was mapped.
@@ -382,8 +385,6 @@ impl DerefMut for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let read_name = CStr::from_bytes_with_nul(self.read_name());
-
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
             .field("ref_id", &self.reference_sequence_id())
@@ -397,7 +398,7 @@ impl fmt::Debug for Record {
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.template_length())
-            .field("read_name", &read_name)
+            .field("read_name", &self.read_name())
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
             .finish()
@@ -560,10 +561,9 @@ mod tests {
     }
 
     #[test]
-    fn test_read_name() -> io::Result<()> {
+    fn test_read_name() -> Result<(), Box<dyn std::error::Error>> {
         let record = build_record()?;
-        let expected = b"noodles:0\x00";
-        assert_eq!(record.read_name(), expected);
+        assert_eq!(record.read_name()?.to_bytes(), b"noodles:0");
         Ok(())
     }
 

@@ -284,7 +284,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record() -> io::Result<()> {
+    fn test_write_sam_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -297,7 +297,7 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        assert_eq!(record.read_name(), b"*\0");
+        assert_eq!(record.read_name()?.to_bytes(), b"*");
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.position().is_none());
