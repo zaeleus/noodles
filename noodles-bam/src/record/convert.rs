@@ -34,7 +34,7 @@ impl Record {
         Ok(Self::from(buf[start..].to_vec()))
     }
 
-    /// Converts a BAM record to a SAM record.
+    /// Converts this record to a SAM record.
     ///
     /// # Examples
     ///
