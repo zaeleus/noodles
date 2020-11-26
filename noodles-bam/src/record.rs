@@ -427,15 +427,16 @@ mod tests {
         writer.write_i32::<LittleEndian>(166)?;
         // read_name
         writer.write_all(read_name.as_bytes_with_nul())?;
-        // cigar
+        // cigar = 4M
         writer.write_all(&[0x40, 0x00, 0x00, 0x00])?;
-        // seq
+        // seq = ATGC
         writer.write_all(&[0x18, 0x42])?;
-        // qual
+        // qual = @>?A
         writer.write_all(&[0x1f, 0x1d, 0x1e, 0x20])?;
         // data
         writer.write_all(&[
-            0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,
+            0x4e, 0x4d, 0x43, 0x00, // NM:i:0
+            0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
         ])?;
 
         writer
