@@ -302,6 +302,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype}
@@ -317,10 +318,12 @@ impl Record {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    /// ])]);
+    /// assert_eq!(record.genotypes(), [
+    ///     Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?,
+    /// ]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn genotypes(&self) -> &[Genotype] {

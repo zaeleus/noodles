@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, ops::Deref};
+use std::{convert::TryFrom, error, fmt, ops::Deref};
 
 use super::{Format, MISSING_FIELD};
 
@@ -19,6 +19,8 @@ pub struct Genotype(Vec<Field>);
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid(TryFromFieldsError),
     /// A field is invalid.
     InvalidField(field::ParseError),
 }
@@ -29,6 +31,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid(e) => write!(f, "{}", e),
             Self::InvalidField(e) => write!(f, "invalid field: {}", e),
         }
     }
@@ -58,13 +61,16 @@ impl Genotype {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
-            _ => s
-                .split(DELIMITER)
-                .zip(format.iter())
-                .map(|(t, k)| Field::from_str_key(t, k))
-                .collect::<Result<_, _>>()
-                .map(Self)
-                .map_err(ParseError::InvalidField),
+            _ => {
+                let fields = s
+                    .split(DELIMITER)
+                    .zip(format.iter())
+                    .map(|(t, k)| Field::from_str_key(t, k))
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(ParseError::InvalidField)?;
+
+                Self::try_from(fields).map_err(ParseError::Invalid)
+            }
         }
     }
 }
@@ -95,9 +101,39 @@ impl fmt::Display for Genotype {
     }
 }
 
-impl From<Vec<Field>> for Genotype {
-    fn from(fields: Vec<Field>) -> Self {
-        Self(fields)
+/// An error returned when VCF genotype fields fail to convert.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromFieldsError {
+    /// The leading genotype field (`GT`) is missing.
+    ///
+    /// See § 1.6.2 Genotype fields (2020-06-25): "The first key must always be the genotype (GT)
+    /// if it is present."
+    MissingLeadingGenotypeField,
+}
+
+impl error::Error for TryFromFieldsError {}
+
+impl fmt::Display for TryFromFieldsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingLeadingGenotypeField => f.write_str("missing leading genotype field (GT)"),
+        }
+    }
+}
+
+impl TryFrom<Vec<Field>> for Genotype {
+    type Error = TryFromFieldsError;
+
+    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
+        if let Some(field) = fields.first() {
+            if field.key() == &field::Key::Genotype {
+                Ok(Self(fields))
+            } else {
+                Err(TryFromFieldsError::MissingLeadingGenotypeField)
+            }
+        } else {
+            Ok(Self::default())
+        }
     }
 }
 
@@ -154,5 +190,23 @@ mod tests {
         ]);
 
         assert_eq!(genotype.to_string(), "0|0:13");
+    }
+
+    #[test]
+    fn test_try_from_fields_for_genotype() {
+        let fields = vec![Field::new(
+            field::Key::Genotype,
+            Some(field::Value::String(String::from("0|0"))),
+        )];
+        assert!(Genotype::try_from(fields).is_ok());
+
+        let fields = vec![Field::new(
+            field::Key::ConditionalGenotypeQuality,
+            Some(field::Value::Integer(13)),
+        )];
+        assert_eq!(
+            Genotype::try_from(fields),
+            Err(TryFromFieldsError::MissingLeadingGenotypeField)
+        );
     }
 }

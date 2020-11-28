@@ -300,6 +300,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype}
@@ -315,10 +316,12 @@ impl Builder {
     ///     .set_genotypes(vec![Genotype::from_str_format("0|0:13", &format)?])
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    /// ])]);
+    /// assert_eq!(record.genotypes(), [
+    ///     Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?,
+    /// ]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_genotypes(mut self, genotypes: Vec<Genotype>) -> Self {
@@ -331,6 +334,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype}
@@ -346,10 +350,12 @@ impl Builder {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), [Genotype::from(vec![
-    ///     Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///     Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    /// ])]);
+    /// assert_eq!(record.genotypes(), [
+    ///     Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?,
+    /// ]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_genotype(mut self, genotype: Genotype) -> Self {
