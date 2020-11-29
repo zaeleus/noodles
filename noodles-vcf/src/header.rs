@@ -399,18 +399,18 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::MissingFileFormat => f.write_str("missing fileformat"),
-            ParseError::UnexpectedFileFormat => f.write_str("unexpected file format"),
-            ParseError::InvalidRecord(e) => write!(f, "invalid record: {}", e),
-            ParseError::InvalidRecordValue => f.write_str("invalid record value"),
-            ParseError::InvalidInfo(e) => write!(f, "invalid info: {}", e),
-            ParseError::InvalidFilter(e) => write!(f, "invalid filter: {}", e),
-            ParseError::InvalidFormat(e) => write!(f, "invalid format: {}", e),
-            ParseError::InvalidAlternativeAllele(e) => {
+            Self::MissingFileFormat => f.write_str("missing fileformat"),
+            Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
+            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
+            Self::InvalidRecordValue => f.write_str("invalid record value"),
+            Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
+            Self::InvalidFilter(e) => write!(f, "invalid filter: {}", e),
+            Self::InvalidFormat(e) => write!(f, "invalid format: {}", e),
+            Self::InvalidAlternativeAllele(e) => {
                 write!(f, "invalid alternative allele: {}", e)
             }
-            ParseError::InvalidContig(e) => write!(f, "invalid contig: {}", e),
-            ParseError::ExpectedEof => f.write_str("expected EOF"),
+            Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
+            Self::ExpectedEof => f.write_str("expected EOF"),
         }
     }
 }
@@ -419,7 +419,7 @@ impl FromStr for Header {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut builder = Header::builder();
+        let mut builder = Self::builder();
         let mut lines = s.lines();
 
         let file_format = parse_file_format(&mut lines)?;

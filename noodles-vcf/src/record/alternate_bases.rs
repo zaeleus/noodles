@@ -72,7 +72,7 @@ impl FromStr for AlternateBases {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(AlternateBases::default()),
+            MISSING_FIELD => Ok(Self::default()),
             _ => s
                 .split(DELIMITER)
                 .map(|s| s.parse().map_err(ParseError::InvalidAllele))

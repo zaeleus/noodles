@@ -72,12 +72,12 @@ impl FromStr for Info {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Info::default()),
+            MISSING_FIELD => Ok(Self::default()),
             _ => s
                 .split(DELIMITER)
                 .map(|s| s.parse())
                 .collect::<Result<_, _>>()
-                .map(Info)
+                .map(Self)
                 .map_err(ParseError::InvalidField),
         }
     }

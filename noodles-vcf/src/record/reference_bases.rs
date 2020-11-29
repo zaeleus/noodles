@@ -65,7 +65,7 @@ impl FromStr for ReferenceBases {
                 .map(|c| c.to_ascii_uppercase())
                 .map(Base::try_from)
                 .collect::<Result<_, _>>()
-                .map(ReferenceBases)
+                .map(Self)
                 .map_err(ParseError::InvalidBase),
         }
     }

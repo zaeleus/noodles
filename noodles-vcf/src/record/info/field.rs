@@ -88,10 +88,10 @@ impl fmt::Display for ParseError {
         f.write_str("invalid info: ")?;
 
         match self {
-            ParseError::MissingKey => f.write_str("missing key"),
-            ParseError::InvalidKey(e) => write!(f, "invalid key: {}", e),
-            ParseError::MissingValue => f.write_str("missing value"),
-            ParseError::InvalidValue(e) => write!(f, "invalid value: {}", e),
+            Self::MissingKey => f.write_str("missing key"),
+            Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
+            Self::MissingValue => f.write_str("missing value"),
+            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
         }
     }
 }

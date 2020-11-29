@@ -110,13 +110,13 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::InvalidNumberForType(number, ty) => {
+            Self::InvalidNumberForType(number, ty) => {
                 write!(f, "invalid number {:?} for type {:?}", number, ty)
             }
-            ParseError::InvalidInteger(e) => write!(f, "invalid integer: {}", e),
-            ParseError::InvalidFloat(e) => write!(f, "invalid float: {}", e),
-            ParseError::InvalidFlag => f.write_str("invalid flag"),
-            ParseError::InvalidCharacter => f.write_str("invalid character"),
+            Self::InvalidInteger(e) => write!(f, "invalid integer: {}", e),
+            Self::InvalidFloat(e) => write!(f, "invalid float: {}", e),
+            Self::InvalidFlag => f.write_str("invalid flag"),
+            Self::InvalidCharacter => f.write_str("invalid character"),
         }
     }
 }
