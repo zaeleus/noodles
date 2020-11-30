@@ -26,6 +26,20 @@ impl Indexer {
     }
 
     /// Adds a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_tabix::{self as tabix, index::reference_sequence::bin::Chunk};
+    ///
+    /// let mut indexer = tabix::Index::indexer();
+    ///
+    /// indexer.add_record("sq0", 8, 13, Chunk::new(
+    ///     bgzf::VirtualPosition::from(144),
+    ///     bgzf::VirtualPosition::from(233),
+    /// ));
+    /// ```
     pub fn add_record(
         &mut self,
         reference_sequence_name: &str,
@@ -52,6 +66,14 @@ impl Indexer {
     }
 
     /// Builds a tabix index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let indexer = tabix::Index::indexer();
+    /// let index = indexer.build();
+    /// ```
     pub fn build(self) -> Index {
         let reference_sequences = self
             .reference_sequence_builders
