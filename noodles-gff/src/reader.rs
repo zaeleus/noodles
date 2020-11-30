@@ -29,6 +29,22 @@ where
         Self { inner }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gff as gff;
+    ///
+    /// let data = b"##gff-version 3\n";
+    /// let reader = gff::Reader::new(&data[..]);
+    ///
+    /// let _ = reader.get_ref();
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
     /// Unwraps and returns the underlying reader.
     ///
     /// # Examples
