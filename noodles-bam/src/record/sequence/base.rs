@@ -7,7 +7,7 @@ use noodles_sam as sam;
 pub enum Base {
     /// Equal to the reference base.
     Eq,
-    /// Adenine
+    /// Adenine.
     A,
     /// Cytosine.
     C,
