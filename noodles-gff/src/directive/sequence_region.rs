@@ -141,11 +141,7 @@ impl FromStr for SequenceRegion {
             .ok_or(ParseError::MissingEnd)
             .and_then(|s| s.parse().map_err(ParseError::InvalidEnd))?;
 
-        Ok(SequenceRegion::new(
-            reference_sequence_name.into(),
-            start,
-            end,
-        ))
+        Ok(Self::new(reference_sequence_name.into(), start, end))
     }
 }
 

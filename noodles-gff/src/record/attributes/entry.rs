@@ -100,7 +100,7 @@ impl FromStr for Entry {
             .map(|s| s.into())
             .ok_or(ParseError::MissingValue)?;
 
-        Ok(Entry::new(key, value))
+        Ok(Self::new(key, value))
     }
 }
 

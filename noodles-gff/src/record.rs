@@ -246,7 +246,7 @@ impl FromStr for Record {
             None => Attributes::default(),
         };
 
-        Ok(Record {
+        Ok(Self {
             reference_sequence_name,
             source,
             ty,

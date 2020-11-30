@@ -102,7 +102,7 @@ impl FromStr for GenomeBuild {
             .map(|s| s.into())
             .ok_or(ParseError::MissingName)?;
 
-        Ok(GenomeBuild::new(source, name))
+        Ok(Self::new(source, name))
     }
 }
 

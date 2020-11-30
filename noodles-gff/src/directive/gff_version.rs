@@ -64,7 +64,7 @@ impl GffVersion {
 
 impl Default for GffVersion {
     fn default() -> Self {
-        GffVersion {
+        Self {
             major: MAJOR_VERSION,
             minor: None,
             patch: None,

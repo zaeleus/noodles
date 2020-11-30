@@ -26,7 +26,7 @@ impl Builder {
     /// let builder = gff::Record::builder();
     /// ```
     pub fn new() -> Self {
-        Builder::default()
+        Self::default()
     }
 
     /// Sets a GFF record reference sequence name.
@@ -207,7 +207,7 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
-        Builder {
+        Self {
             reference_sequence_name: NULL_FIELD.into(),
             source: NULL_FIELD.into(),
             ty: NULL_FIELD.into(),
