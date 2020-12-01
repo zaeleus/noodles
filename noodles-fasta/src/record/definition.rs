@@ -104,7 +104,7 @@ impl FromStr for Definition {
 
         let description = components.next().map(|s| s.trim().into());
 
-        Ok(Definition {
+        Ok(Self {
             reference_sequence_name,
             description,
         })

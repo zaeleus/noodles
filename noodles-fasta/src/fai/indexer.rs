@@ -215,7 +215,7 @@ impl From<IndexError> for io::Error {
     fn from(error: IndexError) -> Self {
         match error {
             IndexError::IoError(e) => e,
-            _ => io::Error::new(io::ErrorKind::InvalidInput, error),
+            _ => Self::new(io::ErrorKind::InvalidInput, error),
         }
     }
 }
