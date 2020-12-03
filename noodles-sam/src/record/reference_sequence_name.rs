@@ -49,7 +49,7 @@ impl FromStr for ReferenceSequenceName {
         } else if s.starts_with('*') || s.starts_with('=') {
             Err(ParseError::Invalid)
         } else {
-            Ok(ReferenceSequenceName(s.into()))
+            Ok(Self(s.into()))
         }
     }
 }

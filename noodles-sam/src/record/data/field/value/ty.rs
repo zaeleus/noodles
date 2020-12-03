@@ -58,7 +58,7 @@ impl FromStr for Type {
 }
 
 impl From<Type> for char {
-    fn from(ty: Type) -> char {
+    fn from(ty: Type) -> Self {
         match ty {
             Type::Char => 'A',
             Type::Int32 => 'i',

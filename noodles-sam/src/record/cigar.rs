@@ -101,7 +101,7 @@ impl FromStr for Cigar {
         if s.is_empty() {
             return Err(ParseError::Empty);
         } else if s == NULL_FIELD {
-            return Ok(Cigar::default());
+            return Ok(Self::default());
         }
 
         let mut ops = Vec::new();
@@ -115,7 +115,7 @@ impl FromStr for Cigar {
             start = end + raw_kind.len();
         }
 
-        Ok(Cigar::from(ops))
+        Ok(Self::from(ops))
     }
 }
 

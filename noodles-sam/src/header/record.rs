@@ -123,7 +123,7 @@ impl FromStr for Record {
                 .map(Value::Map)?
         };
 
-        Ok(Record::new(kind, value))
+        Ok(Self::new(kind, value))
     }
 }
 

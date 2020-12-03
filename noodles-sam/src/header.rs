@@ -482,7 +482,7 @@ impl FromStr for Header {
     /// # Ok::<(), sam::header::ParseError>(())
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut builder = Header::builder();
+        let mut builder = Self::builder();
 
         for (i, line) in s.lines().enumerate() {
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;

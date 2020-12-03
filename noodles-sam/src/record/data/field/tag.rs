@@ -287,7 +287,7 @@ impl FromStr for Tag {
             "UQ" => Ok(Self::SegmentLikelihood),
             _ => {
                 if s.len() == LEN {
-                    Ok(Tag::Other(s.into()))
+                    Ok(Self::Other(s.into()))
                 } else {
                     Err(ParseError(s.into()))
                 }

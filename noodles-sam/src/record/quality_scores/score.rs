@@ -43,7 +43,7 @@ impl TryFrom<char> for Score {
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
         match c {
-            START_CHAR..=END_CHAR => Ok(Score((c as u8) - OFFSET)),
+            START_CHAR..=END_CHAR => Ok(Self((c as u8) - OFFSET)),
             _ => Err(TryFromCharError(c)),
         }
     }
@@ -86,7 +86,7 @@ impl From<Score> for u8 {
 impl From<Score> for char {
     fn from(score: Score) -> Self {
         let value = u8::from(score) + OFFSET;
-        char::from(value)
+        Self::from(value)
     }
 }
 

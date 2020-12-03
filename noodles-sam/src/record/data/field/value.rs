@@ -571,11 +571,11 @@ impl FromStr for Value {
         let value = components.next().ok_or(ParseError::MissingValue)?;
 
         match ty {
-            Type::Char => parse_char(value).map(Value::Char),
-            Type::Int32 => parse_i32(value).map(Value::Int32),
-            Type::Float => parse_f32(value).map(Value::Float),
-            Type::String => Ok(Value::String(value.into())),
-            Type::Hex => Ok(Value::Hex(value.into())),
+            Type::Char => parse_char(value).map(Self::Char),
+            Type::Int32 => parse_i32(value).map(Self::Int32),
+            Type::Float => parse_f32(value).map(Self::Float),
+            Type::String => Ok(Self::String(value.into())),
+            Type::Hex => Ok(Self::Hex(value.into())),
             Type::Array => parse_array(value),
         }
     }

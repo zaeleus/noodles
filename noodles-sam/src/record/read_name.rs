@@ -55,7 +55,7 @@ impl FromStr for ReadName {
                 if s.len() > MAX_LENGTH {
                     Err(ParseError::Invalid)
                 } else {
-                    Ok(ReadName(s.into()))
+                    Ok(Self(s.into()))
                 }
             }
         }

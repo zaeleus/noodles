@@ -71,7 +71,7 @@ impl FromStr for QualityScores {
                 .chars()
                 .map(Score::try_from)
                 .collect::<Result<Vec<_>, _>>()
-                .map(QualityScores::from)
+                .map(Self::from)
                 .map_err(ParseError::InvalidScore),
         }
     }

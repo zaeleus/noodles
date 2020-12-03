@@ -473,7 +473,7 @@ impl FromStr for Record {
             None => Data::default(),
         };
 
-        Ok(Record {
+        Ok(Self {
             read_name: qname,
             flags: flag,
             reference_sequence_name: rname,

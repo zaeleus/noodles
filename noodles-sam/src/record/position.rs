@@ -18,7 +18,7 @@ pub struct Position(NonZeroI32);
 
 impl From<Position> for i32 {
     fn from(position: Position) -> Self {
-        i32::from(position.0)
+        Self::from(position.0)
     }
 }
 
