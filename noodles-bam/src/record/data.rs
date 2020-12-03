@@ -119,10 +119,10 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
             let value = match field.value() {
                 BamValue::Char(c) => SamValue::Char(*c),
-                BamValue::Int8(n) => SamValue::Int32(*n as i32),
-                BamValue::UInt8(n) => SamValue::Int32(*n as i32),
-                BamValue::Int16(n) => SamValue::Int32(*n as i32),
-                BamValue::UInt16(n) => SamValue::Int32(*n as i32),
+                BamValue::Int8(n) => SamValue::Int32(i32::from(*n)),
+                BamValue::UInt8(n) => SamValue::Int32(i32::from(*n)),
+                BamValue::Int16(n) => SamValue::Int32(i32::from(*n)),
+                BamValue::UInt16(n) => SamValue::Int32(i32::from(*n)),
                 BamValue::Int32(n) => SamValue::Int32(*n),
                 BamValue::UInt32(n) => i32::try_from(*n)
                     .map(SamValue::Int32)
