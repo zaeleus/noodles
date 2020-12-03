@@ -5,7 +5,7 @@ pub mod reader;
 
 pub use self::{field::Field, reader::Reader};
 
-use std::{convert::TryFrom, fmt, io, ops::Deref};
+use std::{convert::TryFrom, error, fmt, ops::Deref};
 
 use noodles_sam as sam;
 
@@ -82,8 +82,30 @@ impl<'a> fmt::Debug for Data<'a> {
     }
 }
 
+/// An error returned when BAM data fails to convert to SAM data.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromDataError {
+    /// A field is invalid.
+    InvalidField,
+    /// A BAM u32 value is out of range for a SAM i32 value.
+    OutOfRange(u32),
+}
+
+impl error::Error for TryFromDataError {}
+
+impl fmt::Display for TryFromDataError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidField => write!(f, "invalid field"),
+            Self::OutOfRange(value) => {
+                write!(f, "value is out of range: {}", value)
+            }
+        }
+    }
+}
+
 impl<'a> TryFrom<Data<'a>> for sam::record::Data {
-    type Error = io::Error;
+    type Error = TryFromDataError;
 
     fn try_from(data: Data<'_>) -> Result<Self, Self::Error> {
         use field::Value as BamValue;
@@ -92,7 +114,7 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
         let mut sam_fields = Vec::new();
 
         for result in data.fields() {
-            let field = result?;
+            let field = result.map_err(|_| TryFromDataError::InvalidField)?;
             let tag = field.tag();
 
             let value = match field.value() {
@@ -102,8 +124,9 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
                 BamValue::Int16(n) => SamValue::Int32(*n as i32),
                 BamValue::UInt16(n) => SamValue::Int32(*n as i32),
                 BamValue::Int32(n) => SamValue::Int32(*n),
-                // FIXME: lossy conversion
-                BamValue::UInt32(n) => SamValue::Int32(*n as i32),
+                BamValue::UInt32(n) => i32::try_from(*n)
+                    .map(SamValue::Int32)
+                    .map_err(|_| TryFromDataError::OutOfRange(*n))?,
                 BamValue::Float(n) => SamValue::Float(*n),
                 BamValue::String(s) => SamValue::String(s.clone()),
                 BamValue::Hex(s) => SamValue::Hex(s.clone()),
@@ -129,7 +152,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_data_for_sam_record_data() -> io::Result<()> {
+    fn test_try_from_data_for_sam_record_data() -> Result<(), TryFromDataError> {
         use sam::record::data::{
             field::{Tag, Value},
             Field,
@@ -150,5 +173,18 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_data_for_sam_record_data_with_out_of_range_u32_value() {
+        let raw_data = [
+            0x5a, 0x4e, 0x49, 0xff, 0xff, 0xff, 0xff, // ZN:I:4294967295
+        ];
+        let data = Data::new(&raw_data);
+
+        assert_eq!(
+            sam::record::Data::try_from(data),
+            Err(TryFromDataError::OutOfRange(u32::MAX))
+        );
     }
 }

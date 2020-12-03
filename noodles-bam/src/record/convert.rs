@@ -135,7 +135,11 @@ impl Record {
             builder = builder.set_quality_scores(quality_scores);
         }
 
-        let data = self.data().try_into()?;
+        let data = self
+            .data()
+            .try_into()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
         builder = builder.set_data(data);
 
         Ok(builder.build())
