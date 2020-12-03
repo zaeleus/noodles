@@ -53,7 +53,7 @@ impl Region {
                         return Err(ParseError::Ambiguous);
                     } else {
                         let resolved_end = end.unwrap_or(reference_sequence.len() as i32);
-                        return Ok(Region::mapped(prefix, start, resolved_end));
+                        return Ok(Self::mapped(prefix, start, resolved_end));
                     }
                 }
             }
@@ -61,7 +61,7 @@ impl Region {
 
         if let Some(reference_sequence) = reference_sequences.get(s) {
             let end = reference_sequence.len() as i32;
-            Ok(Region::mapped(s, MIN_POSITION, end))
+            Ok(Self::mapped(s, MIN_POSITION, end))
         } else {
             Err(ParseError::Invalid)
         }
@@ -82,11 +82,11 @@ impl Region {
     /// let region = Region::mapped("sq0", 1, 5);
     /// assert!(matches!(region, Region::Mapped { name, start: 1, end: 5 }));
     /// ```
-    pub fn mapped<I>(name: I, start: i32, end: i32) -> Region
+    pub fn mapped<I>(name: I, start: i32, end: i32) -> Self
     where
         I: Into<String>,
     {
-        Region::Mapped {
+        Self::Mapped {
             name: name.into(),
             start,
             end,
