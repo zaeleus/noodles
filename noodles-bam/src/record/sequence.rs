@@ -7,6 +7,8 @@ pub use self::{base::Base, bases::Bases};
 
 use std::{fmt, ops::Deref};
 
+use noodles_sam as sam;
+
 static BASES: &[Base] = &[
     Base::Eq,
     Base::A,
@@ -141,6 +143,13 @@ impl<'a> fmt::Display for Sequence<'a> {
     }
 }
 
+impl<'a> From<Sequence<'a>> for sam::record::Sequence {
+    fn from(sequence: Sequence<'_>) -> Self {
+        let sam_bases: Vec<_> = sequence.bases().map(|b| b.into()).collect();
+        Self::from(sam_bases)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -182,5 +191,19 @@ mod tests {
         let data = [0x18, 0x42];
         let sequence = Sequence::new(&data, 4);
         assert_eq!(sequence.to_string(), "ATGC");
+    }
+
+    #[test]
+    fn test_from_sequence_for_sam_record_sequence() {
+        use sam::record::{sequence::Base as SamBase, Sequence as SamSequence};
+
+        // ATGC
+        let data = [0x18, 0x42];
+        let sequence = Sequence::new(&data, 4);
+
+        let actual = SamSequence::from(sequence);
+        let expected = SamSequence::from(vec![SamBase::A, SamBase::T, SamBase::G, SamBase::C]);
+
+        assert_eq!(actual, expected);
     }
 }
