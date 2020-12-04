@@ -102,7 +102,7 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
-        Builder {
+        Self {
             header: Header::builder().build(),
             reference_sequence_names: Vec::new(),
             reference_sequences: Vec::new(),

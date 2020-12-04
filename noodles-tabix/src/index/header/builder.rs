@@ -22,7 +22,7 @@ impl Builder {
     /// let builder = tabix::index::header::Builder::bed();
     /// ```
     pub fn bed() -> Self {
-        Builder {
+        Self {
             format: Format::Generic(CoordinateSystem::Bed),
             reference_sequence_name_index: 1,
             start_position_index: 2,
@@ -41,7 +41,7 @@ impl Builder {
     /// let builder = tabix::index::header::Builder::gff();
     /// ```
     pub fn gff() -> Self {
-        Builder {
+        Self {
             format: Format::Generic(CoordinateSystem::Gff),
             reference_sequence_name_index: 1,
             start_position_index: 4,
@@ -60,7 +60,7 @@ impl Builder {
     /// let builder = tabix::index::header::Builder::sam();
     /// ```
     pub fn sam() -> Self {
-        Builder {
+        Self {
             format: Format::Sam,
             reference_sequence_name_index: 3,
             start_position_index: 4,
@@ -79,7 +79,7 @@ impl Builder {
     /// let builder = tabix::index::header::Builder::vcf();
     /// ```
     pub fn vcf() -> Self {
-        Builder {
+        Self {
             format: Format::Vcf,
             reference_sequence_name_index: 1,
             start_position_index: 2,

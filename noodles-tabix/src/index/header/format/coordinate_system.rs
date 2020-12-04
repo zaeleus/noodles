@@ -40,7 +40,7 @@ impl TryFrom<u16> for CoordinateSystem {
 }
 
 impl From<CoordinateSystem> for u16 {
-    fn from(coordinate_system: CoordinateSystem) -> u16 {
+    fn from(coordinate_system: CoordinateSystem) -> Self {
         coordinate_system as u16
     }
 }
