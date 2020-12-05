@@ -1,7 +1,8 @@
 //! BAM record quality scores and iterator.
 mod chars;
+mod scores;
 
-pub use self::chars::Chars;
+pub use self::{chars::Chars, scores::Scores};
 
 use std::{ops::Deref, slice};
 
@@ -48,6 +49,31 @@ impl<'a> QualityScores<'a> {
     /// ```
     pub fn chars(&self) -> Chars<slice::Iter<'_, u8>> {
         Chars::new(self.qual.iter())
+    }
+
+    /// Returns an iterator over quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam::record::QualityScores;
+    /// use noodles_sam::record::quality_scores::Score;
+    ///
+    /// // NDLS
+    /// let data = [45, 35, 43, 50];
+    /// let quality_scores = QualityScores::new(&data);
+    ///
+    /// let mut scores = quality_scores.scores();
+    ///
+    /// assert_eq!(scores.next(), Some(Score::try_from(45)));
+    /// assert_eq!(scores.next(), Some(Score::try_from(35)));
+    /// assert_eq!(scores.next(), Some(Score::try_from(43)));
+    /// assert_eq!(scores.next(), Some(Score::try_from(50)));
+    /// assert_eq!(scores.next(), None);
+    /// ```
+    pub fn scores(&self) -> Scores<slice::Iter<'_, u8>> {
+        Scores::new(self.qual.iter())
     }
 }
 
