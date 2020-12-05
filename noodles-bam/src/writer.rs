@@ -449,7 +449,7 @@ mod tests {
 
         assert_eq!(
             fields.next().transpose()?,
-            Some(Field::new(SamTag::AlignmentHitCount, Value::Int32(1)))
+            Some(Field::new(SamTag::AlignmentHitCount, Value::UInt8(1)))
         );
 
         assert!(fields.next().is_none());

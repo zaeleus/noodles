@@ -229,8 +229,22 @@ fn calculate_data_len(data: &Data) -> usize {
             Value::Char(_) => {
                 len += mem::size_of::<u8>();
             }
-            Value::Int32(_) => {
-                len += mem::size_of::<i32>();
+            Value::Int32(n) => {
+                if *n >= 0 {
+                    if *n <= i32::from(u8::MAX) {
+                        len += mem::size_of::<u8>();
+                    } else if *n <= i32::from(u16::MAX) {
+                        len += mem::size_of::<u16>();
+                    } else {
+                        len += mem::size_of::<u32>();
+                    }
+                } else if *n >= i32::from(i8::MIN) {
+                    len += mem::size_of::<i8>();
+                } else if *n >= i32::from(i16::MIN) {
+                    len += mem::size_of::<i16>();
+                } else {
+                    len += mem::size_of::<i32>();
+                }
             }
             Value::Float(_) => {
                 len += mem::size_of::<f32>();
@@ -275,6 +289,12 @@ where
         writer.write_all(field.tag().as_ref().as_bytes())?;
 
         let value = field.value();
+
+        if let Value::Int32(n) = value {
+            write_data_i32_value(writer, *n)?;
+            continue;
+        }
+
         writer.write_u8(char::from(value.ty()) as u8)?;
 
         if let Some(subtype) = value.subtype() {
@@ -285,9 +305,7 @@ where
             Value::Char(c) => {
                 writer.write_u8(*c as u8)?;
             }
-            Value::Int32(n) => {
-                writer.write_i32::<LittleEndian>(*n)?;
-            }
+            Value::Int32(_) => unreachable!(),
             Value::Float(n) => {
                 writer.write_f32::<LittleEndian>(*n)?;
             }
@@ -351,6 +369,35 @@ where
     Ok(())
 }
 
+fn write_data_i32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::data::field::value::Type;
+
+    if n >= 0 {
+        if n <= i32::from(u8::MAX) {
+            writer.write_u8(char::from(Type::UInt8) as u8)?;
+            writer.write_u8(n as u8)
+        } else if n <= i32::from(u16::MAX) {
+            writer.write_u8(char::from(Type::UInt16) as u8)?;
+            writer.write_u16::<LittleEndian>(n as u16)
+        } else {
+            writer.write_u8(char::from(Type::UInt32) as u8)?;
+            writer.write_u32::<LittleEndian>(n as u32)
+        }
+    } else if n >= i32::from(i8::MIN) {
+        writer.write_u8(char::from(Type::Int8) as u8)?;
+        writer.write_i8(n as i8)
+    } else if n >= i32::from(i16::MIN) {
+        writer.write_u8(char::from(Type::Int16) as u8)?;
+        writer.write_i16::<LittleEndian>(n as i16)
+    } else {
+        writer.write_u8(char::from(Type::Int32) as u8)?;
+        writer.write_i32::<LittleEndian>(n)
+    }
+}
+
 // § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
@@ -375,6 +422,79 @@ fn region_to_bin(start: i32, mut end: i32) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_data_i32_value() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_data_i32_value(buf, n)?;
+            assert_eq!(&buf[..], expected, "n = {}", n);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        // i32::MIN
+        t(&mut buf, -2147483648, &[b'i', 0x00, 0x00, 0x00, 0x80])?;
+        // i32::MIN + 1
+        t(&mut buf, -2147483647, &[b'i', 0x01, 0x00, 0x00, 0x80])?;
+
+        // i16::MIN - 1
+        t(&mut buf, -32769, &[b'i', 0xff, 0x7f, 0xff, 0xff])?;
+        // i16::MIN
+        t(&mut buf, -32768, &[b's', 0x00, 0x80])?;
+        // i16::MIN + 1
+        t(&mut buf, -32767, &[b's', 0x01, 0x80])?;
+
+        // i8::MIN - 1
+        t(&mut buf, -129, &[b's', 0x7f, 0xff])?;
+        // i8::MIN
+        t(&mut buf, -128, &[b'c', 0x80])?;
+        // i8::MIN + 1
+        t(&mut buf, -127, &[b'c', 0x81])?;
+
+        // -1
+        t(&mut buf, -1, &[b'c', 0xff])?;
+        // 0
+        t(&mut buf, 0, &[b'C', 0x00])?;
+        // 1
+        t(&mut buf, 1, &[b'C', 0x01])?;
+
+        // i8::MAX - 1
+        t(&mut buf, 126, &[b'C', 0x7e])?;
+        // i8::MAX
+        t(&mut buf, 127, &[b'C', 0x7f])?;
+        // i8::MAX + 1
+        t(&mut buf, 128, &[b'C', 0x80])?;
+
+        // u8::MAX - 1
+        t(&mut buf, 254, &[b'C', 0xfe])?;
+        // u8::MAX
+        t(&mut buf, 255, &[b'C', 0xff])?;
+        // u8::MAX + 1
+        t(&mut buf, 256, &[b'S', 0x00, 0x01])?;
+
+        // i16::MAX - 1
+        t(&mut buf, 32766, &[b'S', 0xfe, 0x7f])?;
+        // i16::MAX
+        t(&mut buf, 32767, &[b'S', 0xff, 0x7f])?;
+        // i16::MAX + 1
+        t(&mut buf, 32768, &[b'S', 0x00, 0x80])?;
+
+        // u16::MAX - 1
+        t(&mut buf, 65534, &[b'S', 0xfe, 0xff])?;
+        // u16::MAX
+        t(&mut buf, 65535, &[b'S', 0xff, 0xff])?;
+        // u16::MAX + 1
+        t(&mut buf, 65536, &[b'I', 0x00, 0x00, 0x01, 0x00])?;
+
+        // i32::MAX - 1
+        t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f])?;
+        // i32::MAX
+        t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f])?;
+
+        Ok(())
+    }
 
     #[test]
     fn test_region_to_bin() {
