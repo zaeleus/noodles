@@ -1,3 +1,5 @@
+//! SAM record quality scores score.
+
 use std::{convert::TryFrom, error, fmt};
 
 const OFFSET: u8 = b'!';

@@ -1,6 +1,6 @@
 //! SAM record quality scores and score.
 
-mod score;
+pub mod score;
 
 pub use self::score::Score;
 
