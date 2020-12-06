@@ -4,7 +4,9 @@ mod scores;
 
 pub use self::{chars::Chars, scores::Scores};
 
-use std::{ops::Deref, slice};
+use std::{convert::TryFrom, ops::Deref, slice};
+
+use noodles_sam as sam;
 
 /// BAM record quality scores.
 #[derive(Debug)]
@@ -82,5 +84,43 @@ impl<'a> Deref for QualityScores<'a> {
 
     fn deref(&self) -> &Self::Target {
         self.qual
+    }
+}
+
+impl<'a> TryFrom<QualityScores<'a>> for sam::record::QualityScores {
+    type Error = sam::record::quality_scores::score::TryFromUByteError;
+
+    fn try_from(quality_scores: QualityScores<'_>) -> Result<Self, Self::Error> {
+        quality_scores
+            .scores()
+            .collect::<Result<Vec<_>, _>>()
+            .map(sam::record::QualityScores::from)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from_quality_scores_for_sam_record_quality_scores(
+    ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
+        use sam::record::quality_scores::Score;
+
+        // NDLS
+        let data = [45, 35, 43, 50];
+        let quality_scores = QualityScores::new(&data);
+
+        let actual = sam::record::QualityScores::try_from(quality_scores)?;
+        let expected = sam::record::QualityScores::from(vec![
+            Score::try_from(45)?,
+            Score::try_from(35)?,
+            Score::try_from(43)?,
+            Score::try_from(50)?,
+        ]);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
