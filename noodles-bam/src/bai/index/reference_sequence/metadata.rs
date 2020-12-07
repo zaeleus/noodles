@@ -165,6 +165,6 @@ impl From<Metadata> for Bin {
 
         let chunks = vec![positions_chunk, counts_chunk];
 
-        Bin::new(MAGIC_NUMBER, chunks)
+        Self::new(MAGIC_NUMBER, chunks)
     }
 }

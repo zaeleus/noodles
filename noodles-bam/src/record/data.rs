@@ -143,7 +143,7 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
             sam_fields.push(sam_field);
         }
 
-        Ok(sam::record::Data::from(sam_fields))
+        Ok(Self::from(sam_fields))
     }
 }
 

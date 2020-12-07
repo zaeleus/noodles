@@ -647,28 +647,26 @@ impl TryFrom<Value> for sam::record::data::field::Value {
     type Error = TryFromValueError;
 
     fn try_from(value: Value) -> Result<Self, Self::Error> {
-        use sam::record::data::field::Value as SamValue;
-
         match value {
-            Value::Char(c) => Ok(SamValue::Char(c)),
-            Value::Int8(n) => Ok(SamValue::Int32(i32::from(n))),
-            Value::UInt8(n) => Ok(SamValue::Int32(i32::from(n))),
-            Value::Int16(n) => Ok(SamValue::Int32(i32::from(n))),
-            Value::UInt16(n) => Ok(SamValue::Int32(i32::from(n))),
-            Value::Int32(n) => Ok(SamValue::Int32(n)),
+            Value::Char(c) => Ok(Self::Char(c)),
+            Value::Int8(n) => Ok(Self::Int32(i32::from(n))),
+            Value::UInt8(n) => Ok(Self::Int32(i32::from(n))),
+            Value::Int16(n) => Ok(Self::Int32(i32::from(n))),
+            Value::UInt16(n) => Ok(Self::Int32(i32::from(n))),
+            Value::Int32(n) => Ok(Self::Int32(n)),
             Value::UInt32(n) => i32::try_from(n)
-                .map(SamValue::Int32)
+                .map(Self::Int32)
                 .map_err(TryFromValueError::InvalidUInt32),
-            Value::Float(n) => Ok(SamValue::Float(n)),
-            Value::String(s) => Ok(SamValue::String(s)),
-            Value::Hex(s) => Ok(SamValue::Hex(s)),
-            Value::Int8Array(a) => Ok(SamValue::Int8Array(a)),
-            Value::UInt8Array(a) => Ok(SamValue::UInt8Array(a)),
-            Value::Int16Array(a) => Ok(SamValue::Int16Array(a)),
-            Value::UInt16Array(a) => Ok(SamValue::UInt16Array(a)),
-            Value::Int32Array(a) => Ok(SamValue::Int32Array(a)),
-            Value::UInt32Array(a) => Ok(SamValue::UInt32Array(a)),
-            Value::FloatArray(a) => Ok(SamValue::FloatArray(a)),
+            Value::Float(n) => Ok(Self::Float(n)),
+            Value::String(s) => Ok(Self::String(s)),
+            Value::Hex(s) => Ok(Self::Hex(s)),
+            Value::Int8Array(a) => Ok(Self::Int8Array(a)),
+            Value::UInt8Array(a) => Ok(Self::UInt8Array(a)),
+            Value::Int16Array(a) => Ok(Self::Int16Array(a)),
+            Value::UInt16Array(a) => Ok(Self::UInt16Array(a)),
+            Value::Int32Array(a) => Ok(Self::Int32Array(a)),
+            Value::UInt32Array(a) => Ok(Self::UInt32Array(a)),
+            Value::FloatArray(a) => Ok(Self::FloatArray(a)),
         }
     }
 }

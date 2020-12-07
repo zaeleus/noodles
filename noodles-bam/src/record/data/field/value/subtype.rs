@@ -63,7 +63,7 @@ impl TryFrom<u8> for Subtype {
 }
 
 impl From<Subtype> for char {
-    fn from(subtype: Subtype) -> char {
+    fn from(subtype: Subtype) -> Self {
         match subtype {
             Subtype::Int8 => 'c',
             Subtype::UInt8 => 'C',

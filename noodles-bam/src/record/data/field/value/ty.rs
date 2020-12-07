@@ -69,7 +69,7 @@ impl TryFrom<u8> for Type {
 }
 
 impl From<Type> for char {
-    fn from(ty: Type) -> char {
+    fn from(ty: Type) -> Self {
         match ty {
             Type::Char => 'A',
             Type::Int8 => 'c',

@@ -94,7 +94,7 @@ impl<'a> TryFrom<QualityScores<'a>> for sam::record::QualityScores {
         quality_scores
             .scores()
             .collect::<Result<Vec<_>, _>>()
-            .map(sam::record::QualityScores::from)
+            .map(Self::from)
     }
 }
 

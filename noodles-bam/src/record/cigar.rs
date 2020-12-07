@@ -128,7 +128,7 @@ impl<'a> TryFrom<Cigar<'a>> for sam::record::Cigar {
             ops.push(sam::record::cigar::Op::new(op.kind(), op.len()));
         }
 
-        Ok(sam::record::Cigar::from(ops))
+        Ok(Self::from(ops))
     }
 }
 

@@ -190,7 +190,7 @@ impl fmt::Display for Op {
 }
 
 impl From<Op> for u32 {
-    fn from(op: Op) -> u32 {
+    fn from(op: Op) -> Self {
         let i = op.kind() as u32;
         op.len() << 4 | i
     }
