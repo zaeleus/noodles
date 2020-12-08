@@ -2,6 +2,9 @@ use std::{convert::TryFrom, io::Cursor};
 
 use super::{virtual_position, VirtualPosition};
 
+/// The max size in bytes of a BGZF block.
+pub const MAX_LENGTH: usize = u16::MAX as usize; // bytes
+
 /// A BGZF block.
 ///
 /// A BGZF block is a gzip stream less than 64 KiB and contains an extra field describing the size

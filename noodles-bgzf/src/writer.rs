@@ -6,9 +6,9 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::{write::DeflateEncoder, Compression, Crc};
 
-use super::{gz, BGZF_HEADER_SIZE};
+use super::{block, gz, BGZF_HEADER_SIZE};
 
-const MAX_BGZF_BLOCK_SIZE: u32 = 65536; // bytes
+const MAX_COMPRESSED_DATA_LENGTH: usize = block::MAX_LENGTH + 1; // bytes
 
 const BGZF_FLG: u8 = 0x04; // FEXTRA
 const BGZF_XFL: u8 = 0x00; // none
@@ -143,15 +143,17 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let total_uncompressed_bytes_written = self.crc.amount();
+        let total_uncompressed_bytes_written = self.crc.amount() as usize;
 
-        if total_uncompressed_bytes_written >= MAX_BGZF_BLOCK_SIZE {
+        // Only the uncompressed size is tracked, and the assumption is that the uncompressed size
+        // will always be less than the compressed size.
+        if total_uncompressed_bytes_written >= MAX_COMPRESSED_DATA_LENGTH {
             self.flush()?;
             return Err(io::Error::from(io::ErrorKind::Interrupted));
         }
 
         let bytes_to_be_written = cmp::min(
-            (MAX_BGZF_BLOCK_SIZE - total_uncompressed_bytes_written) as usize,
+            (MAX_COMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written) as usize,
             buf.len(),
         );
         let bytes_written = self.encoder.write(&buf[..bytes_to_be_written])?;
