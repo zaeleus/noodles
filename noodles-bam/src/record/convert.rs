@@ -119,11 +119,10 @@ impl Record {
             builder = builder.set_sequence(self.sequence().into());
         }
 
-        let raw_quality_scores = self.quality_scores().chars().collect::<String>();
-
-        if !raw_quality_scores.is_empty() {
-            let quality_scores = raw_quality_scores
-                .parse()
+        if !self.quality_scores().is_empty() {
+            let quality_scores = self
+                .quality_scores()
+                .try_into()
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             builder = builder.set_quality_scores(quality_scores);
