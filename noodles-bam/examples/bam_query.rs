@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .expect("record cannot be unmapped");
         let (_, reference_sequence) = reference_sequences
             .get_index(reference_sequence_id as usize)
-            .ok_or_else(|| "invalid reference sequence id")?;
+            .ok_or("invalid reference sequence id")?;
 
         let start = record.position().map(i32::from).expect("missing position");
         let len = record.cigar().reference_len().map(|len| len as i32)?;
