@@ -19,7 +19,7 @@ pub enum Platform {
     IonTorrent,
     /// Oxford Nanopore Technologies (ONT) sequencing (`ONT`).
     Ont,
-    /// PacBio sequencing (`PACBIO`).
+    /// Pacific Biosciences (PacBio) sequencing (`PACBIO`).
     PacBio,
 }
 
