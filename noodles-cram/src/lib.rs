@@ -50,22 +50,6 @@ where
         let data_container = DataContainer::try_from(container.clone())?;
 
         for (i, slice) in data_container.slices().iter().enumerate() {
-            let slice_header = slice.header();
-
-            let slice_reference_sequence_id = slice_header.reference_sequence_id();
-
-            if slice_reference_sequence_id.is_many() {
-                todo!("unhandled multi-reference slice");
-            }
-
-            let reference_sequence_id = if slice_reference_sequence_id.is_none() {
-                None
-            } else {
-                bam::record::ReferenceSequenceId::try_from(i32::from(slice_reference_sequence_id))
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-            };
-
             let landmark = landmarks[i];
 
             let slice_length = if i < slice_count - 1 {
@@ -74,20 +58,52 @@ where
                 container_len - landmark
             };
 
-            let record = crai::Record::new(
-                reference_sequence_id,
-                slice_header.alignment_start(),
-                slice_header.alignment_span(),
+            push_index_records(
+                &mut index,
+                slice.header(),
                 container_position,
                 landmark as u64,
                 slice_length as u64,
-            );
-
-            index.push(record);
+            )?;
         }
 
         container_position = reader.position()?;
     }
 
     Ok(index)
+}
+
+fn push_index_records(
+    index: &mut crai::Index,
+    slice_header: &container::slice::Header,
+    container_position: u64,
+    landmark: u64,
+    slice_length: u64,
+) -> io::Result<()> {
+    let slice_reference_sequence_id = slice_header.reference_sequence_id();
+
+    if slice_reference_sequence_id.is_many() {
+        todo!("unhandled multi-reference slice");
+    }
+
+    let reference_sequence_id = if slice_reference_sequence_id.is_none() {
+        None
+    } else {
+        bam::record::ReferenceSequenceId::try_from(i32::from(slice_reference_sequence_id))
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+    };
+
+    let record = crai::Record::new(
+        reference_sequence_id,
+        slice_header.alignment_start(),
+        slice_header.alignment_span(),
+        container_position,
+        landmark,
+        slice_length,
+    );
+
+    index.push(record);
+
+    Ok(())
 }
