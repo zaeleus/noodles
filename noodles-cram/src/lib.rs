@@ -17,7 +17,7 @@ pub use self::{
     writer::Writer,
 };
 
-use std::{convert::TryFrom, fs::File, io, path::Path};
+use std::{cmp, collections::HashMap, convert::TryFrom, fs::File, io, path::Path};
 
 use noodles_bam as bam;
 
@@ -60,7 +60,8 @@ where
 
             push_index_records(
                 &mut index,
-                slice.header(),
+                data_container.compression_header(),
+                slice,
                 container_position,
                 landmark as u64,
                 slice_length as u64,
@@ -75,16 +76,123 @@ where
 
 fn push_index_records(
     index: &mut crai::Index,
+    compression_header: &container::CompressionHeader,
+    slice: &container::Slice,
+    container_position: u64,
+    landmark: u64,
+    slice_length: u64,
+) -> io::Result<()> {
+    if slice.header().reference_sequence_id().is_many() {
+        push_index_records_for_multi_reference_slice(
+            index,
+            compression_header,
+            slice,
+            container_position,
+            landmark,
+            slice_length,
+        )
+    } else {
+        push_index_record_for_single_reference_slice(
+            index,
+            slice.header(),
+            container_position,
+            landmark,
+            slice_length,
+        )
+    }
+}
+
+#[derive(Debug)]
+struct SliceReferenceSequenceAlignmentRangeInclusive {
+    start: i32,
+    end: i32,
+}
+
+impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
+    fn default() -> Self {
+        Self {
+            start: i32::MAX,
+            end: 1,
+        }
+    }
+}
+
+fn push_index_records_for_multi_reference_slice(
+    index: &mut crai::Index,
+    compression_header: &container::CompressionHeader,
+    slice: &container::Slice,
+    container_position: u64,
+    landmark: u64,
+    slice_length: u64,
+) -> io::Result<()> {
+    let mut raw_reference_sequence_ids: HashMap<
+        i32,
+        SliceReferenceSequenceAlignmentRangeInclusive,
+    > = HashMap::new();
+
+    for record in slice.records(compression_header)? {
+        let raw_reference_sequence_id = record
+            .reference_sequence_id()
+            .map(i32::from)
+            .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+
+        let range = raw_reference_sequence_ids
+            .entry(raw_reference_sequence_id)
+            .or_default();
+
+        range.start = cmp::min(range.start, record.alignment_start());
+        range.end = cmp::max(range.end, record.alignment_end());
+    }
+
+    let mut raw_sorted_reference_sequence_ids: Vec<_> =
+        raw_reference_sequence_ids.keys().copied().collect();
+    raw_sorted_reference_sequence_ids.sort_unstable();
+
+    let reference_sequence_ids = raw_sorted_reference_sequence_ids
+        .iter()
+        .map(|&id| {
+            let range = &raw_reference_sequence_ids[&id];
+
+            let alignment_start = range.start;
+            let alignment_span = range.end - alignment_start + 1;
+
+            if id == bam::record::reference_sequence_id::UNMAPPED {
+                Ok((None, alignment_start, alignment_span))
+            } else {
+                bam::record::ReferenceSequenceId::try_from(id)
+                    .map(Some)
+                    .map(|reference_sequence_id| {
+                        (reference_sequence_id, alignment_start, alignment_span)
+                    })
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    for (reference_sequence_id, alignment_start, alignment_span) in reference_sequence_ids {
+        let record = crai::Record::new(
+            reference_sequence_id,
+            alignment_start,
+            alignment_span,
+            container_position,
+            landmark as u64,
+            slice_length as u64,
+        );
+
+        index.push(record);
+    }
+
+    Ok(())
+}
+
+fn push_index_record_for_single_reference_slice(
+    index: &mut crai::Index,
     slice_header: &container::slice::Header,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
     let slice_reference_sequence_id = slice_header.reference_sequence_id();
-
-    if slice_reference_sequence_id.is_many() {
-        todo!("unhandled multi-reference slice");
-    }
 
     let reference_sequence_id = if slice_reference_sequence_id.is_none() {
         None
