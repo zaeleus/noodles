@@ -134,5 +134,15 @@ mod tests {
             "sq0\t10946\t4\t80\t81".parse(),
             Ok(Record::new(String::from("sq0"), 10946, 4, 80, 81))
         );
+
+        assert_eq!(
+            "sq0".parse::<Record>(),
+            Err(ParseError::Missing(Field::Length))
+        );
+
+        assert!(matches!(
+            "sq0\tnoodles".parse::<Record>(),
+            Err(ParseError::Invalid(Field::Length, _))
+        ));
     }
 }
