@@ -63,7 +63,7 @@ impl Record {
 }
 
 /// An error returned when a raw FASTA index record fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A field is missing.
     Missing(Field),
@@ -129,15 +129,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let record: Record = "sq0\t10946\t4\t80\t81".parse()?;
-
-        assert_eq!(record.reference_sequence_name(), "sq0");
-        assert_eq!(record.len(), 10946);
-        assert_eq!(record.offset(), 4);
-        assert_eq!(record.line_bases(), 80);
-        assert_eq!(record.line_width(), 81);
-
-        Ok(())
+    fn test_from_str() {
+        assert_eq!(
+            "sq0\t10946\t4\t80\t81".parse(),
+            Ok(Record::new(String::from("sq0"), 10946, 4, 80, 81))
+        );
     }
 }

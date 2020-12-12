@@ -1,5 +1,5 @@
 /// A FASTA index record field.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Field {
     /// The reference sequence name.
     ReferenceSequenceName,
