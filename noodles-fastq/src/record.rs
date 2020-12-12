@@ -81,21 +81,8 @@ impl Record {
         &mut self.quality_scores
     }
 
-    /// Truncates all line buffers to 0.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fastq::Record;
-    ///
-    /// let mut record = Record::new("r0", "AGCT", "NDLS");
-    /// record.clear();
-    ///
-    /// assert!(record.read_name().is_empty());
-    /// assert!(record.sequence().is_empty());
-    /// assert!(record.quality_scores().is_empty());
-    /// ```
-    pub fn clear(&mut self) {
+    // Truncates all field buffers to 0.
+    pub(crate) fn clear(&mut self) {
         self.read_name.clear();
         self.sequence.clear();
         self.quality_scores.clear();
@@ -138,5 +125,15 @@ mod tests {
     fn test_fmt() {
         let record = Record::new("r0", "ATCG", "NDLS");
         assert_eq!(record.to_string(), "@r0\nATCG\n+\nNDLS\n");
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut record = Record::new("r0", "AGCT", "NDLS");
+        record.clear();
+
+        assert!(record.read_name().is_empty());
+        assert!(record.sequence().is_empty());
+        assert!(record.quality_scores().is_empty());
     }
 }
