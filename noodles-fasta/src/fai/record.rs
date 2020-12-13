@@ -65,6 +65,8 @@ impl Record {
 /// An error returned when a raw FASTA index record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// A field is missing.
     Missing(Field),
     /// A field is invalid.
@@ -76,6 +78,7 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => f.write_str("empty input"),
             Self::Missing(field) => write!(f, "missing field: {:?}", field),
             Self::Invalid(field, message) => write!(f, "invalid {:?} field: {}", field, message),
         }
@@ -86,6 +89,10 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        }
+
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
         let reference_sequence_name = parse_string(&mut fields, Field::ReferenceSequenceName)?;
@@ -134,6 +141,8 @@ mod tests {
             "sq0\t10946\t4\t80\t81".parse(),
             Ok(Record::new(String::from("sq0"), 10946, 4, 80, 81))
         );
+
+        assert_eq!("".parse::<Record>(), Err(ParseError::Empty));
 
         assert_eq!(
             "sq0".parse::<Record>(),
