@@ -8,7 +8,7 @@ use std::io::{self, BufRead, BufReader, Read, Seek};
 
 use noodles_bgzf as bgzf;
 
-const LINE_FEED: u8 = b'\n';
+const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
 const HEADER_PREFIX: u8 = b'#';
@@ -109,7 +109,7 @@ where
                 break;
             }
 
-            let (read_eol, len) = match buf.iter().position(|&b| b == LINE_FEED) {
+            let (read_eol, len) = match buf.iter().position(|&b| b == LINE_FEED as u8) {
                 Some(i) => {
                     header_buf.extend(&buf[..=i]);
                     (true, i + 1)
@@ -250,7 +250,7 @@ where
     }
 }
 
-// Reads all bytes until a line feed ('\n') is reached.
+// Reads all bytes until a line feed ('\n') or EOF is reached.
 //
 // The buffer will not include the trailing newline ('\n' or '\r\n').
 fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
@@ -260,10 +260,12 @@ where
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
-            buf.pop();
-
-            if buf.ends_with(CARRIAGE_RETURN) {
+            if buf.ends_with(LINE_FEED) {
                 buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
             }
 
             Ok(n)
@@ -334,6 +336,12 @@ sq0\t13
         assert_eq!(buf, "noodles");
 
         let data = b"noodles\r\n";
+        let mut reader = BufReader::new(&data[..]);
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles";
         let mut reader = BufReader::new(&data[..]);
         buf.clear();
         read_line(&mut reader, &mut buf)?;
