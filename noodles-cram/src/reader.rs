@@ -178,6 +178,25 @@ impl<R> Reader<R>
 where
     R: Read + Seek,
 {
+    /// Seeks the underlying reader to the given position.
+    ///
+    /// Positions typically come from the associated CRAM index file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use std::io::SeekFrom;
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// reader.seek(SeekFrom::Start(17711))?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        self.inner.seek(pos)
+    }
+
     /// Returns the current position of the underlying reader.
     ///
     /// # Examples
