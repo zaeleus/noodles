@@ -21,6 +21,24 @@ use super::{file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 ///
 /// The CRAM format is comprised of four main parts: 1) a file definition, 2) a file header, 3) a
 /// list of data containers, and 4) a end-of-file (EOF) container.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::{fs::File, io};
+/// use noodles_cram as cram;
+///
+/// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+/// reader.read_file_definition()?;
+/// reader.read_file_header()?;
+///
+/// for result in reader.records() {
+///     let record = result?;
+///     println!("{:?}", record);
+/// }
+///
+/// # Ok::<(), io::Error>(())
+/// ```
 pub struct Reader<R>
 where
     R: Read,
