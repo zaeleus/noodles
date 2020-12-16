@@ -23,6 +23,16 @@ use noodles_bam as bam;
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
 
+/// Indexes a CRAM file.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_cram as cram;
+/// let index = cram::index("sample.cram")?;
+/// # Ok::<(), io::Error>(())
+/// ```
 pub fn index<P>(src: P) -> io::Result<crai::Index>
 where
     P: AsRef<Path>,
