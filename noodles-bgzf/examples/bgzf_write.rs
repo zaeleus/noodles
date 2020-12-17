@@ -33,7 +33,5 @@ fn main() -> io::Result<()> {
         writer.write_all(&buf[..bytes_read])?;
     }
 
-    writer.finish()?;
-
     Ok(())
 }

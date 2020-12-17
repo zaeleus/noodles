@@ -45,7 +45,7 @@ pub struct Writer<W>
 where
     W: Write,
 {
-    inner: W,
+    inner: Option<W>,
     encoder: DeflateEncoder<Vec<u8>>,
     crc: Crc,
 }
@@ -64,7 +64,7 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
-            inner,
+            inner: Some(inner),
             encoder: DeflateEncoder::new(Vec::new(), Compression::default()),
             crc: Crc::new(),
         }
@@ -80,16 +80,18 @@ where
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        &self.inner
+        self.inner.as_ref().unwrap()
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
         self.encoder.try_finish()?;
+
+        let inner = self.inner.as_mut().unwrap();
         let data = self.encoder.get_ref();
 
-        write_header(&mut self.inner, data.len())?;
-        self.inner.write_all(&data[..])?;
-        write_trailer(&mut self.inner, self.crc.sum(), self.crc.amount())?;
+        write_header(inner, data.len())?;
+        inner.write_all(&data[..])?;
+        write_trailer(inner, self.crc.sum(), self.crc.amount())?;
 
         self.encoder.reset(Vec::new())?;
         self.crc.reset();
@@ -115,10 +117,13 @@ where
     /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
         self.flush()?;
-        self.inner.write_all(BGZF_EOF)
+        let inner = self.inner.as_mut().unwrap();
+        inner.write_all(BGZF_EOF)
     }
 
     /// Returns the underlying writer after finishing the output stream.
+    ///
+    /// This method can only be called once. Any further usage of the writer may result in a panic.
     ///
     /// # Examples
     ///
@@ -134,7 +139,19 @@ where
     /// ```
     pub fn finish(mut self) -> io::Result<W> {
         self.try_finish()?;
-        Ok(self.inner)
+        let inner = self.inner.take().unwrap();
+        Ok(inner)
+    }
+}
+
+impl<W> Drop for Writer<W>
+where
+    W: Write,
+{
+    fn drop(&mut self) {
+        if self.inner.is_some() {
+            let _ = self.try_finish();
+        }
     }
 }
 

@@ -201,15 +201,6 @@ where
     }
 }
 
-impl<W> Drop for Writer<W>
-where
-    W: Write,
-{
-    fn drop(&mut self) {
-        let _ = self.try_finish();
-    }
-}
-
 fn write_reference<W>(writer: &mut W, reference_sequence: &ReferenceSequence) -> io::Result<()>
 where
     W: Write,
