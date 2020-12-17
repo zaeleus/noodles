@@ -11,6 +11,7 @@ use memchr::memchr;
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 pub(crate) const NEWLINE: u8 = b'\n';
 
+const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
 /// A FASTA reader.
@@ -192,7 +193,7 @@ where
     }
 }
 
-// Reads all bytes until a line feed ('\n') is reached.
+// Reads all bytes until a line feed ('\n') or EOF is reached.
 //
 // The buffer will not include the trailing newline ('\n' or '\r\n').
 pub(crate) fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
@@ -202,10 +203,12 @@ where
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
-            buf.pop();
-
-            if buf.ends_with(CARRIAGE_RETURN) {
+            if buf.ends_with(LINE_FEED) {
                 buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
             }
 
             Ok(n)
@@ -306,6 +309,12 @@ mod tests {
         assert_eq!(buf, "noodles");
 
         let data = b"noodles\r\n";
+        let mut reader = BufReader::new(&data[..]);
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles";
         let mut reader = BufReader::new(&data[..]);
         buf.clear();
         read_line(&mut reader, &mut buf)?;
