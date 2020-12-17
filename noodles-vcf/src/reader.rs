@@ -330,19 +330,19 @@ sq0\t13
         let mut buf = String::new();
 
         let data = b"noodles\n";
-        let mut reader = BufReader::new(&data[..]);
+        let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
 
         let data = b"noodles\r\n";
-        let mut reader = BufReader::new(&data[..]);
+        let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
 
         let data = b"noodles";
-        let mut reader = BufReader::new(&data[..]);
+        let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
