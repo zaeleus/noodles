@@ -117,10 +117,12 @@ where
     match reader.read_until(LINE_FEED, buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
-            buf.pop();
-
-            if buf.ends_with(&[CARRIAGE_RETURN]) {
+            if buf.ends_with(&[LINE_FEED]) {
                 buf.pop();
+
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
+                    buf.pop();
+                }
             }
 
             Ok(n)
@@ -200,6 +202,12 @@ dcba
         assert_eq!(buf, b"noodles");
 
         let data = b"noodles\r\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, b"noodles");
+
+        let data = b"noodles";
         let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;
