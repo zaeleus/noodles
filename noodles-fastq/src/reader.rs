@@ -7,7 +7,8 @@ use std::io::{self, BufRead, Read};
 use super::Record;
 
 const READ_NAME_PREFIX: u8 = b'@';
-const NEWLINE: u8 = b'\n';
+const LINE_FEED: u8 = b'\n';
+const CARRIAGE_RETURN: u8 = b'\r';
 
 /// A FASTQ reader.
 pub struct Reader<R> {
@@ -113,9 +114,19 @@ fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let result = reader.read_until(NEWLINE, buf);
-    buf.pop();
-    result
+    match reader.read_until(LINE_FEED, buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            buf.pop();
+
+            if buf.ends_with(&[CARRIAGE_RETURN]) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
 }
 
 fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
@@ -148,9 +159,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::Record;
-
-    use super::{read_line, Reader};
+    use super::*;
 
     #[test]
     fn test_read_record() {
@@ -181,22 +190,21 @@ dcba
     }
 
     #[test]
-    fn test_read_line() {
-        let data = b"@fqlib\nAGCT\n";
-        let mut reader = &data[..];
-
+    fn test_read_line() -> io::Result<()> {
         let mut buf = Vec::new();
-        let len = read_line(&mut reader, &mut buf).unwrap();
-        assert_eq!(len, 7);
-        assert_eq!(buf, b"@fqlib");
 
+        let data = b"noodles\n";
+        let mut reader = &data[..];
         buf.clear();
-        let len = read_line(&mut reader, &mut buf).unwrap();
-        assert_eq!(len, 5);
-        assert_eq!(buf, b"AGCT");
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, b"noodles");
 
+        let data = b"noodles\r\n";
+        let mut reader = &data[..];
         buf.clear();
-        let len = read_line(&mut reader, &mut buf).unwrap();
-        assert_eq!(len, 0);
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, b"noodles");
+
+        Ok(())
     }
 }
