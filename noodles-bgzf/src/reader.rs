@@ -1,4 +1,8 @@
-use std::io::{self, Read, Seek, SeekFrom};
+use std::{
+    cmp,
+    convert::TryFrom,
+    io::{self, BufRead, Read, Seek, SeekFrom},
+};
 
 use byteorder::{ByteOrder, LittleEndian};
 use flate2::read::DeflateDecoder;
@@ -100,16 +104,14 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
-        let (compressed_pos, uncompressed_pos) = pos.into();
+        let (cpos, upos) = pos.into();
 
-        self.inner.seek(SeekFrom::Start(compressed_pos))?;
-        self.position = compressed_pos;
+        self.inner.seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
 
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
 
-        self.block
-            .data_mut()
-            .seek(SeekFrom::Start(u64::from(uncompressed_pos)))?;
+        self.block.set_upos(upos);
 
         Ok(pos)
     }
@@ -120,11 +122,11 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match self.block.data_mut().read(buf) {
+        match self.block.read(buf) {
             Ok(0) => match read_block(&mut self.inner, &mut self.cdata, &mut self.block) {
                 Ok(0) => Ok(0),
                 Ok(bs) => {
-                    self.block.set_position(self.position);
+                    self.block.set_cpos(self.position);
                     self.position += bs as u64;
                     Err(io::Error::from(io::ErrorKind::Interrupted))
                 }
@@ -136,7 +138,39 @@ where
     }
 }
 
-fn read_block_size<R>(reader: &mut R) -> io::Result<u16>
+impl<R> BufRead for Reader<R>
+where
+    R: Read,
+{
+    fn consume(&mut self, amt: usize) {
+        // Ensure addition of amt to current upos does not does not overflow
+        let upos = match u16::try_from(amt) {
+            Ok(n) => match self.block.upos().checked_add(n) {
+                Some(m) => m,
+                None => u16::MAX,
+            },
+            Err(_) => u16::MAX,
+        };
+
+        let upos = cmp::min(self.block.ulen(), upos as u16);
+
+        self.block.set_upos(upos)
+    }
+
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        if self.block.is_eof() {
+            read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+        }
+
+        Ok(self.block.fill_buf())
+    }
+}
+
+/// Reads BGZF block header.
+///
+/// Block is assumed to be at the start of the block header.
+/// The returned value is the header BSIZE field minus 1, as described in the specs.
+fn read_header<R>(reader: &mut R) -> io::Result<u16>
 where
     R: Read,
 {
@@ -152,12 +186,27 @@ where
     Ok(LittleEndian::read_u16(bsize) + 1)
 }
 
-fn read_trailer<R>(reader: &mut R) -> io::Result<()>
+/// Reads BGZF block trailer.
+///
+/// Block is assumed to be at the start of the block trailer.
+/// The returned value is the header ISIZE field.
+fn read_trailer<R>(reader: &mut R) -> io::Result<u16>
 where
     R: Read,
 {
     let mut trailer = [0; gz::TRAILER_SIZE];
-    reader.read_exact(&mut trailer)
+
+    if reader.read_exact(&mut trailer).is_err() {
+        // Block must contain valid trailer
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BGZF trailer",
+        ));
+    }
+
+    let r#isize = &trailer[4..8];
+
+    Ok(LittleEndian::read_u32(isize) as u16)
 }
 
 fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
@@ -172,27 +221,32 @@ fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::
 where
     R: Read,
 {
-    let block_size = match read_block_size(reader).map(usize::from) {
+    let clen = match read_header(reader).map(usize::from) {
         Ok(0) => return Ok(0),
         Ok(bs) => bs,
         Err(e) => return Err(e),
     };
 
-    let cdata_len = block_size - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
+    let cdata_len = clen - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
     cdata.resize(cdata_len, Default::default());
     reader.read_exact(cdata)?;
 
-    read_trailer(reader)?;
+    let ulen = read_trailer(reader)?;
 
-    block.set_len(block_size as u64);
+    block.set_clen(clen as u64);
+    block.set_upos(0);
 
     let udata = block.data_mut();
-    let udata_buf = udata.get_mut();
-    udata_buf.clear();
+    udata.clear();
 
-    inflate_data(&cdata[..], udata_buf)?;
+    inflate_data(&cdata[..], udata)?;
 
-    udata.set_position(0);
+    if udata.len() != ulen.into() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "BGZF block length not equal to isize",
+        ));
+    }
 
-    Ok(block_size)
+    Ok(clen)
 }
