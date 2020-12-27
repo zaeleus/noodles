@@ -122,19 +122,16 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match self.block.read(buf) {
-            Ok(0) => match read_block(&mut self.inner, &mut self.cdata, &mut self.block) {
-                Ok(0) => Ok(0),
-                Ok(bs) => {
-                    self.block.set_cpos(self.position);
-                    self.position += bs as u64;
-                    Err(io::Error::from(io::ErrorKind::Interrupted))
-                }
-                Err(e) => Err(e),
-            },
-            Ok(n) => Ok(n),
-            Err(e) => Err(e),
-        }
+        // Same idea as in io::BufReader::Read.
+        // TODO: Better handling of reads larger than an entire block?
+        let bytes_read = {
+            let mut remaining = self.fill_buf()?;
+            remaining.read(buf)?
+        };
+
+        self.consume(bytes_read);
+
+        Ok(bytes_read)
     }
 }
 
@@ -159,7 +156,13 @@ where
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if self.block.is_eof() {
-            read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+            match read_block(&mut self.inner, &mut self.cdata, &mut self.block) {
+                Ok(bs) => {
+                    self.block.set_cpos(self.position);
+                    self.position += bs as u64;
+                }
+                Err(e) => return Err(e),
+            }
         }
 
         Ok(self.block.fill_buf())
