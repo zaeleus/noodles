@@ -259,3 +259,45 @@ where
 
     Ok(clen)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::writer::BGZF_EOF;
+
+    use super::*;
+
+    #[test]
+    fn test_read_header() -> io::Result<()> {
+        let mut reader = &BGZF_EOF[..];
+        let block_size = read_header(&mut reader)?;
+        assert_eq!(block_size, BGZF_EOF.len() as u16);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_trailer() -> io::Result<()> {
+        let (_, mut reader) = BGZF_EOF.split_at(BGZF_EOF.len() - gz::TRAILER_SIZE);
+        let r#isize = read_trailer(&mut reader)?;
+        assert_eq!(r#isize, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_trailer_with_invalid_block_trailer() {
+        let data = [0, 0, 0, 0];
+        let mut reader = &data[..];
+        assert!(read_trailer(&mut reader).is_err());
+    }
+
+    #[test]
+    fn test_read_block() -> io::Result<()> {
+        let mut reader = &BGZF_EOF[..];
+        let mut cdata = Vec::new();
+        let mut block = Block::default();
+
+        let block_size = read_block(&mut reader, &mut cdata, &mut block)?;
+        assert_eq!(block_size, BGZF_EOF.len());
+
+        Ok(())
+    }
+}
