@@ -1,4 +1,7 @@
-use std::{convert::TryFrom, io};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use super::{virtual_position, VirtualPosition};
 
@@ -74,7 +77,7 @@ impl Block {
     }
 }
 
-impl io::Read for Block {
+impl Read for Block {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let upos = self.upos as usize;
         let read_len = (&self.data[upos..]).read(buf)?;
