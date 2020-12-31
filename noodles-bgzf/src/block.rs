@@ -14,7 +14,7 @@ pub(crate) struct Block {
     data: Vec<u8>,
     cpos: u64,
     clen: u64,
-    upos: u16,
+    upos: u32,
 }
 
 impl Block {
@@ -25,8 +25,8 @@ impl Block {
 
     /// Returns the unconsumed part of the current block.
     pub fn fill_buf(&self) -> &[u8] {
-        let start = usize::from(self.upos);
-        let end = usize::from(self.ulen());
+        let start = self.upos as usize;
+        let end = self.ulen() as usize;
         &self.data[start..end]
     }
 
@@ -46,7 +46,7 @@ impl Block {
     }
 
     /// Sets the position of this block in the uncompressed stream.
-    pub fn set_upos(&mut self, upos: u16) {
+    pub fn set_upos(&mut self, upos: u32) {
         self.upos = upos;
     }
 
@@ -58,17 +58,18 @@ impl Block {
             VirtualPosition::try_from((next_cpos, 0)).unwrap()
         } else {
             assert!(self.cpos <= virtual_position::MAX_COMPRESSED_POSITION);
-            VirtualPosition::try_from((self.cpos, self.upos)).unwrap()
+            assert!(self.upos <= u32::from(virtual_position::MAX_UNCOMPRESSED_POSITION));
+            VirtualPosition::try_from((self.cpos, self.upos as u16)).unwrap()
         }
     }
 
     /// Returns the uncompressed data length.
-    pub fn ulen(&self) -> u16 {
-        self.data.len() as u16
+    pub fn ulen(&self) -> u32 {
+        self.data.len() as u32
     }
 
     /// Returns the uncompressed data length.
-    pub fn upos(&self) -> u16 {
+    pub fn upos(&self) -> u32 {
         self.upos
     }
 }
@@ -77,7 +78,7 @@ impl io::Read for Block {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let upos = self.upos as usize;
         let read_len = (&self.data[upos..]).read(buf)?;
-        self.upos += read_len as u16;
+        self.upos += read_len as u32;
         Ok(read_len)
     }
 }

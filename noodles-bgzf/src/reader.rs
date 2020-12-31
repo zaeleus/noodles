@@ -111,7 +111,7 @@ where
 
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
 
-        self.block.set_upos(upos);
+        self.block.set_upos(upos as u32);
 
         Ok(pos)
     }
@@ -141,15 +141,15 @@ where
 {
     fn consume(&mut self, amt: usize) {
         // Ensure addition of amt to current upos does not does not overflow
-        let upos = match u16::try_from(amt) {
+        let upos = match u32::try_from(amt) {
             Ok(n) => match self.block.upos().checked_add(n) {
                 Some(m) => m,
-                None => u16::MAX,
+                None => u32::MAX,
             },
-            Err(_) => u16::MAX,
+            Err(_) => u32::MAX,
         };
 
-        let upos = cmp::min(self.block.ulen(), upos as u16);
+        let upos = cmp::min(self.block.ulen(), upos);
 
         self.block.set_upos(upos)
     }
@@ -193,7 +193,7 @@ where
 ///
 /// Block is assumed to be at the start of the block trailer.
 /// The returned value is the header ISIZE field.
-fn read_trailer<R>(reader: &mut R) -> io::Result<u16>
+fn read_trailer<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
 {
@@ -209,7 +209,7 @@ where
 
     let r#isize = &trailer[4..8];
 
-    Ok(LittleEndian::read_u32(isize) as u16)
+    Ok(LittleEndian::read_u32(r#isize))
 }
 
 fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
@@ -244,7 +244,7 @@ where
 
     inflate_data(&cdata[..], udata)?;
 
-    if udata.len() != ulen.into() {
+    if udata.len() != ulen as usize {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "BGZF block length not equal to isize",
