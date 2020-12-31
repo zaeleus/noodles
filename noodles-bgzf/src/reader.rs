@@ -14,7 +14,10 @@ use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 /// Due to the static structure of a BGZF block, gzip headers are mostly discarded. CRC32
 /// validation is also disabled when decompressing data.
 ///
-/// This implements [`std::io::Read`], consuming compressed data and emitting uncompressed data.
+/// The reader implements both [`std::io::Read`] and [`std::io::BufRead`], consuming compressed
+/// data and emitting uncompressed data. It is internally buffered by a single block, and to
+/// correctly track (virtual) positions, the reader _cannot_ be double buffered (e.g., using
+/// [`std::io::BufReader`]).
 ///
 /// # Examples
 ///
@@ -169,10 +172,11 @@ where
     }
 }
 
-/// Reads BGZF block header.
+/// Reads a BGZF block header.
 ///
-/// Block is assumed to be at the start of the block header.
-/// The returned value is the header BSIZE field minus 1, as described in the specs.
+/// The position of the stream is expected to be at the start of a block.
+///
+/// This returns the block size (`BSIZE` + 1).
 fn read_header<R>(reader: &mut R) -> io::Result<u16>
 where
     R: Read,
@@ -189,10 +193,12 @@ where
     Ok(LittleEndian::read_u16(bsize) + 1)
 }
 
-/// Reads BGZF block trailer.
+/// Reads a BGZF block trailer.
 ///
-/// Block is assumed to be at the start of the block trailer.
-/// The returned value is the header ISIZE field.
+/// The position of the stream is expected to be at the start of the block trailer, i.e., 8 bytes
+/// from the end of the block.
+///
+/// This returns the length of the uncompressed data (`ISIZE`).
 fn read_trailer<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
