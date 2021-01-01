@@ -74,9 +74,13 @@ impl Slice {
         let mut records = Vec::with_capacity(records_len);
 
         for i in 0..records_len {
-            let mut record = Record::default();
-            record.id = record_counter + (i as i64);
+            let mut record = Record {
+                id: record_counter + (i as i64),
+                ..Default::default()
+            };
+
             record_reader.read_record(&mut record)?;
+
             records.push(record);
         }
 
