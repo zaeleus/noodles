@@ -1,3 +1,7 @@
+mod kind;
+
+pub use self::kind::Kind;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Encoding {
     Null,

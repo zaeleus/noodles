@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use crate::{
-    container::compression_header::Encoding,
+    container::compression_header::{encoding, Encoding},
     num::{write_itf8, Itf8},
 };
 
@@ -42,8 +42,7 @@ fn write_null_encoding<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    // TODO: convert from encoding
-    write_itf8(writer, 0)
+    write_itf8(writer, i32::from(encoding::Kind::Null))
 }
 
 fn write_external_encoding<W>(writer: &mut W, block_content_id: Itf8) -> io::Result<()>
@@ -53,8 +52,7 @@ where
     let mut args = Vec::new();
     write_itf8(&mut args, block_content_id)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 1)?;
+    write_itf8(writer, i32::from(encoding::Kind::External))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -80,8 +78,7 @@ where
         write_itf8(&mut args, len)?;
     }
 
-    // TODO: convert from encoding
-    write_itf8(writer, 3)?;
+    write_itf8(writer, i32::from(encoding::Kind::Huffman))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -100,8 +97,7 @@ where
     write_encoding(&mut args, len_encoding)?;
     write_encoding(&mut args, value_encoding)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 4)?;
+    write_itf8(writer, i32::from(encoding::Kind::ByteArrayLen))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -119,8 +115,7 @@ where
     args.write_u8(stop_byte)?;
     write_itf8(&mut args, block_content_id)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 5)?;
+    write_itf8(writer, i32::from(encoding::Kind::ByteArrayStop))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -134,8 +129,7 @@ where
     write_itf8(&mut args, offset)?;
     write_itf8(&mut args, len)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 6)?;
+    write_itf8(writer, i32::from(encoding::Kind::Beta))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -149,8 +143,7 @@ where
     write_itf8(&mut args, offset)?;
     write_itf8(&mut args, k)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 7)?;
+    write_itf8(writer, i32::from(encoding::Kind::Subexp))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -163,8 +156,7 @@ where
     let mut args = Vec::new();
     write_itf8(&mut args, offset)?;
 
-    // TODO: convert from encoding
-    write_itf8(writer, 9)?;
+    write_itf8(writer, i32::from(encoding::Kind::Gamma))?;
     write_args(writer, &args)?;
 
     Ok(())
