@@ -2,7 +2,7 @@
 //!
 //! The header is defined to be the meta lines (`##` prefix) and header line (`#`` prefix).
 //!
-//! The result is similar or matches the output of `bcftools view --header-only --no-version
+//! The result is similar to or matches the output of `bcftools view --header-only --no-version
 //! <src>`. bcftools may add a PASS FILTER to the meta if it is missing.
 
 use std::{
