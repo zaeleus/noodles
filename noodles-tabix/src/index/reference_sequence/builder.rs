@@ -4,10 +4,8 @@ use noodles_bgzf as bgzf;
 
 use super::{
     bin::{self, Chunk},
-    Bin, ReferenceSequence,
+    Bin, ReferenceSequence, WINDOW_SIZE,
 };
-
-const WINDOW_SIZE: u32 = 16384;
 
 #[derive(Debug, Default)]
 pub struct Builder {

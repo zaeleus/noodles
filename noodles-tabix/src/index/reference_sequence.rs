@@ -9,6 +9,8 @@ pub(crate) use self::builder::Builder;
 
 use noodles_bgzf as bgzf;
 
+const WINDOW_SIZE: u32 = 16384;
+
 /// A tabix index reference sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReferenceSequence {
