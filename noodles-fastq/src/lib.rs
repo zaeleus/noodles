@@ -10,6 +10,23 @@
 //! encoded using IUPAC base symbols. The plus line is effectively a separator, sometimes repeating
 //! the read name, and is commonly discarded. The quality scores is list of Phred quality scores
 //! offset by 33 and is parallel to a base in the sequence.
+//!
+//! # Examples
+//!
+//! ## Read all records from a file
+//!
+//! ```no_run
+//! # use std::{fs::File, io::{self, BufReader}};
+//! use noodles_fastq as fastq;
+//!
+//! let mut reader = File::open("sample.fastq").map(BufReader::new).map(fastq::Reader::new)?;
+//!
+//! for result in reader.records() {
+//!     let record = result?;
+//!     println!("{:?}", record);
+//! }
+//! # Ok::<(), io::Error>(())
+//! ```
 
 mod reader;
 mod record;
