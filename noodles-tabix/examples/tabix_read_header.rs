@@ -5,7 +5,7 @@
 use std::{
     env,
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead},
 };
 
 use noodles_bgzf as bgzf;
@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
     let tabix_src = format!("{}.tbi", src);
     let index = tabix::read(tabix_src)?;
 
-    let reader = File::open(src).map(bgzf::Reader::new).map(BufReader::new)?;
+    let reader = File::open(src).map(bgzf::Reader::new)?;
     let line_comment_prefix = char::from(index.header().line_comment_prefix());
 
     for result in reader.lines() {
