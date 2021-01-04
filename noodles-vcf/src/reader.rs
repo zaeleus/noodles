@@ -4,7 +4,7 @@ mod records;
 
 pub use self::records::Records;
 
-use std::io::{self, BufRead, BufReader, Read, Seek};
+use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 
@@ -195,7 +195,7 @@ where
     }
 }
 
-impl<R> Reader<BufReader<bgzf::Reader<R>>>
+impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read,
 {
@@ -204,12 +204,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, BufReader};
+    /// # use std::io;
     /// use noodles_bgzf as bgzf;
     /// use noodles_vcf as vcf;
     ///
     /// let data = Vec::new();
-    /// let reader = vcf::Reader::new(BufReader::new(bgzf::Reader::new(&data[..])));
+    /// let reader = vcf::Reader::new(bgzf::Reader::new(&data[..]));
     /// let virtual_position = reader.virtual_position();
     ///
     /// assert_eq!(virtual_position.compressed(), 0);
@@ -217,11 +217,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn virtual_position(&self) -> bgzf::VirtualPosition {
-        self.inner.get_ref().virtual_position()
+        self.inner.virtual_position()
     }
 }
 
-impl<R> Reader<BufReader<bgzf::Reader<R>>>
+impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {
@@ -232,13 +232,12 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io::{self, BufReader}};
+    /// # use std::{fs::File, io};
     /// use noodles_bgzf as bgzf;
     /// use noodles_vcf as vcf;
     ///
     /// let mut reader = File::open("sample.vcf.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(BufReader::new)
     ///     .map(vcf::Reader::new)?;
     ///
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
@@ -246,7 +245,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.get_mut().seek(pos)
+        self.inner.seek(pos)
     }
 }
 
