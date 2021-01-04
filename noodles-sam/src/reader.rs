@@ -4,7 +4,7 @@ mod records;
 
 pub use self::records::Records;
 
-use std::io::{self, BufRead, BufReader, Read, Seek};
+use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 
@@ -186,7 +186,7 @@ where
     }
 }
 
-impl<R> Reader<BufReader<bgzf::Reader<R>>>
+impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {
@@ -205,7 +205,6 @@ where
     ///
     /// let mut reader = File::open("sample.sam.gz")
     ///     .map(bgzf::Reader::new)
-    ///     .map(BufReader::new)
     ///     .map(sam::Reader::new)?;
     ///
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
@@ -213,7 +212,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.get_mut().seek(pos)
+        self.inner.seek(pos)
     }
 }
 
