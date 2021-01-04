@@ -43,8 +43,8 @@ impl Indexer {
     pub fn add_record(
         &mut self,
         reference_sequence_name: &str,
-        start: u32,
-        end: u32,
+        start: i32,
+        end: i32,
         chunk: Chunk,
     ) {
         if reference_sequence_name != self.current_reference_sequence_name {

@@ -14,7 +14,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn add_record(&mut self, start: u32, end: u32, chunk: Chunk) -> &mut Self {
+    pub fn add_record(&mut self, start: i32, end: i32, chunk: Chunk) -> &mut Self {
         self.update_bins(start, end, chunk);
         self.update_linear_index(start, end, chunk);
         self
@@ -30,8 +30,8 @@ impl Builder {
         ReferenceSequence::new(bins, self.intervals)
     }
 
-    fn update_bins(&mut self, start: u32, end: u32, chunk: Chunk) {
-        let bin_id = region_to_bin(start, end);
+    fn update_bins(&mut self, start: i32, end: i32, chunk: Chunk) {
+        let bin_id = region_to_bin(start, end) as u32;
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
@@ -42,7 +42,7 @@ impl Builder {
         builder.add_chunk(chunk);
     }
 
-    fn update_linear_index(&mut self, start: u32, end: u32, chunk: Chunk) {
+    fn update_linear_index(&mut self, start: i32, end: i32, chunk: Chunk) {
         let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
         let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
 
@@ -61,9 +61,7 @@ impl Builder {
 
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
-fn region_to_bin(start: u32, mut end: u32) -> u32 {
-    assert!(end > 0);
-
+fn region_to_bin(start: i32, mut end: i32) -> i32 {
     end -= 1;
 
     if start >> 14 == end >> 14 {
