@@ -23,11 +23,11 @@ fn main() -> io::Result<()> {
     for result in reader.lines() {
         let line = result?;
 
-        if line.starts_with(line_comment_prefix) {
-            println!("{}", line);
-        } else {
+        if !line.starts_with(line_comment_prefix) {
             break;
         }
+
+        println!("{}", line);
     }
 
     Ok(())
