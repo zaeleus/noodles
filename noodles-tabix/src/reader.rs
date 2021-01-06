@@ -256,6 +256,83 @@ mod tests {
     }
 
     #[test]
+    fn test_read_header() -> io::Result<()> {
+        let data = [
+            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
+            0x01, 0x00, 0x00, 0x00, // col_seq = 1
+            0x04, 0x00, 0x00, 0x00, // col_beg = 4
+            0x05, 0x00, 0x00, 0x00, // col_end = 5
+            0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+        ];
+
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        let expected = index::header::Builder::gff().build();
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_invalid_reference_sequence_name_index() -> io::Result<()> {
+        let data = [
+            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
+            0xff, 0xff, 0xff, 0xff, // col_seq = -1
+            0x04, 0x00, 0x00, 0x00, // col_beg = 4
+            0x05, 0x00, 0x00, 0x00, // col_end = 5
+            0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+        ];
+
+        let mut reader = &data[..];
+        read_header(&mut reader)?;
+
+        // TODO
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_invalid_start_position_index() -> io::Result<()> {
+        let data = [
+            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
+            0x01, 0x00, 0x00, 0x00, // col_seq = 1
+            0xff, 0xff, 0xff, 0xff, // col_beg = -1
+            0x05, 0x00, 0x00, 0x00, // col_end = 5
+            0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+        ];
+
+        let mut reader = &data[..];
+        read_header(&mut reader)?;
+
+        // TODO
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_invalid_end_position_index() -> io::Result<()> {
+        let data = [
+            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
+            0x01, 0x00, 0x00, 0x00, // col_seq = 1
+            0x04, 0x00, 0x00, 0x00, // col_beg = 4
+            0xff, 0xff, 0xff, 0xff, // col_end = -1
+            0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+        ];
+
+        let mut reader = &data[..];
+        read_header(&mut reader)?;
+
+        // TODO
+
+        Ok(())
+    }
+
+    #[test]
     fn test_parse_names() -> io::Result<()> {
         let data = b"noodles\x00tabix\x00";
         let actual = parse_names(&data[..])?;
