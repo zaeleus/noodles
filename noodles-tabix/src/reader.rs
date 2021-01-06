@@ -107,21 +107,31 @@ where
         Format::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let col_seq = reader.read_i32::<LittleEndian>()?;
-    let col_beg = reader.read_i32::<LittleEndian>()?;
+    let col_seq = reader.read_i32::<LittleEndian>().and_then(|i| {
+        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let col_end =
-        reader
-            .read_i32::<LittleEndian>()
-            .map(|i| if i == 0 { None } else { Some(i as usize) })?;
+    let col_beg = reader.read_i32::<LittleEndian>().and_then(|i| {
+        usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let col_end = reader.read_i32::<LittleEndian>().and_then(|i| {
+        if i == 0 {
+            Ok(None)
+        } else {
+            usize::try_from(i)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
+    })?;
 
     let meta = reader.read_i32::<LittleEndian>()?;
     let skip = reader.read_i32::<LittleEndian>()?;
 
     Ok(index::Header::builder()
         .set_format(format)
-        .set_reference_sequence_name_index(col_seq as usize)
-        .set_start_position_index(col_beg as usize)
+        .set_reference_sequence_name_index(col_seq)
+        .set_start_position_index(col_beg)
         .set_end_position_index(col_end)
         .set_line_comment_prefix(meta as u8)
         .set_line_skip_count(skip as u32)
@@ -276,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_header_with_invalid_reference_sequence_name_index() -> io::Result<()> {
+    fn test_read_header_with_invalid_reference_sequence_name_index() {
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0xff, 0xff, 0xff, 0xff, // col_seq = -1
@@ -287,15 +297,11 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        read_header(&mut reader)?;
-
-        // TODO
-
-        Ok(())
+        assert!(read_header(&mut reader).is_err());
     }
 
     #[test]
-    fn test_read_header_with_invalid_start_position_index() -> io::Result<()> {
+    fn test_read_header_with_invalid_start_position_index() {
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1
@@ -306,15 +312,11 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        read_header(&mut reader)?;
-
-        // TODO
-
-        Ok(())
+        assert!(read_header(&mut reader).is_err());
     }
 
     #[test]
-    fn test_read_header_with_invalid_end_position_index() -> io::Result<()> {
+    fn test_read_header_with_invalid_end_position_index() {
         let data = [
             0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
             0x01, 0x00, 0x00, 0x00, // col_seq = 1
@@ -325,11 +327,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        read_header(&mut reader)?;
-
-        // TODO
-
-        Ok(())
+        assert!(read_header(&mut reader).is_err());
     }
 
     #[test]
