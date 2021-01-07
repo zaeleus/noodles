@@ -125,7 +125,10 @@ where
         }
     })?;
 
-    let meta = reader.read_i32::<LittleEndian>()?;
+    let meta = reader
+        .read_i32::<LittleEndian>()
+        .and_then(|b| u8::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
     let skip = reader.read_i32::<LittleEndian>()?;
 
     Ok(index::Header::builder()
@@ -323,6 +326,21 @@ mod tests {
             0x04, 0x00, 0x00, 0x00, // col_beg = 4
             0xff, 0xff, 0xff, 0xff, // col_end = -1
             0x23, 0x00, 0x00, 0x00, // meta = '#'
+            0x00, 0x00, 0x00, 0x00, // skip = 0
+        ];
+
+        let mut reader = &data[..];
+        assert!(read_header(&mut reader).is_err());
+    }
+
+    #[test]
+    fn test_read_header_with_invalid_line_comment_prefix() {
+        let data = [
+            0x00, 0x00, 0x00, 0x00, // format = Generic(GFF)
+            0x01, 0x00, 0x00, 0x00, // col_seq = 1
+            0x04, 0x00, 0x00, 0x00, // col_beg = 4
+            0x05, 0x00, 0x00, 0x00, // col_end = 5
+            0x5c, 0xf3, 0x01, 0x00, // meta = '🍜'
             0x00, 0x00, 0x00, 0x00, // skip = 0
         ];
 
