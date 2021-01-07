@@ -1,4 +1,4 @@
-//! Tabix index header builder.
+//! Tabix index header.
 
 mod builder;
 pub mod format;
