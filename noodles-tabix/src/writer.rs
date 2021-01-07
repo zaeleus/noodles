@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_bgzf as bgzf;
 
 use super::{
     index::{
@@ -14,8 +15,11 @@ use super::{
 const NUL: u8 = b'\x00';
 
 /// A tabix writer.
-pub struct Writer<W> {
-    inner: W,
+pub struct Writer<W>
+where
+    W: Write,
+{
+    inner: bgzf::Writer<W>,
 }
 
 impl<W> Writer<W>
@@ -30,8 +34,10 @@ where
     /// use noodles_tabix as tabix;
     /// let writer = tabix::Writer::new(Vec::new());
     /// ```
-    pub fn new(inner: W) -> Self {
-        Self { inner }
+    pub fn new(writer: W) -> Self {
+        Self {
+            inner: bgzf::Writer::new(writer),
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -44,7 +50,25 @@ where
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        &self.inner
+        &self.inner.get_ref()
+    }
+
+    /// Attempts to finish the output stream.
+    ///
+    /// This is typically only manually called if the underlying stream is needed before the writer
+    /// is dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_tabix as tabix;
+    /// let mut writer = tabix::Writer::new(Vec::new());
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_finish(&mut self) -> io::Result<()> {
+        self.inner.try_finish()
     }
 
     /// Writes a tabix index.
@@ -180,7 +204,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::BufWriter;
+    use std::io::{BufWriter, Read};
 
     use noodles_bgzf as bgzf;
 
@@ -203,6 +227,8 @@ mod tests {
 
         let mut actual_writer = Writer::new(Vec::new());
         actual_writer.write_index(&index)?;
+
+        actual_writer.try_finish()?;
 
         let mut expected_writer = BufWriter::new(Vec::new());
         // magic
@@ -241,10 +267,13 @@ mod tests {
         expected_writer.write_u64::<LittleEndian>(337)?;
         expected_writer.flush()?;
 
-        let actual = actual_writer.get_ref();
+        let mut reader = bgzf::Reader::new(actual_writer.get_ref().as_slice());
+        let mut actual = Vec::new();
+        reader.read_to_end(&mut actual)?;
+
         let expected = expected_writer.get_ref();
 
-        assert_eq!(actual, expected);
+        assert_eq!(&actual, expected);
 
         Ok(())
     }
