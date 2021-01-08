@@ -84,6 +84,44 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_build() {
+        let mut builder = Builder::default();
+
+        builder.add_record(
+            8,
+            13,
+            Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(9),
+            ),
+        );
+
+        builder.add_record(
+            21,
+            34,
+            Chunk::new(
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(2949120),
+            ),
+        );
+
+        let actual = builder.build();
+
+        let bins = vec![Bin::new(
+            4681,
+            vec![Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(2949120),
+            )],
+        )];
+        // FIXME: This should be 0.
+        let intervals = vec![bgzf::VirtualPosition::from(9)];
+        let expected = ReferenceSequence::new(bins, intervals);
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn test_build_with_no_bins() {
         let reference_sequence = Builder::default().build();
         assert_eq!(reference_sequence, ReferenceSequence::default());
