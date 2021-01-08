@@ -11,7 +11,7 @@ const SEPARATOR: char = '\t';
 
 static BED_DATA: &[u8] = b"\
 sq0\t8\t13
-sq0\t21\t34
+sq0\t121393\t196418
 ";
 
 fn compress_data(data: &[u8]) -> io::Result<Vec<u8>> {

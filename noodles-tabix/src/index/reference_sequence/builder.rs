@@ -10,7 +10,7 @@ use super::{
 #[derive(Debug, Default)]
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
-    intervals: Vec<bgzf::VirtualPosition>,
+    intervals: Vec<Option<bgzf::VirtualPosition>>,
 }
 
 impl Builder {
@@ -27,7 +27,13 @@ impl Builder {
             .map(|(_, b)| b.build())
             .collect();
 
-        ReferenceSequence::new(bins, self.intervals)
+        let intervals = self
+            .intervals
+            .into_iter()
+            .map(|p| p.unwrap_or_default())
+            .collect();
+
+        ReferenceSequence::new(bins, intervals)
     }
 
     fn update_bins(&mut self, start: i32, end: i32, chunk: Chunk) {
@@ -47,14 +53,12 @@ impl Builder {
         let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
 
         if linear_index_end_offset >= self.intervals.len() {
-            self.intervals.resize(
-                linear_index_end_offset + 1,
-                bgzf::VirtualPosition::default(),
-            );
+            self.intervals
+                .resize(linear_index_end_offset + 1, Default::default());
         }
 
         for i in linear_index_start_offset..=linear_index_end_offset {
-            self.intervals[i] = chunk.start();
+            self.intervals[i].get_or_insert(chunk.start());
         }
     }
 }
@@ -97,28 +101,63 @@ mod tests {
         );
 
         builder.add_record(
-            21,
-            34,
+            121393,
+            196418,
             Chunk::new(
                 bgzf::VirtualPosition::from(9),
-                bgzf::VirtualPosition::from(2949120),
+                bgzf::VirtualPosition::from(3473408),
             ),
         );
 
         let actual = builder.build();
 
-        let bins = vec![Bin::new(
-            4681,
-            vec![Chunk::new(
-                bgzf::VirtualPosition::from(0),
-                bgzf::VirtualPosition::from(2949120),
-            )],
-        )];
-        // FIXME: This should be 0.
-        let intervals = vec![bgzf::VirtualPosition::from(9)];
-        let expected = ReferenceSequence::new(bins, intervals);
+        let expected = {
+            let bins = vec![
+                Bin::new(
+                    4681,
+                    vec![Chunk::new(
+                        bgzf::VirtualPosition::from(0),
+                        bgzf::VirtualPosition::from(9),
+                    )],
+                ),
+                Bin::new(
+                    73,
+                    vec![Chunk::new(
+                        bgzf::VirtualPosition::from(9),
+                        bgzf::VirtualPosition::from(3473408),
+                    )],
+                ),
+            ];
 
-        assert_eq!(actual, expected);
+            let intervals = vec![
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(9),
+            ];
+
+            ReferenceSequence::new(bins, intervals)
+        };
+
+        for expected_bin in expected.bins() {
+            let actual_bin = actual
+                .bins()
+                .iter()
+                .find(|b| b.id() == expected_bin.id())
+                .expect("missing bin");
+
+            assert_eq!(actual_bin, expected_bin);
+        }
+
+        assert_eq!(actual.intervals(), expected.intervals());
     }
 
     #[test]
