@@ -55,8 +55,9 @@
 pub mod fai;
 pub mod reader;
 pub mod record;
+mod writer;
 
-pub use self::{reader::Reader, record::Record};
+pub use self::{reader::Reader, record::Record, writer::Writer};
 
 use std::{
     fs::File,
