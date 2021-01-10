@@ -141,13 +141,11 @@ where
 {
     let mut freqs = vec![0; 256];
     let mut cumulative_freqs = vec![0; 256];
-    let mut state = vec![0; 4096];
 
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    for r in state.iter_mut().take(4) {
-        *r = reader.read_u32::<LittleEndian>()?;
-    }
+    let mut state = [0; 4];
+    reader.read_u32_into::<LittleEndian>(&mut state)?;
 
     let mut i = 0;
 
@@ -218,16 +216,14 @@ where
 {
     let mut freqs = vec![vec![0; 256]; 256];
     let mut cumulative_freqs = vec![vec![0; 256]; 256];
-    let mut state = vec![0; 4096];
-    let mut last_syms = vec![0; 4];
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    for r in state.iter_mut().take(4) {
-        *r = reader.read_u32::<LittleEndian>()?;
-    }
+    let mut state = [0; 4];
+    reader.read_u32_into::<LittleEndian>(&mut state)?;
 
     let mut i = 0;
+    let mut last_syms = [0; 4];
 
     while i < output.len() / 4 {
         for j in 0..4 {
