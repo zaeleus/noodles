@@ -13,25 +13,24 @@ struct TryFromByteError(u8);
 
 impl fmt::Display for TryFromByteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid rANS context: expected 0 or 1, got {}", self.0)
+        write!(f, "invalid rANS order: expected 0 or 1, got {}", self.0)
     }
 }
 
 impl error::Error for TryFromByteError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Context {
-    Order0,
-    Order1,
+enum Order {
+    Zero,
+    One,
 }
 
-impl TryFrom<u8> for Context {
+impl TryFrom<u8> for Order {
     type Error = TryFromByteError;
-
     fn try_from(b: u8) -> Result<Self, Self::Error> {
         match b {
-            0 => Ok(Self::Order0),
-            1 => Ok(Self::Order1),
+            0 => Ok(Self::Zero),
+            1 => Ok(Self::One),
             _ => Err(TryFromByteError(b)),
         }
     }
@@ -41,8 +40,8 @@ pub fn rans_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let context = reader.read_u8().and_then(|order| {
-        Context::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    let order = reader.read_u8().and_then(|order| {
+        Order::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     let _compressed_len = reader.read_u32::<LittleEndian>()?;
@@ -50,13 +49,9 @@ where
 
     let mut buf = vec![0; data_len as usize];
 
-    match context {
-        Context::Order0 => {
-            rans_decode_0(reader, &mut buf)?;
-        }
-        Context::Order1 => {
-            rans_decode_1(reader, &mut buf)?;
-        }
+    match order {
+        Order::Zero => rans_decode_0(reader, &mut buf)?,
+        Order::One => rans_decode_1(reader, &mut buf)?,
     }
 
     Ok(buf)
@@ -311,16 +306,16 @@ mod tests {
         Ok(())
     }
 
-    mod context {
+    mod order {
         use std::convert::TryFrom;
 
-        use super::super::{Context, TryFromByteError};
+        use super::super::{Order, TryFromByteError};
 
         #[test]
         fn test_try_from() {
-            assert_eq!(Context::try_from(0), Ok(Context::Order0));
-            assert_eq!(Context::try_from(1), Ok(Context::Order1));
-            assert_eq!(Context::try_from(2), Err(TryFromByteError(2)));
+            assert_eq!(Order::try_from(0), Ok(Order::Zero));
+            assert_eq!(Order::try_from(1), Ok(Order::One));
+            assert_eq!(Order::try_from(2), Err(TryFromByteError(2)));
         }
     }
 }
