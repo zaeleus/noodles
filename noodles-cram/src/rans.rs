@@ -1,6 +1,7 @@
+mod order;
+
 use std::{
     convert::TryFrom,
-    error, fmt,
     io::{self, Read},
 };
 
@@ -8,33 +9,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::num::read_itf8;
 
-#[derive(Debug, Eq, PartialEq)]
-struct TryFromByteError(u8);
-
-impl fmt::Display for TryFromByteError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid rANS order: expected 0 or 1, got {}", self.0)
-    }
-}
-
-impl error::Error for TryFromByteError {}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Order {
-    Zero,
-    One,
-}
-
-impl TryFrom<u8> for Order {
-    type Error = TryFromByteError;
-    fn try_from(b: u8) -> Result<Self, Self::Error> {
-        match b {
-            0 => Ok(Self::Zero),
-            1 => Ok(Self::One),
-            _ => Err(TryFromByteError(b)),
-        }
-    }
-}
+use self::order::Order;
 
 pub fn rans_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
@@ -304,18 +279,5 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
-    }
-
-    mod order {
-        use std::convert::TryFrom;
-
-        use super::super::{Order, TryFromByteError};
-
-        #[test]
-        fn test_try_from() {
-            assert_eq!(Order::try_from(0), Ok(Order::Zero));
-            assert_eq!(Order::try_from(1), Ok(Order::One));
-            assert_eq!(Order::try_from(2), Err(TryFromByteError(2)));
-        }
     }
 }
