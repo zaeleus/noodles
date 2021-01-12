@@ -1,3 +1,4 @@
+mod encode;
 mod order;
 
 use std::{
