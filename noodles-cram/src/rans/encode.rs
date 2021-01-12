@@ -1,8 +1,13 @@
+use std::{io, mem};
+
+use byteorder::{LittleEndian, WriteBytesExt};
+
 // Base `b`.
-#[allow(dead_code)]
 const BASE: usize = 256;
 
-#[allow(dead_code)]
+// Lower bound `L`.
+const LOWER_BOUND: u32 = 0x800000;
+
 fn build_frequencies(data: &[u8], bin_count: usize) -> Vec<u32> {
     let mut frequencies = vec![0; bin_count];
 
@@ -14,7 +19,6 @@ fn build_frequencies(data: &[u8], bin_count: usize) -> Vec<u32> {
     frequencies
 }
 
-#[allow(dead_code)]
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     const SCALE: u32 = 4095;
 
@@ -50,7 +54,6 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     normalized_frequencies
 }
 
-#[allow(dead_code)]
 fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
     let mut cumulative_frequencies = vec![0; frequencies.len()];
 
@@ -59,6 +62,45 @@ fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
     }
 
     cumulative_frequencies
+}
+
+#[allow(dead_code)]
+fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
+    let frequencies = build_frequencies(data, BASE);
+
+    let freq = normalize_frequencies(&frequencies);
+    let cfreq = build_cumulative_frequencies(&freq);
+
+    let mut buf = Vec::new();
+    let mut states = [LOWER_BOUND; 4];
+
+    for (i, &sym) in data.iter().enumerate().rev() {
+        let j = i % states.len();
+
+        let mut x = states[j];
+        let freq_i = freq[sym as usize];
+        let cfreq_i = cfreq[sym as usize];
+
+        // normalize
+        while x >= (LOWER_BOUND >> 4) * freq_i {
+            let b = (x & 0xff) as u8;
+            buf.write_u8(b)?;
+            x >>= 8;
+        }
+
+        // update
+        states[j] = (x / freq_i) * 0x1000 + cfreq_i + (x % freq_i);
+    }
+
+    let mut writer = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
+
+    for &state in &states {
+        writer.write_u32::<LittleEndian>(state)?;
+    }
+
+    writer.extend(buf.iter().rev());
+
+    Ok((freq, writer))
 }
 
 #[cfg(test)]
@@ -85,5 +127,35 @@ mod tests {
             build_cumulative_frequencies(&frequencies),
             [0, 682, 2047, 4095]
         );
+    }
+
+    #[test]
+    fn test_rans_encode_0() -> io::Result<()> {
+        // § 14.4.2 Frequency table, Order-0 encoding (2020-07-22)
+        let data = b"abracadabra";
+        let (actual_normalized_frequencies, actual_compressed_data) = rans_encode_0(data)?;
+
+        let mut expected_normalized_frequencies = [0; BASE];
+        expected_normalized_frequencies[usize::from(b'a')] = 1863;
+        expected_normalized_frequencies[usize::from(b'b')] = 744;
+        expected_normalized_frequencies[usize::from(b'c')] = 372;
+        expected_normalized_frequencies[usize::from(b'd')] = 372;
+        expected_normalized_frequencies[usize::from(b'r')] = 744;
+
+        assert_eq!(
+            actual_normalized_frequencies,
+            expected_normalized_frequencies
+        );
+
+        let expected_compressed_data = [
+            0xd2, 0x02, 0xa4, 0x42, // states[0]
+            0x0d, 0x3a, 0x52, 0x21, // states[1]
+            0xd0, 0xfe, 0xa1, 0x42, // states[2]
+            0x40, 0xa6, 0x6a, 0x02, // states[3]
+        ];
+
+        assert_eq!(actual_compressed_data, expected_compressed_data);
+
+        Ok(())
     }
 }
