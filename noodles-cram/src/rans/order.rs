@@ -28,6 +28,12 @@ impl TryFrom<u8> for Order {
     }
 }
 
+impl From<Order> for u8 {
+    fn from(order: Order) -> Self {
+        order as Self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -37,5 +43,11 @@ mod tests {
         assert_eq!(Order::try_from(0), Ok(Order::Zero));
         assert_eq!(Order::try_from(1), Ok(Order::One));
         assert_eq!(Order::try_from(2), Err(TryFromByteError(2)));
+    }
+
+    #[test]
+    fn test_from_order_for_u8() {
+        assert_eq!(u8::from(Order::Zero), 0);
+        assert_eq!(u8::from(Order::One), 1);
     }
 }
