@@ -1,6 +1,11 @@
-use std::{io, mem};
+use std::{
+    io::{self, Write},
+    mem,
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+
+use crate::num::write_itf8;
 
 // Base `b`.
 const BASE: usize = 256;
@@ -103,6 +108,41 @@ fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
     Ok((freq, writer))
 }
 
+#[allow(dead_code)]
+fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut rle = 0;
+
+    for (sym, &f) in frequencies.iter().enumerate() {
+        if f == 0 {
+            continue;
+        }
+
+        if rle > 0 {
+            rle -= 1;
+        } else {
+            writer.write_u8(sym as u8)?;
+
+            if sym > 0 && frequencies[sym - 1] > 0 {
+                rle = frequencies[sym + 1..]
+                    .iter()
+                    .position(|&f| f == 0)
+                    .unwrap_or(255);
+
+                writer.write_u8(rle as u8)?;
+            }
+        }
+
+        write_itf8(writer, f as i32)?;
+    }
+
+    writer.write_u8(0x00)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -155,6 +195,33 @@ mod tests {
         ];
 
         assert_eq!(actual_compressed_data, expected_compressed_data);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_frequencies() -> io::Result<()> {
+        let data = b"abracadabra";
+        let frequencies = build_frequencies(data, BASE);
+        let normalized_frequencies = normalize_frequencies(&frequencies);
+
+        let mut writer = Vec::new();
+        write_frequencies(&mut writer, &normalized_frequencies)?;
+
+        let expected = [
+            0x61, // sym = 'a'
+            0x87, 0x47, // f['a'] = 1863
+            0x62, // sym = 'b'
+            0x02, // rle = 2
+            0x82, 0xe8, // f['b'] = 744
+            0x81, 0x74, // f['c'] = 372
+            0x81, 0x74, // f['d'] = 372
+            0x72, // 'r'
+            0x82, 0xe8, // f['r'] = 744
+            0x00, // end
+        ];
+
+        assert_eq!(writer, expected);
 
         Ok(())
     }
