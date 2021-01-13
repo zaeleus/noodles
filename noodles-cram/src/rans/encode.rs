@@ -7,11 +7,35 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::num::write_itf8;
 
+use super::Order;
+
 // Base `b`.
 const BASE: usize = 256;
 
 // Lower bound `L`.
 const LOWER_BOUND: u32 = 0x800000;
+
+#[allow(dead_code)]
+pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
+    match order {
+        Order::Zero => {
+            let (normalized_frequencies, compressed_data) = rans_encode_0(data)?;
+
+            let mut writer = Vec::new();
+
+            writer.write_u8(u8::from(Order::Zero))?;
+            writer.write_u32::<LittleEndian>(compressed_data.len() as u32)?;
+            writer.write_u32::<LittleEndian>(data.len() as u32)?;
+
+            write_frequencies(&mut writer, &normalized_frequencies)?;
+
+            writer.write_all(&compressed_data)?;
+
+            Ok(writer)
+        }
+        Order::One => todo!(),
+    }
+}
 
 fn build_frequencies(data: &[u8], bin_count: usize) -> Vec<u32> {
     let mut frequencies = vec![0; bin_count];
@@ -69,7 +93,6 @@ fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
     cumulative_frequencies
 }
 
-#[allow(dead_code)]
 fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
     let frequencies = build_frequencies(data, BASE);
 
@@ -108,7 +131,6 @@ fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
     Ok((freq, writer))
 }
 
-#[allow(dead_code)]
 fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
 where
     W: Write,
