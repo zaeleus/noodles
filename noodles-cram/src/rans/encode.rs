@@ -93,6 +93,23 @@ fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
     cumulative_frequencies
 }
 
+fn normalize<W>(writer: &mut W, mut x: u32, freq_i: u32) -> io::Result<u32>
+where
+    W: Write,
+{
+    while x >= (LOWER_BOUND >> 4) * freq_i {
+        let b = (x & 0xff) as u8;
+        writer.write_u8(b)?;
+        x >>= 8;
+    }
+
+    Ok(x)
+}
+
+fn update(x: u32, freq_i: u32, cfreq_i: u32) -> u32 {
+    (x / freq_i) * 0x1000 + cfreq_i + (x % freq_i)
+}
+
 fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
     let frequencies = build_frequencies(data, BASE);
 
@@ -109,15 +126,8 @@ fn rans_encode_0(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
         let freq_i = freq[sym as usize];
         let cfreq_i = cfreq[sym as usize];
 
-        // normalize
-        while x >= (LOWER_BOUND >> 4) * freq_i {
-            let b = (x & 0xff) as u8;
-            buf.write_u8(b)?;
-            x >>= 8;
-        }
-
-        // update
-        states[j] = (x / freq_i) * 0x1000 + cfreq_i + (x % freq_i);
+        x = normalize(&mut buf, x, freq_i)?;
+        states[j] = update(x, freq_i, cfreq_i);
     }
 
     let mut writer = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
