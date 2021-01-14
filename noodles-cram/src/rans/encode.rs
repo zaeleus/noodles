@@ -50,6 +50,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         sum += f;
     }
 
+    if sum == 0 {
+        return vec![0; frequencies.len()];
+    }
+
     let mut normalized_sum = 0;
     let mut normalized_frequencies = vec![0; frequencies.len()];
 
@@ -104,6 +108,9 @@ mod tests {
     fn test_normalize_frequencies() {
         let frequencies = [1, 2, 3, 0];
         assert_eq!(normalize_frequencies(&frequencies), [682, 1365, 2048, 0]);
+
+        let frequencies = [0, 0, 0, 0];
+        assert_eq!(normalize_frequencies(&frequencies), [0, 0, 0, 0]);
     }
 
     #[test]
