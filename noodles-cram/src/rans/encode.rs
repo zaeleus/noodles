@@ -31,7 +31,21 @@ pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
 
             Ok(writer)
         }
-        Order::One => todo!(),
+        Order::One => {
+            let (normalized_contexts, compressed_data) = order_1::encode(data)?;
+
+            let mut writer = Vec::new();
+
+            writer.write_u8(u8::from(Order::One))?;
+            writer.write_u32::<LittleEndian>(compressed_data.len() as u32)?;
+            writer.write_u32::<LittleEndian>(data.len() as u32)?;
+
+            order_1::write_contexts(&mut writer, &normalized_contexts)?;
+
+            writer.write_all(&compressed_data)?;
+
+            Ok(writer)
+        }
     }
 }
 

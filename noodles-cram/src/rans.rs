@@ -23,4 +23,18 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_self_1() -> io::Result<()> {
+        let data = b"abracadabraabracadabraabracadabraabracadabra";
+
+        let compressed_data = rans_encode(Order::One, data)?;
+
+        let mut reader = &compressed_data[..];
+        let decompressed_data = rans_decode(&mut reader)?;
+
+        assert_eq!(decompressed_data, data);
+
+        Ok(())
+    }
 }
