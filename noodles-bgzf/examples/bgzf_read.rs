@@ -26,7 +26,6 @@ fn main() -> io::Result<()> {
         match reader.read(&mut buf) {
             Ok(0) => break,
             Ok(n) => writer.write_all(&buf[..n])?,
-            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
             Err(e) => return Err(e),
         }
     }
