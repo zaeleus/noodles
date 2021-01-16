@@ -178,7 +178,7 @@ where
 ///
 /// If successful, the block size (`BSIZE` + 1) is returned. If a block size of 0 is returned, the
 /// stream reached EOF.
-fn read_header<R>(reader: &mut R) -> io::Result<u16>
+fn read_header<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
 {
@@ -190,10 +190,10 @@ where
         Err(e) => return Err(e),
     }
 
-    let bsize = &header[16..18];
+    let bsize = LittleEndian::read_u16(&header[16..]);
 
     // Add 1 because BSIZE is "total Block SIZE minus 1".
-    Ok(LittleEndian::read_u16(bsize) + 1)
+    Ok(u32::from(bsize) + 1)
 }
 
 /// Reads a BGZF block trailer.
@@ -233,9 +233,9 @@ fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::
 where
     R: Read,
 {
-    let clen = match read_header(reader).map(usize::from) {
+    let clen = match read_header(reader) {
         Ok(0) => return Ok(0),
-        Ok(bs) => bs,
+        Ok(bs) => bs as usize,
         Err(e) => return Err(e),
     };
 
@@ -273,7 +273,7 @@ mod tests {
     fn test_read_header() -> io::Result<()> {
         let mut reader = &BGZF_EOF[..];
         let block_size = read_header(&mut reader)?;
-        assert_eq!(block_size, BGZF_EOF.len() as u16);
+        assert_eq!(block_size, BGZF_EOF.len() as u32);
         Ok(())
     }
 
