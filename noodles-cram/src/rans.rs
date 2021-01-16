@@ -26,7 +26,7 @@ mod tests {
 
     #[test]
     fn test_self_1() -> io::Result<()> {
-        let data = b"abracadabraabracadabraabracadabraabracadabra";
+        let data = b"noodles";
 
         let compressed_data = rans_encode(Order::One, data)?;
 

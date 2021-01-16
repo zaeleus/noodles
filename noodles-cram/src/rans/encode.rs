@@ -15,44 +15,39 @@ const LOWER_BOUND: u32 = 0x800000;
 
 #[allow(dead_code)]
 pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
-    match order {
+    let compressed_blob = match order {
         Order::Zero => {
             let (normalized_frequencies, compressed_data) = order_0::encode(data)?;
 
-            let mut writer = Vec::new();
+            let mut compressed_blob = Vec::new();
+            order_0::write_frequencies(&mut compressed_blob, &normalized_frequencies)?;
+            compressed_blob.extend(&compressed_data);
 
-            write_header(
-                &mut writer,
-                order,
-                compressed_data.len() as u32,
-                data.len() as u32,
-            )?;
-
-            order_0::write_frequencies(&mut writer, &normalized_frequencies)?;
-
-            writer.write_all(&compressed_data)?;
-
-            Ok(writer)
+            compressed_blob
         }
         Order::One => {
             let (normalized_contexts, compressed_data) = order_1::encode(data)?;
 
-            let mut writer = Vec::new();
+            let mut compressed_blob = Vec::new();
+            order_1::write_contexts(&mut compressed_blob, &normalized_contexts)?;
+            compressed_blob.extend(&compressed_data);
 
-            write_header(
-                &mut writer,
-                order,
-                compressed_data.len() as u32,
-                data.len() as u32,
-            )?;
-
-            order_1::write_contexts(&mut writer, &normalized_contexts)?;
-
-            writer.write_all(&compressed_data)?;
-
-            Ok(writer)
+            compressed_blob
         }
-    }
+    };
+
+    let mut writer = Vec::new();
+
+    write_header(
+        &mut writer,
+        order,
+        compressed_blob.len() as u32,
+        data.len() as u32,
+    )?;
+
+    writer.write_all(&compressed_blob)?;
+
+    Ok(writer)
 }
 
 fn write_header<W>(
@@ -139,6 +134,41 @@ fn update(x: u32, freq_i: u32, cfreq_i: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_rans_encode_with_order_0() -> io::Result<()> {
+        let data = b"noodles";
+        let actual = rans_encode(Order::Zero, data)?;
+
+        let expected = [
+            0x00, 0x25, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x64, 0x82, 0x49, 0x65, 0x00,
+            0x82, 0x49, 0x6c, 0x82, 0x49, 0x6e, 0x82, 0x49, 0x6f, 0x00, 0x84, 0x92, 0x73, 0x82,
+            0x49, 0x00, 0xe2, 0x06, 0x83, 0x18, 0x74, 0x7b, 0x41, 0x0c, 0x2b, 0xa9, 0x41, 0x0c,
+            0x25, 0x31, 0x80, 0x03,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_rans_encode_with_order_1() -> io::Result<()> {
+        let data = b"noodles";
+        let actual = rans_encode(Order::One, data)?;
+
+        let expected = [
+            0x01, 0x3b, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x64, 0x83, 0xff, 0x6e,
+            0x83, 0xff, 0x6f, 0x00, 0x88, 0x01, 0x00, 0x64, 0x6c, 0x8f, 0xff, 0x00, 0x65, 0x00,
+            0x73, 0x8f, 0xff, 0x00, 0x6c, 0x65, 0x8f, 0xff, 0x00, 0x6e, 0x6f, 0x8f, 0xff, 0x00,
+            0x6f, 0x00, 0x64, 0x87, 0xff, 0x6f, 0x88, 0x00, 0x00, 0x00, 0x07, 0x84, 0x00, 0x02,
+            0x00, 0xe8, 0xff, 0x00, 0x00, 0xe8, 0xff, 0x00, 0x10, 0xe0, 0x00, 0x02,
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_write_header() -> io::Result<()> {
