@@ -21,9 +21,12 @@ pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
 
             let mut writer = Vec::new();
 
-            writer.write_u8(u8::from(Order::Zero))?;
-            writer.write_u32::<LittleEndian>(compressed_data.len() as u32)?;
-            writer.write_u32::<LittleEndian>(data.len() as u32)?;
+            write_header(
+                &mut writer,
+                order,
+                compressed_data.len() as u32,
+                data.len() as u32,
+            )?;
 
             order_0::write_frequencies(&mut writer, &normalized_frequencies)?;
 
@@ -36,9 +39,12 @@ pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
 
             let mut writer = Vec::new();
 
-            writer.write_u8(u8::from(Order::One))?;
-            writer.write_u32::<LittleEndian>(compressed_data.len() as u32)?;
-            writer.write_u32::<LittleEndian>(data.len() as u32)?;
+            write_header(
+                &mut writer,
+                order,
+                compressed_data.len() as u32,
+                data.len() as u32,
+            )?;
 
             order_1::write_contexts(&mut writer, &normalized_contexts)?;
 
@@ -47,6 +53,21 @@ pub fn rans_encode(order: Order, data: &[u8]) -> io::Result<Vec<u8>> {
             Ok(writer)
         }
     }
+}
+
+fn write_header<W>(
+    writer: &mut W,
+    order: Order,
+    compressed_len: u32,
+    data_len: u32,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_u8(u8::from(order))?;
+    writer.write_u32::<LittleEndian>(compressed_len)?;
+    writer.write_u32::<LittleEndian>(data_len)?;
+    Ok(())
 }
 
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
@@ -118,6 +139,22 @@ fn update(x: u32, freq_i: u32, cfreq_i: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_header() -> io::Result<()> {
+        let mut writer = Vec::new();
+        write_header(&mut writer, Order::One, 14930352, 9227465)?;
+
+        let expected = [
+            0x01, // order
+            0xb0, 0xd1, 0xe3, 0x00, // compressed length
+            0xc9, 0xcc, 0x8c, 0x00, // data length
+        ];
+
+        assert_eq!(writer, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_normalize_frequencies() {
