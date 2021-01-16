@@ -176,15 +176,18 @@ where
 ///
 /// The position of the stream is expected to be at the start of a block.
 ///
-/// This returns the block size (`BSIZE` + 1).
+/// If successful, the block size (`BSIZE` + 1) is returned. If a block size of 0 is returned, the
+/// stream reached EOF.
 fn read_header<R>(reader: &mut R) -> io::Result<u16>
 where
     R: Read,
 {
     let mut header = [0; BGZF_HEADER_SIZE];
 
-    if reader.read_exact(&mut header).is_err() {
-        return Ok(0);
+    match reader.read_exact(&mut header) {
+        Ok(_) => {}
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+        Err(e) => return Err(e),
     }
 
     let bsize = &header[16..18];
