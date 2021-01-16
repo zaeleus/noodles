@@ -13,12 +13,7 @@ pub fn rans_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let order = reader.read_u8().and_then(|order| {
-        Order::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let _compressed_len = reader.read_u32::<LittleEndian>()?;
-    let data_len = reader.read_u32::<LittleEndian>()?;
+    let (order, _, data_len) = read_header(reader)?;
 
     let mut buf = vec![0; data_len as usize];
 
@@ -28,6 +23,20 @@ where
     }
 
     Ok(buf)
+}
+
+fn read_header<R>(reader: &mut R) -> io::Result<(Order, u32, u32)>
+where
+    R: Read,
+{
+    let order = reader.read_u8().and_then(|order| {
+        Order::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let compressed_len = reader.read_u32::<LittleEndian>()?;
+    let data_len = reader.read_u32::<LittleEndian>()?;
+
+    Ok((order, compressed_len, data_len))
 }
 
 fn read_frequencies_0<R>(
@@ -239,6 +248,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_read_header() -> io::Result<()> {
+        let data = [0x00, 0x25, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00];
+        let mut reader = &data[..];
+        assert_eq!(read_header(&mut reader)?, (Order::Zero, 37, 7));
+        Ok(())
+    }
 
     #[test]
     fn test_rans_decode_with_order_0() -> io::Result<()> {
