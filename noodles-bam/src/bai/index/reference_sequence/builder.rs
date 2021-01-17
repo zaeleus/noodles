@@ -15,7 +15,7 @@ const MAX_INTERVAL_COUNT: usize = 131072;
 #[derive(Debug)]
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
-    intervals: Vec<bgzf::VirtualPosition>,
+    intervals: Vec<Option<bgzf::VirtualPosition>>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
     mapped_record_count: u64,
@@ -41,6 +41,12 @@ impl Builder {
             .map(|(_, b)| b.build())
             .collect();
 
+        let intervals = self
+            .intervals
+            .into_iter()
+            .map(|p| p.unwrap_or_default())
+            .collect();
+
         let metadata = Metadata::new(
             self.start_position,
             self.end_position,
@@ -48,7 +54,7 @@ impl Builder {
             self.unmapped_record_count,
         );
 
-        ReferenceSequence::new(bins, self.intervals, Some(metadata))
+        ReferenceSequence::new(bins, intervals, Some(metadata))
     }
 
     fn update_bins(&mut self, record: &Record, chunk: Chunk) {
@@ -72,14 +78,12 @@ impl Builder {
         let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
 
         if linear_index_end_offset >= self.intervals.len() {
-            self.intervals.resize(
-                linear_index_end_offset + 1,
-                bgzf::VirtualPosition::default(),
-            );
+            self.intervals
+                .resize(linear_index_end_offset + 1, Default::default());
         }
 
         for i in linear_index_start_offset..=linear_index_end_offset {
-            self.intervals[i] = chunk.start();
+            self.intervals[i].get_or_insert(chunk.start());
         }
 
         Ok(())
@@ -175,7 +179,7 @@ mod tests {
                     bgzf::VirtualPosition::from(144),
                 )],
             )],
-            vec![bgzf::VirtualPosition::from(89)],
+            vec![bgzf::VirtualPosition::from(55)],
             Some(Metadata::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(144),
@@ -200,11 +204,7 @@ mod tests {
         let builder = Builder::default();
 
         assert!(builder.bin_builders.is_empty());
-
-        assert!(builder
-            .intervals
-            .iter()
-            .all(|&pos| pos == bgzf::VirtualPosition::default()));
+        assert!(builder.intervals.is_empty());
 
         assert_eq!(builder.start_position, bgzf::VirtualPosition::max());
         assert_eq!(builder.end_position, bgzf::VirtualPosition::default());
