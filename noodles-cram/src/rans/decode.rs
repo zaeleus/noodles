@@ -1,11 +1,12 @@
+mod order_0;
+mod order_1;
+
 use std::{
     convert::TryFrom,
     io::{self, Read},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-
-use crate::num::read_itf8;
 
 use super::Order;
 
@@ -18,8 +19,8 @@ where
     let mut buf = vec![0; data_len as usize];
 
     match order {
-        Order::Zero => rans_decode_0(reader, &mut buf)?,
-        Order::One => rans_decode_1(reader, &mut buf)?,
+        Order::Zero => order_0::decode(reader, &mut buf)?,
+        Order::One => order_1::decode(reader, &mut buf)?,
     }
 
     Ok(buf)
@@ -37,50 +38,6 @@ where
     let data_len = reader.read_u32::<LittleEndian>()?;
 
     Ok((order, compressed_len, data_len))
-}
-
-fn read_frequencies_0<R>(
-    reader: &mut R,
-    freqs: &mut [u32],
-    cumulative_freqs: &mut [u32],
-) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut sym = reader.read_u8()?;
-    let mut last_sym = sym;
-    let mut rle = 0;
-
-    loop {
-        let f = read_itf8(reader)? as u32;
-
-        freqs[sym as usize] = f;
-
-        if rle > 0 {
-            rle -= 1;
-            sym += 1;
-        } else {
-            sym = reader.read_u8()?;
-
-            if last_sym < 255 && sym == last_sym + 1 {
-                rle = reader.read_u8()?;
-            }
-        }
-
-        last_sym = sym;
-
-        if sym == 0 {
-            break;
-        }
-    }
-
-    cumulative_freqs[0] = 0;
-
-    for i in 0..255 {
-        cumulative_freqs[i + 1] = cumulative_freqs[i] + freqs[i];
-    }
-
-    Ok(())
 }
 
 pub fn rans_get_cumulative_freq(r: u32) -> u32 {
@@ -110,139 +67,6 @@ where
     }
 
     Ok(r)
-}
-
-pub fn rans_decode_0<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut freqs = vec![0; 256];
-    let mut cumulative_freqs = vec![0; 256];
-
-    read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
-
-    let mut state = [0; 4];
-    reader.read_u32_into::<LittleEndian>(&mut state)?;
-
-    let mut i = 0;
-
-    while i < output.len() {
-        for j in 0..4 {
-            if i + j >= output.len() {
-                return Ok(());
-            }
-
-            let f = rans_get_cumulative_freq(state[j]);
-            let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
-
-            output[i + j] = s;
-
-            state[j] = rans_advance_step(state[j], cumulative_freqs[s as usize], freqs[s as usize]);
-            state[j] = rans_renorm(reader, state[j])?;
-        }
-
-        i += 4;
-    }
-
-    Ok(())
-}
-
-fn read_frequencies_1<R>(
-    reader: &mut R,
-    freqs: &mut Vec<Vec<u32>>,
-    cumulative_freqs: &mut Vec<Vec<u32>>,
-) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut sym = reader.read_u8()?;
-    let mut last_sym = sym;
-    let mut rle = 0;
-
-    loop {
-        read_frequencies_0(
-            reader,
-            &mut freqs[sym as usize],
-            &mut cumulative_freqs[sym as usize],
-        )?;
-
-        if rle > 0 {
-            rle -= 1;
-            sym += 1;
-        } else {
-            sym = reader.read_u8()?;
-
-            if sym < 255 && sym == last_sym + 1 {
-                rle = reader.read_u8()?;
-            }
-        }
-
-        last_sym = sym;
-
-        if sym == 0 {
-            break;
-        }
-    }
-
-    Ok(())
-}
-
-pub fn rans_decode_1<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let mut freqs = vec![vec![0; 256]; 256];
-    let mut cumulative_freqs = vec![vec![0; 256]; 256];
-
-    read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
-
-    let mut state = [0; 4];
-    reader.read_u32_into::<LittleEndian>(&mut state)?;
-
-    let mut i = 0;
-    let mut last_syms = [0; 4];
-
-    while i < output.len() / 4 {
-        for j in 0..4 {
-            let f = rans_get_cumulative_freq(state[j]);
-            let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j] as usize], f);
-
-            output[i + j * (output.len() / 4)] = s;
-
-            state[j] = rans_advance_step(
-                state[j],
-                cumulative_freqs[last_syms[j] as usize][s as usize],
-                freqs[last_syms[j] as usize][s as usize],
-            );
-            state[j] = rans_renorm(reader, state[j])?;
-
-            last_syms[j] = s;
-        }
-
-        i += 1;
-    }
-
-    i *= 4;
-
-    while i < output.len() {
-        let f = rans_get_cumulative_freq(state[3]);
-        let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[3] as usize], f);
-
-        output[i] = s;
-
-        state[3] = rans_advance_step(
-            state[3],
-            cumulative_freqs[last_syms[3] as usize][s as usize],
-            freqs[last_syms[3] as usize][s as usize],
-        );
-        state[3] = rans_renorm(reader, state[3])?;
-
-        last_syms[3] = s;
-
-        i += 1;
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
