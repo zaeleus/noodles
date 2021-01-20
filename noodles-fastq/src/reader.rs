@@ -131,7 +131,7 @@ where
     }
 }
 
-fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+pub(crate) fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {

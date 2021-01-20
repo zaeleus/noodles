@@ -29,8 +29,9 @@
 //! ```
 
 pub mod fai;
+mod indexer;
 mod reader;
 mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+pub use self::{indexer::Indexer, reader::Reader, record::Record, writer::Writer};
