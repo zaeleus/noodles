@@ -28,6 +28,7 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+pub mod fai;
 mod reader;
 mod record;
 mod writer;
