@@ -64,21 +64,3 @@ where
         )
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_write_record() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-
-        let record = Record::new(String::from("sq0"), 10946, 4, 80, 81);
-        writer.write_record(&record)?;
-
-        let expected = b"sq0\t10946\t4\t80\t81\n";
-        assert_eq!(writer.get_ref(), expected);
-
-        Ok(())
-    }
-}
