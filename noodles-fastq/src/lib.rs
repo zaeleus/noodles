@@ -59,7 +59,7 @@ where
     let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
     let mut index = Vec::new();
 
-    while let Ok(record) = indexer.index_record() {
+    while let Some(record) = indexer.index_record()? {
         index.push(record);
     }
 

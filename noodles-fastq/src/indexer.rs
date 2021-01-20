@@ -46,14 +46,19 @@ where
     ///
     /// let actual = indexer.index_record()?;
     /// let expected = fai::Record::new(String::from("r0"), 4, 4, 4, 5, 11);
-    /// assert_eq!(actual, expected);
+    /// assert_eq!(actual, Some(expected));
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn index_record(&mut self) -> io::Result<Record> {
+    pub fn index_record(&mut self) -> io::Result<Option<Record>> {
         self.line_buf.clear();
 
         // read name
-        self.offset += read_read_name(&mut self.inner, &mut self.line_buf)? as u64;
+        self.offset += match read_read_name(&mut self.inner, &mut self.line_buf) {
+            Ok(0) => return Ok(None),
+            Ok(n) => n as u64,
+            Err(e) => return Err(e),
+        };
+
         let read_name = String::from_utf8(self.line_buf.clone())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
@@ -76,14 +81,14 @@ where
         self.line_buf.clear();
         self.offset += read_line(&mut self.inner, &mut self.line_buf)? as u64;
 
-        Ok(Record::new(
+        Ok(Some(Record::new(
             read_name,
             line_bases,
             sequence_offset,
             line_bases,
             line_width,
             quality_scores_offset,
-        ))
+        )))
     }
 }
 
@@ -121,10 +126,18 @@ NDLSNDLSND
         let mut indexer = Indexer::new(&data[..]);
 
         let record = indexer.index_record()?;
-        assert_eq!(record, Record::new(String::from("r0"), 4, 4, 4, 5, 11));
+        assert_eq!(
+            record,
+            Some(Record::new(String::from("r0"), 4, 4, 4, 5, 11))
+        );
 
         let record = indexer.index_record()?;
-        assert_eq!(record, Record::new(String::from("r1"), 10, 20, 10, 11, 33));
+        assert_eq!(
+            record,
+            Some(Record::new(String::from("r1"), 10, 20, 10, 11, 33))
+        );
+
+        assert!(indexer.index_record()?.is_none());
 
         Ok(())
     }
