@@ -54,31 +54,3 @@ where
         result
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_read_record() -> io::Result<()> {
-        let data = b"\
-sq0\t10946\t4\t80\t81
-sq1\t17711\t10954\t80\t81
-";
-
-        let mut reader = Reader::new(&data[..]);
-
-        let mut buf = String::new();
-        reader.read_record(&mut buf)?;
-        assert_eq!(buf, "sq0\t10946\t4\t80\t81");
-
-        buf.clear();
-        reader.read_record(&mut buf)?;
-        assert_eq!(buf, "sq1\t17711\t10954\t80\t81");
-
-        let bytes_read = reader.read_record(&mut buf)?;
-        assert_eq!(bytes_read, 0);
-
-        Ok(())
-    }
-}
