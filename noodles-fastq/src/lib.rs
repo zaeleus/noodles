@@ -35,3 +35,33 @@ mod record;
 mod writer;
 
 pub use self::{indexer::Indexer, reader::Reader, record::Record, writer::Writer};
+
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
+
+/// Indexes a FASTQ file.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_fastq as fastq;
+/// let index = fastq::index("sample.fastq")?;
+/// # Ok::<(), io::Error>(())
+/// ```
+pub fn index<P>(src: P) -> io::Result<fai::Index>
+where
+    P: AsRef<Path>,
+{
+    let mut indexer = File::open(src).map(BufReader::new).map(Indexer::new)?;
+    let mut index = Vec::new();
+
+    while let Ok(record) = indexer.index_record() {
+        index.push(record);
+    }
+
+    Ok(index)
+}
