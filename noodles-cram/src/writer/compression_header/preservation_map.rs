@@ -38,7 +38,7 @@ where
     write_bool(&mut buf, preservation_map.reference_required())?;
 
     write_key(&mut buf, Key::SubstitutionMatrix)?;
-    write_substituion_matrix(&mut buf, preservation_map.substitution_matrix())?;
+    write_substitution_matrix(&mut buf, preservation_map.substitution_matrix())?;
 
     write_key(&mut buf, Key::TagIdsDictionary)?;
     write_tag_ids_dictionary(&mut buf, preservation_map.tag_ids_dictionary())?;
@@ -68,7 +68,7 @@ where
     }
 }
 
-fn write_substituion_matrix<W>(
+fn write_substitution_matrix<W>(
     writer: &mut W,
     substitution_matrix: &SubstitutionMatrix,
 ) -> io::Result<()>
