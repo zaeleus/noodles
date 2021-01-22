@@ -9,7 +9,7 @@ pub struct Builder {
     len: Option<i32>,
     alternative_locus: Option<String>,
     alternative_names: Option<String>,
-    assemby_id: Option<String>,
+    assembly_id: Option<String>,
     description: Option<String>,
     md5_checksum: Option<Md5Checksum>,
     species: Option<String>,
@@ -119,13 +119,13 @@ impl Builder {
     ///     .set_assembly_id("ref")
     ///     .build();
     ///
-    /// assert_eq!(reference_sequence.assemby_id(), Some("ref"));
+    /// assert_eq!(reference_sequence.assembly_id(), Some("ref"));
     /// ```
-    pub fn set_assembly_id<I>(mut self, assemby_id: I) -> Self
+    pub fn set_assembly_id<I>(mut self, assembly_id: I) -> Self
     where
         I: Into<String>,
     {
-        self.assemby_id = Some(assemby_id.into());
+        self.assembly_id = Some(assembly_id.into());
         self
     }
 
@@ -289,7 +289,7 @@ impl Builder {
             len: self.len.expect("missing len"),
             alternative_locus: self.alternative_locus,
             alternative_names: self.alternative_names,
-            assemby_id: self.assemby_id,
+            assembly_id: self.assembly_id,
             description: self.description,
             md5_checksum: self.md5_checksum,
             species: self.species,

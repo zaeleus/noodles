@@ -25,7 +25,7 @@ pub struct ReferenceSequence {
     len: i32,
     alternative_locus: Option<String>,
     alternative_names: Option<String>,
-    assemby_id: Option<String>,
+    assembly_id: Option<String>,
     description: Option<String>,
     md5_checksum: Option<Md5Checksum>,
     species: Option<String>,
@@ -66,7 +66,7 @@ impl ReferenceSequence {
             len,
             alternative_locus: None,
             alternative_names: None,
-            assemby_id: None,
+            assembly_id: None,
             description: None,
             md5_checksum: None,
             species: None,
@@ -169,10 +169,10 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
-    /// assert!(reference_sequence.assemby_id().is_none());
+    /// assert!(reference_sequence.assembly_id().is_none());
     /// ```
-    pub fn assemby_id(&self) -> Option<&str> {
-        self.assemby_id.as_deref()
+    pub fn assembly_id(&self) -> Option<&str> {
+        self.assembly_id.as_deref()
     }
 
     /// Returns the description.
@@ -289,7 +289,7 @@ impl fmt::Display for ReferenceSequence {
             write!(f, "\t{}:{}", Tag::AlternativeNames, alternative_names)?;
         }
 
-        if let Some(assembly_id) = self.assemby_id() {
+        if let Some(assembly_id) = self.assembly_id() {
             write!(f, "\t{}:{}", Tag::AssemblyId, assembly_id)?;
         }
 
