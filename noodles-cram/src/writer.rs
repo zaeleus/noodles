@@ -150,6 +150,21 @@ where
     /// The position of the stream is expected to be directly after the file definition.
     ///
     /// Reference sequence dictionary entries must have MD5 checksums (`M5`) set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// writer.write_file_definition()?;
+    ///
+    /// let header = sam::Header::default();
+    /// writer.write_file_header(&header)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         Container::try_from(header)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
