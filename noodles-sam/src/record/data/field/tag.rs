@@ -49,7 +49,7 @@ pub enum Tag {
     /// (`FS`).
     SegmentSuffix,
     /// (`FZ`).
-    AlterantiveSequence,
+    AlternativeSequence,
     /// (`GC`).
     ReservedGC,
     /// (`GQ`).
@@ -156,7 +156,7 @@ impl AsRef<str> for Tag {
             Self::NextHitSequence => "E2",
             Self::SegmentIndex => "FI",
             Self::SegmentSuffix => "FS",
-            Self::AlterantiveSequence => "FZ",
+            Self::AlternativeSequence => "FZ",
             Self::ReservedGC => "GC",
             Self::ReservedGQ => "GQ",
             Self::ReservedGS => "GS",
@@ -244,7 +244,7 @@ impl FromStr for Tag {
             "E2" => Ok(Self::NextHitSequence),
             "FI" => Ok(Self::SegmentIndex),
             "FS" => Ok(Self::SegmentSuffix),
-            "FZ" => Ok(Self::AlterantiveSequence),
+            "FZ" => Ok(Self::AlternativeSequence),
             "GC" => Ok(Self::ReservedGC),
             "GQ" => Ok(Self::ReservedGQ),
             "GS" => Ok(Self::ReservedGS),
@@ -321,7 +321,7 @@ mod tests {
         assert_eq!(Tag::NextHitSequence.to_string(), "E2");
         assert_eq!(Tag::SegmentIndex.to_string(), "FI");
         assert_eq!(Tag::SegmentSuffix.to_string(), "FS");
-        assert_eq!(Tag::AlterantiveSequence.to_string(), "FZ");
+        assert_eq!(Tag::AlternativeSequence.to_string(), "FZ");
         assert_eq!(Tag::ReservedGC.to_string(), "GC");
         assert_eq!(Tag::ReservedGQ.to_string(), "GQ");
         assert_eq!(Tag::ReservedGS.to_string(), "GS");
@@ -386,7 +386,7 @@ mod tests {
         assert_eq!("E2".parse(), Ok(Tag::NextHitSequence));
         assert_eq!("FI".parse(), Ok(Tag::SegmentIndex));
         assert_eq!("FS".parse(), Ok(Tag::SegmentSuffix));
-        assert_eq!("FZ".parse(), Ok(Tag::AlterantiveSequence));
+        assert_eq!("FZ".parse(), Ok(Tag::AlternativeSequence));
         assert_eq!("GC".parse(), Ok(Tag::ReservedGC));
         assert_eq!("GQ".parse(), Ok(Tag::ReservedGQ));
         assert_eq!("GS".parse(), Ok(Tag::ReservedGS));
