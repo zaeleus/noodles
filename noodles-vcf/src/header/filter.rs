@@ -4,6 +4,8 @@ mod key;
 
 use std::{convert::TryFrom, error, fmt};
 
+use crate::record::FilterStatus;
+
 use super::{record, Record};
 
 use self::key::Key;
@@ -16,6 +18,22 @@ pub struct Filter {
 }
 
 impl Filter {
+    /// Creates a default filter record for PASS.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::pass();
+    /// assert_eq!(filter, Filter::new(String::from("PASS"), String::from("All filters passed")));
+    /// ```
+    pub fn pass() -> Self {
+        Self::new(
+            FilterStatus::Pass.to_string(),
+            String::from("All filters passed"),
+        )
+    }
+
     /// Creates a VCF header filter record.
     ///
     /// # Examples
