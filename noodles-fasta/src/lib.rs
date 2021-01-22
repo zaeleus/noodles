@@ -53,6 +53,7 @@
 //! ```
 
 pub mod fai;
+mod indexer;
 pub mod reader;
 pub mod record;
 mod writer;
@@ -65,7 +66,7 @@ use std::{
     path::Path,
 };
 
-use self::fai::indexer::Indexer;
+use self::indexer::Indexer;
 
 /// Indexes a FASTA file.
 ///

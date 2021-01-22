@@ -8,12 +8,11 @@ use std::{
 
 use memchr::memchr;
 
-use crate::{
+use super::{
+    fai::Record,
     reader::{read_line, DEFINITION_PREFIX, NEWLINE},
     record::definition::{Definition, ParseError},
 };
-
-use super::Record;
 
 /// A FASTA indexer.
 pub struct Indexer<R> {
