@@ -104,11 +104,10 @@ impl fmt::Display for Genotype {
 /// An error returned when VCF genotype fields fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromFieldsError {
-    /// The leading genotype field (`GT`) is missing.
+    /// The genotype field (`GT`) position is invalid.
     ///
-    /// See § 1.6.2 Genotype fields (2020-06-25): "The first key must always be the genotype (GT)
-    /// if it is present."
-    MissingLeadingGenotypeField,
+    /// The genotype field must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
+    InvalidGenotypeFieldPosition,
 }
 
 impl error::Error for TryFromFieldsError {}
@@ -116,7 +115,7 @@ impl error::Error for TryFromFieldsError {}
 impl fmt::Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingLeadingGenotypeField => f.write_str("missing leading genotype field (GT)"),
+            Self::InvalidGenotypeFieldPosition => f.write_str("invalid genotype field position"),
         }
     }
 }
@@ -125,14 +124,16 @@ impl TryFrom<Vec<Field>> for Genotype {
     type Error = TryFromFieldsError;
 
     fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
-        if let Some(field) = fields.first() {
-            if field.key() == &field::Key::Genotype {
+        if fields.is_empty() {
+            Ok(Self::default())
+        } else if let Some(i) = fields.iter().position(|f| f.key() == &field::Key::Genotype) {
+            if i == 0 {
                 Ok(Self(fields))
             } else {
-                Err(TryFromFieldsError::MissingLeadingGenotypeField)
+                Err(TryFromFieldsError::InvalidGenotypeFieldPosition)
             }
         } else {
-            Ok(Self::default())
+            Ok(Self(fields))
         }
     }
 }
@@ -194,6 +195,8 @@ mod tests {
 
     #[test]
     fn test_try_from_fields_for_genotype() {
+        assert!(Genotype::try_from(Vec::new()).is_ok());
+
         let fields = vec![Field::new(
             field::Key::Genotype,
             Some(field::Value::String(String::from("0|0"))),
@@ -204,9 +207,21 @@ mod tests {
             field::Key::ConditionalGenotypeQuality,
             Some(field::Value::Integer(13)),
         )];
+        assert!(Genotype::try_from(fields).is_ok());
+
+        let fields = vec![
+            Field::new(
+                field::Key::ConditionalGenotypeQuality,
+                Some(field::Value::Integer(13)),
+            ),
+            Field::new(
+                field::Key::Genotype,
+                Some(field::Value::String(String::from("0|0"))),
+            ),
+        ];
         assert_eq!(
             Genotype::try_from(fields),
-            Err(TryFromFieldsError::MissingLeadingGenotypeField)
+            Err(TryFromFieldsError::InvalidGenotypeFieldPosition)
         );
     }
 }

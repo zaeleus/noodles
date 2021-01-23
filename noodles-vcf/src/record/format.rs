@@ -76,8 +76,10 @@ impl FromStr for Format {
 pub enum TryFromKeyVectorError {
     /// The input is empty.
     Empty,
-    /// The first key is not genotype (`GT`).
-    MissingLeadingGenotypeKey,
+    /// The genotype key (`GT`) position is invalid.
+    ///
+    /// The genotype key must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
+    InvalidGenotypeKeyPosition,
 }
 
 impl error::Error for TryFromKeyVectorError {}
@@ -86,7 +88,7 @@ impl fmt::Display for TryFromKeyVectorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::MissingLeadingGenotypeKey => f.write_str("missing leading genotype key (GT)"),
+            Self::InvalidGenotypeKeyPosition => f.write_str("invalid genotype key position"),
         }
     }
 }
@@ -97,10 +99,14 @@ impl TryFrom<Vec<Key>> for Format {
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
         if keys.is_empty() {
             Err(TryFromKeyVectorError::Empty)
-        } else if keys[0] == Key::Genotype {
-            Ok(Self(keys))
+        } else if let Some(i) = keys.iter().position(|k| k == &Key::Genotype) {
+            if i == 0 {
+                Ok(Self(keys))
+            } else {
+                Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
+            }
         } else {
-            Err(TryFromKeyVectorError::MissingLeadingGenotypeKey)
+            Ok(Self(keys))
         }
     }
 }
@@ -151,18 +157,18 @@ mod tests {
         );
 
         assert_eq!(
+            Format::try_from(vec![Key::ConditionalGenotypeQuality]),
+            Ok(Format(vec![Key::ConditionalGenotypeQuality]))
+        );
+
+        assert_eq!(
             Format::try_from(Vec::new()),
             Err(TryFromKeyVectorError::Empty)
         );
 
         assert_eq!(
-            Format::try_from(vec![Key::ConditionalGenotypeQuality]),
-            Err(TryFromKeyVectorError::MissingLeadingGenotypeKey,)
-        );
-
-        assert_eq!(
             Format::try_from(vec![Key::ConditionalGenotypeQuality, Key::Genotype]),
-            Err(TryFromKeyVectorError::MissingLeadingGenotypeKey,)
+            Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
         );
     }
 }
