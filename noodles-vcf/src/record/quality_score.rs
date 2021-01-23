@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, error, fmt, num, ops::Deref, str::FromStr};
 
-use super::MISSING_FIELD;
+use super::{value::parse_f32_case_insensitive_extended, MISSING_FIELD};
 
 const MIN: f32 = 0.0;
 
@@ -86,8 +86,7 @@ impl FromStr for QualityScore {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self(None)),
-            _ => s
-                .parse::<f32>()
+            _ => parse_f32_case_insensitive_extended(s)
                 .map_err(ParseError::Invalid)
                 .and_then(|value| Self::try_from(value).map_err(ParseError::InvalidValue)),
         }
@@ -122,6 +121,7 @@ mod tests {
     fn test_from_str() {
         assert_eq!(".".parse(), Ok(QualityScore(None)));
         assert_eq!("5.8".parse(), Ok(QualityScore(Some(5.8))));
+        assert_eq!("Infinity".parse(), Ok(QualityScore(Some(f32::INFINITY))));
 
         assert_eq!("".parse::<QualityScore>(), Err(ParseError::Empty));
         assert!(matches!(
