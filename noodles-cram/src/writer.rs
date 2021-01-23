@@ -108,7 +108,7 @@ where
         self.write_container(&eof_container)
     }
 
-    /// Writes a CRAM file defintion.
+    /// Writes a CRAM file definition.
     ///
     /// The file ID is set as a blank value (`[0x00; 20]`).
     ///
