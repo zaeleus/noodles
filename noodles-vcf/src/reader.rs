@@ -105,7 +105,7 @@ where
                 Err(e) => return Err(e),
             };
 
-            if eol && !buf.is_empty() && buf[0] != HEADER_PREFIX {
+            if eol && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
@@ -298,6 +298,15 @@ sq0\t13
 
         assert_eq!(actual, expected);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_no_records() -> io::Result<()> {
+        let data = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+        let mut reader = Reader::new(data.as_bytes());
+        let header = reader.read_header()?;
+        assert_eq!(header, data);
         Ok(())
     }
 
