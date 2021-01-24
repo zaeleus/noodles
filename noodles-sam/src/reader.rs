@@ -100,18 +100,15 @@ where
                 break;
             }
 
-            let (read_eol, len) = match buf.iter().position(|&b| b == NEWLINE) {
-                Some(i) => {
-                    header_buf.extend(&buf[..=i]);
-                    (true, i + 1)
-                }
-                None => {
-                    header_buf.extend(buf);
-                    (false, buf.len())
-                }
+            let len = if let Some(i) = buf.iter().position(|&b| b == NEWLINE) {
+                header_buf.extend(&buf[..=i]);
+                eol = true;
+                i + 1
+            } else {
+                header_buf.extend(buf);
+                buf.len()
             };
 
-            eol = read_eol;
             self.inner.consume(len);
         }
 
