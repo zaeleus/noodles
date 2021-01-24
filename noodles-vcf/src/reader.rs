@@ -99,28 +99,21 @@ where
         let mut eol = false;
 
         loop {
-            let buf = match self.inner.fill_buf() {
-                Ok(buf) => buf,
-                Err(ref e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                Err(e) => return Err(e),
-            };
+            let buf = self.inner.fill_buf()?;
 
             if eol && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
-            let (read_eol, len) = match buf.iter().position(|&b| b == LINE_FEED as u8) {
-                Some(i) => {
-                    header_buf.extend(&buf[..=i]);
-                    (true, i + 1)
-                }
-                None => {
-                    header_buf.extend(buf);
-                    (false, buf.len())
-                }
+            let len = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
+                header_buf.extend(&buf[..=i]);
+                eol = true;
+                i + 1
+            } else {
+                header_buf.extend(buf);
+                buf.len()
             };
 
-            eol = read_eol;
             self.inner.consume(len);
         }
 
