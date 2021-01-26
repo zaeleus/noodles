@@ -43,3 +43,36 @@ where
         .set_crc32(crc32)
         .build())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_block() -> io::Result<()> {
+        let data = [
+            0x00, // compression method = none (0)
+            0x04, // content type = external data (4)
+            0x01, // block content ID = 1
+            0x04, // size in bytes = 4 bytes
+            0x04, // raw size in bytes = 4 bytes
+            0x6e, 0x64, 0x6c, 0x73, // data = b"ndls",
+            0xfd, 0x38, 0x27, 0xb5, // CRC32
+        ];
+        let mut reader = &data[..];
+        let actual = read_block(&mut reader)?;
+
+        let expected = Block::builder()
+            .set_compression_method(CompressionMethod::None)
+            .set_content_type(ContentType::ExternalData)
+            .set_content_id(1)
+            .set_uncompressed_len(4)
+            .set_data(b"ndls".to_vec())
+            .set_crc32(0xb52738fd)
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+}
