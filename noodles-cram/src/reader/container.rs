@@ -57,3 +57,45 @@ where
 
     Ok(buf)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
+        let data = [
+            0x90, 0x00, 0x00, 0x00, // length = 144 bytes
+            0x02, // reference sequence ID = 2
+            0x03, // starting position on the reference = 3
+            0x05, // alignment span = 5
+            0x08, // number of records = 8
+            0x0d, // record counter = 13
+            0x15, // bases = 21
+            0x22, // number of blocks = 34
+            0x02, // landmark count = 2
+            0x37, // landmarks[0] = 55
+            0x59, // landmarks[1] = 89
+            0xb4, 0x9f, 0x9c, 0xda, // CRC32
+        ];
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        let expected = Header::builder()
+            .set_length(144)
+            .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
+            .set_start_position(3)
+            .set_alignment_span(5)
+            .set_record_count(8)
+            .set_record_counter(13)
+            .set_base_count(21)
+            .set_block_count(34)
+            .set_landmarks(vec![55, 89])
+            .set_crc32(0xda9c9fb4)
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+}
