@@ -239,6 +239,17 @@ where
         Err(e) => return Err(e),
     };
 
+    if clen < BGZF_HEADER_SIZE + gz::TRAILER_SIZE {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "expected clen >= {}, got {}",
+                BGZF_HEADER_SIZE + gz::TRAILER_SIZE,
+                clen
+            ),
+        ));
+    }
+
     let cdata_len = clen - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
     cdata.resize(cdata_len, Default::default());
     reader.read_exact(cdata)?;
@@ -302,5 +313,22 @@ mod tests {
         assert_eq!(block_size, BGZF_EOF.len());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_read_block_with_invalid_block_size() {
+        let data = {
+            let mut eof = BGZF_EOF.to_vec();
+            // BSIZE = 0
+            eof[16] = 0x00;
+            eof[17] = 0x00;
+            eof
+        };
+
+        let mut reader = &data[..];
+        let mut cdata = Vec::new();
+        let mut block = Block::default();
+
+        assert!(read_block(&mut reader, &mut cdata, &mut block).is_err());
     }
 }
