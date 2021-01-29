@@ -2,10 +2,13 @@
 
 pub mod bin;
 mod builder;
+pub mod metadata;
 
-pub use self::bin::Bin;
+pub use self::{bin::Bin, metadata::Metadata};
 
 pub(crate) use self::builder::Builder;
+
+use std::convert::TryFrom;
 
 use noodles_bgzf as bgzf;
 
@@ -59,5 +62,43 @@ impl ReferenceSequence {
     /// ```
     pub fn intervals(&self) -> &[bgzf::VirtualPosition] {
         &self.intervals
+    }
+
+    /// Returns metadata for this reference sequence.
+    ///
+    /// Metadata is parsed from optional bin 37450.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_tabix::index::{
+    ///     reference_sequence::{bin::Chunk, Bin, Metadata},
+    ///     ReferenceSequence,
+    /// };
+    ///
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     vec![
+    ///         Bin::new(0, Vec::new()),
+    ///         Bin::new(37450, vec![
+    ///             Chunk::new(bgzf::VirtualPosition::from(610), bgzf::VirtualPosition::from(1597)),
+    ///             Chunk::new(bgzf::VirtualPosition::from(55), bgzf::VirtualPosition::from(0)),
+    ///         ]),
+    ///     ],
+    ///     Vec::new(),
+    /// );
+    ///
+    /// assert_eq!(reference_sequence.metadata(), Some(Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// )));
+    /// ```
+    pub fn metadata(&self) -> Option<Metadata> {
+        self.bins()
+            .iter()
+            .find(|b| b.id() == metadata::MAGIC_NUMBER)
+            .and_then(|bin| Metadata::try_from(bin).ok())
     }
 }
