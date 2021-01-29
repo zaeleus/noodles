@@ -8,7 +8,7 @@ use super::{bin::Chunk, Bin};
 
 pub(crate) const MAGIC_NUMBER: u32 = 37450;
 
-/// Metadatadata in a BAM index reference sequence.
+/// BAM index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Metadata {
     start_position: VirtualPosition,
