@@ -1,26 +1,34 @@
-use std::collections::HashMap;
+use std::{cmp, collections::HashMap};
 
 use noodles_bgzf as bgzf;
 
 use super::{
     bin::{self, Chunk},
-    Bin, ReferenceSequence, WINDOW_SIZE,
+    Bin, Metadata, ReferenceSequence, WINDOW_SIZE,
 };
 
 #[derive(Debug, Default)]
 pub struct Builder {
     bin_builders: HashMap<u32, bin::Builder>,
     intervals: Vec<Option<bgzf::VirtualPosition>>,
+    start_position: bgzf::VirtualPosition,
+    end_position: bgzf::VirtualPosition,
+    mapped_record_count: u64,
 }
 
 impl Builder {
     pub fn add_record(&mut self, start: i32, end: i32, chunk: Chunk) -> &mut Self {
         self.update_bins(start, end, chunk);
         self.update_linear_index(start, end, chunk);
+        self.update_metadata(chunk);
         self
     }
 
     pub fn build(self) -> ReferenceSequence {
+        if self.bin_builders.is_empty() {
+            return ReferenceSequence::default();
+        }
+
         let bins = self
             .bin_builders
             .into_iter()
@@ -33,7 +41,14 @@ impl Builder {
             .map(|p| p.unwrap_or_default())
             .collect();
 
-        ReferenceSequence::new(bins, intervals, None)
+        let metadata = Metadata::new(
+            self.start_position,
+            self.end_position,
+            self.mapped_record_count,
+            0,
+        );
+
+        ReferenceSequence::new(bins, intervals, Some(metadata))
     }
 
     fn update_bins(&mut self, start: i32, end: i32, chunk: Chunk) {
@@ -60,6 +75,12 @@ impl Builder {
         for i in linear_index_start_offset..=linear_index_end_offset {
             self.intervals[i].get_or_insert(chunk.start());
         }
+    }
+
+    fn update_metadata(&mut self, chunk: Chunk) {
+        self.mapped_record_count += 1;
+        self.start_position = cmp::min(self.start_position, chunk.start());
+        self.end_position = cmp::max(self.end_position, chunk.end());
     }
 }
 
