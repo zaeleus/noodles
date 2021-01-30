@@ -2,15 +2,9 @@
 //!
 //! The result matches the output of `bgzip --decompress --stdout <src>`.
 
-use std::{
-    env,
-    fs::File,
-    io::{self, Read, Write},
-};
+use std::{env, fs::File, io};
 
 use noodles_bgzf as bgzf;
-
-const DEFAULT_BUF_SIZE: usize = 8192;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
@@ -20,15 +14,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout();
     let mut writer = stdout.lock();
 
-    let mut buf = vec![0; DEFAULT_BUF_SIZE];
-
-    loop {
-        match reader.read(&mut buf) {
-            Ok(0) => break,
-            Ok(n) => writer.write_all(&buf[..n])?,
-            Err(e) => return Err(e),
-        }
-    }
+    io::copy(&mut reader, &mut writer)?;
 
     Ok(())
 }
