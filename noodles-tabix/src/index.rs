@@ -74,7 +74,7 @@ impl Index {
     /// ```
     /// use noodles_tabix::{self as tabix, index::ReferenceSequence};
     ///
-    /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new())];
+    /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new(), None)];
     ///
     /// let index = tabix::Index::builder()
     ///     .set_reference_sequences(reference_sequences)

@@ -33,7 +33,7 @@ impl Builder {
             .map(|p| p.unwrap_or_default())
             .collect();
 
-        ReferenceSequence::new(bins, intervals)
+        ReferenceSequence::new(bins, intervals, None)
     }
 
     fn update_bins(&mut self, start: i32, end: i32, chunk: Chunk) {
@@ -144,7 +144,7 @@ mod tests {
                 bgzf::VirtualPosition::from(9),
             ];
 
-            ReferenceSequence::new(bins, intervals)
+            ReferenceSequence::new(bins, intervals, None)
         };
 
         for expected_bin in expected.bins() {
