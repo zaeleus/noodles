@@ -104,6 +104,8 @@ impl Record {
 
     /// Returns the end position of the record.
     ///
+    /// This value is 1-based.
+    ///
     /// # Examples
     ///
     /// ```
