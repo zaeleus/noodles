@@ -11,7 +11,7 @@ use crate::{
     num::{Itf8, Ltf8},
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Itf8,
