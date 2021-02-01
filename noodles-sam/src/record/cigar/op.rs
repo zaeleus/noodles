@@ -129,10 +129,10 @@ mod tests {
     #[test]
     fn test_fmt() {
         let op = Op::new(Kind::Match, 5);
-        assert_eq!(format!("{}", op), "5M");
+        assert_eq!(op.to_string(), "5M");
 
         let op = Op::new(Kind::SoftClip, 13);
-        assert_eq!(format!("{}", op), "13S");
+        assert_eq!(op.to_string(), "13S");
     }
 
     #[test]

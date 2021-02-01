@@ -140,13 +140,13 @@ mod tests {
             Op::new(Kind::SoftClip, 144),
         ]);
 
-        assert_eq!(format!("{}", cigar), "1M13N144S");
+        assert_eq!(cigar.to_string(), "1M13N144S");
     }
 
     #[test]
     fn test_fmt_when_cigar_has_no_ops() {
         let cigar = Cigar::default();
-        assert_eq!(format!("{}", cigar), "*");
+        assert_eq!(cigar.to_string(), "*");
     }
 
     #[test]

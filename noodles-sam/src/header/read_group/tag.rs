@@ -120,21 +120,21 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Tag::Id), "ID");
-        assert_eq!(format!("{}", Tag::Barcode), "BC");
-        assert_eq!(format!("{}", Tag::SequencingCenter), "CN");
-        assert_eq!(format!("{}", Tag::Description), "DS");
-        assert_eq!(format!("{}", Tag::ProducedAt), "DT");
-        assert_eq!(format!("{}", Tag::FlowOrder), "FO");
-        assert_eq!(format!("{}", Tag::KeySequence), "KS");
-        assert_eq!(format!("{}", Tag::Library), "LB");
-        assert_eq!(format!("{}", Tag::Program), "PG");
-        assert_eq!(format!("{}", Tag::PredictedMedianInsertSize), "PI");
-        assert_eq!(format!("{}", Tag::Platform), "PL");
-        assert_eq!(format!("{}", Tag::PlatformModel), "PM");
-        assert_eq!(format!("{}", Tag::PlatformUnit), "PU");
-        assert_eq!(format!("{}", Tag::Sample), "SM");
-        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+        assert_eq!(Tag::Id.to_string(), "ID");
+        assert_eq!(Tag::Barcode.to_string(), "BC");
+        assert_eq!(Tag::SequencingCenter.to_string(), "CN");
+        assert_eq!(Tag::Description.to_string(), "DS");
+        assert_eq!(Tag::ProducedAt.to_string(), "DT");
+        assert_eq!(Tag::FlowOrder.to_string(), "FO");
+        assert_eq!(Tag::KeySequence.to_string(), "KS");
+        assert_eq!(Tag::Library.to_string(), "LB");
+        assert_eq!(Tag::Program.to_string(), "PG");
+        assert_eq!(Tag::PredictedMedianInsertSize.to_string(), "PI");
+        assert_eq!(Tag::Platform.to_string(), "PL");
+        assert_eq!(Tag::PlatformModel.to_string(), "PM");
+        assert_eq!(Tag::PlatformUnit.to_string(), "PU");
+        assert_eq!(Tag::Sample.to_string(), "SM");
+        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
     }
 
     #[test]

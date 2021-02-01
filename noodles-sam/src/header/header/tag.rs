@@ -80,11 +80,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Tag::Version), "VN");
-        assert_eq!(format!("{}", Tag::SortOrder), "SO");
-        assert_eq!(format!("{}", Tag::GroupOrder), "GO");
-        assert_eq!(format!("{}", Tag::SubsortOrder), "SS");
-        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+        assert_eq!(Tag::Version.to_string(), "VN");
+        assert_eq!(Tag::SortOrder.to_string(), "SO");
+        assert_eq!(Tag::GroupOrder.to_string(), "GO");
+        assert_eq!(Tag::SubsortOrder.to_string(), "SS");
+        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
     }
 
     #[test]

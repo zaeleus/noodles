@@ -88,13 +88,13 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Tag::Id), "ID");
-        assert_eq!(format!("{}", Tag::Name), "PN");
-        assert_eq!(format!("{}", Tag::CommandLine), "CL");
-        assert_eq!(format!("{}", Tag::PreviousId), "PP");
-        assert_eq!(format!("{}", Tag::Description), "DS");
-        assert_eq!(format!("{}", Tag::Version), "VN");
-        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+        assert_eq!(Tag::Id.to_string(), "ID");
+        assert_eq!(Tag::Name.to_string(), "PN");
+        assert_eq!(Tag::CommandLine.to_string(), "CL");
+        assert_eq!(Tag::PreviousId.to_string(), "PP");
+        assert_eq!(Tag::Description.to_string(), "DS");
+        assert_eq!(Tag::Version.to_string(), "VN");
+        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
     }
 
     #[test]

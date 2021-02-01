@@ -104,17 +104,17 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Tag::Name), "SN");
-        assert_eq!(format!("{}", Tag::Length), "LN");
-        assert_eq!(format!("{}", Tag::AlternativeLocus), "AH");
-        assert_eq!(format!("{}", Tag::AlternativeNames), "AN");
-        assert_eq!(format!("{}", Tag::AssemblyId), "AS");
-        assert_eq!(format!("{}", Tag::Description), "DS");
-        assert_eq!(format!("{}", Tag::Md5Checksum), "M5");
-        assert_eq!(format!("{}", Tag::Species), "SP");
-        assert_eq!(format!("{}", Tag::MoleculeTopology), "TP");
-        assert_eq!(format!("{}", Tag::Uri), "UR");
-        assert_eq!(format!("{}", Tag::Other(String::from("ND"))), "ND");
+        assert_eq!(Tag::Name.to_string(), "SN");
+        assert_eq!(Tag::Length.to_string(), "LN");
+        assert_eq!(Tag::AlternativeLocus.to_string(), "AH");
+        assert_eq!(Tag::AlternativeNames.to_string(), "AN");
+        assert_eq!(Tag::AssemblyId.to_string(), "AS");
+        assert_eq!(Tag::Description.to_string(), "DS");
+        assert_eq!(Tag::Md5Checksum.to_string(), "M5");
+        assert_eq!(Tag::Species.to_string(), "SP");
+        assert_eq!(Tag::MoleculeTopology.to_string(), "TP");
+        assert_eq!(Tag::Uri.to_string(), "UR");
+        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
     }
 
     #[test]

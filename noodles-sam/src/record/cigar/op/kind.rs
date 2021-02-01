@@ -82,15 +82,15 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(format!("{}", Kind::Match), "M");
-        assert_eq!(format!("{}", Kind::Insertion), "I");
-        assert_eq!(format!("{}", Kind::Deletion), "D");
-        assert_eq!(format!("{}", Kind::Skip), "N");
-        assert_eq!(format!("{}", Kind::SoftClip), "S");
-        assert_eq!(format!("{}", Kind::HardClip), "H");
-        assert_eq!(format!("{}", Kind::Pad), "P");
-        assert_eq!(format!("{}", Kind::SeqMatch), "=");
-        assert_eq!(format!("{}", Kind::SeqMismatch), "X");
+        assert_eq!(Kind::Match.to_string(), "M");
+        assert_eq!(Kind::Insertion.to_string(), "I");
+        assert_eq!(Kind::Deletion.to_string(), "D");
+        assert_eq!(Kind::Skip.to_string(), "N");
+        assert_eq!(Kind::SoftClip.to_string(), "S");
+        assert_eq!(Kind::HardClip.to_string(), "H");
+        assert_eq!(Kind::Pad.to_string(), "P");
+        assert_eq!(Kind::SeqMatch.to_string(), "=");
+        assert_eq!(Kind::SeqMismatch.to_string(), "X");
     }
 
     #[test]
