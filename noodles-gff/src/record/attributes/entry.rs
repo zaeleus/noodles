@@ -72,6 +72,8 @@ pub enum ParseError {
     InvalidKey(str::Utf8Error),
     /// The entry value is missing.
     MissingValue,
+    /// The entry value is invalid.
+    InvalidValue(str::Utf8Error),
 }
 
 impl error::Error for ParseError {}
@@ -83,6 +85,7 @@ impl fmt::Display for ParseError {
             Self::MissingKey => f.write_str("missing key"),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::MissingValue => f.write_str("missing value"),
+            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
         }
     }
 }
@@ -106,8 +109,9 @@ impl FromStr for Entry {
 
         let value = components
             .next()
-            .map(|s| s.into())
-            .ok_or(ParseError::MissingValue)?;
+            .ok_or(ParseError::MissingValue)
+            .and_then(|t| percent_decode(t).map_err(ParseError::InvalidValue))
+            .map(|t| t.into_owned())?;
 
         Ok(Self::new(key, value))
     }
@@ -135,7 +139,7 @@ mod tests {
         );
         assert_eq!(
             "%25s=13%2C21".parse::<Entry>()?,
-            Entry::new(String::from("%s"), String::from("13%2C21"))
+            Entry::new(String::from("%s"), String::from("13,21"))
         );
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
