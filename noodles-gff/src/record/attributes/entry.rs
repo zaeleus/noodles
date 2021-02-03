@@ -1,6 +1,10 @@
 //! GFF record attribute entry.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    borrow::Cow,
+    error, fmt,
+    str::{self, FromStr},
+};
 
 const SEPARATOR: char = '=';
 
@@ -64,6 +68,8 @@ pub enum ParseError {
     Empty,
     /// The entry key is missing.
     MissingKey,
+    /// The entry key is invalid.
+    InvalidKey(str::Utf8Error),
     /// The entry value is missing.
     MissingValue,
 }
@@ -75,6 +81,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingKey => f.write_str("missing key"),
+            Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::MissingValue => f.write_str("missing value"),
         }
     }
@@ -92,8 +99,10 @@ impl FromStr for Entry {
 
         let key = components
             .next()
-            .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
-            .ok_or(ParseError::MissingKey)?;
+            .and_then(|t| if t.is_empty() { None } else { Some(t) })
+            .ok_or(ParseError::MissingKey)
+            .and_then(|t| percent_decode(t).map_err(ParseError::InvalidKey))
+            .map(|t| t.into_owned())?;
 
         let value = components
             .next()
@@ -102,6 +111,10 @@ impl FromStr for Entry {
 
         Ok(Self::new(key, value))
     }
+}
+
+fn percent_decode(s: &str) -> Result<Cow<str>, str::Utf8Error> {
+    percent_encoding::percent_decode_str(s).decode_utf8()
 }
 
 #[cfg(test)]
@@ -119,6 +132,10 @@ mod tests {
         assert_eq!(
             "gene_name=gene0".parse::<Entry>()?,
             Entry::new(String::from("gene_name"), String::from("gene0"))
+        );
+        assert_eq!(
+            "%25s=13%2C21".parse::<Entry>()?,
+            Entry::new(String::from("%s"), String::from("13%2C21"))
         );
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
