@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::{reader::DEFINITION_PREFIX, Record};
+use super::Record;
 
 const LINE_BASES: u64 = 80;
 
@@ -62,35 +62,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        write_record_definition(
-            &mut self.inner,
-            record.reference_sequence_name(),
-            record.description(),
-        )?;
-
+        writeln!(self.inner, "{}", record.definition())?;
         write_record_sequence(&mut self.inner, record.sequence(), LINE_BASES as usize)?;
-
         Ok(())
     }
-}
-
-fn write_record_definition<W>(
-    writer: &mut W,
-    reference_sequence_name: &str,
-    description: Option<&str>,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_all(&[DEFINITION_PREFIX])?;
-    writer.write_all(reference_sequence_name.as_bytes())?;
-
-    if let Some(d) = description {
-        writer.write_all(&[b' '])?;
-        writer.write_all(d.as_bytes())?;
-    }
-
-    writeln!(writer)
 }
 
 fn write_record_sequence<W>(writer: &mut W, sequence: &[u8], line_bases: usize) -> io::Result<()>
@@ -115,19 +90,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_write_record_definition() -> io::Result<()> {
-        let mut writer = Vec::new();
-        write_record_definition(&mut writer, "sq0", None)?;
-        assert_eq!(writer, b">sq0\n");
-
-        writer.clear();
-        write_record_definition(&mut writer, "sq0", Some("LN:4"))?;
-        assert_eq!(writer, b">sq0 LN:4\n");
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_record_sequence() -> io::Result<()> {
