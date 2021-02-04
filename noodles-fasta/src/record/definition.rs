@@ -61,6 +61,18 @@ impl Definition {
     }
 }
 
+impl fmt::Display for Definition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}", PREFIX, self.reference_sequence_name())?;
+
+        if let Some(description) = self.description() {
+            write!(f, " {}", description)?;
+        }
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw record definition fails to parse.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -114,6 +126,15 @@ impl FromStr for Definition {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let definition = Definition::new(String::from("sq0"), None);
+        assert_eq!(definition.to_string(), ">sq0");
+
+        let definition = Definition::new(String::from("sq0"), Some(String::from("LN:13")));
+        assert_eq!(definition.to_string(), ">sq0 LN:13");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
