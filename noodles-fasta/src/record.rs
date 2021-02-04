@@ -29,6 +29,23 @@ impl Record {
         }
     }
 
+    /// Returns the record definition.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    ///
+    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let sequence = b"ACGT".to_vec();
+    /// let record = fasta::Record::new(definition.clone(), sequence);
+    ///
+    /// assert_eq!(record.definition(), &definition);
+    /// ```
+    pub fn definition(&self) -> &Definition {
+        &self.definition
+    }
+
     /// Returns the reference sequence name.
     ///
     /// # Examples
