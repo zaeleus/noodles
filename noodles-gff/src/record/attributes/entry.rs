@@ -6,6 +6,18 @@ use std::{
     str::{self, FromStr},
 };
 
+use percent_encoding::{percent_decode_str, utf8_percent_encode, AsciiSet, CONTROLS};
+
+const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
+    .add(b'\t')
+    .add(b'\n')
+    .add(b'\r')
+    .add(b'%')
+    .add(b';')
+    .add(b'=')
+    .add(b'&')
+    .add(b',');
+
 const SEPARATOR: char = '=';
 
 /// A GFF record attribute entry.
@@ -57,7 +69,13 @@ impl Entry {
 
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}{}", self.key, SEPARATOR, self.value)
+        write!(
+            f,
+            "{}{}{}",
+            percent_encode(self.key()),
+            SEPARATOR,
+            self.value
+        )
     }
 }
 
@@ -118,7 +136,11 @@ impl FromStr for Entry {
 }
 
 fn percent_decode(s: &str) -> Result<Cow<str>, str::Utf8Error> {
-    percent_encoding::percent_decode_str(s).decode_utf8()
+    percent_decode_str(s).decode_utf8()
+}
+
+fn percent_encode(s: &str) -> Cow<str> {
+    utf8_percent_encode(s, PERCENT_ENCODE_SET).into()
 }
 
 #[cfg(test)]
@@ -129,6 +151,9 @@ mod tests {
     fn test_fmt() {
         let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
         assert_eq!(entry.to_string(), "gene_name=gene0");
+
+        let entry = Entry::new(String::from("%s"), String::from("13,21"));
+        assert_eq!(entry.to_string(), "%25s=13,21");
     }
 
     #[test]
