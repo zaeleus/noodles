@@ -74,7 +74,7 @@ impl fmt::Display for Entry {
             "{}{}{}",
             percent_encode(self.key()),
             SEPARATOR,
-            self.value
+            percent_encode(self.value())
         )
     }
 }
@@ -153,7 +153,7 @@ mod tests {
         assert_eq!(entry.to_string(), "gene_name=gene0");
 
         let entry = Entry::new(String::from("%s"), String::from("13,21"));
-        assert_eq!(entry.to_string(), "%25s=13,21");
+        assert_eq!(entry.to_string(), "%25s=13%2C21");
     }
 
     #[test]
