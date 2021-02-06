@@ -195,6 +195,10 @@ pub enum ParseError {
     InvalidStrand(strand::ParseError),
     /// The phase is invalid.
     InvalidPhase(phase::ParseError),
+    /// The phase is missing.
+    ///
+    /// The phase is required for CDS features.
+    MissingPhase,
     /// The attributes are invalid.
     InvalidAttributes(attributes::ParseError),
 }
@@ -237,7 +241,11 @@ impl FromStr for Record {
 
         let phase = parse_string(&mut fields, Field::Phase).and_then(|s| {
             if s == NULL_FIELD {
-                Ok(None)
+                if ty == "CDS" {
+                    Err(ParseError::MissingPhase)
+                } else {
+                    Ok(None)
+                }
             } else {
                 s.parse().map(Some).map_err(ParseError::InvalidPhase)
             }
@@ -296,5 +304,11 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_cds_feature_and_no_phase() {
+        let s = "sq0\tNOODLES\tCDS\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
+        assert_eq!(s.parse::<Record>(), Err(ParseError::MissingPhase));
     }
 }
