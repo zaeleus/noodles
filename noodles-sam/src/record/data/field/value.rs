@@ -116,7 +116,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_char());
     /// ```
     pub fn is_char(&self) -> bool {
-        self.as_char().is_some()
+        matches!(self, Self::Char(_))
     }
 
     /// Returns the value as a 32-bit integer if it is a 32-bit integer.
@@ -145,7 +145,7 @@ impl Value {
     /// assert!(!Value::Char('a').is_int32());
     /// ```
     pub fn is_int32(&self) -> bool {
-        self.as_int32().is_some()
+        matches!(self, Self::Int32(_))
     }
 
     /// Returns the value as a single-precision floating-point if it is a single-precision
@@ -175,7 +175,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_float());
     /// ```
     pub fn is_float(&self) -> bool {
-        self.as_float().is_some()
+        matches!(self, Self::Float(_))
     }
 
     /// Returns the value as a string slice if it is a string slice.
@@ -204,7 +204,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_str());
     /// ```
     pub fn is_str(&self) -> bool {
-        self.as_str().is_some()
+        matches!(self, Self::String(_))
     }
 
     /// Returns the value as a string slice of hex if it is a string slice of hex.
@@ -233,7 +233,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_hex());
     /// ```
     pub fn is_hex(&self) -> bool {
-        self.as_hex().is_some()
+        matches!(self, Self::Hex(_))
     }
 
     /// Returns the value as an array of 8-bit integers if it is an array of 8-bit integers.
@@ -262,7 +262,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int8_array());
     /// ```
     pub fn is_int8_array(&self) -> bool {
-        self.as_int8_array().is_some()
+        matches!(self, Self::Int8Array(_))
     }
 
     /// Returns the value as an array of 8-bit unsigned integers if it is an array of 8-bit
@@ -292,7 +292,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_uint8_array());
     /// ```
     pub fn is_uint8_array(&self) -> bool {
-        self.as_uint8_array().is_some()
+        matches!(self, Self::UInt8Array(_))
     }
 
     /// Returns the value as an array of 16-bit integers if it is an array of 16-bit integers.
@@ -321,7 +321,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
     pub fn is_int16_array(&self) -> bool {
-        self.as_int16_array().is_some()
+        matches!(self, Self::Int16Array(_))
     }
 
     /// Returns the value as an array of 16-bit unsigned integers if it is an array of 16-bit
@@ -351,7 +351,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
     pub fn is_uint16_array(&self) -> bool {
-        self.as_uint16_array().is_some()
+        matches!(self, Self::UInt16Array(_))
     }
 
     /// Returns the value as an array of 32-bit integers if it is an array of 32-bit integers.
@@ -380,7 +380,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
     pub fn is_int32_array(&self) -> bool {
-        self.as_int32_array().is_some()
+        matches!(self, Self::Int32Array(_))
     }
 
     /// Returns the value as an array of 32-bit unsigned integers if it is an array of 32-bit
@@ -410,7 +410,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int32_array());
     /// ```
     pub fn is_uint32_array(&self) -> bool {
-        self.as_uint32_array().is_some()
+        matches!(self, Self::UInt32Array(_))
     }
 
     /// Returns the value as an array of single-precision floating-points if it is an array of
@@ -440,7 +440,7 @@ impl Value {
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
     pub fn is_float_array(&self) -> bool {
-        self.as_float_array().is_some()
+        matches!(self, Self::FloatArray(_))
     }
 }
 
