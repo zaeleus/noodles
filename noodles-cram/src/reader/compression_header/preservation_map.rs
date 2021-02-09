@@ -138,3 +138,70 @@ where
 
     Ok(TagIdsDictionary::from(dictionary))
 }
+
+#[cfg(test)]
+mod tests {
+    use noodles_bam::record::data::field::value::Type;
+
+    use crate::record::tag::Key;
+
+    use super::*;
+
+    #[test]
+    fn test_read_preservation_map() -> io::Result<()> {
+        let data = [
+            0x18, // data.len = 24
+            0x05, // map.len = 5
+            0x52, 0x4e, // key = "RN"
+            0x00, // map["RN"] = false
+            0x41, 0x50, // key = "AP"
+            0x00, // map["AP"] = false
+            0x52, 0x52, // key = "RR"
+            0x00, // map["RR"] = false
+            0x53, 0x4d, // key = "SM"
+            // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
+            0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
+            0x54, 0x44, // key = "TD"
+            0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
+        ];
+        let mut reader = &data[..];
+        let actual = read_preservation_map(&mut reader)?;
+
+        let expected = PreservationMap::new(
+            false,
+            false,
+            false,
+            SubstitutionMatrix::default(),
+            TagIdsDictionary::from(vec![vec![Key::new([b'C', b'O'], Type::String)]]),
+        );
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_preservation_map_with_no_substitution_matrix() {
+        let data = [
+            0x08, // data.len = 8
+            0x01, // map.len = 1
+            0x54, 0x44, // key = "TD"
+            0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
+        ];
+        let mut reader = &data[..];
+        assert!(read_preservation_map(&mut reader).is_err());
+    }
+
+    #[test]
+    fn test_read_preservation_map_with_no_tag_ids_dictionary() {
+        let data = [
+            0x08, // data.len = 8
+            0x01, // map.len = 1
+            0x53, 0x4d, // key = "SM"
+            // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
+            0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
+        ];
+        let mut reader = &data[..];
+        assert!(read_preservation_map(&mut reader).is_err());
+    }
+}
