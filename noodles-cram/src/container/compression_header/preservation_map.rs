@@ -8,7 +8,7 @@ pub use {
     tag_ids_dictionary::TagIdsDictionary,
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PreservationMap {
     read_names_included: bool,
     ap_data_series_delta: bool,
