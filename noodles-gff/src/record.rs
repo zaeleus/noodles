@@ -207,7 +207,18 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Self::Empty => write!(f, "empty input"),
+            Self::MissingField(field) => write!(f, "missing field: {:?}", field),
+            Self::EmptyField(field) => write!(f, "empty field: {:?}", field),
+            Self::InvalidStart(e) => write!(f, "invalid start: {}", e),
+            Self::InvalidEnd(e) => write!(f, "invalid end: {}", e),
+            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
+            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
+            Self::InvalidPhase(e) => write!(f, "invalid phase: {}", e),
+            Self::MissingPhase => write!(f, "missing phase"),
+            Self::InvalidAttributes(e) => write!(f, "invalid attributes: {}", e),
+        }
     }
 }
 
