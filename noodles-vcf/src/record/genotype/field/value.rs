@@ -1,10 +1,10 @@
 //! VCF record genotype field value.
 
-use std::{error, fmt, num};
+use std::{error, fmt, num, str};
 
 use crate::{
     header::{format::Type, Number},
-    record::value::parse_f32_case_insensitive_extended,
+    record::value::{parse_f32_case_insensitive_extended, percent_decode},
 };
 
 use super::Key;
@@ -115,6 +115,8 @@ pub enum ParseError {
     InvalidFloat(num::ParseFloatError),
     /// The character is invalid.
     InvalidCharacter,
+    /// The string is invalid.
+    InvalidString(str::Utf8Error),
 }
 
 impl error::Error for ParseError {}
@@ -128,6 +130,7 @@ impl fmt::Display for ParseError {
             Self::InvalidInteger(e) => write!(f, "invalid integer: {}", e),
             Self::InvalidFloat(e) => write!(f, "invalid float: {}", e),
             Self::InvalidCharacter => f.write_str("invalid character"),
+            Self::InvalidString(e) => write!(f, "invalid string: {}", e),
         }
     }
 }
@@ -165,7 +168,7 @@ impl Value {
             },
             Type::String => match key.number() {
                 Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
-                Number::Count(1) => Ok(parse_string(s)),
+                Number::Count(1) => parse_string(s),
                 _ => Ok(parse_string_array(s)),
             },
         }
@@ -241,8 +244,10 @@ fn parse_char_array(s: &str) -> Result<Value, ParseError> {
         .map(Value::CharacterArray)
 }
 
-fn parse_string(s: &str) -> Value {
-    Value::String(s.into())
+fn parse_string(s: &str) -> Result<Value, ParseError> {
+    percent_decode(s)
+        .map(|t| Value::String(t.into()))
+        .map_err(ParseError::InvalidString)
 }
 
 fn parse_string_array(s: &str) -> Value {
@@ -420,6 +425,10 @@ mod tests {
         assert_eq!(
             Value::from_str_key("noodles", &key),
             Ok(Value::String(String::from("noodles")))
+        );
+        assert_eq!(
+            Value::from_str_key("8%25", &key),
+            Ok(Value::String(String::from("8%")))
         );
 
         let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
