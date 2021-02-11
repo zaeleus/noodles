@@ -1,4 +1,6 @@
-use std::num;
+use std::{borrow::Cow, num, str};
+
+use percent_encoding::percent_decode_str;
 
 /// Parses a single-precision floating-point.
 ///
@@ -13,6 +15,10 @@ pub(crate) fn parse_f32_case_insensitive_extended(s: &str) -> Result<f32, num::P
         "nan" | "-nan" | "+nan" => Ok(f32::NAN),
         t => t.parse(),
     }
+}
+
+pub(crate) fn percent_decode(s: &str) -> Result<Cow<str>, str::Utf8Error> {
+    percent_decode_str(s).decode_utf8()
 }
 
 #[cfg(test)]

@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 nom = "6.0.0"
 noodles-bgzf = { path = "../noodles-bgzf" }
+percent-encoding = "2.1.0"
