@@ -157,7 +157,7 @@ impl Value {
             Type::String => match key.number() {
                 Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
                 Number::Count(1) => parse_string(s),
-                _ => Ok(parse_string_array(s)),
+                _ => parse_string_array(s),
             },
         }
     }
@@ -226,9 +226,15 @@ fn parse_string(s: &str) -> Result<Value, ParseError> {
         .map_err(ParseError::InvalidString)
 }
 
-fn parse_string_array(s: &str) -> Value {
-    let values = s.split(DELIMITER).map(|t| t.into()).collect();
-    Value::StringArray(values)
+fn parse_string_array(s: &str) -> Result<Value, ParseError> {
+    s.split(DELIMITER)
+        .map(|t| {
+            percent_decode(t)
+                .map(|u| u.into())
+                .map_err(ParseError::InvalidString)
+        })
+        .collect::<Result<_, _>>()
+        .map(Value::StringArray)
 }
 
 #[cfg(test)]
@@ -387,6 +393,13 @@ mod tests {
             Ok(Value::StringArray(vec![
                 String::from("noodles"),
                 String::from("vcf")
+            ]))
+        );
+        assert_eq!(
+            Value::from_str_key("8%25,13%25", &key),
+            Ok(Value::StringArray(vec![
+                String::from("8%"),
+                String::from("13%")
             ]))
         );
     }
