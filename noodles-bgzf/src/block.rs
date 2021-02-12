@@ -5,8 +5,7 @@ use std::{
 
 use super::{virtual_position, VirtualPosition};
 
-/// The max size in bytes of a BGZF block.
-pub const MAX_LENGTH: usize = u16::MAX as usize; // bytes
+pub(crate) const MAX_UNCOMPRESSED_DATA_LENGTH: usize = u16::MAX as usize + 1; // bytes
 
 /// A BGZF block.
 ///

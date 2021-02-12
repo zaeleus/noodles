@@ -8,8 +8,6 @@ use flate2::{write::DeflateEncoder, Compression, Crc};
 
 use super::{block, gz, BGZF_HEADER_SIZE};
 
-const MAX_COMPRESSED_DATA_LENGTH: usize = block::MAX_LENGTH + 1; // bytes
-
 const BGZF_FLG: u8 = 0x04; // FEXTRA
 const BGZF_XFL: u8 = 0x00; // none
 const BGZF_XLEN: u16 = 6;
@@ -175,13 +173,13 @@ where
 
         // Only the uncompressed size is tracked, and the assumption is that the uncompressed size
         // will always be less than the compressed size.
-        if total_uncompressed_bytes_written >= MAX_COMPRESSED_DATA_LENGTH {
+        if total_uncompressed_bytes_written >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
             self.flush()?;
             return Err(io::Error::from(io::ErrorKind::Interrupted));
         }
 
         let bytes_to_be_written = cmp::min(
-            (MAX_COMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written) as usize,
+            (block::MAX_UNCOMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written) as usize,
             buf.len(),
         );
         let bytes_written = self.encoder.write(&buf[..bytes_to_be_written])?;
