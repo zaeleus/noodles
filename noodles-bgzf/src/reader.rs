@@ -1,6 +1,5 @@
 use std::{
     cmp,
-    convert::TryFrom,
     io::{self, BufRead, Read, Seek, SeekFrom},
 };
 
@@ -125,8 +124,6 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        // Same idea as in io::BufReader::Read.
-        // TODO: Better handling of reads larger than an entire block?
         let bytes_read = {
             let mut remaining = self.fill_buf()?;
             remaining.read(buf)?
@@ -142,18 +139,9 @@ impl<R> BufRead for Reader<R>
 where
     R: Read,
 {
-    fn consume(&mut self, amt: usize) {
-        // Ensure addition of amt to current upos does not does not overflow
-        let upos = match u32::try_from(amt) {
-            Ok(n) => match self.block.upos().checked_add(n) {
-                Some(m) => m,
-                None => u32::MAX,
-            },
-            Err(_) => u32::MAX,
-        };
-
-        let upos = cmp::min(self.block.ulen(), upos);
-
+    fn consume(&mut self, mut amt: usize) {
+        amt = cmp::min(amt, crate::block::MAX_UNCOMPRESSED_DATA_LENGTH);
+        let upos = cmp::min(self.block.ulen(), self.block.upos() + amt as u32);
         self.block.set_upos(upos)
     }
 
