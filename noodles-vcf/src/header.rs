@@ -427,7 +427,7 @@ impl FromStr for Header {
 
         while let Some(line) = lines.next() {
             if line.starts_with("#CHROM") {
-                builder = parse_header(builder, line)?;
+                builder = parse_header(builder, line);
                 break;
             } else {
                 builder = parse_record(builder, line)?;
@@ -500,14 +500,14 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
     Ok(builder)
 }
 
-fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+fn parse_header(mut builder: Builder, line: &str) -> Builder {
     let sample_names = line.split(crate::record::FIELD_DELIMITER).skip(9);
 
     for sample_name in sample_names {
         builder = builder.add_sample_name(sample_name);
     }
 
-    Ok(builder)
+    builder
 }
 
 #[cfg(test)]
