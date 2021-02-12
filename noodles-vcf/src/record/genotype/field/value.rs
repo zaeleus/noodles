@@ -169,7 +169,7 @@ impl Value {
             Type::String => match key.number() {
                 Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
                 Number::Count(1) => parse_string(s),
-                _ => Ok(parse_string_array(s)),
+                _ => parse_string_array(s),
             },
         }
     }
@@ -250,18 +250,19 @@ fn parse_string(s: &str) -> Result<Value, ParseError> {
         .map_err(ParseError::InvalidString)
 }
 
-fn parse_string_array(s: &str) -> Value {
-    let values = s
-        .split(DELIMITER)
+fn parse_string_array(s: &str) -> Result<Value, ParseError> {
+    s.split(DELIMITER)
         .map(|t| {
             if t == MISSING_VALUE {
-                None
+                Ok(None)
             } else {
-                Some(t.into())
+                percent_decode(t)
+                    .map(|u| Some(u.into()))
+                    .map_err(ParseError::InvalidString)
             }
         })
-        .collect();
-    Value::StringArray(values)
+        .collect::<Result<_, _>>()
+        .map(Value::StringArray)
 }
 
 #[cfg(test)]
@@ -439,8 +440,13 @@ mod tests {
                 Some(String::from("vcf"))
             ]))
         );
-
-        let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
+        assert_eq!(
+            Value::from_str_key("8%25,13%25", &key),
+            Ok(Value::StringArray(vec![
+                Some(String::from("8%")),
+                Some(String::from("13%")),
+            ]))
+        );
         assert_eq!(
             Value::from_str_key("noodles,.", &key),
             Ok(Value::StringArray(vec![
