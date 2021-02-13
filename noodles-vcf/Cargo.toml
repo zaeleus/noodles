@@ -6,6 +6,8 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
+# https://github.com/myrrlyn/funty/issues/3
+funty = "=1.1.0"
 nom = "6.0.0"
 noodles-bgzf = { path = "../noodles-bgzf" }
 percent-encoding = "2.1.0"
