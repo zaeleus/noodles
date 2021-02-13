@@ -91,23 +91,24 @@ where
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
         let mut header_buf = Vec::new();
-        let mut eol = false;
+        let mut is_eol = false;
 
         for i in 0.. {
             let buf = self.inner.fill_buf()?;
 
-            if (i == 0 || eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+            if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
-            let len = if let Some(i) = buf.iter().position(|&b| b == NEWLINE) {
+            let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == NEWLINE) {
                 header_buf.extend(&buf[..=i]);
-                eol = true;
-                i + 1
+                (true, i + 1)
             } else {
                 header_buf.extend(buf);
-                buf.len()
+                (false, buf.len())
             };
+
+            is_eol = read_eol;
 
             self.inner.consume(len);
         }
@@ -215,6 +216,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::io::BufReader;
+
     use super::*;
 
     #[test]
@@ -231,6 +234,18 @@ mod tests {
         let mut reader = Reader::new(data.as_bytes());
         let header = reader.read_header()?;
         assert_eq!(header, data);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
+        let data = "@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n";
+        let buf = BufReader::with_capacity(16, data.as_bytes());
+        let mut reader = Reader::new(buf);
+
+        let header = reader.read_header()?;
+        assert_eq!(header, data);
+
         Ok(())
     }
 }
