@@ -74,7 +74,7 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`std::string::String`]. It can subsequently be parsed
+    /// This returns the raw VCF header as a [`std::string::String`]. It can subsequently be parsed
     /// as a [`crate::Header`].
     ///
     /// # Examples
