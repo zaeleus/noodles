@@ -96,23 +96,24 @@ where
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
         let mut header_buf = Vec::new();
-        let mut eol = false;
+        let mut is_eol = false;
 
         loop {
             let buf = self.inner.fill_buf()?;
 
-            if eol && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+            if is_eol && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
-            let len = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
+            let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
                 header_buf.extend(&buf[..=i]);
-                eol = true;
-                i + 1
+                (true, i + 1)
             } else {
                 header_buf.extend(buf);
-                buf.len()
+                (false, buf.len())
             };
+
+            is_eol = read_eol;
 
             self.inner.consume(len);
         }
@@ -268,6 +269,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::io::BufReader;
+
     use super::*;
 
     static DATA: &[u8] = b"\
@@ -300,6 +303,18 @@ sq0\t13
         let mut reader = Reader::new(data.as_bytes());
         let header = reader.read_header()?;
         assert_eq!(header, data);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
+        let data = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+        let buf = BufReader::with_capacity(16, data.as_bytes());
+        let mut reader = Reader::new(buf);
+
+        let header = reader.read_header()?;
+        assert_eq!(header, data);
+
         Ok(())
     }
 
