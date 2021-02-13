@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Read, Seek};
 use noodles_bgzf as bgzf;
 
 const HEADER_PREFIX: u8 = b'@';
-const NEWLINE: u8 = b'\n';
+const LINE_FEED: u8 = b'\n';
 
 /// A SAM reader.
 ///
@@ -100,7 +100,7 @@ where
                 break;
             }
 
-            let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == NEWLINE) {
+            let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED) {
                 header_buf.extend(&buf[..=i]);
                 (true, i + 1)
             } else {
