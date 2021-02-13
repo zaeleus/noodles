@@ -90,9 +90,11 @@ impl Record {
         &self.chromosome
     }
 
-    /// Returns the start position of the record.
+    /// Returns the start position of the reference bases or indicates a telomeric breakend.
     ///
-    /// VCF positions are 1-based.
+    /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
+    /// set to 0 and _n_ + 1, where _n_ is the length of the chromosome. Otherwise, it is a 1-based
+    /// start position of the reference bases.
     ///
     /// This is a required field and guaranteed to be set.
     ///
