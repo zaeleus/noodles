@@ -69,13 +69,13 @@ where
 
     /// Reads the raw VCF header.
     ///
-    /// This reads all header lines prefixed with a `#` (number sign) and is terminated by the
-    /// header header (`#CHROM`...; inclusive).
+    /// This reads all header lines prefixed with a `#` (number sign), which includes the header
+    /// header (`#CHROM`...).
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw VCF header as a [`std::string::String`]. It can subsequently be parsed
-    /// as a [`crate::Header`].
+    /// This returns the raw VCF header as a [`std::string::String`], and as such, it is not
+    /// necessarily valid. The raw header can subsequently be parsed as a [`crate::Header`].
     ///
     /// # Examples
     ///
@@ -98,10 +98,10 @@ where
         let mut header_buf = Vec::new();
         let mut is_eol = false;
 
-        loop {
+        for i in 0.. {
             let buf = self.inner.fill_buf()?;
 
-            if is_eol && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+            if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
                 break;
             }
 
@@ -314,6 +314,21 @@ sq0\t13
 
         let header = reader.read_header()?;
         assert_eq!(header, data);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_no_header() -> io::Result<()> {
+        let data = b"";
+        let mut reader = Reader::new(&data[..]);
+        let header = reader.read_header()?;
+        assert!(header.is_empty());
+
+        let data = b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n";
+        let mut reader = Reader::new(&data[..]);
+        let header = reader.read_header()?;
+        assert!(header.is_empty());
 
         Ok(())
     }
