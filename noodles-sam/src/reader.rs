@@ -227,10 +227,10 @@ mod tests {
 
     #[test]
     fn test_read_header_with_no_records() -> io::Result<()> {
-        let data = b"@HD\tVN1.6\n";
-        let mut reader = Reader::new(&data[..]);
+        let data = "@HD\tVN:1.6\n";
+        let mut reader = Reader::new(data.as_bytes());
         let header = reader.read_header()?;
-        assert_eq!(header, "@HD\tVN1.6\n");
+        assert_eq!(header, data);
         Ok(())
     }
 }
