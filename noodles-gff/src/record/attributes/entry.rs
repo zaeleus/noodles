@@ -135,11 +135,11 @@ impl FromStr for Entry {
     }
 }
 
-fn percent_decode(s: &str) -> Result<Cow<str>, str::Utf8Error> {
+fn percent_decode(s: &str) -> Result<Cow<'_, str>, str::Utf8Error> {
     percent_decode_str(s).decode_utf8()
 }
 
-fn percent_encode(s: &str) -> Cow<str> {
+fn percent_encode(s: &str) -> Cow<'_, str> {
     utf8_percent_encode(s, PERCENT_ENCODE_SET).into()
 }
 
