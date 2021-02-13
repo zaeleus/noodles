@@ -364,16 +364,16 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingField(field) => write!(f, "missing field: {}", field),
-            Self::InvalidChromosome(e) => write!(f, "{}", e),
-            Self::InvalidPosition(e) => write!(f, "{}", e),
-            Self::InvalidIds(e) => write!(f, "{}", e),
-            Self::InvalidReferenceBases(e) => write!(f, "{}", e),
-            Self::InvalidAlternateBases(e) => write!(f, "{}", e),
-            Self::InvalidQualityScore(e) => write!(f, "{}", e),
-            Self::InvalidFilterStatus(e) => write!(f, "{}", e),
-            Self::InvalidInfo(e) => write!(f, "{}", e),
-            Self::InvalidFormat(e) => write!(f, "{}", e),
-            Self::InvalidGenotype(e) => write!(f, "{}", e),
+            Self::InvalidChromosome(e) => write!(f, "invalid chromosome: {}", e),
+            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
+            Self::InvalidIds(e) => write!(f, "invalid IDs: {}", e),
+            Self::InvalidReferenceBases(e) => write!(f, "invalid reference bases: {}", e),
+            Self::InvalidAlternateBases(e) => write!(f, "invalid alternate bases: {}", e),
+            Self::InvalidQualityScore(e) => write!(f, "invalid quality score: {}", e),
+            Self::InvalidFilterStatus(e) => write!(f, "invalid filter status: {}", e),
+            Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
+            Self::InvalidFormat(e) => write!(f, "invalid format: {}", e),
+            Self::InvalidGenotype(e) => write!(f, "invalid genotype: {}", e),
         }
     }
 }
