@@ -6,12 +6,13 @@ pub mod contig;
 pub mod filter;
 pub mod format;
 pub mod info;
+pub mod meta;
 mod number;
 pub mod record;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
-    format::Format, info::Info, number::Number, record::Record,
+    format::Format, info::Info, meta::Meta, number::Number, record::Record,
 };
 
 use std::{
@@ -33,6 +34,7 @@ pub struct Header {
     alternative_alleles: Vec<AlternativeAllele>,
     assembly: Option<String>,
     contigs: Vec<Contig>,
+    meta: Vec<Meta>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
     map: HashMap<String, Record>,
@@ -208,6 +210,28 @@ impl Header {
     /// ```
     pub fn contigs(&self) -> &[Contig] {
         &self.contigs
+    }
+
+    /// Returns a list of meta records (`META`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Meta};
+    ///
+    /// let meta = Meta::new(
+    ///     String::from("Assay"),
+    ///     vec![String::from("WholeGenome"), String::from("Exome")],
+    /// );
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_meta(meta.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.meta(), [meta]);
+    /// ```
+    pub fn meta(&self) -> &[Meta] {
+        &self.meta
     }
 
     /// Returns a URI to the relationships between genomes (`pedigreeDB`).
@@ -489,6 +513,9 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
         record::Key::Contig => {
             let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
             builder.add_contig(contig)
+        }
+        record::Key::Meta => {
+            todo!("unhandled meta record");
         }
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
