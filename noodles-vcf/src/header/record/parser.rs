@@ -36,9 +36,35 @@ fn structure(input: &str) -> IResult<&str, Value> {
     )(input)
 }
 
+fn meta_list(input: &str) -> IResult<&str, &str> {
+    delimited(tag("["), take_until("]"), tag("]"))(input)
+}
+
+fn meta_values_field(input: &str) -> IResult<&str, (String, String)> {
+    map(
+        separated_pair(tag("Values"), tag("="), meta_list),
+        |(k, v): (&str, &str)| (k.into(), v.into()),
+    )(input)
+}
+
+fn meta_field(input: &str) -> IResult<&str, (String, String)> {
+    alt((meta_values_field, field))(input)
+}
+
+fn meta_structure(input: &str) -> IResult<&str, Value> {
+    map(
+        delimited(tag("<"), separated_list1(tag(","), meta_field), tag(">")),
+        Value::Struct,
+    )(input)
+}
+
 fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
-    let (input, value) = alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?;
+    let (input, value) = alt((
+        meta_structure,
+        structure,
+        map(rest, |s: &str| Value::String(s.into())),
+    ))(input)?;
     Ok((input, (key.into(), value)))
 }
 
@@ -107,6 +133,25 @@ mod tests {
                     String::from("Description"),
                     String::from("Number of samples with data")
                 ),
+            ])
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_with_meta_record_struct_value() -> Result<(), Box<dyn std::error::Error>> {
+        let (_, (key, value)) =
+            parse("##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>")?;
+
+        assert_eq!(key, "META");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("Assay")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Values"), String::from("WholeGenome, Exome")),
             ])
         );
 
