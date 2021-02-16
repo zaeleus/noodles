@@ -36,14 +36,14 @@ fn structure(input: &str) -> IResult<&str, Value> {
     )(input)
 }
 
-fn meta(input: &str) -> IResult<&str, (String, Value)> {
+fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
     let (input, value) = alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?;
     Ok((input, (key.into(), value)))
 }
 
 pub fn parse(input: &str) -> IResult<&str, (String, Value)> {
-    meta(input)
+    record(input)
 }
 
 #[cfg(test)]
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_meta_string_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_with_record_string_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, (key, value)) = parse("##fileformat=VCFv4.3")?;
         assert_eq!(key, "fileformat");
         assert_eq!(value, Value::String(String::from("VCFv4.3")));
@@ -75,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_meta_struct_value() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_parse_with_record_struct_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, (key, value)) = parse(
             r#"##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">"#,
         )?;
