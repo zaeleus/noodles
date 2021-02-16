@@ -414,6 +414,8 @@ pub enum ParseError {
     InvalidAlternativeAllele(alternative_allele::TryFromRecordError),
     /// A contig record (`contig`) is invalid.
     InvalidContig(contig::TryFromRecordError),
+    /// A meta record (`META`) is invalid.
+    InvalidMeta(meta::TryFromRecordError),
     /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
 }
@@ -434,6 +436,7 @@ impl fmt::Display for ParseError {
                 write!(f, "invalid alternative allele: {}", e)
             }
             Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
+            Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
             Self::ExpectedEof => f.write_str("expected EOF"),
         }
     }
@@ -515,7 +518,8 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             builder.add_contig(contig)
         }
         record::Key::Meta => {
-            todo!("unhandled meta record");
+            let meta = Meta::try_from(record).map_err(ParseError::InvalidMeta)?;
+            builder.add_meta(meta)
         }
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
@@ -603,6 +607,7 @@ mod tests {
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
+##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
 
@@ -615,6 +620,7 @@ mod tests {
         assert_eq!(header.alternative_alleles().len(), 1);
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
+        assert_eq!(header.meta().len(), 1);
         assert!(header.sample_names().is_empty());
 
         assert_eq!(
