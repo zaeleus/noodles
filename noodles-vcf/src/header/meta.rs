@@ -1,8 +1,12 @@
 //! VCF header meta record.
 
+mod key;
+
 use std::{convert::TryFrom, error, fmt};
 
 use super::{record, Record};
+
+use self::key::Key;
 
 /// A VCF header meta record (`META`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -71,11 +75,11 @@ impl fmt::Display for Meta {
         f.write_str(record::Key::Meta.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "ID={}", self.id)?;
-        f.write_str(",Type=String")?;
-        f.write_str(",Number=.")?;
+        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, ",{}=String", Key::Type)?;
+        write!(f, ",{}=.", Key::Number)?;
 
-        f.write_str(",Values=[")?;
+        write!(f, ",{}=[", Key::Values)?;
 
         for (i, value) in self.values().iter().enumerate() {
             if i > 0 {
