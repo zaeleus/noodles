@@ -6,7 +6,7 @@ pub use self::key::Key;
 
 use std::{convert::TryFrom, error, fmt};
 
-use super::{record, Record};
+use super::{record, Number, Record};
 
 /// A VCF header meta record (`META`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -77,7 +77,7 @@ impl fmt::Display for Meta {
 
         write!(f, "{}={}", Key::Id, self.id)?;
         write!(f, ",{}=String", Key::Type)?;
-        write!(f, ",{}=.", Key::Number)?;
+        write!(f, ",{}={}", Key::Number, Number::Unknown)?;
 
         write!(f, ",{}=[", Key::Values)?;
 
