@@ -9,10 +9,11 @@ pub mod info;
 pub mod meta;
 mod number;
 pub mod record;
+mod sample;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
-    format::Format, info::Info, meta::Meta, number::Number, record::Record,
+    format::Format, info::Info, meta::Meta, number::Number, record::Record, sample::Sample,
 };
 
 use std::{
@@ -35,6 +36,7 @@ pub struct Header {
     assembly: Option<String>,
     contigs: Vec<Contig>,
     meta: Vec<Meta>,
+    samples: Vec<Sample>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
     map: HashMap<String, Record>,
@@ -232,6 +234,24 @@ impl Header {
     /// ```
     pub fn meta(&self) -> &[Meta] {
         &self.meta
+    }
+
+    /// Returns a list of sample records (`SAMPLE`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Sample};
+    ///
+    /// let sample = Sample::new(String::from("sample0"), Default::default());
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_sample(sample.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.samples(), [sample]);
+    pub fn samples(&self) -> &[Sample] {
+        &self.samples
     }
 
     /// Returns a URI to the relationships between genomes (`pedigreeDB`).
@@ -520,6 +540,9 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
         record::Key::Meta => {
             let meta = Meta::try_from(record).map_err(ParseError::InvalidMeta)?;
             builder.add_meta(meta)
+        }
+        record::Key::Sample => {
+            todo!("unhandled SAMPLE record");
         }
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),

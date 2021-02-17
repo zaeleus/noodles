@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use super::{AlternativeAllele, Contig, Filter, Format, Header, Info, Meta, Record, FILE_FORMAT};
+use super::{
+    AlternativeAllele, Contig, Filter, Format, Header, Info, Meta, Record, Sample, FILE_FORMAT,
+};
 
 /// A VCF header builder.
 #[derive(Debug)]
@@ -13,6 +15,7 @@ pub struct Builder {
     assembly: Option<String>,
     contigs: Vec<Contig>,
     meta: Vec<Meta>,
+    samples: Vec<Sample>,
     pedigree_db: Option<String>,
     sample_names: Vec<String>,
     map: HashMap<String, Record>,
@@ -212,6 +215,26 @@ impl Builder {
         self
     }
 
+    /// Adds a sample record (`META`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Sample};
+    ///
+    /// let sample = Sample::new(String::from("sample0"), Default::default());
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_sample(sample.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.samples(), [sample]);
+    /// ```
+    pub fn add_sample(mut self, sample: Sample) -> Self {
+        self.samples.push(sample);
+        self
+    }
+
     /// Sets a pedigree database record (`pedigreeDB`).
     ///
     /// # Examples
@@ -297,6 +320,7 @@ impl Builder {
             assembly: self.assembly,
             contigs: self.contigs,
             meta: self.meta,
+            samples: self.samples,
             pedigree_db: self.pedigree_db,
             samples_names: self.sample_names,
             map: self.map,
@@ -315,6 +339,7 @@ impl Default for Builder {
             assembly: None,
             contigs: Vec::new(),
             meta: Vec::new(),
+            samples: Vec::new(),
             pedigree_db: None,
             sample_names: Vec::new(),
             map: HashMap::new(),
@@ -338,6 +363,7 @@ mod tests {
         assert!(header.assembly().is_none());
         assert!(header.contigs().is_empty());
         assert!(header.meta().is_empty());
+        assert!(header.samples().is_empty());
         assert!(header.sample_names().is_empty());
     }
 
@@ -384,6 +410,7 @@ mod tests {
                 String::from("Assay"),
                 vec![String::from("WholeGenome"), String::from("Exome")],
             ))
+            .add_sample(Sample::new(String::from("sample0"), Default::default()))
             .add_sample_name("sample0")
             .insert(record.clone())
             .build();
@@ -396,6 +423,7 @@ mod tests {
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 2);
         assert_eq!(header.meta().len(), 1);
+        assert_eq!(header.samples().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
         assert_eq!(header.get("fileDate"), Some(&record));
 
