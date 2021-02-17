@@ -1,12 +1,12 @@
 //! VCF header meta record.
 
-mod key;
+pub mod key;
+
+pub use self::key::Key;
 
 use std::{convert::TryFrom, error, fmt};
 
 use super::{record, Record};
-
-use self::key::Key;
 
 /// A VCF header meta record (`META`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -103,7 +103,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(&'static str),
+    MissingField(Key),
     /// The ID is invalid.
     InvalidId,
     /// The number is invalid.
@@ -142,18 +142,18 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordErro
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField("ID"))
-        .and_then(|(k, v)| match k.as_str() {
-            "ID" => Ok(v),
-            _ => Err(TryFromRecordError::MissingField("ID")),
+        .ok_or(TryFromRecordError::MissingField(Key::Id))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
         })?;
 
     let ty = it
         .next()
-        .ok_or(TryFromRecordError::MissingField("Type"))
-        .and_then(|(k, v)| match k.as_str() {
-            "Type" => Ok(v),
-            _ => Err(TryFromRecordError::MissingField("Type")),
+        .ok_or(TryFromRecordError::MissingField(Key::Type))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Type) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Type)),
         })?;
 
     if ty != "String" {
@@ -162,10 +162,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordErro
 
     let number = it
         .next()
-        .ok_or(TryFromRecordError::MissingField("Number"))
-        .and_then(|(k, v)| match k.as_str() {
-            "Number" => Ok(v),
-            _ => Err(TryFromRecordError::MissingField("Number")),
+        .ok_or(TryFromRecordError::MissingField(Key::Number))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Number) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Number)),
         })?;
 
     if number != "." {
@@ -174,10 +174,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordErro
 
     let values = it
         .next()
-        .ok_or(TryFromRecordError::MissingField("Values"))
-        .and_then(|(k, v)| match k.as_str() {
-            "Values" => Ok(v.split(',').map(|s| s.trim().into()).collect()),
-            _ => Err(TryFromRecordError::MissingField("Values")),
+        .ok_or(TryFromRecordError::MissingField(Key::Values))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Values) => Ok(v.split(',').map(|s| s.trim().into()).collect()),
+            _ => Err(TryFromRecordError::MissingField(Key::Values)),
         })?;
 
     Ok(Meta::new(id, values))
