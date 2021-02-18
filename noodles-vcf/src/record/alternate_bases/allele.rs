@@ -127,53 +127,55 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("G".parse::<Allele>()?, Allele::Bases(vec![Base::G]));
+    fn test_from_str() {
+        assert_eq!("G".parse::<Allele>(), Ok(Allele::Bases(vec![Base::G])));
 
         assert_eq!(
-            "GT".parse::<Allele>()?,
-            Allele::Bases(vec![Base::G, Base::T])
+            "GT".parse::<Allele>(),
+            Ok(Allele::Bases(vec![Base::G, Base::T]))
         );
 
         assert_eq!(
-            "<DUP>".parse::<Allele>()?,
-            Allele::Symbol(Symbol::StructuralVariant(symbol::StructuralVariant::from(
-                symbol::structural_variant::Type::Duplication,
+            "<DUP>".parse::<Allele>(),
+            Ok(Allele::Symbol(Symbol::StructuralVariant(
+                symbol::StructuralVariant::from(symbol::structural_variant::Type::Duplication,)
             )))
         );
 
         assert_eq!(
-            "<CN0>".parse::<Allele>()?,
-            Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN0")))
+            "<CN0>".parse::<Allele>(),
+            Ok(Allele::Symbol(Symbol::NonstructuralVariant(String::from(
+                "CN0"
+            ))))
         );
 
         assert_eq!(
-            "<CN:0>".parse::<Allele>()?,
-            Allele::Symbol(Symbol::NonstructuralVariant(String::from("CN:0")))
+            "<CN:0>".parse::<Allele>(),
+            Ok(Allele::Symbol(Symbol::NonstructuralVariant(String::from(
+                "CN:0"
+            ))))
         );
 
         assert_eq!(
-            "]sq0:5]A".parse::<Allele>()?,
-            Allele::Breakend(String::from("]sq0:5]A"))
+            "]sq0:5]A".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from("]sq0:5]A")))
         );
 
         assert_eq!(
-            "C[sq1:13[".parse::<Allele>()?,
-            Allele::Breakend(String::from("C[sq1:13["))
+            "C[sq1:13[".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from("C[sq1:13[")))
         );
 
         assert_eq!(
-            "G.".parse::<Allele>()?,
-            Allele::Breakend(String::from("G."))
+            "G.".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from("G.")))
         );
 
         assert_eq!(
-            ".A".parse::<Allele>()?,
-            Allele::Breakend(String::from(".A"))
+            ".A".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from(".A")))
         );
 
-        assert!("".parse::<Allele>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Allele>(), Err(ParseError::Empty));
     }
 }
