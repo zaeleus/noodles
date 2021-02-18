@@ -177,5 +177,13 @@ mod tests {
         );
 
         assert_eq!("".parse::<Allele>(), Err(ParseError::Empty));
+        assert!(matches!(
+            "<>".parse::<Allele>(),
+            Err(ParseError::InvalidSymbol(_))
+        ));
+        assert!(matches!(
+            "Z".parse::<Allele>(),
+            Err(ParseError::InvalidBase(_))
+        ));
     }
 }
