@@ -1,8 +1,8 @@
 //! VCF header sample record.
 
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
-use super::record;
+use super::{record, Record};
 
 /// A VCF header sample record (`SAMPLE`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -71,9 +71,69 @@ impl fmt::Display for Sample {
     }
 }
 
+/// An error returned when a generic VCF header record fails to convert to a sample header record.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromRecordError {
+    /// The record is invalid.
+    InvalidRecord,
+    /// A required field is missing.
+    MissingField(&'static str),
+    /// The ID is invalid.
+    InvalidId,
+}
+
+impl error::Error for TryFromRecordError {}
+
+impl fmt::Display for TryFromRecordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidRecord => f.write_str("invalid record"),
+            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidId => f.write_str("invalid ID"),
+        }
+    }
+}
+
+impl TryFrom<Record> for Sample {
+    type Error = TryFromRecordError;
+
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        match record.into() {
+            (record::Key::Sample, record::Value::Struct(fields)) => parse_struct(fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
+        }
+    }
+}
+
+fn parse_struct(fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordError> {
+    let mut it = fields.into_iter();
+
+    let id = it
+        .next()
+        .ok_or(TryFromRecordError::MissingField("ID"))
+        .and_then(|(k, v)| match k.as_str() {
+            "ID" => Ok(v),
+            _ => Err(TryFromRecordError::MissingField("ID")),
+        })?;
+
+    let fields = it.collect();
+
+    Ok(Sample::new(id, fields))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::Sample,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("sample0")),
+                (String::from("Assay"), String::from("WholeGenome")),
+            ]),
+        )
+    }
 
     #[test]
     fn test_fmt() {
@@ -87,5 +147,17 @@ mod tests {
             sample.to_string(),
             "##SAMPLE=<ID=sample0,Assay=WholeGenome>"
         );
+    }
+
+    #[test]
+    fn test_try_from_record_for_sample() {
+        let record = build_record();
+        let actual = Sample::try_from(record);
+
+        let mut fields = HashMap::new();
+        fields.insert(String::from("Assay"), String::from("WholeGenome"));
+        let expected = Sample::new(String::from("sample0"), fields);
+
+        assert_eq!(actual, Ok(expected));
     }
 }

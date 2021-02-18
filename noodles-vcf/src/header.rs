@@ -436,6 +436,8 @@ pub enum ParseError {
     InvalidContig(contig::TryFromRecordError),
     /// A meta record (`META`) is invalid.
     InvalidMeta(meta::TryFromRecordError),
+    /// A sample record (`SAMPLE`) is invalid.
+    InvalidSample(sample::TryFromRecordError),
     /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
 }
@@ -457,6 +459,7 @@ impl fmt::Display for ParseError {
             }
             Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
             Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
+            Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
             Self::ExpectedEof => f.write_str("expected EOF"),
         }
     }
@@ -542,7 +545,8 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             builder.add_meta(meta)
         }
         record::Key::Sample => {
-            todo!("unhandled SAMPLE record");
+            let sample = Sample::try_from(record).map_err(ParseError::InvalidSample)?;
+            builder.add_sample(sample)
         }
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
@@ -631,7 +635,8 @@ mod tests {
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##ALT=<ID=DEL,Description="Deletion">
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+##SAMPLE=<ID=sample0,Assay=WholeGenome>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
         let header: Header = s.parse()?;
@@ -644,7 +649,8 @@ mod tests {
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
         assert_eq!(header.meta().len(), 1);
-        assert!(header.sample_names().is_empty());
+        assert_eq!(header.samples().len(), 1);
+        assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(
             header.get("fileDate"),
