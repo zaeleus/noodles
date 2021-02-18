@@ -115,8 +115,8 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordEr
     let id = it
         .next()
         .ok_or(TryFromRecordError::MissingField(Key::Id))
-        .and_then(|(k, v)| match k.as_str() {
-            "ID" => Ok(v),
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => Ok(v),
             _ => Err(TryFromRecordError::MissingField(Key::Id)),
         })?;
 
