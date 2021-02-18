@@ -1,5 +1,9 @@
 //! VCF header sample record.
 
+pub mod key;
+
+pub use self::key::Key;
+
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use super::{record, Record};
@@ -59,7 +63,7 @@ impl fmt::Display for Sample {
         f.write_str(record::Key::Sample.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "ID={}", self.id())?;
+        write!(f, "{}={}", Key::Id, self.id())?;
 
         for (key, value) in &self.fields {
             write!(f, r#",{}={}"#, key, value)?;
@@ -77,7 +81,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(&'static str),
+    MissingField(Key),
     /// The ID is invalid.
     InvalidId,
 }
@@ -110,10 +114,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordEr
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField("ID"))
+        .ok_or(TryFromRecordError::MissingField(Key::Id))
         .and_then(|(k, v)| match k.as_str() {
             "ID" => Ok(v),
-            _ => Err(TryFromRecordError::MissingField("ID")),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
         })?;
 
     let fields = it.collect();

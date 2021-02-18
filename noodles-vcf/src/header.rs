@@ -9,7 +9,7 @@ pub mod info;
 pub mod meta;
 mod number;
 pub mod record;
-mod sample;
+pub mod sample;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
