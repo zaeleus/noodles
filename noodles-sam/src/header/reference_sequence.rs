@@ -345,7 +345,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
-            Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),

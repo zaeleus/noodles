@@ -216,7 +216,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
-            Self::InvalidTag(e) => write!(f, "{}", e),
+            Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::InvalidSortOrder(e) => write!(f, "invalid sort order: {}", e),
             Self::InvalidGroupOrder(e) => write!(f, "invalid group order: {}", e),
             Self::InvalidSubsortOrder(e) => write!(f, "invalid subsort order: {}", e),
