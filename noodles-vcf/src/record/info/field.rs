@@ -85,8 +85,6 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid info: ")?;
-
         match self {
             Self::MissingKey => f.write_str("missing key"),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
