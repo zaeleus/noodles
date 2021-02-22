@@ -58,21 +58,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let s = "##gff-version 3";
-        let actual = s.parse::<Line>()?;
-        let expected = Line::Directive(Directive::GffVersion(Default::default()));
-        assert_eq!(actual, expected);
+    fn test_from_str() {
+        assert_eq!(
+            "##gff-version 3".parse(),
+            Ok(Line::Directive(Directive::GffVersion(Default::default())))
+        );
 
-        let s = "#format: gff3";
-        let actual = s.parse::<Line>()?;
-        let expected = Line::Comment(String::from("format: gff3"));
-        assert_eq!(actual, expected);
+        assert_eq!(
+            "#format: gff3".parse(),
+            Ok(Line::Comment(String::from("format: gff3")))
+        );
 
-        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
-        let actual = s.parse::<Line>()?;
-        assert!(matches!(actual, Line::Record(_)));
-
-        Ok(())
+        assert!(matches!(
+            "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0".parse(),
+            Ok(Line::Record(_))
+        ));
     }
 }
