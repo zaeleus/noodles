@@ -55,10 +55,8 @@ impl error::Error for TryFromIntError {}
 
 impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid format: ")?;
-
         match self {
-            Self::InvalidCoordinateSystem(e) => write!(f, "{}", e),
+            Self::InvalidCoordinateSystem(e) => write!(f, "invalid coordinate system: {}", e),
             Self::InvalidKind(n) => write!(f, "invalid kind: expected 0..=2, got {}", n),
         }
     }
