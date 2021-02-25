@@ -82,7 +82,15 @@ fn is_valid_name_char(c: char) -> bool {
 }
 
 fn is_valid_name(s: &str) -> bool {
-    s.chars().all(is_valid_name_char)
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if c == '*' || c == '=' || !is_valid_name_char(c) {
+            return false;
+        }
+    }
+
+    chars.all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -105,5 +113,7 @@ mod tests {
         assert_eq!("sq 0".parse::<Chromosome>(), Err(ParseError::Invalid));
         assert_eq!("sq[0]".parse::<Chromosome>(), Err(ParseError::Invalid));
         assert_eq!(">sq0".parse::<Chromosome>(), Err(ParseError::Invalid));
+        assert_eq!("*sq0".parse::<Chromosome>(), Err(ParseError::Invalid));
+        assert_eq!("=sq0".parse::<Chromosome>(), Err(ParseError::Invalid));
     }
 }
