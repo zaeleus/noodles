@@ -54,14 +54,35 @@ impl FromStr for Chromosome {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Err(ParseError::Missing),
-            _ => parser::parse(s)
-                .map(|(_, value)| match value {
-                    parser::Value::Name(t) => Self::Name(t.into()),
-                    parser::Value::Symbol(t) => Self::Symbol(t.into()),
-                })
-                .map_err(|_| ParseError::Invalid),
+            _ => {
+                parser::parse(s)
+                    .map_err(|_| ParseError::Invalid)
+                    .and_then(|(_, value)| match value {
+                        parser::Value::Name(t) => {
+                            if is_valid_name(t) {
+                                Ok(Self::Name(t.into()))
+                            } else {
+                                Err(ParseError::Invalid)
+                            }
+                        }
+                        parser::Value::Symbol(t) => Ok(Self::Symbol(t.into())),
+                    })
+            }
         }
     }
+}
+
+// § 1.4.7 Contig field format
+fn is_valid_name_char(c: char) -> bool {
+    ('!'..='~').contains(&c)
+        && !matches!(
+            c,
+            '\\' | ',' | '"' | '`' | '\'' | '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>',
+        )
+}
+
+fn is_valid_name(s: &str) -> bool {
+    s.chars().all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -82,5 +103,7 @@ mod tests {
         assert_eq!("".parse::<Chromosome>(), Err(ParseError::Empty));
         assert_eq!(".".parse::<Chromosome>(), Err(ParseError::Missing));
         assert_eq!("sq 0".parse::<Chromosome>(), Err(ParseError::Invalid));
+        assert_eq!("sq[0]".parse::<Chromosome>(), Err(ParseError::Invalid));
+        assert_eq!(">sq0".parse::<Chromosome>(), Err(ParseError::Invalid));
     }
 }
