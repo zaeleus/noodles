@@ -1,6 +1,6 @@
 //! VCF record IDs.
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{collections::HashSet, error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
@@ -41,6 +41,8 @@ impl fmt::Display for Ids {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The list of IDs has a duplicate.
+    DuplicateId(String),
 }
 
 impl error::Error for ParseError {}
@@ -49,6 +51,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::DuplicateId(id) => write!(f, "duplicate ID: {}", id),
         }
     }
 }
@@ -60,7 +63,20 @@ impl FromStr for Ids {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
-            _ => Ok(Self(s.split(DELIMITER).map(|s| s.into()).collect())),
+            _ => {
+                let mut set: HashSet<String> = HashSet::new();
+                let mut ids = Vec::new();
+
+                for id in s.split(DELIMITER) {
+                    if !set.insert(id.into()) {
+                        return Err(ParseError::DuplicateId(id.into()));
+                    }
+
+                    ids.push(id.into());
+                }
+
+                Ok(Self(ids))
+            }
         }
     }
 }
@@ -89,5 +105,9 @@ mod tests {
         );
 
         assert_eq!("".parse::<Ids>(), Err(ParseError::Empty));
+        assert_eq!(
+            "nd0;nd0".parse::<Ids>(),
+            Err(ParseError::DuplicateId(String::from("nd0")))
+        );
     }
 }
