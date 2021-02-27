@@ -1,5 +1,5 @@
 //! VCF record IDs.
-//!
+
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
