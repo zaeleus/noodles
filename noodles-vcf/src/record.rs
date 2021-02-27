@@ -9,6 +9,7 @@ pub mod format;
 pub mod genotype;
 pub mod ids;
 pub mod info;
+pub mod position;
 pub mod quality_score;
 pub mod reference_bases;
 pub(crate) mod value;
@@ -16,7 +17,7 @@ pub(crate) mod value;
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
     filter_status::FilterStatus, format::Format, genotype::Genotype, ids::Ids, info::Info,
-    quality_score::QualityScore, reference_bases::ReferenceBases,
+    position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, num, str::FromStr};
