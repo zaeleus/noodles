@@ -7,8 +7,8 @@ use super::{Header, Record};
 /// # Examples
 ///
 /// ```
-/// # use std::io;
-/// use noodles_vcf::{self as vcf, header::Contig};
+/// # use std::{convert::TryFrom, io};
+/// use noodles_vcf::{self as vcf, header::Contig, record::Position};
 ///
 /// let mut writer = vcf::Writer::new(Vec::new());
 ///
@@ -20,7 +20,7 @@ use super::{Header, Record};
 ///
 /// let record = vcf::Record::builder()
 ///     .set_chromosome("sq0".parse()?)
-///     .set_position(1)
+///     .set_position(Position::try_from(1)?)
 ///     .set_reference_bases("A".parse()?)
 ///     .build()?;
 ///
@@ -92,11 +92,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -109,7 +110,7 @@ where
             self.inner,
             "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
             chrom = record.chromosome(),
-            pos = record.position(),
+            pos = i32::from(record.position()),
             id = record.ids(),
             r#ref = record.reference_bases(),
             alt = record.alternate_bases(),
@@ -132,7 +133,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{Format, Genotype};
+    use std::convert::TryFrom;
+
+    use crate::record::{Format, Genotype, Position};
 
     use super::*;
 
@@ -158,7 +161,7 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(1)
+            .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
             .build()?;
 
@@ -179,7 +182,7 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(1)
+            .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
             .set_format(format.clone())
             .add_genotype(Genotype::from_str_format("0|0:13", &format)?)

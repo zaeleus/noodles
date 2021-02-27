@@ -20,7 +20,7 @@ pub use self::{
     position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
-use std::{error, fmt, num, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -43,7 +43,7 @@ pub(crate) const FIELD_DELIMITER: char = '\t';
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     chromosome: Chromosome,
-    position: i32,
+    position: Position,
     ids: Ids,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
@@ -76,11 +76,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::Chromosome};
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -97,23 +98,24 @@ impl Record {
     /// set to 0 and _n_ + 1, where _n_ is the length of the chromosome. Otherwise, it is a 1-based
     /// start position of the reference bases.
     ///
-    /// This is a required field and guaranteed to be set.
+    /// This is a required field. It is guaranteed to be set and >= 0.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(8)
+    ///     .set_position(Position::try_from(8)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.position(), 8);
+    /// assert_eq!(i32::from(record.position()), 8);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn position(&self) -> i32 {
+    pub fn position(&self) -> Position {
         self.position
     }
 
@@ -122,11 +124,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(8)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -145,12 +148,15 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
-    /// use noodles_vcf::{self as vcf, record::{reference_bases::Base, ReferenceBases}};
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{reference_bases::Base, Position, ReferenceBases},
+    /// };
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(8)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -169,14 +175,15 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases}
+    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(8)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .build()?;
@@ -201,11 +208,11 @@ impl Record {
     ///
     /// ```
     /// use std::convert::TryFrom;
-    /// use noodles_vcf::{self as vcf, record::QualityScore};
+    /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(8)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
@@ -225,11 +232,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, record::FilterStatus};
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::{FilterStatus, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_filter_status(FilterStatus::Pass)
     ///     .build()?;
@@ -246,14 +254,15 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::{field::{Key, Value}, Field}, Info},
+    ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
@@ -274,17 +283,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::field::Key, Format, Genotype}
+    ///     record::{genotype::field::Key, Format, Genotype, Position},
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_format(format.clone())
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
@@ -308,14 +317,14 @@ impl Record {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype}
+    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(1)
+    ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_format(format.clone())
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
@@ -342,7 +351,7 @@ pub enum ParseError {
     /// The chromosome is invalid.
     InvalidChromosome(chromosome::ParseError),
     /// The position is invalid.
-    InvalidPosition(num::ParseIntError),
+    InvalidPosition(position::ParseError),
     /// The ID is invalid.
     InvalidIds(ids::ParseError),
     /// The reference bases are invalid.
@@ -462,7 +471,7 @@ mod tests {
 
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
-        assert_eq!(record.position(), 13);
+        assert_eq!(i32::from(record.position()), 13);
         assert_eq!(**record.ids(), [String::from("nd0")]);
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
