@@ -43,6 +43,8 @@ pub enum ParseError {
     Empty,
     /// The list of IDs has a duplicate.
     DuplicateId(String),
+    /// An ID is invalid.
+    InvalidId(String),
 }
 
 impl error::Error for ParseError {}
@@ -52,6 +54,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::DuplicateId(id) => write!(f, "duplicate ID: {}", id),
+            Self::InvalidId(s) => write!(f, "invalid ID: {}", s),
         }
     }
 }
@@ -70,6 +73,8 @@ impl FromStr for Ids {
                 for id in s.split(DELIMITER) {
                     if !set.insert(id.into()) {
                         return Err(ParseError::DuplicateId(id.into()));
+                    } else if !is_valid_id(id) {
+                        return Err(ParseError::InvalidId(id.into()));
                     }
 
                     ids.push(id.into());
@@ -79,6 +84,10 @@ impl FromStr for Ids {
             }
         }
     }
+}
+
+fn is_valid_id(s: &str) -> bool {
+    s.chars().all(|c| !c.is_ascii_whitespace())
 }
 
 #[cfg(test)]
@@ -109,5 +118,9 @@ mod tests {
             "nd0;nd0".parse::<Ids>(),
             Err(ParseError::DuplicateId(String::from("nd0")))
         );
+        assert_eq!(
+            "nd 0".parse::<Ids>(),
+            Err(ParseError::InvalidId(String::from("nd 0")))
+        )
     }
 }
