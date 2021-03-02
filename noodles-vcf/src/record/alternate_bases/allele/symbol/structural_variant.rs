@@ -9,7 +9,7 @@ use std::{error, fmt, str::FromStr};
 const DELIMITER: char = ':';
 
 /// A VCF alternate bases allele structural variant symbol.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct StructuralVariant {
     ty: Type,
     subtypes: Vec<String>,

@@ -6,6 +6,7 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
+indexmap = "1.4.0"
 nom = "6.1.2"
 noodles-bgzf = { path = "../noodles-bgzf" }
 percent-encoding = "2.1.0"

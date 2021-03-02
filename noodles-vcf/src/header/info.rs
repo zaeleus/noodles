@@ -3,15 +3,13 @@
 pub mod key;
 pub mod ty;
 
-pub use self::ty::Type;
+pub use self::{key::Key, ty::Type};
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 use crate::record::info;
 
 use super::{number, record, Number, Record};
-
-use self::key::Key;
 
 /// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]

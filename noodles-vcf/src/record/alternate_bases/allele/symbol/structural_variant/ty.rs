@@ -3,7 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF alternate bases allele structural variant symbol type.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Type {
     /// A deletion (`DEL`).
     Deletion,

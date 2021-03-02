@@ -3,7 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF header information field value type.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Type {
     /// A 32-bit integer.
     Integer,

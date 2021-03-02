@@ -7,7 +7,7 @@ pub use self::structural_variant::StructuralVariant;
 use std::{error, fmt, str::FromStr};
 
 /// A VCF alternate bases allele symbol.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Symbol {
     /// A structural variant.
     StructuralVariant(StructuralVariant),

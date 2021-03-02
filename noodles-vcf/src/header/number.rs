@@ -1,7 +1,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF number describing the cardinality of a field.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Number {
     /// An explicit size.
     Count(usize),

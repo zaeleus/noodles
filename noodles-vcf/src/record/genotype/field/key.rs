@@ -5,7 +5,7 @@ use std::{error, fmt, str::FromStr};
 use crate::header::{format::Type, Number};
 
 /// A VCF record genotype field key.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
     // § 1.6.2 Genotype fields (2020-04-02)
     /// (`AD`).

@@ -4,18 +4,21 @@ use super::{
     AlternativeAllele, Contig, Filter, Format, Header, Info, Meta, Record, Sample, FILE_FORMAT,
 };
 
+use indexmap::IndexMap;
+
 /// A VCF header builder.
 #[derive(Debug)]
 pub struct Builder {
     file_format: String,
-    infos: Vec<Info>,
-    filters: Vec<Filter>,
-    formats: Vec<Format>,
-    alternative_alleles: Vec<AlternativeAllele>,
+    infos: IndexMap<crate::record::info::field::Key, Info>,
+    filters: IndexMap<String, Filter>,
+    formats: IndexMap<crate::record::genotype::field::Key, Format>,
+    alternative_alleles:
+        IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>,
     assembly: Option<String>,
-    contigs: Vec<Contig>,
-    meta: Vec<Meta>,
-    samples: Vec<Sample>,
+    contigs: IndexMap<String, Contig>,
+    meta: IndexMap<String, Meta>,
+    samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     sample_names: Vec<String>,
     map: HashMap<String, Record>,
@@ -64,7 +67,7 @@ impl Builder {
     /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
     /// ```
     pub fn add_info(mut self, info: Info) -> Self {
-        self.infos.push(info);
+        self.infos.insert(info.id().clone(), info);
         self
     }
 
@@ -87,7 +90,7 @@ impl Builder {
     /// assert_eq!(filters[0].id(), "q10");
     /// ```
     pub fn add_filter(mut self, filter: Filter) -> Self {
-        self.filters.push(filter);
+        self.filters.insert(filter.id().into(), filter);
         self
     }
 
@@ -116,7 +119,7 @@ impl Builder {
     /// assert_eq!(formats[0].id(), &Key::Genotype);
     /// ```
     pub fn add_format(mut self, format: Format) -> Self {
-        self.formats.push(format);
+        self.formats.insert(format.id().clone(), format);
         self
     }
 
@@ -149,7 +152,8 @@ impl Builder {
     /// );
     /// ```
     pub fn add_alternative_allele(mut self, alternative_allele: AlternativeAllele) -> Self {
-        self.alternative_alleles.push(alternative_allele);
+        self.alternative_alleles
+            .insert(alternative_allele.id().clone(), alternative_allele);
         self
     }
 
@@ -185,10 +189,12 @@ impl Builder {
     ///     .add_contig(Contig::new(String::from("sq0")))
     ///     .build();
     ///
-    /// assert_eq!(header.contigs(), [Contig::new(String::from("sq0"))]);
+    /// let contigs = header.contigs();
+    /// assert_eq!(contigs.len(), 1);
+    /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
     /// ```
     pub fn add_contig(mut self, contig: Contig) -> Self {
-        self.contigs.push(contig);
+        self.contigs.insert(contig.id().into(), contig);
         self
     }
 
@@ -208,10 +214,12 @@ impl Builder {
     ///     .add_meta(meta.clone())
     ///     .build();
     ///
-    /// assert_eq!(header.meta(), [meta]);
+    /// let records = header.meta();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], meta);
     /// ```
     pub fn add_meta(mut self, meta: Meta) -> Self {
-        self.meta.push(meta);
+        self.meta.insert(meta.id().into(), meta);
         self
     }
 
@@ -228,10 +236,12 @@ impl Builder {
     ///     .add_sample(sample.clone())
     ///     .build();
     ///
-    /// assert_eq!(header.samples(), [sample]);
+    /// let records = header.samples();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], sample);
     /// ```
     pub fn add_sample(mut self, sample: Sample) -> Self {
-        self.samples.push(sample);
+        self.samples.insert(sample.id().into(), sample);
         self
     }
 
@@ -332,14 +342,14 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             file_format: FILE_FORMAT.into(),
-            infos: Vec::new(),
-            filters: Vec::new(),
-            formats: Vec::new(),
-            alternative_alleles: Vec::new(),
+            infos: Default::default(),
+            filters: Default::default(),
+            formats: Default::default(),
+            alternative_alleles: Default::default(),
             assembly: None,
-            contigs: Vec::new(),
-            meta: Vec::new(),
-            samples: Vec::new(),
+            contigs: Default::default(),
+            meta: Default::default(),
+            samples: Default::default(),
             pedigree_db: None,
             sample_names: Vec::new(),
             map: HashMap::new(),

@@ -23,20 +23,23 @@ use std::{
     str::{FromStr, Lines},
 };
 
+use indexmap::IndexMap;
+
 static FILE_FORMAT: &str = "VCFv4.3";
 
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     file_format: String,
-    infos: Vec<Info>,
-    filters: Vec<Filter>,
-    formats: Vec<Format>,
-    alternative_alleles: Vec<AlternativeAllele>,
+    infos: IndexMap<crate::record::info::field::Key, Info>,
+    filters: IndexMap<String, Filter>,
+    formats: IndexMap<crate::record::genotype::field::Key, Format>,
+    alternative_alleles:
+        IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>,
     assembly: Option<String>,
-    contigs: Vec<Contig>,
-    meta: Vec<Meta>,
-    samples: Vec<Sample>,
+    contigs: IndexMap<String, Contig>,
+    meta: IndexMap<String, Meta>,
+    samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
     map: HashMap<String, Record>,
@@ -70,7 +73,7 @@ impl Header {
         &self.file_format
     }
 
-    /// Returns a list of information records (`INFO`).
+    /// Returns a map of information records (`INFO`).
     ///
     /// # Examples
     ///
@@ -94,11 +97,11 @@ impl Header {
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
     /// ```
-    pub fn infos(&self) -> &[Info] {
+    pub fn infos(&self) -> &IndexMap<crate::record::info::field::Key, Info> {
         &self.infos
     }
 
-    /// Returns a list of filter records (`FILTER`).
+    /// Returns a map of filter records (`FILTER`).
     ///
     /// # Examples
     ///
@@ -116,7 +119,7 @@ impl Header {
     /// assert_eq!(filters.len(), 1);
     /// assert_eq!(filters[0].id(), "q10");
     /// ```
-    pub fn filters(&self) -> &[Filter] {
+    pub fn filters(&self) -> &IndexMap<String, Filter> {
         &self.filters
     }
 
@@ -144,11 +147,11 @@ impl Header {
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(formats[0].id(), &Key::Genotype);
     /// ```
-    pub fn formats(&self) -> &[Format] {
+    pub fn formats(&self) -> &IndexMap<crate::record::genotype::field::Key, Format> {
         &self.formats
     }
 
-    /// Returns a list of symbolic alternate alleles (`ALT`).
+    /// Returns a map of symbolic alternate alleles (`ALT`).
     ///
     /// # Examples
     ///
@@ -176,7 +179,9 @@ impl Header {
     ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
     /// );
     /// ```
-    pub fn alternative_alleles(&self) -> &[AlternativeAllele] {
+    pub fn alternative_alleles(
+        &self,
+    ) -> &IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele> {
         &self.alternative_alleles
     }
 
@@ -197,7 +202,7 @@ impl Header {
         self.assembly.as_deref()
     }
 
-    /// Returns a list of contig records (`contig`).
+    /// Returns a map of contig records (`contig`).
     ///
     /// # Examples
     ///
@@ -208,13 +213,15 @@ impl Header {
     ///     .add_contig(Contig::new(String::from("sq0")))
     ///     .build();
     ///
-    /// assert_eq!(header.contigs(), [Contig::new(String::from("sq0"))]);
+    /// let contigs = header.contigs();
+    /// assert_eq!(contigs.len(), 1);
+    /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
     /// ```
-    pub fn contigs(&self) -> &[Contig] {
+    pub fn contigs(&self) -> &IndexMap<String, Contig> {
         &self.contigs
     }
 
-    /// Returns a list of meta records (`META`).
+    /// Returns a map of meta records (`META`).
     ///
     /// # Examples
     ///
@@ -230,13 +237,15 @@ impl Header {
     ///     .add_meta(meta.clone())
     ///     .build();
     ///
-    /// assert_eq!(header.meta(), [meta]);
+    /// let records = header.meta();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], meta);
     /// ```
-    pub fn meta(&self) -> &[Meta] {
+    pub fn meta(&self) -> &IndexMap<String, Meta> {
         &self.meta
     }
 
-    /// Returns a list of sample records (`SAMPLE`).
+    /// Returns a map of sample records (`SAMPLE`).
     ///
     /// # Examples
     ///
@@ -249,8 +258,10 @@ impl Header {
     ///     .add_sample(sample.clone())
     ///     .build();
     ///
-    /// assert_eq!(header.samples(), [sample]);
-    pub fn samples(&self) -> &[Sample] {
+    /// let records = header.samples();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], sample);
+    pub fn samples(&self) -> &IndexMap<String, Sample> {
         &self.samples
     }
 
@@ -357,15 +368,15 @@ impl fmt::Display for Header {
             self.file_format
         )?;
 
-        for info in self.infos() {
+        for info in self.infos().values() {
             writeln!(f, "{}", info)?;
         }
 
-        for format in self.formats() {
+        for format in self.formats().values() {
             writeln!(f, "{}", format)?;
         }
 
-        for alternative_allele in self.alternative_alleles() {
+        for alternative_allele in self.alternative_alleles().values() {
             writeln!(f, "{}", alternative_allele)?;
         }
 
@@ -379,7 +390,7 @@ impl fmt::Display for Header {
             )?;
         }
 
-        for contig in self.contigs() {
+        for contig in self.contigs().values() {
             writeln!(f, "{}", contig)?;
         }
 

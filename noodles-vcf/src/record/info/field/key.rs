@@ -5,7 +5,7 @@ use crate::header::{info::Type, Number};
 use std::{error, fmt, str::FromStr};
 
 /// A VCF record info field key.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
     // § 1.6.1 Fixed Fields (2020-04-02)
     /// (`AA`).
