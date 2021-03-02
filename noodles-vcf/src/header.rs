@@ -394,6 +394,10 @@ impl fmt::Display for Header {
             writeln!(f, "{}", contig)?;
         }
 
+        for meta in self.meta().values() {
+            writeln!(f, "{}", meta)?;
+        }
+
         if let Some(pedigree_db) = self.pedigree_db() {
             writeln!(
                 f,
@@ -594,6 +598,10 @@ mod tests {
         let header = Header::builder()
             .set_file_format("VCFv4.3")
             .set_assembly("file:///assemblies.fasta")
+            .add_meta(Meta::new(
+                String::from("Assay"),
+                vec![String::from("WholeGenome"), String::from("Exome")],
+            ))
             .insert(Record::new(
                 record::Key::Other(String::from("fileDate")),
                 record::Value::String(String::from("20200514")),
@@ -603,6 +611,7 @@ mod tests {
         let expected = "\
 ##fileformat=VCFv4.3
 ##assembly=file:///assemblies.fasta
+##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##fileDate=20200514
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
