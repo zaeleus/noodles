@@ -223,7 +223,7 @@ impl Builder {
         self
     }
 
-    /// Adds a sample record (`META`).
+    /// Adds a sample record (`SAMPLE`).
     ///
     /// # Examples
     ///
