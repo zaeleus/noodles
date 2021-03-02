@@ -398,6 +398,10 @@ impl fmt::Display for Header {
             writeln!(f, "{}", meta)?;
         }
 
+        for sample in self.samples().values() {
+            writeln!(f, "{}", sample)?;
+        }
+
         if let Some(pedigree_db) = self.pedigree_db() {
             writeln!(
                 f,
@@ -602,6 +606,12 @@ mod tests {
                 String::from("Assay"),
                 vec![String::from("WholeGenome"), String::from("Exome")],
             ))
+            .add_sample(Sample::new(
+                String::from("sample0"),
+                vec![(String::from("Assay"), String::from("WholeGenome"))]
+                    .into_iter()
+                    .collect(),
+            ))
             .insert(Record::new(
                 record::Key::Other(String::from("fileDate")),
                 record::Value::String(String::from("20200514")),
@@ -612,6 +622,7 @@ mod tests {
 ##fileformat=VCFv4.3
 ##assembly=file:///assemblies.fasta
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
+##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##fileDate=20200514
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";
