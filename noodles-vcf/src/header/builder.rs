@@ -360,7 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_build() {
         use crate::{
             header::{self, format, info, Number},
             record::{self, alternate_bases::allele},
@@ -418,7 +418,5 @@ mod tests {
         assert_eq!(header.samples().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
         assert_eq!(header.get("fileDate"), Some(&record));
-
-        Ok(())
     }
 }
