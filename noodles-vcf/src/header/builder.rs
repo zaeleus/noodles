@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
 use super::{
-    AlternativeAllele, Contig, Filter, Format, Header, Info, Meta, Record, Sample, FILE_FORMAT,
+    AlternativeAllele, Contig, FileFormat, Filter, Format, Header, Info, Meta, Record, Sample,
 };
 
 use indexmap::IndexMap;
 
 /// A VCF header builder.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Builder {
-    file_format: String,
+    file_format: FileFormat,
     infos: IndexMap<crate::record::info::field::Key, Info>,
     filters: IndexMap<String, Filter>,
     formats: IndexMap<crate::record::genotype::field::Key, Format>,
@@ -30,15 +30,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
-    /// let header = vcf::Header::builder().set_file_format("VCFv4.3").build();
-    /// assert_eq!(header.file_format(), "VCFv4.3");
+    /// use noodles_vcf::{self as vcf, header::FileFormat};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_file_format(FileFormat::default())
+    ///     .build();
+    ///
+    /// assert_eq!(header.file_format(), FileFormat::default());
     /// ```
-    pub fn set_file_format<I>(mut self, file_format: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.file_format = file_format.into();
+    pub fn set_file_format(mut self, file_format: FileFormat) -> Self {
+        self.file_format = file_format;
         self
     }
 
@@ -338,25 +339,6 @@ impl Builder {
     }
 }
 
-impl Default for Builder {
-    fn default() -> Self {
-        Self {
-            file_format: FILE_FORMAT.into(),
-            infos: Default::default(),
-            filters: Default::default(),
-            formats: Default::default(),
-            alternative_alleles: Default::default(),
-            assembly: None,
-            contigs: Default::default(),
-            meta: Default::default(),
-            samples: Default::default(),
-            pedigree_db: None,
-            sample_names: Vec::new(),
-            map: HashMap::new(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -365,7 +347,7 @@ mod tests {
     fn test_default() {
         let header = Builder::default().build();
 
-        assert_eq!(header.file_format(), FILE_FORMAT);
+        assert_eq!(header.file_format(), FileFormat::default());
         assert!(header.infos().is_empty());
         assert!(header.filters().is_empty());
         assert!(header.formats().is_empty());
@@ -390,7 +372,7 @@ mod tests {
         );
 
         let header = Builder::default()
-            .set_file_format("VCFv4.2")
+            .set_file_format(FileFormat::new(4, 3))
             .add_info(Info::new(
                 record::info::field::Key::SamplesWithDataCount,
                 Number::Count(1),
@@ -425,7 +407,7 @@ mod tests {
             .insert(record.clone())
             .build();
 
-        assert_eq!(header.file_format(), "VCFv4.2");
+        assert_eq!(header.file_format(), FileFormat::new(4, 3));
         assert_eq!(header.infos().len(), 1);
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);

@@ -27,12 +27,10 @@ use std::{
 
 use indexmap::IndexMap;
 
-static FILE_FORMAT: &str = "VCFv4.3";
-
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
-    file_format: String,
+    file_format: FileFormat,
     infos: IndexMap<crate::record::info::field::Key, Info>,
     filters: IndexMap<String, Filter>,
     formats: IndexMap<crate::record::genotype::field::Key, Format>,
@@ -67,12 +65,16 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf as vcf;
-    /// let header = vcf::Header::builder().set_file_format("VCFv4.3").build();
-    /// assert_eq!(header.file_format(), "VCFv4.3");
+    /// use noodles_vcf::{self as vcf, header::FileFormat};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_file_format(FileFormat::default())
+    ///     .build();
+    ///
+    /// assert_eq!(header.file_format(), FileFormat::default());
     /// ```
-    pub fn file_format(&self) -> &str {
-        &self.file_format
+    pub fn file_format(&self) -> FileFormat {
+        self.file_format.clone()
     }
 
     /// Returns a map of information records (`INFO`).
@@ -367,7 +369,7 @@ impl fmt::Display for Header {
             "{}{}={}",
             record::PREFIX,
             record::Key::FileFormat,
-            self.file_format
+            self.file_format()
         )?;
 
         for info in self.infos().values() {
@@ -441,6 +443,8 @@ pub enum ParseError {
     MissingFileFormat,
     /// The file format (`fileformat`) appears other than the first line.
     UnexpectedFileFormat,
+    /// The file format (`fileformat`) is invalid.
+    InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
     InvalidRecord(record::ParseError),
     /// A record has an invalid value.
@@ -470,6 +474,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
+            Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
             Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
             Self::InvalidRecordValue => f.write_str("invalid record value"),
             Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
@@ -513,7 +518,7 @@ impl FromStr for Header {
     }
 }
 
-fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
+fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
     let record: Record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
@@ -521,7 +526,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<String, ParseError> {
 
     if record.key() == &record::Key::FileFormat {
         match record.value() {
-            record::Value::String(value) => Ok(value.into()),
+            record::Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
             _ => Err(ParseError::InvalidRecordValue),
         }
     } else {
@@ -596,13 +601,13 @@ mod tests {
     #[test]
     fn test_default() {
         let header = Header::default();
-        assert_eq!(header.file_format(), FILE_FORMAT);
+        assert_eq!(header.file_format(), FileFormat::default());
     }
 
     #[test]
     fn test_fmt() {
         let header = Header::builder()
-            .set_file_format("VCFv4.3")
+            .set_file_format(FileFormat::new(4, 3))
             .set_assembly("file:///assemblies.fasta")
             .add_meta(Meta::new(
                 String::from("Assay"),
@@ -674,7 +679,7 @@ mod tests {
 
         let header: Header = s.parse()?;
 
-        assert_eq!(header.file_format(), "VCFv4.3");
+        assert_eq!(header.file_format(), FileFormat::new(4, 3));
         assert_eq!(header.infos().len(), 1);
         assert_eq!(header.filters().len(), 1);
         assert_eq!(header.formats().len(), 1);
