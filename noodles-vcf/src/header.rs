@@ -3,6 +3,7 @@
 pub mod alternative_allele;
 mod builder;
 pub mod contig;
+pub mod file_format;
 pub mod filter;
 pub mod format;
 pub mod info;
@@ -12,8 +13,9 @@ pub mod record;
 pub mod sample;
 
 pub use self::{
-    alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
-    format::Format, info::Info, meta::Meta, number::Number, record::Record, sample::Sample,
+    alternative_allele::AlternativeAllele, builder::Builder, contig::Contig,
+    file_format::FileFormat, filter::Filter, format::Format, info::Info, meta::Meta,
+    number::Number, record::Record, sample::Sample,
 };
 
 use std::{
