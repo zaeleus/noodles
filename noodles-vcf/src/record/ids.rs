@@ -87,7 +87,11 @@ impl FromStr for Ids {
 }
 
 fn is_valid_id(s: &str) -> bool {
-    s.chars().all(|c| !c.is_ascii_whitespace())
+    if s.is_empty() {
+        false
+    } else {
+        s.chars().all(|c| !c.is_ascii_whitespace())
+    }
 }
 
 #[cfg(test)]
@@ -121,6 +125,18 @@ mod tests {
         assert_eq!(
             "nd 0".parse::<Ids>(),
             Err(ParseError::InvalidId(String::from("nd 0")))
-        )
+        );
+        assert_eq!(
+            ";nd0".parse::<Ids>(),
+            Err(ParseError::InvalidId(String::from("")))
+        );
+        assert_eq!(
+            "nd0;;nd1".parse::<Ids>(),
+            Err(ParseError::InvalidId(String::from("")))
+        );
+        assert_eq!(
+            "nd0;".parse::<Ids>(),
+            Err(ParseError::InvalidId(String::from("")))
+        );
     }
 }
