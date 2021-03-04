@@ -22,9 +22,17 @@ fn value(input: &str) -> IResult<&str, String> {
     map(take_till(|c| c == ',' || c == '>'), |s: &str| s.into())(input)
 }
 
+fn field_key(input: &str) -> IResult<&str, &str> {
+    alpha1(input)
+}
+
+fn field_value(input: &str) -> IResult<&str, String> {
+    alt((string, value))(input)
+}
+
 fn field(input: &str) -> IResult<&str, (String, String)> {
     map(
-        separated_pair(alpha1, tag("="), alt((string, value))),
+        separated_pair(field_key, tag("="), field_value),
         |(k, v): (&str, String)| (k.into(), v),
     )(input)
 }
