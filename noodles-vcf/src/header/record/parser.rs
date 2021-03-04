@@ -47,24 +47,43 @@ fn meta_values_field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
-fn meta_field(input: &str) -> IResult<&str, (String, String)> {
-    alt((meta_values_field, field))(input)
-}
-
 fn meta_structure(input: &str) -> IResult<&str, Value> {
-    map(
-        delimited(tag("<"), separated_list1(tag(","), meta_field), tag(">")),
-        Value::Struct,
-    )(input)
+    let mut fields = Vec::new();
+
+    let (input, _) = tag("<")(input)?;
+
+    // ID
+    let (input, f) = field(input)?;
+    fields.push(f);
+
+    // Type
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = field(input)?;
+    fields.push(f);
+
+    // Number
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = field(input)?;
+    fields.push(f);
+
+    // Values
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = meta_values_field(input)?;
+    fields.push(f);
+
+    let (input, _) = tag(">")(input)?;
+
+    Ok((input, Value::Struct(fields)))
 }
 
 fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
-    let (input, value) = alt((
-        meta_structure,
-        structure,
-        map(rest, |s: &str| Value::String(s.into())),
-    ))(input)?;
+
+    let (input, value) = match key {
+        "META" => meta_structure(input)?,
+        _ => alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?,
+    };
+
     Ok((input, (key.into(), value)))
 }
 
@@ -156,5 +175,17 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_parse_with_invalid_records() {
+        assert_eq!(
+            parse("##META=<ID=Assay,Type=String,Number=.,Values=WholeGenome>"),
+            Err(nom::Err::Error(nom::error::Error::new(
+                "WholeGenome>",
+                nom::error::ErrorKind::Tag,
+            ))),
+            "Values missing '[]' delimiters"
+        );
     }
 }
