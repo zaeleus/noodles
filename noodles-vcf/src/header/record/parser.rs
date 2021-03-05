@@ -129,6 +129,36 @@ fn filter_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
+fn format_structure(input: &str) -> IResult<&str, Value> {
+    let mut fields = Vec::new();
+
+    let (input, _) = tag("<")(input)?;
+
+    // ID
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Number
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Type
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Description
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = string_field(input)?;
+    fields.push(f);
+
+    let (input, _) = extra_fields(input, &mut fields)?;
+    let (input, _) = tag(">")(input)?;
+
+    Ok((input, Value::Struct(fields)))
+}
+
 fn meta_list(input: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_until("]"), tag("]"))(input)
 }
@@ -186,6 +216,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, value) = match key {
         "INFO" => info_structure(input)?,
         "FILTER" => filter_structure(input)?,
+        "FORMAT" => format_structure(input)?,
         "META" => meta_structure(input)?,
         _ => alt((generic_structure, generic_value))(input)?,
     };
@@ -272,6 +303,20 @@ mod tests {
             ])
         );
 
+        let (_, (key, value)) =
+            parse(r#"##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">"#)?;
+
+        assert_eq!(key, "FORMAT");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+            ])
+        );
+
         Ok(())
     }
 
@@ -352,6 +397,37 @@ mod tests {
         assert!(
             parse(r#"##FILTER=<ID=PASS,Description="All filters passed",Color=green>"#).is_err(),
             "FILTER: extra fields must be a string"
+        );
+    }
+
+    #[test]
+    fn test_parse_with_invalid_format_record() {
+        assert!(
+            parse(r#"##FORMAT=<ID="GT",Number=1,Type=String,Description="Genotype">"#).is_err(),
+            "FORMAT: ID must be a value"
+        );
+
+        assert!(
+            parse(r#"##FORMAT=<ID=GT,Number="1",Type=String,Description="Genotype">"#).is_err(),
+            "FORMAT: Number must be a value"
+        );
+
+        assert!(
+            parse(r#"##FORMAT=<ID=GT,Number=1,Type="String",Description="Genotype">"#).is_err(),
+            "FORMAT: Type must be a value"
+        );
+
+        assert!(
+            parse(r#"##FORMAT=<ID=GT,Number=1,Type=String,Description=Genotype>"#).is_err(),
+            "FORMAT: Description must be a string"
+        );
+
+        assert!(
+            parse(
+                r#"##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype",Comment=noodles>"#
+            )
+            .is_err(),
+            "FORMAT: extra fields must be a string"
         );
     }
 
