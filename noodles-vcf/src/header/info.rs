@@ -5,7 +5,9 @@ pub mod ty;
 
 pub use self::{key::Key, ty::Type};
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt};
+
+use indexmap::IndexMap;
 
 use crate::record::info;
 
@@ -18,7 +20,7 @@ pub struct Info {
     number: Number,
     ty: Type,
     description: String,
-    fields: HashMap<String, String>,
+    fields: IndexMap<String, String>,
 }
 
 impl Info {
@@ -45,7 +47,7 @@ impl Info {
             number,
             ty,
             description,
-            fields: HashMap::new(),
+            fields: IndexMap::new(),
         }
     }
 
@@ -144,7 +146,7 @@ impl Info {
     /// Returns the extra fields in the record.
     ///
     /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
-    pub fn fields(&self) -> &HashMap<String, String> {
+    pub fn fields(&self) -> &IndexMap<String, String> {
         &self.fields
     }
 }
@@ -311,13 +313,12 @@ mod tests {
 
         assert_eq!(
             Info::try_from(record),
-            Ok(Info {
-                id: info::field::Key::SamplesWithDataCount,
-                number: Number::Count(1),
-                ty: Type::Integer,
-                description: String::from("Number of samples with data"),
-                fields: HashMap::new(),
-            })
+            Ok(Info::new(
+                info::field::Key::SamplesWithDataCount,
+                Number::Count(1),
+                Type::Integer,
+                String::from("Number of samples with data"),
+            ))
         );
     }
 

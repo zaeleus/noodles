@@ -4,7 +4,9 @@ pub mod key;
 
 pub use self::key::Key;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt};
+
+use indexmap::IndexMap;
 
 use super::{record, Record};
 
@@ -12,7 +14,7 @@ use super::{record, Record};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Sample {
     id: String,
-    fields: HashMap<String, String>,
+    fields: IndexMap<String, String>,
 }
 
 impl Sample {
@@ -24,7 +26,7 @@ impl Sample {
     /// use noodles_vcf::header::Sample;
     /// let sample = Sample::new(String::from("sample0"), Default::default());
     /// ```
-    pub fn new(id: String, fields: HashMap<String, String>) -> Self {
+    pub fn new(id: String, fields: IndexMap<String, String>) -> Self {
         Self { id, fields }
     }
 
@@ -52,7 +54,7 @@ impl Sample {
     /// let sample = Sample::new(String::from("sample0"), Default::default());
     /// assert!(sample.fields().is_empty());
     /// ```
-    pub fn fields(&self) -> &HashMap<String, String> {
+    pub fn fields(&self) -> &IndexMap<String, String> {
         &self.fields
     }
 }
@@ -141,10 +143,10 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let sample = Sample::new(String::from("sample0"), HashMap::new());
+        let sample = Sample::new(String::from("sample0"), IndexMap::new());
         assert_eq!(sample.to_string(), "##SAMPLE=<ID=sample0>");
 
-        let mut fields = HashMap::new();
+        let mut fields = IndexMap::new();
         fields.insert(String::from("Assay"), String::from("WholeGenome"));
         let sample = Sample::new(String::from("sample0"), fields);
         assert_eq!(
@@ -158,7 +160,7 @@ mod tests {
         let record = build_record();
         let actual = Sample::try_from(record);
 
-        let mut fields = HashMap::new();
+        let mut fields = IndexMap::new();
         fields.insert(String::from("Assay"), String::from("WholeGenome"));
         let expected = Sample::new(String::from("sample0"), fields);
 

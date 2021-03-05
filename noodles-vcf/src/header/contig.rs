@@ -2,7 +2,9 @@
 
 mod key;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
+use std::{convert::TryFrom, error, fmt, num};
+
+use indexmap::IndexMap;
 
 use super::{record, Record};
 
@@ -13,7 +15,7 @@ use self::key::Key;
 pub struct Contig {
     id: String,
     len: Option<i32>,
-    fields: HashMap<String, String>,
+    fields: IndexMap<String, String>,
 }
 
 #[allow(clippy::len_without_is_empty)]
@@ -30,7 +32,7 @@ impl Contig {
         Self {
             id,
             len: None,
-            fields: HashMap::new(),
+            fields: IndexMap::new(),
         }
     }
 
@@ -149,7 +151,7 @@ impl TryFrom<Record> for Contig {
 fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordError> {
     let mut id = None;
     let mut len = None;
-    let mut other_fields = HashMap::new();
+    let mut other_fields = IndexMap::new();
 
     for (raw_key, value) in fields {
         let key = raw_key.parse().map_err(TryFromRecordError::InvalidKey)?;
