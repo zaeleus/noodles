@@ -39,11 +39,69 @@ fn field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
+fn string_field(input: &str) -> IResult<&str, (String, String)> {
+    map(
+        separated_pair(field_key, tag("="), string),
+        |(k, v): (&str, String)| (k.into(), v),
+    )(input)
+}
+
+fn value_field(input: &str) -> IResult<&str, (String, String)> {
+    map(
+        separated_pair(field_key, tag("="), value),
+        |(k, v): (&str, String)| (k.into(), v),
+    )(input)
+}
+
 fn structure(input: &str) -> IResult<&str, Value> {
     map(
         delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
         Value::Struct,
     )(input)
+}
+
+fn info_structure(input: &str) -> IResult<&str, Value> {
+    let mut fields = Vec::new();
+
+    let (input, _) = tag("<")(input)?;
+
+    // ID
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Number
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Type
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Description
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = string_field(input)?;
+    fields.push(f);
+
+    let mut input = input;
+
+    // extra fields
+    loop {
+        match tag(",")(input) {
+            Ok((i, _)) => {
+                let (i, f) = string_field(i)?;
+                fields.push(f);
+                input = i;
+            }
+            Err(nom::Err::Error(_)) => break,
+            Err(e) => return Err(e),
+        }
+    }
+
+    let (input, _) = tag(">")(input)?;
+
+    Ok((input, Value::Struct(fields)))
 }
 
 fn meta_list(input: &str) -> IResult<&str, &str> {
@@ -90,6 +148,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
 
     let (input, value) = match key {
+        "INFO" => info_structure(input)?,
         "META" => meta_structure(input)?,
         _ => alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?,
     };
@@ -189,6 +248,46 @@ mod tests {
 
     #[test]
     fn test_parse_with_invalid_records() {
+        assert!(
+            parse(
+                r#"##INFO=<ID="NS",Number=1,Type=Integer,Description="Number of samples with data">"#
+            )
+            .is_err(),
+            "INFO: ID must be a value"
+        );
+
+        assert!(
+            parse(
+                r#"##INFO=<ID=NS,Number="1",Type=Integer,Description="Number of samples with data">"#
+            )
+            .is_err(),
+            "INFO: Number must be a value"
+        );
+
+        assert!(
+            parse(
+                r#"##INFO=<ID=NS,Number=1,Type="Integer",Description="Number of samples with data">"#
+            )
+            .is_err(),
+            "INFO: Type must be a value"
+        );
+
+        assert!(
+            parse(
+                r#"##INFO=<ID=NS,Number=1,Type=Integer,Description=Number of samples with data>"#
+            )
+            .is_err(),
+            "INFO: Description must be a string"
+        );
+
+        assert!(
+            parse(
+                r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data",Source=dbsnp>"#
+            )
+            .is_err(),
+            "INFO: extra fields must be a string"
+        );
+
         assert_eq!(
             parse("##META=<ID=Assay,Type=String,Number=.,Values=WholeGenome>"),
             Err(nom::Err::Error(nom::error::Error::new(
