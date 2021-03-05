@@ -273,7 +273,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_invalid_records() {
+    fn test_parse_with_invalid_info_record() {
         assert!(
             parse(
                 r#"##INFO=<ID="NS",Number=1,Type=Integer,Description="Number of samples with data">"#
@@ -313,7 +313,10 @@ mod tests {
             .is_err(),
             "INFO: extra fields must be a string"
         );
+    }
 
+    #[test]
+    fn test_parse_with_invalid_filter_record() {
         assert!(
             parse(r#"##FILTER=<ID="PASS",Description="All filters passed">"#).is_err(),
             "FILTER: ID must be a value"
@@ -328,7 +331,10 @@ mod tests {
             parse(r#"##FILTER=<ID=PASS,Description="All filters passed",Color=green>"#).is_err(),
             "FILTER: extra fields must be a string"
         );
+    }
 
+    #[test]
+    fn test_parse_with_invalid_meta_record() {
         assert_eq!(
             parse("##META=<ID=Assay,Type=String,Number=.,Values=WholeGenome>"),
             Err(nom::Err::Error(nom::error::Error::new(
