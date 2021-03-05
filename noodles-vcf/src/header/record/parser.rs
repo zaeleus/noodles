@@ -53,6 +53,25 @@ fn value_field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
+fn extra_fields<'a>(
+    mut input: &'a str,
+    fields: &mut Vec<(String, String)>,
+) -> IResult<&'a str, ()> {
+    loop {
+        match tag(",")(input) {
+            Ok((i, _)) => {
+                let (i, f) = string_field(i)?;
+                fields.push(f);
+                input = i;
+            }
+            Err(nom::Err::Error(_)) => break,
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok((input, ()))
+}
+
 fn structure(input: &str) -> IResult<&str, Value> {
     map(
         delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
@@ -84,21 +103,7 @@ fn info_structure(input: &str) -> IResult<&str, Value> {
     let (input, f) = string_field(input)?;
     fields.push(f);
 
-    let mut input = input;
-
-    // extra fields
-    loop {
-        match tag(",")(input) {
-            Ok((i, _)) => {
-                let (i, f) = string_field(i)?;
-                fields.push(f);
-                input = i;
-            }
-            Err(nom::Err::Error(_)) => break,
-            Err(e) => return Err(e),
-        }
-    }
-
+    let (input, _) = extra_fields(input, &mut fields)?;
     let (input, _) = tag(">")(input)?;
 
     Ok((input, Value::Struct(fields)))
@@ -118,21 +123,7 @@ fn filter_structure(input: &str) -> IResult<&str, Value> {
     let (input, f) = string_field(input)?;
     fields.push(f);
 
-    let mut input = input;
-
-    // extra fields
-    loop {
-        match tag(",")(input) {
-            Ok((i, _)) => {
-                let (i, f) = string_field(i)?;
-                fields.push(f);
-                input = i;
-            }
-            Err(nom::Err::Error(_)) => break,
-            Err(e) => return Err(e),
-        }
-    }
-
+    let (input, _) = extra_fields(input, &mut fields)?;
     let (input, _) = tag(">")(input)?;
 
     Ok((input, Value::Struct(fields)))
