@@ -6,6 +6,8 @@ use std::{convert::TryFrom, error, fmt, num};
 
 use indexmap::IndexMap;
 
+use crate::record::chromosome;
+
 use super::{record, Record};
 
 use self::key::Key;
@@ -118,6 +120,8 @@ pub enum TryFromRecordError {
     InvalidRecord,
     /// A key is invalid.
     InvalidKey(key::ParseError),
+    /// The ID is invalid.
+    InvalidId,
     /// The length is invalid.
     InvalidLength(num::ParseIntError),
     /// A required field is missing.
@@ -131,6 +135,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::InvalidId => f.write_str("invalid ID"),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
         }
@@ -158,6 +163,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
 
         match key {
             Key::Id => {
+                if !chromosome::is_valid_name(&value) {
+                    return Err(TryFromRecordError::InvalidId);
+                }
+
                 id = Some(value);
             }
             Key::Length => {
@@ -264,6 +273,16 @@ mod tests {
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidKey(_))
         ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_contig_with_an_invalid_id() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![(String::from("ID"), String::from("sq 0"))]),
+        );
+
+        assert_eq!(Contig::try_from(record), Err(TryFromRecordError::InvalidId));
     }
 
     #[test]

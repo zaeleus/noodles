@@ -81,7 +81,7 @@ fn is_valid_name_char(c: char) -> bool {
         )
 }
 
-fn is_valid_name(s: &str) -> bool {
+pub(crate) fn is_valid_name(s: &str) -> bool {
     let mut chars = s.chars();
 
     if let Some(c) = chars.next() {
