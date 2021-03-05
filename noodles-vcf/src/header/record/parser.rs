@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
     character::complete::{alpha1, none_of},
-    combinator::{map, rest},
+    combinator::map,
     multi::separated_list1,
     sequence::{delimited, separated_pair},
     IResult,
@@ -70,13 +70,6 @@ fn extra_fields<'a>(
     }
 
     Ok((input, ()))
-}
-
-fn structure(input: &str) -> IResult<&str, Value> {
-    map(
-        delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
-        Value::Struct,
-    )(input)
 }
 
 fn info_structure(input: &str) -> IResult<&str, Value> {
@@ -169,6 +162,17 @@ fn meta_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
+fn generic_structure(input: &str) -> IResult<&str, Value> {
+    map(
+        delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
+        Value::Struct,
+    )(input)
+}
+
+fn generic_value(input: &str) -> IResult<&str, Value> {
+    map(alt((string, value)), Value::String)(input)
+}
+
 fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
 
@@ -176,7 +180,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
         "INFO" => info_structure(input)?,
         "FILTER" => filter_structure(input)?,
         "META" => meta_structure(input)?,
-        _ => alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?,
+        _ => alt((generic_structure, generic_value))(input)?,
     };
 
     Ok((input, (key.into(), value)))
