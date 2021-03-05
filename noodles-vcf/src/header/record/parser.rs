@@ -159,6 +159,26 @@ fn format_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
+fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
+    let mut fields = Vec::new();
+
+    let (input, _) = tag("<")(input)?;
+
+    // ID
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Description
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = string_field(input)?;
+    fields.push(f);
+
+    let (input, _) = extra_fields(input, &mut fields)?;
+    let (input, _) = tag(">")(input)?;
+
+    Ok((input, Value::Struct(fields)))
+}
+
 fn meta_list(input: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_until("]"), tag("]"))(input)
 }
@@ -217,6 +237,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
         "INFO" => info_structure(input)?,
         "FILTER" => filter_structure(input)?,
         "FORMAT" => format_structure(input)?,
+        "ALT" => alternative_allele_structure(input)?,
         "META" => meta_structure(input)?,
         _ => alt((generic_structure, generic_value))(input)?,
     };
@@ -259,22 +280,6 @@ mod tests {
     #[test]
     fn test_parse_with_record_struct_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, (key, value)) = parse(
-            r#"##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">"#,
-        )?;
-
-        assert_eq!(key, "ALT");
-        assert_eq!(
-            value,
-            Value::Struct(vec![
-                (String::from("ID"), String::from("NON_REF")),
-                (
-                    String::from("Description"),
-                    String::from("Represents any possible alternative allele at this location")
-                ),
-            ])
-        );
-
-        let (_, (key, value)) = parse(
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#,
         )?;
 
@@ -314,6 +319,17 @@ mod tests {
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
+            ])
+        );
+
+        let (_, (key, value)) = parse(r#"##ALT=<ID=DEL,Description="Deletion">"#)?;
+
+        assert_eq!(key, "ALT");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion")),
             ])
         );
 
@@ -428,6 +444,24 @@ mod tests {
             )
             .is_err(),
             "FORMAT: extra fields must be a string"
+        );
+    }
+
+    #[test]
+    fn test_parse_with_invalid_alternative_allele_record() {
+        assert!(
+            parse(r#"##ALT=<ID="DEL",Description=Deletion>"#).is_err(),
+            "ALT: ID must be a value"
+        );
+
+        assert!(
+            parse(r#"##ALT=<ID="DEL",Description=Deletion>"#).is_err(),
+            "ALT: Description must be a string"
+        );
+
+        assert!(
+            parse(r#"##ALT=<ID=DEL,Description="Deletion",Comment=noodles>"#).is_err(),
+            "ALT: extra fields must be a string"
         );
     }
 
