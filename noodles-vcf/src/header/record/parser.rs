@@ -104,6 +104,40 @@ fn info_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
+fn filter_structure(input: &str) -> IResult<&str, Value> {
+    let mut fields = Vec::new();
+
+    let (input, _) = tag("<")(input)?;
+
+    // ID
+    let (input, f) = value_field(input)?;
+    fields.push(f);
+
+    // Description
+    let (input, _) = tag(",")(input)?;
+    let (input, f) = string_field(input)?;
+    fields.push(f);
+
+    let mut input = input;
+
+    // extra fields
+    loop {
+        match tag(",")(input) {
+            Ok((i, _)) => {
+                let (i, f) = string_field(i)?;
+                fields.push(f);
+                input = i;
+            }
+            Err(nom::Err::Error(_)) => break,
+            Err(e) => return Err(e),
+        }
+    }
+
+    let (input, _) = tag(">")(input)?;
+
+    Ok((input, Value::Struct(fields)))
+}
+
 fn meta_list(input: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_until("]"), tag("]"))(input)
 }
@@ -149,6 +183,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
 
     let (input, value) = match key {
         "INFO" => info_structure(input)?,
+        "FILTER" => filter_structure(input)?,
         "META" => meta_structure(input)?,
         _ => alt((structure, map(rest, |s: &str| Value::String(s.into()))))(input)?,
     };
@@ -286,6 +321,21 @@ mod tests {
             )
             .is_err(),
             "INFO: extra fields must be a string"
+        );
+
+        assert!(
+            parse(r#"##FILTER=<ID="PASS",Description="All filters passed">"#).is_err(),
+            "FILTER: ID must be a value"
+        );
+
+        assert!(
+            parse(r#"##FILTER=<ID=PASS,Description=All filters passed>"#).is_err(),
+            "FILTER: Description must be a string"
+        );
+
+        assert!(
+            parse(r#"##FILTER=<ID=PASS,Description="All filters passed",Color=green>"#).is_err(),
+            "FILTER: extra fields must be a string"
         );
 
         assert_eq!(
