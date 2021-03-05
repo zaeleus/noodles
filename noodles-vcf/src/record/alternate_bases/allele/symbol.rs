@@ -32,6 +32,8 @@ impl fmt::Display for Symbol {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The nonstructural variant is invalid.
+    InvalidNonstructuralVariant,
 }
 
 impl error::Error for ParseError {}
@@ -40,6 +42,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::InvalidNonstructuralVariant => f.write_str("invalid nonstructural variant"),
         }
     }
 }
@@ -54,9 +57,23 @@ impl FromStr for Symbol {
             _ => s
                 .parse::<StructuralVariant>()
                 .map(Self::StructuralVariant)
-                .or_else(|_| Ok(Self::NonstructuralVariant(s.into()))),
+                .or_else(|_| {
+                    if is_valid_id(s) {
+                        Ok(Self::NonstructuralVariant(s.into()))
+                    } else {
+                        Err(ParseError::InvalidNonstructuralVariant)
+                    }
+                }),
         }
     }
+}
+
+fn is_valid_id_char(c: char) -> bool {
+    !c.is_ascii_whitespace() && !matches!(c, ',' | '<' | '>')
+}
+
+fn is_valid_id(s: &str) -> bool {
+    s.chars().all(is_valid_id_char)
 }
 
 #[cfg(test)]
@@ -94,5 +111,22 @@ mod tests {
         assert_eq!("*".parse(), Ok(Symbol::Unspecified));
 
         assert_eq!("".parse::<Symbol>(), Err(ParseError::Empty));
+
+        assert_eq!(
+            "CN 0".parse::<Symbol>(),
+            Err(ParseError::InvalidNonstructuralVariant)
+        );
+        assert_eq!(
+            "CN,0".parse::<Symbol>(),
+            Err(ParseError::InvalidNonstructuralVariant)
+        );
+        assert_eq!(
+            "CN>0".parse::<Symbol>(),
+            Err(ParseError::InvalidNonstructuralVariant)
+        );
+        assert_eq!(
+            "CN<0".parse::<Symbol>(),
+            Err(ParseError::InvalidNonstructuralVariant)
+        );
     }
 }
