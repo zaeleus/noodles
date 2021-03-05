@@ -173,6 +173,10 @@ pub enum TryFromRecordError {
     InvalidNumber(number::ParseError),
     /// The type is invalid.
     InvalidType(ty::ParseError),
+    /// The number for the given ID does not match the number in the reserved definition.
+    NumberMismatch(Number, Number),
+    /// The type for the given ID does not match the type in the reserved definition.
+    TypeMismatch(Type, Type),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -185,6 +189,12 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::NumberMismatch(actual, expected) => {
+                write!(f, "number mismatch: expected {}, got {}", expected, actual)
+            }
+            Self::TypeMismatch(actual, expected) => {
+                write!(f, "type mismatch: expected {}, got {}", expected, actual)
+            }
         }
     }
 }
@@ -227,6 +237,16 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
             _ => Err(TryFromRecordError::MissingField(Key::Type)),
         })?;
 
+    if !matches!(id, genotype::field::Key::Other(..)) {
+        if id.number() != number {
+            return Err(TryFromRecordError::NumberMismatch(number, id.number()));
+        }
+
+        if id.ty() != ty {
+            return Err(TryFromRecordError::TypeMismatch(ty, id.ty()));
+        }
+    }
+
     let description = it
         .next()
         .ok_or(TryFromRecordError::MissingField(Key::Description))
@@ -253,7 +273,7 @@ mod tests {
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
+                (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
         )
@@ -264,7 +284,7 @@ mod tests {
         let record = build_record();
         let format = Format::try_from(record)?;
 
-        let expected = r#"##FORMAT=<ID=GT,Number=1,Type=Integer,Description="Genotype">"#;
+        let expected = r#"##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">"#;
         assert_eq!(format.to_string(), expected);
 
         Ok(())
@@ -279,7 +299,7 @@ mod tests {
             Ok(Format {
                 id: genotype::field::Key::Genotype,
                 number: Number::Count(1),
-                ty: Type::Integer,
+                ty: Type::String,
                 description: String::from("Genotype"),
             })
         );
@@ -292,7 +312,7 @@ mod tests {
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
+                (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
         );
@@ -333,7 +353,7 @@ mod tests {
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("")),
                 (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
+                (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
         );
@@ -351,7 +371,7 @@ mod tests {
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("NA")),
-                (String::from("Type"), String::from("Integer")),
+                (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
         );
@@ -369,7 +389,7 @@ mod tests {
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("GT")),
                 (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("int")),
+                (String::from("Type"), String::from("str")),
                 (String::from("Description"), String::from("Genotype")),
             ]),
         );
@@ -377,6 +397,48 @@ mod tests {
         assert!(matches!(
             Format::try_from(record),
             Err(TryFromRecordError::InvalidType(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_a_number_mismatch() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::NumberMismatch(
+                Number::Unknown,
+                Number::Count(1)
+            ))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_a_type_mismatch() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::TypeMismatch(
+                Type::Integer,
+                Type::String
+            ))
         ));
     }
 }
