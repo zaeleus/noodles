@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
     character::complete::{alpha1, none_of},
-    combinator::map,
+    combinator::{map, opt},
     multi::separated_list1,
     sequence::{delimited, separated_pair},
     IResult,
@@ -13,7 +13,14 @@ use super::{Value, PREFIX};
 fn string(input: &str) -> IResult<&str, String> {
     delimited(
         tag("\""),
-        escaped_transform(none_of("\\\""), '\\', alt((tag("\\"), tag("\"")))),
+        map(
+            opt(escaped_transform(
+                none_of("\\\""),
+                '\\',
+                alt((tag("\\"), tag("\""))),
+            )),
+            |s| s.unwrap_or_default(),
+        ),
         tag("\""),
     )(input)
 }
@@ -251,6 +258,17 @@ mod tests {
                     String::from("Description"),
                     String::from("Number of samples with data")
                 ),
+            ])
+        );
+
+        let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="">"#)?;
+
+        assert_eq!(key, "FILTER");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("PASS")),
+                (String::from("Description"), String::from("")),
             ])
         );
 
