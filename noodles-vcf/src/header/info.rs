@@ -183,6 +183,10 @@ pub enum TryFromRecordError {
     InvalidNumber(number::ParseError),
     /// The type is invalid.
     InvalidType(ty::ParseError),
+    /// The number for the given ID does not match the number in the reserved definition.
+    NumberMismatch(Number, Number),
+    /// The type for the given ID does not match the type in the reserved definition.
+    TypeMismatch(Type, Type),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -195,6 +199,12 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::NumberMismatch(actual, expected) => {
+                write!(f, "number mismatch: expected {}, got {}", expected, actual)
+            }
+            Self::TypeMismatch(actual, expected) => {
+                write!(f, "type mismatch: expected {}, got {}", expected, actual)
+            }
         }
     }
 }
@@ -236,6 +246,16 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Info, TryFromRecordErro
             Ok(Key::Type) => v.parse().map_err(TryFromRecordError::InvalidType),
             _ => Err(TryFromRecordError::MissingField(Key::Type)),
         })?;
+
+    if !matches!(id, info::field::Key::Other(..)) {
+        if id.number() != number {
+            return Err(TryFromRecordError::NumberMismatch(number, id.number()));
+        }
+
+        if id.ty() != ty {
+            return Err(TryFromRecordError::TypeMismatch(ty, id.ty()));
+        }
+    }
 
     let description = it
         .next()
@@ -439,6 +459,54 @@ mod tests {
         assert!(matches!(
             Info::try_from(record),
             Err(TryFromRecordError::InvalidType(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_a_number_mismatch() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::NumberMismatch(
+                Number::Unknown,
+                Number::Count(1)
+            ))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_a_type_mismatch() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::TypeMismatch(
+                Type::String,
+                Type::Integer
+            ))
         ));
     }
 }
