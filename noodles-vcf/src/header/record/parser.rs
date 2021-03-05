@@ -19,7 +19,9 @@ fn string(input: &str) -> IResult<&str, String> {
 }
 
 fn value(input: &str) -> IResult<&str, String> {
-    map(take_till(|c| c == ',' || c == '>'), |s: &str| s.into())(input)
+    map(take_till(|c| matches!(c, '\"' | ',' | '>')), |s: &str| {
+        s.into()
+    })(input)
 }
 
 fn field_key(input: &str) -> IResult<&str, &str> {
