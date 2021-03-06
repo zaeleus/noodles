@@ -309,7 +309,7 @@ impl Header {
     /// Returns a header record with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
-    /// `assembly`, and `contig`.
+    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
     ///
     /// # Examples
     ///
