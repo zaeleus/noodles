@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::{
     AlternativeAllele, Contig, FileFormat, Filter, Format, Header, Info, Meta, Record, Sample,
 };
@@ -21,7 +19,7 @@ pub struct Builder {
     samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     sample_names: Vec<String>,
-    map: HashMap<String, Vec<Record>>,
+    map: IndexMap<String, Vec<Record>>,
 }
 
 impl Builder {

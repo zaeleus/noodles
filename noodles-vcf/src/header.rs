@@ -19,7 +19,6 @@ pub use self::{
 };
 
 use std::{
-    collections::HashMap,
     convert::TryFrom,
     error, fmt,
     str::{FromStr, Lines},
@@ -42,7 +41,7 @@ pub struct Header {
     samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
-    map: HashMap<String, Vec<Record>>,
+    map: IndexMap<String, Vec<Record>>,
 }
 
 impl Header {
