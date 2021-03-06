@@ -21,7 +21,7 @@ pub struct Builder {
     samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     sample_names: Vec<String>,
-    map: HashMap<String, Record>,
+    map: HashMap<String, Vec<Record>>,
 }
 
 impl Builder {
@@ -306,10 +306,12 @@ impl Builder {
     ///
     /// let header = vcf::Header::builder().insert(record.clone()).build();
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&record));
+    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
     /// ```
     pub fn insert(mut self, record: Record) -> Self {
-        self.map.insert(record.key().to_string(), record);
+        let key = record.key().to_string();
+        let records = self.map.entry(key).or_default();
+        records.push(record);
         self
     }
 
@@ -405,6 +407,7 @@ mod tests {
             .add_sample(Sample::new(String::from("sample0"), Default::default()))
             .add_sample_name("sample0")
             .insert(record.clone())
+            .insert(record.clone())
             .build();
 
         assert_eq!(header.file_format(), FileFormat::new(4, 3));
@@ -417,6 +420,6 @@ mod tests {
         assert_eq!(header.meta().len(), 1);
         assert_eq!(header.samples().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
-        assert_eq!(header.get("fileDate"), Some(&record));
+        assert_eq!(header.get("fileDate"), Some(&[record.clone(), record][..]));
     }
 }

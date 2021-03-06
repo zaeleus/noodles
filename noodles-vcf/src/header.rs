@@ -42,7 +42,7 @@ pub struct Header {
     samples: IndexMap<String, Sample>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
-    map: HashMap<String, Record>,
+    map: HashMap<String, Vec<Record>>,
 }
 
 impl Header {
@@ -324,11 +324,11 @@ impl Header {
     ///
     /// let header = vcf::Header::builder().insert(record.clone()).build();
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&record));
+    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
     /// assert_eq!(header.get("reference"), None);
     /// ```
-    pub fn get(&self, key: &str) -> Option<&Record> {
-        self.map.get(key)
+    pub fn get(&self, key: &str) -> Option<&[Record]> {
+        self.map.get(key).map(|r| &**r)
     }
 
     /// Inserts a key-value pair representing an unstructured record into the header.
@@ -349,10 +349,12 @@ impl Header {
     ///
     /// header.insert(record.clone());
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&record));
+    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
     /// ```
     pub fn insert(&mut self, record: Record) {
-        self.map.insert(record.key().to_string(), record);
+        let key = record.key().to_string();
+        let records = self.map.entry(key).or_default();
+        records.push(record);
     }
 }
 
@@ -416,8 +418,10 @@ impl fmt::Display for Header {
             )?;
         }
 
-        for record in self.map.values() {
-            writeln!(f, "{}{}={}", record::PREFIX, record.key(), record.value())?;
+        for records in self.map.values() {
+            for record in records {
+                writeln!(f, "{}{}={}", record::PREFIX, record.key(), record.value())?;
+            }
         }
 
         f.write_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")?;
@@ -692,18 +696,22 @@ mod tests {
 
         assert_eq!(
             header.get("fileDate"),
-            Some(&Record::new(
-                record::Key::Other(String::from("fileDate")),
-                record::Value::String(String::from("20200506")),
-            ))
+            Some(
+                &[Record::new(
+                    record::Key::Other(String::from("fileDate")),
+                    record::Value::String(String::from("20200506")),
+                )][..]
+            )
         );
 
         assert_eq!(
             header.get("source"),
-            Some(&Record::new(
-                record::Key::Other(String::from("source")),
-                record::Value::String(String::from("noodles-vcf")),
-            ))
+            Some(
+                &[Record::new(
+                    record::Key::Other(String::from("source")),
+                    record::Value::String(String::from("noodles-vcf")),
+                )][..]
+            )
         );
 
         Ok(())
@@ -743,5 +751,27 @@ mod tests {
 ";
 
         assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedFileFormat));
+    }
+
+    #[test]
+    fn test_insert_with_duplicate_keys() {
+        let records = [
+            Record::new(
+                record::Key::Other(String::from("noodles")),
+                record::Value::String(String::from("0")),
+            ),
+            Record::new(
+                record::Key::Other(String::from("noodles")),
+                record::Value::String(String::from("1")),
+            ),
+        ];
+
+        let mut header = Header::default();
+
+        for record in &records {
+            header.insert(record.clone());
+        }
+
+        assert_eq!(header.get("noodles"), Some(&records[..]));
     }
 }
