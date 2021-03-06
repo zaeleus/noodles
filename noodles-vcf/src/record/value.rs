@@ -61,4 +61,11 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_percent_decode() -> Result<(), str::Utf8Error> {
+        assert_eq!(percent_decode("noodles")?, "noodles");
+        assert_eq!(percent_decode("noodles%3Dvcf")?, "noodles=vcf");
+        Ok(())
+    }
 }
