@@ -1,17 +1,15 @@
 //! VCF header genotype format record and key.
 
-mod key;
-mod ty;
+pub mod key;
+pub mod ty;
 
-pub use self::ty::Type;
+pub use self::{key::Key, ty::Type};
 
 use std::{convert::TryFrom, error, fmt};
 
 use crate::record::genotype;
 
 use super::{number, record, Number, Record};
-
-use self::key::Key;
 
 /// A VCF header genotype format record (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
