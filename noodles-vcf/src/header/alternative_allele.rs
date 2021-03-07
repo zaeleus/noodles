@@ -168,25 +168,27 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<AlternativeAllele, TryF
 mod tests {
     use super::*;
 
+    fn del() -> Symbol {
+        Symbol::StructuralVariant(symbol::StructuralVariant::from(
+            symbol::structural_variant::Type::Deletion,
+        ))
+    }
+
     fn build_record() -> Record {
         Record::new(
             record::Key::AlternativeAllele,
             record::Value::Struct(vec![
-                (String::from("ID"), String::from("DEL")),
+                (String::from("ID"), del().to_string()),
                 (String::from("Description"), String::from("Deletion")),
             ]),
         )
     }
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromRecordError> {
-        let record = build_record();
-        let alternative_allele = AlternativeAllele::try_from(record)?;
-
+    fn test_fmt() {
+        let alternative_allele = AlternativeAllele::new(del(), String::from("Deletion"));
         let expected = r#"##ALT=<ID=DEL,Description="Deletion">"#;
         assert_eq!(alternative_allele.to_string(), expected);
-
-        Ok(())
     }
 
     #[test]
@@ -195,12 +197,7 @@ mod tests {
 
         assert_eq!(
             AlternativeAllele::try_from(record),
-            Ok(AlternativeAllele {
-                id: Symbol::StructuralVariant(symbol::StructuralVariant::from(
-                    symbol::structural_variant::Type::Deletion
-                )),
-                description: String::from("Deletion"),
-            })
+            Ok(AlternativeAllele::new(del(), String::from("Deletion")))
         );
     }
 
