@@ -146,6 +146,24 @@ impl Info {
     /// Returns the extra fields in the record.
     ///
     /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert!(info.fields().is_empty());
+    /// ```
     pub fn fields(&self) -> &IndexMap<String, String> {
         &self.fields
     }
