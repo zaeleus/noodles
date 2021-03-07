@@ -7,6 +7,8 @@ pub use self::{key::Key, ty::Type};
 
 use std::{convert::TryFrom, error, fmt};
 
+use indexmap::IndexMap;
+
 use crate::record::genotype;
 
 use super::{number, record, Number, Record};
@@ -18,6 +20,7 @@ pub struct Format {
     number: Number,
     ty: Type,
     description: String,
+    fields: IndexMap<String, String>,
 }
 
 impl Format {
@@ -44,6 +47,7 @@ impl Format {
             number,
             ty,
             description,
+            fields: IndexMap::new(),
         }
     }
 
@@ -138,6 +142,31 @@ impl Format {
     pub fn description(&self) -> &str {
         &self.description
     }
+
+    /// Returns the extra fields in the record.
+    ///
+    /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert!(format.fields().is_empty());
+    /// ```
+    pub fn fields(&self) -> &IndexMap<String, String> {
+        &self.fields
+    }
 }
 
 impl fmt::Display for Format {
@@ -152,6 +181,11 @@ impl fmt::Display for Format {
 
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
+
+        for (key, value) in &self.fields {
+            write!(f, ",{}=", key)?;
+            super::fmt::write_escaped_string(f, value)?;
+        }
 
         f.write_str(">")?;
 
@@ -260,6 +294,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
         number,
         ty,
         description,
+        fields: it.collect(),
     })
 }
 
@@ -296,11 +331,38 @@ mod tests {
 
         assert_eq!(
             Format::try_from(record),
+            Ok(Format::new(
+                genotype::field::Key::Genotype,
+                Number::Count(1),
+                Type::String,
+                String::from("Genotype"),
+            ))
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_extra_fields() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+                (String::from("Comment"), String::from("noodles")),
+            ]),
+        );
+
+        assert_eq!(
+            Format::try_from(record),
             Ok(Format {
                 id: genotype::field::Key::Genotype,
                 number: Number::Count(1),
                 ty: Type::String,
                 description: String::from("Genotype"),
+                fields: vec![(String::from("Comment"), String::from("noodles"))]
+                    .into_iter()
+                    .collect(),
             })
         );
     }
