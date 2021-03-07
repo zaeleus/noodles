@@ -160,10 +160,13 @@ impl fmt::Display for Info {
         write!(f, "{}={}", Key::Id, self.id)?;
         write!(f, ",{}={}", Key::Number, self.number)?;
         write!(f, ",{}={}", Key::Type, self.ty)?;
-        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        write!(f, ",{}=", Key::Description)?;
+        super::fmt::write_escaped_string(f, self.description())?;
 
         for (key, value) in &self.fields {
-            write!(f, r#",{}="{}""#, key, value)?;
+            write!(f, ",{}=", key)?;
+            super::fmt::write_escaped_string(f, value)?;
         }
 
         f.write_str(">")?;

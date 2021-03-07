@@ -99,7 +99,9 @@ impl fmt::Display for AlternativeAllele {
         f.write_str("=<")?;
 
         write!(f, "{}={}", Key::Id, self.id)?;
-        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        write!(f, ",{}=", Key::Description)?;
+        super::fmt::write_escaped_string(f, self.description())?;
 
         f.write_str(">")?;
 

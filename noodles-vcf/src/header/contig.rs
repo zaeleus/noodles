@@ -104,7 +104,8 @@ impl fmt::Display for Contig {
         }
 
         for (key, value) in &self.fields {
-            write!(f, r#",{}="{}""#, key, value)?;
+            write!(f, ",{}=", key)?;
+            super::fmt::write_escaped_string(f, value)?;
         }
 
         f.write_str(">")?;

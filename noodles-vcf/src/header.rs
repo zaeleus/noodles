@@ -5,6 +5,7 @@ mod builder;
 pub mod contig;
 pub mod file_format;
 pub mod filter;
+mod fmt;
 pub mod format;
 pub mod info;
 pub mod meta;
@@ -20,7 +21,7 @@ pub use self::{
 
 use std::{
     convert::TryFrom,
-    error, fmt,
+    error,
     str::{FromStr, Lines},
 };
 
@@ -363,8 +364,8 @@ impl Default for Header {
     }
 }
 
-impl fmt::Display for Header {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for Header {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
             "{}{}={}",
@@ -472,8 +473,8 @@ pub enum ParseError {
 
 impl error::Error for ParseError {}
 
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),

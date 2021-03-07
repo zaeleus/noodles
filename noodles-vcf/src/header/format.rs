@@ -151,7 +151,9 @@ impl fmt::Display for Format {
         write!(f, "{}={}", Key::Id, self.id)?;
         write!(f, ",{}={}", Key::Number, self.number)?;
         write!(f, ",{}={}", Key::Type, self.ty)?;
-        write!(f, r#",{}="{}""#, Key::Description, self.description)?;
+
+        write!(f, ",{}=", Key::Description)?;
+        super::fmt::write_escaped_string(f, self.description())?;
 
         f.write_str(">")?;
 
