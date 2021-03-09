@@ -102,7 +102,8 @@ where
 
     /// Returns an iterator over lines starting from the current stream position.
     ///
-    /// This stops at either EOF or when the `FASTA` directive is read, whichever comes first.
+    /// When using this, the caller is responsible to stop reading at either EOF or when the
+    /// `FASTA` directive is read, whichever comes first.
     ///
     /// Unlike [`Self::read_line`], each line is parsed as a [`crate::Line`].
     ///
@@ -159,30 +160,47 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::Line;
-
     use super::*;
 
     #[test]
-    fn test_lines_with_fasta_directive() -> io::Result<()> {
+    fn test_records() -> io::Result<()> {
+        let data = b"\
+##gff-version 3
+sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
+";
+
+        let mut reader = Reader::new(&data[..]);
+        let mut n = 0;
+
+        for result in reader.records() {
+            let _ = result?;
+            n += 1;
+        }
+
+        assert_eq!(n, 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_records_with_fasta_directive() -> io::Result<()> {
         let data = b"\
 ##gff-version 3
 sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0
 ##FASTA
 >sq0
-NNNNNNNNNNNNNNNN
+ACGT
 ";
 
         let mut reader = Reader::new(&data[..]);
-        let mut lines = reader.lines();
+        let mut n = 0;
 
-        let line = lines.next().transpose()?;
-        assert!(matches!(line, Some(Line::Directive(_))));
+        for result in reader.records() {
+            let _ = result?;
+            n += 1;
+        }
 
-        let line = lines.next().transpose()?;
-        assert!(matches!(line, Some(Line::Record(_))));
-
-        assert!(lines.next().is_none());
+        assert_eq!(n, 1);
 
         Ok(())
     }

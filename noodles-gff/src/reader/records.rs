@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{Line, Record};
+use crate::{Directive, Line, Record};
 
 use super::Lines;
 
@@ -32,11 +32,11 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.lines.next()? {
-                Ok(line) => {
-                    if let Line::Record(record) = line {
-                        return Some(Ok(record));
-                    }
-                }
+                Ok(line) => match line {
+                    Line::Directive(d) if d == Directive::StartOfFasta => return None,
+                    Line::Record(r) => return Some(Ok(r)),
+                    _ => {}
+                },
                 Err(e) => return Some(Err(e)),
             }
         }
