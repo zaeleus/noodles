@@ -27,6 +27,11 @@ use std::{
 
 use indexmap::IndexMap;
 
+static HEADERS: &[&str] = &[
+    "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
+];
+static FORMAT_HEADER: &str = "FORMAT";
+
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
@@ -467,6 +472,8 @@ pub enum ParseError {
     InvalidMeta(meta::TryFromRecordError),
     /// A sample record (`SAMPLE`) is invalid.
     InvalidSample(sample::TryFromRecordError),
+    /// The header is invalid.
+    InvalidHeader(String, String),
     /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
 }
@@ -490,6 +497,9 @@ impl std::fmt::Display for ParseError {
             Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
             Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
             Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
+            Self::InvalidHeader(actual, expected) => {
+                write!(f, "invalid header: expected {}, got {}", expected, actual)
+            }
             Self::ExpectedEof => f.write_str("expected EOF"),
         }
     }
@@ -507,7 +517,7 @@ impl FromStr for Header {
 
         while let Some(line) = lines.next() {
             if line.starts_with("#CHROM") {
-                builder = parse_header(builder, line);
+                builder = parse_header(builder, line)?;
                 break;
             } else {
                 builder = parse_record(builder, line)?;
@@ -588,14 +598,33 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
     Ok(builder)
 }
 
-fn parse_header(mut builder: Builder, line: &str) -> Builder {
-    let sample_names = line.split(crate::record::FIELD_DELIMITER).skip(9);
+fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+    let mut fields = line.split(crate::record::FIELD_DELIMITER);
 
-    for sample_name in sample_names {
-        builder = builder.add_sample_name(sample_name);
+    for &expected in HEADERS.iter() {
+        if let Some(actual) = fields.next() {
+            if actual != expected {
+                return Err(ParseError::InvalidHeader(actual.into(), expected.into()));
+            }
+        } else {
+            return Err(ParseError::InvalidHeader(String::from(""), expected.into()));
+        }
     }
 
-    builder
+    if let Some(field) = fields.next() {
+        if field != FORMAT_HEADER {
+            return Err(ParseError::InvalidHeader(
+                field.into(),
+                FORMAT_HEADER.into(),
+            ));
+        }
+
+        for sample_name in fields {
+            builder = builder.add_sample_name(sample_name);
+        }
+    }
+
+    Ok(builder)
 }
 
 #[cfg(test)]
@@ -751,6 +780,45 @@ mod tests {
 ";
 
         assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedFileFormat));
+    }
+
+    #[test]
+    fn test_from_str_with_invalid_headers() {
+        let s = "##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUALITY	FILTER	INFO
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::InvalidHeader(
+                String::from("QUALITY"),
+                String::from("QUAL")
+            ))
+        );
+
+        let s = "##fileformat=VCFv4.3
+#CHROM	POS	ID
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::InvalidHeader(
+                String::from(""),
+                String::from("REF")
+            ))
+        );
+
+        let s = "##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	sample0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::InvalidHeader(
+                String::from("sample0"),
+                String::from("FORMAT")
+            ))
+        );
     }
 
     #[test]
