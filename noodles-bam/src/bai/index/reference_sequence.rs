@@ -26,7 +26,7 @@ impl ReferenceSequence {
         Builder::default()
     }
 
-    /// Creates a new BAM index reference seqeuence.
+    /// Creates a BAM index reference seqeuence.
     ///
     /// # Examples
     ///

@@ -47,7 +47,7 @@ impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a new writer with a default compression level.
+    /// Creates a BAM writer with a default compression level.
     ///
     /// The given stream is wrapped in a BGZF encoder.
     ///

@@ -26,7 +26,7 @@ impl Bin {
         Builder::default()
     }
 
-    /// Creates a new bin.
+    /// Creates a BAM index reference sequence bin.
     ///
     /// # Examples
     ///

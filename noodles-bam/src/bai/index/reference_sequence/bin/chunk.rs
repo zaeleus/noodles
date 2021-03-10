@@ -8,7 +8,7 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    /// Creates a new chunk.
+    /// Creates a chunk.
     ///
     /// # Examples
     ///

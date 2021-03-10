@@ -33,7 +33,7 @@ impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a new BAI index writer.
+    /// Creates a BAI index writer.
     ///
     /// # Examples
     ///

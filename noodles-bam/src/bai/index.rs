@@ -25,7 +25,7 @@ impl Index {
         Builder::default()
     }
 
-    /// Creates a new BAM index.
+    /// Creates a BAM index.
     ///
     /// # Examples
     ///
