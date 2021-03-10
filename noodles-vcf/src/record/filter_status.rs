@@ -49,6 +49,8 @@ impl fmt::Display for FilterStatus {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// A filter status is invalid.
+    InvalidFilterStatus(String),
 }
 
 impl error::Error for ParseError {}
@@ -57,6 +59,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::InvalidFilterStatus(s) => write!(f, "invalid filter status: {}", s),
         }
     }
 }
@@ -70,11 +73,24 @@ impl FromStr for FilterStatus {
             MISSING_FIELD => Ok(Self::Missing),
             PASS_STATUS => Ok(Self::Pass),
             _ => {
-                let filters = s.split(DELIMITER).map(|t| t.into()).collect();
+                let mut filters = Vec::new();
+
+                for filter in s.split(DELIMITER) {
+                    if !is_valid_filter_status(filter) {
+                        return Err(ParseError::InvalidFilterStatus(filter.into()));
+                    }
+
+                    filters.push(filter.into());
+                }
+
                 Ok(Self::Fail(filters))
             }
         }
     }
+}
+
+fn is_valid_filter_status(s: &str) -> bool {
+    s.chars().all(|c| !c.is_ascii_whitespace())
 }
 
 #[cfg(test)]
@@ -117,5 +133,9 @@ mod tests {
         );
 
         assert_eq!("".parse::<FilterStatus>(), Err(ParseError::Empty));
+        assert_eq!(
+            "q 10".parse::<FilterStatus>(),
+            Err(ParseError::InvalidFilterStatus(String::from("q 10")))
+        );
     }
 }
