@@ -96,7 +96,10 @@ impl FromStr for FilterStatus {
 }
 
 fn is_valid_filter_status(s: &str) -> bool {
-    s.chars().all(|c| !c.is_ascii_whitespace())
+    match s {
+        "0" => false,
+        _ => s.chars().all(|c| !c.is_ascii_whitespace()),
+    }
 }
 
 #[cfg(test)]
@@ -142,6 +145,10 @@ mod tests {
         assert_eq!(
             "q10;q10".parse::<FilterStatus>(),
             Err(ParseError::DuplicateFilterStatus(String::from("q10"))),
+        );
+        assert_eq!(
+            "0".parse::<FilterStatus>(),
+            Err(ParseError::InvalidFilterStatus(String::from("0")))
         );
         assert_eq!(
             "q 10".parse::<FilterStatus>(),
