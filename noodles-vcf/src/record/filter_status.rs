@@ -1,6 +1,6 @@
 //! VCF record filter status.
 
-use std::{error, fmt, str::FromStr};
+use std::{collections::HashSet, error, fmt, str::FromStr};
 
 use super::MISSING_FIELD;
 
@@ -49,6 +49,8 @@ impl fmt::Display for FilterStatus {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// A filter status is duplicated.
+    DuplicateFilterStatus(String),
     /// A filter status is invalid.
     InvalidFilterStatus(String),
 }
@@ -59,6 +61,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::DuplicateFilterStatus(filter) => write!(f, "duplicate filter status: {}", filter),
             Self::InvalidFilterStatus(s) => write!(f, "invalid filter status: {}", s),
         }
     }
@@ -73,10 +76,13 @@ impl FromStr for FilterStatus {
             MISSING_FIELD => Ok(Self::Missing),
             PASS_STATUS => Ok(Self::Pass),
             _ => {
+                let mut set: HashSet<String> = HashSet::new();
                 let mut filters = Vec::new();
 
                 for filter in s.split(DELIMITER) {
-                    if !is_valid_filter_status(filter) {
+                    if !set.insert(filter.into()) {
+                        return Err(ParseError::DuplicateFilterStatus(filter.into()));
+                    } else if !is_valid_filter_status(filter) {
                         return Err(ParseError::InvalidFilterStatus(filter.into()));
                     }
 
@@ -133,6 +139,10 @@ mod tests {
         );
 
         assert_eq!("".parse::<FilterStatus>(), Err(ParseError::Empty));
+        assert_eq!(
+            "q10,q10".parse::<FilterStatus>(),
+            Err(ParseError::DuplicateFilterStatus(String::from("q10"))),
+        );
         assert_eq!(
             "q 10".parse::<FilterStatus>(),
             Err(ParseError::InvalidFilterStatus(String::from("q 10")))
