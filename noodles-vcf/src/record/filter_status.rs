@@ -97,7 +97,7 @@ impl FromStr for FilterStatus {
 
 fn is_valid_filter_status(s: &str) -> bool {
     match s {
-        "0" => false,
+        "" | "0" => false,
         _ => s.chars().all(|c| !c.is_ascii_whitespace()),
     }
 }
@@ -153,6 +153,18 @@ mod tests {
         assert_eq!(
             "q 10".parse::<FilterStatus>(),
             Err(ParseError::InvalidFilterStatus(String::from("q 10")))
+        );
+        assert_eq!(
+            ";q10".parse::<FilterStatus>(),
+            Err(ParseError::InvalidFilterStatus(String::from("")))
+        );
+        assert_eq!(
+            "q10;;s50".parse::<FilterStatus>(),
+            Err(ParseError::InvalidFilterStatus(String::from("")))
+        );
+        assert_eq!(
+            "q10;".parse::<FilterStatus>(),
+            Err(ParseError::InvalidFilterStatus(String::from("")))
         );
     }
 }
