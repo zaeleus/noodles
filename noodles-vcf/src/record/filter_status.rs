@@ -5,7 +5,7 @@ use std::{collections::HashSet, error, fmt, str::FromStr};
 use super::MISSING_FIELD;
 
 const PASS_STATUS: &str = "PASS";
-const DELIMITER: char = ',';
+const DELIMITER: char = ';';
 
 /// A VCF record filter status (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -117,7 +117,7 @@ mod tests {
         assert_eq!(status.to_string(), "q10");
 
         let status = FilterStatus::Fail(vec![String::from("q10"), String::from("s50")]);
-        assert_eq!(status.to_string(), "q10,s50");
+        assert_eq!(status.to_string(), "q10;s50");
     }
 
     #[test]
@@ -131,7 +131,7 @@ mod tests {
         );
 
         assert_eq!(
-            "q10,s50".parse(),
+            "q10;s50".parse(),
             Ok(FilterStatus::Fail(vec![
                 String::from("q10"),
                 String::from("s50")
@@ -140,7 +140,7 @@ mod tests {
 
         assert_eq!("".parse::<FilterStatus>(), Err(ParseError::Empty));
         assert_eq!(
-            "q10,q10".parse::<FilterStatus>(),
+            "q10;q10".parse::<FilterStatus>(),
             Err(ParseError::DuplicateFilterStatus(String::from("q10"))),
         );
         assert_eq!(
