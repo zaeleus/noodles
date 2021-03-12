@@ -15,8 +15,8 @@ pub enum Field {
     AlternateBases,
     /// Quality score (`QUAL`).
     QualityScore,
-    /// Filter status (`FILTER`).
-    FilterStatus,
+    /// Filters (`FILTER`).
+    Filters,
     /// Additional information (`INFO`).
     Info,
     /// Genotype format (`FORMAT`).
@@ -32,7 +32,7 @@ impl AsRef<str> for Field {
             Self::ReferenceBases => "REF",
             Self::AlternateBases => "ALT",
             Self::QualityScore => "QUAL",
-            Self::FilterStatus => "FILTER",
+            Self::Filters => "FILTER",
             Self::Info => "INFO",
             Self::Format => "FORMAT",
         }
@@ -57,7 +57,7 @@ mod tests {
         assert_eq!(Field::ReferenceBases.to_string(), "REF");
         assert_eq!(Field::AlternateBases.to_string(), "ALT");
         assert_eq!(Field::QualityScore.to_string(), "QUAL");
-        assert_eq!(Field::FilterStatus.to_string(), "FILTER");
+        assert_eq!(Field::Filters.to_string(), "FILTER");
         assert_eq!(Field::Info.to_string(), "INFO");
         assert_eq!(Field::Format.to_string(), "FORMAT");
     }

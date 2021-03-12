@@ -3,7 +3,7 @@
 use std::{convert::TryFrom, error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Chromosome, FilterStatus, Format, Genotype, Ids, Info,
+    reference_bases::Base, AlternateBases, Chromosome, Filters, Format, Genotype, Ids, Info,
     Position, QualityScore, Record, ReferenceBases,
 };
 
@@ -16,7 +16,7 @@ pub struct Builder {
     reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
-    filter_status: FilterStatus,
+    filters: Filters,
     info: Info,
     format: Option<Format>,
     genotypes: Vec<Genotype>,
@@ -222,26 +222,26 @@ impl Builder {
         self
     }
 
-    /// Sets the filter status.
+    /// Sets the filters.
     ///
     /// # Examples
     ///
     /// ```
     /// # use std::convert::TryFrom;
-    /// use noodles_vcf::{self as vcf, record::{FilterStatus, Position}};
+    /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_filter_status(FilterStatus::Pass)
+    ///     .set_filters(Filters::Pass)
     ///     .build()?;
     ///
-    /// assert_eq!(record.filter_status(), &FilterStatus::Pass);
+    /// assert_eq!(record.filters(), &Filters::Pass);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_filter_status(mut self, filter_status: FilterStatus) -> Self {
-        self.filter_status = filter_status;
+    pub fn set_filters(mut self, filters: Filters) -> Self {
+        self.filters = filters;
         self
     }
 
@@ -392,7 +392,7 @@ impl Builder {
                 .map_err(|_| BuildError::MissingReferenceBases)?,
             alternate_bases: self.alternate_bases,
             quality_score: self.quality_score,
-            filter_status: self.filter_status,
+            filters: self.filters,
             info: self.info,
             format: self.format,
             genotypes: self.genotypes,
@@ -421,7 +421,7 @@ mod tests {
         assert_eq!(record.reference_bases(), &reference_bases);
         assert!(record.alternate_bases().is_empty());
         assert!(record.quality_score().is_none());
-        assert_eq!(record.filter_status(), &FilterStatus::Missing);
+        assert_eq!(record.filters(), &Filters::Missing);
         assert!(record.info().is_empty());
         assert!(record.format().is_none());
         assert!(record.genotypes().is_empty());

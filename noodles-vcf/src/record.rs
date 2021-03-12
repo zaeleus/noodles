@@ -4,7 +4,7 @@ pub mod alternate_bases;
 pub mod builder;
 pub mod chromosome;
 mod field;
-pub mod filter_status;
+pub mod filters;
 pub mod format;
 pub mod genotype;
 pub mod ids;
@@ -16,8 +16,8 @@ pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filter_status::FilterStatus, format::Format, genotype::Genotype, ids::Ids, info::Info,
-    position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
+    filters::Filters, format::Format, genotype::Genotype, ids::Ids, info::Info, position::Position,
+    quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
 use std::{error, fmt, str::FromStr};
@@ -35,7 +35,7 @@ pub(crate) const FIELD_DELIMITER: char = '\t';
 ///   4. reference bases (`REF`),
 ///   5. alternate bases (`ALT`),
 ///   6. quality score (`QUAL`),
-///   7. filter status (`FILTER`), and
+///   7. filters (`FILTER`), and
 ///   8. information (`INFO`),
 ///
 /// Additionally, each record can have genotype information. This adds the extra `FORMAT` field
@@ -48,7 +48,7 @@ pub struct Record {
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
-    filter_status: FilterStatus,
+    filters: Filters,
     info: Info,
     format: Option<Format>,
     genotypes: Vec<Genotype>,
@@ -224,29 +224,29 @@ impl Record {
         self.quality_score
     }
 
-    /// Returns the filter status of the record.
+    /// Returns the filters of the record.
     ///
-    /// The filter status can either be pass (`PASS`), a list of filter names
-    /// that caused the record to fail, (e.g., `q10`), or missing (`.`).
+    /// The filters can either be pass (`PASS`), a list of filter names that caused the record to
+    /// fail, (e.g., `q10`), or missing (`.`).
     ///
     /// # Examples
     ///
     /// ```
     /// # use std::convert::TryFrom;
-    /// use noodles_vcf::{self as vcf, record::{FilterStatus, Position}};
+    /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_filter_status(FilterStatus::Pass)
+    ///     .set_filters(Filters::Pass)
     ///     .build()?;
     ///
-    /// assert_eq!(record.filter_status(), &FilterStatus::Pass);
+    /// assert_eq!(record.filters(), &Filters::Pass);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn filter_status(&self) -> &FilterStatus {
-        &self.filter_status
+    pub fn filters(&self) -> &Filters {
+        &self.filters
     }
 
     /// Returns the addition information of the record.
@@ -360,8 +360,8 @@ pub enum ParseError {
     InvalidAlternateBases(alternate_bases::ParseError),
     /// The quality score is invalid.
     InvalidQualityScore(quality_score::ParseError),
-    /// The filter status is invalid.
-    InvalidFilterStatus(filter_status::ParseError),
+    /// A filter is invalid.
+    InvalidFilters(filters::ParseError),
     /// The info is invalid.
     InvalidInfo(info::ParseError),
     /// The format is invalid.
@@ -382,7 +382,7 @@ impl fmt::Display for ParseError {
             Self::InvalidReferenceBases(e) => write!(f, "invalid reference bases: {}", e),
             Self::InvalidAlternateBases(e) => write!(f, "invalid alternate bases: {}", e),
             Self::InvalidQualityScore(e) => write!(f, "invalid quality score: {}", e),
-            Self::InvalidFilterStatus(e) => write!(f, "invalid filter status: {}", e),
+            Self::InvalidFilters(e) => write!(f, "invalid filters: {}", e),
             Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
             Self::InvalidFormat(e) => write!(f, "invalid format: {}", e),
             Self::InvalidGenotype(e) => write!(f, "invalid genotype: {}", e),
@@ -414,8 +414,8 @@ impl FromStr for Record {
         let qual = parse_string(&mut fields, Field::QualityScore)
             .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScore))?;
 
-        let filter = parse_string(&mut fields, Field::FilterStatus)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidFilterStatus))?;
+        let filter = parse_string(&mut fields, Field::Filters)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidFilters))?;
 
         let info = parse_string(&mut fields, Field::Info)
             .and_then(|s| s.parse().map_err(ParseError::InvalidInfo))?;
@@ -442,7 +442,7 @@ impl FromStr for Record {
             reference_bases: r#ref,
             alternate_bases: alt,
             quality_score: qual,
-            filter_status: filter,
+            filters: filter,
             info,
             format,
             genotypes,
@@ -481,7 +481,7 @@ mod tests {
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
         assert_eq!(*record.quality_score(), Some(5.8));
-        assert_eq!(record.filter_status(), &FilterStatus::Pass);
+        assert_eq!(record.filters(), &Filters::Pass);
         assert_eq!(record.info().len(), 1);
         assert!(record.format().is_none());
         assert!(record.genotypes().is_empty());

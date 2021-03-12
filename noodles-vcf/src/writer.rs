@@ -115,7 +115,7 @@ where
             r#ref = record.reference_bases(),
             alt = record.alternate_bases(),
             qual = record.quality_score(),
-            filter = record.filter_status(),
+            filter = record.filters(),
             info = record.info(),
         )?;
 

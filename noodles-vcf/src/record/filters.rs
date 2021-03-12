@@ -1,4 +1,4 @@
-//! VCF record filter status.
+//! VCF record filters.
 
 use std::{collections::HashSet, error, fmt, str::FromStr};
 
@@ -7,9 +7,9 @@ use super::MISSING_FIELD;
 const PASS_STATUS: &str = "PASS";
 const DELIMITER: char = ';';
 
-/// A VCF record filter status (`FILTER`).
+/// VCF record filters (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum FilterStatus {
+pub enum Filters {
     /// Missing (`*`).
     Missing,
     /// Pass (`PASS`).
@@ -18,13 +18,13 @@ pub enum FilterStatus {
     Fail(Vec<String>),
 }
 
-impl Default for FilterStatus {
+impl Default for Filters {
     fn default() -> Self {
         Self::Missing
     }
 }
 
-impl fmt::Display for FilterStatus {
+impl fmt::Display for Filters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Missing => f.write_str(MISSING_FIELD),
@@ -44,15 +44,15 @@ impl fmt::Display for FilterStatus {
     }
 }
 
-/// An error returned when a raw VCF filter status fails to parse.
+/// An error returned when a raw VCF filter fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
-    /// A filter status is duplicated.
-    DuplicateFilterStatus(String),
-    /// A filter status is invalid.
-    InvalidFilterStatus(String),
+    /// A filter is duplicated.
+    DuplicateFilters(String),
+    /// A filter is invalid.
+    InvalidFilters(String),
 }
 
 impl error::Error for ParseError {}
@@ -61,13 +61,13 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::DuplicateFilterStatus(filter) => write!(f, "duplicate filter status: {}", filter),
-            Self::InvalidFilterStatus(s) => write!(f, "invalid filter status: {}", s),
+            Self::DuplicateFilters(filter) => write!(f, "duplicate filter: {}", filter),
+            Self::InvalidFilters(s) => write!(f, "invalid filter: {}", s),
         }
     }
 }
 
-impl FromStr for FilterStatus {
+impl FromStr for Filters {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -81,9 +81,9 @@ impl FromStr for FilterStatus {
 
                 for filter in s.split(DELIMITER) {
                     if !set.insert(filter.into()) {
-                        return Err(ParseError::DuplicateFilterStatus(filter.into()));
-                    } else if !is_valid_filter_status(filter) {
-                        return Err(ParseError::InvalidFilterStatus(filter.into()));
+                        return Err(ParseError::DuplicateFilters(filter.into()));
+                    } else if !is_valid_filter(filter) {
+                        return Err(ParseError::InvalidFilters(filter.into()));
                     }
 
                     filters.push(filter.into());
@@ -95,7 +95,7 @@ impl FromStr for FilterStatus {
     }
 }
 
-fn is_valid_filter_status(s: &str) -> bool {
+fn is_valid_filter(s: &str) -> bool {
     match s {
         "" | "0" => false,
         _ => s.chars().all(|c| !c.is_ascii_whitespace()),
@@ -108,63 +108,60 @@ mod tests {
 
     #[test]
     fn test_default() {
-        assert_eq!(FilterStatus::default(), FilterStatus::Missing);
+        assert_eq!(Filters::default(), Filters::Missing);
     }
 
     #[test]
     fn test_fmt() {
-        assert_eq!(FilterStatus::Missing.to_string(), ".");
-        assert_eq!(FilterStatus::Pass.to_string(), "PASS");
+        assert_eq!(Filters::Missing.to_string(), ".");
+        assert_eq!(Filters::Pass.to_string(), "PASS");
 
-        let status = FilterStatus::Fail(vec![String::from("q10")]);
-        assert_eq!(status.to_string(), "q10");
+        let filters = Filters::Fail(vec![String::from("q10")]);
+        assert_eq!(filters.to_string(), "q10");
 
-        let status = FilterStatus::Fail(vec![String::from("q10"), String::from("s50")]);
-        assert_eq!(status.to_string(), "q10;s50");
+        let filters = Filters::Fail(vec![String::from("q10"), String::from("s50")]);
+        assert_eq!(filters.to_string(), "q10;s50");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!(".".parse(), Ok(FilterStatus::Missing));
-        assert_eq!("PASS".parse(), Ok(FilterStatus::Pass));
+        assert_eq!(".".parse(), Ok(Filters::Missing));
+        assert_eq!("PASS".parse(), Ok(Filters::Pass));
 
-        assert_eq!(
-            "q10".parse(),
-            Ok(FilterStatus::Fail(vec![String::from("q10")]))
-        );
+        assert_eq!("q10".parse(), Ok(Filters::Fail(vec![String::from("q10")])));
 
         assert_eq!(
             "q10;s50".parse(),
-            Ok(FilterStatus::Fail(vec![
+            Ok(Filters::Fail(vec![
                 String::from("q10"),
                 String::from("s50")
             ]))
         );
 
-        assert_eq!("".parse::<FilterStatus>(), Err(ParseError::Empty));
+        assert_eq!("".parse::<Filters>(), Err(ParseError::Empty));
         assert_eq!(
-            "q10;q10".parse::<FilterStatus>(),
-            Err(ParseError::DuplicateFilterStatus(String::from("q10"))),
+            "q10;q10".parse::<Filters>(),
+            Err(ParseError::DuplicateFilters(String::from("q10"))),
         );
         assert_eq!(
-            "0".parse::<FilterStatus>(),
-            Err(ParseError::InvalidFilterStatus(String::from("0")))
+            "0".parse::<Filters>(),
+            Err(ParseError::InvalidFilters(String::from("0")))
         );
         assert_eq!(
-            "q 10".parse::<FilterStatus>(),
-            Err(ParseError::InvalidFilterStatus(String::from("q 10")))
+            "q 10".parse::<Filters>(),
+            Err(ParseError::InvalidFilters(String::from("q 10")))
         );
         assert_eq!(
-            ";q10".parse::<FilterStatus>(),
-            Err(ParseError::InvalidFilterStatus(String::from("")))
+            ";q10".parse::<Filters>(),
+            Err(ParseError::InvalidFilters(String::from("")))
         );
         assert_eq!(
-            "q10;;s50".parse::<FilterStatus>(),
-            Err(ParseError::InvalidFilterStatus(String::from("")))
+            "q10;;s50".parse::<Filters>(),
+            Err(ParseError::InvalidFilters(String::from("")))
         );
         assert_eq!(
-            "q10;".parse::<FilterStatus>(),
-            Err(ParseError::InvalidFilterStatus(String::from("")))
+            "q10;".parse::<Filters>(),
+            Err(ParseError::InvalidFilters(String::from("")))
         );
     }
 }

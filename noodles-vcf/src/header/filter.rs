@@ -4,7 +4,7 @@ mod key;
 
 use std::{convert::TryFrom, error, fmt};
 
-use crate::record::FilterStatus;
+use crate::record::Filters;
 
 use super::{record, Record};
 
@@ -29,7 +29,7 @@ impl Filter {
     /// ```
     pub fn pass() -> Self {
         Self::new(
-            FilterStatus::Pass.to_string(),
+            Filters::Pass.to_string(),
             String::from("All filters passed"),
         )
     }
