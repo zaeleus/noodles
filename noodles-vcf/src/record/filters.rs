@@ -50,9 +50,9 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// A filter is duplicated.
-    DuplicateFilters(String),
+    DuplicateFilter(String),
     /// A filter is invalid.
-    InvalidFilters(String),
+    InvalidFilter(String),
 }
 
 impl error::Error for ParseError {}
@@ -61,8 +61,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::DuplicateFilters(filter) => write!(f, "duplicate filter: {}", filter),
-            Self::InvalidFilters(s) => write!(f, "invalid filter: {}", s),
+            Self::DuplicateFilter(filter) => write!(f, "duplicate filter: {}", filter),
+            Self::InvalidFilter(s) => write!(f, "invalid filter: {}", s),
         }
     }
 }
@@ -81,9 +81,9 @@ impl FromStr for Filters {
 
                 for filter in s.split(DELIMITER) {
                     if !set.insert(filter.into()) {
-                        return Err(ParseError::DuplicateFilters(filter.into()));
+                        return Err(ParseError::DuplicateFilter(filter.into()));
                     } else if !is_valid_filter(filter) {
-                        return Err(ParseError::InvalidFilters(filter.into()));
+                        return Err(ParseError::InvalidFilter(filter.into()));
                     }
 
                     filters.push(filter.into());
@@ -141,27 +141,27 @@ mod tests {
         assert_eq!("".parse::<Filters>(), Err(ParseError::Empty));
         assert_eq!(
             "q10;q10".parse::<Filters>(),
-            Err(ParseError::DuplicateFilters(String::from("q10"))),
+            Err(ParseError::DuplicateFilter(String::from("q10")))
         );
         assert_eq!(
             "0".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(String::from("0")))
+            Err(ParseError::InvalidFilter(String::from("0")))
         );
         assert_eq!(
             "q 10".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(String::from("q 10")))
+            Err(ParseError::InvalidFilter(String::from("q 10")))
         );
         assert_eq!(
             ";q10".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(String::from("")))
+            Err(ParseError::InvalidFilter(String::from("")))
         );
         assert_eq!(
             "q10;;s50".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(String::from("")))
+            Err(ParseError::InvalidFilter(String::from("")))
         );
         assert_eq!(
             "q10;".parse::<Filters>(),
-            Err(ParseError::InvalidFilters(String::from("")))
+            Err(ParseError::InvalidFilter(String::from("")))
         );
     }
 }
