@@ -1,6 +1,6 @@
 //! VCF record genotype format.
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::genotype::field::{key, Key};
 
@@ -80,6 +80,10 @@ pub enum TryFromKeyVectorError {
     ///
     /// The genotype key must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
     InvalidGenotypeKeyPosition,
+    /// A key is duplicated.
+    ///
+    /// § 1.6.2 Genotype fields (2021-01-13): "...duplicate keys are not allowed".
+    DuplicateKey(Key),
 }
 
 impl error::Error for TryFromKeyVectorError {}
@@ -89,6 +93,7 @@ impl fmt::Display for TryFromKeyVectorError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::InvalidGenotypeKeyPosition => f.write_str("invalid genotype key position"),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
         }
     }
 }
@@ -98,16 +103,22 @@ impl TryFrom<Vec<Key>> for Format {
 
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
         if keys.is_empty() {
-            Err(TryFromKeyVectorError::Empty)
+            return Err(TryFromKeyVectorError::Empty);
         } else if let Some(i) = keys.iter().position(|k| k == &Key::Genotype) {
-            if i == 0 {
-                Ok(Self(keys))
-            } else {
-                Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
+            if i != 0 {
+                return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition);
             }
-        } else {
-            Ok(Self(keys))
         }
+
+        let mut set = HashSet::new();
+
+        for key in &keys {
+            if !set.insert(key.clone()) {
+                return Err(TryFromKeyVectorError::DuplicateKey(key.clone()));
+            }
+        }
+
+        Ok(Self(keys))
     }
 }
 
@@ -169,6 +180,11 @@ mod tests {
         assert_eq!(
             Format::try_from(vec![Key::ConditionalGenotypeQuality, Key::Genotype]),
             Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
+        );
+
+        assert_eq!(
+            Format::try_from(vec![Key::Genotype, Key::Genotype]),
+            Err(TryFromKeyVectorError::DuplicateKey(Key::Genotype))
         );
     }
 }
