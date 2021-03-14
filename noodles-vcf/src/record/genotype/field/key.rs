@@ -185,6 +185,8 @@ impl fmt::Display for Key {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
 }
 
 impl error::Error for ParseError {}
@@ -193,6 +195,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
         }
     }
 }
@@ -231,9 +234,32 @@ impl FromStr for Key {
             "HAP" => Ok(Self::HaplotypeId),
             "AHAP" => Ok(Self::AncestralHaplotypeId),
 
-            _ => Ok(Self::Other(s.into(), Number::Count(1), Type::String)),
+            _ => {
+                if is_valid_name(s) {
+                    Ok(Self::Other(s.into(), Number::Count(1), Type::String))
+                } else {
+                    Err(ParseError::Invalid)
+                }
+            }
         }
     }
+}
+
+// § 1.6.2 Genotype fields
+fn is_valid_name_char(c: char) -> bool {
+    matches!(c, '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' | '.')
+}
+
+fn is_valid_name(s: &str) -> bool {
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if !matches!(c, 'A'..='Z' | 'a'..='z' | '_') {
+            return false;
+        }
+    }
+
+    chars.all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -394,5 +420,8 @@ mod tests {
         );
 
         assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
+        assert_eq!("8D".parse::<Key>(), Err(ParseError::Invalid));
+        assert_eq!(".N".parse::<Key>(), Err(ParseError::Invalid));
+        assert_eq!("A!".parse::<Key>(), Err(ParseError::Invalid));
     }
 }
