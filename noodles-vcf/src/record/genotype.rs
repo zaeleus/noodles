@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref};
+use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref};
 
 use super::{Format, MISSING_FIELD};
 
@@ -108,6 +108,10 @@ pub enum TryFromFieldsError {
     ///
     /// The genotype field must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
     InvalidGenotypeFieldPosition,
+    /// A key is duplicated.
+    ///
+    /// § 1.6.2 Genotype fields (2021-01-13): "...duplicate keys are not allowed".
+    DuplicateKey(field::Key),
 }
 
 impl error::Error for TryFromFieldsError {}
@@ -116,6 +120,7 @@ impl fmt::Display for TryFromFieldsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidGenotypeFieldPosition => f.write_str("invalid genotype field position"),
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
         }
     }
 }
@@ -125,16 +130,22 @@ impl TryFrom<Vec<Field>> for Genotype {
 
     fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
         if fields.is_empty() {
-            Ok(Self::default())
+            return Ok(Self::default());
         } else if let Some(i) = fields.iter().position(|f| f.key() == &field::Key::Genotype) {
-            if i == 0 {
-                Ok(Self(fields))
-            } else {
-                Err(TryFromFieldsError::InvalidGenotypeFieldPosition)
+            if i != 0 {
+                return Err(TryFromFieldsError::InvalidGenotypeFieldPosition);
             }
-        } else {
-            Ok(Self(fields))
         }
+
+        let mut keys = HashSet::new();
+
+        for field in &fields {
+            if !keys.insert(field.key().clone()) {
+                return Err(TryFromFieldsError::DuplicateKey(field.key().clone()));
+            }
+        }
+
+        Ok(Self(fields))
     }
 }
 
@@ -222,6 +233,21 @@ mod tests {
         assert_eq!(
             Genotype::try_from(fields),
             Err(TryFromFieldsError::InvalidGenotypeFieldPosition)
+        );
+
+        let fields = vec![
+            Field::new(
+                field::Key::Genotype,
+                Some(field::Value::String(String::from("0|0"))),
+            ),
+            Field::new(
+                field::Key::Genotype,
+                Some(field::Value::String(String::from("0|0"))),
+            ),
+        ];
+        assert_eq!(
+            Genotype::try_from(fields),
+            Err(TryFromFieldsError::DuplicateKey(field::Key::Genotype))
         );
     }
 }
