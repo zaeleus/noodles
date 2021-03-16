@@ -4,7 +4,9 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref};
+use std::{convert::TryFrom, error, fmt, ops::Deref};
+
+use indexmap::IndexMap;
 
 use super::{Format, MISSING_FIELD};
 
@@ -12,7 +14,7 @@ const DELIMITER: char = ':';
 
 /// A VCF record genotype.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Genotype(Vec<Field>);
+pub struct Genotype(IndexMap<field::Key, Field>);
 
 /// An error returned when a raw VCF genotype fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -76,7 +78,7 @@ impl Genotype {
 }
 
 impl Deref for Genotype {
-    type Target = [Field];
+    type Target = IndexMap<field::Key, Field>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -88,7 +90,7 @@ impl fmt::Display for Genotype {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
-            for (i, field) in self.iter().enumerate() {
+            for (i, field) in self.values().enumerate() {
                 if i > 0 {
                     write!(f, "{}", DELIMITER)?
                 }
@@ -137,15 +139,17 @@ impl TryFrom<Vec<Field>> for Genotype {
             }
         }
 
-        let mut keys = HashSet::new();
+        let mut map = IndexMap::with_capacity(fields.len());
 
-        for field in &fields {
-            if !keys.insert(field.key().clone()) {
-                return Err(TryFromFieldsError::DuplicateKey(field.key().clone()));
+        for field in fields {
+            if let Some(duplicate_field) = map.insert(field.key().clone(), field) {
+                return Err(TryFromFieldsError::DuplicateKey(
+                    duplicate_field.key().clone(),
+                ));
             }
         }
 
-        Ok(Self(fields))
+        Ok(Self(map))
     }
 }
 
@@ -158,7 +162,7 @@ mod tests {
         let format = "GT".parse()?;
         assert_eq!(
             Genotype::from_str_format(".", &format),
-            Ok(Genotype(Vec::new()))
+            Ok(Genotype::default())
         );
 
         let format = "GT".parse()?;
@@ -179,18 +183,18 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), TryFromFieldsError> {
         let genotype = Genotype::default();
         assert_eq!(genotype.to_string(), ".");
 
-        let genotype = Genotype(vec![Field::new(
+        let genotype = Genotype::try_from(vec![Field::new(
             field::Key::Genotype,
             Some(field::Value::String(String::from("0|0"))),
-        )]);
+        )])?;
 
         assert_eq!(genotype.to_string(), "0|0");
 
-        let genotype = Genotype(vec![
+        let genotype = Genotype::try_from(vec![
             Field::new(
                 field::Key::Genotype,
                 Some(field::Value::String(String::from("0|0"))),
@@ -199,9 +203,11 @@ mod tests {
                 field::Key::ConditionalGenotypeQuality,
                 Some(field::Value::Integer(13)),
             ),
-        ]);
+        ])?;
 
         assert_eq!(genotype.to_string(), "0|0:13");
+
+        Ok(())
     }
 
     #[test]

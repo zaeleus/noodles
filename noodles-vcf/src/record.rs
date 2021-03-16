@@ -502,6 +502,10 @@ mod tests {
         assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
 
         let genotypes = record.genotypes();
+
+        assert_eq!(genotypes.len(), 1);
+
+        let actual: Vec<_> = genotypes[0].values().cloned().collect();
         let expected = vec![
             genotype::Field::new(
                 genotype::field::Key::Genotype,
@@ -513,8 +517,7 @@ mod tests {
             ),
         ];
 
-        assert_eq!(genotypes.len(), 1);
-        assert_eq!(&genotypes[0][..], &expected[..]);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
