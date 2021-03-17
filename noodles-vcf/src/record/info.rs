@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use super::MISSING_FIELD;
 
@@ -40,17 +40,13 @@ impl fmt::Display for Info {
     }
 }
 
-impl From<Vec<Field>> for Info {
-    fn from(fields: Vec<Field>) -> Self {
-        Self(fields)
-    }
-}
-
 /// An error returned when a raw VCF information fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid(TryFromFieldsError),
     /// A field is invalid.
     InvalidField(field::ParseError),
 }
@@ -61,6 +57,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid(e) => write!(f, "invalid input: {}", e),
             Self::InvalidField(e) => write!(f, "invalid field: {}", e),
         }
     }
@@ -73,13 +70,55 @@ impl FromStr for Info {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
-            _ => s
-                .split(DELIMITER)
-                .map(|s| s.parse())
-                .collect::<Result<_, _>>()
-                .map(Self)
-                .map_err(ParseError::InvalidField),
+            _ => {
+                let fields = s
+                    .split(DELIMITER)
+                    .map(|s| s.parse())
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(ParseError::InvalidField)?;
+
+                Self::try_from(fields).map_err(ParseError::Invalid)
+            }
         }
+    }
+}
+
+/// An error returned when VCF info fields fail to convert.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromFieldsError {
+    /// A key is duplicated.
+    ///
+    /// § 1.6.1 Fixed fields (2021-01-13): "Duplicate keys are not allowed."
+    DuplicateKey(field::Key),
+}
+
+impl error::Error for TryFromFieldsError {}
+
+impl fmt::Display for TryFromFieldsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
+        }
+    }
+}
+
+impl TryFrom<Vec<Field>> for Info {
+    type Error = TryFromFieldsError;
+
+    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
+        if fields.is_empty() {
+            return Ok(Self::default());
+        }
+
+        let mut set = HashSet::with_capacity(fields.len());
+
+        for field in &fields {
+            if !set.insert(field.key().clone()) {
+                return Err(TryFromFieldsError::DuplicateKey(field.key().clone()));
+            }
+        }
+
+        Ok(Self(fields))
     }
 }
 
@@ -126,5 +165,27 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_fields_for_info() {
+        assert_eq!(Info::try_from(Vec::new()), Ok(Info::default()));
+
+        let fields = vec![Field::new(
+            field::Key::SamplesWithDataCount,
+            field::Value::Integer(2),
+        )];
+        assert!(Info::try_from(fields).is_ok());
+
+        let fields = vec![
+            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
+            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
+        ];
+        assert_eq!(
+            Info::try_from(fields),
+            Err(TryFromFieldsError::DuplicateKey(
+                field::Key::SamplesWithDataCount
+            ))
+        );
     }
 }

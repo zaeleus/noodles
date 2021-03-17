@@ -268,10 +268,12 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.info(), &Info::from(vec![
+    /// let expected = Info::try_from(vec![
     ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
     ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
-    /// ]));
+    /// ])?;
+    ///
+    /// assert_eq!(record.info(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn info(&self) -> &Info {
