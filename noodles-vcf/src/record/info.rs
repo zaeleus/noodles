@@ -4,7 +4,9 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+
+use indexmap::IndexMap;
 
 use super::MISSING_FIELD;
 
@@ -12,10 +14,10 @@ const DELIMITER: char = ';';
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Info(Vec<Field>);
+pub struct Info(IndexMap<field::Key, Field>);
 
 impl Deref for Info {
-    type Target = [Field];
+    type Target = IndexMap<field::Key, Field>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -27,7 +29,7 @@ impl fmt::Display for Info {
         if self.is_empty() {
             f.write_str(MISSING_FIELD)
         } else {
-            for (i, field) in self.iter().enumerate() {
+            for (i, field) in self.values().enumerate() {
                 if i > 0 {
                     write!(f, "{}", DELIMITER)?
                 }
@@ -110,15 +112,17 @@ impl TryFrom<Vec<Field>> for Info {
             return Ok(Self::default());
         }
 
-        let mut set = HashSet::with_capacity(fields.len());
+        let mut map = IndexMap::with_capacity(fields.len());
 
-        for field in &fields {
-            if !set.insert(field.key().clone()) {
-                return Err(TryFromFieldsError::DuplicateKey(field.key().clone()));
+        for field in fields {
+            if let Some(duplicate_field) = map.insert(field.key().clone(), field) {
+                return Err(TryFromFieldsError::DuplicateKey(
+                    duplicate_field.key().clone(),
+                ));
             }
         }
 
-        Ok(Self(fields))
+        Ok(Self(map))
     }
 }
 
@@ -127,24 +131,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), TryFromFieldsError> {
         let info = Info::default();
         assert_eq!(info.to_string(), ".");
 
-        let info = Info(vec![Field::new(
+        let info = Info::try_from(vec![Field::new(
             field::Key::SamplesWithDataCount,
             field::Value::Integer(2),
-        )]);
+        )])?;
         assert_eq!(info.to_string(), "NS=2");
 
-        let info = Info(vec![
+        let info = Info::try_from(vec![
             Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
             Field::new(
                 field::Key::AlleleFrequencies,
                 field::Value::FloatArray(vec![0.333, 0.667]),
             ),
-        ]);
+        ])?;
         assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
+
+        Ok(())
     }
 
     #[test]
