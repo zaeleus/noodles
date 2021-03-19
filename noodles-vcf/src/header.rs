@@ -20,6 +20,7 @@ pub use self::{
 };
 
 use std::{
+    collections::HashSet,
     convert::TryFrom,
     error,
     str::{FromStr, Lines},
@@ -474,6 +475,10 @@ pub enum ParseError {
     InvalidSample(sample::TryFromRecordError),
     /// The header is invalid.
     InvalidHeader(String, String),
+    /// A sample name is duplicated.
+    ///
+    /// § 1.5 Header line syntax (2021-01-13): "Duplicate sample IDs are not allowed."
+    DuplicateSampleName(String),
     /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
 }
@@ -499,6 +504,9 @@ impl std::fmt::Display for ParseError {
             Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {}, got {}", expected, actual)
+            }
+            Self::DuplicateSampleName(sample_name) => {
+                write!(f, "duplicate sample name: {}", sample_name)
             }
             Self::ExpectedEof => f.write_str("expected EOF"),
         }
@@ -619,7 +627,13 @@ fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             ));
         }
 
+        let mut set: HashSet<String> = HashSet::new();
+
         for sample_name in fields {
+            if !set.insert(sample_name.into()) {
+                return Err(ParseError::DuplicateSampleName(sample_name.into()));
+            }
+
             builder = builder.add_sample_name(sample_name);
         }
     }
@@ -818,6 +832,18 @@ mod tests {
                 String::from("sample0"),
                 String::from("FORMAT")
             ))
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_sample_names() {
+        let s = "##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0	sample0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateSampleName(String::from("sample0")))
         );
     }
 
