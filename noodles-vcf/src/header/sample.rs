@@ -94,7 +94,7 @@ impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
-            Self::MissingField(key) => write!(f, "missing {} field", key),
+            Self::MissingField(key) => write!(f, "missing field: {}", key),
             Self::InvalidId => f.write_str("invalid ID"),
         }
     }
