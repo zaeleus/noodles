@@ -63,7 +63,7 @@ impl Record {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     Missing(Field),
     Invalid(Field, std::num::ParseIntError),
