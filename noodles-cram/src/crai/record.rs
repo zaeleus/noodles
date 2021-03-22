@@ -159,4 +159,22 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_from_str_with_invalid_records() {
+        assert_eq!(
+            "0\t10946".parse::<Record>(),
+            Err(ParseError::Missing(Field::AlignmentSpan))
+        );
+
+        assert!(matches!(
+            "0\t10946\tnoodles".parse::<Record>(),
+            Err(ParseError::Invalid(Field::AlignmentSpan, _))
+        ));
+
+        assert!(matches!(
+            "-8\t10946\t6765\t17711\t233\t317811".parse::<Record>(),
+            Err(ParseError::InvalidReferenceSequenceId(_))
+        ));
+    }
 }
