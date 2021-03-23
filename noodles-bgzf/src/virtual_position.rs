@@ -166,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_u64_u16_tuple_for_virtual_position() -> Result<(), TryFromU64U16TupleError> {
+    fn test_try_from_u64_u16_tuple_for_virtual_position() {
         assert_eq!(
             VirtualPosition::try_from((1348647, 15419)),
             Ok(VirtualPosition::from(88384945211))
@@ -186,8 +186,6 @@ mod tests {
             VirtualPosition::try_from((281474976710656, 0)),
             Err(TryFromU64U16TupleError::CompressedPositionOverflow)
         );
-
-        Ok(())
     }
 
     #[test]
