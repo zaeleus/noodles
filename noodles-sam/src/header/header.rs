@@ -8,12 +8,13 @@ mod group_order;
 mod sort_order;
 mod subsort_order;
 mod tag;
+mod version;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{
     builder::Builder, group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder,
-    tag::Tag,
+    tag::Tag, version::Version,
 };
 
 use super::{record, Record};
