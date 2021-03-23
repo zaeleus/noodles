@@ -25,7 +25,7 @@ use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 /// use noodles_bgzf as bgzf;
 /// let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
 /// let mut data = Vec::new();
-/// reader.read_to_end(&mut data);
+/// reader.read_to_end(&mut data)?;
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Reader<R> {

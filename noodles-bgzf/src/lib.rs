@@ -20,7 +20,7 @@
 //! use noodles_bgzf as bgzf;
 //! let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
 //! let mut data = Vec::new();
-//! reader.read_to_end(&mut data);
+//! reader.read_to_end(&mut data)?;
 //! # Ok::<(), io::Error>(())
 //! ```
 //!
