@@ -19,14 +19,12 @@ pub use self::{
 
 use super::{record, Record};
 
-static VERSION: &str = "1.6";
-
 /// A SAM header header.
 ///
 /// The header describes file-level metadata. The format version is guaranteed to be set.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
-    version: String,
+    version: Version,
     sort_order: Option<SortOrder>,
     group_order: Option<GroupOrder>,
     subsort_order: Option<SubsortOrder>,
@@ -51,11 +49,11 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Header;
-    /// let header = Header::new(String::from("1.6"));
-    /// assert_eq!(header.version(), "1.6");
+    /// use noodles_sam::header::header::{Header, Version};
+    /// let header = Header::new(Version::new(1, 6));
+    /// assert_eq!(header.version(), Version::new(1, 6));
     /// ```
-    pub fn new(version: String) -> Self {
+    pub fn new(version: Version) -> Self {
         Self {
             version,
             ..Default::default()
@@ -67,12 +65,12 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Header;
-    /// let header = Header::new(String::from("1.6"));
-    /// assert_eq!(header.version(), "1.6");
+    /// use noodles_sam::header::header::{Header, Version};
+    /// let header = Header::new(Version::new(1, 6));
+    /// assert_eq!(header.version(), Version::new(1, 6));
     /// ```
-    pub fn version(&self) -> &str {
-        &self.version
+    pub fn version(&self) -> Version {
+        self.version
     }
 
     /// Returns a mutable reference to the format version.
@@ -80,15 +78,15 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Header;
+    /// use noodles_sam::header::header::{Header, Version};
     ///
-    /// let mut header = Header::new(String::from("1.6"));
-    /// assert_eq!(header.version(), "1.6");
+    /// let mut header = Header::new(Version::new(1, 6));
+    /// assert_eq!(header.version(), Version::new(1, 6));
     ///
-    /// *header.version_mut() = String::from("1.5");
-    /// assert_eq!(header.version(), "1.5");
+    /// *header.version_mut() = Version::new(1, 5);
+    /// assert_eq!(header.version(), Version::new(1, 5));
     /// ```
-    pub fn version_mut(&mut self) -> &mut String {
+    pub fn version_mut(&mut self) -> &mut Version {
         &mut self.version
     }
 
@@ -140,10 +138,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::{Header, SortOrder, Tag};
+    /// use noodles_sam::header::header::{Header, SortOrder, Tag, Version};
     ///
     /// let header = Header::builder()
-    ///     .set_version("1.6")
+    ///     .set_version(Version::new(1, 6))
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();
     ///
@@ -155,7 +153,7 @@ impl Header {
     /// );
     ///
     /// assert_eq!(fields.get(&Tag::Version), None);
-    /// assert_eq!(header.version(), "1.6");
+    /// assert_eq!(header.version(), Version::new(1, 6));
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
@@ -202,6 +200,8 @@ pub enum TryFromRecordError {
     MissingRequiredTag(Tag),
     /// A tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The version is invalid.
+    InvalidVersion(version::ParseError),
     /// The sort order is invalid.
     InvalidSortOrder(sort_order::ParseError),
     /// The group order is invalid.
@@ -218,6 +218,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
+            Self::InvalidVersion(e) => write!(f, "invalid version: {}", e),
             Self::InvalidSortOrder(e) => write!(f, "invalid sort order: {}", e),
             Self::InvalidGroupOrder(e) => write!(f, "invalid group order: {}", e),
             Self::InvalidSubsortOrder(e) => write!(f, "invalid subsort order: {}", e),
@@ -238,14 +239,18 @@ impl TryFrom<Record> for Header {
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, TryFromRecordError> {
     let mut builder = Header::builder();
-    let mut version = None;
+    let mut version: Option<Version> = None;
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         builder = match tag {
             Tag::Version => {
-                version = Some(value);
+                version = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidVersion)?;
+
                 builder
             }
             Tag::SortOrder => {
@@ -286,7 +291,7 @@ mod tests {
     #[test]
     fn test_default() {
         let header = Header::default();
-        assert_eq!(header.version(), VERSION);
+        assert_eq!(header.version(), Version::default());
         assert!(header.sort_order().is_none());
         assert!(header.group_order().is_none());
         assert!(header.subsort_order().is_none());
@@ -296,7 +301,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let header = Header::builder()
-            .set_version("1.6")
+            .set_version(Version::new(1, 6))
             .set_sort_order(SortOrder::Unknown)
             .build();
 

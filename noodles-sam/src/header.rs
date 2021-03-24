@@ -148,17 +148,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header};
+    /// use noodles_sam::{self as sam, header::{self, header::Version}};
     ///
     /// let mut header = sam::Header::builder()
-    ///     .set_header(header::header::Header::new(String::from("1.6")))
+    ///     .set_header(header::header::Header::new(Version::new(1, 6)))
     ///     .build();
-    /// assert_eq!(header.header().map(|h| h.version()), Some("1.6"));
+    /// assert_eq!(header.header().map(|h| h.version()), Some(Version::new(1, 6)));
     ///
     /// header.header_mut().as_mut().map(|h| {
-    ///     *h.version_mut() = String::from("1.5");
+    ///     *h.version_mut() = Version::new(1, 5)
     /// });
-    /// assert_eq!(header.header().map(|h| h.version()), Some("1.5"));
+    /// assert_eq!(header.header().map(|h| h.version()), Some(Version::new(1, 5)));
     ///
     /// *header.header_mut() = None;
     /// assert!(header.header().is_none());
@@ -383,7 +383,7 @@ impl fmt::Display for Header {
     /// use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
     ///
     /// let header = sam::Header::builder()
-    ///     .set_header(header::header::Header::new(String::from("1.6")))
+    ///     .set_header(header::header::Header::new(header::header::Version::new(1, 6)))
     ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
     ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
     ///     .build();
@@ -529,7 +529,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         let header = Header::builder()
-            .set_header(header::Header::new(String::from("1.6")))
+            .set_header(header::Header::new(header::Version::new(1, 6)))
             .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
             .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
             .add_read_group(ReadGroup::new(String::from("rg0")))

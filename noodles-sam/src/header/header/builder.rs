@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use super::{GroupOrder, Header, SortOrder, SubsortOrder, Tag, VERSION};
+use super::{GroupOrder, Header, SortOrder, SubsortOrder, Tag, Version};
 
 /// A SAM header header builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    version: Option<String>,
+    version: Option<Version>,
     sort_order: Option<SortOrder>,
     group_order: Option<GroupOrder>,
     subsort_order: Option<SubsortOrder>,
@@ -18,15 +18,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Header;
-    /// let header = Header::builder().set_version("1.6").build();
-    /// assert_eq!(header.version(), "1.6");
+    /// use noodles_sam::header::header::{Header, Version};
+    /// let header = Header::builder().set_version(Version::new(1, 6)).build();
+    /// assert_eq!(header.version(), Version::new(1, 6));
     /// ```
-    pub fn set_version<I>(mut self, version: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.version = Some(version.into());
+    pub fn set_version(mut self, version: Version) -> Self {
+        self.version = Some(version);
         self
     }
 
@@ -109,7 +106,7 @@ impl Builder {
     /// ```
     pub fn build(self) -> Header {
         Header {
-            version: self.version.unwrap_or_else(|| VERSION.into()),
+            version: self.version.unwrap_or_default(),
             sort_order: self.sort_order,
             group_order: self.group_order,
             subsort_order: self.subsort_order,
