@@ -49,17 +49,23 @@ impl FromStr for ReadName {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            _ => {
-                if s.len() > MAX_LENGTH {
-                    Err(ParseError::Invalid)
-                } else {
-                    Ok(Self(s.into()))
-                }
-            }
+        if s.is_empty() {
+            Err(ParseError::Empty)
+        } else if !is_valid_name(s) {
+            Err(ParseError::Invalid)
+        } else {
+            Ok(Self(s.into()))
         }
     }
+}
+
+// § 1.2.1 Character set restrictions (2021-01-07)
+fn is_valid_name_char(c: char) -> bool {
+    ('!'..='~').contains(&c) && c != '@'
+}
+
+fn is_valid_name(s: &str) -> bool {
+    s.len() <= MAX_LENGTH && s.chars().all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -78,6 +84,8 @@ mod tests {
         assert_eq!("r0".parse(), Ok(ReadName(String::from("r0"))));
 
         assert_eq!("".parse::<ReadName>(), Err(ParseError::Empty));
+        assert_eq!("r 0".parse::<ReadName>(), Err(ParseError::Invalid));
+        assert_eq!("@r0".parse::<ReadName>(), Err(ParseError::Invalid));
 
         let s: String = (0..MAX_LENGTH + 1).map(|_| 'N').collect();
         assert_eq!(s.parse::<ReadName>(), Err(ParseError::Invalid));
