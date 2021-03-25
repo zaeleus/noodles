@@ -51,11 +51,11 @@ pub enum Tag {
     /// (`FZ`).
     AlternativeSequence,
     /// (`GC`).
-    ReservedGC,
+    ReservedGc,
     /// (`GQ`).
-    ReservedGQ,
+    ReservedGq,
     /// (`GS`).
-    ReservedGS,
+    ReservedGs,
     /// (`H0`).
     PerfectHitCount,
     /// (`H1`).
@@ -73,7 +73,7 @@ pub enum Tag {
     /// (`MD`).
     MismatchedPositions,
     /// (`MF`).
-    ReservedMF,
+    ReservedMf,
     /// (`MI`).
     UmiId,
     /// (`MQ`).
@@ -111,7 +111,7 @@ pub enum Tag {
     /// (`RG`).
     ReadGroup,
     /// (`RT`).
-    ReservedRT,
+    ReservedRt,
     /// (`RX`).
     UmiSequence,
     /// (`S2`).
@@ -121,7 +121,7 @@ pub enum Tag {
     /// (`SM`).
     TemplateMappingQuality,
     /// (`SQ`).
-    ReservedSQ,
+    ReservedSq,
     /// (`TC`).
     SegmentCount,
     /// (`TS`).
@@ -157,9 +157,9 @@ impl AsRef<str> for Tag {
             Self::SegmentIndex => "FI",
             Self::SegmentSuffix => "FS",
             Self::AlternativeSequence => "FZ",
-            Self::ReservedGC => "GC",
-            Self::ReservedGQ => "GQ",
-            Self::ReservedGS => "GS",
+            Self::ReservedGc => "GC",
+            Self::ReservedGq => "GQ",
+            Self::ReservedGs => "GS",
             Self::PerfectHitCount => "HO",
             Self::OneDifferenceHitCount => "H1",
             Self::TwoDifferenceHitCount => "H2",
@@ -168,7 +168,7 @@ impl AsRef<str> for Tag {
             Self::Library => "LB",
             Self::MateCigar => "MC",
             Self::MismatchedPositions => "MD",
-            Self::ReservedMF => "MF",
+            Self::ReservedMf => "MF",
             Self::UmiId => "MI",
             Self::MateMappingQuality => "MQ",
             Self::AlignmentHitCount => "NH",
@@ -187,12 +187,12 @@ impl AsRef<str> for Tag {
             Self::UmiQualityScores => "QX",
             Self::MateSequence => "R2",
             Self::ReadGroup => "RG",
-            Self::ReservedRT => "RT",
+            Self::ReservedRt => "RT",
             Self::UmiSequence => "RX",
             Self::ReservedS2 => "S2",
             Self::OtherAlignments => "SA",
             Self::TemplateMappingQuality => "SM",
-            Self::ReservedSQ => "SQ",
+            Self::ReservedSq => "SQ",
             Self::SegmentCount => "TC",
             Self::TranscriptStrand => "TS",
             Self::NextHitQualityScores => "U2",
@@ -245,9 +245,9 @@ impl FromStr for Tag {
             "FI" => Ok(Self::SegmentIndex),
             "FS" => Ok(Self::SegmentSuffix),
             "FZ" => Ok(Self::AlternativeSequence),
-            "GC" => Ok(Self::ReservedGC),
-            "GQ" => Ok(Self::ReservedGQ),
-            "GS" => Ok(Self::ReservedGS),
+            "GC" => Ok(Self::ReservedGc),
+            "GQ" => Ok(Self::ReservedGq),
+            "GS" => Ok(Self::ReservedGs),
             "HO" => Ok(Self::PerfectHitCount),
             "H1" => Ok(Self::OneDifferenceHitCount),
             "H2" => Ok(Self::TwoDifferenceHitCount),
@@ -256,7 +256,7 @@ impl FromStr for Tag {
             "LB" => Ok(Self::Library),
             "MC" => Ok(Self::MateCigar),
             "MD" => Ok(Self::MismatchedPositions),
-            "MF" => Ok(Self::ReservedMF),
+            "MF" => Ok(Self::ReservedMf),
             "MI" => Ok(Self::UmiId),
             "MQ" => Ok(Self::MateMappingQuality),
             "NH" => Ok(Self::AlignmentHitCount),
@@ -275,12 +275,12 @@ impl FromStr for Tag {
             "QX" => Ok(Self::UmiQualityScores),
             "R2" => Ok(Self::MateSequence),
             "RG" => Ok(Self::ReadGroup),
-            "RT" => Ok(Self::ReservedRT),
+            "RT" => Ok(Self::ReservedRt),
             "RX" => Ok(Self::UmiSequence),
             "S2" => Ok(Self::ReservedS2),
             "SA" => Ok(Self::OtherAlignments),
             "SM" => Ok(Self::TemplateMappingQuality),
-            "SQ" => Ok(Self::ReservedSQ),
+            "SQ" => Ok(Self::ReservedSq),
             "TC" => Ok(Self::SegmentCount),
             "TS" => Ok(Self::TranscriptStrand),
             "U2" => Ok(Self::NextHitQualityScores),
@@ -322,9 +322,9 @@ mod tests {
         assert_eq!(Tag::SegmentIndex.to_string(), "FI");
         assert_eq!(Tag::SegmentSuffix.to_string(), "FS");
         assert_eq!(Tag::AlternativeSequence.to_string(), "FZ");
-        assert_eq!(Tag::ReservedGC.to_string(), "GC");
-        assert_eq!(Tag::ReservedGQ.to_string(), "GQ");
-        assert_eq!(Tag::ReservedGS.to_string(), "GS");
+        assert_eq!(Tag::ReservedGc.to_string(), "GC");
+        assert_eq!(Tag::ReservedGq.to_string(), "GQ");
+        assert_eq!(Tag::ReservedGs.to_string(), "GS");
         assert_eq!(Tag::PerfectHitCount.to_string(), "HO");
         assert_eq!(Tag::OneDifferenceHitCount.to_string(), "H1");
         assert_eq!(Tag::TwoDifferenceHitCount.to_string(), "H2");
@@ -333,7 +333,7 @@ mod tests {
         assert_eq!(Tag::Library.to_string(), "LB");
         assert_eq!(Tag::MateCigar.to_string(), "MC");
         assert_eq!(Tag::MismatchedPositions.to_string(), "MD");
-        assert_eq!(Tag::ReservedMF.to_string(), "MF");
+        assert_eq!(Tag::ReservedMf.to_string(), "MF");
         assert_eq!(Tag::UmiId.to_string(), "MI");
         assert_eq!(Tag::MateMappingQuality.to_string(), "MQ");
         assert_eq!(Tag::AlignmentHitCount.to_string(), "NH");
@@ -352,12 +352,12 @@ mod tests {
         assert_eq!(Tag::UmiQualityScores.to_string(), "QX");
         assert_eq!(Tag::MateSequence.to_string(), "R2");
         assert_eq!(Tag::ReadGroup.to_string(), "RG");
-        assert_eq!(Tag::ReservedRT.to_string(), "RT");
+        assert_eq!(Tag::ReservedRt.to_string(), "RT");
         assert_eq!(Tag::UmiSequence.to_string(), "RX");
         assert_eq!(Tag::ReservedS2.to_string(), "S2");
         assert_eq!(Tag::OtherAlignments.to_string(), "SA");
         assert_eq!(Tag::TemplateMappingQuality.to_string(), "SM");
-        assert_eq!(Tag::ReservedSQ.to_string(), "SQ");
+        assert_eq!(Tag::ReservedSq.to_string(), "SQ");
         assert_eq!(Tag::SegmentCount.to_string(), "TC");
         assert_eq!(Tag::TranscriptStrand.to_string(), "TS");
         assert_eq!(Tag::NextHitQualityScores.to_string(), "U2");
@@ -387,9 +387,9 @@ mod tests {
         assert_eq!("FI".parse(), Ok(Tag::SegmentIndex));
         assert_eq!("FS".parse(), Ok(Tag::SegmentSuffix));
         assert_eq!("FZ".parse(), Ok(Tag::AlternativeSequence));
-        assert_eq!("GC".parse(), Ok(Tag::ReservedGC));
-        assert_eq!("GQ".parse(), Ok(Tag::ReservedGQ));
-        assert_eq!("GS".parse(), Ok(Tag::ReservedGS));
+        assert_eq!("GC".parse(), Ok(Tag::ReservedGc));
+        assert_eq!("GQ".parse(), Ok(Tag::ReservedGq));
+        assert_eq!("GS".parse(), Ok(Tag::ReservedGs));
         assert_eq!("HO".parse(), Ok(Tag::PerfectHitCount));
         assert_eq!("H1".parse(), Ok(Tag::OneDifferenceHitCount));
         assert_eq!("H2".parse(), Ok(Tag::TwoDifferenceHitCount));
@@ -398,7 +398,7 @@ mod tests {
         assert_eq!("LB".parse(), Ok(Tag::Library));
         assert_eq!("MC".parse(), Ok(Tag::MateCigar));
         assert_eq!("MD".parse(), Ok(Tag::MismatchedPositions));
-        assert_eq!("MF".parse(), Ok(Tag::ReservedMF));
+        assert_eq!("MF".parse(), Ok(Tag::ReservedMf));
         assert_eq!("MI".parse(), Ok(Tag::UmiId));
         assert_eq!("MQ".parse(), Ok(Tag::MateMappingQuality));
         assert_eq!("NH".parse(), Ok(Tag::AlignmentHitCount));
@@ -417,12 +417,12 @@ mod tests {
         assert_eq!("QX".parse(), Ok(Tag::UmiQualityScores));
         assert_eq!("R2".parse(), Ok(Tag::MateSequence));
         assert_eq!("RG".parse(), Ok(Tag::ReadGroup));
-        assert_eq!("RT".parse(), Ok(Tag::ReservedRT));
+        assert_eq!("RT".parse(), Ok(Tag::ReservedRt));
         assert_eq!("RX".parse(), Ok(Tag::UmiSequence));
         assert_eq!("S2".parse(), Ok(Tag::ReservedS2));
         assert_eq!("SA".parse(), Ok(Tag::OtherAlignments));
         assert_eq!("SM".parse(), Ok(Tag::TemplateMappingQuality));
-        assert_eq!("SQ".parse(), Ok(Tag::ReservedSQ));
+        assert_eq!("SQ".parse(), Ok(Tag::ReservedSq));
         assert_eq!("TC".parse(), Ok(Tag::SegmentCount));
         assert_eq!("TS".parse(), Ok(Tag::TranscriptStrand));
         assert_eq!("U2".parse(), Ok(Tag::NextHitQualityScores));

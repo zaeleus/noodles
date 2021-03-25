@@ -8,7 +8,7 @@ pub enum Platform {
     /// DNBseq sequencing (`DNBSEQ`).
     DnbSeq,
     /// 454 Life Sciences sequencing (`LS454`).
-    LS454,
+    Ls454,
     /// Illumina sequencing (`ILLUMINA`).
     Illumina,
     /// SOLiD sequencing (`SOLID`).
@@ -28,7 +28,7 @@ impl AsRef<str> for Platform {
         match self {
             Self::Capillary => "CAPILLARY",
             Self::DnbSeq => "DNBSEQ",
-            Self::LS454 => "LS454",
+            Self::Ls454 => "LS454",
             Self::Illumina => "ILLUMINA",
             Self::Solid => "SOLID",
             Self::Helicos => "HELICOS",
@@ -73,7 +73,7 @@ impl FromStr for Platform {
             "" => Err(ParseError::Empty),
             "CAPILLARY" => Ok(Self::Capillary),
             "DNBSEQ" => Ok(Self::DnbSeq),
-            "LS454" => Ok(Self::LS454),
+            "LS454" => Ok(Self::Ls454),
             "ILLUMINA" => Ok(Self::Illumina),
             "SOLID" => Ok(Self::Solid),
             "HELICOS" => Ok(Self::Helicos),
@@ -93,7 +93,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Platform::Capillary.to_string(), "CAPILLARY");
         assert_eq!(Platform::DnbSeq.to_string(), "DNBSEQ");
-        assert_eq!(Platform::LS454.to_string(), "LS454");
+        assert_eq!(Platform::Ls454.to_string(), "LS454");
         assert_eq!(Platform::Illumina.to_string(), "ILLUMINA");
         assert_eq!(Platform::Solid.to_string(), "SOLID");
         assert_eq!(Platform::Helicos.to_string(), "HELICOS");
@@ -106,7 +106,7 @@ mod tests {
     fn test_from_str() {
         assert_eq!("CAPILLARY".parse(), Ok(Platform::Capillary));
         assert_eq!("DNBSEQ".parse(), Ok(Platform::DnbSeq));
-        assert_eq!("LS454".parse(), Ok(Platform::LS454));
+        assert_eq!("LS454".parse(), Ok(Platform::Ls454));
         assert_eq!("ILLUMINA".parse(), Ok(Platform::Illumina));
         assert_eq!("SOLID".parse(), Ok(Platform::Solid));
         assert_eq!("HELICOS".parse(), Ok(Platform::Helicos));
