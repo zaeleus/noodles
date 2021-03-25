@@ -46,12 +46,33 @@ impl FromStr for ReferenceSequenceName {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             Err(ParseError::Empty)
-        } else if s.starts_with('*') || s.starts_with('=') {
+        } else if !is_valid_name(s) {
             Err(ParseError::Invalid)
         } else {
             Ok(Self(s.into()))
         }
     }
+}
+
+// § 1.2.1 Character set restrictions (2021-01-07)
+fn is_valid_name_char(c: char) -> bool {
+    ('!'..='~').contains(&c)
+        && !matches!(
+            c,
+            '\\' | ',' | '"' | '`' | '\'' | '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>',
+        )
+}
+
+fn is_valid_name(s: &str) -> bool {
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if c == '*' || c == '=' || !is_valid_name_char(c) {
+            return false;
+        }
+    }
+
+    chars.all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -86,22 +107,27 @@ mod tests {
         assert_eq!("".parse::<ReferenceSequenceName>(), Err(ParseError::Empty));
 
         assert_eq!(
+            "sq 0".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
+
+        assert_eq!(
+            "sq[0]".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
+
+        assert_eq!(
+            ">sq0".parse::<ReferenceSequenceName>(),
+            Err(ParseError::Invalid)
+        );
+
+        assert_eq!(
             "*sq0".parse::<ReferenceSequenceName>(),
             Err(ParseError::Invalid)
         );
 
         assert_eq!(
             "=sq0".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
-        );
-
-        assert_eq!(
-            "*".parse::<ReferenceSequenceName>(),
-            Err(ParseError::Invalid)
-        );
-
-        assert_eq!(
-            "=".parse::<ReferenceSequenceName>(),
             Err(ParseError::Invalid)
         );
     }
