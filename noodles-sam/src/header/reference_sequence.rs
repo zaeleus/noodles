@@ -119,7 +119,7 @@ impl ReferenceSequence {
         self.len
     }
 
-    /// Returns a mutable reference to the reference sequence name.
+    /// Returns a mutable reference to the reference sequence length.
     ///
     /// # Examples
     ///
