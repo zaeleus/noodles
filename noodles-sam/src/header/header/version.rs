@@ -1,3 +1,5 @@
+//! SAM header header version.
+
 use std::{error, fmt, num, str::FromStr};
 
 const MAJOR_VERSION: u32 = 1;

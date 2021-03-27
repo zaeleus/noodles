@@ -1,8 +1,8 @@
 //! SAM header read group and fields.
 
 mod builder;
-mod platform;
-mod tag;
+pub mod platform;
+pub mod tag;
 
 pub use self::{builder::Builder, platform::Platform, tag::Tag};
 

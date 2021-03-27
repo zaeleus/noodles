@@ -1,3 +1,5 @@
+//! SAM header header subsort order.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header header subsort order (`SS`).

@@ -1,3 +1,5 @@
+//! SAM header read group platform.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header read group platform (`PL`).

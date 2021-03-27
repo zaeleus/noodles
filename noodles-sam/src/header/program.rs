@@ -1,7 +1,7 @@
 //! SAM header program and fields.
 
 mod builder;
-mod tag;
+pub mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 

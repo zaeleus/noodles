@@ -4,11 +4,11 @@
 //! ([`crate::Header`]) and a header record ([`crate::header::header::Header`]).
 
 mod builder;
-mod group_order;
-mod sort_order;
-mod subsort_order;
-mod tag;
-mod version;
+pub mod group_order;
+pub mod sort_order;
+pub mod subsort_order;
+pub mod tag;
+pub mod version;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 

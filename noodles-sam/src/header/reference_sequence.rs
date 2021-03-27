@@ -1,9 +1,9 @@
 //! SAM header reference sequence and fields.
 
 mod builder;
-mod md5_checksum;
-mod molecule_topology;
-mod tag;
+pub mod md5_checksum;
+pub mod molecule_topology;
+pub mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 

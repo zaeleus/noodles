@@ -1,3 +1,5 @@
+//! SAM header reference sequence molecule topology.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header reference sequence molecule topology (`TP`).

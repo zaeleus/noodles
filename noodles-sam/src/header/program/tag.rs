@@ -1,3 +1,5 @@
+//! SAM header program tag.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header program tag.

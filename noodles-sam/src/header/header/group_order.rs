@@ -1,3 +1,5 @@
+//! SAM header header group order.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header header group order (`GO`).

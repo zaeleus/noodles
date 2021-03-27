@@ -1,3 +1,5 @@
+//! SAM header reference sequence MD5 checksum.
+
 use std::{error, fmt, num, ops::Deref, str::FromStr};
 
 /// A SAM header reference sequence MD5 checksum.
@@ -28,9 +30,12 @@ impl From<[u8; 16]> for Md5Checksum {
     }
 }
 
+/// An error returned when a raw SAM header reference sequence MD5 checksum fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The length is invalid.
     InvalidLength(usize),
+    /// The input has invalid hex.
     InvalidHex(num::ParseIntError),
 }
 

@@ -1,3 +1,5 @@
+//! SAM header read group tag.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM header read group tag.
