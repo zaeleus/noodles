@@ -1,3 +1,5 @@
+//! SAM record CIGAR operation kind.
+
 use std::{error, fmt, str::FromStr};
 
 /// A SAM record CIGAR operation kind.
