@@ -45,6 +45,32 @@ impl Builder {
         self
     }
 
+    /// Sets the reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::{ReferenceSequence, ReferenceSequences}};
+    ///
+    /// let reference_sequences: ReferenceSequences = vec![
+    ///     (String::from("sq0"), ReferenceSequence::new(String::from("sq0"), 13))
+    /// ]
+    /// .into_iter()
+    /// .collect();
+    ///
+    /// let header = sam::Header::builder()
+    ///     .set_reference_sequences(reference_sequences)
+    ///     .build();
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// assert_eq!(reference_sequences.len(), 1);
+    /// assert!(reference_sequences.contains_key("sq0"));
+    /// ```
+    pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
+        self.reference_sequences = reference_sequences;
+        self
+    }
+
     /// Adds a reference sequence to the SAM header.
     ///
     /// # Examples
