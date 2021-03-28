@@ -13,19 +13,18 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(bam::Reader::new)?;
-    let header = reader.read_header()?;
+    let raw_header = reader.read_header()?;
 
-    if header.is_empty() {
+    if raw_header.is_empty() {
         let reference_sequences = reader.read_reference_sequences()?;
-        let mut builder = sam::Header::builder();
 
-        for reference_sequence in reference_sequences {
-            builder = builder.add_reference_sequence(reference_sequence);
-        }
+        let header = sam::Header::builder()
+            .set_reference_sequences(reference_sequences)
+            .build();
 
-        print!("{}", builder.build());
-    } else {
         print!("{}", header);
+    } else {
+        print!("{}", raw_header);
     }
 
     Ok(())

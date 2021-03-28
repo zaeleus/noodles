@@ -115,8 +115,8 @@ where
     ///
     /// The position of the stream is expected to be directly after the header.
     ///
-    /// This returns a list of [`noodles_sam::header::ReferenceSequence`] objects, which can be
-    /// used to build a minimal [`noodles_sam::Header`] if the SAM header is empty.
+    /// This returns a reference sequence dictionary ([`noodles_sam::header::ReferenceSequences`]),
+    /// which can be used to build a minimal [`noodles_sam::Header`] if the SAM header is empty.
     ///
     /// # Examples
     ///
@@ -128,13 +128,13 @@ where
     /// let reference_sequences = reader.read_reference_sequences()?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_reference_sequences(&mut self) -> io::Result<Vec<ReferenceSequence>> {
+    pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
         let n_ref = self.inner.read_u32::<LittleEndian>()?;
-        let mut reference_sequences = Vec::with_capacity(n_ref as usize);
+        let mut reference_sequences = ReferenceSequences::with_capacity(n_ref as usize);
 
         for _ in 0..n_ref {
             let reference_sequence = read_reference_sequence(&mut self.inner)?;
-            reference_sequences.push(reference_sequence);
+            reference_sequences.insert(reference_sequence.name().into(), reference_sequence);
         }
 
         Ok(reference_sequences)
