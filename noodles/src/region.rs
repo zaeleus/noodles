@@ -14,8 +14,18 @@ static ALL_NAME: &str = ".";
 /// all reads (.).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
-    Mapped { name: String, start: i32, end: i32 },
+    /// A mapped region.
+    Mapped {
+        /// The reference sequence name.
+        name: String,
+        /// The start position of the region (1-based).
+        start: i32,
+        /// The end position of the region (1-based).
+        end: i32,
+    },
+    /// An unmapped region.
     Unmapped,
+    /// All reads.
     All,
 }
 
@@ -128,12 +138,18 @@ impl fmt::Display for Region {
     }
 }
 
+/// An error returned when a genomic region fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
     Empty,
+    /// The input is ambiguous.
     Ambiguous,
+    /// The input is invalid.
     Invalid,
+    /// The start position is invalid.
     InvalidStartPosition(num::ParseIntError),
+    /// The end position is invalid.
     InvalidEndPosition(num::ParseIntError),
 }
 
