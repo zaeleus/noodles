@@ -2,27 +2,39 @@
 
 use std::{error, fmt, str::FromStr};
 
+use super::SortOrder;
+
 const DELIMITER: char = ':';
 
 /// A SAM header header subsort order (`SS`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubsortOrder {
     /// Alignments are primarily unsorted (`unsorted`).
-    Unsorted(String),
+    Unsorted(Vec<String>),
     /// Alignments are primarily sorted by read name (`queryname`).
-    QueryName(String),
+    QueryName(Vec<String>),
     /// Alignments are primarily sorted by reference sequence and position (`coordinate`).
-    Coordinate(String),
+    Coordinate(Vec<String>),
 }
 
 impl fmt::Display for SubsortOrder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Unsorted(subsort) => write!(f, "unsorted{}{}", DELIMITER, subsort),
-            Self::QueryName(subsort) => write!(f, "queryname{}{}", DELIMITER, subsort),
-            Self::Coordinate(subsort) => write!(f, "coordinate{}{}", DELIMITER, subsort),
+            Self::Unsorted(subsorts) => write_orders(f, SortOrder::Unsorted, subsorts),
+            Self::QueryName(subsorts) => write_orders(f, SortOrder::QueryName, subsorts),
+            Self::Coordinate(subsorts) => write_orders(f, SortOrder::Coordinate, subsorts),
         }
     }
+}
+
+fn write_orders(f: &mut fmt::Formatter<'_>, sort: SortOrder, subsorts: &[String]) -> fmt::Result {
+    write!(f, "{}", sort)?;
+
+    for subsort in subsorts {
+        write!(f, "{}{}", DELIMITER, subsort)?;
+    }
+
+    Ok(())
 }
 
 /// An error returned when a raw SAM header header subsort order fails to parse.
@@ -65,7 +77,7 @@ impl FromStr for SubsortOrder {
 
         let subsort = pieces
             .next()
-            .map(|s| s.into())
+            .map(|s| s.split(DELIMITER).map(|t| t.into()).collect())
             .ok_or(ParseError::MissingSubsort)?;
 
         match order {
@@ -84,18 +96,24 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(
-            SubsortOrder::Unsorted(String::from("MI")).to_string(),
+            SubsortOrder::Unsorted(vec![String::from("MI")]).to_string(),
             "unsorted:MI"
         );
 
         assert_eq!(
-            SubsortOrder::QueryName(String::from("MI")).to_string(),
+            SubsortOrder::QueryName(vec![String::from("MI")]).to_string(),
             "queryname:MI"
         );
 
         assert_eq!(
-            SubsortOrder::Coordinate(String::from("MI")).to_string(),
+            SubsortOrder::Coordinate(vec![String::from("MI")]).to_string(),
             "coordinate:MI"
+        );
+
+        assert_eq!(
+            SubsortOrder::Unsorted(vec![String::from("MI"), String::from("coordinate")])
+                .to_string(),
+            "unsorted:MI:coordinate"
         );
     }
 
@@ -103,19 +121,22 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "unsorted:MI".parse(),
-            Ok(SubsortOrder::Unsorted(String::from("MI")))
+            Ok(SubsortOrder::Unsorted(vec![String::from("MI")]))
         );
         assert_eq!(
             "queryname:MI".parse(),
-            Ok(SubsortOrder::QueryName(String::from("MI")))
+            Ok(SubsortOrder::QueryName(vec![String::from("MI")]))
         );
         assert_eq!(
             "coordinate:MI".parse(),
-            Ok(SubsortOrder::Coordinate(String::from("MI")))
+            Ok(SubsortOrder::Coordinate(vec![String::from("MI")]))
         );
         assert_eq!(
             "unsorted:MI:coordinate".parse(),
-            Ok(SubsortOrder::Unsorted(String::from("MI:coordinate")))
+            Ok(SubsortOrder::Unsorted(vec![
+                String::from("MI"),
+                String::from("coordinate")
+            ]))
         );
 
         assert_eq!("".parse::<SubsortOrder>(), Err(ParseError::Empty));

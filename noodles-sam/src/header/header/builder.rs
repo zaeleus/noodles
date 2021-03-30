@@ -63,10 +63,10 @@ impl Builder {
     /// use noodles_sam::header::header::{Header, SubsortOrder};
     ///
     /// let header = Header::builder()
-    ///     .set_subsort_order(SubsortOrder::Coordinate(String::from("MI")))
+    ///     .set_subsort_order(SubsortOrder::Coordinate(vec![String::from("MI")]))
     ///     .build();
     ///
-    /// assert_eq!(header.subsort_order(), Some(&SubsortOrder::Coordinate(String::from("MI"))));
+    /// assert_eq!(header.subsort_order(), Some(&SubsortOrder::Coordinate(vec![String::from("MI")])));
     /// ```
     pub fn set_subsort_order(mut self, subsort_order: SubsortOrder) -> Self {
         self.subsort_order = Some(subsort_order);
