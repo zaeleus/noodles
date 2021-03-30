@@ -48,6 +48,8 @@ pub enum ParseError {
     InvalidOrder,
     /// The subsort order is missing.
     MissingSubsort,
+    /// The subsort order is invalid.
+    InvalidSubsort,
 }
 
 impl error::Error for ParseError {}
@@ -59,6 +61,7 @@ impl fmt::Display for ParseError {
             Self::MissingOrder => f.write_str("missing primary sort order"),
             Self::InvalidOrder => f.write_str("invalid primary sort order"),
             Self::MissingSubsort => f.write_str("missing subsort order"),
+            Self::InvalidSubsort => f.write_str("invalid subsort order"),
         }
     }
 }
@@ -74,16 +77,22 @@ impl FromStr for SubsortOrder {
         let mut pieces = s.splitn(2, DELIMITER);
 
         let order = pieces.next().ok_or(ParseError::MissingOrder)?;
+        let raw_subsorts = pieces.next().ok_or(ParseError::MissingSubsort)?;
 
-        let subsort = pieces
-            .next()
-            .map(|s| s.split(DELIMITER).map(|t| t.into()).collect())
-            .ok_or(ParseError::MissingSubsort)?;
+        let mut subsorts = Vec::new();
+
+        for subsort in raw_subsorts.split(DELIMITER) {
+            if subsort.is_empty() {
+                return Err(ParseError::InvalidSubsort);
+            }
+
+            subsorts.push(subsort.into());
+        }
 
         match order {
-            "unsorted" => Ok(Self::Unsorted(subsort)),
-            "queryname" => Ok(Self::QueryName(subsort)),
-            "coordinate" => Ok(Self::Coordinate(subsort)),
+            "unsorted" => Ok(Self::Unsorted(subsorts)),
+            "queryname" => Ok(Self::QueryName(subsorts)),
+            "coordinate" => Ok(Self::Coordinate(subsorts)),
             _ => Err(ParseError::InvalidOrder),
         }
     }
@@ -151,6 +160,14 @@ mod tests {
         assert_eq!(
             "queryname".parse::<SubsortOrder>(),
             Err(ParseError::MissingSubsort)
+        );
+        assert_eq!(
+            "unsorted:".parse::<SubsortOrder>(),
+            Err(ParseError::InvalidSubsort)
+        );
+        assert_eq!(
+            "unsorted::coordinate".parse::<SubsortOrder>(),
+            Err(ParseError::InvalidSubsort)
         );
     }
 }
