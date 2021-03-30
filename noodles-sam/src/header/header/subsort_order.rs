@@ -2,6 +2,8 @@
 
 use std::{error, fmt, str::FromStr};
 
+const DELIMITER: char = ':';
+
 /// A SAM header header subsort order (`SS`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SubsortOrder {
@@ -16,9 +18,9 @@ pub enum SubsortOrder {
 impl fmt::Display for SubsortOrder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Unsorted(subsort) => write!(f, "unsorted:{}", subsort),
-            Self::QueryName(subsort) => write!(f, "queryname:{}", subsort),
-            Self::Coordinate(subsort) => write!(f, "coordinate:{}", subsort),
+            Self::Unsorted(subsort) => write!(f, "unsorted{}{}", DELIMITER, subsort),
+            Self::QueryName(subsort) => write!(f, "queryname{}{}", DELIMITER, subsort),
+            Self::Coordinate(subsort) => write!(f, "coordinate{}{}", DELIMITER, subsort),
         }
     }
 }
@@ -57,7 +59,7 @@ impl FromStr for SubsortOrder {
             return Err(ParseError::Empty);
         }
 
-        let mut pieces = s.splitn(2, ':');
+        let mut pieces = s.splitn(2, DELIMITER);
 
         let order = pieces.next().ok_or(ParseError::MissingOrder)?;
 
