@@ -82,7 +82,7 @@ impl FromStr for SubsortOrder {
         let mut subsorts = Vec::new();
 
         for subsort in raw_subsorts.split(DELIMITER) {
-            if subsort.is_empty() {
+            if !is_valid_subsort(subsort) {
                 return Err(ParseError::InvalidSubsort);
             }
 
@@ -96,6 +96,15 @@ impl FromStr for SubsortOrder {
             _ => Err(ParseError::InvalidOrder),
         }
     }
+}
+
+// § 1.3 The header section (2021-01-07)
+fn is_valid_subsort_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || matches!(c, '_' | '-')
+}
+
+fn is_valid_subsort(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(is_valid_subsort_char)
 }
 
 #[cfg(test)]
@@ -167,6 +176,10 @@ mod tests {
         );
         assert_eq!(
             "unsorted::coordinate".parse::<SubsortOrder>(),
+            Err(ParseError::InvalidSubsort)
+        );
+        assert_eq!(
+            "unsorted:국수".parse::<SubsortOrder>(),
             Err(ParseError::InvalidSubsort)
         );
     }
