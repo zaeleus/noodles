@@ -105,7 +105,7 @@ impl Builder {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.ids(), [String::from("nd0")]);
+    /// assert_eq!(*record.ids(), "nd0".parse()?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_ids(mut self, ids: Ids) -> Self {

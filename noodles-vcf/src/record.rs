@@ -134,7 +134,7 @@ impl Record {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.ids(), [String::from("nd0")]);
+    /// assert_eq!(*record.ids(), "nd0".parse()?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn ids(&self) -> &Ids {
@@ -474,7 +474,10 @@ mod tests {
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
         assert_eq!(i32::from(record.position()), 13);
-        assert_eq!(**record.ids(), [String::from("nd0")]);
+
+        let ids = record.ids();
+        assert_eq!(ids.len(), 1);
+        assert!(ids.contains("nd0"));
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);

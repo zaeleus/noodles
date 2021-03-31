@@ -1,6 +1,8 @@
 //! VCF record IDs.
 
-use std::{collections::HashSet, error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
+
+use indexmap::IndexSet;
 
 use super::MISSING_FIELD;
 
@@ -8,10 +10,10 @@ const DELIMITER: char = ';';
 
 /// VCF record IDs (`ID`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Ids(Vec<String>);
+pub struct Ids(IndexSet<String>);
 
 impl Deref for Ids {
-    type Target = [String];
+    type Target = IndexSet<String>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -67,17 +69,14 @@ impl FromStr for Ids {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
             _ => {
-                let mut set: HashSet<String> = HashSet::new();
-                let mut ids = Vec::new();
+                let mut ids = IndexSet::new();
 
                 for id in s.split(DELIMITER) {
-                    if !set.insert(id.into()) {
+                    if !ids.insert(id.into()) {
                         return Err(ParseError::DuplicateId(id.into()));
                     } else if !is_valid_id(id) {
                         return Err(ParseError::InvalidId(id.into()));
                     }
-
-                    ids.push(id.into());
                 }
 
                 Ok(Self(ids))
@@ -101,9 +100,15 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(Ids::default().to_string(), ".");
-        assert_eq!(Ids(vec![String::from("nd0")]).to_string(), "nd0");
         assert_eq!(
-            Ids(vec![String::from("nd0"), String::from("nd1")]).to_string(),
+            Ids(vec![String::from("nd0")].into_iter().collect()).to_string(),
+            "nd0"
+        );
+        assert_eq!(
+            Ids(vec![String::from("nd0"), String::from("nd1")]
+                .into_iter()
+                .collect())
+            .to_string(),
             "nd0;nd1"
         );
     }
@@ -111,10 +116,15 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!(".".parse(), Ok(Ids::default()));
-        assert_eq!("nd0".parse(), Ok(Ids(vec![String::from("nd0")])));
+        assert_eq!(
+            "nd0".parse(),
+            Ok(Ids(vec![String::from("nd0")].into_iter().collect()))
+        );
         assert_eq!(
             "nd0;nd1".parse(),
-            Ok(Ids(vec![String::from("nd0"), String::from("nd1")]))
+            Ok(Ids(vec![String::from("nd0"), String::from("nd1")]
+                .into_iter()
+                .collect()))
         );
 
         assert_eq!("".parse::<Ids>(), Err(ParseError::Empty));
