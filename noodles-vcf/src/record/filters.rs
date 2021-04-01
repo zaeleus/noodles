@@ -1,6 +1,8 @@
 //! VCF record filters.
 
-use std::{collections::HashSet, error, fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
+
+use indexmap::IndexSet;
 
 use super::MISSING_FIELD;
 
@@ -15,7 +17,7 @@ pub enum Filters {
     /// Pass (`PASS`).
     Pass,
     /// A list of filters that caused the record to fail.
-    Fail(Vec<String>),
+    Fail(IndexSet<String>),
 }
 
 impl Default for Filters {
@@ -76,17 +78,14 @@ impl FromStr for Filters {
             MISSING_FIELD => Ok(Self::Missing),
             PASS_STATUS => Ok(Self::Pass),
             _ => {
-                let mut set: HashSet<String> = HashSet::new();
-                let mut filters = Vec::new();
+                let mut filters = IndexSet::new();
 
                 for filter in s.split(DELIMITER) {
-                    if !set.insert(filter.into()) {
+                    if !filters.insert(filter.into()) {
                         return Err(ParseError::DuplicateFilter(filter.into()));
                     } else if !is_valid_filter(filter) {
                         return Err(ParseError::InvalidFilter(filter.into()));
                     }
-
-                    filters.push(filter.into());
                 }
 
                 Ok(Self::Fail(filters))
@@ -116,10 +115,14 @@ mod tests {
         assert_eq!(Filters::Missing.to_string(), ".");
         assert_eq!(Filters::Pass.to_string(), "PASS");
 
-        let filters = Filters::Fail(vec![String::from("q10")]);
+        let filters = Filters::Fail(vec![String::from("q10")].into_iter().collect());
         assert_eq!(filters.to_string(), "q10");
 
-        let filters = Filters::Fail(vec![String::from("q10"), String::from("s50")]);
+        let filters = Filters::Fail(
+            vec![String::from("q10"), String::from("s50")]
+                .into_iter()
+                .collect(),
+        );
         assert_eq!(filters.to_string(), "q10;s50");
     }
 
@@ -128,14 +131,20 @@ mod tests {
         assert_eq!(".".parse(), Ok(Filters::Missing));
         assert_eq!("PASS".parse(), Ok(Filters::Pass));
 
-        assert_eq!("q10".parse(), Ok(Filters::Fail(vec![String::from("q10")])));
+        assert_eq!(
+            "q10".parse(),
+            Ok(Filters::Fail(
+                vec![String::from("q10")].into_iter().collect()
+            ))
+        );
 
         assert_eq!(
             "q10;s50".parse(),
-            Ok(Filters::Fail(vec![
-                String::from("q10"),
-                String::from("s50")
-            ]))
+            Ok(Filters::Fail(
+                vec![String::from("q10"), String::from("s50")]
+                    .into_iter()
+                    .collect()
+            ))
         );
 
         assert_eq!("".parse::<Filters>(), Err(ParseError::Empty));
