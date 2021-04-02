@@ -10,13 +10,14 @@ pub mod format;
 pub mod info;
 pub mod meta;
 mod number;
+mod pedigree;
 pub mod record;
 pub mod sample;
 
 pub use self::{
     alternative_allele::AlternativeAllele, builder::Builder, contig::Contig,
     file_format::FileFormat, filter::Filter, format::Format, info::Info, meta::Meta,
-    number::Number, record::Record, sample::Sample,
+    number::Number, pedigree::Pedigree, record::Record, sample::Sample,
 };
 
 use std::{
@@ -46,6 +47,7 @@ pub struct Header {
     contigs: IndexMap<String, Contig>,
     meta: IndexMap<String, Meta>,
     samples: IndexMap<String, Sample>,
+    pedigrees: IndexMap<String, Pedigree>,
     pedigree_db: Option<String>,
     samples_names: Vec<String>,
     map: IndexMap<String, Vec<Record>>,
@@ -275,6 +277,34 @@ impl Header {
         &self.samples
     }
 
+    /// Returns a map of pedigree records (`PEDIGREE`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Pedigree};
+    ///
+    /// let pedigree = Pedigree::new(
+    ///     String::from("cid"),
+    ///     vec![
+    ///         (String::from("Father"), String::from("fid")),
+    ///         (String::from("Mother"), String::from("mid")),
+    ///     ]
+    ///     .into_iter()
+    ///     .collect(),
+    /// );
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_pedigree(pedigree.clone())
+    ///     .build();
+    ///
+    /// let records = header.pedigrees();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], pedigree);
+    pub fn pedigrees(&self) -> &IndexMap<String, Pedigree> {
+        &self.pedigrees
+    }
+
     /// Returns a URI to the relationships between genomes (`pedigreeDB`).
     ///
     /// # Examples
@@ -412,6 +442,10 @@ impl std::fmt::Display for Header {
 
         for sample in self.samples().values() {
             writeln!(f, "{}", sample)?;
+        }
+
+        for pedigree in self.pedigrees().values() {
+            writeln!(f, "{}", pedigree)?;
         }
 
         if let Some(pedigree_db) = self.pedigree_db() {
@@ -596,6 +630,7 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             let sample = Sample::try_from(record).map_err(ParseError::InvalidSample)?;
             builder.add_sample(sample)
         }
+        record::Key::Pedigree => unimplemented!(),
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
             _ => return Err(ParseError::InvalidRecordValue),
@@ -666,6 +701,15 @@ mod tests {
                     .into_iter()
                     .collect(),
             ))
+            .add_pedigree(Pedigree::new(
+                String::from("cid"),
+                vec![
+                    (String::from("Father"), String::from("fid")),
+                    (String::from("Mother"), String::from("mid")),
+                ]
+                .into_iter()
+                .collect(),
+            ))
             .insert(Record::new(
                 record::Key::Other(String::from("fileDate")),
                 record::Value::String(String::from("20200514")),
@@ -677,6 +721,7 @@ mod tests {
 ##assembly=file:///assemblies.fasta
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
+##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 ##fileDate=20200514
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
 ";

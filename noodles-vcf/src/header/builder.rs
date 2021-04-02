@@ -1,5 +1,6 @@
 use super::{
-    AlternativeAllele, Contig, FileFormat, Filter, Format, Header, Info, Meta, Record, Sample,
+    AlternativeAllele, Contig, FileFormat, Filter, Format, Header, Info, Meta, Pedigree, Record,
+    Sample,
 };
 
 use indexmap::IndexMap;
@@ -17,6 +18,7 @@ pub struct Builder {
     contigs: IndexMap<String, Contig>,
     meta: IndexMap<String, Meta>,
     samples: IndexMap<String, Sample>,
+    pedigrees: IndexMap<String, Pedigree>,
     pedigree_db: Option<String>,
     sample_names: Vec<String>,
     map: IndexMap<String, Vec<Record>>,
@@ -244,6 +246,36 @@ impl Builder {
         self
     }
 
+    /// Adds a pedigree record (`PEDIGREE`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Pedigree};
+    ///
+    /// let pedigree = Pedigree::new(
+    ///     String::from("cid"),
+    ///     vec![
+    ///         (String::from("Father"), String::from("fid")),
+    ///         (String::from("Mother"), String::from("mid")),
+    ///     ]
+    ///     .into_iter()
+    ///     .collect(),
+    /// );
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_pedigree(pedigree.clone())
+    ///     .build();
+    ///
+    /// let records = header.pedigrees();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], pedigree);
+    /// ```
+    pub fn add_pedigree(mut self, pedigree: Pedigree) -> Self {
+        self.pedigrees.insert(pedigree.id().into(), pedigree);
+        self
+    }
+
     /// Sets a pedigree database record (`pedigreeDB`).
     ///
     /// # Examples
@@ -332,6 +364,7 @@ impl Builder {
             contigs: self.contigs,
             meta: self.meta,
             samples: self.samples,
+            pedigrees: self.pedigrees,
             pedigree_db: self.pedigree_db,
             samples_names: self.sample_names,
             map: self.map,
@@ -404,6 +437,15 @@ mod tests {
             ))
             .add_sample(Sample::new(String::from("sample0"), Default::default()))
             .add_sample_name("sample0")
+            .add_pedigree(Pedigree::new(
+                String::from("cid"),
+                vec![
+                    (String::from("Father"), String::from("fid")),
+                    (String::from("Mother"), String::from("mid")),
+                ]
+                .into_iter()
+                .collect(),
+            ))
             .insert(record.clone())
             .insert(record.clone())
             .build();

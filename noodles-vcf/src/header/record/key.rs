@@ -23,6 +23,8 @@ pub enum Key {
     Meta,
     /// Sample (`SAMPLE`).
     Sample,
+    /// Pedigree (`PEDIGREE`).
+    Pedigree,
     /// Pedigree database URI (`pedigreeDB`).
     PedigreeDb,
     /// Any other record key.
@@ -41,6 +43,7 @@ impl AsRef<str> for Key {
             Self::Contig => "contig",
             Self::Meta => "META",
             Self::Sample => "SAMPLE",
+            Self::Pedigree => "PEDIGREE",
             Self::PedigreeDb => "pedigreeDB",
             Self::Other(s) => s,
         }
@@ -85,6 +88,7 @@ impl FromStr for Key {
             "contig" => Ok(Self::Contig),
             "META" => Ok(Self::Meta),
             "SAMPLE" => Ok(Self::Sample),
+            "PEDIGREE" => Ok(Self::Pedigree),
             "pedigreeDB" => Ok(Self::PedigreeDb),
             _ => Ok(Self::Other(s.into())),
         }
@@ -106,6 +110,7 @@ mod tests {
         assert_eq!(Key::Contig.to_string(), "contig");
         assert_eq!(Key::Meta.to_string(), "META");
         assert_eq!(Key::Sample.to_string(), "SAMPLE");
+        assert_eq!(Key::Pedigree.to_string(), "PEDIGREE");
         assert_eq!(Key::PedigreeDb.to_string(), "pedigreeDB");
         assert_eq!(Key::Other(String::from("fileDate")).to_string(), "fileDate");
     }
@@ -121,6 +126,7 @@ mod tests {
         assert_eq!("contig".parse(), Ok(Key::Contig));
         assert_eq!("META".parse(), Ok(Key::Meta));
         assert_eq!("SAMPLE".parse(), Ok(Key::Sample));
+        assert_eq!("PEDIGREE".parse(), Ok(Key::Pedigree));
         assert_eq!("pedigreeDB".parse(), Ok(Key::PedigreeDb));
         assert_eq!("fileDate".parse(), Ok(Key::Other(String::from("fileDate"))));
 
