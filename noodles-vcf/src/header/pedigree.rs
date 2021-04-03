@@ -1,10 +1,10 @@
 //! VCF header pedigree record.
 
-use std::fmt;
+use std::{convert::TryFrom, error, fmt};
 
 use indexmap::IndexMap;
 
-use super::record;
+use super::{record, Record};
 
 /// A VCF header pedigree record (`PEDIGREE`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -73,9 +73,67 @@ impl fmt::Display for Pedigree {
     }
 }
 
+/// An error returned when a generic VCF header record fails to convert to a pedigree record.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromRecordError {
+    /// The record is invalid.
+    InvalidRecord,
+    /// A required field is missing.
+    MissingField(String),
+}
+
+impl error::Error for TryFromRecordError {}
+
+impl fmt::Display for TryFromRecordError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidRecord => f.write_str("invalid record"),
+            Self::MissingField(key) => write!(f, "missing field: {}", key),
+        }
+    }
+}
+
+impl TryFrom<Record> for Pedigree {
+    type Error = TryFromRecordError;
+
+    fn try_from(record: Record) -> Result<Self, Self::Error> {
+        match record.into() {
+            (record::Key::Pedigree, record::Value::Struct(fields)) => parse_struct(fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
+        }
+    }
+}
+
+fn parse_struct(fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecordError> {
+    let mut it = fields.into_iter();
+
+    let id = it
+        .next()
+        .ok_or_else(|| TryFromRecordError::MissingField(String::from("ID")))
+        .and_then(|(k, v)| match k.as_str() {
+            "ID" => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(String::from("ID"))),
+        })?;
+
+    let fields = it.collect();
+
+    Ok(Pedigree::new(id, fields))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn build_record() -> Record {
+        Record::new(
+            record::Key::Pedigree,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("cid")),
+                (String::from("Father"), String::from("fid")),
+                (String::from("Mother"), String::from("mid")),
+            ]),
+        )
+    }
 
     #[test]
     fn test_fmt() {
@@ -90,5 +148,18 @@ mod tests {
             sample.to_string(),
             "##PEDIGREE=<ID=cid,Father=fid,Mother=mid>"
         );
+    }
+
+    #[test]
+    fn test_try_from_record_for_pedigree() {
+        let record = build_record();
+        let actual = Pedigree::try_from(record);
+
+        let mut fields = IndexMap::new();
+        fields.insert(String::from("Father"), String::from("fid"));
+        fields.insert(String::from("Mother"), String::from("mid"));
+        let expected = Pedigree::new(String::from("cid"), fields);
+
+        assert_eq!(actual, Ok(expected));
     }
 }

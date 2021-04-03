@@ -507,6 +507,8 @@ pub enum ParseError {
     InvalidMeta(meta::TryFromRecordError),
     /// A sample record (`SAMPLE`) is invalid.
     InvalidSample(sample::TryFromRecordError),
+    /// A pedigree record (`PEDIGREE`) is invalid.
+    InvalidPedigree(pedigree::TryFromRecordError),
     /// The header is invalid.
     InvalidHeader(String, String),
     /// A sample name is duplicated.
@@ -536,6 +538,7 @@ impl std::fmt::Display for ParseError {
             Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
             Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
             Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
+            Self::InvalidPedigree(e) => write!(f, "invalid pedigree: {}", e),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {}, got {}", expected, actual)
             }
@@ -630,7 +633,10 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             let sample = Sample::try_from(record).map_err(ParseError::InvalidSample)?;
             builder.add_sample(sample)
         }
-        record::Key::Pedigree => unimplemented!(),
+        record::Key::Pedigree => {
+            let pedigree = Pedigree::try_from(record).map_err(ParseError::InvalidPedigree)?;
+            builder.add_pedigree(pedigree)
+        }
         record::Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
             _ => return Err(ParseError::InvalidRecordValue),
@@ -766,6 +772,7 @@ mod tests {
 ##ALT=<ID=DEL,Description="Deletion">
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
+##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
@@ -780,6 +787,7 @@ mod tests {
         assert_eq!(header.contigs().len(), 3);
         assert_eq!(header.meta().len(), 1);
         assert_eq!(header.samples().len(), 1);
+        assert_eq!(header.pedigrees().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(
