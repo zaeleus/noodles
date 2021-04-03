@@ -30,8 +30,8 @@
 //!
 //! ```no_run
 //! # use std::fs::File;
-//! use noodles::Region;
 //! use noodles_bam::{self as bam, bai};
+//! use noodles_core::Region;
 //! use noodles_sam as sam;
 //!
 //! let mut reader = File::open("sample.bam").map(bam::Reader::new)?;

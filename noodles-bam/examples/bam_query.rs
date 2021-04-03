@@ -7,8 +7,8 @@
 
 use std::{env, fs::File, path::PathBuf};
 
-use noodles::Region;
 use noodles_bam::{self as bam, bai};
+use noodles_core::Region;
 use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

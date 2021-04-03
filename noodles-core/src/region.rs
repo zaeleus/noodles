@@ -88,7 +88,7 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use noodles::Region;
+    /// use noodles_core::Region;
     /// let region = Region::mapped("sq0", 1, 5);
     /// assert!(matches!(region, Region::Mapped { name, start: 1, end: 5 }));
     /// ```
@@ -111,7 +111,7 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use noodles::Region;
+    /// use noodles_core::Region;
     ///
     /// let region = Region::mapped("sq0", 1, 5);
     /// assert_eq!(region.name(), "sq0");

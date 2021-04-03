@@ -12,8 +12,8 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles::Region;
 use noodles_bgzf::{self as bgzf, VirtualPosition};
+use noodles_core::Region;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
@@ -269,8 +269,8 @@ where
     ///
     /// ```no_run
     /// # use std::fs::File;
-    /// use noodles::Region;
     /// use noodles_bam::{self as bam, bai};
+    /// use noodles_core::Region;
     /// use noodles_sam as sam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;

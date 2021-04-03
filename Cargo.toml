@@ -1,8 +1,8 @@
 [workspace]
 members = [
-  "noodles",
   "noodles-bam",
   "noodles-bgzf",
+  "noodles-core",
   "noodles-cram",
   "noodles-fasta",
   "noodles-fastq",
