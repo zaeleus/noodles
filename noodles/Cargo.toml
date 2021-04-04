@@ -1,0 +1,32 @@
+[package]
+name = "noodles"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+noodles-bam = { path = "../noodles-bam", optional = true }
+noodles-bgzf = { path = "../noodles-bgzf", optional = true }
+noodles-core = { path = "../noodles-core", optional = true }
+noodles-cram = { path = "../noodles-cram", optional = true }
+noodles-fasta = { path = "../noodles-fasta", optional = true }
+noodles-fastq = { path = "../noodles-fastq", optional = true }
+noodles-gff = { path = "../noodles-gff", optional = true }
+noodles-sam = { path = "../noodles-sam", optional = true }
+noodles-tabix = { path = "../noodles-tabix", optional = true }
+noodles-vcf = { path = "../noodles-vcf", optional = true }
+
+[features]
+default = []
+
+bam = ["noodles-bam"]
+bgzf = ["noodles-bgzf"]
+core = ["noodles-core"]
+cram = ["noodles-cram"]
+fasta = ["noodles-fasta"]
+fastq = ["noodles-fastq"]
+gff = ["noodles-gff"]
+sam = ["noodles-sam"]
+tabix = ["noodles-tabix"]
+vcf = ["noodles-vcf"]

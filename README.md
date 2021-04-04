@@ -13,12 +13,22 @@ Notably, the BAM and CRAM parsers are pure Rust implementations.
 There is currently no release of noodles, as the API is still experimental, but
 it can be added to a test project as a preview.
 
-noodles is split into multiple crates by file format. For example, to work with
-the BAM format, add `noodles-bam` to your project's dependencies list.
+noodles is split into multiple crates by file format. For convenience, a
+top-level meta crate named `noodles` can be added to your project's dependency
+list; and formats, listed as [features]. For example, to work with the BAM
+format, enable the `bam` feature.
 
 ```toml
-noodles-bam = { git = "https://github.com/zaeleus/noodles.git" }
+noodles = { git = "https://github.com/zaeleus/noodles.git", features = ["bam"] }
 ```
+
+Each enabled feature can then be imported by its re-exported name, e.g.,
+
+```rust
+use noodles::bam;
+```
+
+[features]: https://doc.rust-lang.org/cargo/reference/features.html
 
 ## Examples
 

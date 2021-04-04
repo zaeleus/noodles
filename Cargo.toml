@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "noodles",
   "noodles-bam",
   "noodles-bgzf",
   "noodles-core",
