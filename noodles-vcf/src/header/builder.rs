@@ -3,7 +3,7 @@ use super::{
     Sample,
 };
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 
 /// A VCF header builder.
 #[derive(Debug, Default)]
@@ -20,7 +20,7 @@ pub struct Builder {
     samples: IndexMap<String, Sample>,
     pedigrees: IndexMap<String, Pedigree>,
     pedigree_db: Option<String>,
-    sample_names: Vec<String>,
+    sample_names: IndexSet<String>,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -299,9 +299,12 @@ impl Builder {
 
     /// Adds a sample name.
     ///
+    /// Duplicate names are discarded.
+    ///
     /// # Examples
     ///
     /// ```
+    /// # use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
     /// let header = vcf::Header::builder()
@@ -309,16 +312,18 @@ impl Builder {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// assert_eq!(header.sample_names(), [
-    ///     String::from("sample0"),
-    ///     String::from("sample1"),
-    /// ]);
+    /// assert_eq!(
+    ///     header.sample_names(),
+    ///     &vec![String::from("sample0"), String::from("sample1")]
+    ///         .into_iter()
+    ///         .collect::<IndexSet<String>>()
+    /// );
     /// ```
     pub fn add_sample_name<I>(mut self, sample_name: I) -> Self
     where
         I: Into<String>,
     {
-        self.sample_names.push(sample_name.into());
+        self.sample_names.insert(sample_name.into());
         self
     }
 

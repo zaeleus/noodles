@@ -27,7 +27,7 @@ use std::{
     str::{FromStr, Lines},
 };
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 
 static HEADERS: &[&str] = &[
     "#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO",
@@ -49,7 +49,7 @@ pub struct Header {
     samples: IndexMap<String, Sample>,
     pedigrees: IndexMap<String, Pedigree>,
     pedigree_db: Option<String>,
-    samples_names: Vec<String>,
+    samples_names: IndexSet<String>,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -327,6 +327,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
+    /// # use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
     /// let header = vcf::Header::builder()
@@ -334,12 +335,14 @@ impl Header {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// assert_eq!(header.sample_names(), [
-    ///     String::from("sample0"),
-    ///     String::from("sample1"),
-    /// ]);
+    /// assert_eq!(
+    ///     header.sample_names(),
+    ///     &vec![String::from("sample0"), String::from("sample1")]
+    ///         .into_iter()
+    ///         .collect::<IndexSet<String>>()
+    /// );
     /// ```
-    pub fn sample_names(&self) -> &[String] {
+    pub fn sample_names(&self) -> &IndexSet<String> {
         &self.samples_names
     }
 
