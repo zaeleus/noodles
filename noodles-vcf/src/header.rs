@@ -49,7 +49,7 @@ pub struct Header {
     samples: IndexMap<String, Sample>,
     pedigrees: IndexMap<String, Pedigree>,
     pedigree_db: Option<String>,
-    samples_names: IndexSet<String>,
+    sample_names: IndexSet<String>,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -343,7 +343,7 @@ impl Header {
     /// );
     /// ```
     pub fn sample_names(&self) -> &IndexSet<String> {
-        &self.samples_names
+        &self.sample_names
     }
 
     /// Returns a header record with the given key.

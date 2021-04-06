@@ -371,7 +371,7 @@ impl Builder {
             samples: self.samples,
             pedigrees: self.pedigrees,
             pedigree_db: self.pedigree_db,
-            samples_names: self.sample_names,
+            sample_names: self.sample_names,
             map: self.map,
         }
     }
