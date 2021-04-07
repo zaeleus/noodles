@@ -106,11 +106,11 @@ impl FromStr for Field {
             .and_then(|s| s.parse().map_err(ParseError::InvalidKey))?;
 
         let value = if let Type::Flag = key.ty() {
-            let s = components.next().unwrap_or_default();
-            Value::from_str_key(s, &key).map_err(ParseError::InvalidValue)?
+            let t = components.next().unwrap_or_default();
+            Value::from_str_key(t, &key).map_err(ParseError::InvalidValue)?
         } else if let Key::Other(..) = key {
-            if let Some(s) = components.next() {
-                Value::from_str_key(s, &key).map_err(ParseError::InvalidValue)?
+            if let Some(t) = components.next() {
+                Value::from_str_key(t, &key).map_err(ParseError::InvalidValue)?
             } else {
                 Value::Flag
             }
@@ -118,7 +118,7 @@ impl FromStr for Field {
             components
                 .next()
                 .ok_or(ParseError::MissingValue)
-                .and_then(|s| Value::from_str_key(s, &key).map_err(ParseError::InvalidValue))?
+                .and_then(|t| Value::from_str_key(t, &key).map_err(ParseError::InvalidValue))?
         };
 
         Ok(Self::new(key, value))
