@@ -403,7 +403,7 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
                 builder.set_molecule_topology(molecule_topology)
             }
             Tag::Uri => builder.set_uri(value),
-            _ => builder.insert(tag, value),
+            Tag::Other(..) => builder.insert(tag, value),
         }
     }
 

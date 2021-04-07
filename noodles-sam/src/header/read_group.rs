@@ -440,7 +440,7 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReadGroup, TryFromReco
             Tag::PlatformModel => builder.set_platform_model(value),
             Tag::PlatformUnit => builder.set_platform_unit(value),
             Tag::Sample => builder.set_sample(value),
-            _ => builder.insert(tag, value),
+            Tag::Other(..) => builder.insert(tag, value),
         }
     }
 

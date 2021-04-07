@@ -267,7 +267,7 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecord
             Tag::PreviousId => builder.set_previous_id(value),
             Tag::Description => builder.set_description(value),
             Tag::Version => builder.set_version(value),
-            _ => builder.insert(tag, value),
+            Tag::Other(..) => builder.insert(tag, value),
         }
     }
 

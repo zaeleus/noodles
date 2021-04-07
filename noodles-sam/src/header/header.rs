@@ -271,7 +271,7 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, TryFromRecordE
                     .map_err(TryFromRecordError::InvalidSubsortOrder)?;
                 builder.set_subsort_order(subsort_order)
             }
-            _ => builder.insert(tag, value),
+            Tag::Other(..) => builder.insert(tag, value),
         }
     }
 
