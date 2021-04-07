@@ -394,6 +394,8 @@ mod tests {
         assert!(header.contigs().is_empty());
         assert!(header.meta().is_empty());
         assert!(header.samples().is_empty());
+        assert!(header.pedigrees().is_empty());
+        assert!(header.pedigree_db().is_none());
         assert!(header.sample_names().is_empty());
     }
 
