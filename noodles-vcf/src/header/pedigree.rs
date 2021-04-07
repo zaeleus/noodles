@@ -1,5 +1,9 @@
 //! VCF header pedigree record.
 
+pub mod key;
+
+pub use self::key::Key;
+
 use std::{convert::TryFrom, error, fmt};
 
 use indexmap::IndexMap;
@@ -79,7 +83,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(String),
+    MissingField(Key),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -109,10 +113,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecord
 
     let id = it
         .next()
-        .ok_or_else(|| TryFromRecordError::MissingField(String::from("ID")))
-        .and_then(|(k, v)| match k.as_str() {
-            "ID" => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(String::from("ID"))),
+        .ok_or(TryFromRecordError::MissingField(Key::Id))
+        .and_then(|(k, v)| match k.parse() {
+            Ok(Key::Id) => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(Key::Id)),
         })?;
 
     let fields = it.collect();

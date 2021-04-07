@@ -10,7 +10,7 @@ pub mod format;
 pub mod info;
 pub mod meta;
 mod number;
-mod pedigree;
+pub mod pedigree;
 pub mod record;
 pub mod sample;
 
