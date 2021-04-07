@@ -21,7 +21,6 @@ pub use self::{
 };
 
 use std::{
-    collections::HashSet,
     convert::TryFrom,
     error,
     str::{FromStr, Lines},
@@ -671,15 +670,15 @@ fn parse_header(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             ));
         }
 
-        let mut set: HashSet<String> = HashSet::new();
+        let mut sample_names = IndexSet::new();
 
         for sample_name in fields {
-            if !set.insert(sample_name.into()) {
+            if !sample_names.insert(sample_name.into()) {
                 return Err(ParseError::DuplicateSampleName(sample_name.into()));
             }
-
-            builder = builder.add_sample_name(sample_name);
         }
+
+        builder = builder.set_sample_names(sample_names);
     }
 
     Ok(builder)

@@ -297,6 +297,29 @@ impl Builder {
         self
     }
 
+    /// Sets sample names.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexmap::IndexSet;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let sample_names: IndexSet<_> = vec![String::from("sample0")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .set_sample_names(sample_names.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.sample_names(), &sample_names);
+    /// ```
+    pub fn set_sample_names(mut self, sample_names: IndexSet<String>) -> Self {
+        self.sample_names = sample_names;
+        self
+    }
+
     /// Adds a sample name.
     ///
     /// Duplicate names are discarded.
