@@ -326,7 +326,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// # use indexmap::IndexSet;
+    /// use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
     /// let header = vcf::Header::builder()
@@ -334,12 +334,11 @@ impl Header {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     header.sample_names(),
-    ///     &vec![String::from("sample0"), String::from("sample1")]
-    ///         .into_iter()
-    ///         .collect::<IndexSet<String>>()
-    /// );
+    /// let expected: IndexSet<_> = vec![String::from("sample0"), String::from("sample1")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
+    /// assert_eq!(header.sample_names(), &expected);
     /// ```
     pub fn sample_names(&self) -> &IndexSet<String> {
         &self.sample_names

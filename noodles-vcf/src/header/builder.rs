@@ -302,7 +302,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use indexmap::IndexSet;
+    /// use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
     /// let sample_names: IndexSet<_> = vec![String::from("sample0")]
@@ -327,7 +327,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use indexmap::IndexSet;
+    /// use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
     /// let header = vcf::Header::builder()
@@ -335,12 +335,11 @@ impl Builder {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     header.sample_names(),
-    ///     &vec![String::from("sample0"), String::from("sample1")]
-    ///         .into_iter()
-    ///         .collect::<IndexSet<String>>()
-    /// );
+    /// let expected: IndexSet<_> = vec![String::from("sample0"), String::from("sample1")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
+    /// assert_eq!(header.sample_names(), &expected);
     /// ```
     pub fn add_sample_name<I>(mut self, sample_name: I) -> Self
     where
