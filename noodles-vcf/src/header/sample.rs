@@ -84,8 +84,6 @@ pub enum TryFromRecordError {
     InvalidRecord,
     /// A required field is missing.
     MissingField(Key),
-    /// The ID is invalid.
-    InvalidId,
 }
 
 impl error::Error for TryFromRecordError {}
@@ -95,7 +93,6 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing field: {}", key),
-            Self::InvalidId => f.write_str("invalid ID"),
         }
     }
 }
