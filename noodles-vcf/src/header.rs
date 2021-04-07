@@ -567,9 +567,9 @@ impl FromStr for Header {
             if line.starts_with("#CHROM") {
                 builder = parse_header(builder, line)?;
                 break;
-            } else {
-                builder = parse_record(builder, line)?;
             }
+
+            builder = parse_record(builder, line)?;
         }
 
         if lines.next().is_some() {
