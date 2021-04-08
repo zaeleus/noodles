@@ -2,8 +2,7 @@
 //!
 //! The input BAM must have an index in the same directory.
 //!
-//! While the results are not formatted the same, the records printed match the output of `samtools
-//! view <src> <region>`.
+//! The result matches the output of `samtools view <src> <region>`.
 
 use std::{env, fs::File, path::PathBuf};
 
@@ -28,28 +27,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-
-        let read_name = record.read_name()?.to_str()?;
-
-        let reference_sequence_id = record
-            .reference_sequence_id()
-            .map(i32::from)
-            .expect("record cannot be unmapped");
-        let (_, reference_sequence) = reference_sequences
-            .get_index(reference_sequence_id as usize)
-            .ok_or("invalid reference sequence id")?;
-
-        let start = record.position().map(i32::from).expect("missing position");
-        let len = record.cigar().reference_len().map(|len| len as i32)?;
-        let end = start + len - 1;
-
-        println!(
-            "{} ({}:{}-{})",
-            read_name,
-            reference_sequence.name(),
-            start,
-            end
-        );
+        let sam_record = record.try_into_sam_record(reference_sequences)?;
+        println!("{}", sam_record);
     }
 
     Ok(())
