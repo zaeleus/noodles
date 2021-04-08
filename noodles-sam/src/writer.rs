@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{record, Header, Record};
+use super::{Header, Record};
 
 /// A SAM writer.
 ///
@@ -102,55 +102,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let qname = record
-            .read_name()
-            .map(|name| name.as_str())
-            .unwrap_or(record::NULL_FIELD);
-
-        let rnext = record
-            .mate_reference_sequence_name()
-            .map(|mate_reference_sequence_name| {
-                if let Some(reference_sequence_name) = record.reference_sequence_name() {
-                    if mate_reference_sequence_name == reference_sequence_name {
-                        return "=";
-                    }
-                }
-
-                mate_reference_sequence_name.as_str()
-            })
-            .unwrap_or(record::NULL_FIELD);
-
-        let pos = record
-            .position()
-            .map(i32::from)
-            .unwrap_or(record::position::UNMAPPED);
-
-        let pnext = record
-            .mate_position()
-            .map(i32::from)
-            .unwrap_or(record::position::UNMAPPED);
-
-        write!(
-            self.inner,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
-            qname = qname,
-            flag = u16::from(record.flags()),
-            rname = record.reference_sequence_name().map(|name| name.as_str()).unwrap_or(record::NULL_FIELD),
-            pos = pos,
-            mapq = u8::from(record.mapping_quality()),
-            cigar = record.cigar(),
-            rnext = rnext,
-            pnext = pnext,
-            tlen = record.template_length(),
-            seq = record.sequence(),
-            qual = record.quality_scores(),
-        )?;
-
-        if record.data().is_empty() {
-            writeln!(self.inner)
-        } else {
-            writeln!(self.inner, "\t{}", record.data())
-        }
+        writeln!(self.inner, "{}", record)
     }
 }
 

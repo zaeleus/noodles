@@ -347,6 +347,62 @@ impl Default for Record {
     }
 }
 
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let qname = self
+            .read_name()
+            .map(|name| name.as_str())
+            .unwrap_or(NULL_FIELD);
+
+        let rname = self
+            .reference_sequence_name()
+            .map(|name| name.as_str())
+            .unwrap_or(NULL_FIELD);
+
+        let pos = self.position().map(i32::from).unwrap_or(position::UNMAPPED);
+
+        let rnext = self
+            .mate_reference_sequence_name()
+            .map(|mate_reference_sequence_name| {
+                if let Some(reference_sequence_name) = self.reference_sequence_name() {
+                    if mate_reference_sequence_name == reference_sequence_name {
+                        return "=";
+                    }
+                }
+
+                mate_reference_sequence_name.as_str()
+            })
+            .unwrap_or(NULL_FIELD);
+
+        let pnext = self
+            .mate_position()
+            .map(i32::from)
+            .unwrap_or(position::UNMAPPED);
+
+        write!(
+            f,
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
+            qname = qname,
+            flag = u16::from(self.flags()),
+            rname = rname,
+            pos = pos,
+            mapq = u8::from(self.mapping_quality()),
+            cigar = self.cigar(),
+            rnext = rnext,
+            pnext = pnext,
+            tlen = self.template_length(),
+            seq = self.sequence(),
+            qual = self.quality_scores(),
+        )?;
+
+        if !self.data().is_empty() {
+            write!(f, "\t{}", self.data())?;
+        }
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw SAM record fails to parse.
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParseError {
@@ -495,4 +551,30 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or(ParseError::MissingField(field))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let record = Record::default();
+        assert_eq!(record.to_string(), "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*");
+    }
+
+    #[test]
+    fn test_fmt_with_data() {
+        let data = Data::from(vec![data::Field::new(
+            data::field::Tag::ReadGroup,
+            data::field::Value::String(String::from("rg0")),
+        )]);
+
+        let record = Record::builder().set_data(data).build();
+
+        assert_eq!(
+            record.to_string(),
+            "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0"
+        );
+    }
 }
