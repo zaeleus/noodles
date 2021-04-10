@@ -7,6 +7,7 @@ edition = "2018"
 
 [dependencies]
 noodles-bam = { path = "../noodles-bam", optional = true }
+noodles-bcf = { path = "../noodles-bcf", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", optional = true }
 noodles-core = { path = "../noodles-core", optional = true }
 noodles-cram = { path = "../noodles-cram", optional = true }
@@ -21,6 +22,7 @@ noodles-vcf = { path = "../noodles-vcf", optional = true }
 default = []
 
 bam = ["noodles-bam"]
+bcf = ["noodles-bcf"]
 bgzf = ["noodles-bgzf"]
 core = ["noodles-core"]
 cram = ["noodles-cram"]

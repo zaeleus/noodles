@@ -7,6 +7,9 @@
 #[cfg(feature = "bam")]
 pub use noodles_bam as bam;
 
+#[cfg(feature = "bcf")]
+pub use noodles_bcf as bcf;
+
 #[cfg(feature = "bgzf")]
 pub use noodles_bgzf as bgzf;
 

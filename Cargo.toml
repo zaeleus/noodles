@@ -2,6 +2,7 @@
 members = [
   "noodles",
   "noodles-bam",
+  "noodles-bcf",
   "noodles-bgzf",
   "noodles-core",
   "noodles-cram",
