@@ -1,5 +1,10 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    ffi::CStr,
+    io::{self, Read},
+};
 
+use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
 static MAGIC_NUMBER: &[u8] = b"BCF";
@@ -66,6 +71,45 @@ where
         let minor = buf[4];
 
         Ok((major, minor))
+    }
+
+    /// Reads the raw VCF header.
+    ///
+    /// The position of the stream is expected to be directly after the file format.
+    ///
+    /// This returns the raw VCF header as a [`std::string::String`]. It can subsequently be parsed
+    /// as a [`noodles_vcf::Header`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    /// let header = reader.read_header()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_header(&mut self) -> io::Result<String> {
+        // § 6.2 Header (2021-01-13) doesn't actually describe how the header is stored. There
+        // seems to be a 32-bit integer for the header length, which adds +1 for a null terminator.
+        // This means the header string itself is null-terminated.
+
+        let header_len = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        let mut buf = vec![0; header_len];
+        self.inner.read_exact(&mut buf)?;
+
+        CStr::from_bytes_with_nul(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|c_header| {
+                c_header
+                    .to_str()
+                    .map(|s| s.into())
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 }
 
