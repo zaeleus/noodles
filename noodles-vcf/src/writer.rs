@@ -106,28 +106,7 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        write!(
-            self.inner,
-            "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
-            chrom = record.chromosome(),
-            pos = i32::from(record.position()),
-            id = record.ids(),
-            r#ref = record.reference_bases(),
-            alt = record.alternate_bases(),
-            qual = record.quality_score(),
-            filter = record.filters(),
-            info = record.info(),
-        )?;
-
-        if let Some(format) = record.format() {
-            write!(self.inner, "\t{}", format)?;
-
-            for field in record.genotypes() {
-                write!(self.inner, "\t{}", field)?;
-            }
-        }
-
-        writeln!(self.inner)
+        writeln!(self.inner, "{}", record)
     }
 }
 

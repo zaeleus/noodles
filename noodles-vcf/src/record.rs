@@ -345,6 +345,33 @@ impl Record {
     }
 }
 
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
+            chrom = self.chromosome(),
+            pos = i32::from(self.position()),
+            id = self.ids(),
+            r#ref = self.reference_bases(),
+            alt = self.alternate_bases(),
+            qual = self.quality_score(),
+            filter = self.filters(),
+            info = self.info(),
+        )?;
+
+        if let Some(format) = self.format() {
+            write!(f, "\t{}", format)?;
+
+            for field in self.genotypes() {
+                write!(f, "\t{}", field)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw VCF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -461,7 +488,42 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use super::*;
+
+    #[test]
+    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(Position::try_from(1)?)
+            .set_reference_bases("A".parse()?)
+            .build()?;
+
+        assert_eq!(record.to_string(), "sq0\t1\t.\tA\t.\t.\t.\t.");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
+        let format: Format = "GT:GQ".parse()?;
+
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(Position::try_from(1)?)
+            .set_reference_bases("A".parse()?)
+            .set_format(format.clone())
+            .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+            .build()?;
+
+        assert_eq!(
+            record.to_string(),
+            "sq0\t1\t.\tA\t.\t.\t.\t.\tGT:GQ\t0|0:13"
+        );
+
+        Ok(())
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
