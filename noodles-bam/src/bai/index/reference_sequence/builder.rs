@@ -58,7 +58,7 @@ impl Builder {
     }
 
     fn update_bins(&mut self, record: &Record, chunk: Chunk) {
-        let bin_id = record.bin() as u32;
+        let bin_id = u32::from(record.bin());
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
