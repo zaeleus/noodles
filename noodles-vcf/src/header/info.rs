@@ -255,7 +255,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`IDX`): {}", e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
             Self::NumberMismatch(actual, expected) => {
                 write!(f, "number mismatch: expected {}, got {}", expected, actual)
             }
