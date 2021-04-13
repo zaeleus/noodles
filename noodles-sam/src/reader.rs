@@ -13,7 +13,7 @@ const LINE_FEED: u8 = b'\n';
 
 /// A SAM reader.
 ///
-/// The SAM format is comprised to two parts: 1) a header and 2) a list of records.
+/// The SAM format is comprised of two parts: 1) a header and 2) a list of records.
 ///
 /// Each header line is prefixed with an `@` (at sign). The header is optional and may be empty.
 ///
