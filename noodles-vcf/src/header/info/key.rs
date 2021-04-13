@@ -13,6 +13,8 @@ pub enum Key {
     Type,
     /// (`Description`).
     Description,
+    /// (`IDX`).
+    Idx,
 }
 
 impl AsRef<str> for Key {
@@ -22,6 +24,7 @@ impl AsRef<str> for Key {
             Self::Number => "Number",
             Self::Type => "Type",
             Self::Description => "Description",
+            Self::Idx => "IDX",
         }
     }
 }
@@ -42,7 +45,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid info key: expected {{ID, Number, Type, Description}}, got {}",
+            "invalid info key: expected {{ID, Number, Type, Description, IDX}}, got {}",
             self.0
         )
     }
@@ -57,6 +60,7 @@ impl FromStr for Key {
             "Number" => Ok(Self::Number),
             "Type" => Ok(Self::Type),
             "Description" => Ok(Self::Description),
+            "IDX" => Ok(Self::Idx),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -72,6 +76,7 @@ mod tests {
         assert_eq!(Key::Number.to_string(), "Number");
         assert_eq!(Key::Type.to_string(), "Type");
         assert_eq!(Key::Description.to_string(), "Description");
+        assert_eq!(Key::Idx.to_string(), "IDX");
     }
 
     #[test]
@@ -80,6 +85,7 @@ mod tests {
         assert_eq!("Number".parse::<Key>()?, Key::Number);
         assert_eq!("Type".parse::<Key>()?, Key::Type);
         assert_eq!("Description".parse::<Key>()?, Key::Description);
+        assert_eq!("IDX".parse::<Key>()?, Key::Idx);
 
         assert!("".parse::<Key>().is_err());
         assert!("Noodles".parse::<Key>().is_err());

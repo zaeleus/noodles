@@ -5,7 +5,7 @@ pub mod ty;
 
 pub use self::{key::Key, ty::Type};
 
-use std::{convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -20,6 +20,7 @@ pub struct Info {
     number: Number,
     ty: Type,
     description: String,
+    idx: Option<usize>,
     fields: IndexMap<String, String>,
 }
 
@@ -47,6 +48,7 @@ impl Info {
             number,
             ty,
             description,
+            idx: None,
             fields: IndexMap::new(),
         }
     }
@@ -143,6 +145,31 @@ impl Info {
         &self.description
     }
 
+    /// Returns the index of the ID in the dictionary of strings.
+    ///
+    /// This is typically used in BCF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, Info, Number},
+    ///     record::info::field::Key,
+    /// };
+    ///
+    /// let info = Info::new(
+    ///     Key::SamplesWithDataCount,
+    ///     Number::Count(1),
+    ///     Type::Integer,
+    ///     String::from("Number of samples with data"),
+    /// );
+    ///
+    /// assert!(info.idx().is_none());
+    /// ```
+    pub fn idx(&self) -> Option<usize> {
+        self.idx
+    }
+
     /// Returns the extra fields in the record.
     ///
     /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
@@ -182,6 +209,10 @@ impl fmt::Display for Info {
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
+        if let Some(idx) = self.idx() {
+            write!(f, ",{}={}", Key::Idx, idx)?;
+        }
+
         for (key, value) in &self.fields {
             write!(f, ",{}=", key)?;
             super::fmt::write_escaped_string(f, value)?;
@@ -206,6 +237,8 @@ pub enum TryFromRecordError {
     InvalidNumber(number::ParseError),
     /// The type is invalid.
     InvalidType(ty::ParseError),
+    /// The index (`IDX`) is invalid.
+    InvalidIdx(num::ParseIntError),
     /// The number for the given ID does not match the number in the reserved definition.
     NumberMismatch(Number, Number),
     /// The type for the given ID does not match the type in the reserved definition.
@@ -222,6 +255,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`IDX`): {}", e),
             Self::NumberMismatch(actual, expected) => {
                 write!(f, "number mismatch: expected {}, got {}", expected, actual)
             }
@@ -288,12 +322,30 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Info, TryFromRecordErro
             _ => Err(TryFromRecordError::MissingField(Key::Description)),
         })?;
 
+    let mut idx = None;
+    let mut fields = IndexMap::new();
+
+    for (key, value) in it {
+        match key.parse() {
+            Ok(Key::Idx) => {
+                idx = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidIdx)?;
+            }
+            _ => {
+                fields.insert(key, value);
+            }
+        }
+    }
+
     Ok(Info {
         id,
         number,
         ty,
         description,
-        fields: it.collect(),
+        idx,
+        fields,
     })
 }
 
@@ -355,6 +407,7 @@ mod tests {
                     String::from("Description"),
                     String::from("Number of samples with data"),
                 ),
+                (String::from("IDX"), String::from("1")),
                 (String::from("Source"), String::from("dbsnp")),
                 (String::from("Version"), String::from("138")),
             ]),
@@ -367,6 +420,7 @@ mod tests {
                 number: Number::Count(1),
                 ty: Type::Integer,
                 description: String::from("Number of samples with data"),
+                idx: Some(1),
                 fields: vec![
                     (String::from("Source"), String::from("dbsnp")),
                     (String::from("Version"), String::from("138")),
@@ -481,6 +535,28 @@ mod tests {
         assert!(matches!(
             Info::try_from(record),
             Err(TryFromRecordError::InvalidType(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_idx() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+                (String::from("IDX"), String::from("ndls")),
+            ]),
+        );
+
+        assert!(matches!(
+            Info::try_from(record),
+            Err(TryFromRecordError::InvalidIdx(_))
         ));
     }
 
