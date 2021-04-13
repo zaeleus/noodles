@@ -6,6 +6,8 @@ pub use self::key::Key;
 
 use std::{convert::TryFrom, error, fmt};
 
+use indexmap::IndexMap;
+
 use crate::record::Filters;
 
 use super::{record, Record};
@@ -15,6 +17,7 @@ use super::{record, Record};
 pub struct Filter {
     id: String,
     description: String,
+    fields: IndexMap<String, String>,
 }
 
 impl Filter {
@@ -43,7 +46,11 @@ impl Filter {
     /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
     /// ```
     pub fn new(id: String, description: String) -> Self {
-        Self { id, description }
+        Self {
+            id,
+            description,
+            fields: IndexMap::new(),
+        }
     }
 
     /// Returns the ID of the filter.
@@ -71,6 +78,21 @@ impl Filter {
     pub fn description(&self) -> &str {
         &self.description
     }
+
+    /// Returns the extra fields in the record.
+    ///
+    /// This includes fields other than `ID` and `Description`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// assert!(filter.fields().is_empty());
+    /// ```
+    pub fn fields(&self) -> &IndexMap<String, String> {
+        &self.fields
+    }
 }
 
 impl fmt::Display for Filter {
@@ -83,6 +105,11 @@ impl fmt::Display for Filter {
 
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
+
+        for (key, value) in &self.fields {
+            write!(f, ",{}=", key)?;
+            super::fmt::write_escaped_string(f, value)?;
+        }
 
         f.write_str(">")?;
 
@@ -140,7 +167,11 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordEr
             _ => Err(TryFromRecordError::MissingField(Key::Description)),
         })?;
 
-    Ok(Filter { id, description })
+    Ok(Filter {
+        id,
+        description,
+        fields: it.collect(),
+    })
 }
 
 #[cfg(test)]
@@ -177,9 +208,35 @@ mod tests {
 
         assert_eq!(
             Filter::try_from(record),
+            Ok(Filter::new(
+                String::from("q10"),
+                String::from("Quality below 10"),
+            ))
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_filter_with_extra_fields() {
+        let record = Record::new(
+            record::Key::Filter,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("q10")),
+                (
+                    String::from("Description"),
+                    String::from("Quality below 10"),
+                ),
+                (String::from("Source"), String::from("noodles")),
+            ]),
+        );
+
+        assert_eq!(
+            Filter::try_from(record),
             Ok(Filter {
                 id: String::from("q10"),
                 description: String::from("Quality below 10"),
+                fields: vec![(String::from("Source"), String::from("noodles"))]
+                    .into_iter()
+                    .collect()
             })
         );
     }
