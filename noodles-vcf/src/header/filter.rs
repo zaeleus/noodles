@@ -1,14 +1,14 @@
 //! VCF header filter record and key.
 
-mod key;
+pub mod key;
+
+pub use self::key::Key;
 
 use std::{convert::TryFrom, error, fmt};
 
 use crate::record::Filters;
 
 use super::{record, Record};
-
-use self::key::Key;
 
 /// A VCF header filter record (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
