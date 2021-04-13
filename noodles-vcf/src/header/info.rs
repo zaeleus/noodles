@@ -172,7 +172,7 @@ impl Info {
 
     /// Returns the extra fields in the record.
     ///
-    /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
+    /// This includes fields other than `ID`, `Number`, `Type`, `Description`, and `IDX`.
     ///
     /// # Examples
     ///
