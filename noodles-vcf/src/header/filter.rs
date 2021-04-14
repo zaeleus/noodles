@@ -4,7 +4,7 @@ pub mod key;
 
 pub use self::key::Key;
 
-use std::{convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -17,6 +17,7 @@ use super::{record, Record};
 pub struct Filter {
     id: String,
     description: String,
+    idx: Option<usize>,
     fields: IndexMap<String, String>,
 }
 
@@ -49,6 +50,7 @@ impl Filter {
         Self {
             id,
             description,
+            idx: None,
             fields: IndexMap::new(),
         }
     }
@@ -79,6 +81,21 @@ impl Filter {
         &self.description
     }
 
+    /// Returns the index of the ID in the dictionary of strings.
+    ///
+    /// This is typically used in BCF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Filter;
+    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// assert!(filter.idx().is_none());
+    /// ```
+    pub fn idx(&self) -> Option<usize> {
+        self.idx
+    }
+
     /// Returns the extra fields in the record.
     ///
     /// This includes fields other than `ID` and `Description`.
@@ -106,6 +123,10 @@ impl fmt::Display for Filter {
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
+        if let Some(idx) = self.idx() {
+            write!(f, ",{}={}", Key::Idx, idx)?;
+        }
+
         for (key, value) in &self.fields {
             write!(f, ",{}=", key)?;
             super::fmt::write_escaped_string(f, value)?;
@@ -124,6 +145,8 @@ pub enum TryFromRecordError {
     InvalidRecord,
     /// A field is missing.
     MissingField(Key),
+    /// The index (`IDX`) is invalid.
+    InvalidIdx(num::ParseIntError),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -133,6 +156,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing field: {}", key),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
         }
     }
 }
@@ -167,10 +191,28 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordEr
             _ => Err(TryFromRecordError::MissingField(Key::Description)),
         })?;
 
+    let mut idx = None;
+    let mut fields = IndexMap::new();
+
+    for (key, value) in it {
+        match key.parse() {
+            Ok(Key::Idx) => {
+                idx = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidIdx)?;
+            }
+            _ => {
+                fields.insert(key, value);
+            }
+        }
+    }
+
     Ok(Filter {
         id,
         description,
-        fields: it.collect(),
+        idx,
+        fields,
     })
 }
 
@@ -226,6 +268,7 @@ mod tests {
                     String::from("Quality below 10"),
                 ),
                 (String::from("Source"), String::from("noodles")),
+                (String::from("IDX"), String::from("1")),
             ]),
         );
 
@@ -234,6 +277,7 @@ mod tests {
             Ok(Filter {
                 id: String::from("q10"),
                 description: String::from("Quality below 10"),
+                idx: Some(1),
                 fields: vec![(String::from("Source"), String::from("noodles"))]
                     .into_iter()
                     .collect()
@@ -283,6 +327,26 @@ mod tests {
         assert!(matches!(
             Filter::try_from(record),
             Err(TryFromRecordError::MissingField(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_info_with_an_invalid_idx() {
+        let record = Record::new(
+            record::Key::Filter,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("q10")),
+                (
+                    String::from("Description"),
+                    String::from("Quality below 10"),
+                ),
+                (String::from("IDX"), String::from("ndls")),
+            ]),
+        );
+
+        assert!(matches!(
+            Filter::try_from(record),
+            Err(TryFromRecordError::InvalidIdx(_))
         ));
     }
 }

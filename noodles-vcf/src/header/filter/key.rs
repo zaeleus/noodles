@@ -9,6 +9,8 @@ pub enum Key {
     Id,
     /// (`Description`).
     Description,
+    /// (`IDX`).
+    Idx,
 }
 
 impl AsRef<str> for Key {
@@ -16,6 +18,7 @@ impl AsRef<str> for Key {
         match self {
             Self::Id => "ID",
             Self::Description => "Description",
+            Self::Idx => "IDX",
         }
     }
 }
@@ -36,7 +39,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid filter key: expected {{ID, Description}}, got {}",
+            "invalid filter key: expected {{ID, Description, IDX}}, got {}",
             self.0
         )
     }
@@ -49,6 +52,7 @@ impl FromStr for Key {
         match s {
             "ID" => Ok(Self::Id),
             "Description" => Ok(Self::Description),
+            "IDX" => Ok(Self::Idx),
             _ => Err(ParseError(s.into())),
         }
     }
@@ -62,12 +66,14 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Key::Id.to_string(), "ID");
         assert_eq!(Key::Description.to_string(), "Description");
+        assert_eq!(Key::Idx.to_string(), "IDX");
     }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("ID".parse::<Key>()?, Key::Id);
         assert_eq!("Description".parse::<Key>()?, Key::Description);
+        assert_eq!("IDX".parse::<Key>()?, Key::Idx);
 
         assert!("".parse::<Key>().is_err());
         assert!("Noodles".parse::<Key>().is_err());
