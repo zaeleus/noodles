@@ -407,9 +407,9 @@ mod tests {
                     String::from("Description"),
                     String::from("Number of samples with data"),
                 ),
-                (String::from("IDX"), String::from("1")),
                 (String::from("Source"), String::from("dbsnp")),
                 (String::from("Version"), String::from("138")),
+                (String::from("IDX"), String::from("1")),
             ]),
         );
 
