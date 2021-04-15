@@ -5,7 +5,7 @@ pub mod ty;
 
 pub use self::{key::Key, ty::Type};
 
-use std::{convert::TryFrom, error, fmt};
+use std::{convert::TryFrom, error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -20,6 +20,7 @@ pub struct Format {
     number: Number,
     ty: Type,
     description: String,
+    idx: Option<usize>,
     fields: IndexMap<String, String>,
 }
 
@@ -47,6 +48,7 @@ impl Format {
             number,
             ty,
             description,
+            idx: None,
             fields: IndexMap::new(),
         }
     }
@@ -143,9 +145,34 @@ impl Format {
         &self.description
     }
 
+    /// Returns the index of the ID in the dictionary of strings.
+    ///
+    /// This is typically used in BCF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, Format, Number},
+    ///     record::genotype::field::Key,
+    /// };
+    ///
+    /// let format = Format::new(
+    ///     Key::Genotype,
+    ///     Number::Count(1),
+    ///     Type::String,
+    ///     String::from("Genotype"),
+    /// );
+    ///
+    /// assert!(format.idx().is_none());
+    /// ```
+    pub fn idx(&self) -> Option<usize> {
+        self.idx
+    }
+
     /// Returns the extra fields in the record.
     ///
-    /// This includes fields other than `ID`, `Number`, `Type`, and `Description`.
+    /// This includes fields other than `ID`, `Number`, `Type`, `Description`, and `IDX`.
     ///
     /// # Examples
     ///
@@ -182,6 +209,10 @@ impl fmt::Display for Format {
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
+        if let Some(idx) = self.idx() {
+            write!(f, ",{}={}", Key::Idx, idx)?;
+        }
+
         for (key, value) in &self.fields {
             write!(f, ",{}=", key)?;
             super::fmt::write_escaped_string(f, value)?;
@@ -207,6 +238,8 @@ pub enum TryFromRecordError {
     InvalidNumber(number::ParseError),
     /// The type is invalid.
     InvalidType(ty::ParseError),
+    /// The index (`IDX`) is invalid.
+    InvalidIdx(num::ParseIntError),
     /// The number for the given ID does not match the number in the reserved definition.
     NumberMismatch(Number, Number),
     /// The type for the given ID does not match the type in the reserved definition.
@@ -223,6 +256,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
             Self::NumberMismatch(actual, expected) => {
                 write!(f, "number mismatch: expected {}, got {}", expected, actual)
             }
@@ -289,12 +323,30 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
             _ => Err(TryFromRecordError::MissingField(Key::Description)),
         })?;
 
+    let mut idx = None;
+    let mut fields = IndexMap::new();
+
+    for (key, value) in it {
+        match key.parse() {
+            Ok(Key::Idx) => {
+                idx = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidIdx)?;
+            }
+            _ => {
+                fields.insert(key, value);
+            }
+        }
+    }
+
     Ok(Format {
         id,
         number,
         ty,
         description,
-        fields: it.collect(),
+        idx,
+        fields,
     })
 }
 
@@ -350,6 +402,7 @@ mod tests {
                 (String::from("Type"), String::from("String")),
                 (String::from("Description"), String::from("Genotype")),
                 (String::from("Comment"), String::from("noodles")),
+                (String::from("IDX"), String::from("1")),
             ]),
         );
 
@@ -360,6 +413,7 @@ mod tests {
                 number: Number::Count(1),
                 ty: Type::String,
                 description: String::from("Genotype"),
+                idx: Some(1),
                 fields: vec![(String::from("Comment"), String::from("noodles"))]
                     .into_iter()
                     .collect(),
@@ -459,6 +513,25 @@ mod tests {
         assert!(matches!(
             Format::try_from(record),
             Err(TryFromRecordError::InvalidType(_))
+        ));
+    }
+
+    #[test]
+    fn test_try_from_record_for_format_with_an_invalid_idx() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+                (String::from("IDX"), String::from("ndls")),
+            ]),
+        );
+
+        assert!(matches!(
+            Format::try_from(record),
+            Err(TryFromRecordError::InvalidIdx(_))
         ));
     }
 
