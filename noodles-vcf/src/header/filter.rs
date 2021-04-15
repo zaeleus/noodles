@@ -331,7 +331,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_an_invalid_idx() {
+    fn test_try_from_record_for_filter_with_an_invalid_idx() {
         let record = Record::new(
             record::Key::Filter,
             record::Value::Struct(vec![
