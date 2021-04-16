@@ -60,6 +60,12 @@ fn value_field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
+fn idx_field(input: &str) -> IResult<&str, (String, String)> {
+    map(separated_pair(tag("IDX"), tag("="), value), |(k, v)| {
+        (k.into(), v)
+    })(input)
+}
+
 fn extra_fields<'a>(
     mut input: &'a str,
     fields: &mut Vec<(String, String)>,
@@ -67,9 +73,12 @@ fn extra_fields<'a>(
     loop {
         match tag(",")(input) {
             Ok((i, _)) => {
-                let (i, f) = string_field(i)?;
-                fields.push(f);
-                input = i;
+                if let Ok((i, f)) = string_field(i) {
+                    fields.push(f);
+                    input = i;
+                } else {
+                    break;
+                }
             }
             Err(nom::Err::Error(_)) => break,
             Err(e) => return Err(e),
@@ -103,7 +112,15 @@ fn info_structure(input: &str) -> IResult<&str, Value> {
     let (input, f) = string_field(input)?;
     fields.push(f);
 
-    let (input, _) = extra_fields(input, &mut fields)?;
+    let (mut input, _) = extra_fields(input, &mut fields)?;
+
+    // IDX
+    if let (i, Some(_)) = opt(tag(","))(input)? {
+        let (i, f) = idx_field(i)?;
+        fields.push(f);
+        input = i;
+    }
+
     let (input, _) = tag(">")(input)?;
 
     Ok((input, Value::Struct(fields)))
@@ -123,7 +140,15 @@ fn filter_structure(input: &str) -> IResult<&str, Value> {
     let (input, f) = string_field(input)?;
     fields.push(f);
 
-    let (input, _) = extra_fields(input, &mut fields)?;
+    let (mut input, _) = extra_fields(input, &mut fields)?;
+
+    // IDX
+    if let (i, Some(_)) = opt(tag(","))(input)? {
+        let (i, f) = idx_field(i)?;
+        fields.push(f);
+        input = i;
+    }
+
     let (input, _) = tag(">")(input)?;
 
     Ok((input, Value::Struct(fields)))
@@ -153,7 +178,15 @@ fn format_structure(input: &str) -> IResult<&str, Value> {
     let (input, f) = string_field(input)?;
     fields.push(f);
 
-    let (input, _) = extra_fields(input, &mut fields)?;
+    let (mut input, _) = extra_fields(input, &mut fields)?;
+
+    // IDX
+    if let (i, Some(_)) = opt(tag(","))(input)? {
+        let (i, f) = idx_field(i)?;
+        fields.push(f);
+        input = i;
+    }
+
     let (input, _) = tag(">")(input)?;
 
     Ok((input, Value::Struct(fields)))
@@ -332,6 +365,58 @@ mod tests {
                 (String::from("Description"), String::from("Deletion")),
             ])
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_with_record_struct_value_with_idx_field() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let (_, (key, value)) = parse(
+            r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data",IDX=1>"#,
+        )?;
+
+        assert_eq!(key, "INFO");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data")
+                ),
+                (String::from("IDX"), String::from("1")),
+            ])
+        );
+
+        /* let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
+
+        assert_eq!(key, "FILTER");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("PASS")),
+                (String::from("Description"), String::from("")),
+                (String::from("IDX"), String::from("0")),
+            ])
+        );
+
+        let (_, (key, value)) =
+            parse(r#"##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype",IDX=2>"#)?;
+
+        assert_eq!(key, "FORMAT");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+                (String::from("IDX"), String::from("2")),
+            ])
+        ); */
 
         Ok(())
     }
