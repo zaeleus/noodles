@@ -209,13 +209,13 @@ impl fmt::Display for Format {
         write!(f, ",{}=", Key::Description)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
-        if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", Key::Idx, idx)?;
-        }
-
         for (key, value) in &self.fields {
             write!(f, ",{}=", key)?;
             super::fmt::write_escaped_string(f, value)?;
+        }
+
+        if let Some(idx) = self.idx() {
+            write!(f, ",{}={}", Key::Idx, idx)?;
         }
 
         f.write_str(">")?;
