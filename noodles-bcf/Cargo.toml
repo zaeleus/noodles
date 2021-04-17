@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 byteorder = "1.2.3"
 noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-vcf = { path = "../noodles-vcf" }
