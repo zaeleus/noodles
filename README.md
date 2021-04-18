@@ -1,6 +1,6 @@
 # noodles
 
-[![GitHub Actions status](https://github.com/zaeleus/noodles/workflows/CI/badge.svg)](https://github.com/zaeleus/noodles/actions)
+[![CI status](https://github.com/zaeleus/noodles/actions/workflows/ci.yml/badge.svg)](https://github.com/zaeleus/noodles/actions/workflows/ci.yml)
 
 **noodles** is a library for handling various bioinformatics file formats. It
 currently includes readers and writers for BAM 1.6, BGZF, CRAM 3.0, FASTA,
