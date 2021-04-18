@@ -31,7 +31,7 @@ struct OpWrapper {
     len: u32,
 }
 /// [`AugmentedRecord`] wraps a record and pre-computes several fields based on the underlying record.
-/// It also holds onto the stat of where in the read we are.
+/// It also holds onto the state of where in the read we are.
 #[derive(Debug)]
 struct AugmentedRecord {
     /// The wrapped underlying [`Record`].
@@ -114,19 +114,19 @@ pub struct PileupColumn {
     pub pos: i32,
     /// The total depth at this position.
     pub depth: u32,
-    /// Number of insertions that start to the right of this position. (does not count toward depth)
+    /// Number of insertions that start to the right of this position. (does not count toward depth).
     pub ins: u32,
-    /// Number of deletions at this position (counts towards depth)
+    /// Number of deletions at this position (counts towards depth).
     pub del: u32,
     /// Number of refskips at this position. Not counted toward depth.
-    /// Note: this differs from how htslib pileup depths
+    /// Note: this differs from how htslib pileup computes depths
     pub ref_skip: u32,
-    /// The alignments at this position
+    /// The alignments at this position.
     pub alignments: Vec<RecordAlignment>,
 }
 
 impl PileupColumn {
-    /// Build a Pileup over `pos` from an iterator over alignments.
+    /// Build a Pileup over `pos` from an iterator over [`RecordAlignment`]s.
     fn from_alignments(alignments: impl Iterator<Item = RecordAlignment>, pos: i32) -> Self {
         let mut depth = 0;
         let mut ins = 0;
