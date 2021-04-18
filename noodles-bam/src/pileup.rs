@@ -61,7 +61,7 @@ impl AugmentedRecord {
     fn skip_clipping(&mut self) {
         let mut num_pop = 0;
         let mut iter = self.cigar_ops.iter().map(|c_op| c_op.op.kind());
-        while let Some(Kind::SoftClip | Kind::HardClip | Kind::Pad) = iter.next() {
+        while let Some(Kind::SoftClip) | Some(Kind::HardClip) | Some(Kind::Pad) = iter.next() {
             num_pop += 1;
         }
         for _ in 0..num_pop {
