@@ -111,6 +111,42 @@ where
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
     }
+
+    /// Reads a single record.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the record size is returned. If a record size of 0 is returned, the stream
+    /// reached EOF.
+    pub fn read_record(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+        let l_shared = match self.inner.read_u32::<LittleEndian>() {
+            Ok(len) => len,
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+            Err(e) => return Err(e),
+        };
+
+        let l_indiv = self.inner.read_u32::<LittleEndian>()?;
+
+        let record_len = l_shared
+            .checked_add(l_indiv)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "invalid record length: l_shared = {}, l_indiv = {}",
+                        l_shared, l_indiv
+                    ),
+                )
+            })
+            .and_then(|len| {
+                usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })?;
+
+        buf.resize(record_len, Default::default());
+        self.inner.read_exact(buf)?;
+
+        Ok(record_len)
+    }
 }
 
 #[cfg(test)]
