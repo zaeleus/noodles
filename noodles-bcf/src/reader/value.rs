@@ -1,6 +1,10 @@
+mod ty;
+
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
+
+use self::ty::{read_type, Type};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
@@ -19,49 +23,18 @@ fn read_value<R>(reader: &mut R) -> io::Result<Value>
 where
     R: Read,
 {
-    let encoding = reader.read_u8()?;
-
-    let len = (encoding >> 4) as usize;
-    let ty = encoding & 0x0f;
+    let ty = read_type(reader)?;
 
     match ty {
-        1 => {
-            if len == 1 {
-                read_i8(reader)
-            } else {
-                assert!(len < 0x0f);
-                read_i8_array(reader, len)
-            }
-        }
-        2 => {
-            if len == 1 {
-                read_i16(reader)
-            } else {
-                assert!(len < 0x0f);
-                read_i16_array(reader, len)
-            }
-        }
-        3 => {
-            if len == 1 {
-                read_i32(reader)
-            } else {
-                assert!(len < 0x0f);
-                read_i32_array(reader, len)
-            }
-        }
-        5 => {
-            if len == 1 {
-                read_float(reader)
-            } else {
-                assert!(len < 0x0f);
-                read_float_array(reader, len)
-            }
-        }
-        7 => todo!("unhandled string type"),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid value type",
-        )),
+        Type::Int8 => read_i8(reader),
+        Type::Int8Array(len) => read_i8_array(reader, len),
+        Type::Int16 => read_i16(reader),
+        Type::Int16Array(len) => read_i16_array(reader, len),
+        Type::Int32 => read_i32(reader),
+        Type::Int32Array(len) => read_i32_array(reader, len),
+        Type::Float => read_float(reader),
+        Type::FloatArray(len) => read_float_array(reader, len),
+        _ => todo!("unhandled type: {:?}", ty),
     }
 }
 
