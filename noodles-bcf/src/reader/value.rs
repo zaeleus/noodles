@@ -16,12 +16,10 @@ pub enum Value {
     Int32Array(Vec<i32>),
     Float(f32),
     FloatArray(Vec<f32>),
-    Char(char),
-    String(String),
+    String(Option<String>),
 }
 
-#[allow(dead_code)]
-fn read_value<R>(reader: &mut R) -> io::Result<Value>
+pub fn read_value<R>(reader: &mut R) -> io::Result<Value>
 where
     R: Read,
 {
@@ -49,9 +47,8 @@ where
             _ => read_float_array(reader, len),
         },
         Type::String(len) => match len {
-            0 => todo!("unhandled string length: {}", len),
-            1 => read_char(reader),
-            _ => read_string(reader, len),
+            0 => Ok(Value::String(None)),
+            _ => read_string(reader, len).map(Some).map(Value::String),
         },
     }
 }
@@ -120,24 +117,13 @@ where
     Ok(Value::FloatArray(buf))
 }
 
-fn read_char<R>(reader: &mut R) -> io::Result<Value>
-where
-    R: Read,
-{
-    reader.read_u8().map(char::from).map(Value::Char)
-}
-
-fn read_string<R>(reader: &mut R, len: usize) -> io::Result<Value>
+fn read_string<R>(reader: &mut R, len: usize) -> io::Result<String>
 where
     R: Read,
 {
     let mut buf = vec![0; len];
-
     reader.read_exact(&mut buf)?;
-
-    String::from_utf8(buf)
-        .map(Value::String)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
@@ -192,15 +178,22 @@ mod tests {
             Ok(Value::FloatArray(value)) if value == vec![0.0, 0.5]
         ));
 
+        let data = [0x07];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(Value::String(None))));
+
         let data = [0x17, 0x6e];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Char('n'))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Value::String(Some(value))) if value == "n"
+        ));
 
         let data = [0x47, 0x6e, 0x64, 0x6c, 0x73];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::String(value)) if value == "ndls"
+            Ok(Value::String(Some(value))) if value == "ndls"
         ));
     }
 }
