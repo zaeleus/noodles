@@ -9,6 +9,8 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
+use super::Record;
+
 static MAGIC_NUMBER: &[u8] = b"BCF";
 
 /// A BCF reader.
@@ -120,7 +122,7 @@ where
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
-    pub fn read_record(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let l_shared = match self.inner.read_u32::<LittleEndian>() {
             Ok(len) => len,
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
@@ -144,8 +146,8 @@ where
                 usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-        buf.resize(record_len, Default::default());
-        self.inner.read_exact(buf)?;
+        record.resize(record_len);
+        self.inner.read_exact(record)?;
 
         Ok(record_len)
     }

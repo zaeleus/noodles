@@ -13,11 +13,11 @@ fn main() -> io::Result<()> {
     reader.read_file_format()?;
     reader.read_header()?;
 
-    let mut buf = Vec::new();
+    let mut record = bcf::Record::default();
     let mut n = 0;
 
     loop {
-        match reader.read_record(&mut buf) {
+        match reader.read_record(&mut record) {
             Ok(0) => break,
             Ok(_) => n += 1,
             Err(e) => return Err(e),

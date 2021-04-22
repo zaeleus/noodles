@@ -2,5 +2,6 @@
 
 pub mod header;
 mod reader;
+mod record;
 
-pub use self::reader::Reader;
+pub use self::{reader::Reader, record::Record};
