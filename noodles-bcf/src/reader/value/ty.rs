@@ -1,6 +1,11 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use byteorder::ReadBytesExt;
+
+use super::{read_value, Value};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Type {
@@ -22,8 +27,26 @@ where
 {
     let encoding = reader.read_u8()?;
 
-    let len = usize::from(encoding >> 4);
-    assert!(len < 0x0f);
+    let mut len = usize::from(encoding >> 4);
+
+    if len == 0x0f {
+        let value = read_value(reader)?;
+
+        let next_len = match value {
+            Value::Int8(n) => i32::from(n),
+            Value::Int16(n) => i32::from(n),
+            Value::Int32(n) => n,
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid length value: #{:?}", value),
+                ))
+            }
+        };
+
+        len =
+            usize::try_from(next_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    }
 
     let ty = encoding & 0x0f;
 
@@ -116,6 +139,14 @@ mod tests {
         let mut reader = &data[..];
         assert_eq!(read_type(&mut reader)?, Type::String(3));
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_type_with_gt_14_values() -> io::Result<()> {
+        let data = [0xf1, 0x11, 0x15];
+        let mut reader = &data[..];
+        assert_eq!(read_type(&mut reader)?, Type::Int8Array(21));
         Ok(())
     }
 }
