@@ -1,9 +1,10 @@
-use std::{error, fmt, num};
+use std::{error, fmt, num, str::FromStr};
 
 use noodles_sam::header::ReferenceSequences;
 
 // Position coordinates are 1-based.
 const MIN_POSITION: i32 = 1;
+const MAX_POSITION: i32 = i32::MAX;
 
 static UNMAPPED_NAME: &str = "*";
 static ALL_NAME: &str = ".";
@@ -167,7 +168,39 @@ impl fmt::Display for ParseError {
     }
 }
 
+impl FromStr for Region {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        } else if s == UNMAPPED_NAME {
+            return Ok(Self::Unmapped);
+        } else if s == ALL_NAME {
+            return Ok(Self::All);
+        }
+
+        if let Some(i) = s.find(':') {
+            let reference_sequence_name = &s[..i];
+            let suffix = &s[i + 1..];
+
+            if let Ok((start, end)) = parse_interval(suffix) {
+                let resolved_end = end.unwrap_or(MAX_POSITION);
+                Ok(Self::mapped(reference_sequence_name, start, resolved_end))
+            } else {
+                Err(ParseError::Invalid)
+            }
+        } else {
+            Ok(Self::mapped(s, MIN_POSITION, MAX_POSITION))
+        }
+    }
+}
+
 fn parse_interval(s: &str) -> Result<(i32, Option<i32>), ParseError> {
+    if s.is_empty() {
+        return Ok((MIN_POSITION, None));
+    }
+
     let mut components = s.splitn(2, '-');
 
     let start = match components.next() {
@@ -285,5 +318,18 @@ mod tests {
         assert_eq!(Region::mapped("sq0", 3, 5).to_string(), "sq0:3-5");
         assert_eq!(Region::Unmapped.to_string(), "*");
         assert_eq!(Region::All.to_string(), ".");
+    }
+
+    #[test]
+    fn test_from_str() {
+        assert_eq!("*".parse(), Ok(Region::Unmapped));
+        assert_eq!(".".parse(), Ok(Region::All));
+
+        assert_eq!("sq0".parse(), Ok(Region::mapped("sq0", 1, MAX_POSITION)));
+        assert_eq!("sq1:".parse(), Ok(Region::mapped("sq1", 1, MAX_POSITION)));
+        assert_eq!("sq2:5".parse(), Ok(Region::mapped("sq2", 5, MAX_POSITION)));
+        assert_eq!("sq3:5-8".parse(), Ok(Region::mapped("sq3", 5, 8)));
+
+        assert_eq!("".parse::<Region>(), Err(ParseError::Empty));
     }
 }
