@@ -1,3 +1,4 @@
+mod record;
 mod value;
 
 use std::{
