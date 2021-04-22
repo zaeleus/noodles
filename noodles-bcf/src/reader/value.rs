@@ -26,14 +26,26 @@ where
     let ty = read_type(reader)?;
 
     match ty {
-        Type::Int8 => read_i8(reader),
-        Type::Int8Array(len) => read_i8_array(reader, len),
-        Type::Int16 => read_i16(reader),
-        Type::Int16Array(len) => read_i16_array(reader, len),
-        Type::Int32 => read_i32(reader),
-        Type::Int32Array(len) => read_i32_array(reader, len),
-        Type::Float => read_float(reader),
-        Type::FloatArray(len) => read_float_array(reader, len),
+        Type::Int8(len) => match len {
+            0 => todo!("unhandled int8 length: {}", len),
+            1 => read_i8(reader),
+            _ => read_i8_array(reader, len),
+        },
+        Type::Int16(len) => match len {
+            0 => todo!("unhandled int16 length: {}", len),
+            1 => read_i16(reader),
+            _ => read_i16_array(reader, len),
+        },
+        Type::Int32(len) => match len {
+            0 => todo!("unhandled int32 length: {}", len),
+            1 => read_i32(reader),
+            _ => read_i32_array(reader, len),
+        },
+        Type::Float(len) => match len {
+            0 => todo!("unhandled float length: {}", len),
+            1 => read_float(reader),
+            _ => read_float_array(reader, len),
+        },
         _ => todo!("unhandled type: {:?}", ty),
     }
 }
