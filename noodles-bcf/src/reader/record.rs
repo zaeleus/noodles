@@ -60,6 +60,19 @@ where
         }
     }
 
+    let filter_indices = match read_value(reader) {
+        Ok(Value::Int8(None)) => Vec::new(),
+        Ok(Value::Int8(Some(i))) => vec![i],
+        Ok(Value::Int8Array(indicies)) => indicies,
+        Ok(v) => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected i8, got {:?}", v),
+            ))
+        }
+        Err(e) => return Err(e),
+    };
+
     Ok(())
 }
 
@@ -82,6 +95,7 @@ mod tests {
             0x57, 0x72, 0x73, 0x31, 0x32, 0x33, // id = "rs123"
             0x17, 0x41, // ref = A
             0x17, 0x43, // alt = C
+            0x11, 0x00, // filter = 0 (PASS)
         ];
         let mut reader = &data[..];
 
