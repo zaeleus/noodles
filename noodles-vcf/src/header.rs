@@ -33,22 +33,46 @@ static HEADERS: &[&str] = &[
 ];
 static FORMAT_HEADER: &str = "FORMAT";
 
+/// VCF header info records.
+pub type Infos = IndexMap<crate::record::info::field::Key, Info>;
+
+/// VCF header filter records.
+pub type Filters = IndexMap<String, Filter>;
+
+/// VCF header format records.
+pub type Formats = IndexMap<crate::record::genotype::field::Key, Format>;
+
+/// VCF header alternative allele records.
+pub type AlternativeAlleles =
+    IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>;
+
+/// VCF header contig records.
+pub type Contigs = IndexMap<String, Contig>;
+
+/// VCF header sample records.
+pub type Samples = IndexMap<String, Sample>;
+
+/// VCF header pedigree records.
+pub type Pedigrees = IndexMap<String, Pedigree>;
+
+/// VCF header sample names.
+pub type SampleNames = IndexSet<String>;
+
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     file_format: FileFormat,
-    infos: IndexMap<crate::record::info::field::Key, Info>,
-    filters: IndexMap<String, Filter>,
-    formats: IndexMap<crate::record::genotype::field::Key, Format>,
-    alternative_alleles:
-        IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>,
+    infos: Infos,
+    filters: Filters,
+    formats: Formats,
+    alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
-    contigs: IndexMap<String, Contig>,
+    contigs: Contigs,
     meta: IndexMap<String, Meta>,
-    samples: IndexMap<String, Sample>,
-    pedigrees: IndexMap<String, Pedigree>,
+    samples: Samples,
+    pedigrees: Pedigrees,
     pedigree_db: Option<String>,
-    sample_names: IndexSet<String>,
+    sample_names: SampleNames,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -108,7 +132,7 @@ impl Header {
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
     /// ```
-    pub fn infos(&self) -> &IndexMap<crate::record::info::field::Key, Info> {
+    pub fn infos(&self) -> &Infos {
         &self.infos
     }
 
@@ -130,7 +154,7 @@ impl Header {
     /// assert_eq!(filters.len(), 1);
     /// assert_eq!(filters[0].id(), "q10");
     /// ```
-    pub fn filters(&self) -> &IndexMap<String, Filter> {
+    pub fn filters(&self) -> &Filters {
         &self.filters
     }
 
@@ -158,7 +182,7 @@ impl Header {
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(formats[0].id(), &Key::Genotype);
     /// ```
-    pub fn formats(&self) -> &IndexMap<crate::record::genotype::field::Key, Format> {
+    pub fn formats(&self) -> &Formats {
         &self.formats
     }
 
@@ -190,9 +214,7 @@ impl Header {
     ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
     /// );
     /// ```
-    pub fn alternative_alleles(
-        &self,
-    ) -> &IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele> {
+    pub fn alternative_alleles(&self) -> &AlternativeAlleles {
         &self.alternative_alleles
     }
 
@@ -228,7 +250,7 @@ impl Header {
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
     /// ```
-    pub fn contigs(&self) -> &IndexMap<String, Contig> {
+    pub fn contigs(&self) -> &Contigs {
         &self.contigs
     }
 
@@ -272,7 +294,7 @@ impl Header {
     /// let records = header.samples();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], sample);
-    pub fn samples(&self) -> &IndexMap<String, Sample> {
+    pub fn samples(&self) -> &Samples {
         &self.samples
     }
 
@@ -300,7 +322,7 @@ impl Header {
     /// let records = header.pedigrees();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], pedigree);
-    pub fn pedigrees(&self) -> &IndexMap<String, Pedigree> {
+    pub fn pedigrees(&self) -> &Pedigrees {
         &self.pedigrees
     }
 
@@ -340,7 +362,7 @@ impl Header {
     ///
     /// assert_eq!(header.sample_names(), &expected);
     /// ```
-    pub fn sample_names(&self) -> &IndexSet<String> {
+    pub fn sample_names(&self) -> &SampleNames {
         &self.sample_names
     }
 

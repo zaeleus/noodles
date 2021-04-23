@@ -1,26 +1,25 @@
 use super::{
-    AlternativeAllele, Contig, FileFormat, Filter, Format, Header, Info, Meta, Pedigree, Record,
-    Sample,
+    AlternativeAllele, AlternativeAlleles, Contig, Contigs, FileFormat, Filter, Filters, Format,
+    Formats, Header, Info, Infos, Meta, Pedigree, Pedigrees, Record, Sample, SampleNames, Samples,
 };
 
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 
 /// A VCF header builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     file_format: FileFormat,
-    infos: IndexMap<crate::record::info::field::Key, Info>,
-    filters: IndexMap<String, Filter>,
-    formats: IndexMap<crate::record::genotype::field::Key, Format>,
-    alternative_alleles:
-        IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>,
+    infos: Infos,
+    filters: Filters,
+    formats: Formats,
+    alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
-    contigs: IndexMap<String, Contig>,
+    contigs: Contigs,
     meta: IndexMap<String, Meta>,
-    samples: IndexMap<String, Sample>,
-    pedigrees: IndexMap<String, Pedigree>,
+    samples: Samples,
+    pedigrees: Pedigrees,
     pedigree_db: Option<String>,
-    sample_names: IndexSet<String>,
+    sample_names: SampleNames,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -315,7 +314,7 @@ impl Builder {
     ///
     /// assert_eq!(header.sample_names(), &sample_names);
     /// ```
-    pub fn set_sample_names(mut self, sample_names: IndexSet<String>) -> Self {
+    pub fn set_sample_names(mut self, sample_names: SampleNames) -> Self {
         self.sample_names = sample_names;
         self
     }
