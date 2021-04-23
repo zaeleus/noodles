@@ -8,13 +8,13 @@ use self::ty::{read_type, Type};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    Int8(i8),
+    Int8(Option<i8>),
     Int8Array(Vec<i8>),
-    Int16(i16),
+    Int16(Option<i16>),
     Int16Array(Vec<i16>),
-    Int32(i32),
+    Int32(Option<i32>),
     Int32Array(Vec<i32>),
-    Float(f32),
+    Float(Option<f32>),
     FloatArray(Vec<f32>),
     String(Option<String>),
 }
@@ -27,24 +27,24 @@ where
 
     match ty {
         Type::Int8(len) => match len {
-            0 => todo!("unhandled int8 length: {}", len),
-            1 => read_i8(reader),
-            _ => read_i8_array(reader, len),
+            0 => Ok(Value::Int8(None)),
+            1 => read_i8(reader).map(Some).map(Value::Int8),
+            _ => read_i8_array(reader, len).map(Value::Int8Array),
         },
         Type::Int16(len) => match len {
-            0 => todo!("unhandled int16 length: {}", len),
-            1 => read_i16(reader),
-            _ => read_i16_array(reader, len),
+            0 => Ok(Value::Int16(None)),
+            1 => read_i16(reader).map(Some).map(Value::Int16),
+            _ => read_i16_array(reader, len).map(Value::Int16Array),
         },
         Type::Int32(len) => match len {
-            0 => todo!("unhandled int32 length: {}", len),
-            1 => read_i32(reader),
-            _ => read_i32_array(reader, len),
+            0 => Ok(Value::Int32(None)),
+            1 => read_i32(reader).map(Some).map(Value::Int32),
+            _ => read_i32_array(reader, len).map(Value::Int32Array),
         },
         Type::Float(len) => match len {
-            0 => todo!("unhandled float length: {}", len),
-            1 => read_float(reader),
-            _ => read_float_array(reader, len),
+            0 => Ok(Value::Float(None)),
+            1 => read_float(reader).map(Some).map(Value::Float),
+            _ => read_float_array(reader, len).map(Value::FloatArray),
         },
         Type::String(len) => match len {
             0 => Ok(Value::String(None)),
@@ -53,68 +53,68 @@ where
     }
 }
 
-fn read_i8<R>(reader: &mut R) -> io::Result<Value>
+fn read_i8<R>(reader: &mut R) -> io::Result<i8>
 where
     R: Read,
 {
-    reader.read_i8().map(Value::Int8)
+    reader.read_i8()
 }
 
-fn read_i8_array<R>(reader: &mut R, len: usize) -> io::Result<Value>
+fn read_i8_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i8>>
 where
     R: Read,
 {
     let mut buf = vec![0; len];
     reader.read_i8_into(&mut buf)?;
-    Ok(Value::Int8Array(buf))
+    Ok(buf)
 }
 
-fn read_i16<R>(reader: &mut R) -> io::Result<Value>
+fn read_i16<R>(reader: &mut R) -> io::Result<i16>
 where
     R: Read,
 {
-    reader.read_i16::<LittleEndian>().map(Value::Int16)
+    reader.read_i16::<LittleEndian>()
 }
 
-fn read_i16_array<R>(reader: &mut R, len: usize) -> io::Result<Value>
+fn read_i16_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i16>>
 where
     R: Read,
 {
     let mut buf = vec![0; len];
     reader.read_i16_into::<LittleEndian>(&mut buf)?;
-    Ok(Value::Int16Array(buf))
+    Ok(buf)
 }
 
-fn read_i32<R>(reader: &mut R) -> io::Result<Value>
+fn read_i32<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
 {
-    reader.read_i32::<LittleEndian>().map(Value::Int32)
+    reader.read_i32::<LittleEndian>()
 }
 
-fn read_i32_array<R>(reader: &mut R, len: usize) -> io::Result<Value>
+fn read_i32_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<i32>>
 where
     R: Read,
 {
     let mut buf = vec![0; len];
     reader.read_i32_into::<LittleEndian>(&mut buf)?;
-    Ok(Value::Int32Array(buf))
+    Ok(buf)
 }
 
-fn read_float<R>(reader: &mut R) -> io::Result<Value>
+fn read_float<R>(reader: &mut R) -> io::Result<f32>
 where
     R: Read,
 {
-    reader.read_f32::<LittleEndian>().map(Value::Float)
+    reader.read_f32::<LittleEndian>()
 }
 
-fn read_float_array<R>(reader: &mut R, len: usize) -> io::Result<Value>
+fn read_float_array<R>(reader: &mut R, len: usize) -> io::Result<Vec<f32>>
 where
     R: Read,
 {
     let mut buf = vec![0.0; len];
     reader.read_f32_into::<LittleEndian>(&mut buf)?;
-    Ok(Value::FloatArray(buf))
+    Ok(buf)
 }
 
 fn read_string<R>(reader: &mut R, len: usize) -> io::Result<String>
@@ -132,31 +132,49 @@ mod tests {
 
     #[test]
     fn test_read_value() {
+        let data = [0x01];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(Value::Int8(None))));
+
         let data = [0x11, 0x05];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int8(5))));
+        assert!(matches!(read_value(&mut reader), Ok(Value::Int8(Some(5)))));
 
         let data = [0x31, 0x05, 0x08, 0x0d];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int8Array(values)) if values == vec![5, 8, 13]
+            Ok(Value::Int8Array(values)) if values == [5, 8, 13]
         ));
+
+        let data = [0x02];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(Value::Int16(None))));
 
         let data = [0x12, 0x79, 0x01];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int16(377))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Value::Int16(Some(377)))
+        ));
 
         let data = [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int16Array(values)) if values == vec![377, 610, 987]
+            Ok(Value::Int16Array(values)) if values == [377, 610, 987]
         ));
+
+        let data = [0x03];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(Value::Int32(None))));
 
         let data = [0x13, 0x11, 0x25, 0x01, 0x00];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int32(75025))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Value::Int32(Some(75025)))
+        ));
 
         let data = [
             0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00,
@@ -164,18 +182,22 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int32Array(values)) if values == vec![75025, 121393, 196418]
+            Ok(Value::Int32Array(values)) if values == [75025, 121393, 196418]
         ));
+
+        let data = [0x05];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(Value::Float(None))));
 
         let data = [0x15, 0x00, 0x00, 0x00, 0x00];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Float(value)) if value == 0.0));
+        assert!(matches!(read_value(&mut reader), Ok(Value::Float(Some(value))) if value == 0.0));
 
         let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::FloatArray(value)) if value == vec![0.0, 0.5]
+            Ok(Value::FloatArray(value)) if value == [0.0, 0.5]
         ));
 
         let data = [0x07];

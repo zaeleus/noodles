@@ -28,9 +28,9 @@ where
         let value = read_value(reader)?;
 
         let next_len = match value {
-            Value::Int8(n) => i32::from(n),
-            Value::Int16(n) => i32::from(n),
-            Value::Int32(n) => n,
+            Value::Int8(Some(n)) => i32::from(n),
+            Value::Int16(Some(n)) => i32::from(n),
+            Value::Int32(Some(n)) => n,
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
