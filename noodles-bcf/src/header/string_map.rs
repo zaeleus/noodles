@@ -12,16 +12,24 @@ use vcf::header::{Format, Info};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringMap(Vec<String>);
 
+impl Default for StringMap {
+    fn default() -> Self {
+        // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
+        // encoded as the first entry in the header dictionary."
+        Self(vec![Filter::pass().id().into()])
+    }
+}
+
 impl FromStr for StringMap {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use vcf::header::record::Key;
 
-        // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
-        // encoded as the first entry in the header dictionary."
         let pass_filter = Filter::pass();
-        let mut values = vec![pass_filter.id().into()];
+
+        let string_map = StringMap::default();
+        let values = &mut string_map.0;
 
         for line in s.lines() {
             if line.starts_with("#CHROM") {
@@ -50,13 +58,18 @@ impl FromStr for StringMap {
             }
         }
 
-        Ok(Self(values))
+        Ok(string_map)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        assert_eq!(StringMap::default(), StringMap(vec![String::from("PASS")]));
+    }
 
     #[test]
     fn test_from_str() {
