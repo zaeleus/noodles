@@ -4,12 +4,14 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::record::{Ids, QualityScore};
+use noodles_vcf::record::{Filters, Ids, QualityScore};
+
+use crate::header::StringMap;
 
 use super::value::{read_value, Value};
 
 #[allow(dead_code, unused_variables)]
-pub fn read_site<R>(reader: &mut R) -> io::Result<()>
+pub fn read_site<R>(reader: &mut R, string_map: &StringMap) -> io::Result<()>
 where
     R: Read,
 {
@@ -32,7 +34,7 @@ where
 
     let id = read_id(reader)?;
     let ref_alt = read_ref_alt(reader, usize::from(allele_count))?;
-    let filter = read_filter(reader)?;
+    let filter = read_filter(reader, string_map)?;
 
     Ok(())
 }
@@ -77,20 +79,40 @@ where
     Ok(alleles)
 }
 
-fn read_filter<R>(reader: &mut R) -> io::Result<Vec<i8>>
+fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
 where
     R: Read,
 {
-    match read_value(reader) {
-        Ok(Value::Int8(None)) => Ok(Vec::new()),
-        Ok(Value::Int8(Some(i))) => Ok(vec![i]),
-        Ok(Value::Int8Array(indicies)) => Ok(indicies),
-        Ok(v) => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("expected i8, got {:?}", v),
-        )),
-        Err(e) => Err(e),
-    }
+    let indices = match read_value(reader) {
+        Ok(Value::Int8(None)) => Vec::new(),
+        Ok(Value::Int8(Some(i))) => vec![i],
+        Ok(Value::Int8Array(indices)) => indices,
+        Ok(v) => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected i8, got {:?}", v),
+            ))
+        }
+        Err(e) => return Err(e),
+    };
+
+    let raw_filters: Vec<_> = indices
+        .iter()
+        .map(|&i| {
+            usize::try_from(i)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .and_then(|j| {
+                    string_map.get(j).ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("invalid string map index: {}", j),
+                        )
+                    })
+                })
+        })
+        .collect::<Result<_, _>>()?;
+
+    Filters::try_from_iter(raw_filters).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
@@ -116,6 +138,8 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        read_site(&mut reader)
+        let string_map = StringMap::default();
+
+        read_site(&mut reader, &string_map)
     }
 }
