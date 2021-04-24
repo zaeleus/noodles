@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, str::FromStr};
+use std::{convert::TryFrom, ops::Deref, str::FromStr};
 
 use noodles_vcf::{
     self as vcf,
@@ -12,11 +12,25 @@ use vcf::header::{Format, Info};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringMap(Vec<String>);
 
+impl StringMap {
+    fn push(&mut self, value: String) {
+        self.0.push(value);
+    }
+}
+
 impl Default for StringMap {
     fn default() -> Self {
         // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
         // encoded as the first entry in the header dictionary."
         Self(vec![Filter::pass().id().into()])
+    }
+}
+
+impl Deref for StringMap {
+    type Target = [String];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -27,9 +41,7 @@ impl FromStr for StringMap {
         use vcf::header::record::Key;
 
         let pass_filter = Filter::pass();
-
-        let string_map = StringMap::default();
-        let values = &mut string_map.0;
+        let mut string_map = StringMap::default();
 
         for line in s.lines() {
             if line.starts_with("#CHROM") {
@@ -43,16 +55,16 @@ impl FromStr for StringMap {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
 
                     if filter.id() != pass_filter.id() {
-                        values.push(filter.id().into());
+                        string_map.push(filter.id().into());
                     }
                 }
                 Key::Format => {
                     let format = Format::try_from(record).map_err(ParseError::InvalidFormat)?;
-                    values.push(format.id().as_ref().into());
+                    string_map.push(format.id().as_ref().into());
                 }
                 Key::Info => {
                     let info = Info::try_from(record).map_err(ParseError::InvalidInfo)?;
-                    values.push(info.id().as_ref().into());
+                    string_map.push(info.id().as_ref().into());
                 }
                 _ => {}
             }
