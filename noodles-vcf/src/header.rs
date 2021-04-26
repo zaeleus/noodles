@@ -437,6 +437,10 @@ impl std::fmt::Display for Header {
             writeln!(f, "{}", info)?;
         }
 
+        for filter in self.filters().values() {
+            writeln!(f, "{}", filter)?;
+        }
+
         for format in self.formats().values() {
             writeln!(f, "{}", format)?;
         }
@@ -719,6 +723,7 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
+            .add_filter(Filter::pass())
             .set_assembly("file:///assemblies.fasta")
             .add_meta(Meta::new(
                 String::from("Assay"),
@@ -745,15 +750,15 @@ mod tests {
             ))
             .build();
 
-        let expected = "\
-##fileformat=VCFv4.3
+        let expected = r#"##fileformat=VCFv4.3
+##FILTER=<ID=PASS,Description="All filters passed">
 ##assembly=file:///assemblies.fasta
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 ##fileDate=20200514
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-";
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+"#;
 
         assert_eq!(header.to_string(), expected);
     }
