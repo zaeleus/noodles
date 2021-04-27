@@ -1,10 +1,10 @@
 mod ty;
 
+pub use self::ty::{read_type, Type};
+
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-
-use self::ty::{read_type, Type};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
