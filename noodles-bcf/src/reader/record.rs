@@ -135,36 +135,12 @@ fn read_info<R>(
 where
     R: Read,
 {
-    use vcf::{
-        header::info::ty::Type,
-        record::info::{self, Field},
-    };
+    use vcf::record::info::Field;
 
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let key: info::field::Key = match read_value(reader)? {
-            Value::Int8(Some(i)) => usize::try_from(i)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|j| {
-                    string_map.get(j).ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            format!("invalid string map index: {}", j),
-                        )
-                    })
-                })
-                .and_then(|s| {
-                    s.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })?,
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("expected i8, got {:?}", v),
-                ));
-            }
-        };
+        let key = read_info_key(reader, string_map)?;
 
         let info = infos.get(&key).ok_or_else(|| {
             io::Error::new(
@@ -173,50 +149,96 @@ where
             )
         })?;
 
-        let value = match info.ty() {
-            Type::Integer => match read_value(reader)? {
-                Value::Int8(Some(n)) => info::field::Value::Integer(i32::from(n)),
-                Value::Int8Array(values) => {
-                    info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-                }
-                Value::Int16(Some(n)) => info::field::Value::Integer(i32::from(n)),
-                Value::Int16Array(values) => {
-                    info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-                }
-                Value::Int32(Some(n)) => info::field::Value::Integer(n),
-                Value::Int32Array(values) => info::field::Value::IntegerArray(values),
-                v => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
-                    ));
-                }
-            },
-            Type::Flag => match read_value(reader)? {
-                Value::Int8(Some(1)) => info::field::Value::Flag,
-                v => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
-                    ));
-                }
-            },
-            Type::String => match read_value(reader)? {
-                Value::String(Some(s)) => info::field::Value::String(s),
-                v => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("type mismatch: expected {}, got {:?}", Type::String, v),
-                    ))
-                }
-            },
-            ty => todo!("unhandled INFO value type: {:?}", ty),
-        };
+        let value = read_info_value(reader, &info)?;
 
-        fields.push(Field::new(key, value));
+        let field = Field::new(key, value);
+        fields.push(field);
     }
 
     Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_info_key<R>(
+    reader: &mut R,
+    string_map: &StringMap,
+) -> io::Result<vcf::record::info::field::Key>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Value::Int8(Some(i)) => usize::try_from(i)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|j| {
+                string_map.get(j).ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("invalid string map index: {}", j),
+                    )
+                })
+            })
+            .and_then(|s| {
+                s.parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }),
+        v => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected i8, got {:?}", v),
+            ));
+        }
+    }
+}
+
+fn read_info_value<R>(
+    reader: &mut R,
+    info: &vcf::header::Info,
+) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    use vcf::{header::info::Type, record::info};
+
+    let value = match info.ty() {
+        Type::Integer => match read_value(reader)? {
+            Value::Int8(Some(n)) => info::field::Value::Integer(i32::from(n)),
+            Value::Int8Array(values) => {
+                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
+            }
+            Value::Int16(Some(n)) => info::field::Value::Integer(i32::from(n)),
+            Value::Int16Array(values) => {
+                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
+            }
+            Value::Int32(Some(n)) => info::field::Value::Integer(n),
+            Value::Int32Array(values) => info::field::Value::IntegerArray(values),
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
+                ));
+            }
+        },
+        Type::Flag => match read_value(reader)? {
+            Value::Int8(Some(1)) => info::field::Value::Flag,
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
+                ));
+            }
+        },
+        Type::String => match read_value(reader)? {
+            Value::String(Some(s)) => info::field::Value::String(s),
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("type mismatch: expected {}, got {:?}", Type::String, v),
+                ))
+            }
+        },
+        ty => todo!("unhandled INFO value type: {:?}", ty),
+    };
+
+    Ok(value)
 }
 
 fn read_genotypes<R>(
