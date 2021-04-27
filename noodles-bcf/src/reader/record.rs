@@ -31,7 +31,7 @@ where
     let allele_count = (n_allele_info >> 16) as u16;
     let info_count = (n_allele_info & 0xffff) as u16;
 
-    let n_fmt_sample = reader.read_i32::<LittleEndian>()?;
+    let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
     let format_count = (n_fmt_sample >> 24) as u8;
     let sample_count = n_fmt_sample & 0xffffff;
 
