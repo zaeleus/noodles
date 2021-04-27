@@ -1,3 +1,7 @@
+mod site;
+
+pub use self::site::Site;
+
 use std::{
     convert::TryFrom,
     io::{self, Read},
@@ -13,8 +17,12 @@ use crate::header::StringMap;
 
 use super::value::{read_type, read_value, Value};
 
-#[allow(dead_code, unused_variables)]
-pub fn read_site<R>(reader: &mut R, header: &vcf::Header, string_map: &StringMap) -> io::Result<()>
+#[allow(dead_code)]
+pub fn read_site<R>(
+    reader: &mut R,
+    header: &vcf::Header,
+    string_map: &StringMap,
+) -> io::Result<(Site, Vec<Genotype>)>
 where
     R: Read,
 {
@@ -40,6 +48,19 @@ where
     let filter = read_filter(reader, string_map)?;
     let info = read_info(reader, header.infos(), string_map, usize::from(info_count))?;
 
+    let site = Site {
+        chrom,
+        pos,
+        rlen,
+        qual,
+        n_allele_info,
+        n_fmt_sample,
+        id,
+        ref_alt,
+        filter,
+        info,
+    };
+
     let genotypes = read_genotypes(
         reader,
         string_map,
@@ -47,7 +68,7 @@ where
         usize::from(format_count),
     )?;
 
-    Ok(())
+    Ok((site, genotypes))
 }
 
 fn read_id<R>(reader: &mut R) -> io::Result<Ids>
@@ -352,6 +373,8 @@ mod tests {
 
     #[test]
     fn test_read_site() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_vcf::record;
+
         // § Putting it all together (2021-01-13)
         //
         // Note that the data in the reference table mixes big and little endian. INFO string map
@@ -419,7 +442,137 @@ mod tests {
         let header = raw_header.parse()?;
         let string_map = raw_header.parse()?;
 
-        read_site(&mut reader, &header, &string_map)?;
+        let (actual_site, actual_genotypes) = read_site(&mut reader, &header, &string_map)?;
+
+        let expected_site = Site {
+            chrom: 1,
+            pos: 100,
+            rlen: 1,
+            qual: QualityScore::try_from(30.1)?,
+            n_allele_info: 2 << 16 | 4,
+            n_fmt_sample: 5 << 24 | 3,
+            id: "rs123".parse()?,
+            ref_alt: vec![String::from("A"), String::from("C")],
+            filter: Filters::try_from_iter(&["PASS"])?,
+            info: Info::try_from(vec![
+                record::info::Field::new("HM3".parse()?, record::info::field::Value::Flag),
+                record::info::Field::new(
+                    record::info::field::Key::AlleleCount,
+                    record::info::field::Value::Integer(3),
+                ),
+                record::info::Field::new(
+                    record::info::field::Key::TotalAlleleCount,
+                    record::info::field::Value::Integer(6),
+                ),
+                record::info::Field::new(
+                    record::info::field::Key::AncestralAllele,
+                    record::info::field::Value::String(String::from("C")),
+                ),
+            ])?,
+        };
+
+        assert_eq!(actual_site, expected_site);
+
+        let expected_genotypes = vec![
+            Genotype::try_from(vec![
+                record::genotype::Field::new(
+                    record::genotype::field::Key::Genotype,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(2),
+                        Some(2),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotype::field::Value::Integer(10)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepth,
+                    Some(record::genotype::field::Value::Integer(32)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepths,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(32),
+                        Some(0),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(0),
+                        Some(10),
+                        Some(100),
+                    ])),
+                ),
+            ])?,
+            Genotype::try_from(vec![
+                record::genotype::Field::new(
+                    record::genotype::field::Key::Genotype,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(2),
+                        Some(4),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotype::field::Value::Integer(10)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepth,
+                    Some(record::genotype::field::Value::Integer(48)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepths,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(32),
+                        Some(16),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(10),
+                        Some(0),
+                        Some(100),
+                    ])),
+                ),
+            ])?,
+            Genotype::try_from(vec![
+                record::genotype::Field::new(
+                    record::genotype::field::Key::Genotype,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(4),
+                        Some(4),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotype::field::Value::Integer(10)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepth,
+                    Some(record::genotype::field::Value::Integer(64)),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::ReadDepths,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(0),
+                        Some(64),
+                    ])),
+                ),
+                record::genotype::Field::new(
+                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotype::field::Value::IntegerArray(vec![
+                        Some(100),
+                        Some(10),
+                        Some(0),
+                    ])),
+                ),
+            ])?,
+        ];
+
+        assert_eq!(actual_genotypes, expected_genotypes);
 
         Ok(())
     }
