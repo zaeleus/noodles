@@ -7,6 +7,9 @@ pub use self::chunk::Chunk;
 
 pub(crate) use self::builder::Builder;
 
+// MAX_BIN (2019-04-09)
+pub(crate) const MAX_ID: usize = ((1 << 18) - 1) / 7 + 1;
+
 /// A tabix index reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
