@@ -9,4 +9,6 @@ edition = "2018"
 indexmap = "1.4.0"
 nom = "6.1.2"
 noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-core = { path = "../noodles-core" }
+noodles-tabix = { path = "../noodles-tabix" }
 percent-encoding = "2.1.0"

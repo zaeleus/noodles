@@ -1,12 +1,15 @@
 //! VCF reader and iterators.
 
+mod query;
 mod records;
 
-pub use self::records::Records;
+pub use self::{query::Query, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_tabix as tabix;
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -241,6 +244,64 @@ where
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos)
     }
+
+    /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_core::Region;
+    /// use noodles_bgzf as bgzf;;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(vcf::Reader::new)?;
+    ///
+    /// let index = tabix::read("sample.vcf.gz.tbi")?;
+    /// let region = Region::mapped("sq0", 8, 13);
+    /// let query = reader.query(&index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// Ok::<(), io::Error>(())
+    /// ```
+    pub fn query(&mut self, index: &tabix::Index, region: &Region) -> io::Result<Query<'_, R>> {
+        let (i, reference_sequence_name, start, end) = resolve_region(index, region)?;
+
+        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "could not find reference in index: {} >= {}",
+                    i,
+                    index.reference_sequences().len()
+                ),
+            )
+        })?;
+
+        let query_bins = index_reference_sequence.query(start, end);
+
+        let chunks: Vec<_> = query_bins
+            .iter()
+            .flat_map(|bin| bin.chunks())
+            .cloned()
+            .collect();
+
+        // TODO: optimize chunks
+
+        Ok(Query::new(
+            self,
+            chunks,
+            reference_sequence_name,
+            start,
+            end,
+        ))
+    }
 }
 
 // Reads all bytes until a line feed ('\n') or EOF is reached.
@@ -264,6 +325,32 @@ where
             Ok(n)
         }
         Err(e) => Err(e),
+    }
+}
+
+fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String, i32, i32)> {
+    match region {
+        Region::Mapped { name, start, end } => {
+            let i = index
+                .reference_sequence_names()
+                .iter()
+                .position(|n| name == n)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!(
+                            "region reference sequence does not exist in reference sequences: {:?}",
+                            region
+                        ),
+                    )
+                })?;
+
+            Ok((i, name.into(), *start, *end))
+        }
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "region is not mapped",
+        )),
     }
 }
 
