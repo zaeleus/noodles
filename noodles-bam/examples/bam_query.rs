@@ -1,4 +1,4 @@
-//! Querys a BAM file with a given region.
+//! Queries a BAM file with a given region.
 //!
 //! The input BAM must have an index in the same directory.
 //!
