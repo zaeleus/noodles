@@ -246,6 +246,7 @@ where
         },
         Type::Float => match read_value(reader)? {
             Some(Value::Float(Some(n))) => info::field::Value::Float(n),
+            Some(Value::FloatArray(values)) => info::field::Value::FloatArray(values),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
