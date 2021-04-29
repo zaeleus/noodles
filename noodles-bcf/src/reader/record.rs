@@ -131,7 +131,7 @@ where
             usize::try_from(i)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 .and_then(|j| {
-                    string_map.get(j).ok_or_else(|| {
+                    string_map.get_index(j).ok_or_else(|| {
                         io::Error::new(
                             io::ErrorKind::InvalidData,
                             format!("invalid string map index: {}", j),
@@ -187,7 +187,7 @@ where
         Some(Value::Int8(Some(i))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
-                string_map.get(j).ok_or_else(|| {
+                string_map.get_index(j).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
                         format!("invalid string map index: {}", j),
@@ -310,7 +310,7 @@ where
         Some(Value::Int8(Some(i))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
-                string_map.get(j).ok_or_else(|| {
+                string_map.get_index(j).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
                         format!("invalid string map index: {}", j),
