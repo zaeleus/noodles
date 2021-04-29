@@ -19,7 +19,7 @@ pub enum Value {
     String(Option<String>),
 }
 
-pub fn read_value<R>(reader: &mut R) -> io::Result<Value>
+pub fn read_value<R>(reader: &mut R) -> io::Result<Option<Value>>
 where
     R: Read,
 {
@@ -27,30 +27,35 @@ where
 
     match ty {
         Some(Type::Int8(len)) => match len {
-            0 => Ok(Value::Int8(None)),
-            1 => read_i8(reader).map(Some).map(Value::Int8),
-            _ => read_i8_array(reader, len).map(Value::Int8Array),
+            0 => Ok(Some(Value::Int8(None))),
+            1 => read_i8(reader).map(Some).map(Value::Int8).map(Some),
+            _ => read_i8_array(reader, len).map(Value::Int8Array).map(Some),
         },
         Some(Type::Int16(len)) => match len {
-            0 => Ok(Value::Int16(None)),
-            1 => read_i16(reader).map(Some).map(Value::Int16),
-            _ => read_i16_array(reader, len).map(Value::Int16Array),
+            0 => Ok(Some(Value::Int16(None))),
+            1 => read_i16(reader).map(Some).map(Value::Int16).map(Some),
+            _ => read_i16_array(reader, len).map(Value::Int16Array).map(Some),
         },
         Some(Type::Int32(len)) => match len {
-            0 => Ok(Value::Int32(None)),
-            1 => read_i32(reader).map(Some).map(Value::Int32),
-            _ => read_i32_array(reader, len).map(Value::Int32Array),
+            0 => Ok(Some(Value::Int32(None))),
+            1 => read_i32(reader).map(Some).map(Value::Int32).map(Some),
+            _ => read_i32_array(reader, len).map(Value::Int32Array).map(Some),
         },
         Some(Type::Float(len)) => match len {
-            0 => Ok(Value::Float(None)),
-            1 => read_float(reader).map(Some).map(Value::Float),
-            _ => read_float_array(reader, len).map(Value::FloatArray),
+            0 => Ok(Some(Value::Float(None))),
+            1 => read_float(reader).map(Some).map(Value::Float).map(Some),
+            _ => read_float_array(reader, len)
+                .map(Value::FloatArray)
+                .map(Some),
         },
         Some(Type::String(len)) => match len {
-            0 => Ok(Value::String(None)),
-            _ => read_string(reader, len).map(Some).map(Value::String),
+            0 => Ok(Some(Value::String(None))),
+            _ => read_string(reader, len)
+                .map(Some)
+                .map(Value::String)
+                .map(Some),
         },
-        None => todo!("unhandled missing type"),
+        None => Ok(None),
     }
 }
 
@@ -135,46 +140,58 @@ mod tests {
     fn test_read_value() {
         let data = [0x01];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int8(None))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Int8(None)))
+        ));
 
         let data = [0x11, 0x05];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int8(Some(5)))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Int8(Some(5))))
+        ));
 
         let data = [0x31, 0x05, 0x08, 0x0d];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int8Array(values)) if values == [5, 8, 13]
+            Ok(Some(Value::Int8Array(values))) if values == [5, 8, 13]
         ));
 
         let data = [0x02];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int16(None))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Int16(None)))
+        ));
 
         let data = [0x12, 0x79, 0x01];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int16(Some(377)))
+            Ok(Some(Value::Int16(Some(377))))
         ));
 
         let data = [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int16Array(values)) if values == [377, 610, 987]
+            Ok(Some(Value::Int16Array(values))) if values == [377, 610, 987]
         ));
 
         let data = [0x03];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Int32(None))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Int32(None)))
+        ));
 
         let data = [0x13, 0x11, 0x25, 0x01, 0x00];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int32(Some(75025)))
+            Ok(Some(Value::Int32(Some(75025))))
         ));
 
         let data = [
@@ -183,40 +200,48 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::Int32Array(values)) if values == [75025, 121393, 196418]
+            Ok(Some(Value::Int32Array(values))) if values == [75025, 121393, 196418]
         ));
 
         let data = [0x05];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Float(None))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Float(None)))
+        ));
 
         let data = [0x15, 0x00, 0x00, 0x00, 0x00];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::Float(Some(value))) if value == 0.0));
+        assert!(
+            matches!(read_value(&mut reader), Ok(Some(Value::Float(Some(value)))) if value == 0.0)
+        );
 
         let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::FloatArray(value)) if value == [0.0, 0.5]
+            Ok(Some(Value::FloatArray(value))) if value == [0.0, 0.5]
         ));
 
         let data = [0x07];
         let mut reader = &data[..];
-        assert!(matches!(read_value(&mut reader), Ok(Value::String(None))));
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::String(None)))
+        ));
 
         let data = [0x17, 0x6e];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::String(Some(value))) if value == "n"
+            Ok(Some(Value::String(Some(value)))) if value == "n"
         ));
 
         let data = [0x47, 0x6e, 0x64, 0x6c, 0x73];
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Value::String(Some(value))) if value == "ndls"
+            Ok(Some(Value::String(Some(value)))) if value == "ndls"
         ));
     }
 }

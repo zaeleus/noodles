@@ -75,16 +75,15 @@ fn read_id<R>(reader: &mut R) -> io::Result<Ids>
 where
     R: Read,
 {
-    match read_value(reader) {
-        Ok(Value::String(Some(id))) => id
+    match read_value(reader)? {
+        Some(Value::String(Some(id))) => id
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        Ok(Value::String(None)) => Ok(Ids::default()),
-        Ok(v) => Err(io::Error::new(
+        Some(Value::String(None)) => Ok(Ids::default()),
+        v => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("expected string, got {:?}", v),
         )),
-        Err(e) => Err(e),
     }
 }
 
@@ -95,16 +94,15 @@ where
     let mut alleles = Vec::with_capacity(len);
 
     for _ in 0..len {
-        match read_value(reader) {
-            Ok(Value::String(Some(s))) => alleles.push(s),
-            Ok(Value::String(None)) => alleles.push(String::from(".")),
-            Ok(v) => {
+        match read_value(reader)? {
+            Some(Value::String(Some(s))) => alleles.push(s),
+            Some(Value::String(None)) => alleles.push(String::from(".")),
+            v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!("expected string, got {:?}", v),
                 ))
             }
-            Err(e) => return Err(e),
         }
     }
 
@@ -115,17 +113,16 @@ fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
 where
     R: Read,
 {
-    let indices = match read_value(reader) {
-        Ok(Value::Int8(None)) => Vec::new(),
-        Ok(Value::Int8(Some(i))) => vec![i],
-        Ok(Value::Int8Array(indices)) => indices,
-        Ok(v) => {
+    let indices = match read_value(reader)? {
+        Some(Value::Int8(None)) => Vec::new(),
+        Some(Value::Int8(Some(i))) => vec![i],
+        Some(Value::Int8Array(indices)) => indices,
+        v => {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("expected i8, got {:?}", v),
             ))
         }
-        Err(e) => return Err(e),
     };
 
     let raw_filters: Vec<_> = indices
@@ -187,7 +184,7 @@ where
     R: Read,
 {
     match read_value(reader)? {
-        Value::Int8(Some(i)) => usize::try_from(i)
+        Some(Value::Int8(Some(i))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
                 string_map.get(j).ok_or_else(|| {
@@ -221,16 +218,16 @@ where
 
     let value = match info.ty() {
         Type::Integer => match read_value(reader)? {
-            Value::Int8(Some(n)) => info::field::Value::Integer(i32::from(n)),
-            Value::Int8Array(values) => {
+            Some(Value::Int8(Some(n))) => info::field::Value::Integer(i32::from(n)),
+            Some(Value::Int8Array(values)) => {
                 info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
             }
-            Value::Int16(Some(n)) => info::field::Value::Integer(i32::from(n)),
-            Value::Int16Array(values) => {
+            Some(Value::Int16(Some(n))) => info::field::Value::Integer(i32::from(n)),
+            Some(Value::Int16Array(values)) => {
                 info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
             }
-            Value::Int32(Some(n)) => info::field::Value::Integer(n),
-            Value::Int32Array(values) => info::field::Value::IntegerArray(values),
+            Some(Value::Int32(Some(n))) => info::field::Value::Integer(n),
+            Some(Value::Int32Array(values)) => info::field::Value::IntegerArray(values),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -239,7 +236,7 @@ where
             }
         },
         Type::Flag => match read_value(reader)? {
-            Value::Int8(Some(1)) => info::field::Value::Flag,
+            Some(Value::Int8(Some(1))) => info::field::Value::Flag,
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -248,7 +245,7 @@ where
             }
         },
         Type::String => match read_value(reader)? {
-            Value::String(Some(s)) => info::field::Value::String(s),
+            Some(Value::String(Some(s))) => info::field::Value::String(s),
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -301,7 +298,7 @@ where
     R: Read,
 {
     match read_value(reader)? {
-        Value::Int8(Some(i)) => usize::try_from(i)
+        Some(Value::Int8(Some(i))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
                 string_map.get(j).ok_or_else(|| {
