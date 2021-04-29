@@ -1,4 +1,4 @@
-mod record;
+pub mod record;
 mod value;
 
 use std::{
