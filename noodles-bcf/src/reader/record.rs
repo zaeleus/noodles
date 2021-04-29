@@ -236,7 +236,7 @@ where
             }
         },
         Type::Flag => match read_value(reader)? {
-            Some(Value::Int8(Some(1))) => info::field::Value::Flag,
+            Some(Value::Int8(Some(1))) | None => info::field::Value::Flag,
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
