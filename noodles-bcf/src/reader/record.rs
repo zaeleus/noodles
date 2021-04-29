@@ -244,6 +244,15 @@ where
                 ));
             }
         },
+        Type::Float => match read_value(reader)? {
+            Some(Value::Float(Some(n))) => info::field::Value::Float(n),
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("type mismatch: expected {}, got {:?}", Type::Float, v),
+                ))
+            }
+        },
         Type::String => match read_value(reader)? {
             Some(Value::String(Some(s))) => info::field::Value::String(s),
             v => {
