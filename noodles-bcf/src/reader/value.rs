@@ -26,30 +26,31 @@ where
     let ty = read_type(reader)?;
 
     match ty {
-        Type::Int8(len) => match len {
+        Some(Type::Int8(len)) => match len {
             0 => Ok(Value::Int8(None)),
             1 => read_i8(reader).map(Some).map(Value::Int8),
             _ => read_i8_array(reader, len).map(Value::Int8Array),
         },
-        Type::Int16(len) => match len {
+        Some(Type::Int16(len)) => match len {
             0 => Ok(Value::Int16(None)),
             1 => read_i16(reader).map(Some).map(Value::Int16),
             _ => read_i16_array(reader, len).map(Value::Int16Array),
         },
-        Type::Int32(len) => match len {
+        Some(Type::Int32(len)) => match len {
             0 => Ok(Value::Int32(None)),
             1 => read_i32(reader).map(Some).map(Value::Int32),
             _ => read_i32_array(reader, len).map(Value::Int32Array),
         },
-        Type::Float(len) => match len {
+        Some(Type::Float(len)) => match len {
             0 => Ok(Value::Float(None)),
             1 => read_float(reader).map(Some).map(Value::Float),
             _ => read_float_array(reader, len).map(Value::FloatArray),
         },
-        Type::String(len) => match len {
+        Some(Type::String(len)) => match len {
             0 => Ok(Value::String(None)),
             _ => read_string(reader, len).map(Some).map(Value::String),
         },
+        None => todo!("unhandled missing type"),
     }
 }
 

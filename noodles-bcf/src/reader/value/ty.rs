@@ -16,7 +16,7 @@ pub enum Type {
     String(usize),
 }
 
-pub fn read_type<R>(reader: &mut R) -> io::Result<Type>
+pub fn read_type<R>(reader: &mut R) -> io::Result<Option<Type>>
 where
     R: Read,
 {
@@ -46,11 +46,12 @@ where
     let ty = encoding & 0x0f;
 
     match ty {
-        1 => Ok(Type::Int8(len)),
-        2 => Ok(Type::Int16(len)),
-        3 => Ok(Type::Int32(len)),
-        5 => Ok(Type::Float(len)),
-        7 => Ok(Type::String(len)),
+        0 => Ok(None),
+        1 => Ok(Some(Type::Int8(len))),
+        2 => Ok(Some(Type::Int16(len))),
+        3 => Ok(Some(Type::Int32(len))),
+        5 => Ok(Some(Type::Float(len))),
+        7 => Ok(Some(Type::String(len))),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("invalid type: {}", ty),
@@ -64,45 +65,49 @@ mod tests {
 
     #[test]
     fn test_read_type() -> io::Result<()> {
+        let data = [0x00];
+        let mut reader = &data[..];
+        assert_eq!(read_type(&mut reader)?, None);
+
         let data = [0x11];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int8(1));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(1)));
 
         let data = [0x31];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int8(3));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(3)));
 
         let data = [0x12];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int16(1));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int16(1)));
 
         let data = [0x32];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int16(3));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int16(3)));
 
         let data = [0x13];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int32(1));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int32(1)));
 
         let data = [0x33];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int32(3));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int32(3)));
 
         let data = [0x15];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Float(1));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Float(1)));
 
         let data = [0x35];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Float(3));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Float(3)));
 
         let data = [0x17];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::String(1));
+        assert_eq!(read_type(&mut reader)?, Some(Type::String(1)));
 
         let data = [0x37];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::String(3));
+        assert_eq!(read_type(&mut reader)?, Some(Type::String(3)));
 
         Ok(())
     }
@@ -111,7 +116,7 @@ mod tests {
     fn test_read_type_with_gt_14_values() -> io::Result<()> {
         let data = [0xf1, 0x11, 0x15];
         let mut reader = &data[..];
-        assert_eq!(read_type(&mut reader)?, Type::Int8(21));
+        assert_eq!(read_type(&mut reader)?, Some(Type::Int8(21)));
         Ok(())
     }
 }

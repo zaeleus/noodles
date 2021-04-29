@@ -338,7 +338,7 @@ where
     let mut values = Vec::with_capacity(sample_count);
 
     match read_type(reader)? {
-        Type::Int8(len) => match len {
+        Some(Type::Int8(len)) => match len {
             0 => todo!("unhandled i8 type length: {}", len),
             1 => {
                 for _ in 0..sample_count {
