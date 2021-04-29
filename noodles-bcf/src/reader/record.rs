@@ -114,7 +114,7 @@ where
     R: Read,
 {
     let indices = match read_value(reader)? {
-        Some(Value::Int8(None)) => Vec::new(),
+        Some(Value::Int8(None)) | None => Vec::new(),
         Some(Value::Int8(Some(i))) => vec![i],
         Some(Value::Int8Array(indices)) => indices,
         v => {
