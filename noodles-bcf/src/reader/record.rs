@@ -17,6 +17,8 @@ use crate::header::StringMap;
 
 use super::value::{read_type, read_value, Value};
 
+const MISSING_QUALITY_SCORE: u32 = 0x7f800001;
+
 #[allow(dead_code)]
 pub fn read_site<R>(
     reader: &mut R,
@@ -32,7 +34,11 @@ where
     let rlen = reader.read_i32::<LittleEndian>()?;
 
     let qual = reader.read_f32::<LittleEndian>().and_then(|value| {
-        QualityScore::try_from(value).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        if value.to_bits() == MISSING_QUALITY_SCORE {
+            Ok(QualityScore::default())
+        } else {
+            QualityScore::try_from(value).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
     })?;
 
     let n_allele_info = reader.read_i32::<LittleEndian>()?;
