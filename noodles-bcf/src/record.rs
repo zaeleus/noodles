@@ -1,5 +1,7 @@
 //! BCF record and fields.
 
+mod convert;
+
 use std::ops::{Deref, DerefMut};
 
 /// A BCF record.
