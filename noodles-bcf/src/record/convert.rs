@@ -1,7 +1,7 @@
 use std::{convert::TryFrom, io};
 
 use noodles_vcf::{self as vcf, record::Position};
-use vcf::record::AlternateBases;
+use vcf::record::{AlternateBases, Format};
 
 use crate::{header::StringMap, reader::record::read_site};
 
@@ -14,7 +14,7 @@ impl Record {
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
         let mut reader = &self[..];
-        let (site, _) = read_site(&mut reader, header, string_map)?;
+        let (site, genotypes) = read_site(&mut reader, header, string_map)?;
 
         let (_, contig) = usize::try_from(site.chrom)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
@@ -59,7 +59,7 @@ impl Record {
         let filters = site.filter;
         let info = site.info;
 
-        let builder = vcf::Record::builder()
+        let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
             .set_position(position)
             .set_ids(ids)
@@ -68,6 +68,13 @@ impl Record {
             .set_quality_score(quality_score)
             .set_filters(filters)
             .set_info(info);
+
+        if let Some(first_genotype) = genotypes.first() {
+            let keys: Vec<_> = first_genotype.keys().cloned().collect();
+            let format = Format::try_from(keys)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            builder = builder.set_format(format).set_genotypes(genotypes);
+        }
 
         builder
             .build()
