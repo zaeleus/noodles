@@ -557,16 +557,16 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_genotype_info() -> Result<(), ParseError> {
+    fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
-        let expected = [
+        let expected = Format::try_from(vec![
             genotype::field::Key::Genotype,
             genotype::field::Key::ConditionalGenotypeQuality,
-        ];
+        ])?;
 
-        assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
+        assert_eq!(record.format(), Some(&expected));
 
         let genotypes = record.genotypes();
 

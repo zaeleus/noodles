@@ -1,6 +1,8 @@
 //! VCF record genotype format.
 
-use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+
+use indexmap::IndexSet;
 
 use super::genotype::field::{key, Key};
 
@@ -8,10 +10,10 @@ const DELIMITER: char = ':';
 
 /// A VCF record genotype format (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Format(Vec<Key>);
+pub struct Format(IndexSet<Key>);
 
 impl Deref for Format {
-    type Target = [Key];
+    type Target = IndexSet<Key>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -110,7 +112,7 @@ impl TryFrom<Vec<Key>> for Format {
             }
         }
 
-        let mut set = HashSet::new();
+        let mut set = IndexSet::new();
 
         for key in &keys {
             if !set.insert(key.clone()) {
@@ -118,7 +120,7 @@ impl TryFrom<Vec<Key>> for Format {
             }
         }
 
-        Ok(Self(keys))
+        Ok(Self(set))
     }
 }
 
@@ -128,24 +130,35 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let format = Format(vec![Key::Genotype]);
+        let format = Format(vec![Key::Genotype].into_iter().collect());
         assert_eq!(format.to_string(), "GT");
 
-        let format = Format(vec![
-            Key::Genotype,
-            Key::ConditionalGenotypeQuality,
-            Key::ReadDepth,
-            Key::HaplotypeQuality,
-        ]);
+        let format = Format(
+            vec![
+                Key::Genotype,
+                Key::ConditionalGenotypeQuality,
+                Key::ReadDepth,
+                Key::HaplotypeQuality,
+            ]
+            .into_iter()
+            .collect(),
+        );
         assert_eq!(format.to_string(), "GT:GQ:DP:HQ");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!("GT".parse(), Ok(Format(vec![Key::Genotype])));
+        assert_eq!(
+            "GT".parse(),
+            Ok(Format(vec![Key::Genotype].into_iter().collect()))
+        );
         assert_eq!(
             "GT:GQ".parse(),
-            Ok(Format(vec![Key::Genotype, Key::ConditionalGenotypeQuality]))
+            Ok(Format(
+                vec![Key::Genotype, Key::ConditionalGenotypeQuality]
+                    .into_iter()
+                    .collect()
+            ))
         );
 
         assert_eq!("".parse::<Format>(), Err(ParseError::Empty));
@@ -159,17 +172,23 @@ mod tests {
     fn test_try_from_vec_key_for_format() {
         assert_eq!(
             Format::try_from(vec![Key::Genotype]),
-            Ok(Format(vec![Key::Genotype]))
+            Ok(Format(vec![Key::Genotype].into_iter().collect()))
         );
 
         assert_eq!(
             Format::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality]),
-            Ok(Format(vec![Key::Genotype, Key::ConditionalGenotypeQuality]))
+            Ok(Format(
+                vec![Key::Genotype, Key::ConditionalGenotypeQuality]
+                    .into_iter()
+                    .collect()
+            ))
         );
 
         assert_eq!(
             Format::try_from(vec![Key::ConditionalGenotypeQuality]),
-            Ok(Format(vec![Key::ConditionalGenotypeQuality]))
+            Ok(Format(
+                vec![Key::ConditionalGenotypeQuality].into_iter().collect()
+            ))
         );
 
         assert_eq!(
