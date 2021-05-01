@@ -298,7 +298,7 @@ where
         };
 
         for (fields, value) in genotypes.iter_mut().zip(values) {
-            let field = Field::new(key.clone(), Some(value));
+            let field = Field::new(key.clone(), value);
             fields.push(field);
         }
     }
@@ -345,7 +345,7 @@ where
 fn read_genotype_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<vcf::record::genotype::field::Value>>
+) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
 where
     R: Read,
 {
@@ -357,15 +357,16 @@ where
 
     match read_type(reader)? {
         Some(Type::Int8(len)) => match len {
-            0 => todo!("unhandled i8 type length: {}", len),
+            0 => values.push(None),
             1 => {
                 for _ in 0..sample_count {
-                    let value = reader
-                        .read_i8()
-                        .map(i32::from)
-                        .map(genotype::field::Value::Integer)?;
+                    let n = reader.read_i8().map(i32::from)?;
 
-                    values.push(value);
+                    if n == -128 {
+                        values.push(None);
+                    } else {
+                        values.push(Some(genotype::field::Value::Integer(n)));
+                    }
                 }
             }
             _ => {
@@ -373,9 +374,12 @@ where
                     let mut buf = vec![0; len];
                     reader.read_i8_into(&mut buf)?;
                     let value = genotype::field::Value::IntegerArray(
-                        buf.into_iter().map(i32::from).map(Some).collect(),
+                        buf.into_iter()
+                            .map(i32::from)
+                            .map(|n| if n == -128 { None } else { Some(n) })
+                            .collect(),
                     );
-                    values.push(value);
+                    values.push(Some(value));
                 }
             }
         },
@@ -388,7 +392,7 @@ where
 fn read_genotype_genotype_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<vcf::record::genotype::field::Value>>
+) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
 where
     R: Read,
 {
@@ -400,7 +404,7 @@ where
 
     match read_type(reader)? {
         Some(Type::Int8(len)) => match len {
-            0 => todo!("unhandled i8 type length: {}", len),
+            0 => values.push(None),
             1 => {
                 for _ in 0..sample_count {
                     let value = reader
@@ -408,7 +412,7 @@ where
                         .map(|v| parse_genotype_genotype_values(&[v]))
                         .map(genotype::field::Value::String)?;
 
-                    values.push(value);
+                    values.push(Some(value));
                 }
             }
             _ => {
@@ -417,7 +421,7 @@ where
                     reader.read_i8_into(&mut buf)?;
                     let value =
                         genotype::field::Value::String(parse_genotype_genotype_values(&buf));
-                    values.push(value);
+                    values.push(Some(value));
                 }
             }
         },
