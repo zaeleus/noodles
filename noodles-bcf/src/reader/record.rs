@@ -284,13 +284,18 @@ fn read_genotypes<R>(
 where
     R: Read,
 {
-    use vcf::record::genotype::Field;
+    use vcf::record::genotype::{self, Field};
 
     let mut genotypes = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
         let key = read_genotype_key(reader, string_map)?;
-        let values = read_genotype_values(reader, sample_count)?;
+
+        let values = if key == genotype::field::Key::Genotype {
+            read_genotype_genotype_values(reader, sample_count)?
+        } else {
+            read_genotype_values(reader, sample_count)?
+        };
 
         for (fields, value) in genotypes.iter_mut().zip(values) {
             let field = Field::new(key.clone(), Some(value));
@@ -378,6 +383,77 @@ where
     }
 
     Ok(values)
+}
+
+fn read_genotype_genotype_values<R>(
+    reader: &mut R,
+    sample_count: usize,
+) -> io::Result<Vec<vcf::record::genotype::field::Value>>
+where
+    R: Read,
+{
+    use vcf::record::genotype;
+
+    use super::value::Type;
+
+    let mut values = Vec::with_capacity(sample_count);
+
+    match read_type(reader)? {
+        Some(Type::Int8(len)) => match len {
+            0 => todo!("unhandled i8 type length: {}", len),
+            1 => {
+                for _ in 0..sample_count {
+                    let value = reader
+                        .read_i8()
+                        .map(|v| parse_genotype_genotype_values(&[v]))
+                        .map(genotype::field::Value::String)?;
+
+                    values.push(value);
+                }
+            }
+            _ => {
+                for _ in 0..sample_count {
+                    let mut buf = vec![0; len];
+                    reader.read_i8_into(&mut buf)?;
+                    let value =
+                        genotype::field::Value::String(parse_genotype_genotype_values(&buf));
+                    values.push(value);
+                }
+            }
+        },
+        ty => todo!("unhandled type: {:?}", ty),
+    }
+
+    Ok(values)
+}
+
+fn parse_genotype_genotype_values(values: &[i8]) -> String {
+    let mut genotype = String::new();
+
+    for (i, &value) in values.iter().enumerate() {
+        if value == -127 {
+            break;
+        }
+
+        let j = (value >> 1) - 1;
+        let is_phased = value & 0x01 == 1;
+
+        if i > 0 {
+            if is_phased {
+                genotype.push('|');
+            } else {
+                genotype.push('/');
+            }
+        }
+
+        if j == -1 {
+            genotype.push('.');
+        } else {
+            genotype.push_str(&format!("{}", j));
+        }
+    }
+
+    genotype
 }
 
 #[cfg(test)]
@@ -490,10 +566,7 @@ mod tests {
             Genotype::try_from(vec![
                 record::genotype::Field::new(
                     record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(2),
-                        Some(2),
-                    ])),
+                    Some(record::genotype::field::Value::String(String::from("0/0"))),
                 ),
                 record::genotype::Field::new(
                     record::genotype::field::Key::ConditionalGenotypeQuality,
@@ -522,10 +595,7 @@ mod tests {
             Genotype::try_from(vec![
                 record::genotype::Field::new(
                     record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(2),
-                        Some(4),
-                    ])),
+                    Some(record::genotype::field::Value::String(String::from("0/1"))),
                 ),
                 record::genotype::Field::new(
                     record::genotype::field::Key::ConditionalGenotypeQuality,
@@ -554,10 +624,7 @@ mod tests {
             Genotype::try_from(vec![
                 record::genotype::Field::new(
                     record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(4),
-                        Some(4),
-                    ])),
+                    Some(record::genotype::field::Value::String(String::from("1/1"))),
                 ),
                 record::genotype::Field::new(
                     record::genotype::field::Key::ConditionalGenotypeQuality,
@@ -588,5 +655,19 @@ mod tests {
         assert_eq!(actual_genotypes, expected_genotypes);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_parse_genotype_genotype_values() {
+        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x02]), "0/0");
+        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04]), "0/1");
+        assert_eq!(parse_genotype_genotype_values(&[0x04, 0x04]), "1/1");
+        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x05]), "0|1");
+        assert_eq!(parse_genotype_genotype_values(&[0x00, 0x00]), "./.");
+        assert_eq!(parse_genotype_genotype_values(&[0x02]), "0");
+        assert_eq!(parse_genotype_genotype_values(&[0x04]), "1");
+        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
+        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
+        assert_eq!(parse_genotype_genotype_values(&[0x02, -127]), "0");
     }
 }
