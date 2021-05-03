@@ -10,14 +10,12 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
     self as vcf,
-    record::{Filters, Genotype, Ids, Info, QualityScore},
+    record::{Filters, Genotype, Ids, Info},
 };
 
 use crate::header::StringMap;
 
 use super::value::{read_type, read_value, Value};
-
-const MISSING_QUALITY_SCORE: u32 = 0x7f800001;
 
 #[allow(dead_code)]
 pub fn read_site<R>(
@@ -33,13 +31,7 @@ where
 
     let rlen = reader.read_i32::<LittleEndian>()?;
 
-    let qual = reader.read_f32::<LittleEndian>().and_then(|value| {
-        if value.to_bits() == MISSING_QUALITY_SCORE {
-            Ok(QualityScore::default())
-        } else {
-            QualityScore::try_from(value).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        }
-    })?;
+    let qual = reader.read_f32::<LittleEndian>()?;
 
     let n_allele_info = reader.read_i32::<LittleEndian>()?;
     let allele_count = (n_allele_info >> 16) as u16;
@@ -541,7 +533,7 @@ mod tests {
             chrom: 1,
             pos: 100,
             rlen: 1,
-            qual: QualityScore::try_from(30.1)?,
+            qual: 30.1,
             n_allele_info: 2 << 16 | 4,
             n_fmt_sample: 5 << 24 | 3,
             id: "rs123".parse()?,

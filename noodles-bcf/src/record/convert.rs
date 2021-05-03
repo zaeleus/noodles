@@ -1,11 +1,13 @@
 use std::{convert::TryFrom, io};
 
 use noodles_vcf::{self as vcf, record::Position};
-use vcf::record::{AlternateBases, Format};
+use vcf::record::{AlternateBases, Format, QualityScore};
 
 use crate::{header::StringMap, reader::record::read_site};
 
 use super::Record;
+
+const MISSING_QUALITY_SCORE: u32 = 0x7f800001;
 
 impl Record {
     pub fn try_into_vcf_record(
@@ -33,6 +35,13 @@ impl Record {
         let position = Position::try_from(site.pos + 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let quality_score = if site.qual.to_bits() == MISSING_QUALITY_SCORE {
+            QualityScore::default()
+        } else {
+            QualityScore::try_from(site.qual)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        };
+
         let ids = site.id;
 
         let (raw_reference_bases, raw_alternate_bases) = site.ref_alt.split_at(1);
@@ -55,7 +64,6 @@ impl Record {
 
         let alternate_bases = AlternateBases::from(alternate_alleles);
 
-        let quality_score = site.qual;
         let filters = site.filter;
         let info = site.info;
 
