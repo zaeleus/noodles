@@ -1,9 +1,11 @@
+mod float;
 mod int16;
 mod int32;
 mod int8;
 mod ty;
 
 pub use self::{
+    float::Float,
     int16::Int16,
     int32::Int32,
     int8::Int8,
@@ -22,7 +24,7 @@ pub enum Value {
     Int16Array(Vec<i16>),
     Int32(Option<Int32>),
     Int32Array(Vec<i32>),
-    Float(Option<f32>),
+    Float(Option<Float>),
     FloatArray(Vec<f32>),
     String(Option<String>),
 }
@@ -63,7 +65,11 @@ where
         },
         Some(Type::Float(len)) => match len {
             0 => Ok(Some(Value::Float(None))),
-            1 => read_float(reader).map(Some).map(Value::Float).map(Some),
+            1 => read_float(reader)
+                .map(Float::from)
+                .map(Some)
+                .map(Value::Float)
+                .map(Some),
             _ => read_float_array(reader, len)
                 .map(Value::FloatArray)
                 .map(Some),
@@ -232,9 +238,10 @@ mod tests {
 
         let data = [0x15, 0x00, 0x00, 0x00, 0x00];
         let mut reader = &data[..];
-        assert!(
-            matches!(read_value(&mut reader), Ok(Some(Value::Float(Some(value)))) if value == 0.0)
-        );
+        assert!(matches!(
+            read_value(&mut reader),
+            Ok(Some(Value::Float(Some(Float::Value(value))))) if value == 0.0
+        ));
 
         let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f];
         let mut reader = &data[..];
