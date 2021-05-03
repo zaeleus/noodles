@@ -1,6 +1,14 @@
+mod int16;
+mod int32;
+mod int8;
 mod ty;
 
-pub use self::ty::{read_type, Type};
+pub use self::{
+    int16::Int16,
+    int32::Int32,
+    int8::Int8,
+    ty::{read_type, Type},
+};
 
 use std::io::{self, Read};
 
@@ -8,11 +16,11 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    Int8(Option<i8>),
+    Int8(Option<Int8>),
     Int8Array(Vec<i8>),
-    Int16(Option<i16>),
+    Int16(Option<Int16>),
     Int16Array(Vec<i16>),
-    Int32(Option<i32>),
+    Int32(Option<Int32>),
     Int32Array(Vec<i32>),
     Float(Option<f32>),
     FloatArray(Vec<f32>),
@@ -28,17 +36,29 @@ where
     match ty {
         Some(Type::Int8(len)) => match len {
             0 => Ok(Some(Value::Int8(None))),
-            1 => read_i8(reader).map(Some).map(Value::Int8).map(Some),
+            1 => read_i8(reader)
+                .map(Int8::from)
+                .map(Some)
+                .map(Value::Int8)
+                .map(Some),
             _ => read_i8_array(reader, len).map(Value::Int8Array).map(Some),
         },
         Some(Type::Int16(len)) => match len {
             0 => Ok(Some(Value::Int16(None))),
-            1 => read_i16(reader).map(Some).map(Value::Int16).map(Some),
+            1 => read_i16(reader)
+                .map(Int16::from)
+                .map(Some)
+                .map(Value::Int16)
+                .map(Some),
             _ => read_i16_array(reader, len).map(Value::Int16Array).map(Some),
         },
         Some(Type::Int32(len)) => match len {
             0 => Ok(Some(Value::Int32(None))),
-            1 => read_i32(reader).map(Some).map(Value::Int32).map(Some),
+            1 => read_i32(reader)
+                .map(Int32::from)
+                .map(Some)
+                .map(Value::Int32)
+                .map(Some),
             _ => read_i32_array(reader, len).map(Value::Int32Array).map(Some),
         },
         Some(Type::Float(len)) => match len {
@@ -149,7 +169,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int8(Some(5))))
+            Ok(Some(Value::Int8(Some(Int8::Value(5)))))
         ));
 
         let data = [0x31, 0x05, 0x08, 0x0d];
@@ -170,7 +190,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int16(Some(377))))
+            Ok(Some(Value::Int16(Some(Int16::Value(377)))))
         ));
 
         let data = [0x32, 0x79, 0x01, 0x62, 0x02, 0xdb, 0x03];
@@ -191,7 +211,7 @@ mod tests {
         let mut reader = &data[..];
         assert!(matches!(
             read_value(&mut reader),
-            Ok(Some(Value::Int32(Some(75025))))
+            Ok(Some(Value::Int32(Some(Int32::Value(75025)))))
         ));
 
         let data = [

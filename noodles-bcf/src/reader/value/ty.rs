@@ -20,6 +20,8 @@ pub fn read_type<R>(reader: &mut R) -> io::Result<Option<Type>>
 where
     R: Read,
 {
+    use super::{Int16, Int32, Int8};
+
     let encoding = reader.read_u8()?;
 
     let mut len = usize::from(encoding >> 4);
@@ -28,9 +30,9 @@ where
         let value = read_value(reader)?;
 
         let next_len = match value {
-            Some(Value::Int8(Some(n))) => i32::from(n),
-            Some(Value::Int16(Some(n))) => i32::from(n),
-            Some(Value::Int32(Some(n))) => n,
+            Some(Value::Int8(Some(Int8::Value(n)))) => i32::from(n),
+            Some(Value::Int16(Some(Int16::Value(n)))) => i32::from(n),
+            Some(Value::Int32(Some(Int32::Value(n)))) => n,
             _ => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,

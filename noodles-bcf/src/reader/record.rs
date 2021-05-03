@@ -111,9 +111,11 @@ fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
 where
     R: Read,
 {
+    use crate::reader::value::Int8;
+
     let indices = match read_value(reader)? {
         Some(Value::Int8(None)) | None => Vec::new(),
-        Some(Value::Int8(Some(i))) => vec![i],
+        Some(Value::Int8(Some(Int8::Value(i)))) => vec![i],
         Some(Value::Int8Array(indices)) => indices,
         v => {
             return Err(io::Error::new(
@@ -181,8 +183,10 @@ fn read_info_key<R>(
 where
     R: Read,
 {
+    use crate::reader::value::Int8;
+
     match read_value(reader)? {
-        Some(Value::Int8(Some(i))) => usize::try_from(i)
+        Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
                 string_map.get_index(j).ok_or_else(|| {
@@ -214,17 +218,19 @@ where
 {
     use vcf::{header::info::Type, record::info};
 
+    use crate::reader::value::{Int16, Int32, Int8};
+
     let value = match info.ty() {
         Type::Integer => match read_value(reader)? {
-            Some(Value::Int8(Some(n))) => info::field::Value::Integer(i32::from(n)),
+            Some(Value::Int8(Some(Int8::Value(n)))) => info::field::Value::Integer(i32::from(n)),
             Some(Value::Int8Array(values)) => {
                 info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
             }
-            Some(Value::Int16(Some(n))) => info::field::Value::Integer(i32::from(n)),
+            Some(Value::Int16(Some(Int16::Value(n)))) => info::field::Value::Integer(i32::from(n)),
             Some(Value::Int16Array(values)) => {
                 info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
             }
-            Some(Value::Int32(Some(n))) => info::field::Value::Integer(n),
+            Some(Value::Int32(Some(Int32::Value(n)))) => info::field::Value::Integer(n),
             Some(Value::Int32Array(values)) => info::field::Value::IntegerArray(values),
             v => {
                 return Err(io::Error::new(
@@ -234,7 +240,7 @@ where
             }
         },
         Type::Flag => match read_value(reader)? {
-            Some(Value::Int8(Some(1))) | None => info::field::Value::Flag,
+            Some(Value::Int8(Some(Int8::Value(1)))) | None => info::field::Value::Flag,
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -310,8 +316,10 @@ fn read_genotype_key<R>(
 where
     R: Read,
 {
+    use crate::reader::value::Int8;
+
     match read_value(reader)? {
-        Some(Value::Int8(Some(i))) => usize::try_from(i)
+        Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|j| {
                 string_map.get_index(j).ok_or_else(|| {
@@ -343,7 +351,7 @@ where
 {
     use vcf::record::genotype;
 
-    use super::value::Type;
+    use super::value::{Int8, Type};
 
     let mut values = Vec::with_capacity(sample_count);
 
@@ -352,12 +360,14 @@ where
             0 => values.push(None),
             1 => {
                 for _ in 0..sample_count {
-                    let n = reader.read_i8().map(i32::from)?;
+                    let value = reader.read_i8().map(Int8::from)?;
 
-                    if n == -128 {
-                        values.push(None);
-                    } else {
-                        values.push(Some(genotype::field::Value::Integer(n)));
+                    match value {
+                        Int8::Value(n) => {
+                            values.push(Some(genotype::field::Value::Integer(i32::from(n))))
+                        }
+                        Int8::Missing => values.push(None),
+                        _ => todo!("unhandled i8 value: {:?}", value),
                     }
                 }
             }
@@ -367,8 +377,12 @@ where
                     reader.read_i8_into(&mut buf)?;
                     let value = genotype::field::Value::IntegerArray(
                         buf.into_iter()
-                            .map(i32::from)
-                            .map(|n| if n == -128 { None } else { Some(n) })
+                            .map(Int8::from)
+                            .map(|value| match value {
+                                Int8::Value(n) => Some(i32::from(n)),
+                                Int8::Missing => None,
+                                _ => todo!("unhanlded i8 array value: {:?}", value),
+                            })
                             .collect(),
                     );
                     values.push(Some(value));
@@ -424,10 +438,12 @@ where
 }
 
 fn parse_genotype_genotype_values(values: &[i8]) -> String {
+    use crate::reader::value::Int8;
+
     let mut genotype = String::new();
 
     for (i, &value) in values.iter().enumerate() {
-        if value == -127 {
+        if let Int8::EndOfVector = Int8::from(value) {
             break;
         }
 
