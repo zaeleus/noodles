@@ -15,7 +15,7 @@ use noodles_vcf::{
 
 use crate::header::StringMap;
 
-use super::value::{read_type, read_value, Value};
+use super::value::{read_type, read_value, Float, Value};
 
 #[allow(dead_code)]
 pub fn read_site<R>(
@@ -31,7 +31,7 @@ where
 
     let rlen = reader.read_i32::<LittleEndian>()?;
 
-    let qual = reader.read_f32::<LittleEndian>()?;
+    let qual = reader.read_f32::<LittleEndian>().map(Float::from)?;
 
     let n_allele_info = reader.read_i32::<LittleEndian>()?;
     let allele_count = (n_allele_info >> 16) as u16;
@@ -249,7 +249,7 @@ where
             }
         },
         Type::Float => match read_value(reader)? {
-            Some(Value::Float(Some(n))) => info::field::Value::Float(n),
+            Some(Value::Float(Some(Float::Value(n)))) => info::field::Value::Float(n),
             Some(Value::FloatArray(values)) => info::field::Value::FloatArray(values),
             v => {
                 return Err(io::Error::new(
@@ -549,7 +549,7 @@ mod tests {
             chrom: 1,
             pos: 100,
             rlen: 1,
-            qual: 30.1,
+            qual: Float::from(30.1),
             n_allele_info: 2 << 16 | 4,
             n_fmt_sample: 5 << 24 | 3,
             id: "rs123".parse()?,

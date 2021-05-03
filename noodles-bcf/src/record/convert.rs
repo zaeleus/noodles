@@ -3,11 +3,12 @@ use std::{convert::TryFrom, io};
 use noodles_vcf::{self as vcf, record::Position};
 use vcf::record::{AlternateBases, Format, QualityScore};
 
-use crate::{header::StringMap, reader::record::read_site};
+use crate::{
+    header::StringMap,
+    reader::{record::read_site, value::Float},
+};
 
 use super::Record;
-
-const MISSING_QUALITY_SCORE: u32 = 0x7f800001;
 
 impl Record {
     pub fn try_into_vcf_record(
@@ -35,11 +36,11 @@ impl Record {
         let position = Position::try_from(site.pos + 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let quality_score = if site.qual.to_bits() == MISSING_QUALITY_SCORE {
-            QualityScore::default()
-        } else {
-            QualityScore::try_from(site.qual)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        let quality_score = match site.qual {
+            Float::Value(value) => QualityScore::try_from(value)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+            Float::Missing => QualityScore::default(),
+            qual => todo!("unhandled quality score value: {:?}", qual),
         };
 
         let ids = site.id;

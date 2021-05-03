@@ -1,5 +1,5 @@
 pub mod record;
-mod value;
+pub mod value;
 
 use std::{
     convert::TryFrom,
