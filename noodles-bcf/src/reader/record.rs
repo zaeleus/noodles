@@ -1,24 +1,18 @@
+mod genotypes;
 mod site;
 
-pub use self::site::Site;
-
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
+pub use self::{
+    genotypes::read_genotypes,
+    site::{read_site, Site},
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{
-    self as vcf,
-    record::{Filters, Genotype, Ids, Info},
-};
+use std::io::{self, Read};
+
+use noodles_vcf::{self as vcf, record::Genotype};
 
 use crate::header::StringMap;
 
-use super::value::{read_type, read_value, Float, Value};
-
-#[allow(dead_code)]
-pub fn read_site<R>(
+pub fn read_record<R>(
     reader: &mut R,
     header: &vcf::Header,
     string_map: &StringMap,
@@ -26,450 +20,34 @@ pub fn read_site<R>(
 where
     R: Read,
 {
-    let chrom = reader.read_i32::<LittleEndian>()?;
-    let pos = reader.read_i32::<LittleEndian>()?;
+    let site = read_site(reader, header, string_map)?;
 
-    let rlen = reader.read_i32::<LittleEndian>()?;
-
-    let qual = reader.read_f32::<LittleEndian>().map(Float::from)?;
-
-    let n_info = reader.read_u16::<LittleEndian>()?;
-    let n_allele = reader.read_u16::<LittleEndian>()?;
-
-    let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
-    let n_fmt = (n_fmt_sample >> 24) as u8;
-    let n_sample = n_fmt_sample & 0xffffff;
-
-    let id = read_id(reader)?;
-    let ref_alt = read_ref_alt(reader, usize::from(n_allele))?;
-    let filter = read_filter(reader, string_map)?;
-    let info = read_info(reader, header.infos(), string_map, usize::from(n_info))?;
-
-    let site = Site {
-        chrom,
-        pos,
-        rlen,
-        qual,
-        n_info,
-        n_allele,
-        n_sample,
-        n_fmt,
-        id,
-        ref_alt,
-        filter,
-        info,
+    let genotypes = if site.n_sample == 0 {
+        Vec::new()
+    } else {
+        read_genotypes(
+            reader,
+            string_map,
+            site.n_sample as usize,
+            usize::from(site.n_fmt),
+        )?
     };
-
-    let genotypes = read_genotypes(reader, string_map, n_sample as usize, usize::from(n_fmt))?;
 
     Ok((site, genotypes))
 }
 
-fn read_id<R>(reader: &mut R) -> io::Result<Ids>
-where
-    R: Read,
-{
-    match read_value(reader)? {
-        Some(Value::String(Some(id))) => id
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        Some(Value::String(None)) => Ok(Ids::default()),
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("expected string, got {:?}", v),
-        )),
-    }
-}
-
-fn read_ref_alt<R>(reader: &mut R, len: usize) -> io::Result<Vec<String>>
-where
-    R: Read,
-{
-    let mut alleles = Vec::with_capacity(len);
-
-    for _ in 0..len {
-        match read_value(reader)? {
-            Some(Value::String(Some(s))) => alleles.push(s),
-            Some(Value::String(None)) => alleles.push(String::from(".")),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("expected string, got {:?}", v),
-                ))
-            }
-        }
-    }
-
-    Ok(alleles)
-}
-
-fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
-where
-    R: Read,
-{
-    use crate::reader::value::Int8;
-
-    let indices = match read_value(reader)? {
-        Some(Value::Int8(None)) | None => Vec::new(),
-        Some(Value::Int8(Some(Int8::Value(i)))) => vec![i],
-        Some(Value::Int8Array(indices)) => indices,
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected i8, got {:?}", v),
-            ))
-        }
-    };
-
-    let raw_filters: Vec<_> = indices
-        .iter()
-        .map(|&i| {
-            usize::try_from(i)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|j| {
-                    string_map.get_index(j).ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            format!("invalid string map index: {}", j),
-                        )
-                    })
-                })
-        })
-        .collect::<Result<_, _>>()?;
-
-    Filters::try_from_iter(raw_filters).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-fn read_info<R>(
-    reader: &mut R,
-    infos: &vcf::header::Infos,
-    string_map: &StringMap,
-    len: usize,
-) -> io::Result<Info>
-where
-    R: Read,
-{
-    use vcf::record::info::Field;
-
-    let mut fields = Vec::with_capacity(len);
-
-    for _ in 0..len {
-        let key = read_info_key(reader, string_map)?;
-
-        let info = infos.get(&key).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("missing header INFO record for {}", key),
-            )
-        })?;
-
-        let value = read_info_value(reader, &info)?;
-
-        let field = Field::new(key, value);
-        fields.push(field);
-    }
-
-    Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-fn read_info_key<R>(
-    reader: &mut R,
-    string_map: &StringMap,
-) -> io::Result<vcf::record::info::field::Key>
-where
-    R: Read,
-{
-    use crate::reader::value::Int8;
-
-    match read_value(reader)? {
-        Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|j| {
-                string_map.get_index(j).ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid string map index: {}", j),
-                    )
-                })
-            })
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }),
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected i8, got {:?}", v),
-            ));
-        }
-    }
-}
-
-fn read_info_value<R>(
-    reader: &mut R,
-    info: &vcf::header::Info,
-) -> io::Result<vcf::record::info::field::Value>
-where
-    R: Read,
-{
-    use vcf::{header::info::Type, record::info};
-
-    use crate::reader::value::{Int16, Int32, Int8};
-
-    let value = match info.ty() {
-        Type::Integer => match read_value(reader)? {
-            Some(Value::Int8(Some(Int8::Value(n)))) => info::field::Value::Integer(i32::from(n)),
-            Some(Value::Int8Array(values)) => {
-                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-            }
-            Some(Value::Int16(Some(Int16::Value(n)))) => info::field::Value::Integer(i32::from(n)),
-            Some(Value::Int16Array(values)) => {
-                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-            }
-            Some(Value::Int32(Some(Int32::Value(n)))) => info::field::Value::Integer(n),
-            Some(Value::Int32Array(values)) => info::field::Value::IntegerArray(values),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
-                ));
-            }
-        },
-        Type::Flag => match read_value(reader)? {
-            Some(Value::Int8(Some(Int8::Value(1)))) | None => info::field::Value::Flag,
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
-                ));
-            }
-        },
-        Type::Float => match read_value(reader)? {
-            Some(Value::Float(Some(Float::Value(n)))) => info::field::Value::Float(n),
-            Some(Value::FloatArray(values)) => info::field::Value::FloatArray(values),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Float, v),
-                ))
-            }
-        },
-        Type::String => match read_value(reader)? {
-            Some(Value::String(Some(s))) => info::field::Value::String(s),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::String, v),
-                ))
-            }
-        },
-        ty => todo!("unhandled INFO value type: {:?}", ty),
-    };
-
-    Ok(value)
-}
-
-fn read_genotypes<R>(
-    reader: &mut R,
-    string_map: &StringMap,
-    sample_count: usize,
-    format_count: usize,
-) -> io::Result<Vec<Genotype>>
-where
-    R: Read,
-{
-    use vcf::record::genotype::{self, Field};
-
-    let mut genotypes = vec![Vec::new(); sample_count];
-
-    for _ in 0..format_count {
-        let key = read_genotype_key(reader, string_map)?;
-
-        let values = if key == genotype::field::Key::Genotype {
-            read_genotype_genotype_values(reader, sample_count)?
-        } else {
-            read_genotype_values(reader, sample_count)?
-        };
-
-        for (fields, value) in genotypes.iter_mut().zip(values) {
-            let field = Field::new(key.clone(), value);
-            fields.push(field);
-        }
-    }
-
-    genotypes
-        .into_iter()
-        .map(|fields| {
-            Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
-        .collect()
-}
-
-fn read_genotype_key<R>(
-    reader: &mut R,
-    string_map: &StringMap,
-) -> io::Result<vcf::record::genotype::field::Key>
-where
-    R: Read,
-{
-    use crate::reader::value::Int8;
-
-    match read_value(reader)? {
-        Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|j| {
-                string_map.get_index(j).ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid string map index: {}", j),
-                    )
-                })
-            })
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }),
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected i8, got {:?}", v),
-            ));
-        }
-    }
-}
-
-fn read_genotype_values<R>(
-    reader: &mut R,
-    sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
-where
-    R: Read,
-{
-    use vcf::record::genotype;
-
-    use super::value::{Int8, Type};
-
-    let mut values = Vec::with_capacity(sample_count);
-
-    match read_type(reader)? {
-        Some(Type::Int8(len)) => match len {
-            0 => values.push(None),
-            1 => {
-                for _ in 0..sample_count {
-                    let value = reader.read_i8().map(Int8::from)?;
-
-                    match value {
-                        Int8::Value(n) => {
-                            values.push(Some(genotype::field::Value::Integer(i32::from(n))))
-                        }
-                        Int8::Missing => values.push(None),
-                        _ => todo!("unhandled i8 value: {:?}", value),
-                    }
-                }
-            }
-            _ => {
-                for _ in 0..sample_count {
-                    let mut buf = vec![0; len];
-                    reader.read_i8_into(&mut buf)?;
-                    let value = genotype::field::Value::IntegerArray(
-                        buf.into_iter()
-                            .map(Int8::from)
-                            .map(|value| match value {
-                                Int8::Value(n) => Some(i32::from(n)),
-                                Int8::Missing => None,
-                                _ => todo!("unhanlded i8 array value: {:?}", value),
-                            })
-                            .collect(),
-                    );
-                    values.push(Some(value));
-                }
-            }
-        },
-        ty => todo!("unhandled type: {:?}", ty),
-    }
-
-    Ok(values)
-}
-
-fn read_genotype_genotype_values<R>(
-    reader: &mut R,
-    sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
-where
-    R: Read,
-{
-    use vcf::record::genotype;
-
-    use super::value::Type;
-
-    let mut values = Vec::with_capacity(sample_count);
-
-    match read_type(reader)? {
-        Some(Type::Int8(len)) => match len {
-            0 => values.push(None),
-            1 => {
-                for _ in 0..sample_count {
-                    let value = reader
-                        .read_i8()
-                        .map(|v| parse_genotype_genotype_values(&[v]))
-                        .map(genotype::field::Value::String)?;
-
-                    values.push(Some(value));
-                }
-            }
-            _ => {
-                for _ in 0..sample_count {
-                    let mut buf = vec![0; len];
-                    reader.read_i8_into(&mut buf)?;
-                    let value =
-                        genotype::field::Value::String(parse_genotype_genotype_values(&buf));
-                    values.push(Some(value));
-                }
-            }
-        },
-        ty => todo!("unhandled type: {:?}", ty),
-    }
-
-    Ok(values)
-}
-
-fn parse_genotype_genotype_values(values: &[i8]) -> String {
-    use crate::reader::value::Int8;
-
-    let mut genotype = String::new();
-
-    for (i, &value) in values.iter().enumerate() {
-        if let Int8::EndOfVector = Int8::from(value) {
-            break;
-        }
-
-        let j = (value >> 1) - 1;
-        let is_phased = value & 0x01 == 1;
-
-        if i > 0 {
-            if is_phased {
-                genotype.push('|');
-            } else {
-                genotype.push('/');
-            }
-        }
-
-        if j == -1 {
-            genotype.push('.');
-        } else {
-            genotype.push_str(&format!("{}", j));
-        }
-    }
-
-    genotype
-}
-
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use noodles_vcf::record::{Filters, Info};
+
+    use crate::reader::value::Float;
+
     use super::*;
 
     #[test]
-    fn test_read_site() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::record;
 
         // § Putting it all together (2021-01-13)
@@ -539,7 +117,7 @@ mod tests {
         let header = raw_header.parse()?;
         let string_map = raw_header.parse()?;
 
-        let (actual_site, actual_genotypes) = read_site(&mut reader, &header, &string_map)?;
+        let (actual_site, actual_genotypes) = read_record(&mut reader, &header, &string_map)?;
 
         let expected_site = Site {
             chrom: 1,
@@ -665,19 +243,5 @@ mod tests {
         assert_eq!(actual_genotypes, expected_genotypes);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_parse_genotype_genotype_values() {
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x02]), "0/0");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04]), "0/1");
-        assert_eq!(parse_genotype_genotype_values(&[0x04, 0x04]), "1/1");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x05]), "0|1");
-        assert_eq!(parse_genotype_genotype_values(&[0x00, 0x00]), "./.");
-        assert_eq!(parse_genotype_genotype_values(&[0x02]), "0");
-        assert_eq!(parse_genotype_genotype_values(&[0x04]), "1");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, -127]), "0");
     }
 }

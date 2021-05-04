@@ -5,7 +5,7 @@ use vcf::record::{AlternateBases, Format, QualityScore};
 
 use crate::{
     header::StringMap,
-    reader::{record::read_site, value::Float},
+    reader::{record::read_record, value::Float},
 };
 
 use super::Record;
@@ -17,7 +17,7 @@ impl Record {
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
         let mut reader = &self[..];
-        let (site, genotypes) = read_site(&mut reader, header, string_map)?;
+        let (site, genotypes) = read_record(&mut reader, header, string_map)?;
 
         let (_, contig) = usize::try_from(site.chrom)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
