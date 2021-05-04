@@ -33,38 +33,34 @@ where
 
     let qual = reader.read_f32::<LittleEndian>().map(Float::from)?;
 
-    let n_allele_info = reader.read_i32::<LittleEndian>()?;
-    let allele_count = (n_allele_info >> 16) as u16;
-    let info_count = (n_allele_info & 0xffff) as u16;
+    let n_info = reader.read_u16::<LittleEndian>()?;
+    let n_allele = reader.read_u16::<LittleEndian>()?;
 
     let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
-    let format_count = (n_fmt_sample >> 24) as u8;
-    let sample_count = n_fmt_sample & 0xffffff;
+    let n_fmt = (n_fmt_sample >> 24) as u8;
+    let n_sample = n_fmt_sample & 0xffffff;
 
     let id = read_id(reader)?;
-    let ref_alt = read_ref_alt(reader, usize::from(allele_count))?;
+    let ref_alt = read_ref_alt(reader, usize::from(n_allele))?;
     let filter = read_filter(reader, string_map)?;
-    let info = read_info(reader, header.infos(), string_map, usize::from(info_count))?;
+    let info = read_info(reader, header.infos(), string_map, usize::from(n_info))?;
 
     let site = Site {
         chrom,
         pos,
         rlen,
         qual,
-        n_allele_info,
-        n_fmt_sample,
+        n_info,
+        n_allele,
+        n_sample,
+        n_fmt,
         id,
         ref_alt,
         filter,
         info,
     };
 
-    let genotypes = read_genotypes(
-        reader,
-        string_map,
-        sample_count as usize,
-        usize::from(format_count),
-    )?;
+    let genotypes = read_genotypes(reader, string_map, n_sample as usize, usize::from(n_fmt))?;
 
     Ok((site, genotypes))
 }
@@ -550,8 +546,10 @@ mod tests {
             pos: 100,
             rlen: 1,
             qual: Float::from(30.1),
-            n_allele_info: 2 << 16 | 4,
-            n_fmt_sample: 5 << 24 | 3,
+            n_info: 4,
+            n_allele: 2,
+            n_sample: 3,
+            n_fmt: 5,
             id: "rs123".parse()?,
             ref_alt: vec![String::from("A"), String::from("C")],
             filter: Filters::try_from_iter(&["PASS"])?,
