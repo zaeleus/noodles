@@ -13,15 +13,11 @@ fn main() -> io::Result<()> {
     reader.read_file_format()?;
     reader.read_header()?;
 
-    let mut record = bcf::Record::default();
     let mut n = 0;
 
-    loop {
-        match reader.read_record(&mut record) {
-            Ok(0) => break,
-            Ok(_) => n += 1,
-            Err(e) => return Err(e),
-        }
+    for result in reader.records() {
+        let _ = result?;
+        n += 1;
     }
 
     println!("{}", n);

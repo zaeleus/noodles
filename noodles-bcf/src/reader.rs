@@ -1,5 +1,8 @@
 pub mod record;
+mod records;
 pub mod value;
+
+pub use self::records::Records;
 
 use std::{
     convert::TryFrom,
@@ -121,6 +124,9 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
+    /// It is more ergnomic to read records using an iterator (see [`Self::records`]), but using
+    /// this method directly allows the reuse of a single [`Record`] buffer.
+    ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
@@ -151,6 +157,30 @@ where
         self.inner.read_exact(record)?;
 
         Ok(record_len)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    /// reader.read_header()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     println!("{:?}", &record[..]);
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> Records<'_, R> {
+        Records::new(self)
     }
 }
 
