@@ -1,7 +1,12 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    ffi::CString,
+    io::{self, Write},
+};
 
-use byteorder::WriteBytesExt;
+use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
+use noodles_vcf as vcf;
 
 use super::MAGIC_NUMBER;
 
@@ -84,6 +89,36 @@ where
         self.inner.write_u8(MINOR)?;
         Ok(())
     }
+
+    /// Writes a VCF header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut writer = bcf::Writer::new(Vec::new());
+    ///
+    /// let header = vcf::Header::default();
+    /// writer.write_header(&header)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
+        let raw_header = header.to_string();
+        let c_raw_header =
+            CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let data = c_raw_header.as_bytes_with_nul();
+        let len = i32::try_from(data.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        self.inner.write_i32::<LittleEndian>(len)?;
+        self.inner.write_all(data)?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -102,6 +137,27 @@ mod tests {
         let file_format = reader.read_file_format()?;
 
         assert_eq!(file_format, (2, 2));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_header() -> io::Result<()> {
+        let mut writer = Writer::new(Vec::new());
+        writer.write_file_format()?;
+
+        let header = vcf::Header::default();
+        writer.write_header(&header)?;
+
+        writer.try_finish()?;
+
+        let mut reader = Reader::new(writer.get_ref().as_slice());
+        reader.read_file_format()?;
+        let actual = reader.read_header()?;
+
+        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
