@@ -3,7 +3,8 @@
 pub mod header;
 mod reader;
 mod record;
+mod writer;
 
-pub use self::{reader::Reader, record::Record};
+pub use self::{reader::Reader, record::Record, writer::Writer};
 
 static MAGIC_NUMBER: &[u8] = b"BCF";
