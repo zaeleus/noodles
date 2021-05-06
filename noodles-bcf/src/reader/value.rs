@@ -146,6 +146,10 @@ mod tests {
 
     #[test]
     fn test_read_value() {
+        let data = [0x00];
+        let mut reader = &data[..];
+        assert!(matches!(read_value(&mut reader), Ok(None)));
+
         let data = [0x01];
         let mut reader = &data[..];
         assert!(matches!(
