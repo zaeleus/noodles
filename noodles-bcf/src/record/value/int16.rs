@@ -18,6 +18,16 @@ impl From<i16> for Int16 {
     }
 }
 
+impl From<Int16> for i16 {
+    fn from(value: Int16) -> Self {
+        match value {
+            Int16::Missing => -32768,
+            Int16::EndOfVector => -32767,
+            Int16::Value(n) | Int16::Reserved(n) => n,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -33,5 +43,18 @@ mod tests {
         assert_eq!(Int16::from(-32763), Int16::Reserved(-32763));
         assert_eq!(Int16::from(-32762), Int16::Reserved(-32762));
         assert_eq!(Int16::from(-32761), Int16::Reserved(-32761));
+    }
+
+    #[test]
+    fn test_from_int16_for_i16() {
+        assert_eq!(i16::from(Int16::Value(0)), 0);
+        assert_eq!(i16::from(Int16::Missing), -32768);
+        assert_eq!(i16::from(Int16::EndOfVector), -32767);
+        assert_eq!(i16::from(Int16::Reserved(-32766)), -32766);
+        assert_eq!(i16::from(Int16::Reserved(-32765)), -32765);
+        assert_eq!(i16::from(Int16::Reserved(-32764)), -32764);
+        assert_eq!(i16::from(Int16::Reserved(-32763)), -32763);
+        assert_eq!(i16::from(Int16::Reserved(-32762)), -32762);
+        assert_eq!(i16::from(Int16::Reserved(-32761)), -32761);
     }
 }

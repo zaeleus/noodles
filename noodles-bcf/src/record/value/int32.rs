@@ -18,6 +18,16 @@ impl From<i32> for Int32 {
     }
 }
 
+impl From<Int32> for i32 {
+    fn from(value: Int32) -> Self {
+        match value {
+            Int32::Missing => -2147483648,
+            Int32::EndOfVector => -2147483647,
+            Int32::Value(n) | Int32::Reserved(n) => n,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -33,5 +43,18 @@ mod tests {
         assert_eq!(Int32::from(-2147483643), Int32::Reserved(-2147483643));
         assert_eq!(Int32::from(-2147483642), Int32::Reserved(-2147483642));
         assert_eq!(Int32::from(-2147483641), Int32::Reserved(-2147483641));
+    }
+
+    #[test]
+    fn test_from_int32_for_i32() {
+        assert_eq!(i32::from(Int32::Value(0)), 0);
+        assert_eq!(i32::from(Int32::Missing), -2147483648);
+        assert_eq!(i32::from(Int32::EndOfVector), -2147483647);
+        assert_eq!(i32::from(Int32::Reserved(-2147483646)), -2147483646);
+        assert_eq!(i32::from(Int32::Reserved(-2147483645)), -2147483645);
+        assert_eq!(i32::from(Int32::Reserved(-2147483644)), -2147483644);
+        assert_eq!(i32::from(Int32::Reserved(-2147483643)), -2147483643);
+        assert_eq!(i32::from(Int32::Reserved(-2147483642)), -2147483642);
+        assert_eq!(i32::from(Int32::Reserved(-2147483641)), -2147483641);
     }
 }
