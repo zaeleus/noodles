@@ -13,9 +13,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use super::Record;
-
-static MAGIC_NUMBER: &[u8] = b"BCF";
+use super::{Record, MAGIC_NUMBER};
 
 /// A BCF reader.
 ///

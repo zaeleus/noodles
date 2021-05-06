@@ -5,3 +5,5 @@ mod reader;
 mod record;
 
 pub use self::{reader::Reader, record::Record};
+
+static MAGIC_NUMBER: &[u8] = b"BCF";
