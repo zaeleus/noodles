@@ -1,6 +1,9 @@
 //! BCF record and fields.
 
 mod convert;
+pub mod value;
+
+pub use self::value::Value;
 
 use std::ops::{Deref, DerefMut};
 

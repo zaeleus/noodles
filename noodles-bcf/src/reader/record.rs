@@ -42,7 +42,7 @@ mod tests {
 
     use noodles_vcf::record::{Filters, Info};
 
-    use crate::reader::value::Float;
+    use crate::record::value::Float;
 
     use super::*;
 

@@ -8,7 +8,8 @@ use noodles_vcf::{self as vcf, record::Genotype};
 
 use crate::{
     header::StringMap,
-    reader::value::{read_type, read_value, Value},
+    reader::value::{read_type, read_value},
+    record::Value,
 };
 
 pub fn read_genotypes<R>(
@@ -54,7 +55,7 @@ fn read_genotype_key<R>(
 where
     R: Read,
 {
-    use crate::reader::value::Int8;
+    use crate::record::value::Int8;
 
     match read_value(reader)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
@@ -89,7 +90,7 @@ where
 {
     use vcf::record::genotype;
 
-    use crate::reader::value::{Int8, Type};
+    use crate::record::value::{Int8, Type};
 
     let mut values = Vec::with_capacity(sample_count);
 
@@ -142,7 +143,7 @@ where
 {
     use vcf::record::genotype;
 
-    use crate::reader::value::Type;
+    use crate::record::value::Type;
 
     let mut values = Vec::with_capacity(sample_count);
 
@@ -176,7 +177,7 @@ where
 }
 
 fn parse_genotype_genotype_values(values: &[i8]) -> String {
-    use crate::reader::value::Int8;
+    use crate::record::value::Int8;
 
     let mut genotype = String::new();
 

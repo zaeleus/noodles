@@ -11,7 +11,8 @@ use noodles_vcf::{
 
 use crate::{
     header::StringMap,
-    reader::value::{read_value, Float, Value},
+    reader::value::read_value,
+    record::{value::Float, Value},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -115,7 +116,7 @@ fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
 where
     R: Read,
 {
-    use crate::reader::value::Int8;
+    use crate::record::value::Int8;
 
     let indices = match read_value(reader)? {
         Some(Value::Int8(None)) | None => Vec::new(),
@@ -187,7 +188,7 @@ fn read_info_key<R>(
 where
     R: Read,
 {
-    use crate::reader::value::Int8;
+    use crate::record::value::Int8;
 
     match read_value(reader)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
@@ -222,7 +223,7 @@ where
 {
     use vcf::{header::info::Type, record::info};
 
-    use crate::reader::value::{Int16, Int32, Int8};
+    use crate::record::value::{Int16, Int32, Int8};
 
     let value = match info.ty() {
         Type::Integer => match read_value(reader)? {

@@ -5,16 +5,9 @@ use std::{
 
 use byteorder::ReadBytesExt;
 
-use super::{read_value, Value};
+use crate::record::{value::Type, Value};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Type {
-    Int8(usize),
-    Int16(usize),
-    Int32(usize),
-    Float(usize),
-    String(usize),
-}
+use super::read_value;
 
 pub fn read_type<R>(reader: &mut R) -> io::Result<Option<Type>>
 where

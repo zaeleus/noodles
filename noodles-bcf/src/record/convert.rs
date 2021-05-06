@@ -3,12 +3,9 @@ use std::{convert::TryFrom, io};
 use noodles_vcf::{self as vcf, record::Position};
 use vcf::record::{AlternateBases, Format, QualityScore};
 
-use crate::{
-    header::StringMap,
-    reader::{record::read_record, value::Float},
-};
+use crate::{header::StringMap, reader::record::read_record};
 
-use super::Record;
+use super::{value::Float, Record};
 
 impl Record {
     pub fn try_into_vcf_record(
