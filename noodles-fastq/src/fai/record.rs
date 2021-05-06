@@ -33,8 +33,8 @@ impl Record {
             read_name,
             len,
             sequence_offset,
-            line_width,
             line_bases,
+            line_width,
             quality_scores_offset,
         }
     }
