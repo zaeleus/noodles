@@ -1,3 +1,5 @@
+mod value;
+
 use std::{
     convert::TryFrom,
     ffi::CString,
