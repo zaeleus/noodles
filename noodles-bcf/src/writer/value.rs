@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::record::value::{Int16, Int32, Int8, Type, Value};
+use crate::record::value::{Float, Int16, Int32, Int8, Type, Value};
 
 #[allow(dead_code)]
 pub fn write_value<W>(writer: &mut W, value: Option<Value>) -> io::Result<()>
@@ -21,6 +21,8 @@ where
         Some(Value::Int16Array(v)) => write_int16_array(writer, &v),
         Some(Value::Int32(v)) => write_int32(writer, v),
         Some(Value::Int32Array(v)) => write_int32_array(writer, &v),
+        Some(Value::Float(v)) => write_float(writer, v),
+        Some(Value::FloatArray(v)) => write_float_array(writer, &v),
         _ => todo!(),
     }
 }
@@ -122,6 +124,36 @@ where
     Ok(())
 }
 
+pub fn write_float<W>(writer: &mut W, value: Option<Float>) -> io::Result<()>
+where
+    W: Write,
+{
+    match value {
+        None => {
+            write_type(writer, Some(Type::Float(0)))?;
+        }
+        Some(v) => {
+            write_type(writer, Some(Type::Float(1)))?;
+            writer.write_f32::<LittleEndian>(f32::from(v))?;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn write_float_array<W>(writer: &mut W, values: &[f32]) -> io::Result<()>
+where
+    W: Write,
+{
+    write_type(writer, Some(Type::Float(values.len())))?;
+
+    for &value in values {
+        writer.write_f32::<LittleEndian>(value)?;
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -174,8 +206,14 @@ mod tests {
             [0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00]
         );
 
-        // TODO: Float
-        // TODO: FloatArray
+        buf.clear();
+        write_value(&mut buf, Some(Value::Float(Some(Float::Value(0.0)))))?;
+        assert_eq!(buf, [0x15, 0x00, 0x00, 0x00, 0x00]);
+
+        buf.clear();
+        write_value(&mut buf, Some(Value::FloatArray(vec![0.0, 0.5])))?;
+        assert_eq!(buf, [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f]);
+
         // TODO: String
 
         Ok(())
