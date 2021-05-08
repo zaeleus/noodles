@@ -27,14 +27,14 @@ where
     }
 }
 
-pub fn write_missing<W>(writer: &mut W) -> io::Result<()>
+fn write_missing<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
     write_type(writer, None)
 }
 
-pub fn write_int8<W>(writer: &mut W, value: Option<Int8>) -> io::Result<()>
+fn write_int8<W>(writer: &mut W, value: Option<Int8>) -> io::Result<()>
 where
     W: Write,
 {
@@ -51,7 +51,7 @@ where
     Ok(())
 }
 
-pub fn write_int8_array<W>(writer: &mut W, values: &[i8]) -> io::Result<()>
+fn write_int8_array<W>(writer: &mut W, values: &[i8]) -> io::Result<()>
 where
     W: Write,
 {
@@ -64,7 +64,7 @@ where
     Ok(())
 }
 
-pub fn write_int16<W>(writer: &mut W, value: Option<Int16>) -> io::Result<()>
+fn write_int16<W>(writer: &mut W, value: Option<Int16>) -> io::Result<()>
 where
     W: Write,
 {
@@ -81,7 +81,7 @@ where
     Ok(())
 }
 
-pub fn write_int16_array<W>(writer: &mut W, values: &[i16]) -> io::Result<()>
+fn write_int16_array<W>(writer: &mut W, values: &[i16]) -> io::Result<()>
 where
     W: Write,
 {
@@ -94,7 +94,7 @@ where
     Ok(())
 }
 
-pub fn write_int32<W>(writer: &mut W, value: Option<Int32>) -> io::Result<()>
+fn write_int32<W>(writer: &mut W, value: Option<Int32>) -> io::Result<()>
 where
     W: Write,
 {
@@ -111,7 +111,7 @@ where
     Ok(())
 }
 
-pub fn write_int32_array<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
+fn write_int32_array<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
 where
     W: Write,
 {
@@ -124,7 +124,7 @@ where
     Ok(())
 }
 
-pub fn write_float<W>(writer: &mut W, value: Option<Float>) -> io::Result<()>
+fn write_float<W>(writer: &mut W, value: Option<Float>) -> io::Result<()>
 where
     W: Write,
 {
@@ -141,7 +141,7 @@ where
     Ok(())
 }
 
-pub fn write_float_array<W>(writer: &mut W, values: &[f32]) -> io::Result<()>
+fn write_float_array<W>(writer: &mut W, values: &[f32]) -> io::Result<()>
 where
     W: Write,
 {
@@ -154,7 +154,7 @@ where
     Ok(())
 }
 
-pub fn write_string<W>(writer: &mut W, value: Option<String>) -> io::Result<()>
+fn write_string<W>(writer: &mut W, value: Option<String>) -> io::Result<()>
 where
     W: Write,
 {
