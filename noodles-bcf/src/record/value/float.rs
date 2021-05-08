@@ -19,6 +19,16 @@ impl From<f32> for Float {
     }
 }
 
+impl From<Float> for f32 {
+    fn from(value: Float) -> Self {
+        match value {
+            Float::Missing => f32::from_bits(0x7f800001),
+            Float::EndOfVector => f32::from_bits(0x7f800002),
+            Float::Value(n) | Float::Reserved(n) => n,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,5 +59,33 @@ mod tests {
             Float::from(f32::from_bits(0x7f800007)),
             Float::Reserved(v) if v.to_bits() == 0x7f800007
         ));
+    }
+
+    #[test]
+    fn test_from_float_for_f32() {
+        assert_eq!(f32::from(Float::Value(0.0)), 0.0);
+        assert_eq!(f32::from(Float::Value(f32::NAN)).to_bits(), 0x7fc00000);
+        assert_eq!(f32::from(Float::Missing).to_bits(), 0x7f800001);
+        assert_eq!(f32::from(Float::EndOfVector).to_bits(), 0x7f800002);
+        assert_eq!(
+            f32::from(Float::Reserved(f32::from_bits(0x7f800003))).to_bits(),
+            0x7f800003
+        );
+        assert_eq!(
+            f32::from(Float::Reserved(f32::from_bits(0x7f800004))).to_bits(),
+            0x7f800004
+        );
+        assert_eq!(
+            f32::from(Float::Reserved(f32::from_bits(0x7f800005))).to_bits(),
+            0x7f800005
+        );
+        assert_eq!(
+            f32::from(Float::Reserved(f32::from_bits(0x7f800006))).to_bits(),
+            0x7f800006
+        );
+        assert_eq!(
+            f32::from(Float::Reserved(f32::from_bits(0x7f800007))).to_bits(),
+            0x7f800007
+        );
     }
 }
