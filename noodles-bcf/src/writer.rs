@@ -1,3 +1,4 @@
+mod record;
 mod value;
 
 use std::{
@@ -10,7 +11,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use super::MAGIC_NUMBER;
+use super::{header::StringMap, MAGIC_NUMBER};
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -120,6 +121,27 @@ where
         self.inner.write_all(data)?;
 
         Ok(())
+    }
+
+    /// Writes a VCF record.
+    pub fn write_vcf_record(
+        &mut self,
+        header: &vcf::Header,
+        string_map: &StringMap,
+        record: &vcf::Record,
+    ) -> io::Result<()> {
+        let mut site_buf = Vec::new();
+        record::write_vcf_record(&mut site_buf, header, string_map, record)?;
+
+        let l_shared = u32::try_from(site_buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32::<LittleEndian>(l_shared)?;
+
+        // TODO
+        let l_indiv = 0;
+        self.inner.write_u32::<LittleEndian>(l_indiv)?;
+
+        self.inner.write_all(&site_buf)
     }
 }
 
