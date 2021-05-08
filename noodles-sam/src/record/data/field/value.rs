@@ -582,7 +582,13 @@ impl FromStr for Value {
 }
 
 fn parse_char(s: &str) -> Result<char, ParseError> {
-    s.chars().next().ok_or(ParseError::InvalidCharValue)
+    if let Some(c) = s.chars().next() {
+        if c.is_ascii_graphic() {
+            return Ok(c);
+        }
+    }
+
+    Err(ParseError::InvalidCharValue)
 }
 
 fn parse_i8(s: &str) -> Result<i8, ParseError> {
@@ -718,5 +724,12 @@ mod tests {
             Value::FloatArray(vec![2.71, 3.14]).to_string(),
             "f,2.71,3.14"
         );
+    }
+
+    #[test]
+    fn test_from_str() {
+        assert_eq!("A:n".parse(), Ok(Value::Char('n')));
+        assert_eq!("A:".parse::<Value>(), Err(ParseError::InvalidCharValue));
+        assert_eq!("A:🍜".parse::<Value>(), Err(ParseError::InvalidCharValue));
     }
 }
