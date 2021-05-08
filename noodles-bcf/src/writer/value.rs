@@ -23,7 +23,7 @@ where
         Some(Value::Int32Array(v)) => write_int32_array(writer, &v),
         Some(Value::Float(v)) => write_float(writer, v),
         Some(Value::FloatArray(v)) => write_float_array(writer, &v),
-        _ => todo!(),
+        Some(Value::String(v)) => write_string(writer, v),
     }
 }
 
@@ -154,6 +154,23 @@ where
     Ok(())
 }
 
+pub fn write_string<W>(writer: &mut W, value: Option<String>) -> io::Result<()>
+where
+    W: Write,
+{
+    match value {
+        None => {
+            write_type(writer, Some(Type::String(0)))?;
+        }
+        Some(s) => {
+            write_type(writer, Some(Type::String(s.len())))?;
+            writer.write_all(s.as_bytes())?;
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,7 +231,17 @@ mod tests {
         write_value(&mut buf, Some(Value::FloatArray(vec![0.0, 0.5])))?;
         assert_eq!(buf, [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3f]);
 
-        // TODO: String
+        buf.clear();
+        write_value(&mut buf, Some(Value::String(None)))?;
+        assert_eq!(buf, [0x07]);
+
+        buf.clear();
+        write_value(&mut buf, Some(Value::String(Some(String::from("n")))))?;
+        assert_eq!(buf, [0x17, 0x6e]);
+
+        buf.clear();
+        write_value(&mut buf, Some(Value::String(Some(String::from("ndls")))))?;
+        assert_eq!(buf, [0x47, 0x6e, 0x64, 0x6c, 0x73]);
 
         Ok(())
     }
