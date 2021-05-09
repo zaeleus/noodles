@@ -12,7 +12,7 @@ const DELIMITER: char = ';';
 /// VCF record filters (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Filters {
-    /// Missing (`*`).
+    /// Missing (`.`).
     Missing,
     /// Pass (`PASS`).
     Pass,
