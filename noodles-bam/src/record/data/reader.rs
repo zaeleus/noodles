@@ -220,7 +220,7 @@ mod tests {
     #[test]
     fn test_read_field() {
         fn read_one_field(data: &[u8]) -> Field {
-            let mut reader = Reader::new(&data[..]);
+            let mut reader = Reader::new(data);
             reader.read_field().unwrap().unwrap()
         }
 
