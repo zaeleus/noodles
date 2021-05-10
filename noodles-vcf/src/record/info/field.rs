@@ -143,7 +143,12 @@ mod tests {
         assert_eq!(field.to_string(), "SOMATIC");
 
         let field = Field::new(
-            Key::Other(String::from("SVTYPE"), Number::Count(1), Type::String),
+            Key::Other(
+                String::from("SVTYPE"),
+                Number::Count(1),
+                Type::String,
+                String::default(),
+            ),
             Value::String(String::from("DEL")),
         );
         assert_eq!(field.to_string(), "SVTYPE=DEL");
@@ -170,14 +175,24 @@ mod tests {
         let actual: Field = "NDLS=VCF".parse()?;
         assert_eq!(
             actual.key(),
-            &Key::Other(String::from("NDLS"), Number::Count(1), Type::String)
+            &Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
         );
         assert_eq!(actual.value(), &Value::String(String::from("VCF")));
 
         let actual: Field = "FLG".parse()?;
         assert_eq!(
             actual.key(),
-            &Key::Other(String::from("FLG"), Number::Count(1), Type::String)
+            &Key::Other(
+                String::from("FLG"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
         );
         assert_eq!(actual.value(), &Value::Flag);
 

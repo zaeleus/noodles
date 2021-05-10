@@ -7,104 +7,104 @@ use std::{error, fmt, str::FromStr};
 /// A VCF record info field key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
-    // § 1.6.1 Fixed Fields (2020-04-02)
-    /// (`AA`).
+    // § 1.6.1 Fixed Fields (2021-01-13)
+    /// Ancestral allele (`AA`).
     AncestralAllele,
-    /// (`AC`).
+    /// Allele count in genotypes, for each ALT allele, in the same order as listed (`AC`).
     AlleleCount,
-    /// (`AD`).
+    /// Total read depth for each allele (`AD`).
     TotalReadDepths,
-    /// (`ADF`).
+    /// Read depth for each allele on the forward strand (`ADF`).
     ForwardStrandReadDepths,
-    /// (`ADR`).
+    /// Read depth for each allele on the reverse strand (`ADR`).
     ReverseStrandReadDepths,
-    /// (`AF`).
+    /// Allele frequency for each ALT allele in the same order as listed (`AF`).
     AlleleFrequencies,
-    /// (`AN`).
+    /// Total number of alleles in called genotypes (`AN`).
     TotalAlleleCount,
-    /// (`BQ`).
+    /// RMS base quality (`BQ`).
     BaseQuality,
-    /// (`CIGAR`).
+    /// Cigar string describing how to align an alternate allele to the reference allele (`CIGAR`).
     Cigar,
-    /// (`DB`).
+    /// dbSNP membership (`DB`).
     IsInDbSnp,
-    /// (`DP`).
+    /// Combined depth across samples (`DP`).
     TotalDepth,
-    // /// (`END`).
+    // /// End position on CHROM (`END`).
     // EndPosition,
-    /// (`H2`).
+    /// HapMap2 membership (`H2`).
     IsInHapMap2,
-    /// (`H3`).
+    /// HapMap3 membership (`H3`).
     IsInHapMap3,
-    /// (`MQ`).
+    /// RMS mapping quality (`MQ`).
     MappingQuality,
-    /// (`MQ0`).
+    /// Number of MAPQ == 0 reads (`MQ0`).
     ZeroMappingQualityCount,
-    /// (`NS`).
+    /// Number of samples with data (`NS`).
     SamplesWithDataCount,
-    /// (`SB`).
+    /// Strand bias (`SB`).
     StrandBias,
-    /// (`SOMATIC`).
+    /// Somatic mutation (`SOMATIC`).
     IsSomaticMutation,
-    /// (`VALIDATED`).
+    /// Validated by follow-up experiment (`VALIDATED`).
     IsValidated,
-    /// (`1000G`).
+    /// 1000 Genomes membership (`1000G`).
     IsIn1000Genomes,
 
-    // § 3 INFO keys used for structural variants (2020-04-02)
-    /// (`IMPRECISE`).
+    // § 3 INFO keys used for structural variants (2021-01-13)
+    /// Imprecise structural variation (`IMPRECISE`).
     IsImprecise,
-    /// (`NOVEL`).
+    /// Indicates a novel structural variation (`NOVEL`).
     IsNovel,
-    /// (`END`).
+    /// End position of the variant described in this record (`END`).
     EndPosition,
-    /// (`SVTYPE`).
+    /// Type of structural variant (`SVTYPE`).
     SvType,
-    /// (`SVLEN`).
+    /// Difference in length between REF and ALT alleles (`SVLEN`).
     SvLengths,
-    /// (`CIPOS`).
+    /// Confidence interval around POS for imprecise variants (`CIPOS`).
     PositionConfidenceIntervals,
-    /// (`CIEND`).
+    /// Confidence interval around END for imprecise variants (`CIEND`).
     EndConfidenceIntervals,
-    /// (`HOMLEN`).
+    /// Length of base pair identical micro-homology at event breakpoints (`HOMLEN`).
     MicrohomologyLengths,
-    /// (`HOMSEQ`).
+    /// Sequence of base pair identical micro-homology at event breakpoints (`HOMSEQ`).
     MicrohomologySequences,
-    /// (`BKPTID`).
+    /// ID of the assembled alternate allele in the assembly file (`BKPTID`).
     BreakpointIds,
-    /// (`MEINFO`).
+    /// Mobile element info of the form NAME,START,END,POLARITY (`MEINFO`).
     MobileElementInfo,
-    /// (`METRANS`).
+    /// Mobile element transduction info of the form CHR,START,END,POLARITY (`METRANS`).
     MobileElementTransductionInfo,
-    /// (`DBVID`).
+    /// ID of this element in Database of Genomic Variation (`DBVID`).
     DbvId,
-    /// (`DBVARID`).
+    /// ID of this element in DBVAR (`DBVARID`).
     DbVarId,
-    /// (`DBRIPID`).
+    /// ID of this element in DBRIP (`DBRIPID`).
     DbRipId,
-    /// (`MATEID`).
+    /// ID of mate breakends (`MATEID`).
     MateBreakendIds,
-    /// (`PARID`).
+    /// ID of partner breakend (`PARID`).
     PartnerBreakendId,
-    /// (`EVENT`).
+    /// ID of event associated to breakend (`EVENT`).
     BreakendEventId,
-    /// (`CILEN`).
+    /// Confidence interval around the inserted material between breakends (`CILEN`).
     BreakendConfidenceIntervals,
-    // /// (`DP`).
+    // /// Read Depth of segment containing breakend (`DP`).
     // BreakendReadDepth,
-    /// (`DPADJ`).
+    /// Read Depth of adjacency (`DPADJ`).
     AdjacentReadDepths,
-    /// (`CN`).
+    /// Copy number of segment containing breakend (`CN`).
     BreakendCopyNumber,
-    /// (`CNADJ`).
+    /// Copy number of adjacency (`CNADJ`).
     AdjacentCopyNumber,
-    /// (`CICN`).
+    /// Confidence interval around copy number for the segment (`CICN`).
     CopyNumberConfidenceIntervals,
-    /// (`CICNADJ`).
+    /// Confidence interval around copy number for the adjacency (`CICNADJ`).
     AdjacentCopyNumberConfidenceIntervals,
 
     /// Any other non-reserved key.
-    Other(String, Number, Type),
+    Other(String, Number, Type, String),
 }
 
 impl Key {
@@ -166,7 +166,7 @@ impl Key {
             Self::CopyNumberConfidenceIntervals => Number::Count(2),
             Self::AdjacentCopyNumberConfidenceIntervals => Number::Unknown,
 
-            Self::Other(_, number, _) => *number,
+            Self::Other(_, number, _, _) => *number,
         }
     }
 
@@ -228,7 +228,93 @@ impl Key {
             Self::CopyNumberConfidenceIntervals => Type::Integer,
             Self::AdjacentCopyNumberConfidenceIntervals => Type::Integer,
 
-            Self::Other(_, _, ty) => *ty,
+            Self::Other(_, _, ty, _) => *ty,
+        }
+    }
+
+    /// Returns the description of the info field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{header::Number, record::info::field::Key};
+    ///
+    /// assert_eq!(
+    ///     Key::AlleleCount.description(),
+    ///     "Allele count in genotypes, for each ALT allele, in the same order as listed",
+    /// );
+    /// ```
+    pub fn description(&self) -> &str {
+        match self {
+            Self::AncestralAllele => "Ancestral allele",
+            Self::AlleleCount => {
+                "Allele count in genotypes, for each ALT allele, in the same order as listed"
+            }
+            Self::TotalReadDepths => "Total read depth for each allele",
+            Self::ForwardStrandReadDepths => "Read depth for each allele on the forward strand",
+            Self::ReverseStrandReadDepths => "Read depth for each allele on the reverse strand",
+            Self::AlleleFrequencies => {
+                "Allele frequency for each ALT allele in the same order as listed"
+            }
+            Self::TotalAlleleCount => "Total number of alleles in called genotypes",
+            Self::BaseQuality => "RMS base quality",
+            Self::Cigar => {
+                "Cigar string describing how to align an alternate allele to the reference allele"
+            }
+            Self::IsInDbSnp => "dbSNP membership",
+            Self::TotalDepth => "Combined depth across samples",
+            // Self::EndPosition => "End position on CHROM",
+            Self::IsInHapMap2 => "HapMap2 membership",
+            Self::IsInHapMap3 => "HapMap3 membership",
+            Self::MappingQuality => "RMS mapping quality",
+            Self::ZeroMappingQualityCount => "Number of MAPQ == 0 reads",
+            Self::SamplesWithDataCount => "Number of samples with data",
+            Self::StrandBias => "Strand bias",
+            Self::IsSomaticMutation => "Somatic mutation",
+            Self::IsValidated => "Validated by follow-up experiment",
+            Self::IsIn1000Genomes => "1000 Genomes membership",
+
+            Self::IsImprecise => "Imprecise structural variation",
+            Self::IsNovel => "Indicates a novel structural variation",
+            Self::EndPosition => "End position of the variant described in this record",
+            Self::SvType => "Type of structural variant",
+            Self::SvLengths => "Difference in length between REF and ALT alleles",
+            Self::PositionConfidenceIntervals => {
+                "Confidence interval around POS for imprecise variants"
+            }
+            Self::EndConfidenceIntervals => "Confidence interval around END for imprecise variants",
+            Self::MicrohomologyLengths => {
+                "Length of base pair identical micro-homology at event breakpoints"
+            }
+            Self::MicrohomologySequences => {
+                "Sequence of base pair identical micro-homology at event breakpoints"
+            }
+            Self::BreakpointIds => "ID of the assembled alternate allele in the assembly file",
+            Self::MobileElementInfo => "Mobile element info of the form NAME,START,END,POLARITY",
+            Self::MobileElementTransductionInfo => {
+                "Mobile element transduction info of the form CHR,START,END,POLARITY"
+            }
+            Self::DbvId => "ID of this element in Database of Genomic Variation",
+            Self::DbVarId => "ID of this element in DBVAR",
+            Self::DbRipId => "ID of this element in DBRIP",
+            Self::MateBreakendIds => "ID of mate breakends",
+            Self::PartnerBreakendId => "ID of partner breakend",
+            Self::BreakendEventId => "ID of event associated to breakend",
+            Self::BreakendConfidenceIntervals => {
+                "Confidence interval around the inserted material between breakends"
+            }
+            // Self::BreakendReadDepth => "Read Depth of segment containing breakend",
+            Self::AdjacentReadDepths => "Read Depth of adjacency",
+            Self::BreakendCopyNumber => "Copy number of segment containing breakend",
+            Self::AdjacentCopyNumber => "Copy number of adjacency",
+            Self::CopyNumberConfidenceIntervals => {
+                "Confidence interval around copy number for the segment"
+            }
+            Self::AdjacentCopyNumberConfidenceIntervals => {
+                "Confidence interval around copy number for the adjacency"
+            }
+
+            Self::Other(_, _, _, description) => description,
         }
     }
 }
@@ -374,7 +460,12 @@ impl FromStr for Key {
 
             _ => {
                 if is_valid_name(s) {
-                    Ok(Self::Other(s.into(), Number::Count(1), Type::String))
+                    Ok(Self::Other(
+                        s.into(),
+                        Number::Count(1),
+                        Type::String,
+                        String::default(),
+                    ))
                 } else {
                     Err(ParseError::Invalid)
                 }
@@ -464,7 +555,13 @@ mod tests {
         );
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).number(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .number(),
             Number::Count(1)
         );
     }
@@ -523,8 +620,172 @@ mod tests {
         );
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).ty(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .ty(),
             Type::String
+        );
+    }
+
+    #[test]
+    fn test_description() {
+        assert_eq!(Key::AncestralAllele.description(), "Ancestral allele");
+        assert_eq!(
+            Key::AlleleCount.description(),
+            "Allele count in genotypes, for each ALT allele, in the same order as listed"
+        );
+        assert_eq!(
+            Key::TotalReadDepths.description(),
+            "Total read depth for each allele"
+        );
+        assert_eq!(
+            Key::ForwardStrandReadDepths.description(),
+            "Read depth for each allele on the forward strand"
+        );
+        assert_eq!(
+            Key::ReverseStrandReadDepths.description(),
+            "Read depth for each allele on the reverse strand"
+        );
+        assert_eq!(
+            Key::AlleleFrequencies.description(),
+            "Allele frequency for each ALT allele in the same order as listed"
+        );
+        assert_eq!(
+            Key::TotalAlleleCount.description(),
+            "Total number of alleles in called genotypes"
+        );
+        assert_eq!(Key::BaseQuality.description(), "RMS base quality");
+        assert_eq!(
+            Key::Cigar.description(),
+            "Cigar string describing how to align an alternate allele to the reference allele"
+        );
+        assert_eq!(Key::IsInDbSnp.description(), "dbSNP membership");
+        assert_eq!(
+            Key::TotalDepth.description(),
+            "Combined depth across samples"
+        );
+        // Self::EndPosition.description(), "End position on CHROM");
+        assert_eq!(Key::IsInHapMap2.description(), "HapMap2 membership");
+        assert_eq!(Key::IsInHapMap3.description(), "HapMap3 membership");
+        assert_eq!(Key::MappingQuality.description(), "RMS mapping quality");
+        assert_eq!(
+            Key::ZeroMappingQualityCount.description(),
+            "Number of MAPQ == 0 reads"
+        );
+        assert_eq!(
+            Key::SamplesWithDataCount.description(),
+            "Number of samples with data"
+        );
+        assert_eq!(Key::StrandBias.description(), "Strand bias");
+        assert_eq!(Key::IsSomaticMutation.description(), "Somatic mutation");
+        assert_eq!(
+            Key::IsValidated.description(),
+            "Validated by follow-up experiment"
+        );
+        assert_eq!(
+            Key::IsIn1000Genomes.description(),
+            "1000 Genomes membership"
+        );
+
+        assert_eq!(
+            Key::IsImprecise.description(),
+            "Imprecise structural variation"
+        );
+        assert_eq!(
+            Key::IsNovel.description(),
+            "Indicates a novel structural variation"
+        );
+        assert_eq!(
+            Key::EndPosition.description(),
+            "End position of the variant described in this record"
+        );
+        assert_eq!(Key::SvType.description(), "Type of structural variant");
+        assert_eq!(
+            Key::SvLengths.description(),
+            "Difference in length between REF and ALT alleles"
+        );
+        assert_eq!(
+            Key::PositionConfidenceIntervals.description(),
+            "Confidence interval around POS for imprecise variants"
+        );
+        assert_eq!(
+            Key::EndConfidenceIntervals.description(),
+            "Confidence interval around END for imprecise variants"
+        );
+        assert_eq!(
+            Key::MicrohomologyLengths.description(),
+            "Length of base pair identical micro-homology at event breakpoints"
+        );
+        assert_eq!(
+            Key::MicrohomologySequences.description(),
+            "Sequence of base pair identical micro-homology at event breakpoints"
+        );
+        assert_eq!(
+            Key::BreakpointIds.description(),
+            "ID of the assembled alternate allele in the assembly file"
+        );
+        assert_eq!(
+            Key::MobileElementInfo.description(),
+            "Mobile element info of the form NAME,START,END,POLARITY"
+        );
+        assert_eq!(
+            Key::MobileElementTransductionInfo.description(),
+            "Mobile element transduction info of the form CHR,START,END,POLARITY"
+        );
+        assert_eq!(
+            Key::DbvId.description(),
+            "ID of this element in Database of Genomic Variation"
+        );
+        assert_eq!(Key::DbVarId.description(), "ID of this element in DBVAR");
+        assert_eq!(Key::DbRipId.description(), "ID of this element in DBRIP");
+        assert_eq!(Key::MateBreakendIds.description(), "ID of mate breakends");
+        assert_eq!(
+            Key::PartnerBreakendId.description(),
+            "ID of partner breakend"
+        );
+        assert_eq!(
+            Key::BreakendEventId.description(),
+            "ID of event associated to breakend"
+        );
+        assert_eq!(
+            Key::BreakendConfidenceIntervals.description(),
+            "Confidence interval around the inserted material between breakends"
+        );
+        // Self::BreakendReadDepth.description(), "Read Depth of segment containing breakend");
+        assert_eq!(
+            Key::AdjacentReadDepths.description(),
+            "Read Depth of adjacency"
+        );
+        assert_eq!(
+            Key::BreakendCopyNumber.description(),
+            "Copy number of segment containing breakend"
+        );
+        assert_eq!(
+            Key::AdjacentCopyNumber.description(),
+            "Copy number of adjacency"
+        );
+        assert_eq!(
+            Key::CopyNumberConfidenceIntervals.description(),
+            "Confidence interval around copy number for the segment"
+        );
+        assert_eq!(
+            Key::AdjacentCopyNumberConfidenceIntervals.description(),
+            "Confidence interval around copy number for the adjacency"
+        );
+
+        assert_eq!(
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::from("noodles"),
+            )
+            .description(),
+            "noodles"
         );
     }
 
@@ -582,7 +843,13 @@ mod tests {
         );
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).to_string(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .to_string(),
             "NDLS"
         );
     }
@@ -645,7 +912,8 @@ mod tests {
             Ok(Key::Other(
                 String::from("NDLS"),
                 Number::Count(1),
-                Type::String
+                Type::String,
+                String::default(),
             ))
         );
 
