@@ -47,19 +47,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::new(
-    ///         Key::SamplesWithDataCount,
-    ///         Number::Count(1),
-    ///         Type::Integer,
-    ///         String::from("Number of samples with data"),
-    ///     ))
+    ///     .add_info(Info::from(Key::SamplesWithDataCount))
     ///     .build();
     ///
     /// let infos = header.infos();
@@ -423,7 +414,7 @@ mod tests {
     #[test]
     fn test_build() {
         use crate::{
-            header::{self, format, info, Number},
+            header::{self, format, Number},
             record::{self, alternate_bases::allele},
         };
 
@@ -434,12 +425,7 @@ mod tests {
 
         let header = Builder::default()
             .set_file_format(FileFormat::new(4, 3))
-            .add_info(Info::new(
-                record::info::field::Key::SamplesWithDataCount,
-                Number::Count(1),
-                info::Type::Integer,
-                String::from("Number of samples with data"),
-            ))
+            .add_info(Info::from(record::info::field::Key::SamplesWithDataCount))
             .add_filter(Filter::new(
                 String::from("q10"),
                 String::from("Quality below 10"),

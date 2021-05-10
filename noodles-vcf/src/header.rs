@@ -113,19 +113,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::new(
-    ///         Key::SamplesWithDataCount,
-    ///         Number::Count(1),
-    ///         Type::Integer,
-    ///         String::from("Number of samples with data"),
-    ///     ))
+    ///     .add_info(Info::from(Key::SamplesWithDataCount))
     ///     .build();
     ///
     /// let infos = header.infos();
