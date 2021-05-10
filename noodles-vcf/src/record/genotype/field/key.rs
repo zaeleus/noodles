@@ -7,58 +7,58 @@ use crate::header::{format::Type, Number};
 /// A VCF record genotype field key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
-    // § 1.6.2 Genotype fields (2020-04-02)
-    /// (`AD`).
+    // § 1.6.2 Genotype fields (2021-01-13)
+    /// Read depth for each allele (`AD`).
     ReadDepths,
-    /// (`ADF`).
+    /// Read depth for each allele on the forward strand (`ADF`).
     ForwardStrandReadDepths,
-    /// (`ADR`).
+    /// Read depth for each allele on the reverse strand (`ADR`).
     ReverseStrandReadDepths,
-    /// (`DP`).
+    /// Read depth (`DP`).
     ReadDepth,
-    /// (`EC`).
+    /// Expected alternate allele counts (`EC`).
     ExpectedAlternateAlleleCounts,
-    /// (`FT`).
+    /// Filter indicating if this genotype was "called" (`FT`).
     Filter,
-    /// (`GL`).
+    /// Genotype likelihoods (`GL`).
     GenotypeLikelihoods,
-    /// (`GP`).
+    /// Genotype posterior probabilities (`GP`).
     GenotypePosteriorProbabilities,
-    /// (`GQ`).
+    /// Conditional genotype quality (`GQ`).
     ConditionalGenotypeQuality,
-    /// (`GT`).
+    /// Genotype (`GT`).
     Genotype,
-    /// (`HQ`).
+    /// Haplotype quality (`HQ`).
     HaplotypeQuality,
-    /// (`MQ`).
+    /// RMS mapping quality (`MQ`).
     MappingQuality,
-    /// (`PL`).
+    /// Phred-scaled genotype likelihoods rounded to the closest integer (`PL`).
     RoundedGenotypeLikelihoods,
-    /// (`PP`).
+    /// Phred-scaled genotype posterior probabilities rounded to the closest integer (`PP`).
     RoundedGenotypePosteriorProbabilities,
-    /// (`PQ`).
+    /// Phasing quality (`PQ`).
     PhasingQuality,
-    /// (`PS`).
+    /// Phase set (`PS`).
     PhaseSet,
 
-    // § 4 FORMAT keys used for structural variants (2020-04-02)
-    /// (`CN`).
+    // § 4 FORMAT keys used for structural variants (2021-01-13)
+    /// Copy number genotype for imprecise events (`CN`).
     GenotypeCopyNumber,
-    /// (`CNQ`).
+    /// Copy number genotype quality for imprecise events (`CNQ`).
     GenotypeCopyNumberQuality,
-    /// (`CNL`).
+    /// Copy number genotype likelihood for imprecise events (`CNL`).
     GenotypeCopyNumberLikelihoods,
-    /// (`CNP`).
+    /// Copy number posterior probabilities (`CNP`).
     GenotypeCopyNumberPosteriorProbabilities,
-    /// (`NQ`).
+    /// Phred style probability score that the variant is novel (`NQ`).
     NovelVariantQualityScore,
-    /// (`HAP`).
+    /// Unique haplotype identifier (`HAP`).
     HaplotypeId,
-    /// (`AHAP`).
+    /// Unique identifier of ancestral haplotype (`AHAP`).
     AncestralHaplotypeId,
 
     /// Any other non-reserved key.
-    Other(String, Number, Type),
+    Other(String, Number, Type, String),
 }
 
 impl Key {
@@ -97,7 +97,7 @@ impl Key {
             Self::HaplotypeId => Number::Count(1),
             Self::AncestralHaplotypeId => Number::Count(1),
 
-            Self::Other(_, number, _) => *number,
+            Self::Other(_, number, _, _) => *number,
         }
     }
 
@@ -136,7 +136,54 @@ impl Key {
             Self::HaplotypeId => Type::Integer,
             Self::AncestralHaplotypeId => Type::Integer,
 
-            Self::Other(_, _, ty) => *ty,
+            Self::Other(_, _, ty, _) => *ty,
+        }
+    }
+
+    /// Returns the description of the genotype field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::Key;
+    /// assert_eq!(Key::Genotype.description(), "Genotype");
+    /// ```
+    pub fn description(&self) -> &str {
+        match self {
+            Self::ReadDepths => "Read depth for each allele",
+            Self::ForwardStrandReadDepths => "Read depth for each allele on the forward strand",
+            Self::ReverseStrandReadDepths => "Read depth for each allele on the reverse strand",
+            Self::ReadDepth => "Read depth",
+            Self::ExpectedAlternateAlleleCounts => "Expected alternate allele counts",
+            Self::Filter => r#"Filter indicating if this genotype was "called""#,
+            Self::GenotypeLikelihoods => "Genotype likelihoods",
+            Self::GenotypePosteriorProbabilities => "Genotype posterior probabilities",
+            Self::ConditionalGenotypeQuality => "Conditional genotype quality",
+            Self::Genotype => "Genotype",
+            Self::HaplotypeQuality => "Haplotype quality",
+            Self::MappingQuality => "RMS mapping quality",
+            Self::RoundedGenotypeLikelihoods => {
+                "Phred-scaled genotype likelihoods rounded to the closest integer"
+            }
+            Self::RoundedGenotypePosteriorProbabilities => {
+                "Phred-scaled genotype posterior probabilities rounded to the closest integer"
+            }
+            Self::PhasingQuality => "Phasing quality",
+            Self::PhaseSet => "Phase set",
+
+            Self::GenotypeCopyNumber => "Copy number genotype for imprecise events",
+            Self::GenotypeCopyNumberQuality => "Copy number genotype quality for imprecise events",
+            Self::GenotypeCopyNumberLikelihoods => {
+                "Copy number genotype likelihood for imprecise events"
+            }
+            Self::GenotypeCopyNumberPosteriorProbabilities => "Copy number posterior probabilities",
+            Self::NovelVariantQualityScore => {
+                "Phred style probability score that the variant is novel"
+            }
+            Self::HaplotypeId => "Unique haplotype identifier",
+            Self::AncestralHaplotypeId => "Unique identifier of ancestral haplotype",
+
+            Self::Other(_, _, _, description) => description,
         }
     }
 }
@@ -236,7 +283,12 @@ impl FromStr for Key {
 
             _ => {
                 if is_valid_name(s) {
-                    Ok(Self::Other(s.into(), Number::Count(1), Type::String))
+                    Ok(Self::Other(
+                        s.into(),
+                        Number::Count(1),
+                        Type::String,
+                        String::default(),
+                    ))
                 } else {
                     Err(ParseError::Invalid)
                 }
@@ -300,7 +352,13 @@ mod tests {
         assert_eq!(Key::AncestralHaplotypeId.number(), Number::Count(1));
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).number(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .number(),
             Number::Count(1)
         );
     }
@@ -339,8 +397,101 @@ mod tests {
         assert_eq!(Key::AncestralHaplotypeId.ty(), Type::Integer);
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).ty(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .ty(),
             Type::String
+        );
+    }
+
+    #[test]
+    fn test_description() {
+        assert_eq!(Key::ReadDepths.description(), "Read depth for each allele");
+        assert_eq!(
+            Key::ForwardStrandReadDepths.description(),
+            "Read depth for each allele on the forward strand"
+        );
+        assert_eq!(
+            Key::ReverseStrandReadDepths.description(),
+            "Read depth for each allele on the reverse strand"
+        );
+        assert_eq!(Key::ReadDepth.description(), "Read depth");
+        assert_eq!(
+            Key::ExpectedAlternateAlleleCounts.description(),
+            "Expected alternate allele counts"
+        );
+        assert_eq!(
+            Key::Filter.description(),
+            r#"Filter indicating if this genotype was "called""#
+        );
+        assert_eq!(
+            Key::GenotypeLikelihoods.description(),
+            "Genotype likelihoods"
+        );
+        assert_eq!(
+            Key::GenotypePosteriorProbabilities.description(),
+            "Genotype posterior probabilities"
+        );
+        assert_eq!(
+            Key::ConditionalGenotypeQuality.description(),
+            "Conditional genotype quality"
+        );
+        assert_eq!(Key::Genotype.description(), "Genotype");
+        assert_eq!(Key::HaplotypeQuality.description(), "Haplotype quality");
+        assert_eq!(Key::MappingQuality.description(), "RMS mapping quality");
+        assert_eq!(
+            Key::RoundedGenotypeLikelihoods.description(),
+            "Phred-scaled genotype likelihoods rounded to the closest integer"
+        );
+        assert_eq!(
+            Key::RoundedGenotypePosteriorProbabilities.description(),
+            "Phred-scaled genotype posterior probabilities rounded to the closest integer"
+        );
+        assert_eq!(Key::PhasingQuality.description(), "Phasing quality");
+        assert_eq!(Key::PhaseSet.description(), "Phase set");
+
+        assert_eq!(
+            Key::GenotypeCopyNumber.description(),
+            "Copy number genotype for imprecise events"
+        );
+        assert_eq!(
+            Key::GenotypeCopyNumberQuality.description(),
+            "Copy number genotype quality for imprecise events"
+        );
+        assert_eq!(
+            Key::GenotypeCopyNumberLikelihoods.description(),
+            "Copy number genotype likelihood for imprecise events"
+        );
+        assert_eq!(
+            Key::GenotypeCopyNumberPosteriorProbabilities.description(),
+            "Copy number posterior probabilities"
+        );
+        assert_eq!(
+            Key::NovelVariantQualityScore.description(),
+            "Phred style probability score that the variant is novel"
+        );
+        assert_eq!(
+            Key::HaplotypeId.description(),
+            "Unique haplotype identifier"
+        );
+        assert_eq!(
+            Key::AncestralHaplotypeId.description(),
+            "Unique identifier of ancestral haplotype"
+        );
+
+        assert_eq!(
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::from("noodles")
+            )
+            .description(),
+            "noodles"
         );
     }
 
@@ -375,7 +526,13 @@ mod tests {
         assert_eq!(Key::AncestralHaplotypeId.to_string(), "AHAP");
 
         assert_eq!(
-            Key::Other(String::from("NDLS"), Number::Count(1), Type::String).to_string(),
+            Key::Other(
+                String::from("NDLS"),
+                Number::Count(1),
+                Type::String,
+                String::default()
+            )
+            .to_string(),
             "NDLS"
         );
     }
@@ -415,7 +572,8 @@ mod tests {
             Ok(Key::Other(
                 String::from("NDLS"),
                 Number::Count(1),
-                Type::String
+                Type::String,
+                String::default()
             ))
         );
 

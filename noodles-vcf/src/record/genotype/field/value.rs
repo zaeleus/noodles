@@ -322,7 +322,12 @@ mod tests {
 
     #[test]
     fn test_from_str_key_with_integer() {
-        let key = Key::Other(String::from("I32"), Number::Count(0), Type::Integer);
+        let key = Key::Other(
+            String::from("I32"),
+            Number::Count(0),
+            Type::Integer,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("8", &key),
             Err(ParseError::InvalidNumberForType(
@@ -331,16 +336,31 @@ mod tests {
             ))
         );
 
-        let key = Key::Other(String::from("I32"), Number::Count(1), Type::Integer);
+        let key = Key::Other(
+            String::from("I32"),
+            Number::Count(1),
+            Type::Integer,
+            String::default(),
+        );
         assert_eq!(Value::from_str_key("8", &key), Ok(Value::Integer(8)));
 
-        let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
+        let key = Key::Other(
+            String::from("I32"),
+            Number::Count(2),
+            Type::Integer,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("8,13", &key),
             Ok(Value::IntegerArray(vec![Some(8), Some(13)]))
         );
 
-        let key = Key::Other(String::from("I32"), Number::Count(2), Type::Integer);
+        let key = Key::Other(
+            String::from("I32"),
+            Number::Count(2),
+            Type::Integer,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("8,.", &key),
             Ok(Value::IntegerArray(vec![Some(8), None]))
@@ -349,7 +369,12 @@ mod tests {
 
     #[test]
     fn test_from_str_key_with_float() {
-        let key = Key::Other(String::from("F32"), Number::Count(0), Type::Float);
+        let key = Key::Other(
+            String::from("F32"),
+            Number::Count(0),
+            Type::Float,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("0.333", &key),
             Err(ParseError::InvalidNumberForType(
@@ -358,16 +383,31 @@ mod tests {
             ))
         );
 
-        let key = Key::Other(String::from("F32"), Number::Count(1), Type::Float);
+        let key = Key::Other(
+            String::from("F32"),
+            Number::Count(1),
+            Type::Float,
+            String::default(),
+        );
         assert_eq!(Value::from_str_key("0.333", &key), Ok(Value::Float(0.333)));
 
-        let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
+        let key = Key::Other(
+            String::from("F32"),
+            Number::Count(2),
+            Type::Float,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("0.333,0.667", &key),
             Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
         );
 
-        let key = Key::Other(String::from("F32"), Number::Count(2), Type::Float);
+        let key = Key::Other(
+            String::from("F32"),
+            Number::Count(2),
+            Type::Float,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("0.333,.", &key),
             Ok(Value::FloatArray(vec![Some(0.333), None]))
@@ -376,7 +416,12 @@ mod tests {
 
     #[test]
     fn test_from_str_key_with_character() {
-        let key = Key::Other(String::from("CHAR"), Number::Count(0), Type::Character);
+        let key = Key::Other(
+            String::from("CHAR"),
+            Number::Count(0),
+            Type::Character,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("n", &key),
             Err(ParseError::InvalidNumberForType(
@@ -385,10 +430,20 @@ mod tests {
             ))
         );
 
-        let key = Key::Other(String::from("CHAR"), Number::Count(1), Type::Character);
+        let key = Key::Other(
+            String::from("CHAR"),
+            Number::Count(1),
+            Type::Character,
+            String::default(),
+        );
         assert_eq!(Value::from_str_key("n", &key), Ok(Value::Character('n')));
 
-        let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
+        let key = Key::Other(
+            String::from("CHAR"),
+            Number::Count(2),
+            Type::Character,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("n,d,l,s", &key),
             Ok(Value::CharacterArray(vec![
@@ -399,7 +454,12 @@ mod tests {
             ]))
         );
 
-        let key = Key::Other(String::from("CHAR"), Number::Count(2), Type::Character);
+        let key = Key::Other(
+            String::from("CHAR"),
+            Number::Count(2),
+            Type::Character,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("n,d,l,.", &key),
             Ok(Value::CharacterArray(vec![
@@ -413,7 +473,12 @@ mod tests {
 
     #[test]
     fn test_from_str_key_with_string() {
-        let key = Key::Other(String::from("STRING"), Number::Count(0), Type::String);
+        let key = Key::Other(
+            String::from("STRING"),
+            Number::Count(0),
+            Type::String,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("noodles", &key),
             Err(ParseError::InvalidNumberForType(
@@ -422,7 +487,12 @@ mod tests {
             ))
         );
 
-        let key = Key::Other(String::from("STRING"), Number::Count(1), Type::String);
+        let key = Key::Other(
+            String::from("STRING"),
+            Number::Count(1),
+            Type::String,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("noodles", &key),
             Ok(Value::String(String::from("noodles")))
@@ -432,7 +502,12 @@ mod tests {
             Ok(Value::String(String::from("8%")))
         );
 
-        let key = Key::Other(String::from("STRING"), Number::Count(2), Type::String);
+        let key = Key::Other(
+            String::from("STRING"),
+            Number::Count(2),
+            Type::String,
+            String::default(),
+        );
         assert_eq!(
             Value::from_str_key("noodles,vcf", &key),
             Ok(Value::StringArray(vec![
