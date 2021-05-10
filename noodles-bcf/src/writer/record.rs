@@ -8,7 +8,7 @@ use noodles_vcf as vcf;
 
 use crate::{
     header::StringMap,
-    record::value::{Float, Value},
+    record::value::{Float, Int32, Int8, Value},
 };
 
 use super::value::write_value;
@@ -31,8 +31,8 @@ where
 
     write_qual(writer, record.quality_score())?;
 
-    // TODO
-    let n_info = 0;
+    let n_info = u16::try_from(record.info().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_info)?;
 
     let alternate_bases_len = if record.alternate_bases().is_empty() {
@@ -57,8 +57,8 @@ where
     write_id(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
     write_filter(writer, string_map, record.filters())?;
+    write_info(writer, string_map, record.info())?;
 
-    // TODO: info
     // TODO: genotypes
 
     Ok(())
@@ -181,5 +181,55 @@ where
     } else {
         let value = Some(Value::Int8Array(indices));
         write_value(writer, value)
+    }
+}
+
+fn write_info<W>(writer: &mut W, string_map: &StringMap, info: &vcf::record::Info) -> io::Result<()>
+where
+    W: Write,
+{
+    for field in info.values() {
+        write_info_key(writer, string_map, field.key())?;
+        write_info_value(writer, field.value())?;
+    }
+
+    Ok(())
+}
+
+fn write_info_key<W>(
+    writer: &mut W,
+    string_map: &StringMap,
+    key: &vcf::record::info::field::Key,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let i = string_map
+        .get_index_of(key.as_ref())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("info key missing from string map: {:?}", key),
+            )
+        })
+        .and_then(|i| {
+            i8::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
+
+    write_value(writer, Some(Value::Int8(Some(Int8::Value(i)))))
+}
+
+fn write_info_value<W>(writer: &mut W, value: &vcf::record::info::field::Value) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::info::field;
+
+    match value {
+        field::Value::Integer(n) => write_value(writer, Some(Value::Int32(Some(Int32::Value(*n))))),
+        field::Value::Float(n) => write_value(writer, Some(Value::Float(Some(Float::Value(*n))))),
+        field::Value::Flag => write_value(writer, None),
+        field::Value::String(s) => write_value(writer, Some(Value::String(Some(s.into())))),
+        v => todo!("unhandled INFO field value: {:?}", v),
     }
 }
