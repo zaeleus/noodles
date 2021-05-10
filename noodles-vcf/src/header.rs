@@ -154,19 +154,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Format, record::genotype::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::new(
-    ///         Key::Genotype,
-    ///         Number::Count(1),
-    ///         Type::String,
-    ///         String::from("Genotype"),
-    ///     ))
+    ///     .add_format(Format::from(Key::Genotype))
     ///     .build();
     ///
     /// let formats = header.formats();

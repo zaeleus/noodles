@@ -90,19 +90,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Format, record::genotype::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::new(
-    ///         Key::Genotype,
-    ///         Number::Count(1),
-    ///         Type::String,
-    ///         String::from("Genotype"),
-    ///     ))
+    ///     .add_format(Format::from(Key::Genotype))
     ///     .build();
     ///
     /// let formats = header.formats();
@@ -414,7 +405,7 @@ mod tests {
     #[test]
     fn test_build() {
         use crate::{
-            header::{self, format, Number},
+            header,
             record::{self, alternate_bases::allele},
         };
 
@@ -430,12 +421,7 @@ mod tests {
                 String::from("q10"),
                 String::from("Quality below 10"),
             ))
-            .add_format(Format::new(
-                record::genotype::field::Key::Genotype,
-                Number::Count(1),
-                format::Type::String,
-                String::from("Genotype"),
-            ))
+            .add_format(Format::from(record::genotype::field::Key::Genotype))
             .add_alternative_allele(AlternativeAllele::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,
