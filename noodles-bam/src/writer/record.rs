@@ -498,6 +498,9 @@ mod tests {
 
     #[test]
     fn test_region_to_bin() {
+        // § 5.3 C source code for computing bin number and overlapping bins (2021-01-07)
+        // [-1, 0]
+        assert_eq!(region_to_bin(-1, 0), 4680);
         // [8, 13]
         assert_eq!(region_to_bin(7, 13), 4681);
         // [63245986, 63245986]
