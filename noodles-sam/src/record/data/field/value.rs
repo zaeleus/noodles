@@ -549,10 +549,10 @@ impl fmt::Display for ParseError {
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
             Self::MissingValue => f.write_str("missing value"),
             Self::InvalidCharValue => f.write_str("invalid char value"),
-            Self::InvalidIntValue(e) => write!(f, "{}", e),
-            Self::InvalidFloatValue(e) => write!(f, "{}", e),
+            Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
+            Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
             Self::MissingSubtype => f.write_str("missing subtype"),
-            Self::InvalidSubtype(e) => write!(f, "{}", e),
+            Self::InvalidSubtype(e) => write!(f, "invalid subtype: {}", e),
         }
     }
 }
