@@ -135,13 +135,22 @@ where
 
         let l_shared = u32::try_from(site_buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let mut genotypes_buf = Vec::new();
+
+        if let Some(format) = record.format() {
+            record::write_genotypes(&mut genotypes_buf, string_map, format, record.genotypes())?;
+        };
+
+        let l_indiv = u32::try_from(genotypes_buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         self.inner.write_u32::<LittleEndian>(l_shared)?;
-
-        // TODO
-        let l_indiv = 0;
         self.inner.write_u32::<LittleEndian>(l_indiv)?;
+        self.inner.write_all(&site_buf)?;
+        self.inner.write_all(&genotypes_buf)?;
 
-        self.inner.write_all(&site_buf)
+        Ok(())
     }
 }
 

@@ -1,3 +1,7 @@
+mod genotypes;
+
+pub use self::genotypes::write_genotypes;
+
 use std::{
     convert::TryFrom,
     io::{self, Write},
@@ -45,21 +49,23 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_allele)?;
 
-    // TODO
-    let n_sample = 0;
+    let n_sample = u32::try_from(header.sample_names().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    // TODO
-    let n_fmt = 0;
+    let n_fmt = record
+        .format()
+        .map(|format| {
+            u8::try_from(format.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })
+        .unwrap_or(Ok(0))?;
 
-    let n_fmt_sample = n_fmt << 24 | n_sample;
+    let n_fmt_sample = u32::from(n_fmt) << 24 | n_sample;
     writer.write_u32::<LittleEndian>(n_fmt_sample)?;
 
     write_id(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
     write_filter(writer, string_map, record.filters())?;
     write_info(writer, string_map, record.info())?;
-
-    // TODO: genotypes
 
     Ok(())
 }

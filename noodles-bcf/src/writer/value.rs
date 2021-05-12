@@ -1,6 +1,6 @@
 mod ty;
 
-use self::ty::write_type;
+pub use self::ty::write_type;
 
 use std::io::{self, Write};
 
