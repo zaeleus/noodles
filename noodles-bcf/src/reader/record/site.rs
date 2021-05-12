@@ -263,6 +263,21 @@ where
                 ))
             }
         },
+        Type::Character => match read_value(reader)? {
+            Some(Value::String(Some(s))) => s
+                .chars()
+                .next()
+                .map(info::field::Value::Character)
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
+                })?,
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("type mismatch: expected {}, got {:?}", Type::Character, v),
+                ))
+            }
+        },
         Type::String => match read_value(reader)? {
             Some(Value::String(Some(s))) => info::field::Value::String(s),
             v => {
@@ -272,8 +287,40 @@ where
                 ))
             }
         },
-        ty => todo!("unhandled INFO value type: {:?}", ty),
     };
 
     Ok(value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_info_value() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::{
+            header::{info::Type, Info, Number},
+            record,
+        };
+
+        let data = [
+            0x17, // Type::String(1)
+            0x6e, // "n"
+        ];
+        let mut reader = &data[..];
+
+        let key = record::info::field::Key::Other(
+            String::from("CHAR"),
+            Number::Count(1),
+            Type::Character,
+            String::default(),
+        );
+        let info = Info::from(key);
+
+        let actual = read_info_value(&mut reader, &info)?;
+        let expected = record::info::field::Value::Character('n');
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 }
