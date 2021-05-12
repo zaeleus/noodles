@@ -3,9 +3,16 @@ use std::{
     io::{self, Read},
 };
 
-use noodles_vcf as vcf;
+use noodles_vcf::{self as vcf, header::info::Type};
 
-use crate::{header::StringMap, reader::value::read_value, record::Value};
+use crate::{
+    header::StringMap,
+    reader::value::read_value,
+    record::{
+        value::{Float, Int16, Int32, Int8},
+        Value,
+    },
+};
 
 pub fn read_info<R>(
     reader: &mut R,
@@ -16,12 +23,10 @@ pub fn read_info<R>(
 where
     R: Read,
 {
-    use vcf::record::info::Field;
-
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let key = read_info_key(reader, string_map)?;
+        let key = read_info_field_key(reader, string_map)?;
 
         let info = infos.get(&key).ok_or_else(|| {
             io::Error::new(
@@ -30,24 +35,22 @@ where
             )
         })?;
 
-        let value = read_info_value(reader, &info)?;
+        let value = read_info_field_value(reader, &info)?;
 
-        let field = Field::new(key, value);
+        let field = vcf::record::info::Field::new(key, value);
         fields.push(field);
     }
 
     vcf::record::Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn read_info_key<R>(
+fn read_info_field_key<R>(
     reader: &mut R,
     string_map: &StringMap,
 ) -> io::Result<vcf::record::info::field::Key>
 where
     R: Read,
 {
-    use crate::record::value::Int8;
-
     match read_value(reader)? {
         Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -72,111 +75,135 @@ where
     }
 }
 
-fn read_info_value<R>(
+fn read_info_field_value<R>(
     reader: &mut R,
     info: &vcf::header::Info,
 ) -> io::Result<vcf::record::info::field::Value>
 where
     R: Read,
 {
-    use vcf::{header::info::Type, record::info};
+    match info.ty() {
+        Type::Integer => read_info_field_integer_value(reader),
+        Type::Flag => read_info_field_flag_value(reader),
+        Type::Float => read_info_field_float_value(reader),
+        Type::Character => read_info_field_character_value(reader),
+        Type::String => read_info_field_string_value(reader),
+    }
+}
 
-    use crate::record::value::{Float, Int16, Int32, Int8};
-
-    let value = match info.ty() {
-        Type::Integer => match read_value(reader)? {
-            Some(Value::Int8(Some(Int8::Value(n)))) => info::field::Value::Integer(i32::from(n)),
-            Some(Value::Int8Array(values)) => {
-                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-            }
-            Some(Value::Int16(Some(Int16::Value(n)))) => info::field::Value::Integer(i32::from(n)),
-            Some(Value::Int16Array(values)) => {
-                info::field::Value::IntegerArray(values.into_iter().map(i32::from).collect())
-            }
-            Some(Value::Int32(Some(Int32::Value(n)))) => info::field::Value::Integer(n),
-            Some(Value::Int32Array(values)) => info::field::Value::IntegerArray(values),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
-                ));
-            }
-        },
-        Type::Flag => match read_value(reader)? {
-            Some(Value::Int8(Some(Int8::Value(1)))) | None => info::field::Value::Flag,
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
-                ));
-            }
-        },
-        Type::Float => match read_value(reader)? {
-            Some(Value::Float(Some(Float::Value(n)))) => info::field::Value::Float(n),
-            Some(Value::FloatArray(values)) => info::field::Value::FloatArray(values),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Float, v),
-                ))
-            }
-        },
-        Type::Character => match read_value(reader)? {
-            Some(Value::String(Some(s))) => s
-                .chars()
-                .next()
-                .map(info::field::Value::Character)
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
-                })?,
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::Character, v),
-                ))
-            }
-        },
-        Type::String => match read_value(reader)? {
-            Some(Value::String(Some(s))) => info::field::Value::String(s),
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("type mismatch: expected {}, got {:?}", Type::String, v),
-                ))
-            }
-        },
+fn read_info_field_integer_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    let value = match read_value(reader)? {
+        Some(Value::Int8(Some(Int8::Value(n)))) => {
+            vcf::record::info::field::Value::Integer(i32::from(n))
+        }
+        Some(Value::Int8Array(values)) => vcf::record::info::field::Value::IntegerArray(
+            values.into_iter().map(i32::from).collect(),
+        ),
+        Some(Value::Int16(Some(Int16::Value(n)))) => {
+            vcf::record::info::field::Value::Integer(i32::from(n))
+        }
+        Some(Value::Int16Array(values)) => vcf::record::info::field::Value::IntegerArray(
+            values.into_iter().map(i32::from).collect(),
+        ),
+        Some(Value::Int32(Some(Int32::Value(n)))) => vcf::record::info::field::Value::Integer(n),
+        Some(Value::Int32Array(values)) => vcf::record::info::field::Value::IntegerArray(values),
+        v => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
+            ));
+        }
     };
 
     Ok(value)
 }
 
+fn read_info_field_flag_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Some(Value::Int8(Some(Int8::Value(1)))) | None => Ok(vcf::record::info::field::Value::Flag),
+        v => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
+        )),
+    }
+}
+
+fn read_info_field_float_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Some(Value::Float(Some(Float::Value(n)))) => Ok(vcf::record::info::field::Value::Float(n)),
+        Some(Value::FloatArray(values)) => Ok(vcf::record::info::field::Value::FloatArray(values)),
+        v => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("type mismatch: expected {}, got {:?}", Type::Float, v),
+        )),
+    }
+}
+
+fn read_info_field_character_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Some(Value::String(Some(s))) => s
+            .chars()
+            .next()
+            .map(vcf::record::info::field::Value::Character)
+            .map(Ok)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
+            })?,
+        v => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("type mismatch: expected {}, got {:?}", Type::Character, v),
+        )),
+    }
+}
+
+fn read_info_field_string_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Some(Value::String(Some(s))) => Ok(vcf::record::info::field::Value::String(s)),
+        v => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("type mismatch: expected {}, got {:?}", Type::String, v),
+        )),
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use vcf::{header::Number, record::info::field::Key};
+
     use super::*;
 
     #[test]
-    fn test_read_info_value() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::{
-            header::{info::Type, Info, Number},
-            record,
-        };
-
+    fn test_read_info_field_value() -> Result<(), Box<dyn std::error::Error>> {
         let data = [
             0x17, // Type::String(1)
             0x6e, // "n"
         ];
         let mut reader = &data[..];
 
-        let key = record::info::field::Key::Other(
+        let info = vcf::header::Info::from(Key::Other(
             String::from("CHAR"),
             Number::Count(1),
             Type::Character,
             String::default(),
-        );
-        let info = Info::from(key);
+        ));
 
-        let actual = read_info_value(&mut reader, &info)?;
-        let expected = record::info::field::Value::Character('n');
+        let actual = read_info_field_value(&mut reader, &info)?;
+        let expected = vcf::record::info::field::Value::Character('n');
         assert_eq!(actual, expected);
 
         Ok(())
