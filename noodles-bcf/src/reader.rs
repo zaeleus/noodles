@@ -1,5 +1,6 @@
 pub mod record;
 mod records;
+pub mod string_map;
 pub mod value;
 
 pub use self::records::Records;

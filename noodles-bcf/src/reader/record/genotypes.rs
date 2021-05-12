@@ -8,8 +8,7 @@ use noodles_vcf::{self as vcf, record::Genotype};
 
 use crate::{
     header::StringMap,
-    reader::value::{read_type, read_value},
-    record::Value,
+    reader::{string_map::read_string_map_index, value::read_type},
 };
 
 pub fn read_genotypes<R>(
@@ -55,30 +54,19 @@ fn read_genotype_key<R>(
 where
     R: Read,
 {
-    use crate::record::value::Int8;
-
-    match read_value(reader)? {
-        Some(Value::Int8(Some(Int8::Value(i)))) => usize::try_from(i)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|j| {
-                string_map.get_index(j).ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid string map index: {}", j),
-                    )
-                })
+    read_string_map_index(reader)
+        .and_then(|j| {
+            string_map.get_index(j).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid string map index: {}", j),
+                )
             })
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }),
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected i8, got {:?}", v),
-            ));
-        }
-    }
+        })
+        .and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
 }
 
 fn read_genotype_values<R>(
