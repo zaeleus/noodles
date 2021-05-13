@@ -4,7 +4,9 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{collections::HashSet, convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+
+use indexmap::IndexMap;
 
 const DELIMITER: char = '\t';
 
@@ -12,10 +14,10 @@ const DELIMITER: char = '\t';
 ///
 /// This is also called optional fields.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Data(Vec<Field>);
+pub struct Data(IndexMap<field::Tag, Field>);
 
 impl Deref for Data {
-    type Target = [Field];
+    type Target = IndexMap<field::Tag, Field>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -24,7 +26,7 @@ impl Deref for Data {
 
 impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, field) in self.iter().enumerate() {
+        for (i, field) in self.values().enumerate() {
             if i > 0 {
                 f.write_str("\t")?;
             }
@@ -95,15 +97,17 @@ impl TryFrom<Vec<Field>> for Data {
     type Error = TryFromFieldVectorError;
 
     fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
-        let mut set = HashSet::new();
+        let mut map = IndexMap::new();
 
-        for field in &fields {
-            if !set.insert(field.tag().clone()) {
-                return Err(TryFromFieldVectorError::DuplicateTag(field.tag().clone()));
+        for field in fields {
+            let tag = field.tag().clone();
+
+            if map.insert(tag.clone(), field).is_some() {
+                return Err(TryFromFieldVectorError::DuplicateTag(tag));
             }
         }
 
-        Ok(Self(fields))
+        Ok(Self(map))
     }
 }
 
@@ -114,27 +118,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
-        let data = Data(vec![
+    fn test_fmt() -> Result<(), TryFromFieldVectorError> {
+        let data = Data::try_from(vec![
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
             Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-        ]);
+        ])?;
 
         let expected = "RG:Z:rg0\tNH:i:1";
 
         assert_eq!(data.to_string(), expected);
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), TryFromFieldVectorError> {
         assert_eq!("".parse(), Ok(Data::default()));
 
         assert_eq!(
             "RG:Z:rg0\tNH:i:1".parse(),
-            Ok(Data(vec![
+            Ok(Data::try_from(vec![
                 Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
                 Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-            ]))
+            ])?)
         );
 
         assert_eq!(
@@ -142,6 +148,8 @@ mod tests {
             Err(ParseError::InvalidData(
                 TryFromFieldVectorError::DuplicateTag(Tag::AlignmentHitCount)
             ))
-        )
+        );
+
+        Ok(())
     }
 }

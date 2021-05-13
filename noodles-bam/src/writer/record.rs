@@ -210,7 +210,7 @@ fn calculate_data_len(data: &Data) -> usize {
 
     let mut len = 0;
 
-    for field in data.iter() {
+    for field in data.values() {
         // tag
         len += 2;
         // val_type
@@ -285,7 +285,7 @@ where
 {
     use noodles_sam::record::data::field::Value;
 
-    for field in data.iter() {
+    for field in data.values() {
         writer.write_all(field.tag().as_ref().as_bytes())?;
 
         let value = field.value();
