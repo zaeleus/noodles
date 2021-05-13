@@ -179,11 +179,88 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_info_field_value() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
-            0x17, // Type::String(1)
-            0x6e, // "n"
-        ];
+    fn test_read_info_field_value_with_integer_value() -> io::Result<()> {
+        fn t(data: &[u8], info: &vcf::header::Info, expected_value: i32) -> io::Result<()> {
+            let mut reader = data;
+
+            let actual = read_info_field_value(&mut reader, &info)?;
+            let expected = vcf::record::info::field::Value::Integer(expected_value);
+
+            assert_eq!(actual, expected);
+
+            Ok(())
+        }
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("I32"),
+            Number::Count(1),
+            Type::Integer,
+            String::default(),
+        ));
+
+        // Some(Value::Int8(Some(Int8::Value(8))))
+        t(&[0x11, 0x08], &info, 8)?;
+        // Some(Value::Int16(Some(Int16::Value(13))))
+        t(&[0x12, 0x0d, 0x00], &info, 13)?;
+        // Some(Value::Int32(Some(Int32::Value(21))))
+        t(&[0x13, 0x15, 0x00, 0x00, 0x00], &info, 21)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_flag_value() -> io::Result<()> {
+        fn t(data: &[u8], info: &vcf::header::Info) -> io::Result<()> {
+            let mut reader = data;
+
+            let actual = read_info_field_value(&mut reader, &info)?;
+            let expected = vcf::record::info::field::Value::Flag;
+
+            assert_eq!(actual, expected);
+
+            Ok(())
+        }
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("BOOL"),
+            Number::Count(1),
+            Type::Flag,
+            String::default(),
+        ));
+
+        // None
+        t(&[0x00], &info)?;
+        // Some(Value::Int8(Some(Int8::Value(1))))
+        t(&[0x11, 0x01], &info)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_float_value() -> io::Result<()> {
+        // Some(Value::Float(Some(Float::Value(0.0))))
+        let data = [0x15, 0x00, 0x00, 0x00, 0x00];
+        let mut reader = &data[..];
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("F32"),
+            Number::Count(1),
+            Type::Float,
+            String::default(),
+        ));
+
+        let actual = read_info_field_value(&mut reader, &info)?;
+        let expected = vcf::record::info::field::Value::Float(0.0);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_character_value() -> io::Result<()> {
+        // Some(Value::String(Some(String::from("n"))))
+        let data = [0x17, 0x6e];
         let mut reader = &data[..];
 
         let info = vcf::header::Info::from(Key::Other(
@@ -195,6 +272,28 @@ mod tests {
 
         let actual = read_info_field_value(&mut reader, &info)?;
         let expected = vcf::record::info::field::Value::Character('n');
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_string_value() -> io::Result<()> {
+        // Some(Value::String(Some(String::from("ndls"))))
+        let data = [0x47, 0x6e, 0x64, 0x6c, 0x73];
+        let mut reader = &data[..];
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("STRING"),
+            Number::Count(1),
+            Type::String,
+            String::default(),
+        ));
+
+        let actual = read_info_field_value(&mut reader, &info)?;
+        let expected = vcf::record::info::field::Value::String(String::from("ndls"));
+
         assert_eq!(actual, expected);
 
         Ok(())
