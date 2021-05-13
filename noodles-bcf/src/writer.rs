@@ -131,7 +131,7 @@ where
         record: &vcf::Record,
     ) -> io::Result<()> {
         let mut site_buf = Vec::new();
-        record::write_vcf_record(&mut site_buf, header, string_map, record)?;
+        record::write_site(&mut site_buf, header, string_map, record)?;
 
         let l_shared = u32::try_from(site_buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
