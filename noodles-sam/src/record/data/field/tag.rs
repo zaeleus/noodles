@@ -8,7 +8,7 @@ const LEN: usize = 2;
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Tag {
     /// (`AM`).
     MinMappingQuality,
