@@ -221,6 +221,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use noodles_sam::record::Data;
 
     use crate::{record::sequence::Base, Reader, Record};
@@ -401,7 +403,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record_with_data() -> io::Result<()> {
+    fn test_write_sam_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::record::data::{
             field::{Tag as SamTag, Value as SamValue},
             Field as SamField,
@@ -413,10 +415,10 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
-            .set_data(Data::from(vec![
+            .set_data(Data::try_from(vec![
                 SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
                 SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
-            ]))
+            ])?)
             .build();
 
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;

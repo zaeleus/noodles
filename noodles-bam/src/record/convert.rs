@@ -261,10 +261,10 @@ mod tests {
             .set_template_length(166)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
-            .set_data(sam::record::Data::from(vec![
+            .set_data(sam::record::Data::try_from(vec![
                 Field::new(Tag::EditDistance, Value::Int32(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
-            ]))
+            ])?)
             .build();
 
         assert_eq!(actual, expected);

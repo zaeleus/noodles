@@ -353,10 +353,10 @@ mod tests {
         let sequence: Sequence = "ATCGATC".parse()?;
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
-        let data = Data::from(vec![data::Field::new(
+        let data = Data::try_from(vec![data::Field::new(
             data::field::Tag::AlignmentHitCount,
             data::field::Value::Int32(1),
-        )]);
+        )])?;
 
         let record = Builder::new()
             .set_read_name(read_name.clone())
