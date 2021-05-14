@@ -64,23 +64,23 @@ mod tests {
 
     #[test]
     fn test_read_string_map_index() -> io::Result<()> {
-        // [Type::Int8(1), 8]
+        // Some(Type::Int8(Some(Int8::Value(8))))
         let data = [0x11, 0x08];
         let mut reader = &data[..];
         assert_eq!(read_string_map_index(&mut reader)?, 8);
 
-        // [Type::Int16(1), 13]
+        // Some(Type::Int16(Some(Int16::Value(13))))
         let data = [0x12, 0x0d, 0x00];
         let mut reader = &data[..];
         assert_eq!(read_string_map_index(&mut reader)?, 13);
 
-        // [Type::Int32(1), 21]
+        // Some(Type::Int32(Some(Int32::Value(21))))
         let data = [0x13, 0x15, 0x00, 0x00, 0x00];
         let mut reader = &data[..];
         assert_eq!(read_string_map_index(&mut reader)?, 21);
 
-        // [Type::String(1), "n"]
-        let data = [0x17, 0x6e];
+        // Some(Type::String(Some(String::from("n"))))
+        let data = [0x17, b'n'];
         let mut reader = &data[..];
         assert!(matches!(
             read_string_map_index(&mut reader),
