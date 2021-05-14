@@ -1,9 +1,6 @@
 mod info;
 
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
@@ -13,7 +10,7 @@ use noodles_vcf::{
 
 use crate::{
     header::StringMap,
-    reader::value::read_value,
+    reader::{string_map::read_string_map_indices, value::read_value},
     record::{value::Float, Value},
 };
 
@@ -120,33 +117,17 @@ fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
 where
     R: Read,
 {
-    use crate::record::value::Int8;
-
-    let indices = match read_value(reader)? {
-        Some(Value::Int8(None)) | None => Vec::new(),
-        Some(Value::Int8(Some(Int8::Value(i)))) => vec![i],
-        Some(Value::Int8Array(indices)) => indices,
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("expected i8, got {:?}", v),
-            ))
-        }
-    };
+    let indices = read_string_map_indices(reader)?;
 
     let raw_filters: Vec<_> = indices
         .iter()
         .map(|&i| {
-            usize::try_from(i)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|j| {
-                    string_map.get_index(j).ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            format!("invalid string map index: {}", j),
-                        )
-                    })
-                })
+            string_map.get_index(i).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid string map index: {}", i),
+                )
+            })
         })
         .collect::<Result<_, _>>()?;
 
