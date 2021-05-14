@@ -201,6 +201,8 @@ mod tests {
 
     #[test]
     fn test_parse_genotype_genotype_values() {
+        use crate::record::value::Int8;
+
         assert_eq!(parse_genotype_genotype_values(&[0x02, 0x02]), "0/0");
         assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04]), "0/1");
         assert_eq!(parse_genotype_genotype_values(&[0x04, 0x04]), "1/1");
@@ -210,6 +212,9 @@ mod tests {
         assert_eq!(parse_genotype_genotype_values(&[0x04]), "1");
         assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
         assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, -127]), "0");
+        assert_eq!(
+            parse_genotype_genotype_values(&[0x02, i8::from(Int8::EndOfVector)]),
+            "0"
+        );
     }
 }
