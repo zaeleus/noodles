@@ -120,9 +120,10 @@ where
                 let value = genotype::field::Value::IntegerArray(
                     buf.into_iter()
                         .map(Int8::from)
-                        .map(|value| match value {
-                            Int8::Value(n) => Some(i32::from(n)),
-                            Int8::Missing => None,
+                        .filter_map(|value| match value {
+                            Int8::Value(n) => Some(Some(i32::from(n))),
+                            Int8::Missing => Some(None),
+                            Int8::EndOfVector => None,
                             _ => todo!("unhandled i8 array value: {:?}", value),
                         })
                         .collect(),
@@ -171,9 +172,10 @@ where
                 let value = genotype::field::Value::IntegerArray(
                     buf.into_iter()
                         .map(Int16::from)
-                        .map(|value| match value {
-                            Int16::Value(n) => Some(i32::from(n)),
-                            Int16::Missing => None,
+                        .filter_map(|value| match value {
+                            Int16::Value(n) => Some(Some(i32::from(n))),
+                            Int16::Missing => Some(None),
+                            Int16::EndOfVector => None,
                             _ => todo!("unhandled i16 array value: {:?}", value),
                         })
                         .collect(),
@@ -220,9 +222,10 @@ where
                 let value = genotype::field::Value::IntegerArray(
                     buf.into_iter()
                         .map(Int32::from)
-                        .map(|value| match value {
-                            Int32::Value(n) => Some(n),
-                            Int32::Missing => None,
+                        .filter_map(|value| match value {
+                            Int32::Value(n) => Some(Some(n)),
+                            Int32::Missing => Some(None),
+                            Int32::EndOfVector => None,
                             _ => todo!("unhandled i32 array value: {:?}", value),
                         })
                         .collect(),
@@ -329,15 +332,15 @@ mod tests {
         let data = [
             0x21, // Some(Type::Int8(2))
             0x05, 0x08, // [Some(5), Some(8)]
-            0x0d, 0x15, // [Some(13), Some(21)]
-            0x80, 0x80, // [None, None]
+            0x0d, 0x80, // [Some(13), None]
+            0x15, 0x81, // [Some(21)]
         ];
         let mut reader = &data[..];
         let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), Some(21)])),
-            Some(Value::IntegerArray(vec![None, None])),
+            Some(Value::IntegerArray(vec![Some(13), None])),
+            Some(Value::IntegerArray(vec![Some(21)])),
         ];
         assert_eq!(actual, expected);
 
@@ -360,15 +363,15 @@ mod tests {
         let data = [
             0x22, // Some(Type::Int16(2))
             0x05, 0x00, 0x08, 0x00, // [Some(5), Some(8)]
-            0x0d, 0x00, 0x15, 0x00, // [Some(13), Some(21)]
-            0x00, 0x80, 0x00, 0x80, // [None, None]
+            0x0d, 0x00, 0x00, 0x80, // [Some(13), None]
+            0x15, 0x00, 0x01, 0x80, // [None, None]
         ];
         let mut reader = &data[..];
         let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), Some(21)])),
-            Some(Value::IntegerArray(vec![None, None])),
+            Some(Value::IntegerArray(vec![Some(13), None])),
+            Some(Value::IntegerArray(vec![Some(21)])),
         ];
         assert_eq!(actual, expected);
 
@@ -391,15 +394,15 @@ mod tests {
         let data = [
             0x23, // Some(Type::Int32(2))
             0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // [Some(5), Some(8)]
-            0x0d, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, // [Some(13), Some(21)]
-            0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, // [None, None]
+            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, // [Some(13), None]
+            0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // [Some(21)]
         ];
         let mut reader = &data[..];
         let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
-            Some(Value::IntegerArray(vec![Some(13), Some(21)])),
-            Some(Value::IntegerArray(vec![None, None])),
+            Some(Value::IntegerArray(vec![Some(13), None])),
+            Some(Value::IntegerArray(vec![Some(21)])),
         ];
         assert_eq!(actual, expected);
 
