@@ -1,6 +1,7 @@
 use std::{
     convert::TryFrom,
     io::{self, Read},
+    str,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -82,6 +83,7 @@ where
         Some(Type::Int16(len)) => read_genotype_int16_values(reader, sample_count, len),
         Some(Type::Int32(len)) => read_genotype_int32_values(reader, sample_count, len),
         Some(Type::Float(len)) => read_genotype_float_values(reader, sample_count, len),
+        Some(Type::String(len)) => read_genotype_string_values(reader, sample_count, len),
         ty => todo!("unhandled type: {:?}", ty),
     }
 }
@@ -290,6 +292,36 @@ where
     Ok(values)
 }
 
+fn read_genotype_string_values<R>(
+    reader: &mut R,
+    sample_count: usize,
+    len: usize,
+) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+where
+    R: Read,
+{
+    use vcf::record::genotype;
+
+    let mut values = Vec::with_capacity(sample_count);
+    let mut buf = vec![0; len];
+
+    for _ in 0..sample_count {
+        reader.read_exact(&mut buf)?;
+
+        let data = match buf.iter().position(|&b| b == 0x81) {
+            Some(i) => &buf[..i],
+            None => &buf[..],
+        };
+
+        let s = str::from_utf8(data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let value = genotype::field::Value::String(s.into());
+
+        values.push(Some(value));
+    }
+
+    Ok(values)
+}
+
 fn read_genotype_genotype_values<R>(
     reader: &mut R,
     sample_count: usize,
@@ -485,6 +517,26 @@ mod tests {
             Some(Value::FloatArray(vec![Some(0.0), Some(1.0)])),
             Some(Value::FloatArray(vec![Some(0.0), None])),
             Some(Value::FloatArray(vec![Some(0.0)])),
+        ];
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_genotype_values_with_string_values() -> io::Result<()> {
+        let data = [
+            0x47, // Some(Type::String(4))
+            b'n', 0x81, 0x81, 0x81, // "n"
+            b'n', b'd', b'l', 0x81, // "ndl"
+            b'n', b'd', b'l', b's', // "ndls"
+        ];
+        let mut reader = &data[..];
+        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let expected = vec![
+            Some(Value::String(String::from("n"))),
+            Some(Value::String(String::from("ndl"))),
+            Some(Value::String(String::from("ndls"))),
         ];
         assert_eq!(actual, expected);
 
