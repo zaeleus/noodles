@@ -9,7 +9,7 @@ use noodles_vcf::{self as vcf, record::Genotype};
 use crate::{
     header::StringMap,
     reader::{string_map::read_string_map_index, value::read_type},
-    record::value::{Int16, Int32, Int8, Type},
+    record::value::{Float, Int16, Int32, Int8, Type},
 };
 
 pub fn read_genotypes<R>(
@@ -81,6 +81,7 @@ where
         Some(Type::Int8(len)) => read_genotype_int8_values(reader, sample_count, len),
         Some(Type::Int16(len)) => read_genotype_int16_values(reader, sample_count, len),
         Some(Type::Int32(len)) => read_genotype_int32_values(reader, sample_count, len),
+        Some(Type::Float(len)) => read_genotype_float_values(reader, sample_count, len),
         ty => todo!("unhandled type: {:?}", ty),
     }
 }
@@ -227,6 +228,56 @@ where
                             Int32::Missing => Some(None),
                             Int32::EndOfVector => None,
                             _ => todo!("unhandled i32 array value: {:?}", value),
+                        })
+                        .collect(),
+                );
+
+                values.push(Some(value));
+            }
+        }
+    }
+
+    Ok(values)
+}
+
+fn read_genotype_float_values<R>(
+    reader: &mut R,
+    sample_count: usize,
+    len: usize,
+) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+where
+    R: Read,
+{
+    use vcf::record::genotype;
+
+    let mut values = Vec::with_capacity(sample_count);
+
+    match len {
+        0 => todo!("unhandled genotypes float len: 0"),
+        1 => {
+            for _ in 0..sample_count {
+                let value = reader.read_f32::<LittleEndian>().map(Float::from)?;
+
+                match value {
+                    Float::Value(n) => values.push(Some(genotype::field::Value::Float(n))),
+                    Float::Missing => values.push(None),
+                    _ => todo!("unhandled f32 value: {:?}", value),
+                }
+            }
+        }
+        _ => {
+            for _ in 0..sample_count {
+                let mut buf = vec![0.0; len];
+                reader.read_f32_into::<LittleEndian>(&mut buf)?;
+
+                let value = genotype::field::Value::FloatArray(
+                    buf.into_iter()
+                        .map(Float::from)
+                        .filter_map(|value| match value {
+                            Float::Value(n) => Some(Some(n)),
+                            Float::Missing => Some(None),
+                            Float::EndOfVector => None,
+                            _ => todo!("unhandled f32 array value: {:?}", value),
                         })
                         .collect(),
                 );
@@ -403,6 +454,37 @@ mod tests {
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
             Some(Value::IntegerArray(vec![Some(13), None])),
             Some(Value::IntegerArray(vec![Some(21)])),
+        ];
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_genotype_values_with_float_values() -> io::Result<()> {
+        let data = [
+            0x15, // Some(Type::Float(1))
+            0x00, 0x00, 0x00, 0x00, // Some(0.0)
+            0x00, 0x00, 0x80, 0x3f, // Some(1.0)
+            0x01, 0x00, 0x80, 0x7f, // None
+        ];
+        let mut reader = &data[..];
+        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let expected = vec![Some(Value::Float(0.0)), Some(Value::Float(1.0)), None];
+        assert_eq!(actual, expected);
+
+        let data = [
+            0x25, // Some(Type::Float(2))
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // [Some(0.0), Some(1.0)]
+            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f, // [Some(0.0), None]
+            0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x7f, // [Some(0.0)]
+        ];
+        let mut reader = &data[..];
+        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let expected = vec![
+            Some(Value::FloatArray(vec![Some(0.0), Some(1.0)])),
+            Some(Value::FloatArray(vec![Some(0.0), None])),
+            Some(Value::FloatArray(vec![Some(0.0)])),
         ];
         assert_eq!(actual, expected);
 
