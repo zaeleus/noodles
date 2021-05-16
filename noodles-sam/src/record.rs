@@ -341,6 +341,13 @@ impl Record {
     pub fn data(&self) -> &Data {
         &self.data
     }
+
+    /// Returns a mutable reference to data fields
+    ///
+    /// This is enough documentation I think
+    pub fn data_mut(&mut self) -> &mut Data {
+        &mut self.data
+    }
 }
 
 impl Default for Record {
