@@ -4,7 +4,12 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{
+    convert::TryFrom,
+    error, fmt,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use indexmap::IndexMap;
 
@@ -21,6 +26,12 @@ impl Deref for Data {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Data {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
