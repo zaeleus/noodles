@@ -1,3 +1,5 @@
+//! Genomic region.
+
 use std::{error, fmt, num, str::FromStr};
 
 use noodles_sam::header::ReferenceSequences;
