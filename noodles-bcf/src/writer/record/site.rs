@@ -12,6 +12,8 @@ use crate::{
     writer::value::write_value,
 };
 
+const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
+
 pub fn write_site<W>(
     writer: &mut W,
     header: &vcf::Header,
@@ -46,6 +48,13 @@ where
 
     let n_sample = u32::try_from(header.sample_names().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    if n_sample > MAX_SAMPLE_NAME_COUNT {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid sample name count: {}", n_sample),
+        ));
+    }
 
     let n_fmt = record
         .format()
