@@ -534,6 +534,8 @@ pub enum ParseError {
     InvalidIntValue(num::ParseIntError),
     /// The data field floating-point value is invalid.
     InvalidFloatValue(num::ParseFloatError),
+    /// The data field hex value is invalid.
+    InvalidHexValue,
     /// The data field subtype is missing.
     MissingSubtype,
     /// The data field subtype is invalid.
@@ -551,6 +553,7 @@ impl fmt::Display for ParseError {
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
             Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
+            Self::InvalidHexValue => write!(f, "invalid hex value"),
             Self::MissingSubtype => f.write_str("missing subtype"),
             Self::InvalidSubtype(e) => write!(f, "invalid subtype: {}", e),
         }
@@ -575,7 +578,7 @@ impl FromStr for Value {
             Type::Int32 => parse_i32(value).map(Self::Int32),
             Type::Float => parse_f32(value).map(Self::Float),
             Type::String => Ok(Self::String(value.into())),
-            Type::Hex => Ok(Self::Hex(value.into())),
+            Type::Hex => parse_hex(value).map(Self::Hex),
             Type::Array => parse_array(value),
         }
     }
@@ -617,6 +620,19 @@ fn parse_u32(s: &str) -> Result<u32, ParseError> {
 
 fn parse_f32(s: &str) -> Result<f32, ParseError> {
     s.parse().map_err(ParseError::InvalidFloatValue)
+}
+
+// § 1.5 The alignment section: optional fields (2021-01-07)
+fn is_valid_hex_char(c: char) -> bool {
+    matches!(c, '0'..='9' | 'A'..='F')
+}
+
+fn parse_hex(s: &str) -> Result<String, ParseError> {
+    if s.len() % 2 == 0 && s.chars().all(is_valid_hex_char) {
+        Ok(s.into())
+    } else {
+        Err(ParseError::InvalidHexValue)
+    }
 }
 
 fn parse_array(s: &str) -> Result<Value, ParseError> {
@@ -758,7 +774,10 @@ mod tests {
             Ok(Value::String(String::from("noodles")))
         );
 
-        assert_eq!("H:cafe".parse(), Ok(Value::Hex(String::from("cafe"))));
+        assert_eq!("H:CAFE".parse(), Ok(Value::Hex(String::from("CAFE"))));
+        assert_eq!("H:cafe".parse::<Value>(), Err(ParseError::InvalidHexValue));
+        assert_eq!("H:CAFE0".parse::<Value>(), Err(ParseError::InvalidHexValue));
+        assert_eq!("H:NDLS".parse::<Value>(), Err(ParseError::InvalidHexValue));
 
         assert_eq!("B:c,1,-2".parse(), Ok(Value::Int8Array(vec![1, -2])));
         assert!(matches!(
