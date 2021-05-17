@@ -341,6 +341,32 @@ impl Record {
     pub fn data(&self) -> &Data {
         &self.data
     }
+
+    /// Returns a mutable reference to the data fields for this record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::data};
+    ///
+    /// let mut record = sam::Record::default();
+    /// assert!(record.data().is_empty());
+    ///
+    /// let field = data::Field::new(
+    ///     data::field::Tag::AlignmentHitCount,
+    ///     data::field::Value::Int32(1),
+    /// );
+    ///
+    /// let data = record.data_mut();
+    /// data.insert(field.tag().clone(), field.clone());
+    ///
+    /// let data = record.data();
+    /// assert_eq!(data.len(), 1);
+    /// assert_eq!(data.get(field.tag()), Some(&field));
+    /// ```
+    pub fn data_mut(&mut self) -> &mut Data {
+        &mut self.data
+    }
 }
 
 impl Default for Record {
