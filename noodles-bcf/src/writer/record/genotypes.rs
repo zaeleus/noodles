@@ -1,15 +1,12 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
 use crate::{
     header::StringMap,
-    record::value::{Int32, Int8, Type, Value},
-    writer::value::{write_type, write_value},
+    record::value::{Int32, Type},
+    writer::{string_map::write_string_map_index, value::write_type},
 };
 
 pub fn write_genotypes<W>(
@@ -51,7 +48,7 @@ pub fn write_genotype_key<W>(
 where
     W: Write,
 {
-    let i = string_map
+    string_map
         .get_index_of(key.as_ref())
         .ok_or_else(|| {
             io::Error::new(
@@ -59,11 +56,7 @@ where
                 format!("genotype key not in string map: {:?}", key),
             )
         })
-        .and_then(|i| {
-            i8::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
-
-    write_value(writer, Some(Value::Int8(Some(Int8::Value(i)))))
+        .and_then(|i| write_string_map_index(writer, i))
 }
 
 pub fn write_genotype_values<W>(

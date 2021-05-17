@@ -8,8 +8,8 @@ use noodles_vcf as vcf;
 
 use crate::{
     header::StringMap,
-    record::value::{Float, Int32, Int8, Value},
-    writer::value::write_value,
+    record::value::{Float, Int32, Value},
+    writer::{string_map::write_string_map_index, value::write_value},
 };
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
@@ -214,7 +214,7 @@ fn write_info_key<W>(
 where
     W: Write,
 {
-    let i = string_map
+    string_map
         .get_index_of(key.as_ref())
         .ok_or_else(|| {
             io::Error::new(
@@ -222,11 +222,7 @@ where
                 format!("info key missing from string map: {:?}", key),
             )
         })
-        .and_then(|i| {
-            i8::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
-
-    write_value(writer, Some(Value::Int8(Some(Int8::Value(i)))))
+        .and_then(|i| write_string_map_index(writer, i))
 }
 
 fn write_info_value<W>(writer: &mut W, value: &vcf::record::info::field::Value) -> io::Result<()>
