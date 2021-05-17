@@ -91,7 +91,7 @@ pub type Programs = IndexMap<String, Program>;
 ///
 /// Records are grouped by their types: header, reference seqeuence, read group, program, and
 /// comment.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Header {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
