@@ -342,26 +342,27 @@ impl Record {
         &self.data
     }
 
-    /// Returns a mutable reference to the data fields
+    /// Returns a mutable reference to the data fields for this record.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::{data, Data}};
+    /// use noodles_sam::{self as sam, record::data};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.data().is_empty());
     ///
-    /// let data = record.data_mut();
-    /// data.insert(
+    /// let field = data::Field::new(
     ///     data::field::Tag::AlignmentHitCount,
-    ///     data::Field::new(
-    ///         data::field::Tag::AlignmentHitCount,
-    ///         data::field::Value::Int32(1),
-    ///     )
+    ///     data::field::Value::Int32(1),
     /// );
-    /// assert_eq!(record.data().to_string(), "NH:i:1");
-    /// # Ok::<(), data::TryFromFieldVectorError>(())
+    ///
+    /// let data = record.data_mut();
+    /// data.insert(field.tag().clone(), field.clone());
+    ///
+    /// let data = record.data();
+    /// assert_eq!(data.len(), 1);
+    /// assert_eq!(data.get(field.tag()), Some(&field));
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
