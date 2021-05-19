@@ -422,7 +422,7 @@ impl fmt::Display for Header {
 }
 
 /// An error returned when a raw SAM header fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A header record is not on the first line.
     UnexpectedHeader,
