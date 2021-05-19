@@ -67,7 +67,7 @@ pub mod read_group;
 pub mod record;
 pub mod reference_sequence;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{collections::HashSet, convert::TryFrom, error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
@@ -434,6 +434,8 @@ pub enum ParseError {
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
     /// A read group record is invalid.
     InvalidReadGroup(read_group::TryFromRecordError),
+    /// A read group ID is duplicated.
+    DuplicateReadGroupId(String),
     /// A program record is invalid.
     InvalidProgram(program::TryFromRecordError),
     /// A comment record is invalid.
@@ -450,6 +452,7 @@ impl fmt::Display for ParseError {
             Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
             Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
             Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
+            Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
             Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
@@ -483,6 +486,7 @@ impl FromStr for Header {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut builder = Self::builder();
+        let mut read_group_ids: HashSet<String> = HashSet::new();
 
         for (i, line) in s.lines().enumerate() {
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
@@ -505,6 +509,11 @@ impl FromStr for Header {
                 record::Kind::ReadGroup => {
                     let read_group =
                         ReadGroup::try_from(record).map_err(ParseError::InvalidReadGroup)?;
+
+                    if !read_group_ids.insert(read_group.id().into()) {
+                        return Err(ParseError::DuplicateReadGroupId(read_group.id().into()));
+                    }
+
                     builder.add_read_group(read_group)
                 }
                 record::Kind::Program => {
@@ -610,5 +619,18 @@ mod tests {
 ";
 
         assert!(s.parse::<Header>().is_err());
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_read_group_ids() {
+        let s = "\
+@RG\tID:rg0
+@RG\tID:rg0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateReadGroupId(String::from("rg0")))
+        );
     }
 }
