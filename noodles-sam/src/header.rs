@@ -618,7 +618,7 @@ mod tests {
 @HD\tVN:1.6\tSO:coordinate
 ";
 
-        assert!(s.parse::<Header>().is_err());
+        assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedHeader));
     }
 
     #[test]
