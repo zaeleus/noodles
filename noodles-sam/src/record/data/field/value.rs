@@ -534,6 +534,8 @@ pub enum ParseError {
     InvalidIntValue(num::ParseIntError),
     /// The data field floating-point value is invalid.
     InvalidFloatValue(num::ParseFloatError),
+    /// The data field string value is invalid.
+    InvalidStringValue,
     /// The data field hex value is invalid.
     InvalidHexValue,
     /// The data field subtype is missing.
@@ -553,6 +555,7 @@ impl fmt::Display for ParseError {
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
             Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
+            Self::InvalidStringValue => write!(f, "invalid string value"),
             Self::InvalidHexValue => write!(f, "invalid hex value"),
             Self::MissingSubtype => f.write_str("missing subtype"),
             Self::InvalidSubtype(e) => write!(f, "invalid subtype: {}", e),
@@ -577,7 +580,7 @@ impl FromStr for Value {
             Type::Char => parse_char(value).map(Self::Char),
             Type::Int32 => parse_i32(value).map(Self::Int32),
             Type::Float => parse_f32(value).map(Self::Float),
-            Type::String => Ok(Self::String(value.into())),
+            Type::String => parse_string(value).map(Self::String),
             Type::Hex => parse_hex(value).map(Self::Hex),
             Type::Array => parse_array(value),
         }
@@ -620,6 +623,19 @@ fn parse_u32(s: &str) -> Result<u32, ParseError> {
 
 fn parse_f32(s: &str) -> Result<f32, ParseError> {
     s.parse().map_err(ParseError::InvalidFloatValue)
+}
+
+// § 1.5 The alignment section: optional fields (2021-01-07)
+fn is_valid_string_char(c: char) -> bool {
+    matches!(c, ' ' | '!'..='~')
+}
+
+fn parse_string(s: &str) -> Result<String, ParseError> {
+    if s.chars().all(is_valid_string_char) {
+        Ok(s.into())
+    } else {
+        Err(ParseError::InvalidStringValue)
+    }
 }
 
 // § 1.5 The alignment section: optional fields (2021-01-07)
@@ -769,10 +785,12 @@ mod tests {
         ));
 
         assert_eq!("Z:".parse(), Ok(Value::String(String::from(""))));
+        assert_eq!("Z: ".parse(), Ok(Value::String(String::from(" "))));
         assert_eq!(
             "Z:noodles".parse(),
             Ok(Value::String(String::from("noodles")))
         );
+        assert_eq!("Z:🍜".parse::<Value>(), Err(ParseError::InvalidStringValue));
 
         assert_eq!("H:CAFE".parse(), Ok(Value::Hex(String::from("CAFE"))));
         assert_eq!("H:cafe".parse::<Value>(), Err(ParseError::InvalidHexValue));
