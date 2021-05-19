@@ -432,7 +432,7 @@ pub enum ParseError {
     InvalidHeader(header::TryFromRecordError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
-    /// A reference read group record is invalid.
+    /// A read group record is invalid.
     InvalidReadGroup(read_group::TryFromRecordError),
     /// A program record is invalid.
     InvalidProgram(program::TryFromRecordError),
