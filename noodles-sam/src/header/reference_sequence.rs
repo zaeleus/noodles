@@ -330,6 +330,8 @@ pub enum TryFromRecordError {
     MissingRequiredTag(Tag),
     /// A tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The name tag (`SN`) has an invalid value.
+    InvalidName,
     /// The length tag (`LN`) has a invalid value.
     InvalidLength(num::ParseIntError),
     /// The MD5 checksum is invalid.
@@ -346,6 +348,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
+            Self::InvalidName => write!(f, "invalid name"),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
@@ -365,6 +368,8 @@ impl TryFrom<Record> for ReferenceSequence {
 }
 
 fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
+    use crate::record::reference_sequence_name::is_valid_name;
+
     let mut builder = ReferenceSequence::builder();
 
     let mut name = None;
@@ -375,7 +380,12 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
 
         builder = match tag {
             Tag::Name => {
-                name = Some(value);
+                if is_valid_name(&value) {
+                    name = Some(value);
+                } else {
+                    return Err(TryFromRecordError::InvalidName);
+                }
+
                 builder
             }
             Tag::Length => {
@@ -507,6 +517,19 @@ mod tests {
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_reference_sequence_with_invalid_name() {
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::Map(vec![(String::from("SN"), String::from("*"))]),
+        );
+
+        assert_eq!(
+            ReferenceSequence::try_from(record),
+            Err(TryFromRecordError::InvalidName)
         );
     }
 
