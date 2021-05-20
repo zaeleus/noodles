@@ -440,6 +440,8 @@ pub enum ParseError {
     DuplicateReadGroupId(String),
     /// A program record is invalid.
     InvalidProgram(program::TryFromRecordError),
+    /// A program ID is duplicated.
+    DuplicateProgramId(String),
     /// A comment record is invalid.
     InvalidComment,
 }
@@ -459,6 +461,7 @@ impl fmt::Display for ParseError {
             Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
             Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
             Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
+            Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {}", id),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }
@@ -494,6 +497,7 @@ impl FromStr for Header {
 
         let mut read_group_ids: HashSet<String> = HashSet::new();
         let mut reference_sequence_names: HashSet<String> = HashSet::new();
+        let mut program_ids: HashSet<String> = HashSet::new();
 
         for (i, line) in s.lines().enumerate() {
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
@@ -532,6 +536,11 @@ impl FromStr for Header {
                 }
                 record::Kind::Program => {
                     let program = Program::try_from(record).map_err(ParseError::InvalidProgram)?;
+
+                    if !program_ids.insert(program.id().into()) {
+                        return Err(ParseError::DuplicateProgramId(program.id().into()));
+                    }
+
                     builder.add_program(program)
                 }
                 record::Kind::Comment => match record.value() {
@@ -660,6 +669,19 @@ mod tests {
         assert_eq!(
             s.parse::<Header>(),
             Err(ParseError::DuplicateReadGroupId(String::from("rg0")))
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_program_ids() {
+        let s = "\
+@PG\tID:pg0
+@PG\tID:pg0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateProgramId(String::from("pg0")))
         );
     }
 }
