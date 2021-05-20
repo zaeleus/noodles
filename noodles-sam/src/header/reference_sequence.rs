@@ -332,7 +332,7 @@ pub enum TryFromRecordError {
     InvalidTag(tag::ParseError),
     /// The name tag (`SN`) has an invalid value.
     InvalidName,
-    /// The length tag (`LN`) has a invalid value.
+    /// The length tag (`LN`) has an invalid value.
     InvalidLength(num::ParseIntError),
     /// The MD5 checksum is invalid.
     InvalidMd5Checksum(md5_checksum::ParseError),
