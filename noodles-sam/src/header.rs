@@ -432,6 +432,8 @@ pub enum ParseError {
     InvalidHeader(header::TryFromRecordError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
+    /// A reference sequence name is duplicated.
+    DuplicateReferenceSequenceName(String),
     /// A read group record is invalid.
     InvalidReadGroup(read_group::TryFromRecordError),
     /// A read group ID is duplicated.
@@ -451,6 +453,9 @@ impl fmt::Display for ParseError {
             Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
             Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
             Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
+            Self::DuplicateReferenceSequenceName(name) => {
+                write!(f, "duplicate reference sequence name: {}", name)
+            }
             Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
             Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
             Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
@@ -486,7 +491,9 @@ impl FromStr for Header {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut builder = Self::builder();
+
         let mut read_group_ids: HashSet<String> = HashSet::new();
+        let mut reference_sequence_names: HashSet<String> = HashSet::new();
 
         for (i, line) in s.lines().enumerate() {
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
@@ -504,6 +511,13 @@ impl FromStr for Header {
                 record::Kind::ReferenceSequence => {
                     let reference_sequence = ReferenceSequence::try_from(record)
                         .map_err(ParseError::InvalidReferenceSequence)?;
+
+                    if !reference_sequence_names.insert(reference_sequence.name().into()) {
+                        return Err(ParseError::DuplicateReferenceSequenceName(
+                            reference_sequence.name().into(),
+                        ));
+                    }
+
                     builder.add_reference_sequence(reference_sequence)
                 }
                 record::Kind::ReadGroup => {
@@ -619,6 +633,21 @@ mod tests {
 ";
 
         assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedHeader));
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_reference_sequence_names() {
+        let s = "\
+@SQ\tSN:sq0\tLN:8
+@SQ\tSN:sq0\tLN:8
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateReferenceSequenceName(String::from(
+                "sq0"
+            )))
+        );
     }
 
     #[test]
