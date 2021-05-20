@@ -1,5 +1,6 @@
 //! SAM header reference sequence and fields.
 
+pub mod alternative_names;
 mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
@@ -8,7 +9,8 @@ pub mod tag;
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
 pub use self::{
-    builder::Builder, md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, tag::Tag,
+    alternative_names::AlternativeNames, builder::Builder, md5_checksum::Md5Checksum,
+    molecule_topology::MoleculeTopology, tag::Tag,
 };
 
 use super::{record, Record};
@@ -24,7 +26,7 @@ pub struct ReferenceSequence {
     name: String,
     len: i32,
     alternative_locus: Option<String>,
-    alternative_names: Option<String>,
+    alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
     description: Option<String>,
     md5_checksum: Option<Md5Checksum>,
@@ -158,8 +160,8 @@ impl ReferenceSequence {
     /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
     /// assert!(reference_sequence.alternative_names().is_none());
     /// ```
-    pub fn alternative_names(&self) -> Option<&str> {
-        self.alternative_names.as_deref()
+    pub fn alternative_names(&self) -> Option<&AlternativeNames> {
+        self.alternative_names.as_ref()
     }
 
     /// Returns the genome assembly ID.
@@ -334,6 +336,8 @@ pub enum TryFromRecordError {
     InvalidName,
     /// The length tag (`LN`) has an invalid value.
     InvalidLength(num::ParseIntError),
+    /// The alternative names tag (`AN`) has an invalid value.
+    InvalidAlternativeNames(alternative_names::ParseError),
     /// The MD5 checksum is invalid.
     InvalidMd5Checksum(md5_checksum::ParseError),
     /// The molecule topology is invalid.
@@ -350,6 +354,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::InvalidName => write!(f, "invalid name"),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
+            Self::InvalidAlternativeNames(e) => write!(f, "invalid alternative names: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
         }
@@ -396,7 +401,12 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
                 builder
             }
             Tag::AlternativeLocus => builder.set_alternative_locus(value),
-            Tag::AlternativeNames => builder.set_alternative_names(value),
+            Tag::AlternativeNames => {
+                let alternative_names = value
+                    .parse()
+                    .map_err(TryFromRecordError::InvalidAlternativeNames)?;
+                builder.set_alternative_names(alternative_names)
+            }
             Tag::AssemblyId => builder.set_assembly_id(value),
             Tag::Description => builder.set_description(value),
             Tag::Md5Checksum => {

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{Md5Checksum, MoleculeTopology, ReferenceSequence, Tag};
+use super::{AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag};
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
@@ -8,7 +8,7 @@ pub struct Builder {
     name: Option<String>,
     len: Option<i32>,
     alternative_locus: Option<String>,
-    alternative_names: Option<String>,
+    alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
     description: Option<String>,
     md5_checksum: Option<Md5Checksum>,
@@ -88,21 +88,24 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::ReferenceSequence;
+    /// use noodles_sam::header::{
+    ///     reference_sequence::{alternative_names, AlternativeNames},
+    ///     ReferenceSequence,
+    /// };
+    ///
+    /// let alternative_names: AlternativeNames = "0,SQ.0".parse()?;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .set_alternative_names("0,SQ.0")
+    ///     .set_alternative_names(alternative_names.clone())
     ///     .build();
     ///
-    /// assert_eq!(reference_sequence.alternative_names(), Some("0,SQ.0"));
+    /// assert_eq!(reference_sequence.alternative_names(), Some(&alternative_names));
+    /// # Ok::<(), alternative_names::ParseError>(())
     /// ```
-    pub fn set_alternative_names<I>(mut self, alternative_names: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.alternative_names = Some(alternative_names.into());
+    pub fn set_alternative_names(mut self, alternative_names: AlternativeNames) -> Self {
+        self.alternative_names = Some(alternative_names);
         self
     }
 
