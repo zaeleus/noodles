@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_read_header() -> io::Result<()> {
-        let mut reader = &BGZF_EOF[..];
+        let mut reader = BGZF_EOF;
         let block_size = read_header(&mut reader)?;
         assert_eq!(block_size, BGZF_EOF.len() as u32);
         Ok(())
@@ -293,7 +293,7 @@ mod tests {
 
     #[test]
     fn test_read_block() -> io::Result<()> {
-        let mut reader = &BGZF_EOF[..];
+        let mut reader = BGZF_EOF;
         let mut cdata = Vec::new();
         let mut block = Block::default();
 
