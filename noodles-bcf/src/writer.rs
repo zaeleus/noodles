@@ -114,12 +114,12 @@ where
         let c_raw_header =
             CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let data = c_raw_header.as_bytes_with_nul();
-        let len = i32::try_from(data.len())
+        let text = c_raw_header.as_bytes_with_nul();
+        let l_text = u32::try_from(text.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        self.inner.write_i32::<LittleEndian>(len)?;
-        self.inner.write_all(data)?;
+        self.inner.write_u32::<LittleEndian>(l_text)?;
+        self.inner.write_all(text)?;
 
         Ok(())
     }
