@@ -1,7 +1,6 @@
 use std::io::{self, Read, Seek};
 
-use noodles_bgzf as bgzf;
-use noodles_tabix::index::reference_sequence::bin::Chunk;
+use noodles_bgzf::{self as bgzf, index::Chunk};
 
 use crate::{record::Chromosome, Record};
 

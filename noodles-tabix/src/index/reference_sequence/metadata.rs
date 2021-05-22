@@ -2,9 +2,9 @@
 
 use std::{convert::TryFrom, error, fmt};
 
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf::{index::Chunk, VirtualPosition};
 
-use super::{bin::Chunk, Bin};
+use super::Bin;
 
 pub(crate) const MAGIC_NUMBER: u32 = 37450;
 
