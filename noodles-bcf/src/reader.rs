@@ -98,15 +98,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
-        // § 6.2 Header (2021-01-13) doesn't actually describe how the header is stored. There
-        // seems to be a 32-bit integer for the header length, which adds +1 for a null terminator.
-        // This means the header string itself is null-terminated.
-
-        let header_len = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+        let l_text = self.inner.read_u32::<LittleEndian>().and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        let mut buf = vec![0; header_len];
+        let mut buf = vec![0; l_text];
         self.inner.read_exact(&mut buf)?;
 
         CStr::from_bytes_with_nul(&buf)
