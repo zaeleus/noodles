@@ -1,4 +1,6 @@
-use super::{Bin, Chunk};
+use noodles_bgzf::index::Chunk;
+
+use super::Bin;
 
 /// A BAM index reference sequence bin builder.
 #[derive(Debug, Default)]

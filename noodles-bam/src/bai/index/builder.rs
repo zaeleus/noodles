@@ -1,11 +1,10 @@
 use std::{convert::TryFrom, io};
 
+use noodles_bgzf::index::Chunk;
+
 use crate::{record::ReferenceSequenceId, Record};
 
-use super::{
-    reference_sequence::{self, bin::Chunk},
-    Index, ReferenceSequence,
-};
+use super::{reference_sequence, Index, ReferenceSequence};
 
 /// A BAM index builder.
 #[derive(Default)]
@@ -24,8 +23,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, bai::{self, index::reference_sequence::bin::Chunk}};
-    /// use noodles_bgzf as bgzf;
+    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_bgzf::{self as bgzf, index::Chunk};
     ///
     /// let mut builder = bai::Index::builder();
     ///

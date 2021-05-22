@@ -31,9 +31,9 @@ pub use self::{index::Index, reader::Reader, writer::Writer};
 
 use std::{fs::File, io, path::Path};
 
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf::{index::Chunk, VirtualPosition};
 
-use self::index::reference_sequence::{bin::Chunk, Bin};
+use self::index::reference_sequence::Bin;
 
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";
 
@@ -89,8 +89,8 @@ where
 /// # Examples
 ///
 /// ```
-/// use noodles_bam::bai::{self, index::reference_sequence::bin::Chunk};
-/// use noodles_bgzf as bgzf;
+/// use noodles_bam::bai;
+/// use noodles_bgzf::{self as bgzf, index::Chunk};
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
@@ -121,8 +121,8 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 /// # Examples
 ///
 /// ```
-/// use noodles_bam::bai::{self, index::reference_sequence::bin::Chunk};
-/// use noodles_bgzf as bgzf;
+/// use noodles_bam::bai;
+/// use noodles_bgzf::{self as bgzf, index::Chunk};
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),

@@ -1,11 +1,10 @@
 //! BAM index bin and fields.
 
 mod builder;
-mod chunk;
 
 pub(crate) use self::builder::Builder;
 
-pub use self::chunk::Chunk;
+use noodles_bgzf::index::Chunk;
 
 // § 5.3 C source code for computing bin number and overlapping bins: MAX_BIN (2020-07-19)
 pub(crate) const MAX_ID: usize = ((1 << 18) - 1) / 7 + 1;
