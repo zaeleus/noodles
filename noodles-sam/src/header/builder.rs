@@ -177,13 +177,13 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let header = Builder::default().build();
+        let header = Builder::default();
 
-        assert!(header.header().is_none());
-        assert!(header.reference_sequences().is_empty());
-        assert!(header.read_groups().is_empty());
-        assert!(header.programs().is_empty());
-        assert!(header.comments().is_empty());
+        assert!(header.header.is_none());
+        assert!(header.reference_sequences.is_empty());
+        assert!(header.read_groups.is_empty());
+        assert!(header.programs.is_empty());
+        assert!(header.comments.is_empty());
     }
 
     #[test]
