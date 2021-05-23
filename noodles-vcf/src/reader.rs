@@ -7,7 +7,7 @@ pub use self::{query::Query, records::Records};
 
 use std::io::{self, BufRead, Read, Seek};
 
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, index::optimize_chunks};
 use noodles_core::Region;
 use noodles_tabix as tabix;
 
@@ -292,11 +292,12 @@ where
             .cloned()
             .collect();
 
-        // TODO: optimize chunks
+        let min_offset = index_reference_sequence.min_offset(start);
+        let merged_chunks = optimize_chunks(&chunks, min_offset);
 
         Ok(Query::new(
             self,
-            chunks,
+            merged_chunks,
             reference_sequence_name,
             start,
             end,
