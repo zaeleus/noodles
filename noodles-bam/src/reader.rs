@@ -12,7 +12,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_bgzf::{self as bgzf, VirtualPosition};
+use noodles_bgzf::{self as bgzf, index::optimize_chunks, VirtualPosition};
 use noodles_core::Region;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
@@ -315,7 +315,7 @@ where
             .collect();
 
         let min_offset = index_reference_sequence.min_offset(start);
-        let merged_chunks = bai::optimize_chunks(&chunks, min_offset);
+        let merged_chunks = optimize_chunks(&chunks, min_offset);
 
         Ok(Query::new(self, merged_chunks, i, start, end))
     }
