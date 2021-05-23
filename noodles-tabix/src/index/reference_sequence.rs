@@ -118,6 +118,23 @@ impl ReferenceSequence {
             .filter(|b| region_bins[b.id() as usize])
             .collect()
     }
+
+    /// Finds in minimum start offset in the linear index for a given start position.
+    ///
+    /// `start` is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_tabix::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
+    /// ```
+    pub fn min_offset(&self, start: i32) -> bgzf::VirtualPosition {
+        let i = ((start - 1) / WINDOW_SIZE) as usize;
+        self.intervals.get(i).copied().unwrap_or_default()
+    }
 }
 
 // 0-based, [start, end)
