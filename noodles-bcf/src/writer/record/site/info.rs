@@ -58,7 +58,7 @@ where
     match value {
         field::Value::Integer(n) => write_info_field_integer_value(writer, *n),
         field::Value::Float(n) => write_info_field_float_value(writer, *n),
-        field::Value::Flag => write_value(writer, None),
+        field::Value::Flag => write_info_field_flag_value(writer),
         field::Value::String(s) => write_value(writer, Some(Value::String(Some(s.into())))),
         v => todo!("unhandled INFO field value: {:?}", v),
     }
@@ -82,6 +82,13 @@ where
     W: Write,
 {
     write_value(writer, Some(Value::Float(Some(Float::Value(n)))))
+}
+
+fn write_info_field_flag_value<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    write_value(writer, None)
 }
 
 #[cfg(test)]
@@ -122,6 +129,21 @@ mod test {
         write_info_field_value(&mut buf, &value)?;
 
         let expected = [0x15, 0x00, 0x00, 0x00, 0x00];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_info_field_value_with_flag_value() -> io::Result<()> {
+        use vcf::record::info::field;
+
+        let mut buf = Vec::new();
+        let value = field::Value::Flag;
+        write_info_field_value(&mut buf, &value)?;
+
+        let expected = [0x00];
 
         assert_eq!(buf, expected);
 
