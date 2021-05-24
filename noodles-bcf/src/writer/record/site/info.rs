@@ -57,7 +57,7 @@ where
 
     match value {
         field::Value::Integer(n) => write_info_field_integer_value(writer, *n),
-        field::Value::Float(n) => write_value(writer, Some(Value::Float(Some(Float::Value(*n))))),
+        field::Value::Float(n) => write_info_field_float_value(writer, *n),
         field::Value::Flag => write_value(writer, None),
         field::Value::String(s) => write_value(writer, Some(Value::String(Some(s.into())))),
         v => todo!("unhandled INFO field value: {:?}", v),
@@ -77,12 +77,19 @@ where
     }
 }
 
+fn write_info_field_float_value<W>(writer: &mut W, n: f32) -> io::Result<()>
+where
+    W: Write,
+{
+    write_value(writer, Some(Value::Float(Some(Float::Value(n)))))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn test_write_info_field_value() -> io::Result<()> {
+    fn test_write_info_field_value_with_integer_value() -> io::Result<()> {
         use vcf::record::info::field;
 
         fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
@@ -102,6 +109,21 @@ mod test {
 
         let value = field::Value::Integer(46368);
         t(&mut buf, &value, &[0x13, 0x20, 0xb5, 0x00, 0x00])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_info_field_value_with_float_value() -> io::Result<()> {
+        use vcf::record::info::field;
+
+        let mut buf = Vec::new();
+        let value = field::Value::Float(0.0);
+        write_info_field_value(&mut buf, &value)?;
+
+        let expected = [0x15, 0x00, 0x00, 0x00, 0x00];
+
+        assert_eq!(buf, expected);
 
         Ok(())
     }
