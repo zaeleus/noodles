@@ -48,8 +48,8 @@
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(header::header::Header::default())
-//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+//!     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+//!     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -110,7 +110,7 @@ impl Header {
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::default())
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// assert!(header.header().is_some());
@@ -177,7 +177,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -202,7 +202,7 @@ impl Header {
     ///
     /// header.reference_sequences_mut().insert(
     ///     String::from("sq0"),
-    ///     ReferenceSequence::new(String::from("sq0"), 13)
+    ///     ReferenceSequence::new("sq0", 13),
     /// );
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -384,8 +384,8 @@ impl fmt::Display for Header {
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::new(header::header::Version::new(1, 6)))
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
     ///     .build();
     ///
     /// let expected = "\
@@ -562,8 +562,8 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_header(header::Header::new(header::Version::new(1, 6)))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
             .add_read_group(ReadGroup::new(String::from("rg0")))
             .add_read_group(ReadGroup::new(String::from("rg1")))
             .add_program(Program::new(String::from("pg0")))

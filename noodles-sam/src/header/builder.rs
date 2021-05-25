@@ -53,7 +53,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::{ReferenceSequence, ReferenceSequences}};
     ///
     /// let reference_sequences: ReferenceSequences = vec![
-    ///     (String::from("sq0"), ReferenceSequence::new(String::from("sq0"), 13))
+    ///     (String::from("sq0"), ReferenceSequence::new("sq0", 13))
     /// ]
     /// .into_iter()
     /// .collect();
@@ -79,7 +79,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -189,9 +189,9 @@ mod tests {
     #[test]
     fn test_build() {
         let header = Builder::new()
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq2"), 21))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+            .add_reference_sequence(ReferenceSequence::new("sq2", 21))
             .add_read_group(ReadGroup::new(String::from("rg0")))
             .add_read_group(ReadGroup::new(String::from("rg1")))
             .add_program(Program::new(String::from("noodles-sam")))

@@ -230,11 +230,11 @@ mod tests {
     #[test]
     fn test_from_str_reference_sequences() {
         let reference_sequences: ReferenceSequences = vec![
-            ReferenceSequence::new(String::from("sq0"), 8),
-            ReferenceSequence::new(String::from("sq1:"), 13),
-            ReferenceSequence::new(String::from("sq2:5"), 21),
-            ReferenceSequence::new(String::from("sq3"), 34),
-            ReferenceSequence::new(String::from("sq3:5-8"), 55),
+            ReferenceSequence::new("sq0", 8),
+            ReferenceSequence::new("sq1:", 13),
+            ReferenceSequence::new("sq2:5", 21),
+            ReferenceSequence::new("sq3", 34),
+            ReferenceSequence::new("sq3:5-8", 55),
         ]
         .into_iter()
         .map(|rs| (rs.name().into(), rs))

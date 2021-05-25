@@ -172,15 +172,15 @@ mod tests {
         vec![
             (
                 String::from("sq0"),
-                sam::header::ReferenceSequence::new(String::from("sq0"), 5),
+                sam::header::ReferenceSequence::new("sq0", 5),
             ),
             (
                 String::from("sq1"),
-                sam::header::ReferenceSequence::new(String::from("sq1"), 8),
+                sam::header::ReferenceSequence::new("sq1", 8),
             ),
             (
                 String::from("sq2"),
-                sam::header::ReferenceSequence::new(String::from("sq2"), 13),
+                sam::header::ReferenceSequence::new("sq2", 13),
             ),
         ]
         .into_iter()

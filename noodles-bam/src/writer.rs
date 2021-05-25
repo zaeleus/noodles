@@ -136,7 +136,7 @@ where
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+    ///     .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -255,7 +255,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::builder()
-            .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
             .set_header(sam::header::header::Header::default())
             .build();
 
@@ -268,10 +268,7 @@ mod tests {
         let actual = reader.read_reference_sequences()?;
 
         assert_eq!(actual.len(), 1);
-        assert_eq!(
-            &actual[0],
-            &sam::header::ReferenceSequence::new(String::from("sq0"), 8)
-        );
+        assert_eq!(&actual[0], &sam::header::ReferenceSequence::new("sq0", 8));
 
         Ok(())
     }

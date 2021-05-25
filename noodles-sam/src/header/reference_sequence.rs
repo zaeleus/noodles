@@ -57,14 +57,17 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let reference_sequence = ReferenceSequence::new("sq0", 13);
     ///
     /// assert_eq!(reference_sequence.name(), "sq0");
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
-    pub fn new(name: String, len: i32) -> Self {
+    pub fn new<I>(name: I, len: i32) -> Self
+    where
+        I: Into<String>,
+    {
         Self {
-            name,
+            name: name.into(),
             len,
             alternative_locus: None,
             alternative_names: None,
@@ -84,7 +87,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.name(), "sq0");
     /// ```
     pub fn name(&self) -> &str {
@@ -98,7 +101,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.name(), "sq0");
     ///
     /// *reference_sequence.name_mut() = String::from("sq1");
@@ -114,7 +117,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
     pub fn len(&self) -> i32 {
@@ -128,7 +131,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.len(), 13);
     ///
     /// *reference_sequence.len_mut() = 8;
@@ -144,7 +147,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.alternative_locus().is_none());
     /// ```
     pub fn alternative_locus(&self) -> Option<&str> {
@@ -157,7 +160,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.alternative_names().is_none());
     /// ```
     pub fn alternative_names(&self) -> Option<&AlternativeNames> {
@@ -170,7 +173,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.assembly_id().is_none());
     /// ```
     pub fn assembly_id(&self) -> Option<&str> {
@@ -183,7 +186,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -196,7 +199,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.md5_checksum().is_none());
     /// ```
     pub fn md5_checksum(&self) -> Option<Md5Checksum> {
@@ -209,7 +212,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.species().is_none());
     /// ```
     pub fn species(&self) -> Option<&str> {
@@ -222,7 +225,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.molecule_topology().is_none());
     /// ```
     pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
@@ -235,7 +238,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.uri().is_none());
     /// ```
     pub fn uri(&self) -> Option<&str> {
@@ -254,7 +257,7 @@ impl ReferenceSequence {
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name(String::from("sq0"))
+    ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();

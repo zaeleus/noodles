@@ -128,7 +128,7 @@ mod tests {
         let mut reference_sequences = ReferenceSequences::default();
         reference_sequences.insert(
             String::from("sq0"),
-            sam::header::ReferenceSequence::new(String::from("sq0"), 8),
+            sam::header::ReferenceSequence::new("sq0", 8),
         );
 
         let mut builder = Builder::default();
