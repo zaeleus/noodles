@@ -100,7 +100,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReadGroup};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .add_read_group(ReadGroup::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -192,8 +192,8 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq0", 8))
             .add_reference_sequence(ReferenceSequence::new("sq1", 13))
             .add_reference_sequence(ReferenceSequence::new("sq2", 21))
-            .add_read_group(ReadGroup::new(String::from("rg0")))
-            .add_read_group(ReadGroup::new(String::from("rg1")))
+            .add_read_group(ReadGroup::new("rg0"))
+            .add_read_group(ReadGroup::new("rg1"))
             .add_program(Program::new(String::from("noodles-sam")))
             .add_comment("written by noodles-sam")
             .build();

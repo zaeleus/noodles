@@ -221,7 +221,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::ReadGroup};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .add_read_group(ReadGroup::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -244,7 +244,7 @@ impl Header {
     ///
     /// header.read_groups_mut().insert(
     ///     String::from("rg0"),
-    ///     ReadGroup::new(String::from("rg0")),
+    ///     ReadGroup::new("rg0"),
     /// );
     ///
     /// let read_groups = header.read_groups();
@@ -564,8 +564,8 @@ mod tests {
             .set_header(header::Header::new(header::Version::new(1, 6)))
             .add_reference_sequence(ReferenceSequence::new("sq0", 8))
             .add_reference_sequence(ReferenceSequence::new("sq1", 13))
-            .add_read_group(ReadGroup::new(String::from("rg0")))
-            .add_read_group(ReadGroup::new(String::from("rg1")))
+            .add_read_group(ReadGroup::new("rg0"))
+            .add_read_group(ReadGroup::new("rg1"))
             .add_program(Program::new(String::from("pg0")))
             .add_program(Program::new(String::from("pg1")))
             .add_comment("noodles")
