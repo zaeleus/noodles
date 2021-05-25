@@ -59,6 +59,7 @@ where
         field::Value::Integer(n) => write_info_field_integer_value(writer, *n),
         field::Value::Float(n) => write_info_field_float_value(writer, *n),
         field::Value::Flag => write_info_field_flag_value(writer),
+        field::Value::Character(c) => write_info_field_character_value(writer, *c),
         field::Value::String(s) => write_info_field_string_value(writer, s),
         v => todo!("unhandled INFO field value: {:?}", v),
     }
@@ -89,6 +90,13 @@ where
     W: Write,
 {
     write_value(writer, None)
+}
+
+fn write_info_field_character_value<W>(writer: &mut W, c: char) -> io::Result<()>
+where
+    W: Write,
+{
+    write_value(writer, Some(Value::String(Some(c.into()))))
 }
 
 fn write_info_field_string_value<W>(writer: &mut W, s: &str) -> io::Result<()>
@@ -151,6 +159,21 @@ mod test {
         write_info_field_value(&mut buf, &value)?;
 
         let expected = [0x00];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_info_field_value_with_character_value() -> io::Result<()> {
+        use vcf::record::info::field;
+
+        let mut buf = Vec::new();
+        let value = field::Value::Character('n');
+        write_info_field_value(&mut buf, &value)?;
+
+        let expected = [0x17, 0x6e];
 
         assert_eq!(buf, expected);
 
