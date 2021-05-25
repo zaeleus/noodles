@@ -144,14 +144,19 @@ where
     R: Read,
 {
     match read_value(reader)? {
-        Some(Value::String(Some(s))) => s
-            .chars()
-            .next()
-            .map(vcf::record::info::field::Value::Character)
-            .map(Ok)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
-            })?,
+        Some(Value::String(Some(s))) => match s.len() {
+            0 | 1 => s
+                .chars()
+                .next()
+                .map(vcf::record::info::field::Value::Character)
+                .map(Ok)
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
+                })?,
+            _ => Ok(vcf::record::info::field::Value::CharacterArray(
+                s.chars().collect(),
+            )),
+        },
         v => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("type mismatch: expected {}, got {:?}", Type::Character, v),
@@ -327,6 +332,27 @@ mod tests {
 
         let actual = read_info_field_value(&mut reader, &info)?;
         let expected = vcf::record::info::field::Value::Character('n');
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_character_array_value() -> io::Result<()> {
+        // Some(Value::String(Some(String::from("nd"))))
+        let data = [0x27, 0x6e, 0x64];
+        let mut reader = &data[..];
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("CHAR"),
+            Number::Count(2),
+            Type::Character,
+            String::default(),
+        ));
+
+        let actual = read_info_field_value(&mut reader, &info)?;
+        let expected = vcf::record::info::field::Value::CharacterArray(vec!['n', 'd']);
 
         assert_eq!(actual, expected);
 
