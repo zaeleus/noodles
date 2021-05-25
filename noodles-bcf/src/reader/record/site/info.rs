@@ -101,12 +101,7 @@ where
         ),
         Some(Value::Int32(Some(Int32::Value(n)))) => vcf::record::info::field::Value::Integer(n),
         Some(Value::Int32Array(values)) => vcf::record::info::field::Value::IntegerArray(values),
-        v => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("type mismatch: expected {}, got {:?}", Type::Integer, v),
-            ));
-        }
+        v => return Err(type_mismatch_error(v, Type::Integer)),
     };
 
     Ok(value)
@@ -118,10 +113,7 @@ where
 {
     match read_value(reader)? {
         Some(Value::Int8(Some(Int8::Value(1)))) | None => Ok(vcf::record::info::field::Value::Flag),
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("type mismatch: expected {}, got {:?}", Type::Flag, v),
-        )),
+        v => Err(type_mismatch_error(v, Type::Flag)),
     }
 }
 
@@ -132,10 +124,7 @@ where
     match read_value(reader)? {
         Some(Value::Float(Some(Float::Value(n)))) => Ok(vcf::record::info::field::Value::Float(n)),
         Some(Value::FloatArray(values)) => Ok(vcf::record::info::field::Value::FloatArray(values)),
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("type mismatch: expected {}, got {:?}", Type::Float, v),
-        )),
+        v => Err(type_mismatch_error(v, Type::Float)),
     }
 }
 
@@ -157,10 +146,7 @@ where
                 s.chars().collect(),
             )),
         },
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("type mismatch: expected {}, got {:?}", Type::Character, v),
-        )),
+        v => Err(type_mismatch_error(v, Type::Character)),
     }
 }
 
@@ -170,11 +156,15 @@ where
 {
     match read_value(reader)? {
         Some(Value::String(Some(s))) => Ok(vcf::record::info::field::Value::String(s)),
-        v => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("type mismatch: expected {}, got {:?}", Type::String, v),
-        )),
+        v => Err(type_mismatch_error(v, Type::String)),
     }
+}
+
+fn type_mismatch_error(actual: Option<Value>, expected: Type) -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        format!("type mismatch: expected {}, got {:?}", expected, actual),
+    )
 }
 
 #[cfg(test)]
