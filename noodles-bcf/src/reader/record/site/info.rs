@@ -209,6 +209,40 @@ mod tests {
     }
 
     #[test]
+    fn test_read_info_field_value_with_integer_array_value() -> io::Result<()> {
+        use vcf::record::info::field::Value;
+
+        fn t(data: &[u8], info: &vcf::header::Info, expected: &Value) -> io::Result<()> {
+            let mut reader = data;
+            let actual = read_info_field_value(&mut reader, &info)?;
+            assert_eq!(&actual, expected);
+            Ok(())
+        }
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("I32"),
+            Number::Count(2),
+            Type::Integer,
+            String::default(),
+        ));
+
+        let value = Value::IntegerArray(vec![8, 13]);
+        t(&[0x21, 0x08, 0x0d], &info, &value)?;
+
+        let value = Value::IntegerArray(vec![21, 34]);
+        t(&[0x22, 0x15, 0x00, 0x22, 0x00], &info, &value)?;
+
+        let value = Value::IntegerArray(vec![55, 89]);
+        t(
+            &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
+            &info,
+            &value,
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_info_field_value_with_flag_value() -> io::Result<()> {
         fn t(data: &[u8], info: &vcf::header::Info) -> io::Result<()> {
             let mut reader = data;
@@ -251,6 +285,27 @@ mod tests {
 
         let actual = read_info_field_value(&mut reader, &info)?;
         let expected = vcf::record::info::field::Value::Float(0.0);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_info_field_value_with_float_array_value() -> io::Result<()> {
+        // Some(Value::FloatArray([0.0, 1.0]))
+        let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f];
+        let mut reader = &data[..];
+
+        let info = vcf::header::Info::from(Key::Other(
+            String::from("F32"),
+            Number::Count(2),
+            Type::Float,
+            String::default(),
+        ));
+
+        let actual = read_info_field_value(&mut reader, &info)?;
+        let expected = vcf::record::info::field::Value::FloatArray(vec![0.0, 1.0]);
 
         assert_eq!(actual, expected);
 
