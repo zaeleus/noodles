@@ -61,6 +61,7 @@ where
         field::Value::Flag => write_info_field_flag_value(writer),
         field::Value::Character(c) => write_info_field_character_value(writer, *c),
         field::Value::String(s) => write_info_field_string_value(writer, s),
+        field::Value::FloatArray(values) => write_info_field_float_array_value(writer, values),
         v => todo!("unhandled INFO field value: {:?}", v),
     }
 }
@@ -104,6 +105,13 @@ where
     W: Write,
 {
     write_value(writer, Some(Value::String(Some(s.into()))))
+}
+
+fn write_info_field_float_array_value<W>(writer: &mut W, values: &[f32]) -> io::Result<()>
+where
+    W: Write,
+{
+    write_value(writer, Some(Value::FloatArray(values.into())))
 }
 
 #[cfg(test)]
@@ -189,6 +197,21 @@ mod test {
         write_info_field_value(&mut buf, &value)?;
 
         let expected = [0x47, 0x6e, 0x64, 0x6c, 0x73];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_info_field_value_with_float_array_value() -> io::Result<()> {
+        use vcf::record::info::field;
+
+        let mut buf = Vec::new();
+        let value = field::Value::FloatArray(vec![0.0, 1.0]);
+        write_info_field_value(&mut buf, &value)?;
+
+        let expected = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f];
 
         assert_eq!(buf, expected);
 
