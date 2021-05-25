@@ -61,12 +61,12 @@ where
         field::Value::Flag => write_info_field_flag_value(writer),
         field::Value::Character(c) => write_info_field_character_value(writer, *c),
         field::Value::String(s) => write_info_field_string_value(writer, s),
+        field::Value::IntegerArray(values) => write_info_field_integer_array_value(writer, values),
         field::Value::FloatArray(values) => write_info_field_float_array_value(writer, values),
         field::Value::CharacterArray(values) => {
             write_info_field_character_array_value(writer, values)
         }
         field::Value::StringArray(values) => write_info_field_string_array_value(writer, values),
-        v => todo!("unhandled INFO field value: {:?}", v),
     }
 }
 
@@ -109,6 +109,56 @@ where
     W: Write,
 {
     write_value(writer, Some(Value::String(Some(s.into()))))
+}
+
+fn write_info_field_integer_array_value<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
+where
+    W: Write,
+{
+    let max = values
+        .iter()
+        .max()
+        .copied()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))?;
+
+    if i8::try_from(max).is_ok() {
+        write_info_field_int8_array_value(writer, values)
+    } else if i16::try_from(max).is_ok() {
+        write_info_field_int16_array_value(writer, values)
+    } else {
+        write_info_field_int32_array_value(writer, values)
+    }
+}
+
+fn write_info_field_int8_array_value<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
+where
+    W: Write,
+{
+    let v = values
+        .iter()
+        .map(|&n| i8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)))
+        .collect::<Result<_, _>>()?;
+
+    write_value(writer, Some(Value::Int8Array(v)))
+}
+
+fn write_info_field_int16_array_value<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
+where
+    W: Write,
+{
+    let v = values
+        .iter()
+        .map(|&n| i16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)))
+        .collect::<Result<_, _>>()?;
+
+    write_value(writer, Some(Value::Int16Array(v)))
+}
+
+fn write_info_field_int32_array_value<W>(writer: &mut W, values: &[i32]) -> io::Result<()>
+where
+    W: Write,
+{
+    write_value(writer, Some(Value::Int32Array(values.into())))
 }
 
 fn write_info_field_float_array_value<W>(writer: &mut W, values: &[f32]) -> io::Result<()>
@@ -237,6 +287,35 @@ mod test {
         let expected = [0x47, 0x6e, 0x64, 0x6c, 0x73];
 
         assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_info_field_value_with_integer_array_value() -> io::Result<()> {
+        use vcf::record::info::field;
+
+        fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_info_field_value(buf, value)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        let value = field::Value::IntegerArray(vec![8, 13]);
+        t(&mut buf, &value, &[0x21, 0x08, 0x0d])?;
+
+        let value = field::Value::IntegerArray(vec![144, 233]);
+        t(&mut buf, &value, &[0x22, 0x90, 0x00, 0xe9, 0x00])?;
+
+        let value = field::Value::IntegerArray(vec![46368, 75025]);
+        t(
+            &mut buf,
+            &value,
+            &[0x23, 0x20, 0xb5, 0x00, 0x00, 0x11, 0x25, 0x01, 0x00],
+        )?;
 
         Ok(())
     }
