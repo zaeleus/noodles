@@ -120,7 +120,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::Program};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .add_program(Program::new("noodles-sam"))
     ///     .build();
     ///
     /// let programs = header.programs();
@@ -194,7 +194,7 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq2", 21))
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
-            .add_program(Program::new(String::from("noodles-sam")))
+            .add_program(Program::new("noodles-sam"))
             .add_comment("written by noodles-sam")
             .build();
 

@@ -263,7 +263,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::Program};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .add_program(Program::new("noodles-sam"))
     ///     .build();
     ///
     /// let programs = header.programs();
@@ -285,7 +285,7 @@ impl Header {
     ///
     /// header.programs_mut().insert(
     ///     String::from("noodles-sam"),
-    ///     Program::new(String::from("noodles-sam")),
+    ///     Program::new("noodles-sam"),
     /// );
     ///
     /// let programs = header.programs();
@@ -566,8 +566,8 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq1", 13))
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
-            .add_program(Program::new(String::from("pg0")))
-            .add_program(Program::new(String::from("pg1")))
+            .add_program(Program::new("pg0"))
+            .add_program(Program::new("pg1"))
             .add_comment("noodles")
             .add_comment("sam")
             .build();

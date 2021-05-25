@@ -22,7 +22,7 @@ fn main() -> io::Result<()> {
         .add_reference_sequence(ReferenceSequence::new("sq0", 8))
         .add_reference_sequence(ReferenceSequence::new("sq1", 13))
         .add_reference_sequence(ReferenceSequence::new("sq2", 21))
-        .add_program(Program::new(String::from("noodles-bam")))
+        .add_program(Program::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();
 

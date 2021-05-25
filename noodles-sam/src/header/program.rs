@@ -43,12 +43,15 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     /// ```
-    pub fn new(id: String) -> Self {
+    pub fn new<I>(id: I) -> Self
+    where
+        I: Into<String>,
+    {
         Self {
-            id,
+            id: id.into(),
             name: None,
             command_line: None,
             previous_id: None,
@@ -64,7 +67,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     /// ```
     pub fn id(&self) -> &str {
@@ -78,7 +81,7 @@ impl Program {
     /// ```
     /// use noodles_sam::header::Program;
     ///
-    /// let mut program = Program::new(String::from("pg0"));
+    /// let mut program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     ///
     /// *program.id_mut() = String::from("pg1");
@@ -94,7 +97,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.name().is_none());
     /// ```
     pub fn name(&self) -> Option<&str> {
@@ -107,7 +110,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.command_line().is_none());
     /// ```
     pub fn command_line(&self) -> Option<&str> {
@@ -120,7 +123,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.previous_id().is_none());
     /// ```
     pub fn previous_id(&self) -> Option<&str> {
@@ -133,7 +136,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -146,7 +149,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.version().is_none());
     /// ```
     pub fn version(&self) -> Option<&str> {
@@ -164,7 +167,7 @@ impl Program {
     /// use noodles_sam::header::{program::Tag, Program};
     ///
     /// let program = Program::builder()
-    ///     .set_id(String::from("pg0"))
+    ///     .set_id("pg0")
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();
     ///
