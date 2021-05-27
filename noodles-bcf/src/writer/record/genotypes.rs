@@ -9,6 +9,8 @@ use crate::{
     writer::{string_map::write_string_map_index, value::write_type},
 };
 
+const NUL: u8 = 0x00;
+
 pub fn write_genotypes<W>(
     writer: &mut W,
     string_map: &StringMap,
@@ -77,6 +79,10 @@ where
         format::Type::Float => match key.number() {
             Number::Count(1) => write_genotype_field_float_values(writer, values),
             _ => write_genotype_field_float_array_values(writer, values),
+        },
+        format::Type::String => match key.number() {
+            Number::Count(1) => write_genotype_field_string_values(writer, values),
+            _ => todo!(),
         },
         ty => todo!("unhandled genotype value: {:?}", ty),
     }
@@ -234,6 +240,50 @@ where
     Ok(())
 }
 
+fn write_genotype_field_string_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    let max_len = values
+        .iter()
+        .flat_map(|value| match value {
+            Some(genotype::field::Value::String(s)) => Some(s.len()),
+            _ => None,
+        })
+        .max()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing String values"))?;
+
+    let mut buf = Vec::with_capacity(values.len() * max_len);
+
+    for value in values {
+        match value {
+            Some(genotype::field::Value::String(s)) => {
+                buf.extend(s.bytes());
+
+                if s.len() < max_len {
+                    buf.resize(buf.len() + (max_len - s.len()), NUL);
+                }
+            }
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected String, got {:?}", v),
+                ))
+            }
+        }
+    }
+
+    write_type(writer, Some(Type::String(max_len)))?;
+    writer.write_all(&buf)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
@@ -354,6 +404,35 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // [Some(0.0), Some(1.0)]
             0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f, // [Some(0.0), None]
             0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x7f, // [Some(0.0)]
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_genotype_field_values_with_string_values() -> io::Result<()> {
+        let key = Key::Other(
+            String::from("STRING"),
+            Number::Count(1),
+            format::Type::String,
+            String::default(),
+        );
+
+        let value_0 = genotype::field::Value::String(String::from("n"));
+        let value_1 = genotype::field::Value::String(String::from("ndl"));
+        let value_2 = genotype::field::Value::String(String::from("ndls"));
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
+
+        let mut buf = Vec::new();
+        write_genotype_field_values(&mut buf, &key, &values)?;
+
+        let expected = [
+            0x47, // Some(Type::String(4))
+            b'n', 0x00, 0x00, 0x00, // "n"
+            b'n', b'd', b'l', 0x00, // "ndl"
+            b'n', b'd', b'l', b's', // "ndls"
         ];
 
         assert_eq!(buf, expected);
