@@ -270,6 +270,13 @@ where
                     buf.resize(buf.len() + (max_len - s.len()), NUL);
                 }
             }
+            None => {
+                buf.push(b'.');
+
+                if 1 < max_len {
+                    buf.resize(buf.len() + (max_len - 1), NUL);
+                }
+            }
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -492,16 +499,17 @@ mod tests {
         let value_0 = genotype::field::Value::String(String::from("n"));
         let value_1 = genotype::field::Value::String(String::from("ndl"));
         let value_2 = genotype::field::Value::String(String::from("ndls"));
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
         write_genotype_field_values(&mut buf, &key, &values)?;
 
         let expected = [
             0x47, // Some(Type::String(4))
-            b'n', 0x00, 0x00, 0x00, // "n"
-            b'n', b'd', b'l', 0x00, // "ndl"
-            b'n', b'd', b'l', b's', // "ndls"
+            b'n', 0x00, 0x00, 0x00, // Some("n")
+            b'n', b'd', b'l', 0x00, // Some("ndl")
+            b'n', b'd', b'l', b's', // Some("ndls")
+            b'.', 0x00, 0x00, 0x00, // None
         ];
 
         assert_eq!(buf, expected);
