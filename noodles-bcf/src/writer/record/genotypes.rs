@@ -5,7 +5,7 @@ use noodles_vcf as vcf;
 
 use crate::{
     header::StringMap,
-    record::value::{Int32, Type},
+    record::value::{Float, Int32, Type},
     writer::{string_map::write_string_map_index, value::write_type},
 };
 
@@ -74,6 +74,7 @@ where
             Number::Count(1) => write_genotype_field_integer_values(writer, values),
             _ => write_genotype_field_integer_array_values(writer, values),
         },
+        format::Type::Float => write_genotype_field_float_values(writer, values),
         ty => todo!("unhandled genotype value: {:?}", ty),
     }
 }
@@ -155,6 +156,35 @@ where
     Ok(())
 }
 
+fn write_genotype_field_float_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Float(1)))?;
+
+    for value in values {
+        match value {
+            Some(genotype::field::Value::Float(n)) => {
+                writer.write_f32::<LittleEndian>(*n)?;
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected Float, got {:?}", v),
+                ))
+            }
+            None => writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?,
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
@@ -216,6 +246,36 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // [Some(5), Some(8)]
             0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, // [Some(13), None]
             0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // [Some(21)]
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_genotype_field_values_with_float_values() -> io::Result<()> {
+        let key = Key::Other(
+            String::from("F32"),
+            Number::Count(1),
+            format::Type::Float,
+            String::default(),
+        );
+
+        let values = [
+            Some(&genotype::field::Value::Float(0.0)),
+            Some(&genotype::field::Value::Float(1.0)),
+            None,
+        ];
+
+        let mut buf = Vec::new();
+        write_genotype_field_values(&mut buf, &key, &values)?;
+
+        let expected = [
+            0x15, // Some(Type::Float(1))
+            0x00, 0x00, 0x00, 0x00, // Some(0.0)
+            0x00, 0x00, 0x80, 0x3f, // Some(1.0)
+            0x01, 0x00, 0x80, 0x7f, // None
         ];
 
         assert_eq!(buf, expected);
