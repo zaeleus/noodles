@@ -7,6 +7,8 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, record::Genotype};
 
+const NUL: u8 = 0x00;
+
 use crate::{
     header::StringMap,
     reader::{string_map::read_string_map_index, value::read_type},
@@ -308,7 +310,7 @@ where
     for _ in 0..sample_count {
         reader.read_exact(&mut buf)?;
 
-        let data = match buf.iter().position(|&b| b == 0x81) {
+        let data = match buf.iter().position(|&b| b == NUL) {
             Some(i) => &buf[..i],
             None => &buf[..],
         };
@@ -527,8 +529,8 @@ mod tests {
     fn test_read_genotype_values_with_string_values() -> io::Result<()> {
         let data = [
             0x47, // Some(Type::String(4))
-            b'n', 0x81, 0x81, 0x81, // "n"
-            b'n', b'd', b'l', 0x81, // "ndl"
+            b'n', 0x00, 0x00, 0x00, // "n"
+            b'n', b'd', b'l', 0x00, // "ndl"
             b'n', b'd', b'l', b's', // "ndls"
         ];
         let mut reader = &data[..];
