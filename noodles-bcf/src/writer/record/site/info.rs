@@ -74,12 +74,25 @@ fn write_info_field_integer_value<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,
 {
-    if let Ok(m) = i8::try_from(n) {
-        write_value(writer, Some(Value::Int8(Some(Int8::Value(m)))))
-    } else if let Ok(m) = i16::try_from(n) {
-        write_value(writer, Some(Value::Int16(Some(Int16::Value(m)))))
-    } else {
+    if n >= 0 {
+        if n <= i32::from(Int8::MAX_VALUE) {
+            write_value(writer, Some(Value::Int8(Some(Int8::Value(n as i8)))))
+        } else if n <= i32::from(Int16::MAX_VALUE) {
+            write_value(writer, Some(Value::Int16(Some(Int16::Value(n as i16)))))
+        } else {
+            write_value(writer, Some(Value::Int32(Some(Int32::Value(n)))))
+        }
+    } else if n >= i32::from(Int8::MIN_VALUE) {
+        write_value(writer, Some(Value::Int8(Some(Int8::Value(n as i8)))))
+    } else if n >= i32::from(Int16::MIN_VALUE) {
+        write_value(writer, Some(Value::Int16(Some(Int16::Value(n as i16)))))
+    } else if n >= Int32::MIN_VALUE {
         write_value(writer, Some(Value::Int32(Some(Int32::Value(n)))))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid info field integer value: {}", n),
+        ))
     }
 }
 
@@ -219,14 +232,45 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value = field::Value::Integer(8);
-        t(&mut buf, &value, &[0x11, 0x08])?;
+        let value = field::Value::Integer(-2147483641);
+        buf.clear();
+        assert!(matches!(
+            write_info_field_value(&mut buf, &value),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
-        let value = field::Value::Integer(144);
-        t(&mut buf, &value, &[0x12, 0x90, 0x00])?;
+        let value = field::Value::Integer(-2147483640);
+        t(&mut buf, &value, &[0x13, 0x08, 0x00, 0x00, 0x80])?;
 
-        let value = field::Value::Integer(46368);
-        t(&mut buf, &value, &[0x13, 0x20, 0xb5, 0x00, 0x00])?;
+        let value = field::Value::Integer(-32761);
+        t(&mut buf, &value, &[0x13, 0x07, 0x80, 0xff, 0xff])?;
+
+        let value = field::Value::Integer(-32760);
+        t(&mut buf, &value, &[0x12, 0x08, 0x80])?;
+
+        let value = field::Value::Integer(-121);
+        t(&mut buf, &value, &[0x12, 0x87, 0xff])?;
+
+        let value = field::Value::Integer(-120);
+        t(&mut buf, &value, &[0x11, 0x88])?;
+
+        let value = field::Value::Integer(0);
+        t(&mut buf, &value, &[0x11, 0x00])?;
+
+        let value = field::Value::Integer(127);
+        t(&mut buf, &value, &[0x11, 0x7f])?;
+
+        let value = field::Value::Integer(128);
+        t(&mut buf, &value, &[0x12, 0x80, 0x00])?;
+
+        let value = field::Value::Integer(32767);
+        t(&mut buf, &value, &[0x12, 0xff, 0x7f])?;
+
+        let value = field::Value::Integer(32768);
+        t(&mut buf, &value, &[0x13, 0x00, 0x80, 0x00, 0x00])?;
+
+        let value = field::Value::Integer(2147483647);
+        t(&mut buf, &value, &[0x13, 0xff, 0xff, 0xff, 0x7f])?;
 
         Ok(())
     }
