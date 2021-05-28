@@ -7,6 +7,14 @@ pub enum Int8 {
     Reserved(i8),
 }
 
+impl Int8 {
+    /// The smallest value that can be represented by [`Self::Value`].
+    pub const MIN_VALUE: i8 = i8::MIN + 8;
+
+    /// The largest value that can be represented by [`Self::Value`].
+    pub const MAX_VALUE: i8 = i8::MAX;
+}
+
 impl From<i8> for Int8 {
     fn from(value: i8) -> Self {
         match value as u8 {

@@ -7,6 +7,14 @@ pub enum Int32 {
     Reserved(i32),
 }
 
+impl Int32 {
+    /// The smallest value that can be represented by [`Self::Value`].
+    pub const MIN_VALUE: i32 = i32::MIN + 8;
+
+    /// The largest value that can be represented by [`Self::Value`].
+    pub const MAX_VALUE: i32 = i32::MAX;
+}
+
 impl From<i32> for Int32 {
     fn from(value: i32) -> Self {
         match value as u32 {
