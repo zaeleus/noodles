@@ -30,8 +30,12 @@ where
     write_chrom(writer, header.contigs(), record.chromosome())?;
     write_pos(writer, record.position())?;
 
-    // TODO
-    let rlen = 1;
+    let start = i32::from(record.position());
+    let end = record
+        .end()
+        .map(i32::from)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let rlen = end - start + 1;
     writer.write_i32::<LittleEndian>(rlen)?;
 
     write_qual(writer, record.quality_score())?;
