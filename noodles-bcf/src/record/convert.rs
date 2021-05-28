@@ -37,7 +37,12 @@ impl Record {
             Float::Value(value) => QualityScore::try_from(value)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
             Float::Missing => QualityScore::default(),
-            qual => todo!("unhandled quality score value: {:?}", qual),
+            qual => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid qual: {:?}", qual),
+                ));
+            }
         };
 
         let ids = site.id;
