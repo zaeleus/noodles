@@ -10,6 +10,7 @@ use crate::{
 };
 
 const NUL: u8 = 0x00;
+const DELIMITER: char = ',';
 const MISSING_VALUE: char = '.';
 
 pub fn write_genotypes<W>(
@@ -83,7 +84,7 @@ where
         },
         format::Type::Character => match key.number() {
             Number::Count(1) => write_genotype_field_character_values(writer, values),
-            _ => todo!(),
+            _ => write_genotype_field_character_array_values(writer, values),
         },
         format::Type::String => match key.number() {
             Number::Count(1) => write_genotype_field_string_values(writer, values),
@@ -276,6 +277,51 @@ where
     write_genotype_field_string_values(writer, &string_values_as_ref)
 }
 
+fn write_genotype_field_character_array_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    let mut string_values = Vec::with_capacity(values.len());
+
+    for value in values {
+        match value {
+            Some(genotype::field::Value::CharacterArray(cs)) => {
+                let mut s = String::new();
+
+                for (i, c) in cs.iter().enumerate() {
+                    if i > 0 {
+                        s.push(DELIMITER);
+                    }
+
+                    match c {
+                        Some(d) => s.push(*d),
+                        None => s.push(MISSING_VALUE),
+                    }
+                }
+
+                let string_value = genotype::field::Value::String(s);
+                string_values.push(Some(string_value));
+            }
+            None => string_values.push(None),
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected Character, got {:?}", v),
+                ))
+            }
+        }
+    }
+
+    let string_values_as_ref: Vec<_> = string_values.iter().map(|v| v.as_ref()).collect();
+
+    write_genotype_field_string_values(writer, &string_values_as_ref)
+}
+
 fn write_genotype_field_string_values<W>(
     writer: &mut W,
     values: &[Option<&vcf::record::genotype::field::Value>],
@@ -335,8 +381,6 @@ where
     W: Write,
 {
     use vcf::record::genotype;
-
-    const DELIMITER: char = ',';
 
     let mut serialized_values = Vec::with_capacity(values.len());
 
@@ -545,6 +589,36 @@ mod tests {
             0x6e, // Some('n')
             0x64, // Some('d')
             0x2e, // None
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_genotype_field_values_with_character_array_values() -> io::Result<()> {
+        let key = Key::Other(
+            String::from("CHAR"),
+            Number::Count(2),
+            format::Type::Character,
+            String::default(),
+        );
+
+        let value_0 = genotype::field::Value::CharacterArray(vec![Some('n'), Some('d')]);
+        let value_1 = genotype::field::Value::CharacterArray(vec![Some('l'), None]);
+        let value_2 = genotype::field::Value::CharacterArray(vec![Some('s')]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+
+        let mut buf = Vec::new();
+        write_genotype_field_values(&mut buf, &key, &values)?;
+
+        let expected = [
+            0x37, // Some(Type::String(1))
+            b'n', b',', b'd', // Some([Some('n'), Some('d')])
+            b'l', b',', b'.', // Some([Some('d'), None])
+            b's', 0x00, 0x00, // Some([Some('s')])
+            b'.', 0x00, 0x00, // None
         ];
 
         assert_eq!(buf, expected);
