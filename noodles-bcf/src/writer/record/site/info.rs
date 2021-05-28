@@ -1,4 +1,5 @@
 use std::{
+    cmp,
     convert::TryFrom,
     io::{self, Write},
 };
@@ -128,18 +129,41 @@ fn write_info_field_integer_array_value<W>(writer: &mut W, values: &[i32]) -> io
 where
     W: Write,
 {
-    let max = values
-        .iter()
-        .max()
-        .copied()
-        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))?;
+    if values.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "info field integer array cannot be empty",
+        ));
+    }
 
-    if i8::try_from(max).is_ok() {
-        write_info_field_int8_array_value(writer, values)
-    } else if i16::try_from(max).is_ok() {
-        write_info_field_int16_array_value(writer, values)
-    } else {
+    let (mut min, mut max) = (i32::MAX, i32::MIN);
+
+    for &n in values {
+        min = cmp::min(min, n);
+        max = cmp::max(max, n);
+    }
+
+    if min >= i32::from(Int8::MIN_VALUE) {
+        if max <= i32::from(Int8::MAX_VALUE) {
+            write_info_field_int8_array_value(writer, values)
+        } else if max <= i32::from(Int16::MAX_VALUE) {
+            write_info_field_int16_array_value(writer, values)
+        } else {
+            write_info_field_int32_array_value(writer, values)
+        }
+    } else if min >= i32::from(Int16::MIN_VALUE) {
+        if max <= i32::from(Int16::MAX_VALUE) {
+            write_info_field_int16_array_value(writer, values)
+        } else {
+            write_info_field_int32_array_value(writer, values)
+        }
+    } else if min >= Int32::MIN_VALUE {
         write_info_field_int32_array_value(writer, values)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid info field integer array value: {}", min),
+        ))
     }
 }
 
@@ -348,17 +372,60 @@ mod test {
 
         let mut buf = Vec::new();
 
-        let value = field::Value::IntegerArray(vec![8, 13]);
-        t(&mut buf, &value, &[0x21, 0x08, 0x0d])?;
+        let value = field::Value::IntegerArray(vec![-2147483641, -2147483640]);
+        buf.clear();
+        assert!(matches!(
+            write_info_field_value(&mut buf, &value),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
-        let value = field::Value::IntegerArray(vec![144, 233]);
-        t(&mut buf, &value, &[0x22, 0x90, 0x00, 0xe9, 0x00])?;
-
-        let value = field::Value::IntegerArray(vec![46368, 75025]);
+        let value = field::Value::IntegerArray(vec![-2147483640, -2147483639]);
         t(
             &mut buf,
             &value,
-            &[0x23, 0x20, 0xb5, 0x00, 0x00, 0x11, 0x25, 0x01, 0x00],
+            &[0x23, 0x08, 0x00, 0x00, 0x80, 0x09, 0x00, 0x00, 0x80],
+        )?;
+
+        let value = field::Value::IntegerArray(vec![-32761, -32760]);
+        t(
+            &mut buf,
+            &value,
+            &[0x23, 0x07, 0x80, 0xff, 0xff, 0x08, 0x80, 0xff, 0xff],
+        )?;
+
+        let value = field::Value::IntegerArray(vec![-32760, -32759]);
+        t(&mut buf, &value, &[0x22, 0x08, 0x80, 0x09, 0x80])?;
+
+        let value = field::Value::IntegerArray(vec![-121, -120]);
+        t(&mut buf, &value, &[0x22, 0x87, 0xff, 0x88, 0xff])?;
+
+        let value = field::Value::IntegerArray(vec![-120, -119]);
+        t(&mut buf, &value, &[0x21, 0x88, 0x89])?;
+
+        let value = field::Value::IntegerArray(vec![-1, 0, 1]);
+        t(&mut buf, &value, &[0x31, 0xff, 0x00, 0x01])?;
+
+        let value = field::Value::IntegerArray(vec![126, 127]);
+        t(&mut buf, &value, &[0x21, 0x7e, 0x7f])?;
+
+        let value = field::Value::IntegerArray(vec![127, 128]);
+        t(&mut buf, &value, &[0x22, 0x7f, 0x00, 0x80, 0x00])?;
+
+        let value = field::Value::IntegerArray(vec![32766, 32767]);
+        t(&mut buf, &value, &[0x22, 0xfe, 0x7f, 0xff, 0x7f])?;
+
+        let value = field::Value::IntegerArray(vec![32767, 32768]);
+        t(
+            &mut buf,
+            &value,
+            &[0x23, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00],
+        )?;
+
+        let value = field::Value::IntegerArray(vec![2147483646, 2147483647]);
+        t(
+            &mut buf,
+            &value,
+            &[0x23, 0xfe, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f],
         )?;
 
         Ok(())
