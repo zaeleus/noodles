@@ -29,12 +29,12 @@ where
     let mut genotypes = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
-        let key = read_genotype_key(reader, string_map)?;
+        let key = read_genotype_field_key(reader, string_map)?;
 
         let values = if key == genotype::field::Key::Genotype {
-            read_genotype_genotype_values(reader, sample_count)?
+            read_genotype_genotype_field_values(reader, sample_count)?
         } else {
-            read_genotype_values(reader, sample_count)?
+            read_genotype_field_values(reader, sample_count)?
         };
 
         for (fields, value) in genotypes.iter_mut().zip(values) {
@@ -51,7 +51,7 @@ where
         .collect()
 }
 
-fn read_genotype_key<R>(
+fn read_genotype_field_key<R>(
     reader: &mut R,
     string_map: &StringMap,
 ) -> io::Result<vcf::record::genotype::field::Key>
@@ -73,7 +73,7 @@ where
         })
 }
 
-fn read_genotype_values<R>(
+fn read_genotype_field_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -86,34 +86,34 @@ where
                 io::ErrorKind::InvalidData,
                 format!("invalid number: {}", len),
             )),
-            1 => read_genotype_int8_values(reader, sample_count),
-            _ => read_genotype_int8_array_values(reader, sample_count, len),
+            1 => read_genotype_field_int8_values(reader, sample_count),
+            _ => read_genotype_field_int8_array_values(reader, sample_count, len),
         },
         Some(Type::Int16(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("invalid number: {}", len),
             )),
-            1 => read_genotype_int16_values(reader, sample_count),
-            _ => read_genotype_int16_array_values(reader, sample_count, len),
+            1 => read_genotype_field_int16_values(reader, sample_count),
+            _ => read_genotype_field_int16_array_values(reader, sample_count, len),
         },
         Some(Type::Int32(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("invalid number: {}", len),
             )),
-            1 => read_genotype_int32_values(reader, sample_count),
-            _ => read_genotype_int32_array_values(reader, sample_count, len),
+            1 => read_genotype_field_int32_values(reader, sample_count),
+            _ => read_genotype_field_int32_array_values(reader, sample_count, len),
         },
         Some(Type::Float(len)) => match len {
             0 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!("invalid number: {}", len),
             )),
-            1 => read_genotype_float_values(reader, sample_count),
-            _ => read_genotype_float_array_values(reader, sample_count, len),
+            1 => read_genotype_field_float_values(reader, sample_count),
+            _ => read_genotype_field_float_array_values(reader, sample_count, len),
         },
-        Some(Type::String(len)) => read_genotype_string_values(reader, sample_count, len),
+        Some(Type::String(len)) => read_genotype_field_string_values(reader, sample_count, len),
         ty => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             format!("unhandled type: {:?}", ty),
@@ -121,7 +121,7 @@ where
     }
 }
 
-fn read_genotype_int8_values<R>(
+fn read_genotype_field_int8_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -145,7 +145,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_int8_array_values<R>(
+fn read_genotype_field_int8_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
@@ -179,7 +179,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_int16_values<R>(
+fn read_genotype_field_int16_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -203,7 +203,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_int16_array_values<R>(
+fn read_genotype_field_int16_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
@@ -237,7 +237,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_int32_values<R>(
+fn read_genotype_field_int32_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -261,7 +261,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_int32_array_values<R>(
+fn read_genotype_field_int32_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
@@ -295,7 +295,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_float_values<R>(
+fn read_genotype_field_float_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -319,7 +319,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_float_array_values<R>(
+fn read_genotype_field_float_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
@@ -353,7 +353,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_string_values<R>(
+fn read_genotype_field_string_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
@@ -383,7 +383,7 @@ where
     Ok(values)
 }
 
-fn read_genotype_genotype_values<R>(
+fn read_genotype_genotype_field_values<R>(
     reader: &mut R,
     sample_count: usize,
 ) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
@@ -401,7 +401,7 @@ where
                 for _ in 0..sample_count {
                     let value = reader
                         .read_i8()
-                        .map(|v| parse_genotype_genotype_values(&[v]))
+                        .map(|v| parse_genotype_genotype_field_values(&[v]))
                         .map(genotype::field::Value::String)?;
 
                     values.push(Some(value));
@@ -412,7 +412,7 @@ where
                     let mut buf = vec![0; len];
                     reader.read_i8_into(&mut buf)?;
                     let value =
-                        genotype::field::Value::String(parse_genotype_genotype_values(&buf));
+                        genotype::field::Value::String(parse_genotype_genotype_field_values(&buf));
                     values.push(Some(value));
                 }
             }
@@ -423,7 +423,7 @@ where
     Ok(values)
 }
 
-fn parse_genotype_genotype_values(values: &[i8]) -> String {
+fn parse_genotype_genotype_field_values(values: &[i8]) -> String {
     let mut genotype = String::new();
 
     for (i, &value) in values.iter().enumerate() {
@@ -461,7 +461,7 @@ mod tests {
     const SAMPLE_COUNT: usize = 3;
 
     #[test]
-    fn test_read_genotype_values_with_int8_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int8_values() -> io::Result<()> {
         let data = [
             0x11, // Some(Type::Int8(1))
             0x05, // Some(5)
@@ -470,7 +470,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
 
         assert_eq!(actual, expected);
@@ -479,7 +479,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_int8_array_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int8_array_values() -> io::Result<()> {
         let data = [
             0x21, // Some(Type::Int8(2))
             0x05, 0x08, // [Some(5), Some(8)]
@@ -488,7 +488,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
             Some(Value::IntegerArray(vec![Some(13), None])),
@@ -501,7 +501,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_int16_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int16_values() -> io::Result<()> {
         let data = [
             0x12, // Some(Type::Int16(1))
             0x05, 0x00, // Some(5)
@@ -510,7 +510,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
 
         assert_eq!(actual, expected);
@@ -519,7 +519,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_int16_array_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int16_array_values() -> io::Result<()> {
         let data = [
             0x22, // Some(Type::Int16(2))
             0x05, 0x00, 0x08, 0x00, // [Some(5), Some(8)]
@@ -528,7 +528,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
             Some(Value::IntegerArray(vec![Some(13), None])),
@@ -541,7 +541,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_int32_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int32_values() -> io::Result<()> {
         let data = [
             0x13, // Some(Type::Int32(1))
             0x05, 0x00, 0x00, 0x00, // Some(5)
@@ -550,7 +550,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![Some(Value::Integer(5)), Some(Value::Integer(8)), None];
 
         assert_eq!(actual, expected);
@@ -559,7 +559,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_int32_array_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_int32_array_values() -> io::Result<()> {
         let data = [
             0x23, // Some(Type::Int32(2))
             0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // [Some(5), Some(8)]
@@ -568,7 +568,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::IntegerArray(vec![Some(5), Some(8)])),
             Some(Value::IntegerArray(vec![Some(13), None])),
@@ -581,7 +581,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_float_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_float_values() -> io::Result<()> {
         let data = [
             0x15, // Some(Type::Float(1))
             0x00, 0x00, 0x00, 0x00, // Some(0.0)
@@ -590,7 +590,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![Some(Value::Float(0.0)), Some(Value::Float(1.0)), None];
 
         assert_eq!(actual, expected);
@@ -599,7 +599,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_float_array_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_float_array_values() -> io::Result<()> {
         let data = [
             0x25, // Some(Type::Float(2))
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // [Some(0.0), Some(1.0)]
@@ -608,7 +608,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::FloatArray(vec![Some(0.0), Some(1.0)])),
             Some(Value::FloatArray(vec![Some(0.0), None])),
@@ -621,7 +621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_genotype_values_with_string_values() -> io::Result<()> {
+    fn test_read_genotype_field_values_with_string_values() -> io::Result<()> {
         let data = [
             0x47, // Some(Type::String(4))
             b'n', 0x00, 0x00, 0x00, // "n"
@@ -630,7 +630,7 @@ mod tests {
         ];
         let mut reader = &data[..];
 
-        let actual = read_genotype_values(&mut reader, SAMPLE_COUNT)?;
+        let actual = read_genotype_field_values(&mut reader, SAMPLE_COUNT)?;
         let expected = vec![
             Some(Value::String(String::from("n"))),
             Some(Value::String(String::from("ndl"))),
@@ -643,18 +643,24 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_genotype_genotype_values() {
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x02]), "0/0");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04]), "0/1");
-        assert_eq!(parse_genotype_genotype_values(&[0x04, 0x04]), "1/1");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x05]), "0|1");
-        assert_eq!(parse_genotype_genotype_values(&[0x00, 0x00]), "./.");
-        assert_eq!(parse_genotype_genotype_values(&[0x02]), "0");
-        assert_eq!(parse_genotype_genotype_values(&[0x04]), "1");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x06]), "0/1/2");
-        assert_eq!(parse_genotype_genotype_values(&[0x02, 0x04, 0x07]), "0/1|2");
+    fn test_parse_genotype_genotype_field_values() {
+        assert_eq!(parse_genotype_genotype_field_values(&[0x02, 0x02]), "0/0");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x02, 0x04]), "0/1");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x04, 0x04]), "1/1");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x02, 0x05]), "0|1");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x00, 0x00]), "./.");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x02]), "0");
+        assert_eq!(parse_genotype_genotype_field_values(&[0x04]), "1");
         assert_eq!(
-            parse_genotype_genotype_values(&[0x02, i8::from(Int8::EndOfVector)]),
+            parse_genotype_genotype_field_values(&[0x02, 0x04, 0x06]),
+            "0/1/2"
+        );
+        assert_eq!(
+            parse_genotype_genotype_field_values(&[0x02, 0x04, 0x07]),
+            "0/1|2"
+        );
+        assert_eq!(
+            parse_genotype_genotype_field_values(&[0x02, i8::from(Int8::EndOfVector)]),
             "0"
         );
     }
