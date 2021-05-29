@@ -242,38 +242,193 @@ where
 {
     use vcf::record::genotype;
 
-    let max_len = values
-        .iter()
-        .flat_map(|value| match value {
-            Some(genotype::field::Value::IntegerArray(vs)) => Some(vs.len()),
-            _ => None,
-        })
-        .max()
-        .ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidInput, "missing IntegerArray values")
-        })?;
-
-    write_type(writer, Some(Type::Int32(max_len)))?;
+    let mut max_len = usize::MIN;
+    let (mut min, mut max) = (i32::MAX, i32::MIN);
 
     for value in values {
         match value {
             Some(genotype::field::Value::IntegerArray(vs)) => {
-                for v in vs {
-                    let raw_value = v.unwrap_or(i32::from(Int32::Missing));
-                    writer.write_i32::<LittleEndian>(raw_value)?;
-                }
+                max_len = cmp::max(max_len, vs.len());
 
-                if vs.len() < max_len {
-                    for _ in 0..(max_len - vs.len()) {
-                        writer.write_i32::<LittleEndian>(i32::from(Int32::EndOfVector))?;
-                    }
+                for v in vs {
+                    let n = v.unwrap_or_default();
+                    min = cmp::min(min, n);
+                    max = cmp::max(max, n);
                 }
             }
-            v => {
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                ));
+            }
+            None => {}
+        }
+    }
+
+    if min >= i32::from(Int8::MIN_VALUE) {
+        if max <= i32::from(Int8::MAX_VALUE) {
+            write_genotype_field_int8_array_values(writer, values, max_len)
+        } else if max <= i32::from(Int16::MAX_VALUE) {
+            write_genotype_field_int16_array_values(writer, values, max_len)
+        } else {
+            write_genotype_field_int32_array_values(writer, values, max_len)
+        }
+    } else if min >= i32::from(Int16::MIN_VALUE) {
+        if max <= i32::from(Int16::MAX_VALUE) {
+            write_genotype_field_int16_array_values(writer, values, max_len)
+        } else {
+            write_genotype_field_int32_array_values(writer, values, max_len)
+        }
+    } else if min >= Int32::MIN_VALUE {
+        write_genotype_field_int32_array_values(writer, values, max_len)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid genotype field integer array value: {}", min),
+        ))
+    }
+}
+
+fn write_genotype_field_int8_array_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+    max_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Int8(max_len)))?;
+
+    for value in values {
+        let len = match value {
+            Some(genotype::field::Value::IntegerArray(vs)) => {
+                for v in vs {
+                    let n = match v {
+                        Some(n) => i8::try_from(*n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+                        None => i8::from(Int8::Missing),
+                    };
+
+                    writer.write_i8(n)?;
+                }
+
+                vs.len()
+            }
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected IntegerArray, got {:?}", v),
                 ))
+            }
+            None => {
+                writer.write_i8(i8::from(Int8::Missing))?;
+                1
+            }
+        };
+
+        if len < max_len {
+            for _ in 0..(max_len - len) {
+                writer.write_i8(i8::from(Int8::EndOfVector))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn write_genotype_field_int16_array_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+    max_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Int16(max_len)))?;
+
+    for value in values {
+        let len = match value {
+            Some(genotype::field::Value::IntegerArray(vs)) => {
+                for v in vs {
+                    let n = match v {
+                        Some(n) => i16::try_from(*n)
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+                        None => i16::from(Int16::Missing),
+                    };
+
+                    writer.write_i16::<LittleEndian>(n)?;
+                }
+
+                vs.len()
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                ))
+            }
+            None => {
+                writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?;
+                1
+            }
+        };
+
+        if len < max_len {
+            for _ in 0..(max_len - len) {
+                writer.write_i16::<LittleEndian>(i16::from(Int16::EndOfVector))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn write_genotype_field_int32_array_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+    max_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Int32(max_len)))?;
+
+    for value in values {
+        let len = match value {
+            Some(genotype::field::Value::IntegerArray(vs)) => {
+                for v in vs {
+                    let n = match v {
+                        Some(n) => *n,
+                        None => i32::from(Int32::Missing),
+                    };
+
+                    writer.write_i32::<LittleEndian>(n)?;
+                }
+
+                vs.len()
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected IntegerArray, got {:?}", v),
+                ))
+            }
+            None => {
+                writer.write_i32::<LittleEndian>(i32::from(Int32::Missing))?;
+                1
+            }
+        };
+
+        if len < max_len {
+            for _ in 0..(max_len - len) {
+                writer.write_i32::<LittleEndian>(i32::from(Int32::EndOfVector))?;
             }
         }
     }
@@ -737,6 +892,20 @@ mod tests {
 
     #[test]
     fn test_write_genotype_field_values_with_integer_array_values() -> io::Result<()> {
+        use genotype::field::Value;
+
+        fn t(
+            buf: &mut Vec<u8>,
+            key: &Key,
+            values: &[Option<&Value>],
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_genotype_field_values(buf, &key, &values)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let key = Key::Other(
             String::from("I32"),
             Number::Count(2),
@@ -744,22 +913,164 @@ mod tests {
             String::default(),
         );
 
-        let value_0 = genotype::field::Value::IntegerArray(vec![Some(5), Some(8)]);
-        let value_1 = genotype::field::Value::IntegerArray(vec![Some(13), None]);
-        let value_2 = genotype::field::Value::IntegerArray(vec![Some(21)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
-
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
 
+        let value_0 = Value::IntegerArray(vec![Some(-2147483641), Some(-2147483640)]);
+        let value_1 = Value::IntegerArray(vec![Some(-2147483639), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-2147483638)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        buf.clear();
+        assert!(matches!(
+            write_genotype_field_values(&mut buf, &key, &values),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        let value_0 = Value::IntegerArray(vec![Some(-2147483640), Some(-2147483639)]);
+        let value_1 = Value::IntegerArray(vec![Some(-2147483638), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-2147483637)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        #[rustfmt::skip]
         let expected = [
             0x23, // Some(Type::Int32(2))
-            0x05, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, // [Some(5), Some(8)]
-            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, // [Some(13), None]
-            0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // [Some(21)]
+            0x08, 0x00, 0x00, 0x80, 0x09, 0x00, 0x00, 0x80, // Some([Some(-2147483640), Some(-2147483639)])
+            0x0a, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, // Some([Some(-2147483638), None])
+            0x0b, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // Some([Some(-2147483637)])
+            0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ];
+        t(&mut buf, &key, &values, &expected)?;
 
-        assert_eq!(buf, expected);
+        let value_0 = Value::IntegerArray(vec![Some(-32761), Some(-32760)]);
+        let value_1 = Value::IntegerArray(vec![Some(-32759), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-32758)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        #[rustfmt::skip]
+        let expected = [
+            0x23, // Some(Type::Int32(2))
+            0x07, 0x80, 0xff, 0xff, 0x08, 0x80, 0xff, 0xff, // Some([Some(-32761), Some(-32760)])
+            0x09, 0x80, 0xff, 0xff, 0x00, 0x00, 0x00, 0x80, // Some([Some(-32759), None])
+            0x0a, 0x80, 0xff, 0xff, 0x01, 0x00, 0x00, 0x80, // Some([Some(-32761)])
+            0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(-32760), Some(-32759)]);
+        let value_1 = Value::IntegerArray(vec![Some(-32758), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-32757)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x22, // Some(Type::Int16(2))
+            0x08, 0x80, 0x09, 0x80, // Some([Some(-32760), Some(-32759)])
+            0x0a, 0x80, 0x00, 0x80, // Some([Some(-32758), None])
+            0x0b, 0x80, 0x01, 0x80, // Some([Some(-32757)])
+            0x00, 0x80, 0x01, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(-121), Some(-120)]);
+        let value_1 = Value::IntegerArray(vec![Some(-119), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-118)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x22, // Some(Type::Int16(2))
+            0x87, 0xff, 0x88, 0xff, // Some([Some(-121), Some(-120)])
+            0x89, 0xff, 0x00, 0x80, // Some([Some(-119), None])
+            0x8a, 0xff, 0x01, 0x80, // Some([Some(-118)])
+            0x00, 0x80, 0x01, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(-120), Some(-119)]);
+        let value_1 = Value::IntegerArray(vec![Some(-118), None]);
+        let value_2 = Value::IntegerArray(vec![Some(-117)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0x88, 0x89, // Some([Some(-120), Some(-119)])
+            0x8a, 0x80, // Some([Some(-118), None])
+            0x8b, 0x81, // Some([Some(-117)])
+            0x80, 0x81, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(-1), Some(0)]);
+        let value_1 = Value::IntegerArray(vec![Some(1), None]);
+        let value_2 = Value::IntegerArray(vec![Some(2)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0xff, 0x00, // Some([Some(-1), Some(0)])
+            0x01, 0x80, // Some([Some(1), None])
+            0x02, 0x81, // Some([Some(2)])
+            0x80, 0x81, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(124), Some(125)]);
+        let value_1 = Value::IntegerArray(vec![Some(126), None]);
+        let value_2 = Value::IntegerArray(vec![Some(127)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0x7c, 0x7d, // Some([Some(124), Some(125)])
+            0x7e, 0x80, // Some([Some(126), None])
+            0x7f, 0x81, // Some([Some(127)])
+            0x80, 0x81, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(125), Some(126)]);
+        let value_1 = Value::IntegerArray(vec![Some(127), None]);
+        let value_2 = Value::IntegerArray(vec![Some(128)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x22, // Some(Type::Int16(2))
+            0x7d, 0x00, 0x7e, 0x00, // Some([Some(125), Some(126)])
+            0x7f, 0x00, 0x00, 0x80, // Some([Some(127), None])
+            0x80, 0x00, 0x01, 0x80, // Some([Some(128)])
+            0x00, 0x80, 0x01, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(32764), Some(32765)]);
+        let value_1 = Value::IntegerArray(vec![Some(32766), None]);
+        let value_2 = Value::IntegerArray(vec![Some(32767)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        let expected = [
+            0x22, // Some(Type::Int16(2))
+            0xfc, 0x7f, 0xfd, 0x7f, // Some([Some(32764), Some(32765)])
+            0xfe, 0x7f, 0x00, 0x80, // Some([Some(32766), None])
+            0xff, 0x7f, 0x01, 0x80, // Some([Some(32767)])
+            0x00, 0x80, 0x01, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(32765), Some(32766)]);
+        let value_1 = Value::IntegerArray(vec![Some(32767), None]);
+        let value_2 = Value::IntegerArray(vec![Some(32768)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        #[rustfmt::skip]
+        let expected = [
+            0x23, // Some(Type::Int32(2))
+            0xfd, 0x7f, 0x00, 0x00, 0xfe, 0x7f, 0x00, 0x00, // Some([Some(32765), Some(32766)])
+            0xff, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, // Some([Some(32767), None])
+            0x00, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // Some([Some(32768)])
+            0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let value_0 = Value::IntegerArray(vec![Some(2147483644), Some(2147483645)]);
+        let value_1 = Value::IntegerArray(vec![Some(2147483646), None]);
+        let value_2 = Value::IntegerArray(vec![Some(2147483647)]);
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
+        #[rustfmt::skip]
+        let expected = [
+            0x23, // Some(Type::Int32(2))
+            0xfc, 0xff, 0xff, 0x7f, 0xfd, 0xff, 0xff, 0x7f, // Some([Some(2147483645), Some(2147483645)])
+            0xfe, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x80, // Some([Some(2147483646), None])
+            0xff, 0xff, 0xff, 0x7f, 0x01, 0x00, 0x00, 0x80, // Some([Some(2147483647)])
+            0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
 
         Ok(())
     }
