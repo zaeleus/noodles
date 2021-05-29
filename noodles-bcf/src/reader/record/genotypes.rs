@@ -644,6 +644,8 @@ mod tests {
 
     #[test]
     fn test_parse_genotype_genotype_field_values() {
+        // Examples from § 6.3.3 Type encoding (2021-05-13)
+
         assert_eq!(parse_genotype_genotype_field_values(&[0x02, 0x02]), "0/0");
         assert_eq!(parse_genotype_genotype_field_values(&[0x02, 0x04]), "0/1");
         assert_eq!(parse_genotype_genotype_field_values(&[0x04, 0x04]), "1/1");
