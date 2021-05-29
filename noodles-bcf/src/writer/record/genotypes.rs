@@ -486,24 +486,30 @@ where
     write_type(writer, Some(Type::Float(max_len)))?;
 
     for value in values {
-        match value {
+        let len = match value {
             Some(genotype::field::Value::FloatArray(vs)) => {
                 for v in vs {
                     let raw_value = v.unwrap_or(f32::from(Float::Missing));
                     writer.write_f32::<LittleEndian>(raw_value)?;
                 }
 
-                if vs.len() < max_len {
-                    for _ in 0..(max_len - vs.len()) {
-                        writer.write_f32::<LittleEndian>(f32::from(Float::EndOfVector))?;
-                    }
-                }
+                vs.len()
             }
-            v => {
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected FloatArray, got {:?}", v),
                 ))
+            }
+            None => {
+                writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?;
+                1
+            }
+        };
+
+        if len < max_len {
+            for _ in 0..(max_len - len) {
+                writer.write_f32::<LittleEndian>(f32::from(Float::EndOfVector))?;
             }
         }
     }
@@ -1117,16 +1123,17 @@ mod tests {
         let value_0 = genotype::field::Value::FloatArray(vec![Some(0.0), Some(1.0)]);
         let value_1 = genotype::field::Value::FloatArray(vec![Some(0.0), None]);
         let value_2 = genotype::field::Value::FloatArray(vec![Some(0.0)]);
-        let values = [Some(&value_0), Some(&value_1), Some(&value_2)];
+        let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
         write_genotype_field_values(&mut buf, &key, &values)?;
 
         let expected = [
             0x25, // Some(Type::Float(2))
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // [Some(0.0), Some(1.0)]
-            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f, // [Some(0.0), None]
-            0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x7f, // [Some(0.0)]
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f, // Some([Some(0.0), Some(1.0)])
+            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f, // Some([Some(0.0), None])
+            0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x80, 0x7f, // Some([Some(0.0)])
+            0x01, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // None
         ];
 
         assert_eq!(buf, expected);
