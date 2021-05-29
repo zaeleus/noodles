@@ -1,11 +1,15 @@
-use std::io::{self, Write};
+use std::{
+    cmp,
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
 use crate::{
     header::StringMap,
-    record::value::{Float, Int32, Type},
+    record::value::{Float, Int16, Int32, Int8, Type},
     writer::{string_map::write_string_map_index, value::write_type},
 };
 
@@ -102,6 +106,113 @@ where
 {
     use vcf::record::genotype;
 
+    let (mut min, mut max) = (i32::MAX, i32::MIN);
+
+    for value in values {
+        let n = match value {
+            Some(genotype::field::Value::Integer(n)) => *n,
+            _ => 0,
+        };
+
+        min = cmp::min(min, n);
+        max = cmp::max(max, n);
+    }
+
+    if min >= i32::from(Int8::MIN_VALUE) {
+        if max <= i32::from(Int8::MAX_VALUE) {
+            write_genotype_field_int8_values(writer, values)
+        } else if max <= i32::from(Int16::MAX_VALUE) {
+            write_genotype_field_int16_values(writer, values)
+        } else {
+            write_genotype_field_int32_values(writer, values)
+        }
+    } else if min >= i32::from(Int16::MIN_VALUE) {
+        if max <= i32::from(Int16::MAX_VALUE) {
+            write_genotype_field_int16_values(writer, values)
+        } else {
+            write_genotype_field_int32_values(writer, values)
+        }
+    } else if min >= Int32::MIN_VALUE {
+        write_genotype_field_int32_values(writer, values)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid genotype field integer value: {}", min),
+        ))
+    }
+}
+
+fn write_genotype_field_int8_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Int8(1)))?;
+
+    for value in values {
+        match value {
+            Some(genotype::field::Value::Integer(n)) => {
+                let m =
+                    i8::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                writer.write_i8(m)?;
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected Integer, got {:?}", v),
+                ));
+            }
+            None => writer.write_i8(i8::from(Int8::Missing))?,
+        }
+    }
+
+    Ok(())
+}
+
+fn write_genotype_field_int16_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
+    write_type(writer, Some(Type::Int16(1)))?;
+
+    for value in values {
+        match value {
+            Some(genotype::field::Value::Integer(n)) => {
+                let m = i16::try_from(*n)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                writer.write_i16::<LittleEndian>(m)?;
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected Integer, got {:?}", v),
+                ));
+            }
+            None => writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?,
+        }
+    }
+
+    Ok(())
+}
+
+fn write_genotype_field_int32_values<W>(
+    writer: &mut W,
+    values: &[Option<&vcf::record::genotype::field::Value>],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use vcf::record::genotype;
+
     write_type(writer, Some(Type::Int32(1)))?;
 
     for value in values {
@@ -113,7 +224,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Integer, got {:?}", v),
-                ))
+                ));
             }
             None => writer.write_i32::<LittleEndian>(i32::from(Int32::Missing))?,
         }
@@ -450,6 +561,20 @@ mod tests {
 
     #[test]
     fn test_write_genotype_field_values_with_integer_values() -> io::Result<()> {
+        use genotype::field::Value;
+
+        fn t(
+            buf: &mut Vec<u8>,
+            key: &Key,
+            values: &[Option<&Value>],
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_genotype_field_values(buf, &key, &values)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let key = Key::Other(
             String::from("I32"),
             Number::Count(1),
@@ -457,23 +582,155 @@ mod tests {
             String::default(),
         );
 
+        let mut buf = Vec::new();
+
         let values = [
-            Some(&genotype::field::Value::Integer(5)),
-            Some(&genotype::field::Value::Integer(8)),
+            Some(&Value::Integer(-2147483641)),
+            Some(&Value::Integer(-2147483640)),
             None,
         ];
+        buf.clear();
+        assert!(matches!(
+            write_genotype_field_values(&mut buf, &key, &values),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
-        let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
-
+        let values = [
+            Some(&Value::Integer(-2147483640)),
+            Some(&Value::Integer(-2147483639)),
+            None,
+        ];
         let expected = [
             0x13, // Some(Type::Int32(1))
-            0x05, 0x00, 0x00, 0x00, // Some(5)
-            0x08, 0x00, 0x00, 0x00, // Some(8)
+            0x08, 0x00, 0x00, 0x80, // Some(-2147483640)
+            0x09, 0x00, 0x00, 0x80, // Some(-2147483639)
             0x00, 0x00, 0x00, 0x80, // None
         ];
+        t(&mut buf, &key, &values, &expected)?;
 
-        assert_eq!(buf, expected);
+        let values = [
+            Some(&Value::Integer(-32761)),
+            Some(&Value::Integer(-32760)),
+            None,
+        ];
+        let expected = [
+            0x13, // Some(Type::Int32(1))
+            0x07, 0x80, 0xff, 0xff, // Some(-32761)
+            0x08, 0x80, 0xff, 0xff, // Some(-32760)
+            0x00, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(-32760)),
+            Some(&Value::Integer(-32759)),
+            None,
+        ];
+        let expected = [
+            0x12, // Some(Type::Int16(1))
+            0x08, 0x80, // Some(-32760)
+            0x09, 0x80, // Some(-32759)
+            0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(-121)),
+            Some(&Value::Integer(-120)),
+            None,
+        ];
+        let expected = [
+            0x12, // Some(Type::Int16(1))
+            0x87, 0xff, // Some(-121)
+            0x88, 0xff, // Some(-120)
+            0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(-120)),
+            Some(&Value::Integer(-119)),
+            None,
+        ];
+        let expected = [
+            0x11, // Some(Type::Int8(1))
+            0x88, // Some(-120)
+            0x89, // Some(-119)
+            0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(-1)),
+            Some(&Value::Integer(0)),
+            Some(&Value::Integer(1)),
+            None,
+        ];
+        let expected = [
+            0x11, // Some(Type::Int8(1))
+            0xff, // Some(-1)
+            0x00, // Some(0)
+            0x01, // Some(1)
+            0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [Some(&Value::Integer(126)), Some(&Value::Integer(127)), None];
+        let expected = [
+            0x11, // Some(Type::Int8(1))
+            0x7e, // Some(126)
+            0x7f, // Some(127)
+            0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [Some(&Value::Integer(127)), Some(&Value::Integer(128)), None];
+        let expected = [
+            0x12, // Some(Type::Int16(1))
+            0x7f, 0x00, // Some(127)
+            0x80, 0x00, // Some(128)
+            0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(32766)),
+            Some(&Value::Integer(32767)),
+            None,
+        ];
+        let expected = [
+            0x12, // Some(Type::Int16(1))
+            0xfe, 0x7f, // Some(32766)
+            0xff, 0x7f, // Some(32767)
+            0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(32767)),
+            Some(&Value::Integer(32768)),
+            None,
+        ];
+        let expected = [
+            0x13, // Some(Type::Int32(1))
+            0xff, 0x7f, 0x00, 0x00, // Some(32767)
+            0x00, 0x80, 0x00, 0x00, // Some(32768)
+            0x00, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
+
+        let values = [
+            Some(&Value::Integer(2147483646)),
+            Some(&Value::Integer(2147483647)),
+            None,
+        ];
+        let expected = [
+            0x13, // Some(Type::Int32(1))
+            0xfe, 0xff, 0xff, 0x7f, // Some(2147483646)
+            0xff, 0xff, 0xff, 0x7f, // Some(2147483647)
+            0x00, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &key, &values, &expected)?;
 
         Ok(())
     }
