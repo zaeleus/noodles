@@ -8,6 +8,44 @@ use crate::{header::StringMap, reader::record::read_record};
 use super::{value::Float, Record};
 
 impl Record {
+    /// Converts a VCF record to a BCF record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::{self as vcf, record::Position};
+    ///
+    /// let raw_header = "##fileformat=VCFv4.3\n##contig=<ID=sq0>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let header: vcf::Header = raw_header.parse()?;
+    /// let string_map = raw_header.parse()?;
+    ///
+    /// let record = bcf::Record::from(vec![
+    ///     0x00, 0x00, 0x00, 0x00, // chrom = sq0
+    ///     0x00, 0x00, 0x00, 0x00, // pos = 0 (base 0)
+    ///     0x01, 0x00, 0x00, 0x00, // rlen = 1
+    ///     0x01, 0x00, 0x80, 0x7f, // qual = Float::Missing
+    ///     0x00, 0x00, // n_info = 0
+    ///     0x01, 0x00, // n_allele = 1
+    ///     0x00, // n_sample = 0
+    ///     0x00, 0x00, 0x00, // n_fmt = 0
+    ///     0x07, // id = [missing]
+    ///     0x17, 0x41, // ref = A
+    ///     0x00, // filter = []
+    /// ]);
+    ///
+    /// let actual = record.try_into_vcf_record(&header, &string_map)?;
+    ///
+    /// let expected = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(actual, expected);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn try_into_vcf_record(
         &self,
         header: &vcf::Header,
