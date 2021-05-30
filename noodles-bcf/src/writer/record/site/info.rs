@@ -226,16 +226,7 @@ fn write_info_field_string_array_value<W>(writer: &mut W, values: &[String]) -> 
 where
     W: Write,
 {
-    let mut s = String::new();
-
-    for (i, t) in values.iter().enumerate() {
-        if i > 0 {
-            s.push(',');
-        }
-
-        s.push_str(t);
-    }
-
+    let s = values.join(",");
     write_value(writer, Some(Value::String(Some(s))))
 }
 
