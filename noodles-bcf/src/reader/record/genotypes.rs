@@ -5,7 +5,13 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_vcf::{self as vcf, record::Genotype};
+use noodles_vcf::{
+    self as vcf,
+    record::{
+        genotype::field::{Key, Value},
+        Genotype,
+    },
+};
 
 const NUL: u8 = 0x00;
 
@@ -24,14 +30,14 @@ pub fn read_genotypes<R>(
 where
     R: Read,
 {
-    use vcf::record::genotype::{self, Field};
+    use vcf::record::genotype::Field;
 
     let mut genotypes = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
         let key = read_genotype_field_key(reader, string_map)?;
 
-        let values = if key == genotype::field::Key::Genotype {
+        let values = if key == Key::Genotype {
             read_genotype_genotype_field_values(reader, sample_count)?
         } else {
             read_genotype_field_values(reader, sample_count)?
@@ -51,10 +57,7 @@ where
         .collect()
 }
 
-fn read_genotype_field_key<R>(
-    reader: &mut R,
-    string_map: &StringMap,
-) -> io::Result<vcf::record::genotype::field::Key>
+fn read_genotype_field_key<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Key>
 where
     R: Read,
 {
@@ -76,7 +79,7 @@ where
 fn read_genotype_field_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
@@ -124,19 +127,17 @@ where
 fn read_genotype_field_int8_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
         let value = reader.read_i8().map(Int8::from)?;
 
         match value {
-            Int8::Value(n) => values.push(Some(genotype::field::Value::Integer(i32::from(n)))),
+            Int8::Value(n) => values.push(Some(Value::Integer(i32::from(n)))),
             Int8::Missing => values.push(None),
             _ => todo!("unhandled i8 value: {:?}", value),
         }
@@ -149,12 +150,10 @@ fn read_genotype_field_int8_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
@@ -175,7 +174,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(genotype::field::Value::IntegerArray(vs)));
+            values.push(Some(Value::IntegerArray(vs)));
         }
     }
 
@@ -185,19 +184,17 @@ where
 fn read_genotype_field_int16_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
         let value = reader.read_i16::<LittleEndian>().map(Int16::from)?;
 
         match value {
-            Int16::Value(n) => values.push(Some(genotype::field::Value::Integer(i32::from(n)))),
+            Int16::Value(n) => values.push(Some(Value::Integer(i32::from(n)))),
             Int16::Missing => values.push(None),
             _ => todo!("unhandled i16 value: {:?}", value),
         }
@@ -210,12 +207,10 @@ fn read_genotype_field_int16_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
@@ -236,7 +231,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(genotype::field::Value::IntegerArray(vs)));
+            values.push(Some(Value::IntegerArray(vs)));
         }
     }
 
@@ -246,19 +241,17 @@ where
 fn read_genotype_field_int32_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
         let value = reader.read_i32::<LittleEndian>().map(Int32::from)?;
 
         match value {
-            Int32::Value(n) => values.push(Some(genotype::field::Value::Integer(n))),
+            Int32::Value(n) => values.push(Some(Value::Integer(n))),
             Int32::Missing => values.push(None),
             _ => todo!("unhandled i32 value: {:?}", value),
         }
@@ -271,12 +264,10 @@ fn read_genotype_field_int32_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
@@ -297,7 +288,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(genotype::field::Value::IntegerArray(vs)));
+            values.push(Some(Value::IntegerArray(vs)));
         }
     }
 
@@ -307,19 +298,17 @@ where
 fn read_genotype_field_float_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
         let value = reader.read_f32::<LittleEndian>().map(Float::from)?;
 
         match value {
-            Float::Value(n) => values.push(Some(genotype::field::Value::Float(n))),
+            Float::Value(n) => values.push(Some(Value::Float(n))),
             Float::Missing => values.push(None),
             _ => todo!("unhandled f32 value: {:?}", value),
         }
@@ -332,12 +321,10 @@ fn read_genotype_field_float_array_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
@@ -358,7 +345,7 @@ where
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
-            values.push(Some(genotype::field::Value::FloatArray(vs)));
+            values.push(Some(Value::FloatArray(vs)));
         }
     }
 
@@ -369,12 +356,10 @@ fn read_genotype_field_string_values<R>(
     reader: &mut R,
     sample_count: usize,
     len: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
     let mut buf = vec![0; len];
 
@@ -387,7 +372,7 @@ where
         };
 
         let s = str::from_utf8(data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let value = genotype::field::Value::String(s.into());
+        let value = Value::String(s.into());
 
         values.push(Some(value));
     }
@@ -398,12 +383,10 @@ where
 fn read_genotype_genotype_field_values<R>(
     reader: &mut R,
     sample_count: usize,
-) -> io::Result<Vec<Option<vcf::record::genotype::field::Value>>>
+) -> io::Result<Vec<Option<Value>>>
 where
     R: Read,
 {
-    use vcf::record::genotype;
-
     let mut values = Vec::with_capacity(sample_count);
 
     match read_type(reader)? {
@@ -414,7 +397,7 @@ where
                     let value = reader
                         .read_i8()
                         .map(|v| parse_genotype_genotype_field_values(&[v]))
-                        .map(genotype::field::Value::String)?;
+                        .map(Value::String)?;
 
                     values.push(Some(value));
                 }
@@ -423,8 +406,7 @@ where
                 for _ in 0..sample_count {
                     let mut buf = vec![0; len];
                     reader.read_i8_into(&mut buf)?;
-                    let value =
-                        genotype::field::Value::String(parse_genotype_genotype_field_values(&buf));
+                    let value = Value::String(parse_genotype_genotype_field_values(&buf));
                     values.push(Some(value));
                 }
             }
@@ -466,8 +448,6 @@ fn parse_genotype_genotype_field_values(values: &[i8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use vcf::record::genotype::field::Value;
-
     use super::*;
 
     #[test]
