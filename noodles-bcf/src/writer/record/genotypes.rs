@@ -5,7 +5,10 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_vcf as vcf;
+use noodles_vcf::{
+    self as vcf,
+    record::genotype::field::{Key, Value},
+};
 
 use crate::{
     header::StringMap,
@@ -51,7 +54,7 @@ where
 pub fn write_genotype_field_key<W>(
     writer: &mut W,
     string_map: &StringMap,
-    key: &vcf::record::genotype::field::Key,
+    key: &Key,
 ) -> io::Result<()>
 where
     W: Write,
@@ -69,8 +72,8 @@ where
 
 pub fn write_genotype_field_values<W>(
     writer: &mut W,
-    key: &vcf::record::genotype::field::Key,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    key: &Key,
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
@@ -99,18 +102,16 @@ where
 
 fn write_genotype_field_integer_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let (mut min, mut max) = (i32::MAX, i32::MIN);
 
     for value in values {
         let n = match value {
-            Some(genotype::field::Value::Integer(n)) => *n,
+            Some(Value::Integer(n)) => *n,
             _ => 0,
         };
 
@@ -142,20 +143,15 @@ where
     }
 }
 
-fn write_genotype_field_int8_values<W>(
-    writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
-) -> io::Result<()>
+fn write_genotype_field_int8_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int8(1)))?;
 
     for value in values {
         match value {
-            Some(genotype::field::Value::Integer(n)) => {
+            Some(Value::Integer(n)) => {
                 let m =
                     i8::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 writer.write_i8(m)?;
@@ -173,20 +169,15 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int16_values<W>(
-    writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
-) -> io::Result<()>
+fn write_genotype_field_int16_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int16(1)))?;
 
     for value in values {
         match value {
-            Some(genotype::field::Value::Integer(n)) => {
+            Some(Value::Integer(n)) => {
                 let m = i16::try_from(*n)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 writer.write_i16::<LittleEndian>(m)?;
@@ -204,20 +195,15 @@ where
     Ok(())
 }
 
-fn write_genotype_field_int32_values<W>(
-    writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
-) -> io::Result<()>
+fn write_genotype_field_int32_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int32(1)))?;
 
     for value in values {
         match value {
-            Some(genotype::field::Value::Integer(n)) => {
+            Some(Value::Integer(n)) => {
                 writer.write_i32::<LittleEndian>(*n)?;
             }
             Some(v) => {
@@ -235,19 +221,17 @@ where
 
 fn write_genotype_field_integer_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let mut max_len = usize::MIN;
     let (mut min, mut max) = (i32::MAX, i32::MIN);
 
     for value in values {
         match value {
-            Some(genotype::field::Value::IntegerArray(vs)) => {
+            Some(Value::IntegerArray(vs)) => {
                 max_len = cmp::max(max_len, vs.len());
 
                 for v in vs {
@@ -292,19 +276,17 @@ where
 
 fn write_genotype_field_int8_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
     max_len: usize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int8(max_len)))?;
 
     for value in values {
         let len = match value {
-            Some(genotype::field::Value::IntegerArray(vs)) => {
+            Some(Value::IntegerArray(vs)) => {
                 for v in vs {
                     let n = match v {
                         Some(n) => i8::try_from(*n)
@@ -341,19 +323,17 @@ where
 
 fn write_genotype_field_int16_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
     max_len: usize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int16(max_len)))?;
 
     for value in values {
         let len = match value {
-            Some(genotype::field::Value::IntegerArray(vs)) => {
+            Some(Value::IntegerArray(vs)) => {
                 for v in vs {
                     let n = match v {
                         Some(n) => i16::try_from(*n)
@@ -390,19 +370,17 @@ where
 
 fn write_genotype_field_int32_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
     max_len: usize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Int32(max_len)))?;
 
     for value in values {
         let len = match value {
-            Some(genotype::field::Value::IntegerArray(vs)) => {
+            Some(Value::IntegerArray(vs)) => {
                 for v in vs {
                     let n = match v {
                         Some(n) => *n,
@@ -436,20 +414,15 @@ where
     Ok(())
 }
 
-fn write_genotype_field_float_values<W>(
-    writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
-) -> io::Result<()>
+fn write_genotype_field_float_values<W>(writer: &mut W, values: &[Option<&Value>]) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     write_type(writer, Some(Type::Float(1)))?;
 
     for value in values {
         match value {
-            Some(genotype::field::Value::Float(n)) => {
+            Some(Value::Float(n)) => {
                 writer.write_f32::<LittleEndian>(*n)?;
             }
             Some(v) => {
@@ -467,17 +440,15 @@ where
 
 fn write_genotype_field_float_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let max_len = values
         .iter()
         .flat_map(|value| match value {
-            Some(genotype::field::Value::FloatArray(vs)) => Some(vs.len()),
+            Some(Value::FloatArray(vs)) => Some(vs.len()),
             _ => None,
         })
         .max()
@@ -487,7 +458,7 @@ where
 
     for value in values {
         let len = match value {
-            Some(genotype::field::Value::FloatArray(vs)) => {
+            Some(Value::FloatArray(vs)) => {
                 for v in vs {
                     let raw_value = v.unwrap_or(f32::from(Float::Missing));
                     writer.write_f32::<LittleEndian>(raw_value)?;
@@ -519,19 +490,17 @@ where
 
 fn write_genotype_field_character_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let mut string_values = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
-            Some(genotype::field::Value::Character(c)) => {
-                let string_value = genotype::field::Value::String(String::from(*c));
+            Some(Value::Character(c)) => {
+                let string_value = Value::String(String::from(*c));
                 string_values.push(Some(string_value));
             }
             None => string_values.push(None),
@@ -551,18 +520,16 @@ where
 
 fn write_genotype_field_character_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let mut string_values = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
-            Some(genotype::field::Value::CharacterArray(cs)) => {
+            Some(Value::CharacterArray(cs)) => {
                 let mut s = String::new();
 
                 for (i, c) in cs.iter().enumerate() {
@@ -576,7 +543,7 @@ where
                     }
                 }
 
-                let string_value = genotype::field::Value::String(s);
+                let string_value = Value::String(s);
                 string_values.push(Some(string_value));
             }
             None => string_values.push(None),
@@ -596,17 +563,15 @@ where
 
 fn write_genotype_field_string_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let max_len = values
         .iter()
         .flat_map(|value| match value {
-            Some(genotype::field::Value::String(s)) => Some(s.len()),
+            Some(Value::String(s)) => Some(s.len()),
             _ => None,
         })
         .max()
@@ -616,7 +581,7 @@ where
 
     for value in values {
         match value {
-            Some(genotype::field::Value::String(s)) => {
+            Some(Value::String(s)) => {
                 buf.extend(s.bytes());
 
                 if s.len() < max_len {
@@ -647,18 +612,16 @@ where
 
 fn write_genotype_field_string_array_values<W>(
     writer: &mut W,
-    values: &[Option<&vcf::record::genotype::field::Value>],
+    values: &[Option<&Value>],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    use vcf::record::genotype;
-
     let mut serialized_values = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
-            Some(genotype::field::Value::StringArray(vs)) => {
+            Some(Value::StringArray(vs)) => {
                 let mut s = String::new();
 
                 for (i, v) in vs.iter().enumerate() {
@@ -713,17 +676,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::{
-        header::{format, Number},
-        record::genotype::{self, field::Key},
-    };
+    use noodles_vcf::header::{format, Number};
 
     use super::*;
 
     #[test]
     fn test_write_genotype_field_values_with_integer_values() -> io::Result<()> {
-        use genotype::field::Value;
-
         fn t(
             buf: &mut Vec<u8>,
             key: &Key,
@@ -898,8 +856,6 @@ mod tests {
 
     #[test]
     fn test_write_genotype_field_values_with_integer_array_values() -> io::Result<()> {
-        use genotype::field::Value;
-
         fn t(
             buf: &mut Vec<u8>,
             key: &Key,
@@ -1090,11 +1046,7 @@ mod tests {
             String::default(),
         );
 
-        let values = [
-            Some(&genotype::field::Value::Float(0.0)),
-            Some(&genotype::field::Value::Float(1.0)),
-            None,
-        ];
+        let values = [Some(&Value::Float(0.0)), Some(&Value::Float(1.0)), None];
 
         let mut buf = Vec::new();
         write_genotype_field_values(&mut buf, &key, &values)?;
@@ -1120,9 +1072,9 @@ mod tests {
             String::default(),
         );
 
-        let value_0 = genotype::field::Value::FloatArray(vec![Some(0.0), Some(1.0)]);
-        let value_1 = genotype::field::Value::FloatArray(vec![Some(0.0), None]);
-        let value_2 = genotype::field::Value::FloatArray(vec![Some(0.0)]);
+        let value_0 = Value::FloatArray(vec![Some(0.0), Some(1.0)]);
+        let value_1 = Value::FloatArray(vec![Some(0.0), None]);
+        let value_2 = Value::FloatArray(vec![Some(0.0)]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1151,8 +1103,8 @@ mod tests {
         );
 
         let values = [
-            Some(&genotype::field::Value::Character('n')),
-            Some(&genotype::field::Value::Character('d')),
+            Some(&Value::Character('n')),
+            Some(&Value::Character('d')),
             None,
         ];
 
@@ -1180,9 +1132,9 @@ mod tests {
             String::default(),
         );
 
-        let value_0 = genotype::field::Value::CharacterArray(vec![Some('n'), Some('d')]);
-        let value_1 = genotype::field::Value::CharacterArray(vec![Some('l'), None]);
-        let value_2 = genotype::field::Value::CharacterArray(vec![Some('s')]);
+        let value_0 = Value::CharacterArray(vec![Some('n'), Some('d')]);
+        let value_1 = Value::CharacterArray(vec![Some('l'), None]);
+        let value_2 = Value::CharacterArray(vec![Some('s')]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1210,9 +1162,9 @@ mod tests {
             String::default(),
         );
 
-        let value_0 = genotype::field::Value::String(String::from("n"));
-        let value_1 = genotype::field::Value::String(String::from("ndl"));
-        let value_2 = genotype::field::Value::String(String::from("ndls"));
+        let value_0 = Value::String(String::from("n"));
+        let value_1 = Value::String(String::from("ndl"));
+        let value_2 = Value::String(String::from("ndls"));
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
@@ -1240,12 +1192,9 @@ mod tests {
             String::default(),
         );
 
-        let value_0 = genotype::field::Value::StringArray(vec![
-            Some(String::from("n")),
-            Some(String::from("nd")),
-        ]);
-        let value_1 = genotype::field::Value::StringArray(vec![Some(String::from("ndls")), None]);
-        let value_2 = genotype::field::Value::StringArray(vec![Some(String::from("nd"))]);
+        let value_0 = Value::StringArray(vec![Some(String::from("n")), Some(String::from("nd"))]);
+        let value_1 = Value::StringArray(vec![Some(String::from("ndls")), None]);
+        let value_2 = Value::StringArray(vec![Some(String::from("nd"))]);
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
