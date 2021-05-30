@@ -30,3 +30,9 @@ impl DerefMut for Record {
         &mut self.0
     }
 }
+
+impl From<Vec<u8>> for Record {
+    fn from(data: Vec<u8>) -> Self {
+        Self(data)
+    }
+}
