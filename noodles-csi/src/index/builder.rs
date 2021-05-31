@@ -65,3 +65,19 @@ impl Default for Builder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert_eq!(builder.min_shift, 14);
+        assert_eq!(builder.depth, 5);
+        assert!(builder.aux.is_empty());
+        assert!(builder.reference_sequences.is_empty());
+        assert!(builder.n_no_coor.is_none());
+    }
+}
