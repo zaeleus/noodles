@@ -86,7 +86,7 @@ impl Index {
         &self.reference_sequences
     }
 
-    /// Returns the number of unmapped reads in the associated file.
+    /// Returns the number of unmapped records in the associated file.
     ///
     /// # Examples
     ///
