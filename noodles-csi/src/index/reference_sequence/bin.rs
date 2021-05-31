@@ -23,6 +23,11 @@ impl Bin {
         self.id
     }
 
+    /// Returns the last offset in the linear index.
+    pub fn loffset(&self) -> bgzf::VirtualPosition {
+        self.loffset
+    }
+
     /// Returns the list of chunks in the bin.
     pub fn chunks(&self) -> &[Chunk] {
         &self.chunks

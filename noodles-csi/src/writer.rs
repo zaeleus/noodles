@@ -101,6 +101,9 @@ where
         let bin_id = bin.id();
         writer.write_u32::<LittleEndian>(bin_id)?;
 
+        let loffset = u64::from(bin.loffset());
+        writer.write_u64::<LittleEndian>(loffset)?;
+
         write_chunks(writer, bin.chunks())?;
     }
 
