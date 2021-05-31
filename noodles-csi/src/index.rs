@@ -1,6 +1,7 @@
+mod builder;
 pub mod reference_sequence;
 
-pub use self::reference_sequence::ReferenceSequence;
+pub use self::{builder::Builder, reference_sequence::ReferenceSequence};
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,21 +14,9 @@ pub struct Index {
 }
 
 impl Index {
-    /// Creates a coordinate-sorted index (CSI).
-    pub fn new(
-        min_shift: i32,
-        depth: i32,
-        aux: Vec<u8>,
-        reference_sequences: Vec<ReferenceSequence>,
-        n_no_coor: Option<u64>,
-    ) -> Self {
-        Self {
-            min_shift,
-            depth,
-            aux,
-            reference_sequences,
-            n_no_coor,
-        }
+    /// Returns a builder to create an index from each of its fields.
+    pub fn builder() -> Builder {
+        Builder::default()
     }
 
     /// Returns the number of bits for the minimum interval.
@@ -58,12 +47,6 @@ impl Index {
 
 impl Default for Index {
     fn default() -> Self {
-        Self {
-            min_shift: 14,
-            depth: 5,
-            aux: Vec::new(),
-            reference_sequences: Vec::new(),
-            n_no_coor: None,
-        }
+        Self::builder().build()
     }
 }

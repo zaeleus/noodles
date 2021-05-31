@@ -39,9 +39,17 @@ where
         let reference_sequences = read_reference_sequences(&mut self.inner)?;
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
 
-        let index = Index::new(min_shift, depth, aux, reference_sequences, n_no_coor);
+        let mut builder = Index::builder()
+            .set_min_shift(min_shift)
+            .set_depth(depth)
+            .set_aux(aux)
+            .set_reference_sequences(reference_sequences);
 
-        Ok(index)
+        if let Some(n_no_coor) = n_no_coor {
+            builder = builder.set_n_no_coor(n_no_coor);
+        }
+
+        Ok(builder.build())
     }
 }
 
