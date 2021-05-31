@@ -46,7 +46,7 @@ where
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        &self.inner.get_ref()
+        self.inner.get_ref()
     }
 
     /// Attempts to finish the output stream.
