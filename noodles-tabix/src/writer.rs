@@ -112,7 +112,7 @@ where
     }
 }
 
-pub fn write_magic<W>(writer: &mut W) -> io::Result<()>
+fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
