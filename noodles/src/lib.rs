@@ -19,6 +19,9 @@ pub use noodles_core as core;
 #[cfg(feature = "cram")]
 pub use noodles_cram as cram;
 
+#[cfg(feature = "csi")]
+pub use noodles_csi as csi;
+
 #[cfg(feature = "fasta")]
 pub use noodles_fasta as fasta;
 

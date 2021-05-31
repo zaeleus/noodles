@@ -11,6 +11,7 @@ noodles-bcf = { path = "../noodles-bcf", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", optional = true }
 noodles-core = { path = "../noodles-core", optional = true }
 noodles-cram = { path = "../noodles-cram", optional = true }
+noodles-csi = { path = "../noodles-csi", optional = true }
 noodles-fasta = { path = "../noodles-fasta", optional = true }
 noodles-fastq = { path = "../noodles-fastq", optional = true }
 noodles-gff = { path = "../noodles-gff", optional = true }
@@ -26,6 +27,7 @@ bcf = ["noodles-bcf"]
 bgzf = ["noodles-bgzf"]
 core = ["noodles-core"]
 cram = ["noodles-cram"]
+csi = ["noodles-csi"]
 fasta = ["noodles-fasta"]
 fastq = ["noodles-fastq"]
 gff = ["noodles-gff"]
