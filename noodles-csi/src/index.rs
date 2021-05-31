@@ -1,3 +1,5 @@
+//! Coordinate-sorted index and fields.
+
 mod builder;
 pub mod reference_sequence;
 

@@ -1,3 +1,5 @@
+//! Coordinate-sorted index (CSI) reference sequence and fields.
+
 mod bin;
 
 pub use self::bin::Bin;

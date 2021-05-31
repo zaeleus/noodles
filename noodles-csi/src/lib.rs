@@ -1,6 +1,6 @@
 //! **noodles-csi** handles the reading and writing of the coordinate-sorted index (CSI) format.
 
-mod index;
+pub mod index;
 mod reader;
 mod writer;
 
