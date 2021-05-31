@@ -12,11 +12,27 @@ pub struct ReferenceSequence {
 
 impl ReferenceSequence {
     /// Creates a CSI reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// ```
     pub fn new(bins: Vec<Bin>) -> Self {
         Self { bins }
     }
 
     /// Returns the list of bins in the reference sequence.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// assert!(reference_sequence.bins().is_empty());
+    /// ```
     pub fn bins(&self) -> &[Bin] {
         &self.bins
     }

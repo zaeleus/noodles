@@ -21,6 +21,15 @@ where
     R: Read,
 {
     /// Creates a CSI reader.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_csi as csi;
+    /// let reader = File::open("sample.bcf.csi").map(csi::Reader::new)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn new(inner: R) -> Self {
         Self {
             inner: bgzf::Reader::new(inner),
@@ -30,6 +39,17 @@ where
     /// Reads a CSI index.
     ///
     /// The position of the stream is expected to be at the beginning.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_csi as csi;
+    /// let mut reader = File::open("sample.bcf.csi").map(csi::Reader::new)?;
+    /// let index = reader.read_index();
+    /// # Ok::<(), io::Error>(())
+    /// ```
+
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner)?;
 
