@@ -47,7 +47,7 @@ impl ReferenceSequence {
 
         self.bins()
             .iter()
-            .filter(|b| region_bins[b.id() as usize])
+            .filter(|b| b.id() < max_bin_id && region_bins[b.id() as usize])
             .collect()
     }
 }
