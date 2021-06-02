@@ -6,10 +6,12 @@ pub mod value;
 pub use self::value::Value;
 
 use std::{
-    convert::TryInto,
+    convert::{TryFrom, TryInto},
     io,
     ops::{Deref, DerefMut},
 };
+
+use noodles_vcf as vcf;
 
 /// A BCF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -47,6 +49,43 @@ impl Record {
         data.try_into()
             .map(i32::from_le_bytes)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+
+    /// Returns the start position of this record.
+    ///
+    /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let record = bcf::Record::from(vec![
+    ///     0x00, 0x00, 0x00, 0x00, // l_shared
+    ///     0x00, 0x00, 0x00, 0x00, // l_indiv
+    ///     0x08, 0x00, 0x00, 0x00, // CHROM
+    ///     0x0c, 0x00, 0x00, 0x00, // POS
+    /// ]);
+    ///
+    /// assert_eq!(record.position().map(i32::from)?, 13);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn position(&self) -> io::Result<vcf::record::Position> {
+        use vcf::record::Position;
+
+        const OFFSET: usize = 12;
+
+        let data = &self.0[OFFSET..OFFSET + 4];
+
+        data.try_into()
+            .map(i32::from_le_bytes)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|pos| {
+                Position::try_from(pos + 1)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })
     }
 }
 
