@@ -9,6 +9,18 @@ pub struct Bin {
 }
 
 impl Bin {
+    /// Calculates the maximum bin ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::reference_sequence::Bin;
+    /// assert_eq!(Bin::max_id(5), 37449);
+    /// ```
+    pub fn max_id(depth: i32) -> u32 {
+        bin_limit(depth) as u32
+    }
+
     /// Creates a new bin.
     ///
     /// # Examples
@@ -67,4 +79,10 @@ impl Bin {
     pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
+}
+
+// `CSIv1.pdf` (2020-07-21)
+fn bin_limit(depth: i32) -> i32 {
+    assert!(depth <= 10);
+    (1 << ((depth + 1) * 3)) / 7
 }
