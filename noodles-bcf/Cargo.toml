@@ -9,4 +9,6 @@ edition = "2018"
 byteorder = "1.2.3"
 indexmap = "1.4.0"
 noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-core = { path = "../noodles-core" }
+noodles-csi = { path = "../noodles-csi" }
 noodles-vcf = { path = "../noodles-vcf" }

@@ -1,18 +1,22 @@
+mod query;
 pub mod record;
 mod records;
 pub mod string_map;
 pub mod value;
 
-pub use self::records::Records;
+pub use self::{query::Query, records::Records};
 
 use std::{
     convert::TryFrom,
     ffi::CStr,
-    io::{self, Read},
+    io::{self, Read, Seek},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi as csi;
+use noodles_vcf::header::Contigs;
 
 use super::{Record, MAGIC_NUMBER};
 
@@ -176,6 +180,103 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
+    }
+
+    /// Returns the current virtual position of the underlying BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    ///
+    /// let data = Vec::new();
+    /// let reader = bcf::Reader::new(&data[..]);
+    /// let virtual_position = reader.virtual_position();
+    ///
+    /// assert_eq!(virtual_position.compressed(), 0);
+    /// assert_eq!(virtual_position.uncompressed(), 0);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
+        self.inner.virtual_position()
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
+    /// Seeks the underlying BGZF reader to the given virtual position.
+    ///
+    /// Virtual positions typically come from an associated BCF index file.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek(pos)
+    }
+
+    /// Returns an iterator over records that intersects the given region.
+    pub fn query(
+        &mut self,
+        contigs: &Contigs,
+        index: &csi::Index,
+        region: &Region,
+    ) -> io::Result<Query<'_, R>> {
+        let (i, start, end) = resolve_region(contigs, region)?;
+
+        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("invalid index reference sequence index: {}", i),
+            )
+        })?;
+
+        let query_bins = index_reference_sequence.query(
+            index.min_shift(),
+            index.depth(),
+            i64::from(start),
+            i64::from(end),
+        );
+
+        let chunks: Vec<_> = query_bins
+            .iter()
+            .flat_map(|bin| bin.chunks())
+            .cloned()
+            .collect();
+
+        Ok(Query::new(self, chunks, i, start, end))
+    }
+}
+
+fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, i32, i32)> {
+    match region {
+        Region::Mapped { name, start, end } => {
+            let i = contigs.get_index_of(name).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("region does not exist in contigs: {:?}", region),
+                )
+            })?;
+
+            Ok((i, *start, *end))
+        }
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "region is not mapped",
+        )),
     }
 }
 
