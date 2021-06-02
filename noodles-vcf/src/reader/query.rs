@@ -110,7 +110,16 @@ where
                                 };
 
                                 let start = i32::from(record.position());
-                                let end = start + 1; // TODO: records with END
+
+                                let end = match record.end() {
+                                    Ok(pos) => i32::from(pos),
+                                    Err(e) => {
+                                        return Some(Err(io::Error::new(
+                                            io::ErrorKind::InvalidData,
+                                            e,
+                                        )))
+                                    }
+                                };
 
                                 if reference_sequence_name == self.reference_sequence_name
                                     && in_interval(start, end, self.start, self.end)
