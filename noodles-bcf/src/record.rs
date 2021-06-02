@@ -5,7 +5,11 @@ pub mod value;
 
 pub use self::value::Value;
 
-use std::ops::{Deref, DerefMut};
+use std::{
+    convert::TryInto,
+    io,
+    ops::{Deref, DerefMut},
+};
 
 /// A BCF record.
 #[derive(Clone, Default, Eq, PartialEq)]
@@ -14,6 +18,35 @@ pub struct Record(Vec<u8>);
 impl Record {
     pub(crate) fn resize(&mut self, new_len: usize) {
         self.0.resize(new_len, Default::default());
+    }
+
+    /// Returns the chromosome ID of the record.
+    ///
+    /// The chromosome ID is the index of the associated contig in the VCF header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    ///
+    /// let record = bcf::Record::from(vec![
+    ///     0x00, 0x00, 0x00, 0x00, // l_shared
+    ///     0x00, 0x00, 0x00, 0x00, // l_indiv
+    ///     0x08, 0x00, 0x00, 0x00, // CHROM
+    /// ]);
+    ///
+    /// assert_eq!(record.chromosome_id()?, 8);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn chromosome_id(&self) -> io::Result<i32> {
+        const OFFSET: usize = 8;
+
+        let data = &self.0[OFFSET..OFFSET + 4];
+
+        data.try_into()
+            .map(i32::from_le_bytes)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
