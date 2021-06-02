@@ -85,6 +85,47 @@ impl Record {
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
     }
+
+    fn rlen(&self) -> io::Result<i32> {
+        const OFFSET: usize = 8;
+
+        let data = &self.0[OFFSET..OFFSET + 4];
+
+        data.try_into()
+            .map(i32::from_le_bytes)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+
+    /// Returns the end position of this record.
+    ///
+    /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let record = bcf::Record::from(vec![
+    ///     0x08, 0x00, 0x00, 0x00, // CHROM
+    ///     0x0c, 0x00, 0x00, 0x00, // POS
+    ///     0x05, 0x00, 0x00, 0x00, // rlen
+    ///     // ...
+    /// ]);
+    ///
+    /// assert_eq!(record.end().map(i32::from)?, 17);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn end(&self) -> io::Result<vcf::record::Position> {
+        use vcf::record::Position;
+
+        let start = self.position().map(i32::from)?;
+        let len = self.rlen()?;
+        let end = start + len - 1;
+
+        Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
 }
 
 impl Deref for Record {

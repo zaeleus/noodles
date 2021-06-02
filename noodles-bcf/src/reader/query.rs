@@ -108,8 +108,10 @@ where
                                     Err(e) => return Some(Err(e)),
                                 };
 
-                                let len = 1; // TODO
-                                let end = start + len - 1;
+                                let end = match record.end() {
+                                    Ok(pos) => i32::from(pos),
+                                    Err(e) => return Some(Err(e)),
+                                };
 
                                 if chromosome_id == self.chromosome_id
                                     && in_interval(start, end, self.start, self.end)
