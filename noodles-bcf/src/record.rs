@@ -33,16 +33,15 @@ impl Record {
     /// use noodles_bcf as bcf;
     ///
     /// let record = bcf::Record::from(vec![
-    ///     0x00, 0x00, 0x00, 0x00, // l_shared
-    ///     0x00, 0x00, 0x00, 0x00, // l_indiv
     ///     0x08, 0x00, 0x00, 0x00, // CHROM
+    ///     // ...
     /// ]);
     ///
     /// assert_eq!(record.chromosome_id()?, 8);
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn chromosome_id(&self) -> io::Result<i32> {
-        const OFFSET: usize = 8;
+        const OFFSET: usize = 0;
 
         let data = &self.0[OFFSET..OFFSET + 4];
 
@@ -63,10 +62,9 @@ impl Record {
     /// use noodles_vcf as vcf;
     ///
     /// let record = bcf::Record::from(vec![
-    ///     0x00, 0x00, 0x00, 0x00, // l_shared
-    ///     0x00, 0x00, 0x00, 0x00, // l_indiv
     ///     0x08, 0x00, 0x00, 0x00, // CHROM
     ///     0x0c, 0x00, 0x00, 0x00, // POS
+    ///     // ...
     /// ]);
     ///
     /// assert_eq!(record.position().map(i32::from)?, 13);
@@ -75,7 +73,7 @@ impl Record {
     pub fn position(&self) -> io::Result<vcf::record::Position> {
         use vcf::record::Position;
 
-        const OFFSET: usize = 12;
+        const OFFSET: usize = 4;
 
         let data = &self.0[OFFSET..OFFSET + 4];
 
