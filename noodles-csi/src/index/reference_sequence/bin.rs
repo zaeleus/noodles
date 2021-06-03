@@ -21,6 +21,18 @@ impl Bin {
         bin_limit(depth) as u32
     }
 
+    /// Calculates the metadata bin ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::reference_sequence::Bin;
+    /// assert_eq!(Bin::metadata_id(5), 37450);
+    /// ```
+    pub fn metadata_id(depth: i32) -> u32 {
+        Self::max_id(depth) + 1
+    }
+
     /// Creates a new bin.
     ///
     /// # Examples

@@ -11,6 +11,7 @@ use bit_vec::BitVec;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     bins: Vec<Bin>,
+    metadata: Option<Metadata>,
 }
 
 impl ReferenceSequence {
@@ -20,24 +21,46 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
     /// ```
-    pub fn new(bins: Vec<Bin>) -> Self {
-        Self { bins }
+    pub fn new(bins: Vec<Bin>, metadata: Option<Metadata>) -> Self {
+        Self { bins, metadata }
     }
 
     /// Returns the list of bins in the reference sequence.
     ///
+    /// This list does not include the metadata pseudo-bin. Use [`Self::metadata`] instead.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
     /// assert!(reference_sequence.bins().is_empty());
     /// ```
     pub fn bins(&self) -> &[Bin] {
         &self.bins
+    }
+
+    /// Returns metadata for this reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
+    ///
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// )));
+    ///
+    /// assert!(reference_sequence.metadata().is_some());
+    /// ```
+    pub fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
@@ -48,7 +71,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_csi::index::ReferenceSequence;
-    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
     /// let query_bins = reference_sequence.query(14, 5, 8, 13);
     /// assert!(query_bins.is_empty());
     /// ```
@@ -60,7 +83,7 @@ impl ReferenceSequence {
 
         self.bins()
             .iter()
-            .filter(|b| b.id() < max_bin_id && region_bins[b.id() as usize])
+            .filter(|b| region_bins[b.id() as usize])
             .collect()
     }
 }

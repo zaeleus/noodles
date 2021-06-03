@@ -7,7 +7,10 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf::{self as bgzf, index::Chunk};
 
 use super::{
-    index::{reference_sequence::Bin, ReferenceSequence},
+    index::{
+        reference_sequence::{Bin, Metadata},
+        ReferenceSequence,
+    },
     Index, MAGIC_NUMBER,
 };
 
@@ -56,7 +59,7 @@ where
         let min_shift = self.inner.read_i32::<LittleEndian>()?;
         let depth = self.inner.read_i32::<LittleEndian>()?;
         let aux = read_aux(&mut self.inner)?;
-        let reference_sequences = read_reference_sequences(&mut self.inner)?;
+        let reference_sequences = read_reference_sequences(&mut self.inner, depth)?;
         let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
 
         let mut builder = Index::builder()
@@ -104,7 +107,7 @@ where
     Ok(aux)
 }
 
-fn read_reference_sequences<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence>>
+fn read_reference_sequences<R>(reader: &mut R, depth: i32) -> io::Result<Vec<ReferenceSequence>>
 where
     R: Read,
 {
@@ -115,15 +118,15 @@ where
     let mut reference_sequences = Vec::with_capacity(n_ref);
 
     for _ in 0..n_ref {
-        let bins = read_bins(reader)?;
-        let reference_sequence = ReferenceSequence::new(bins);
+        let (bins, metadata) = read_bins(reader, depth)?;
+        let reference_sequence = ReferenceSequence::new(bins, metadata);
         reference_sequences.push(reference_sequence);
     }
 
     Ok(reference_sequences)
 }
 
-fn read_bins<R>(reader: &mut R) -> io::Result<Vec<Bin>>
+fn read_bins<R>(reader: &mut R, depth: i32) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {
@@ -132,6 +135,9 @@ where
     })?;
 
     let mut bins = Vec::with_capacity(n_bin);
+
+    let metadata_bin_id = Bin::metadata_id(depth);
+    let mut metadata = None;
 
     for _ in 0..n_bin {
         let id = reader.read_u32::<LittleEndian>()?;
@@ -142,10 +148,16 @@ where
 
         let bin = Bin::new(id, loffset, chunks);
 
-        bins.push(bin);
+        if id == metadata_bin_id {
+            metadata = Metadata::try_from(&bin)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        } else {
+            bins.push(bin);
+        }
     }
 
-    Ok(bins)
+    Ok((bins, metadata))
 }
 
 fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
