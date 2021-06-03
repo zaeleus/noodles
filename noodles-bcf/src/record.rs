@@ -14,6 +14,8 @@ use std::{
 use noodles_vcf as vcf;
 
 /// A BCF record.
+///
+/// A `bcf::Record` wraps a raw byte buffer, and the fields should be considered immutable.
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Record(Vec<u8>);
 
