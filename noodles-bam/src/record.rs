@@ -90,8 +90,9 @@ impl Record {
     /// assert!(record.position().is_none());
     /// ```
     pub fn position(&self) -> Option<sam::record::Position> {
-        let offset = 4;
-        let pos = LittleEndian::read_i32(&self.0[offset..]);
+        const OFFSET: usize = 4;
+
+        let pos = LittleEndian::read_i32(&self.0[OFFSET..]);
 
         if pos == UNMAPPED_POSITION {
             None
@@ -101,8 +102,8 @@ impl Record {
     }
 
     fn l_read_name(&self) -> u8 {
-        let offset = 8;
-        self.0[offset]
+        const OFFSET: usize = 8;
+        self.0[OFFSET]
     }
 
     /// Returns the mapping quality of this record.
@@ -116,8 +117,8 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> sam::record::MappingQuality {
-        let offset = 9;
-        sam::record::MappingQuality::from(self.0[offset])
+        const OFFSET: usize = 9;
+        sam::record::MappingQuality::from(self.0[OFFSET])
     }
 
     /// Returns the index bin that includes this record.
@@ -130,13 +131,13 @@ impl Record {
     /// assert_eq!(record.bin(), 4680);
     /// ```
     pub fn bin(&self) -> u16 {
-        let offset = 10;
-        LittleEndian::read_u16(&self.0[offset..])
+        const OFFSET: usize = 10;
+        LittleEndian::read_u16(&self.0[OFFSET..])
     }
 
     fn n_cigar_op(&self) -> u16 {
-        let offset = 12;
-        LittleEndian::read_u16(&self.0[offset..])
+        const OFFSET: usize = 12;
+        LittleEndian::read_u16(&self.0[OFFSET..])
     }
 
     /// Returns the SAM flags of this record.
@@ -150,14 +151,14 @@ impl Record {
     /// assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
     /// ```
     pub fn flags(&self) -> sam::record::Flags {
-        let offset = 14;
-        let value = LittleEndian::read_u16(&self.0[offset..]);
+        const OFFSET: usize = 14;
+        let value = LittleEndian::read_u16(&self.0[OFFSET..]);
         sam::record::Flags::from(value)
     }
 
     fn l_seq(&self) -> u32 {
-        let offset = 16;
-        LittleEndian::read_u32(&self.0[offset..])
+        const OFFSET: usize = 16;
+        LittleEndian::read_u32(&self.0[OFFSET..])
     }
 
     /// Returns the reference sequence ID of the mate of this record.
@@ -173,8 +174,9 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        let offset = 20;
-        let id = LittleEndian::read_i32(&self.0[offset..]);
+        const OFFSET: usize = 20;
+
+        let id = LittleEndian::read_i32(&self.0[OFFSET..]);
 
         if id == reference_sequence_id::UNMAPPED {
             None
@@ -195,8 +197,9 @@ impl Record {
     /// assert!(record.mate_position().is_none());
     /// ```
     pub fn mate_position(&self) -> Option<sam::record::Position> {
-        let offset = 24;
-        let pos = LittleEndian::read_i32(&self.0[offset..]);
+        const OFFSET: usize = 24;
+
+        let pos = LittleEndian::read_i32(&self.0[OFFSET..]);
 
         if pos == UNMAPPED_POSITION {
             None
@@ -215,8 +218,8 @@ impl Record {
     /// assert_eq!(record.template_length(), 0);
     /// ```
     pub fn template_length(&self) -> i32 {
-        let offset = 28;
-        LittleEndian::read_i32(&self.0[offset..])
+        const OFFSET: usize = 28;
+        LittleEndian::read_i32(&self.0[OFFSET..])
     }
 
     /// Returns the read name of this record.
@@ -233,9 +236,11 @@ impl Record {
     /// # Ok::<(), ffi::FromBytesWithNulError>(())
     /// ```
     pub fn read_name(&self) -> Result<&CStr, ffi::FromBytesWithNulError> {
-        let offset = 32;
+        const OFFSET: usize = 32;
+
         let len = self.l_read_name() as usize;
-        let data = &self.0[offset..offset + len];
+        let data = &self.0[OFFSET..OFFSET + len];
+
         CStr::from_bytes_with_nul(data)
     }
 
