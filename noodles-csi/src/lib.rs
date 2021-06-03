@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! **noodles-csi** handles the reading and writing of the coordinate-sorted index (CSI) format.
 
 pub mod index;

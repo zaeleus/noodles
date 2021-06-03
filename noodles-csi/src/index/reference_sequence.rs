@@ -39,6 +39,18 @@ impl ReferenceSequence {
         &self.bins
     }
 
+    /// Returns a list of bins in this reference sequence that intersects the given range.
+    ///
+    /// `start` and `end` are 1-based, inclusive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::index::ReferenceSequence;
+    /// let reference_sequence = ReferenceSequence::new(Vec::new());
+    /// let query_bins = reference_sequence.query(14, 5, 8, 13);
+    /// assert!(query_bins.is_empty());
+    /// ```
     pub fn query(&self, min_shift: i32, depth: i32, start: i64, end: i64) -> Vec<&Bin> {
         let max_bin_id = Bin::max_id(depth);
         let mut region_bins = BitVec::from_elem(max_bin_id as usize, false);
