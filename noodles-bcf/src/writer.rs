@@ -125,6 +125,33 @@ where
     }
 
     /// Writes a VCF record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
+    ///
+    /// let mut writer = bcf::Writer::new(Vec::new());
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .build();
+    ///
+    /// writer.write_header(&header)?;
+    ///
+    /// let string_map = header.to_string().parse()?;
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(8)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// writer.write_vcf_record(&header, &string_map, &record)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn write_vcf_record(
         &mut self,
         header: &vcf::Header,
