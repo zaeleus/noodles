@@ -177,6 +177,11 @@ mod tests {
         );
 
         assert_eq!(
+            "@CO\t".parse(),
+            Ok(Record::new(Kind::Comment, Value::String(String::from(""))))
+        );
+
+        assert_eq!(
             "@CO".parse::<Record>(),
             Err(ParseError::MissingValue(String::from("@CO")))
         );
