@@ -102,29 +102,40 @@ impl FromStr for Record {
             .ok_or(ParseError::MissingKind)
             .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
-        let value = if let Kind::Comment = kind {
-            pieces
-                .next()
-                .map(|s| Value::String(s.into()))
-                .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))?
-        } else {
-            pieces
-                .map(|field| {
-                    let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
-
-                    let tag = field_pieces.next().ok_or(ParseError::MissingTag)?;
-                    let value = field_pieces
-                        .next()
-                        .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
-
-                    Ok((tag.into(), value.into()))
-                })
-                .collect::<Result<_, _>>()
-                .map(Value::Map)?
+        let value = match kind {
+            Kind::Comment => parse_comment(&mut pieces)?,
+            _ => parse_map(&mut pieces)?,
         };
 
         Ok(Self::new(kind, value))
     }
+}
+
+fn parse_comment<'a, I>(iter: &mut I) -> Result<Value, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    iter.next()
+        .map(|s| Value::String(s.into()))
+        .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))
+}
+
+fn parse_map<'a, I>(iter: &mut I) -> Result<Value, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    iter.map(|field| {
+        let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
+
+        let tag = field_pieces.next().ok_or(ParseError::MissingTag)?;
+        let value = field_pieces
+            .next()
+            .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
+
+        Ok((tag.into(), value.into()))
+    })
+    .collect::<Result<_, _>>()
+    .map(Value::Map)
 }
 
 #[cfg(test)]
