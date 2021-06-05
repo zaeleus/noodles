@@ -1,9 +1,11 @@
 //! SAM header record and components.
 
 pub mod kind;
-mod value;
+pub mod value;
 
 use std::{error, fmt, str::FromStr};
+
+use indexmap::IndexMap;
 
 pub use self::{kind::Kind, value::Value};
 
@@ -72,6 +74,8 @@ pub enum ParseError {
     InvalidKind(kind::ParseError),
     /// A tag is missing.
     MissingTag,
+    /// A tag is duplicated.
+    DuplicateTag(String),
     /// A tag value is missing.
     MissingValue(String),
 }
@@ -86,6 +90,7 @@ impl fmt::Display for ParseError {
             Self::MissingKind => write!(f, "missing kind"),
             Self::InvalidKind(e) => write!(f, "{}", e),
             Self::MissingTag => write!(f, "missing field tag"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
             Self::MissingValue(tag) => write!(f, "missing value for {}", tag),
         }
     }
@@ -124,18 +129,22 @@ fn parse_map<'a, I>(iter: &mut I) -> Result<Value, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    iter.map(|field| {
-        let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
+    let mut map = IndexMap::new();
 
-        let tag = field_pieces.next().ok_or(ParseError::MissingTag)?;
-        let value = field_pieces
+    for s in iter {
+        let mut components = s.splitn(2, DATA_FIELD_DELIMITER);
+
+        let tag = components.next().ok_or(ParseError::MissingTag)?;
+        let value = components
             .next()
             .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
 
-        Ok((tag.into(), value.into()))
-    })
-    .collect::<Result<_, _>>()
-    .map(Value::Map)
+        if map.insert(tag.into(), value.into()).is_some() {
+            return Err(ParseError::DuplicateTag(tag.into()));
+        }
+    }
+
+    Ok(Value::Map(map))
 }
 
 #[cfg(test)]
@@ -143,12 +152,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), value::TryFromIteratorError> {
         assert_eq!(
             "@HD\tVN:1.6".parse(),
             Ok(Record::new(
                 Kind::Header,
-                Value::Map(vec![(String::from("VN"), String::from("1.6"))])
+                Value::try_from_iter(vec![("VN", "1.6")])?,
             ))
         );
 
@@ -156,10 +165,7 @@ mod tests {
             "@SQ\tSN:sq0\tLN:8".parse(),
             Ok(Record::new(
                 Kind::ReferenceSequence,
-                Value::Map(vec![
-                    (String::from("SN"), String::from("sq0")),
-                    (String::from("LN"), String::from("8")),
-                ])
+                Value::try_from_iter(vec![("SN", "sq0"), ("LN", "8"),])?
             ))
         );
 
@@ -167,7 +173,7 @@ mod tests {
             "@RG\tID:rg0".parse(),
             Ok(Record::new(
                 Kind::ReadGroup,
-                Value::Map(vec![(String::from("ID"), String::from("rg0"))])
+                Value::try_from_iter(vec![("ID", "rg0")])?
             ))
         );
 
@@ -175,7 +181,7 @@ mod tests {
             "@PG\tID:pg0".parse(),
             Ok(Record::new(
                 Kind::Program,
-                Value::Map(vec![(String::from("ID"), String::from("pg0"))])
+                Value::try_from_iter(vec![("ID", "pg0")])?
             ))
         );
 
@@ -196,5 +202,7 @@ mod tests {
             "@CO".parse::<Record>(),
             Err(ParseError::MissingValue(String::from("@CO")))
         );
+
+        Ok(())
     }
 }

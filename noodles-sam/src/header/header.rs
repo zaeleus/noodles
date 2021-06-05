@@ -17,6 +17,8 @@ pub use self::{
     tag::Tag, version::Version,
 };
 
+use indexmap::IndexMap;
+
 use super::{record, Record};
 
 /// A SAM header header.
@@ -237,7 +239,7 @@ impl TryFrom<Record> for Header {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Header, TryFromRecordError> {
+fn parse_map(raw_fields: IndexMap<String, String>) -> Result<Header, TryFromRecordError> {
     let mut builder = Header::builder();
     let mut version: Option<Version> = None;
 
@@ -322,15 +324,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_header_with_no_version() {
+    fn test_try_from_record_for_header_with_no_version(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::Header,
-            record::Value::Map(vec![(String::from("SO"), String::from("coordinate"))]),
+            record::Value::try_from_iter(vec![("SO", "coordinate")])?,
         );
 
         assert_eq!(
             Header::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Version))
         );
+
+        Ok(())
     }
 }

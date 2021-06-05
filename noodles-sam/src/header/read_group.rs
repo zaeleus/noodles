@@ -8,6 +8,8 @@ pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
+use indexmap::IndexMap;
+
 use super::{record, Record};
 
 /// A SAM header read group.
@@ -415,7 +417,7 @@ impl TryFrom<Record> for ReadGroup {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReadGroup, TryFromRecordError> {
+fn parse_map(raw_fields: IndexMap<String, String>) -> Result<ReadGroup, TryFromRecordError> {
     let mut builder = ReadGroup::builder();
     let mut id = None;
 
@@ -484,15 +486,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_read_group_with_no_id() {
+    fn test_try_from_record_for_read_group_with_no_id(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::Map(vec![(String::from("PG"), String::from("noodles"))]),
+            record::Value::try_from_iter(vec![("PG", "noodles")])?,
         );
 
         assert_eq!(
             ReadGroup::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
+
+        Ok(())
     }
 }

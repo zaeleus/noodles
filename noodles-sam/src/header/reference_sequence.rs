@@ -13,6 +13,8 @@ pub use self::{
     molecule_topology::MoleculeTopology, tag::Tag,
 };
 
+use indexmap::IndexMap;
+
 use super::{record, Record};
 
 /// A SAM header reference sequence.
@@ -375,7 +377,9 @@ impl TryFrom<Record> for ReferenceSequence {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
+fn parse_map(
+    raw_fields: IndexMap<String, String>,
+) -> Result<ReferenceSequence, TryFromRecordError> {
     use crate::record::reference_sequence_name::is_valid_name;
 
     let mut builder = ReferenceSequence::builder();
@@ -480,82 +484,88 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_name() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![
-                (String::from("LN"), String::from("1")),
-                (
-                    String::from("M5"),
-                    String::from("d7eba311421bbc9d3ada44709dd61534"),
-                ),
-            ]),
+            record::Value::try_from_iter(vec![
+                ("LN", "1"),
+                ("M5", "d7eba311421bbc9d3ada44709dd61534"),
+            ])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![
-                (String::from("SN"), String::from("sq0")),
-                (
-                    String::from("M5"),
-                    String::from("d7eba311421bbc9d3ada44709dd61534"),
-                ),
-            ]),
+            record::Value::try_from_iter(vec![
+                ("SN", "sq0"),
+                ("M5", "d7eba311421bbc9d3ada44709dd61534"),
+            ])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Length))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_name_and_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name_and_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![(
-                String::from("M5"),
-                String::from("d7eba311421bbc9d3ada44709dd61534"),
-            )]),
+            record::Value::try_from_iter(vec![("M5", "d7eba311421bbc9d3ada44709dd61534")])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_invalid_name() {
+    fn test_try_from_record_for_reference_sequence_with_invalid_name(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![(String::from("SN"), String::from("*"))]),
+            record::Value::try_from_iter(vec![("SN", "*")])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::InvalidName)
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_invalid_length() {
+    fn test_try_from_record_for_reference_sequence_with_invalid_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![(String::from("LN"), String::from("thirteen"))]),
+            record::Value::try_from_iter(vec![("LN", "thirteen")])?,
         );
 
         assert!(matches!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::InvalidLength(_))
         ));
+
+        Ok(())
     }
 }

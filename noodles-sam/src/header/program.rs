@@ -7,6 +7,8 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{builder::Builder, tag::Tag};
 
+use indexmap::IndexMap;
+
 use super::{record, Record};
 
 /// A SAM header program.
@@ -253,7 +255,7 @@ impl TryFrom<Record> for Program {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecordError> {
+fn parse_map(raw_fields: IndexMap<String, String>) -> Result<Program, TryFromRecordError> {
     let mut builder = Program::builder();
     let mut id = None;
 
@@ -307,15 +309,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_program_with_no_id() {
+    fn test_try_from_record_for_program_with_no_id(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::Program,
-            record::Value::Map(vec![(String::from("PN"), String::from("noodles"))]),
+            record::Value::try_from_iter(vec![("PN", "noodles")])?,
         );
 
         assert_eq!(
             Program::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
+
+        Ok(())
     }
 }
