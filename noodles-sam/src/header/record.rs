@@ -84,14 +84,12 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid record: ")?;
-
         match self {
             Self::MissingKind => write!(f, "missing kind"),
-            Self::InvalidKind(e) => write!(f, "{}", e),
-            Self::MissingTag => write!(f, "missing field tag"),
+            Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
+            Self::MissingTag => write!(f, "missing tag"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
-            Self::MissingValue(tag) => write!(f, "missing value for {}", tag),
+            Self::MissingValue(tag) => write!(f, "missing value for tag {}", tag),
         }
     }
 }
