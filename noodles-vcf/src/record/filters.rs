@@ -20,7 +20,7 @@ pub enum Filters {
     Fail(IndexSet<String>),
 }
 
-/// An error returned when a raw VCF filters fail to convert.
+/// An error returned when raw VCF filters fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromIteratorError {
     /// A filter is duplicated.
