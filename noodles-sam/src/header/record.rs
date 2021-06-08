@@ -11,6 +11,7 @@ pub use self::{kind::Kind, value::Value};
 
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
+const TAG_LENGTH: usize = 2;
 
 /// A generic SAM header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -74,6 +75,8 @@ pub enum ParseError {
     InvalidKind(kind::ParseError),
     /// A tag is missing.
     MissingTag,
+    /// A tag is invalid.
+    InvalidTag,
     /// A tag is duplicated.
     DuplicateTag(String),
     /// A tag value is missing.
@@ -88,6 +91,7 @@ impl fmt::Display for ParseError {
             Self::MissingKind => write!(f, "missing kind"),
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
             Self::MissingTag => write!(f, "missing tag"),
+            Self::InvalidTag => write!(f, "invalid tag"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
             Self::MissingValue(tag) => write!(f, "missing value for tag {}", tag),
         }
@@ -133,6 +137,11 @@ where
         let mut components = s.splitn(2, DATA_FIELD_DELIMITER);
 
         let tag = components.next().ok_or(ParseError::MissingTag)?;
+
+        if !is_valid_tag(tag) {
+            return Err(ParseError::InvalidTag);
+        }
+
         let value = components
             .next()
             .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
@@ -143,6 +152,28 @@ where
     }
 
     Ok(Value::Map(map))
+}
+
+fn is_valid_tag(s: &str) -> bool {
+    if s.len() != TAG_LENGTH {
+        return false;
+    }
+
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if !c.is_ascii_alphabetic() {
+            return false;
+        }
+    }
+
+    if let Some(c) = chars.next() {
+        if !c.is_ascii_alphanumeric() {
+            return false;
+        }
+    }
+
+    true
 }
 
 #[cfg(test)]
@@ -200,6 +231,13 @@ mod tests {
             "@ND".parse::<Record>(),
             Err(ParseError::InvalidKind(_))
         ));
+
+        assert_eq!("@HD\tV:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
+        assert_eq!("@HD\t0V:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
+        assert_eq!(
+            "@HD\tVER:1.6".parse::<Record>(),
+            Err(ParseError::InvalidTag)
+        );
 
         assert_eq!(
             "@HD\tVN:1.6\tVN:1.6".parse::<Record>(),
