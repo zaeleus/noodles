@@ -4,7 +4,7 @@ use std::{
 };
 
 use byteorder::{ByteOrder, LittleEndian};
-use flate2::read::DeflateDecoder;
+use flate2::bufread::DeflateDecoder;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
@@ -211,7 +211,7 @@ where
 
 fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
 where
-    R: Read,
+    R: BufRead,
 {
     let mut decoder = DeflateDecoder::new(reader);
     decoder.read_to_end(writer)
