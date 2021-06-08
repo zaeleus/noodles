@@ -8,9 +8,10 @@ pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
-use indexmap::IndexMap;
-
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header read group.
 ///
@@ -417,7 +418,7 @@ impl TryFrom<Record> for ReadGroup {
     }
 }
 
-fn parse_map(raw_fields: IndexMap<String, String>) -> Result<ReadGroup, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<ReadGroup, TryFromRecordError> {
     let mut builder = ReadGroup::builder();
     let mut id = None;
 

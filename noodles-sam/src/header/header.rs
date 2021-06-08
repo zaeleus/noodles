@@ -17,9 +17,10 @@ pub use self::{
     tag::Tag, version::Version,
 };
 
-use indexmap::IndexMap;
-
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header header.
 ///
@@ -239,7 +240,7 @@ impl TryFrom<Record> for Header {
     }
 }
 
-fn parse_map(raw_fields: IndexMap<String, String>) -> Result<Header, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<Header, TryFromRecordError> {
     let mut builder = Header::builder();
     let mut version: Option<Version> = None;
 

@@ -5,9 +5,9 @@ pub mod value;
 
 use std::{error, fmt, str::FromStr};
 
-use indexmap::IndexMap;
-
 pub use self::{kind::Kind, value::Value};
+
+use self::value::Fields;
 
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
@@ -131,7 +131,7 @@ fn parse_map<'a, I>(iter: &mut I) -> Result<Value, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    let mut map = IndexMap::new();
+    let mut fields = Fields::new();
 
     for s in iter {
         let mut components = s.splitn(2, DATA_FIELD_DELIMITER);
@@ -146,12 +146,12 @@ where
             .next()
             .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
 
-        if map.insert(tag.into(), value.into()).is_some() {
+        if fields.insert(tag.into(), value.into()).is_some() {
             return Err(ParseError::DuplicateTag(tag.into()));
         }
     }
 
-    Ok(Value::Map(map))
+    Ok(Value::Map(fields))
 }
 
 fn is_valid_tag(s: &str) -> bool {

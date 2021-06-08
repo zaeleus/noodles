@@ -4,13 +4,16 @@ use std::{error, fmt};
 
 use indexmap::IndexMap;
 
+/// An ordered map of raw tag-value pairs.
+pub type Fields = IndexMap<String, String>;
+
 /// A SAM header record value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
     /// A string.
     String(String),
-    /// A list of key-value pairs.
-    Map(IndexMap<String, String>),
+    /// A map of fields.
+    Map(Fields),
 }
 
 /// An error returned when raw SAM header record fields fail to convert.
@@ -53,17 +56,17 @@ impl Value {
         K: Into<String>,
         V: Into<String>,
     {
-        let mut map = IndexMap::new();
+        let mut fields = Fields::new();
 
         for (k, v) in iter {
             let key = k.into();
             let value = v.into();
 
-            if map.insert(key.clone(), value).is_some() {
+            if fields.insert(key.clone(), value).is_some() {
                 return Err(TryFromIteratorError::DuplicateTag(key));
             }
         }
 
-        Ok(Value::Map(map))
+        Ok(Value::Map(fields))
     }
 }

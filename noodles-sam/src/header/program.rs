@@ -7,9 +7,10 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{builder::Builder, tag::Tag};
 
-use indexmap::IndexMap;
-
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header program.
 ///
@@ -255,7 +256,7 @@ impl TryFrom<Record> for Program {
     }
 }
 
-fn parse_map(raw_fields: IndexMap<String, String>) -> Result<Program, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<Program, TryFromRecordError> {
     let mut builder = Program::builder();
     let mut id = None;
 

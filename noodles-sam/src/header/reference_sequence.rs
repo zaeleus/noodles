@@ -13,9 +13,10 @@ pub use self::{
     molecule_topology::MoleculeTopology, tag::Tag,
 };
 
-use indexmap::IndexMap;
-
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header reference sequence.
 ///
@@ -377,9 +378,7 @@ impl TryFrom<Record> for ReferenceSequence {
     }
 }
 
-fn parse_map(
-    raw_fields: IndexMap<String, String>,
-) -> Result<ReferenceSequence, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError> {
     use crate::record::reference_sequence_name::is_valid_name;
 
     let mut builder = ReferenceSequence::builder();
