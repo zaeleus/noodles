@@ -141,21 +141,21 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("ID".parse::<Tag>(), Ok(Tag::Id));
-        assert_eq!("BC".parse::<Tag>(), Ok(Tag::Barcode));
-        assert_eq!("CN".parse::<Tag>(), Ok(Tag::SequencingCenter));
-        assert_eq!("DS".parse::<Tag>(), Ok(Tag::Description));
-        assert_eq!("DT".parse::<Tag>(), Ok(Tag::ProducedAt));
-        assert_eq!("FO".parse::<Tag>(), Ok(Tag::FlowOrder));
-        assert_eq!("KS".parse::<Tag>(), Ok(Tag::KeySequence));
-        assert_eq!("LB".parse::<Tag>(), Ok(Tag::Library));
-        assert_eq!("PG".parse::<Tag>(), Ok(Tag::Program));
-        assert_eq!("PI".parse::<Tag>(), Ok(Tag::PredictedMedianInsertSize));
-        assert_eq!("PL".parse::<Tag>(), Ok(Tag::Platform));
-        assert_eq!("PM".parse::<Tag>(), Ok(Tag::PlatformModel));
-        assert_eq!("PU".parse::<Tag>(), Ok(Tag::PlatformUnit));
-        assert_eq!("SM".parse::<Tag>(), Ok(Tag::Sample));
-        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("ID".parse(), Ok(Tag::Id));
+        assert_eq!("BC".parse(), Ok(Tag::Barcode));
+        assert_eq!("CN".parse(), Ok(Tag::SequencingCenter));
+        assert_eq!("DS".parse(), Ok(Tag::Description));
+        assert_eq!("DT".parse(), Ok(Tag::ProducedAt));
+        assert_eq!("FO".parse(), Ok(Tag::FlowOrder));
+        assert_eq!("KS".parse(), Ok(Tag::KeySequence));
+        assert_eq!("LB".parse(), Ok(Tag::Library));
+        assert_eq!("PG".parse(), Ok(Tag::Program));
+        assert_eq!("PI".parse(), Ok(Tag::PredictedMedianInsertSize));
+        assert_eq!("PL".parse(), Ok(Tag::Platform));
+        assert_eq!("PM".parse(), Ok(Tag::PlatformModel));
+        assert_eq!("PU".parse(), Ok(Tag::PlatformUnit));
+        assert_eq!("SM".parse(), Ok(Tag::Sample));
+        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));
