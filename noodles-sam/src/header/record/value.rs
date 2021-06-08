@@ -1,4 +1,4 @@
-//! SAM header record field value.
+//! SAM header record value.
 
 use std::{error, fmt};
 
