@@ -196,6 +196,16 @@ mod tests {
             Ok(Record::new(Kind::Comment, Value::String(String::from(""))))
         );
 
+        assert!(matches!(
+            "@ND".parse::<Record>(),
+            Err(ParseError::InvalidKind(_))
+        ));
+
+        assert_eq!(
+            "@HD\tVN:1.6\tVN:1.6".parse::<Record>(),
+            Err(ParseError::DuplicateTag(String::from("VN")))
+        );
+
         assert_eq!(
             "@CO".parse::<Record>(),
             Err(ParseError::MissingValue(String::from("@CO")))
