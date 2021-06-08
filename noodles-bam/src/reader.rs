@@ -7,6 +7,7 @@ mod unmapped_records;
 pub use self::{query::Query, records::Records, unmapped_records::UnmappedRecords};
 
 use std::{
+    convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
 };
@@ -129,8 +130,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        let n_ref = self.inner.read_u32::<LittleEndian>()?;
-        let mut reference_sequences = ReferenceSequences::with_capacity(n_ref as usize);
+        let n_ref = self.inner.read_u32::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
 
         for _ in 0..n_ref {
             let reference_sequence = read_reference_sequence(&mut self.inner)?;
