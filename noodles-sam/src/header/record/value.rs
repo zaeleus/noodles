@@ -19,6 +19,8 @@ pub enum Value {
 /// An error returned when raw SAM header record fields fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromIteratorError {
+    /// The input is empty.
+    Empty,
     /// A tag is duplicated.
     DuplicateTag(String),
 }
@@ -28,6 +30,7 @@ impl error::Error for TryFromIteratorError {}
 impl fmt::Display for TryFromIteratorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => f.write_str("empty input"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }
@@ -67,6 +70,23 @@ impl Value {
             }
         }
 
+        if fields.is_empty() {
+            return Err(TryFromIteratorError::Empty);
+        }
+
         Ok(Value::Map(fields))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_from_iter() {
+        assert_eq!(
+            Value::try_from_iter(Vec::<(String, String)>::new()),
+            Err(TryFromIteratorError::Empty)
+        );
     }
 }
