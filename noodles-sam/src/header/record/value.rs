@@ -85,6 +85,23 @@ mod tests {
     #[test]
     fn test_try_from_iter() {
         assert_eq!(
+            Value::try_from_iter(vec![(String::from("VN"), String::from("1.6")),]),
+            Ok(Value::Map(
+                vec![(String::from("VN"), String::from("1.6")),]
+                    .into_iter()
+                    .collect()
+            ))
+        );
+
+        assert_eq!(
+            Value::try_from_iter(vec![
+                (String::from("VN"), String::from("1.6")),
+                (String::from("VN"), String::from("1.6")),
+            ]),
+            Err(TryFromIteratorError::DuplicateTag(String::from("VN")))
+        );
+
+        assert_eq!(
             Value::try_from_iter(Vec::<(String, String)>::new()),
             Err(TryFromIteratorError::Empty)
         );
