@@ -195,18 +195,9 @@ where
     R: Read,
 {
     let mut trailer = [0; gz::TRAILER_SIZE];
-
-    if reader.read_exact(&mut trailer).is_err() {
-        // Block must contain valid trailer
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BGZF trailer",
-        ));
-    }
-
-    let r#isize = &trailer[4..8];
-
-    Ok(LittleEndian::read_u32(r#isize))
+    reader.read_exact(&mut trailer)?;
+    let r#isize = LittleEndian::read_u32(&trailer[4..]);
+    Ok(r#isize)
 }
 
 fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
