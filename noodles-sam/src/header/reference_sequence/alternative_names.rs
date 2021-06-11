@@ -99,6 +99,10 @@ mod tests {
 
         assert_eq!("".parse::<AlternativeNames>(), Err(ParseError::Empty));
         assert_eq!(
+            ",".parse::<AlternativeNames>(),
+            Err(ParseError::InvalidName(String::from("")))
+        );
+        assert_eq!(
             "0,*".parse::<AlternativeNames>(),
             Err(ParseError::InvalidName(String::from("*")))
         );
