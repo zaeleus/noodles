@@ -671,7 +671,7 @@ impl Value {
     }
 }
 
-/// An error returned when a BAM data field value fails to covert to a SAM data field value.
+/// An error returned when a BAM data field value fails to convert to a SAM data field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromValueError {
     /// The BAM data u32 value exceeds the range of a SAM data i32 value.
