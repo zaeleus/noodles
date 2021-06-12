@@ -330,6 +330,51 @@ impl Value {
         matches!(self, Self::UInt32(_))
     }
 
+    /// Returns the value as a 64-bit integer, if it is an integer.
+    ///
+    /// This is a convenience method to convert any integer to an `i64`, which captures the entire
+    /// range of all BAM record data field integer values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::field::Value;
+    /// assert_eq!(Value::Int32(0).as_int(), Some(0));
+    /// assert_eq!(Value::Char('a').as_int(), None);
+    /// ```
+    pub fn as_int(&self) -> Option<i64> {
+        match *self {
+            Self::Int8(n) => Some(i64::from(n)),
+            Self::UInt8(n) => Some(i64::from(n)),
+            Self::Int16(n) => Some(i64::from(n)),
+            Self::UInt16(n) => Some(i64::from(n)),
+            Self::Int32(n) => Some(i64::from(n)),
+            Self::UInt32(n) => Some(i64::from(n)),
+            _ => None,
+        }
+    }
+
+    /// Returns whether the value is an integer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::field::Value;
+    /// assert!(Value::Int32(0).is_int());
+    /// assert!(!Value::Char('a').is_int());
+    /// ```
+    pub fn is_int(&self) -> bool {
+        matches!(
+            self,
+            Self::Int8(_)
+                | Self::UInt8(_)
+                | Self::Int16(_)
+                | Self::UInt16(_)
+                | Self::Int32(_)
+                | Self::UInt32(_)
+        )
+    }
+
     /// Returns the value as a single-precision floating-point if it is a single-precision
     /// float-point.
     ///
@@ -715,6 +760,48 @@ mod tests {
         assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
         assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
         assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+    }
+
+    #[test]
+    fn test_as_int() {
+        assert_eq!(Value::Char('m').as_int(), None);
+        assert_eq!(Value::Int8(0).as_int(), Some(0));
+        assert_eq!(Value::UInt8(0).as_int(), Some(0));
+        assert_eq!(Value::Int16(0).as_int(), Some(0));
+        assert_eq!(Value::UInt16(0).as_int(), Some(0));
+        assert_eq!(Value::Int32(0).as_int(), Some(0));
+        assert_eq!(Value::UInt32(0).as_int(), Some(0));
+        assert_eq!(Value::Float(0.0).as_int(), None);
+        assert_eq!(Value::String(String::from("noodles")).as_int(), None);
+        assert_eq!(Value::Hex(String::from("cafe")).as_int(), None);
+        assert_eq!(Value::Int8Array(vec![0]).as_int(), None);
+        assert_eq!(Value::UInt8Array(vec![0]).as_int(), None);
+        assert_eq!(Value::Int16Array(vec![0]).as_int(), None);
+        assert_eq!(Value::UInt16Array(vec![0]).as_int(), None);
+        assert_eq!(Value::Int32Array(vec![0]).as_int(), None);
+        assert_eq!(Value::UInt32Array(vec![0]).as_int(), None);
+        assert_eq!(Value::FloatArray(vec![0.0]).as_int(), None);
+    }
+
+    #[test]
+    fn test_is_int() {
+        assert!(!Value::Char('m').is_int());
+        assert!(Value::Int8(0).is_int());
+        assert!(Value::UInt8(0).is_int());
+        assert!(Value::Int16(0).is_int());
+        assert!(Value::UInt16(0).is_int());
+        assert!(Value::Int32(0).is_int());
+        assert!(Value::UInt32(0).is_int());
+        assert!(!Value::Float(0.0).is_int());
+        assert!(!Value::String(String::from("noodles")).is_int());
+        assert!(!Value::Hex(String::from("cafe")).is_int());
+        assert!(!Value::Int8Array(vec![0]).is_int());
+        assert!(!Value::UInt8Array(vec![0]).is_int());
+        assert!(!Value::Int16Array(vec![0]).is_int());
+        assert!(!Value::UInt16Array(vec![0]).is_int());
+        assert!(!Value::Int32Array(vec![0]).is_int());
+        assert!(!Value::UInt32Array(vec![0]).is_int());
+        assert!(!Value::FloatArray(vec![0.0]).is_int());
     }
 
     #[test]

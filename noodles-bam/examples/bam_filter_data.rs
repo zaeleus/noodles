@@ -4,7 +4,7 @@
 
 use std::{env, fs::File, io};
 
-use noodles_bam::{self as bam, record::data::field::Value};
+use noodles_bam as bam;
 use noodles_sam::{self as sam, record::data::field::Tag};
 
 fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
@@ -12,25 +12,16 @@ fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
         let field = result?;
 
         if field.tag() == &Tag::AlignmentHitCount {
-            let hits = match field.value() {
-                Value::Int8(n) => i64::from(*n),
-                Value::UInt8(n) => i64::from(*n),
-                Value::Int16(n) => i64::from(*n),
-                Value::UInt16(n) => i64::from(*n),
-                Value::Int32(n) => i64::from(*n),
-                Value::UInt32(n) => i64::from(*n),
-                v => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!(
-                            "expected {{Int8, UInt8, Int16, UInt16, Int32, UInt32}}, got {:?}",
-                            v
-                        ),
-                    ))
-                }
-            };
+            let value = field.value();
 
-            return Ok(hits == 1);
+            if let Some(hits) = value.as_int() {
+                return Ok(hits == 1);
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("expected integer, got {:?}", value),
+                ));
+            }
         }
     }
 
