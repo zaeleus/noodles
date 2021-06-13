@@ -374,13 +374,13 @@ where
 {
     let l_text = reader.read_u32::<LittleEndian>()?;
 
-    let mut c_text = vec![0; l_text as usize];
-    reader.read_exact(&mut c_text)?;
+    let mut text = vec![0; l_text as usize];
+    reader.read_exact(&mut text)?;
 
     // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
     // NUL-terminated".
-    bytes_with_nul_to_string(&c_text).or_else(|_| {
-        String::from_utf8(c_text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    bytes_with_nul_to_string(&text).or_else(|_| {
+        String::from_utf8(text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
 }
 
