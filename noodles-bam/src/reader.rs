@@ -176,7 +176,9 @@ where
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let block_size = match self.inner.read_u32::<LittleEndian>() {
-            Ok(bs) => bs as usize,
+            Ok(bs) => {
+                usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+            }
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
             Err(e) => return Err(e),
         };
@@ -372,9 +374,11 @@ fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: Read,
 {
-    let l_text = reader.read_u32::<LittleEndian>()?;
+    let l_text = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut text = vec![0; l_text as usize];
+    let mut text = vec![0; l_text];
     reader.read_exact(&mut text)?;
 
     // § 4.2 The BAM format (2021-06-03): "Plain header text in SAM; not necessarily
@@ -388,7 +392,9 @@ fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
 where
     R: Read,
 {
-    let l_name = reader.read_u32::<LittleEndian>()?;
+    let l_name = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let mut c_name = vec![0; l_name as usize];
     reader.read_exact(&mut c_name)?;
