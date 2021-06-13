@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-fasta** handles and reading and writing of the FASTA format.
 //!

@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-csi** handles the reading and writing of the coordinate-sorted index (CSI) format.
 

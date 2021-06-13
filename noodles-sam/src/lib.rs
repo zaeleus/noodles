@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-sam** handles the reading and writing of the SAM (Sequence Alignment/Map) format.
 //!

@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-tabix** handles the reading and writing of the [tabix format].
 //!
