@@ -1,5 +1,7 @@
 //! VCF record genotype field value.
 
+pub mod genotype;
+
 use std::{error, fmt, num, str};
 
 use crate::{
