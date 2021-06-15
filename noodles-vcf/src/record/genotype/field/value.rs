@@ -147,7 +147,6 @@ impl Value {
     ///     Value::from_str_key("13", &Key::ConditionalGenotypeQuality),
     ///     Ok(Value::Integer(13))
     /// );
-
     /// ```
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
         match key.ty() {
