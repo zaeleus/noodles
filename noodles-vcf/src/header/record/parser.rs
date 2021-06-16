@@ -407,7 +407,7 @@ mod tests {
             ])
         );
 
-        /* let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
+        let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
 
         assert_eq!(key, "FILTER");
         assert_eq!(
@@ -432,7 +432,7 @@ mod tests {
                 (String::from("Description"), String::from("Genotype")),
                 (String::from("IDX"), String::from("2")),
             ])
-        ); */
+        );
 
         Ok(())
     }
