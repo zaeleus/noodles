@@ -518,6 +518,8 @@ pub enum ParseError {
     InvalidSample(sample::TryFromRecordError),
     /// A pedigree record (`PEDIGREE`) is invalid.
     InvalidPedigree(pedigree::TryFromRecordError),
+    /// The header is missing.
+    MissingHeader,
     /// The header is invalid.
     InvalidHeader(String, String),
     /// A sample name is duplicated.
@@ -548,6 +550,7 @@ impl std::fmt::Display for ParseError {
             Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
             Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
             Self::InvalidPedigree(e) => write!(f, "invalid pedigree: {}", e),
+            Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {}, got {}", expected, actual)
             }
@@ -569,13 +572,20 @@ impl FromStr for Header {
         let file_format = parse_file_format(&mut lines)?;
         builder = builder.set_file_format(file_format);
 
+        let mut has_header = false;
+
         while let Some(line) = lines.next() {
             if line.starts_with("#CHROM") {
                 builder = parse_header(builder, line)?;
+                has_header = true;
                 break;
             }
 
             builder = parse_record(builder, line)?;
+        }
+
+        if !has_header {
+            return Err(ParseError::MissingHeader);
         }
 
         if lines.next().is_some() {
@@ -833,7 +843,9 @@ mod tests {
 
     #[test]
     fn test_from_str_without_assembly() -> Result<(), ParseError> {
-        let s = r#"##fileformat=VCFv4.3"#;
+        let s = r#"##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+"#;
         let header: Header = s.parse()?;
         assert!(header.assembly().is_none());
         Ok(())
@@ -857,6 +869,13 @@ mod tests {
 ";
 
         assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedFileFormat));
+    }
+
+    #[test]
+    fn test_from_str_with_missing_headers() {
+        let s = "##fileformat=VCFv4.3
+";
+        assert_eq!(s.parse::<Header>(), Err(ParseError::MissingHeader));
     }
 
     #[test]
