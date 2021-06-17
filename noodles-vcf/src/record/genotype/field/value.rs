@@ -2,6 +2,8 @@
 
 pub mod genotype;
 
+pub use self::genotype::Genotype;
+
 use std::{error, fmt, num, str};
 
 use crate::{
