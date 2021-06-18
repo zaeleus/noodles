@@ -58,18 +58,8 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.id(), &Key::Genotype);
     /// ```
     pub fn id(&self) -> &genotype::field::Key {
@@ -81,18 +71,8 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::{Format, Number}, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.number(), Number::Count(1));
     /// ```
     pub fn number(&self) -> Number {
@@ -104,18 +84,8 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::{format::Type, Format}, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.ty(), Type::String);
     /// ```
     pub fn ty(&self) -> Type {
@@ -127,18 +97,8 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.description(), "Genotype");
     /// ```
     pub fn description(&self) -> &str {
@@ -152,18 +112,8 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert!(format.idx().is_none());
     /// ```
     pub fn idx(&self) -> Option<usize> {
@@ -177,22 +127,21 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
-    ///
-    /// let format = Format::new(
-    ///     Key::Genotype,
-    ///     Number::Count(1),
-    ///     Type::String,
-    ///     String::from("Genotype"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// let format = Format::from(Key::Genotype);
     /// assert!(format.fields().is_empty());
     /// ```
     pub fn fields(&self) -> &IndexMap<String, String> {
         &self.fields
+    }
+}
+
+impl From<genotype::field::Key> for Format {
+    fn from(key: genotype::field::Key) -> Self {
+        let number = key.number();
+        let ty = key.ty();
+        let description = key.description().to_string();
+        Self::new(key, number, ty, description)
     }
 }
 
@@ -364,6 +313,20 @@ mod tests {
                 (String::from("Description"), String::from("Genotype")),
             ]),
         )
+    }
+
+    #[test]
+    fn test_from_genotype_field_key_for_format() {
+        let actual = Format::from(genotype::field::Key::Genotype);
+
+        let expected = Format::new(
+            genotype::field::Key::Genotype,
+            Number::Count(1),
+            Type::String,
+            String::from("Genotype"),
+        );
+
+        assert_eq!(actual, expected);
     }
 
     #[test]

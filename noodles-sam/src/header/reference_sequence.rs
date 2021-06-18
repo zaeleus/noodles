@@ -1,5 +1,6 @@
 //! SAM header reference sequence and fields.
 
+pub mod alternative_names;
 mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
@@ -8,10 +9,14 @@ pub mod tag;
 use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
 pub use self::{
-    builder::Builder, md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, tag::Tag,
+    alternative_names::AlternativeNames, builder::Builder, md5_checksum::Md5Checksum,
+    molecule_topology::MoleculeTopology, tag::Tag,
 };
 
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header reference sequence.
 ///
@@ -24,7 +29,7 @@ pub struct ReferenceSequence {
     name: String,
     len: i32,
     alternative_locus: Option<String>,
-    alternative_names: Option<String>,
+    alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
     description: Option<String>,
     md5_checksum: Option<Md5Checksum>,
@@ -55,14 +60,17 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let reference_sequence = ReferenceSequence::new("sq0", 13);
     ///
     /// assert_eq!(reference_sequence.name(), "sq0");
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
-    pub fn new(name: String, len: i32) -> Self {
+    pub fn new<I>(name: I, len: i32) -> Self
+    where
+        I: Into<String>,
+    {
         Self {
-            name,
+            name: name.into(),
             len,
             alternative_locus: None,
             alternative_names: None,
@@ -82,7 +90,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.name(), "sq0");
     /// ```
     pub fn name(&self) -> &str {
@@ -96,7 +104,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.name(), "sq0");
     ///
     /// *reference_sequence.name_mut() = String::from("sq1");
@@ -112,7 +120,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.len(), 13);
     /// ```
     pub fn len(&self) -> i32 {
@@ -126,7 +134,7 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert_eq!(reference_sequence.len(), 13);
     ///
     /// *reference_sequence.len_mut() = 8;
@@ -142,7 +150,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.alternative_locus().is_none());
     /// ```
     pub fn alternative_locus(&self) -> Option<&str> {
@@ -155,11 +163,11 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.alternative_names().is_none());
     /// ```
-    pub fn alternative_names(&self) -> Option<&str> {
-        self.alternative_names.as_deref()
+    pub fn alternative_names(&self) -> Option<&AlternativeNames> {
+        self.alternative_names.as_ref()
     }
 
     /// Returns the genome assembly ID.
@@ -168,7 +176,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.assembly_id().is_none());
     /// ```
     pub fn assembly_id(&self) -> Option<&str> {
@@ -181,7 +189,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -194,7 +202,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.md5_checksum().is_none());
     /// ```
     pub fn md5_checksum(&self) -> Option<Md5Checksum> {
@@ -207,7 +215,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.species().is_none());
     /// ```
     pub fn species(&self) -> Option<&str> {
@@ -220,7 +228,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.molecule_topology().is_none());
     /// ```
     pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
@@ -233,7 +241,7 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new(String::from("sq0"), 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
     /// assert!(reference_sequence.uri().is_none());
     /// ```
     pub fn uri(&self) -> Option<&str> {
@@ -252,7 +260,7 @@ impl ReferenceSequence {
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name(String::from("sq0"))
+    ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();
@@ -330,8 +338,12 @@ pub enum TryFromRecordError {
     MissingRequiredTag(Tag),
     /// A tag is invalid.
     InvalidTag(tag::ParseError),
-    /// The length tag (`LN`) has a invalid value.
+    /// The name tag (`SN`) has an invalid value.
+    InvalidName,
+    /// The length tag (`LN`) has an invalid value.
     InvalidLength(num::ParseIntError),
+    /// The alternative names tag (`AN`) has an invalid value.
+    InvalidAlternativeNames(alternative_names::ParseError),
     /// The MD5 checksum is invalid.
     InvalidMd5Checksum(md5_checksum::ParseError),
     /// The molecule topology is invalid.
@@ -346,7 +358,9 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
+            Self::InvalidName => write!(f, "invalid name"),
             Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
+            Self::InvalidAlternativeNames(e) => write!(f, "invalid alternative names: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
         }
@@ -364,7 +378,9 @@ impl TryFrom<Record> for ReferenceSequence {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError> {
+    use crate::record::reference_sequence_name::is_valid_name;
+
     let mut builder = ReferenceSequence::builder();
 
     let mut name = None;
@@ -375,7 +391,12 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
 
         builder = match tag {
             Tag::Name => {
-                name = Some(value);
+                if is_valid_name(&value) {
+                    name = Some(value);
+                } else {
+                    return Err(TryFromRecordError::InvalidName);
+                }
+
                 builder
             }
             Tag::Length => {
@@ -386,7 +407,12 @@ fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReferenceSequence, Try
                 builder
             }
             Tag::AlternativeLocus => builder.set_alternative_locus(value),
-            Tag::AlternativeNames => builder.set_alternative_names(value),
+            Tag::AlternativeNames => {
+                let alternative_names = value
+                    .parse()
+                    .map_err(TryFromRecordError::InvalidAlternativeNames)?;
+                builder.set_alternative_names(alternative_names)
+            }
             Tag::AssemblyId => builder.set_assembly_id(value),
             Tag::Description => builder.set_description(value),
             Tag::Md5Checksum => {
@@ -457,69 +483,88 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_name() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![
-                (String::from("LN"), String::from("1")),
-                (
-                    String::from("M5"),
-                    String::from("d7eba311421bbc9d3ada44709dd61534"),
-                ),
-            ]),
+            record::Value::try_from_iter(vec![
+                ("LN", "1"),
+                ("M5", "d7eba311421bbc9d3ada44709dd61534"),
+            ])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![
-                (String::from("SN"), String::from("sq0")),
-                (
-                    String::from("M5"),
-                    String::from("d7eba311421bbc9d3ada44709dd61534"),
-                ),
-            ]),
+            record::Value::try_from_iter(vec![
+                ("SN", "sq0"),
+                ("M5", "d7eba311421bbc9d3ada44709dd61534"),
+            ])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Length))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_missing_name_and_length() {
+    fn test_try_from_record_for_reference_sequence_with_missing_name_and_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![(
-                String::from("M5"),
-                String::from("d7eba311421bbc9d3ada44709dd61534"),
-            )]),
+            record::Value::try_from_iter(vec![("M5", "d7eba311421bbc9d3ada44709dd61534")])?,
         );
 
         assert_eq!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Name))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_reference_sequence_with_invalid_length() {
+    fn test_try_from_record_for_reference_sequence_with_invalid_name(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::Map(vec![(String::from("LN"), String::from("thirteen"))]),
+            record::Value::try_from_iter(vec![("SN", "*")])?,
+        );
+
+        assert_eq!(
+            ReferenceSequence::try_from(record),
+            Err(TryFromRecordError::InvalidName)
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_record_for_reference_sequence_with_invalid_length(
+    ) -> Result<(), record::value::TryFromIteratorError> {
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::try_from_iter(vec![("LN", "thirteen")])?,
         );
 
         assert!(matches!(
             ReferenceSequence::try_from(record),
             Err(TryFromRecordError::InvalidLength(_))
         ));
+
+        Ok(())
     }
 }

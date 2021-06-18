@@ -2,13 +2,13 @@
 
 use std::{error, fmt, str::FromStr};
 
-const LEN: usize = 2;
+const LENGTH: usize = 2;
 
 /// A SAM record data field tag.
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Tag {
     /// (`AM`).
     MinMappingQuality,
@@ -286,7 +286,7 @@ impl FromStr for Tag {
             "U2" => Ok(Self::NextHitQualityScores),
             "UQ" => Ok(Self::SegmentLikelihood),
             _ => {
-                if s.len() == LEN {
+                if is_valid_tag(s) {
                     Ok(Self::Other(s.into()))
                 } else {
                     Err(ParseError(s.into()))
@@ -294,6 +294,23 @@ impl FromStr for Tag {
             }
         }
     }
+}
+
+// § 1.5 The alignment section: optional fields (2021-01-07)
+fn is_valid_tag(s: &str) -> bool {
+    if s.len() != LENGTH {
+        return false;
+    }
+
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if let Some(d) = chars.next() {
+            return c.is_ascii_alphabetic() && d.is_ascii_alphanumeric();
+        }
+    }
+
+    false
 }
 
 #[cfg(test)]
@@ -431,6 +448,8 @@ mod tests {
 
         assert_eq!("".parse::<Tag>(), Err(ParseError(String::from(""))));
         assert_eq!("R".parse::<Tag>(), Err(ParseError(String::from("R"))));
+        assert_eq!("1G".parse::<Tag>(), Err(ParseError(String::from("1G"))));
+        assert_eq!("R_".parse::<Tag>(), Err(ParseError(String::from("R_"))));
         assert_eq!("RGP".parse::<Tag>(), Err(ParseError(String::from("RGP"))));
         assert_eq!("RGRP".parse::<Tag>(), Err(ParseError(String::from("RGRP"))));
     }

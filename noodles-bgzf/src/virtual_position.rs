@@ -8,8 +8,8 @@ pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX; // 2^16 - 1;
 const COMPRESSED_POSITION_SHIFT: u64 = 16;
 const UNCOMPRESSED_POSITION_MASK: u64 = 0xffff;
 
-const MAX_VIRTUAL_POSITION: u64 =
-    MAX_COMPRESSED_POSITION << COMPRESSED_POSITION_SHIFT | MAX_UNCOMPRESSED_POSITION as u64;
+// MAX_COMPRESSED_POSITION << COMPRESSED_POSITION_SHIFT | MAX_UNCOMPRESSED_POSITION
+const MAX_VIRTUAL_POSITION: u64 = u64::MAX;
 
 /// A BGZF virtual position.
 ///
@@ -44,7 +44,7 @@ impl VirtualPosition {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// let virtual_position = bgzf::VirtualPosition::max();
-    /// assert_eq!(u64::from(virtual_position), 18446744073709551615);
+    /// assert_eq!(u64::from(virtual_position), u64::MAX);
     /// ```
     pub fn max() -> Self {
         Self(MAX_VIRTUAL_POSITION)

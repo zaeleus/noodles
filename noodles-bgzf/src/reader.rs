@@ -4,7 +4,7 @@ use std::{
 };
 
 use byteorder::{ByteOrder, LittleEndian};
-use flate2::read::DeflateDecoder;
+use flate2::bufread::DeflateDecoder;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
@@ -195,23 +195,14 @@ where
     R: Read,
 {
     let mut trailer = [0; gz::TRAILER_SIZE];
-
-    if reader.read_exact(&mut trailer).is_err() {
-        // Block must contain valid trailer
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid BGZF trailer",
-        ));
-    }
-
-    let r#isize = &trailer[4..8];
-
-    Ok(LittleEndian::read_u32(r#isize))
+    reader.read_exact(&mut trailer)?;
+    let r#isize = LittleEndian::read_u32(&trailer[4..]);
+    Ok(r#isize)
 }
 
 fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
 where
-    R: Read,
+    R: BufRead,
 {
     let mut decoder = DeflateDecoder::new(reader);
     decoder.read_to_end(writer)
@@ -270,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_read_header() -> io::Result<()> {
-        let mut reader = &BGZF_EOF[..];
+        let mut reader = BGZF_EOF;
         let block_size = read_header(&mut reader)?;
         assert_eq!(block_size, BGZF_EOF.len() as u32);
         Ok(())
@@ -293,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_read_block() -> io::Result<()> {
-        let mut reader = &BGZF_EOF[..];
+        let mut reader = BGZF_EOF;
         let mut cdata = Vec::new();
         let mut block = Block::default();
 

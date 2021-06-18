@@ -20,7 +20,7 @@ pub use self::{
     quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
-use std::{error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, num, str::FromStr};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -345,6 +345,104 @@ impl Record {
     }
 }
 
+/// An error returned when the end position is invalid.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EndError {
+    /// The position is invalid.
+    InvalidPosition(position::TryFromIntError),
+    /// The INFO end position (`END`) field value type is invalid.
+    InvalidInfoEndPositionFieldValue,
+    /// The reference bases length is invalid (> [`i32::MAX`]).
+    InvalidReferenceBasesLength(num::TryFromIntError),
+    /// The calculation of the end position overflowed.
+    PositionOverflow(i32, i32),
+}
+
+impl error::Error for EndError {}
+
+impl fmt::Display for EndError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidPosition(e) => write!(f, "invalid position: {}", e),
+            Self::InvalidInfoEndPositionFieldValue => {
+                write!(f, "invalid INFO end position (`END`) field value type")
+            }
+            Self::InvalidReferenceBasesLength(e) => {
+                write!(f, "invalid reference base length: {}", e)
+            }
+            Self::PositionOverflow(start, len) => write!(
+                f,
+                "calculation of the end position overflowed: {} + {}",
+                start, len,
+            ),
+        }
+    }
+}
+
+impl Record {
+    /// Returns or calculates the end position on the reference sequence.
+    ///
+    /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
+    /// using the start position and reference bases length.
+    ///
+    /// The end position is 1-based, inclusive.
+    ///
+    /// # Examples
+    ///
+    /// ## From the `END` INFO field value
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("ACGT".parse()?)
+    ///     .set_info("END=8".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.end(), Ok(Position::try_from(8)?));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    ///
+    /// ## Calculated using the start position and reference bases length
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    ///
+    /// let record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("ACGT".parse()?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.end(), Ok(Position::try_from(4)?));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn end(&self) -> Result<Position, EndError> {
+        use info::field::{Key, Value};
+
+        let end = if let Some(field) = self.info().get(&Key::EndPosition) {
+            match field.value() {
+                Value::Integer(n) => *n,
+                _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
+            }
+        } else {
+            let start = i32::from(self.position());
+            // `len` is guaranteed to be > 0.
+            let len = i32::try_from(self.reference_bases().len())
+                .map_err(EndError::InvalidReferenceBasesLength)?;
+            start
+                .checked_add(len - 1)
+                .ok_or(EndError::PositionOverflow(start, len))?
+        };
+
+        Position::try_from(end).map_err(EndError::InvalidPosition)
+    }
+}
+
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -493,6 +591,34 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_end() -> Result<(), Box<dyn std::error::Error>> {
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(Position::try_from(1)?)
+            .set_reference_bases("A".parse()?)
+            .set_info(Info::try_from(vec![info::Field::new(
+                info::field::Key::EndPosition,
+                info::field::Value::Flag,
+            )])?)
+            .build()?;
+
+        assert_eq!(
+            record.end(),
+            Err(EndError::InvalidInfoEndPositionFieldValue)
+        );
+
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(Position::try_from(i32::MAX)?)
+            .set_reference_bases("ACGT".parse()?)
+            .build()?;
+
+        assert_eq!(record.end(), Err(EndError::PositionOverflow(i32::MAX, 4)));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
@@ -557,16 +683,16 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_with_genotype_info() -> Result<(), ParseError> {
+    fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
-        let expected = [
+        let expected = Format::try_from(vec![
             genotype::field::Key::Genotype,
             genotype::field::Key::ConditionalGenotypeQuality,
-        ];
+        ])?;
 
-        assert_eq!(record.format().map(|f| &f[..]), Some(&expected[..]));
+        assert_eq!(record.format(), Some(&expected));
 
         let genotypes = record.genotypes();
 

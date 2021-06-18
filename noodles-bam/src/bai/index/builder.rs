@@ -1,11 +1,10 @@
 use std::{convert::TryFrom, io};
 
+use noodles_bgzf::index::Chunk;
+
 use crate::{record::ReferenceSequenceId, Record};
 
-use super::{
-    reference_sequence::{self, bin::Chunk},
-    Index, ReferenceSequence,
-};
+use super::{reference_sequence, Index, ReferenceSequence};
 
 /// A BAM index builder.
 #[derive(Default)]
@@ -24,8 +23,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, bai::{self, index::reference_sequence::bin::Chunk}};
-    /// use noodles_bgzf as bgzf;
+    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_bgzf::{self as bgzf, index::Chunk};
     ///
     /// let mut builder = bai::Index::builder();
     ///
@@ -118,11 +117,11 @@ mod tests {
         let mut reference_sequences = ReferenceSequences::default();
         reference_sequences.insert(
             String::from("sq0"),
-            sam::header::ReferenceSequence::new(String::from("sq0"), 8),
+            sam::header::ReferenceSequence::new("sq0", 8),
         );
         reference_sequences.insert(
             String::from("sq1"),
-            sam::header::ReferenceSequence::new(String::from("sq1"), 13),
+            sam::header::ReferenceSequence::new("sq1", 13),
         );
 
         let mut builder = Builder::default();

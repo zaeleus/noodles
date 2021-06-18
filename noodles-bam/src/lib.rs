@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-bam** handles the reading and writing of the BAM (Binary Alignment/Map) file format.
 //!

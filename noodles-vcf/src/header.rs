@@ -33,22 +33,46 @@ static HEADERS: &[&str] = &[
 ];
 static FORMAT_HEADER: &str = "FORMAT";
 
+/// VCF header info records.
+pub type Infos = IndexMap<crate::record::info::field::Key, Info>;
+
+/// VCF header filter records.
+pub type Filters = IndexMap<String, Filter>;
+
+/// VCF header format records.
+pub type Formats = IndexMap<crate::record::genotype::field::Key, Format>;
+
+/// VCF header alternative allele records.
+pub type AlternativeAlleles =
+    IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>;
+
+/// VCF header contig records.
+pub type Contigs = IndexMap<String, Contig>;
+
+/// VCF header sample records.
+pub type Samples = IndexMap<String, Sample>;
+
+/// VCF header pedigree records.
+pub type Pedigrees = IndexMap<String, Pedigree>;
+
+/// VCF header sample names.
+pub type SampleNames = IndexSet<String>;
+
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     file_format: FileFormat,
-    infos: IndexMap<crate::record::info::field::Key, Info>,
-    filters: IndexMap<String, Filter>,
-    formats: IndexMap<crate::record::genotype::field::Key, Format>,
-    alternative_alleles:
-        IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>,
+    infos: Infos,
+    filters: Filters,
+    formats: Formats,
+    alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
-    contigs: IndexMap<String, Contig>,
+    contigs: Contigs,
     meta: IndexMap<String, Meta>,
-    samples: IndexMap<String, Sample>,
-    pedigrees: IndexMap<String, Pedigree>,
+    samples: Samples,
+    pedigrees: Pedigrees,
     pedigree_db: Option<String>,
-    sample_names: IndexSet<String>,
+    sample_names: SampleNames,
     map: IndexMap<String, Vec<Record>>,
 }
 
@@ -89,26 +113,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::new(
-    ///         Key::SamplesWithDataCount,
-    ///         Number::Count(1),
-    ///         Type::Integer,
-    ///         String::from("Number of samples with data"),
-    ///     ))
+    ///     .add_info(Info::from(Key::SamplesWithDataCount))
     ///     .build();
     ///
     /// let infos = header.infos();
     /// assert_eq!(infos.len(), 1);
     /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
     /// ```
-    pub fn infos(&self) -> &IndexMap<crate::record::info::field::Key, Info> {
+    pub fn infos(&self) -> &Infos {
         &self.infos
     }
 
@@ -130,7 +145,7 @@ impl Header {
     /// assert_eq!(filters.len(), 1);
     /// assert_eq!(filters[0].id(), "q10");
     /// ```
-    pub fn filters(&self) -> &IndexMap<String, Filter> {
+    pub fn filters(&self) -> &Filters {
         &self.filters
     }
 
@@ -139,26 +154,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
-    /// };
+    /// use noodles_vcf::{self as vcf, header::Format, record::genotype::field::Key};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::new(
-    ///         Key::Genotype,
-    ///         Number::Count(1),
-    ///         Type::String,
-    ///         String::from("Genotype"),
-    ///     ))
+    ///     .add_format(Format::from(Key::Genotype))
     ///     .build();
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);
     /// assert_eq!(formats[0].id(), &Key::Genotype);
     /// ```
-    pub fn formats(&self) -> &IndexMap<crate::record::genotype::field::Key, Format> {
+    pub fn formats(&self) -> &Formats {
         &self.formats
     }
 
@@ -190,9 +196,7 @@ impl Header {
     ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
     /// );
     /// ```
-    pub fn alternative_alleles(
-        &self,
-    ) -> &IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele> {
+    pub fn alternative_alleles(&self) -> &AlternativeAlleles {
         &self.alternative_alleles
     }
 
@@ -228,7 +232,7 @@ impl Header {
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
     /// ```
-    pub fn contigs(&self) -> &IndexMap<String, Contig> {
+    pub fn contigs(&self) -> &Contigs {
         &self.contigs
     }
 
@@ -272,7 +276,7 @@ impl Header {
     /// let records = header.samples();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], sample);
-    pub fn samples(&self) -> &IndexMap<String, Sample> {
+    pub fn samples(&self) -> &Samples {
         &self.samples
     }
 
@@ -300,7 +304,7 @@ impl Header {
     /// let records = header.pedigrees();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], pedigree);
-    pub fn pedigrees(&self) -> &IndexMap<String, Pedigree> {
+    pub fn pedigrees(&self) -> &Pedigrees {
         &self.pedigrees
     }
 
@@ -340,7 +344,7 @@ impl Header {
     ///
     /// assert_eq!(header.sample_names(), &expected);
     /// ```
-    pub fn sample_names(&self) -> &IndexSet<String> {
+    pub fn sample_names(&self) -> &SampleNames {
         &self.sample_names
     }
 
@@ -413,6 +417,10 @@ impl std::fmt::Display for Header {
 
         for info in self.infos().values() {
             writeln!(f, "{}", info)?;
+        }
+
+        for filter in self.filters().values() {
+            writeln!(f, "{}", filter)?;
         }
 
         for format in self.formats().values() {
@@ -510,6 +518,8 @@ pub enum ParseError {
     InvalidSample(sample::TryFromRecordError),
     /// A pedigree record (`PEDIGREE`) is invalid.
     InvalidPedigree(pedigree::TryFromRecordError),
+    /// The header is missing.
+    MissingHeader,
     /// The header is invalid.
     InvalidHeader(String, String),
     /// A sample name is duplicated.
@@ -540,6 +550,7 @@ impl std::fmt::Display for ParseError {
             Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
             Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
             Self::InvalidPedigree(e) => write!(f, "invalid pedigree: {}", e),
+            Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {}, got {}", expected, actual)
             }
@@ -561,13 +572,20 @@ impl FromStr for Header {
         let file_format = parse_file_format(&mut lines)?;
         builder = builder.set_file_format(file_format);
 
+        let mut has_header = false;
+
         while let Some(line) = lines.next() {
             if line.starts_with("#CHROM") {
                 builder = parse_header(builder, line)?;
+                has_header = true;
                 break;
             }
 
             builder = parse_record(builder, line)?;
+        }
+
+        if !has_header {
+            return Err(ParseError::MissingHeader);
         }
 
         if lines.next().is_some() {
@@ -697,6 +715,7 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
+            .add_filter(Filter::pass())
             .set_assembly("file:///assemblies.fasta")
             .add_meta(Meta::new(
                 String::from("Assay"),
@@ -723,15 +742,15 @@ mod tests {
             ))
             .build();
 
-        let expected = "\
-##fileformat=VCFv4.3
+        let expected = r#"##fileformat=VCFv4.3
+##FILTER=<ID=PASS,Description="All filters passed">
 ##assembly=file:///assemblies.fasta
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
 ##SAMPLE=<ID=sample0,Assay=WholeGenome>
 ##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 ##fileDate=20200514
-#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-";
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+"#;
 
         assert_eq!(header.to_string(), expected);
     }
@@ -824,7 +843,9 @@ mod tests {
 
     #[test]
     fn test_from_str_without_assembly() -> Result<(), ParseError> {
-        let s = r#"##fileformat=VCFv4.3"#;
+        let s = r#"##fileformat=VCFv4.3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+"#;
         let header: Header = s.parse()?;
         assert!(header.assembly().is_none());
         Ok(())
@@ -848,6 +869,13 @@ mod tests {
 ";
 
         assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedFileFormat));
+    }
+
+    #[test]
+    fn test_from_str_with_missing_headers() {
+        let s = "##fileformat=VCFv4.3
+";
+        assert_eq!(s.parse::<Header>(), Err(ParseError::MissingHeader));
     }
 
     #[test]

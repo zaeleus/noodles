@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-gff** handles the reading and writing of the [GFF3 format][gff3-spec].
 //!

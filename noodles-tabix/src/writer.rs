@@ -1,14 +1,10 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, index::Chunk};
 
 use super::{
-    index::{
-        self,
-        reference_sequence::{bin::Chunk, Bin},
-        ReferenceSequence,
-    },
+    index::{self, reference_sequence::Bin, ReferenceSequence},
     Index, MAGIC_NUMBER,
 };
 
@@ -50,7 +46,7 @@ where
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        &self.inner.get_ref()
+        self.inner.get_ref()
     }
 
     /// Attempts to finish the output stream.
@@ -116,7 +112,7 @@ where
     }
 }
 
-pub fn write_magic<W>(writer: &mut W) -> io::Result<()>
+fn write_magic<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {

@@ -256,17 +256,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::data::{field::{Tag, Value}, Field}};
+    /// # use std::convert::TryFrom;
+    /// use noodles_sam::{self as sam, record::{data, Data}};
     ///
-    /// let record = sam::Record::builder()
-    ///     .set_data("NH:i:1\tRG:Z:rg0".parse()?)
-    ///     .build();
+    /// let record = sam::Record::default();
+    /// assert!(record.data().is_empty());
     ///
-    /// assert_eq!(**record.data(), [
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
-    ///     Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-    /// ]);
-    /// Ok::<(), sam::record::data::ParseError>(())
+    /// let data = Data::try_from(vec![data::Field::new(
+    ///     data::field::Tag::AlignmentHitCount,
+    ///     data::field::Value::Int32(1),
+    /// )])?;
+    /// let record = sam::Record::builder().set_data(data).build();
+    /// assert_eq!(record.data().to_string(), "NH:i:1");
+    /// # Ok::<(), data::TryFromFieldVectorError>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;
@@ -353,10 +355,10 @@ mod tests {
         let sequence: Sequence = "ATCGATC".parse()?;
         let quality_scores: QualityScores = "NOODLES".parse()?;
 
-        let data = Data::from(vec![data::Field::new(
+        let data = Data::try_from(vec![data::Field::new(
             data::field::Tag::AlignmentHitCount,
             data::field::Value::Int32(1),
-        )]);
+        )])?;
 
         let record = Builder::new()
             .set_read_name(read_name.clone())

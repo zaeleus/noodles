@@ -79,6 +79,8 @@ impl From<Vec<Op>> for Cigar {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
     /// The CIGAR string has an invalid operation.
     InvalidOp(op::ParseError),
 }
@@ -89,6 +91,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::InvalidOp(e) => write!(f, "invalid op: {}", e),
         }
     }
@@ -115,7 +118,11 @@ impl FromStr for Cigar {
             start = end + raw_kind.len();
         }
 
-        Ok(Self::from(ops))
+        if start == s.len() {
+            Ok(Self::from(ops))
+        } else {
+            Err(ParseError::Invalid)
+        }
     }
 }
 
@@ -163,5 +170,6 @@ mod tests {
         assert_eq!("*".parse(), Ok(Cigar::default()));
 
         assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
+        assert_eq!("8M13".parse::<Cigar>(), Err(ParseError::Invalid));
     }
 }

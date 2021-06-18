@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-fastq** handles the reading and writing of the FASTQ format.
 //!

@@ -89,6 +89,8 @@ pub enum TryFromDataError {
     InvalidField,
     /// A BAM u32 value is out of range for a SAM i32 value.
     OutOfRange(u32),
+    /// The data is invalid.
+    InvalidData(sam::record::data::TryFromFieldVectorError),
 }
 
 impl error::Error for TryFromDataError {}
@@ -100,6 +102,7 @@ impl fmt::Display for TryFromDataError {
             Self::OutOfRange(value) => {
                 write!(f, "value is out of range: {}", value)
             }
+            Self::InvalidData(e) => write!(f, "invalid data: {}", e),
         }
     }
 }
@@ -143,7 +146,7 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
             sam_fields.push(sam_field);
         }
 
-        Ok(Self::from(sam_fields))
+        Self::try_from(sam_fields).map_err(TryFromDataError::InvalidData)
     }
 }
 
@@ -152,7 +155,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_data_for_sam_record_data() -> Result<(), TryFromDataError> {
+    fn test_try_from_data_for_sam_record_data() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::data::{
             field::{Tag, Value},
             Field,
@@ -165,10 +168,10 @@ mod tests {
         let data = Data::new(&raw_data);
 
         let actual = sam::record::Data::try_from(data)?;
-        let expected = sam::record::Data::from(vec![
+        let expected = sam::record::Data::try_from(vec![
             Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-        ]);
+        ])?;
 
         assert_eq!(actual, expected);
 

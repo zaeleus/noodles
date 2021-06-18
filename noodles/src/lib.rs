@@ -1,11 +1,14 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles** is a library for handling various bioinformatics file formats. It currently
-//! includes readers and writers for BAM 1.6, BGZF, CRAM 3.0, FASTA, FASTQ, GFF3, SAM 1.6, tabix,
-//! and VCF 4.3.
+//! includes readers and writers for BAM 1.6, BCF 2.2, BGZF, CRAM 3.0, CSI, FASTA, FASTQ, GFF3, SAM
+//! 1.6, tabix, and VCF 4.3.
 
 #[cfg(feature = "bam")]
 pub use noodles_bam as bam;
+
+#[cfg(feature = "bcf")]
+pub use noodles_bcf as bcf;
 
 #[cfg(feature = "bgzf")]
 pub use noodles_bgzf as bgzf;
@@ -15,6 +18,9 @@ pub use noodles_core as core;
 
 #[cfg(feature = "cram")]
 pub use noodles_cram as cram;
+
+#[cfg(feature = "csi")]
+pub use noodles_csi as csi;
 
 #[cfg(feature = "fasta")]
 pub use noodles_fasta as fasta;

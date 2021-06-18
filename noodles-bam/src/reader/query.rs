@@ -1,8 +1,8 @@
 use std::io::{self, Read, Seek};
 
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf::{index::Chunk, VirtualPosition};
 
-use crate::{bai::index::reference_sequence::bin::Chunk, Record};
+use crate::Record;
 
 use super::Reader;
 

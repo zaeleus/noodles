@@ -53,7 +53,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::{ReferenceSequence, ReferenceSequences}};
     ///
     /// let reference_sequences: ReferenceSequences = vec![
-    ///     (String::from("sq0"), ReferenceSequence::new(String::from("sq0"), 13))
+    ///     (String::from("sq0"), ReferenceSequence::new("sq0", 13))
     /// ]
     /// .into_iter()
     /// .collect();
@@ -79,7 +79,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -100,7 +100,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReadGroup};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .add_read_group(ReadGroup::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -120,7 +120,7 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::Program};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .add_program(Program::new("noodles-sam"))
     ///     .build();
     ///
     /// let programs = header.programs();
@@ -177,24 +177,24 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let header = Builder::default().build();
+        let header = Builder::default();
 
-        assert!(header.header().is_none());
-        assert!(header.reference_sequences().is_empty());
-        assert!(header.read_groups().is_empty());
-        assert!(header.programs().is_empty());
-        assert!(header.comments().is_empty());
+        assert!(header.header.is_none());
+        assert!(header.reference_sequences.is_empty());
+        assert!(header.read_groups.is_empty());
+        assert!(header.programs.is_empty());
+        assert!(header.comments.is_empty());
     }
 
     #[test]
     fn test_build() {
         let header = Builder::new()
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq2"), 21))
-            .add_read_group(ReadGroup::new(String::from("rg0")))
-            .add_read_group(ReadGroup::new(String::from("rg1")))
-            .add_program(Program::new(String::from("noodles-sam")))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+            .add_reference_sequence(ReferenceSequence::new("sq2", 21))
+            .add_read_group(ReadGroup::new("rg0"))
+            .add_read_group(ReadGroup::new("rg1"))
+            .add_program(Program::new("noodles-sam"))
             .add_comment("written by noodles-sam")
             .build();
 

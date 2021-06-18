@@ -19,10 +19,10 @@ fn main() -> io::Result<()> {
 
     let header = sam::Header::builder()
         .set_header(header::header::Header::default())
-        .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-        .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
-        .add_reference_sequence(ReferenceSequence::new(String::from("sq2"), 21))
-        .add_program(Program::new(String::from("noodles-bam")))
+        .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+        .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+        .add_reference_sequence(ReferenceSequence::new("sq2", 21))
+        .add_program(Program::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();
 

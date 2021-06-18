@@ -1,6 +1,7 @@
 pub(crate) mod record;
 
 use std::{
+    convert::TryFrom,
     ffi::CString,
     io::{self, Write},
 };
@@ -113,7 +114,8 @@ where
         self.inner.write_all(MAGIC_NUMBER)?;
 
         let text = header.to_string();
-        let l_text = text.len() as i32;
+        let l_text = i32::try_from(text.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_i32::<LittleEndian>(l_text)?;
 
         self.inner.write_all(text.as_bytes())?;
@@ -136,7 +138,7 @@ where
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+    ///     .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -148,7 +150,8 @@ where
         &mut self,
         reference_sequences: &ReferenceSequences,
     ) -> io::Result<()> {
-        let n_ref = reference_sequences.len() as i32;
+        let n_ref = i32::try_from(reference_sequences.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_i32::<LittleEndian>(n_ref)?;
 
         for reference_sequence in reference_sequences.values() {
@@ -171,7 +174,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let block_size = record.len() as u32;
+        let block_size = u32::try_from(record.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(block_size)?;
         self.inner.write_all(record)
     }
@@ -209,11 +213,12 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
-    let l_name = name.len() as i32;
-    writer.write_i32::<LittleEndian>(l_name)?;
+    let l_name =
+        u32::try_from(name.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(l_name)?;
     writer.write_all(name)?;
 
-    let l_ref = reference_sequence.len() as i32;
+    let l_ref = reference_sequence.len();
     writer.write_i32::<LittleEndian>(l_ref)?;
 
     Ok(())
@@ -221,6 +226,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use noodles_sam::record::Data;
 
     use crate::{record::sequence::Base, Reader, Record};
@@ -253,7 +260,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::builder()
-            .add_reference_sequence(sam::header::ReferenceSequence::new(String::from("sq0"), 8))
+            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
             .set_header(sam::header::header::Header::default())
             .build();
 
@@ -266,10 +273,7 @@ mod tests {
         let actual = reader.read_reference_sequences()?;
 
         assert_eq!(actual.len(), 1);
-        assert_eq!(
-            &actual[0],
-            &sam::header::ReferenceSequence::new(String::from("sq0"), 8)
-        );
+        assert_eq!(&actual[0], &sam::header::ReferenceSequence::new("sq0", 8));
 
         Ok(())
     }
@@ -401,7 +405,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record_with_data() -> io::Result<()> {
+    fn test_write_sam_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::record::data::{
             field::{Tag as SamTag, Value as SamValue},
             Field as SamField,
@@ -413,10 +417,10 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
-            .set_data(Data::from(vec![
+            .set_data(Data::try_from(vec![
                 SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
                 SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
-            ]))
+            ])?)
             .build();
 
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;

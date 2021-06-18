@@ -58,18 +58,8 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.id(), &Key::SamplesWithDataCount);
     /// ```
     pub fn id(&self) -> &info::field::Key {
@@ -81,18 +71,8 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::{Info, Number}, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.number(), Number::Count(1));
     /// ```
     pub fn number(&self) -> Number {
@@ -104,18 +84,8 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::{info::Type, Info}, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.ty(), Type::Integer);
     /// ```
     pub fn ty(&self) -> Type {
@@ -127,18 +97,8 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.description(), "Number of samples with data");
     /// ```
     pub fn description(&self) -> &str {
@@ -152,18 +112,8 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert!(info.idx().is_none());
     /// ```
     pub fn idx(&self) -> Option<usize> {
@@ -177,22 +127,21 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
-    ///
-    /// let info = Info::new(
-    ///     Key::SamplesWithDataCount,
-    ///     Number::Count(1),
-    ///     Type::Integer,
-    ///     String::from("Number of samples with data"),
-    /// );
-    ///
+    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert!(info.fields().is_empty());
     /// ```
     pub fn fields(&self) -> &IndexMap<String, String> {
         &self.fields
+    }
+}
+
+impl From<info::field::Key> for Info {
+    fn from(key: info::field::Key) -> Self {
+        let number = key.number();
+        let ty = key.ty();
+        let description = key.description().to_string();
+        Self::new(key, number, ty, description)
     }
 }
 
@@ -366,6 +315,20 @@ mod tests {
                 ),
             ]),
         )
+    }
+
+    #[test]
+    fn test_from_info_field_key_for_info() {
+        let actual = Info::from(info::field::Key::SamplesWithDataCount);
+
+        let expected = Info::new(
+            info::field::Key::SamplesWithDataCount,
+            Number::Count(1),
+            Type::Integer,
+            String::from("Number of samples with data"),
+        );
+
+        assert_eq!(actual, expected);
     }
 
     #[test]

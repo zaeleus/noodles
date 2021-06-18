@@ -1,13 +1,10 @@
 use std::{cmp, collections::HashMap, io};
 
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, index::Chunk};
 
 use crate::Record;
 
-use super::{
-    bin::{self, Chunk},
-    Bin, Metadata, ReferenceSequence, WINDOW_SIZE,
-};
+use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
 
 // § 5.2 The BAI index format for BAM files (2020-07-19)
 const MAX_INTERVAL_COUNT: usize = 131072;
@@ -131,7 +128,7 @@ mod tests {
         let mut reference_sequences = ReferenceSequences::default();
         reference_sequences.insert(
             String::from("sq0"),
-            sam::header::ReferenceSequence::new(String::from("sq0"), 8),
+            sam::header::ReferenceSequence::new("sq0", 8),
         );
 
         let mut builder = Builder::default();

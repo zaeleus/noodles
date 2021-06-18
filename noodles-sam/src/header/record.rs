@@ -1,14 +1,17 @@
 //! SAM header record and components.
 
 pub mod kind;
-mod value;
+pub mod value;
 
 use std::{error, fmt, str::FromStr};
 
 pub use self::{kind::Kind, value::Value};
 
+use self::value::Fields;
+
 const DELIMITER: char = '\t';
 const DATA_FIELD_DELIMITER: char = ':';
+const TAG_LENGTH: usize = 2;
 
 /// A generic SAM header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -72,6 +75,10 @@ pub enum ParseError {
     InvalidKind(kind::ParseError),
     /// A tag is missing.
     MissingTag,
+    /// A tag is invalid.
+    InvalidTag,
+    /// A tag is duplicated.
+    DuplicateTag(String),
     /// A tag value is missing.
     MissingValue(String),
 }
@@ -80,13 +87,13 @@ impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid record: ")?;
-
         match self {
             Self::MissingKind => write!(f, "missing kind"),
-            Self::InvalidKind(e) => write!(f, "{}", e),
-            Self::MissingTag => write!(f, "missing field tag"),
-            Self::MissingValue(tag) => write!(f, "missing value for {}", tag),
+            Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
+            Self::MissingTag => write!(f, "missing tag"),
+            Self::InvalidTag => write!(f, "invalid tag"),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
+            Self::MissingValue(tag) => write!(f, "missing value for tag {}", tag),
         }
     }
 }
@@ -102,29 +109,71 @@ impl FromStr for Record {
             .ok_or(ParseError::MissingKind)
             .and_then(|s| s.parse().map_err(ParseError::InvalidKind))?;
 
-        let value = if let Kind::Comment = kind {
-            pieces
-                .next()
-                .map(|s| Value::String(s.into()))
-                .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))?
-        } else {
-            pieces
-                .map(|field| {
-                    let mut field_pieces = field.splitn(2, DATA_FIELD_DELIMITER);
-
-                    let tag = field_pieces.next().ok_or(ParseError::MissingTag)?;
-                    let value = field_pieces
-                        .next()
-                        .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
-
-                    Ok((tag.into(), value.into()))
-                })
-                .collect::<Result<_, _>>()
-                .map(Value::Map)?
+        let value = match kind {
+            Kind::Comment => parse_comment(&mut pieces)?,
+            _ => parse_map(&mut pieces)?,
         };
 
         Ok(Self::new(kind, value))
     }
+}
+
+fn parse_comment<'a, I>(iter: &mut I) -> Result<Value, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    iter.next()
+        .map(|s| Value::String(s.into()))
+        .ok_or_else(|| ParseError::MissingValue(Kind::Comment.to_string()))
+}
+
+fn parse_map<'a, I>(iter: &mut I) -> Result<Value, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut fields = Fields::new();
+
+    for s in iter {
+        let mut components = s.splitn(2, DATA_FIELD_DELIMITER);
+
+        let tag = components.next().ok_or(ParseError::MissingTag)?;
+
+        if !is_valid_tag(tag) {
+            return Err(ParseError::InvalidTag);
+        }
+
+        let value = components
+            .next()
+            .ok_or_else(|| ParseError::MissingValue(tag.into()))?;
+
+        if fields.insert(tag.into(), value.into()).is_some() {
+            return Err(ParseError::DuplicateTag(tag.into()));
+        }
+    }
+
+    Ok(Value::Map(fields))
+}
+
+fn is_valid_tag(s: &str) -> bool {
+    if s.len() != TAG_LENGTH {
+        return false;
+    }
+
+    let mut chars = s.chars();
+
+    if let Some(c) = chars.next() {
+        if !c.is_ascii_alphabetic() {
+            return false;
+        }
+    }
+
+    if let Some(c) = chars.next() {
+        if !c.is_ascii_alphanumeric() {
+            return false;
+        }
+    }
+
+    true
 }
 
 #[cfg(test)]
@@ -132,12 +181,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), value::TryFromIteratorError> {
         assert_eq!(
             "@HD\tVN:1.6".parse(),
             Ok(Record::new(
                 Kind::Header,
-                Value::Map(vec![(String::from("VN"), String::from("1.6"))])
+                Value::try_from_iter(vec![("VN", "1.6")])?,
             ))
         );
 
@@ -145,10 +194,7 @@ mod tests {
             "@SQ\tSN:sq0\tLN:8".parse(),
             Ok(Record::new(
                 Kind::ReferenceSequence,
-                Value::Map(vec![
-                    (String::from("SN"), String::from("sq0")),
-                    (String::from("LN"), String::from("8")),
-                ])
+                Value::try_from_iter(vec![("SN", "sq0"), ("LN", "8"),])?
             ))
         );
 
@@ -156,7 +202,7 @@ mod tests {
             "@RG\tID:rg0".parse(),
             Ok(Record::new(
                 Kind::ReadGroup,
-                Value::Map(vec![(String::from("ID"), String::from("rg0"))])
+                Value::try_from_iter(vec![("ID", "rg0")])?
             ))
         );
 
@@ -164,7 +210,7 @@ mod tests {
             "@PG\tID:pg0".parse(),
             Ok(Record::new(
                 Kind::Program,
-                Value::Map(vec![(String::from("ID"), String::from("pg0"))])
+                Value::try_from_iter(vec![("ID", "pg0")])?
             ))
         );
 
@@ -177,8 +223,32 @@ mod tests {
         );
 
         assert_eq!(
+            "@CO\t".parse(),
+            Ok(Record::new(Kind::Comment, Value::String(String::from(""))))
+        );
+
+        assert!(matches!(
+            "@ND".parse::<Record>(),
+            Err(ParseError::InvalidKind(_))
+        ));
+
+        assert_eq!("@HD\tV:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
+        assert_eq!("@HD\t0V:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
+        assert_eq!(
+            "@HD\tVER:1.6".parse::<Record>(),
+            Err(ParseError::InvalidTag)
+        );
+
+        assert_eq!(
+            "@HD\tVN:1.6\tVN:1.6".parse::<Record>(),
+            Err(ParseError::DuplicateTag(String::from("VN")))
+        );
+
+        assert_eq!(
             "@CO".parse::<Record>(),
             Err(ParseError::MissingValue(String::from("@CO")))
         );
+
+        Ok(())
     }
 }

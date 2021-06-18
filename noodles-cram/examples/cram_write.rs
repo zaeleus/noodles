@@ -29,7 +29,7 @@ GGCGCCCCGCTGTGCAAAAAT
 fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
     let mut builder = sam::Header::builder()
         .set_header(header::header::Header::default())
-        .add_program(Program::new(String::from("noodles-cram")))
+        .add_program(Program::new("noodles-cram"))
         .add_comment("an example CRAM written by noodles-cram");
 
     for record in reference_sequence_records {

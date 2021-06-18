@@ -2,9 +2,9 @@
 
 use std::{convert::TryFrom, error, fmt};
 
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf::{index::Chunk, VirtualPosition};
 
-use super::{bin::Chunk, Bin};
+use super::Bin;
 
 pub(crate) const MAGIC_NUMBER: u32 = 37450;
 
@@ -23,9 +23,15 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_bgzf as bgzf;
     /// use noodles_tabix::index::reference_sequence::Metadata;
-    /// let meta = Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0);
+    ///
+    /// let metadata = Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// );
     /// ```
     pub fn new(
         start_position: VirtualPosition,
@@ -46,10 +52,17 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_bgzf as bgzf;
     /// use noodles_tabix::index::reference_sequence::Metadata;
-    /// let meta = Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0);
-    /// assert_eq!(meta.start_position(), VirtualPosition::from(610));
+    ///
+    /// let metadata = Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// );
+    ///
+    /// assert_eq!(metadata.start_position(), bgzf::VirtualPosition::from(610));
     /// ```
     pub fn start_position(&self) -> VirtualPosition {
         self.start_position
@@ -60,10 +73,17 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_bgzf as bgzf;
     /// use noodles_tabix::index::reference_sequence::Metadata;
-    /// let meta = Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0);
-    /// assert_eq!(meta.end_position(), VirtualPosition::from(1597));
+    ///
+    /// let metadata = Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// );
+    ///
+    /// assert_eq!(metadata.end_position(), bgzf::VirtualPosition::from(1597));
     /// ```
     pub fn end_position(&self) -> VirtualPosition {
         self.end_position
@@ -74,10 +94,17 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_bgzf as bgzf;;
     /// use noodles_tabix::index::reference_sequence::Metadata;
-    /// let meta = Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0);
-    /// assert_eq!(meta.mapped_record_count(), 55);
+    ///
+    /// let metadata = Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// );
+    ///
+    /// assert_eq!(metadata.mapped_record_count(), 55);
     /// ```
     pub fn mapped_record_count(&self) -> u64 {
         self.mapped_record_count
@@ -88,10 +115,17 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_bgzf as bgzf;;
     /// use noodles_tabix::index::reference_sequence::Metadata;
-    /// let meta = Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0);
-    /// assert_eq!(meta.unmapped_record_count(), 0);
+    ///
+    /// let metadata = Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// );
+    ///
+    /// assert_eq!(metadata.unmapped_record_count(), 0);
     /// ```
     pub fn unmapped_record_count(&self) -> u64 {
         self.unmapped_record_count

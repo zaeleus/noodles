@@ -91,11 +91,11 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("VN".parse::<Tag>(), Ok(Tag::Version));
-        assert_eq!("SO".parse::<Tag>(), Ok(Tag::SortOrder));
-        assert_eq!("GO".parse::<Tag>(), Ok(Tag::GroupOrder));
-        assert_eq!("SS".parse::<Tag>(), Ok(Tag::SubsortOrder));
-        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("VN".parse(), Ok(Tag::Version));
+        assert_eq!("SO".parse(), Ok(Tag::SortOrder));
+        assert_eq!("GO".parse(), Ok(Tag::GroupOrder));
+        assert_eq!("SS".parse(), Ok(Tag::SubsortOrder));
+        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));

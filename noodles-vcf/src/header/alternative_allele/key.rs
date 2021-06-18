@@ -26,17 +26,21 @@ impl fmt::Display for Key {
 
 /// An error returned when a raw VCF header symbolic alternate allele record key fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid filter key: expected {{ID, Description}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -45,9 +49,10 @@ impl FromStr for Key {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::Empty),
             "ID" => Ok(Self::Id),
             "Description" => Ok(Self::Description),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -63,13 +68,11 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("ID".parse::<Key>()?, Key::Id);
-        assert_eq!("Description".parse::<Key>()?, Key::Description);
+    fn test_from_str() {
+        assert_eq!("ID".parse(), Ok(Key::Id));
+        assert_eq!("Description".parse(), Ok(Key::Description));
 
-        assert!("".parse::<Key>().is_err());
-        assert!("Noodles".parse::<Key>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
+        assert_eq!("Noodles".parse::<Key>(), Err(ParseError::Invalid));
     }
 }

@@ -1,7 +1,7 @@
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
-    character::complete::{alpha1, none_of},
+    character::complete::{alphanumeric1, none_of},
     combinator::{map, opt},
     multi::separated_list1,
     sequence::{delimited, separated_pair},
@@ -32,7 +32,7 @@ fn value(input: &str) -> IResult<&str, String> {
 }
 
 fn field_key(input: &str) -> IResult<&str, &str> {
-    alpha1(input)
+    alphanumeric1(input)
 }
 
 fn field_value(input: &str) -> IResult<&str, String> {
@@ -366,6 +366,22 @@ mod tests {
             ])
         );
 
+        let (_, (key, value)) =
+            parse(r#"##contig=<ID=sq0,length=13,md5=d7eba311421bbc9d3ada44709dd61534>"#)?;
+
+        assert_eq!(key, "contig");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534")
+                ),
+            ])
+        );
+
         Ok(())
     }
 
@@ -391,7 +407,7 @@ mod tests {
             ])
         );
 
-        /* let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
+        let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
 
         assert_eq!(key, "FILTER");
         assert_eq!(
@@ -416,7 +432,7 @@ mod tests {
                 (String::from("Description"), String::from("Genotype")),
                 (String::from("IDX"), String::from("2")),
             ])
-        ); */
+        );
 
         Ok(())
     }

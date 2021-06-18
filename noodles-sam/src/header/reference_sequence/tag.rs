@@ -121,17 +121,17 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("SN".parse::<Tag>(), Ok(Tag::Name));
-        assert_eq!("LN".parse::<Tag>(), Ok(Tag::Length));
-        assert_eq!("AH".parse::<Tag>(), Ok(Tag::AlternativeLocus));
-        assert_eq!("AN".parse::<Tag>(), Ok(Tag::AlternativeNames));
-        assert_eq!("AS".parse::<Tag>(), Ok(Tag::AssemblyId));
-        assert_eq!("DS".parse::<Tag>(), Ok(Tag::Description));
-        assert_eq!("M5".parse::<Tag>(), Ok(Tag::Md5Checksum));
-        assert_eq!("SP".parse::<Tag>(), Ok(Tag::Species));
-        assert_eq!("TP".parse::<Tag>(), Ok(Tag::MoleculeTopology));
-        assert_eq!("UR".parse::<Tag>(), Ok(Tag::Uri));
-        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("SN".parse(), Ok(Tag::Name));
+        assert_eq!("LN".parse(), Ok(Tag::Length));
+        assert_eq!("AH".parse(), Ok(Tag::AlternativeLocus));
+        assert_eq!("AN".parse(), Ok(Tag::AlternativeNames));
+        assert_eq!("AS".parse(), Ok(Tag::AssemblyId));
+        assert_eq!("DS".parse(), Ok(Tag::Description));
+        assert_eq!("M5".parse(), Ok(Tag::Md5Checksum));
+        assert_eq!("SP".parse(), Ok(Tag::Species));
+        assert_eq!("TP".parse(), Ok(Tag::MoleculeTopology));
+        assert_eq!("UR".parse(), Ok(Tag::Uri));
+        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));

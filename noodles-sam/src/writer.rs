@@ -108,6 +108,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use crate::record::{
         data::{self, Field},
         Data,
@@ -116,13 +118,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_record_with_data() -> io::Result<()> {
+    fn test_write_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(vec![]);
 
-        let data = Data::from(vec![Field::new(
+        let data = Data::try_from(vec![Field::new(
             data::field::Tag::ReadGroup,
             data::field::Value::String(String::from("rg0")),
-        )]);
+        )])?;
 
         let record = Record::builder().set_data(data).build();
 

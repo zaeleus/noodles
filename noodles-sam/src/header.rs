@@ -48,8 +48,8 @@
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(header::header::Header::default())
-//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-//!     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+//!     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+//!     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -67,7 +67,7 @@ pub mod read_group;
 pub mod record;
 pub mod reference_sequence;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{collections::HashSet, convert::TryFrom, error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
@@ -91,7 +91,7 @@ pub type Programs = IndexMap<String, Program>;
 ///
 /// Records are grouped by their types: header, reference seqeuence, read group, program, and
 /// comment.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
     header: Option<header::Header>,
     reference_sequences: ReferenceSequences,
@@ -110,7 +110,7 @@ impl Header {
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::default())
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// assert!(header.header().is_some());
@@ -177,7 +177,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -202,7 +202,7 @@ impl Header {
     ///
     /// header.reference_sequences_mut().insert(
     ///     String::from("sq0"),
-    ///     ReferenceSequence::new(String::from("sq0"), 13)
+    ///     ReferenceSequence::new("sq0", 13),
     /// );
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -221,7 +221,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::ReadGroup};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new(String::from("rg0")))
+    ///     .add_read_group(ReadGroup::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -244,7 +244,7 @@ impl Header {
     ///
     /// header.read_groups_mut().insert(
     ///     String::from("rg0"),
-    ///     ReadGroup::new(String::from("rg0")),
+    ///     ReadGroup::new("rg0"),
     /// );
     ///
     /// let read_groups = header.read_groups();
@@ -263,7 +263,7 @@ impl Header {
     /// use noodles_sam::{self as sam, header::Program};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Program::new(String::from("noodles-sam")))
+    ///     .add_program(Program::new("noodles-sam"))
     ///     .build();
     ///
     /// let programs = header.programs();
@@ -285,7 +285,7 @@ impl Header {
     ///
     /// header.programs_mut().insert(
     ///     String::from("noodles-sam"),
-    ///     Program::new(String::from("noodles-sam")),
+    ///     Program::new("noodles-sam"),
     /// );
     ///
     /// let programs = header.programs();
@@ -384,8 +384,8 @@ impl fmt::Display for Header {
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::new(header::header::Version::new(1, 6)))
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-    ///     .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
     ///     .build();
     ///
     /// let expected = "\
@@ -422,7 +422,7 @@ impl fmt::Display for Header {
 }
 
 /// An error returned when a raw SAM header fails to parse.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// A header record is not on the first line.
     UnexpectedHeader,
@@ -432,10 +432,16 @@ pub enum ParseError {
     InvalidHeader(header::TryFromRecordError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
-    /// A reference read group record is invalid.
+    /// A reference sequence name is duplicated.
+    DuplicateReferenceSequenceName(String),
+    /// A read group record is invalid.
     InvalidReadGroup(read_group::TryFromRecordError),
+    /// A read group ID is duplicated.
+    DuplicateReadGroupId(String),
     /// A program record is invalid.
     InvalidProgram(program::TryFromRecordError),
+    /// A program ID is duplicated.
+    DuplicateProgramId(String),
     /// A comment record is invalid.
     InvalidComment,
 }
@@ -449,8 +455,13 @@ impl fmt::Display for ParseError {
             Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
             Self::InvalidHeader(e) => write!(f, "invalid header: {}", e),
             Self::InvalidReferenceSequence(e) => write!(f, "invalid reference sequence: {}", e),
+            Self::DuplicateReferenceSequenceName(name) => {
+                write!(f, "duplicate reference sequence name: {}", name)
+            }
             Self::InvalidReadGroup(e) => write!(f, "invalid read group: {}", e),
+            Self::DuplicateReadGroupId(id) => write!(f, "duplicate read group ID: {}", id),
             Self::InvalidProgram(e) => write!(f, "invalid program: {}", e),
+            Self::DuplicateProgramId(id) => write!(f, "duplicate program ID: {}", id),
             Self::InvalidComment => f.write_str("invalid comment record"),
         }
     }
@@ -484,6 +495,10 @@ impl FromStr for Header {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut builder = Self::builder();
 
+        let mut read_group_ids: HashSet<String> = HashSet::new();
+        let mut reference_sequence_names: HashSet<String> = HashSet::new();
+        let mut program_ids: HashSet<String> = HashSet::new();
+
         for (i, line) in s.lines().enumerate() {
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
@@ -500,15 +515,32 @@ impl FromStr for Header {
                 record::Kind::ReferenceSequence => {
                     let reference_sequence = ReferenceSequence::try_from(record)
                         .map_err(ParseError::InvalidReferenceSequence)?;
+
+                    if !reference_sequence_names.insert(reference_sequence.name().into()) {
+                        return Err(ParseError::DuplicateReferenceSequenceName(
+                            reference_sequence.name().into(),
+                        ));
+                    }
+
                     builder.add_reference_sequence(reference_sequence)
                 }
                 record::Kind::ReadGroup => {
                     let read_group =
                         ReadGroup::try_from(record).map_err(ParseError::InvalidReadGroup)?;
+
+                    if !read_group_ids.insert(read_group.id().into()) {
+                        return Err(ParseError::DuplicateReadGroupId(read_group.id().into()));
+                    }
+
                     builder.add_read_group(read_group)
                 }
                 record::Kind::Program => {
                     let program = Program::try_from(record).map_err(ParseError::InvalidProgram)?;
+
+                    if !program_ids.insert(program.id().into()) {
+                        return Err(ParseError::DuplicateProgramId(program.id().into()));
+                    }
+
                     builder.add_program(program)
                 }
                 record::Kind::Comment => match record.value() {
@@ -530,12 +562,12 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_header(header::Header::new(header::Version::new(1, 6)))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq0"), 8))
-            .add_reference_sequence(ReferenceSequence::new(String::from("sq1"), 13))
-            .add_read_group(ReadGroup::new(String::from("rg0")))
-            .add_read_group(ReadGroup::new(String::from("rg1")))
-            .add_program(Program::new(String::from("pg0")))
-            .add_program(Program::new(String::from("pg1")))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+            .add_read_group(ReadGroup::new("rg0"))
+            .add_read_group(ReadGroup::new("rg1"))
+            .add_program(Program::new("pg0"))
+            .add_program(Program::new("pg1"))
             .add_comment("noodles")
             .add_comment("sam")
             .build();
@@ -609,6 +641,47 @@ mod tests {
 @HD\tVN:1.6\tSO:coordinate
 ";
 
-        assert!(s.parse::<Header>().is_err());
+        assert_eq!(s.parse::<Header>(), Err(ParseError::UnexpectedHeader));
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_reference_sequence_names() {
+        let s = "\
+@SQ\tSN:sq0\tLN:8
+@SQ\tSN:sq0\tLN:8
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateReferenceSequenceName(String::from(
+                "sq0"
+            )))
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_read_group_ids() {
+        let s = "\
+@RG\tID:rg0
+@RG\tID:rg0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateReadGroupId(String::from("rg0")))
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_duplicate_program_ids() {
+        let s = "\
+@PG\tID:pg0
+@PG\tID:pg0
+";
+
+        assert_eq!(
+            s.parse::<Header>(),
+            Err(ParseError::DuplicateProgramId(String::from("pg0")))
+        );
     }
 }

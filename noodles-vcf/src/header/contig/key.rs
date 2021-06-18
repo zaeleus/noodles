@@ -31,13 +31,18 @@ impl fmt::Display for Key {
 
 /// An error returned when a raw VCF header contig record key fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is empty.
+    Empty,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid contig key: {}", self.0)
+        match self {
+            Self::Empty => f.write_str("empty input"),
+        }
     }
 }
 
@@ -46,7 +51,7 @@ impl FromStr for Key {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Err(ParseError(s.into())),
+            "" => Err(ParseError::Empty),
             "ID" => Ok(Self::Id),
             "length" => Ok(Self::Length),
             _ => Ok(Self::Other(s.into())),
@@ -66,26 +71,15 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("ID".parse::<Key>()?, Key::Id);
-        assert_eq!("length".parse::<Key>()?, Key::Length);
-        assert_eq!(
-            "assembly".parse::<Key>()?,
-            Key::Other(String::from("assembly"))
-        );
-        assert_eq!("md5".parse::<Key>()?, Key::Other(String::from("md5")));
-        assert_eq!(
-            "species".parse::<Key>()?,
-            Key::Other(String::from("species"))
-        );
-        assert_eq!(
-            "taxonomy".parse::<Key>()?,
-            Key::Other(String::from("taxonomy"))
-        );
-        assert_eq!("URL".parse::<Key>()?, Key::Other(String::from("URL")));
+    fn test_from_str() {
+        assert_eq!("ID".parse(), Ok(Key::Id));
+        assert_eq!("length".parse(), Ok(Key::Length));
+        assert_eq!("assembly".parse(), Ok(Key::Other(String::from("assembly"))));
+        assert_eq!("md5".parse(), Ok(Key::Other(String::from("md5"))));
+        assert_eq!("species".parse(), Ok(Key::Other(String::from("species"))));
+        assert_eq!("taxonomy".parse(), Ok(Key::Other(String::from("taxonomy"))));
+        assert_eq!("URL".parse(), Ok(Key::Other(String::from("URL"))));
 
-        assert!("".parse::<Key>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
     }
 }

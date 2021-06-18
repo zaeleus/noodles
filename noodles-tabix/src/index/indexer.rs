@@ -1,7 +1,6 @@
-use super::{
-    reference_sequence::{self, bin::Chunk},
-    Header, Index, ReferenceSequence,
-};
+use noodles_bgzf::index::Chunk;
+
+use super::{reference_sequence, Header, Index, ReferenceSequence};
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
@@ -30,8 +29,8 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_tabix::{self as tabix, index::reference_sequence::bin::Chunk};
+    /// use noodles_bgzf::{self as bgzf, index::Chunk};
+    /// use noodles_tabix as tabix;
     ///
     /// let mut indexer = tabix::Index::indexer();
     ///

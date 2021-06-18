@@ -1,12 +1,10 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_bgzf::index::Chunk;
 
 use super::{
-    index::{
-        reference_sequence::{bin::Chunk, Bin},
-        ReferenceSequence,
-    },
+    index::{reference_sequence::Bin, ReferenceSequence},
     Index, MAGIC_NUMBER,
 };
 

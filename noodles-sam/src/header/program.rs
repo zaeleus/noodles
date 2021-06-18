@@ -7,7 +7,10 @@ use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{builder::Builder, tag::Tag};
 
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header program.
 ///
@@ -43,12 +46,15 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     /// ```
-    pub fn new(id: String) -> Self {
+    pub fn new<I>(id: I) -> Self
+    where
+        I: Into<String>,
+    {
         Self {
-            id,
+            id: id.into(),
             name: None,
             command_line: None,
             previous_id: None,
@@ -64,7 +70,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     /// ```
     pub fn id(&self) -> &str {
@@ -78,7 +84,7 @@ impl Program {
     /// ```
     /// use noodles_sam::header::Program;
     ///
-    /// let mut program = Program::new(String::from("pg0"));
+    /// let mut program = Program::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     ///
     /// *program.id_mut() = String::from("pg1");
@@ -94,7 +100,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.name().is_none());
     /// ```
     pub fn name(&self) -> Option<&str> {
@@ -107,7 +113,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.command_line().is_none());
     /// ```
     pub fn command_line(&self) -> Option<&str> {
@@ -120,7 +126,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.previous_id().is_none());
     /// ```
     pub fn previous_id(&self) -> Option<&str> {
@@ -133,7 +139,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -146,7 +152,7 @@ impl Program {
     ///
     /// ```
     /// use noodles_sam::header::Program;
-    /// let program = Program::new(String::from("pg0"));
+    /// let program = Program::new("pg0");
     /// assert!(program.version().is_none());
     /// ```
     pub fn version(&self) -> Option<&str> {
@@ -164,7 +170,7 @@ impl Program {
     /// use noodles_sam::header::{program::Tag, Program};
     ///
     /// let program = Program::builder()
-    ///     .set_id(String::from("pg0"))
+    ///     .set_id("pg0")
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();
     ///
@@ -250,7 +256,7 @@ impl TryFrom<Record> for Program {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<Program, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<Program, TryFromRecordError> {
     let mut builder = Program::builder();
     let mut id = None;
 
@@ -304,15 +310,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_program_with_no_id() {
+    fn test_try_from_record_for_program_with_no_id(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::Program,
-            record::Value::Map(vec![(String::from("PN"), String::from("noodles"))]),
+            record::Value::try_from_iter(vec![("PN", "noodles")])?,
         );
 
         assert_eq!(
             Program::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
+
+        Ok(())
     }
 }

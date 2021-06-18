@@ -15,15 +15,11 @@ fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(fastq::Reader::new)?;
 
-    let mut record = fastq::Record::default();
     let mut n = 0;
 
-    loop {
-        match reader.read_record(&mut record) {
-            Ok(0) => break,
-            Ok(_) => n += 1,
-            Err(e) => return Err(e),
-        }
+    for result in reader.records() {
+        let _ = result?;
+        n += 1;
     }
 
     println!("{}", n);

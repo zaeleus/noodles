@@ -172,15 +172,15 @@ mod tests {
         vec![
             (
                 String::from("sq0"),
-                sam::header::ReferenceSequence::new(String::from("sq0"), 5),
+                sam::header::ReferenceSequence::new("sq0", 5),
             ),
             (
                 String::from("sq1"),
-                sam::header::ReferenceSequence::new(String::from("sq1"), 8),
+                sam::header::ReferenceSequence::new("sq1", 8),
             ),
             (
                 String::from("sq2"),
-                sam::header::ReferenceSequence::new(String::from("sq2"), 13),
+                sam::header::ReferenceSequence::new("sq2", 13),
             ),
         ]
         .into_iter()
@@ -261,10 +261,10 @@ mod tests {
             .set_template_length(166)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
-            .set_data(sam::record::Data::from(vec![
+            .set_data(sam::record::Data::try_from(vec![
                 Field::new(Tag::EditDistance, Value::Int32(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
-            ]))
+            ])?)
             .build();
 
         assert_eq!(actual, expected);

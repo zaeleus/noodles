@@ -210,7 +210,7 @@ fn calculate_data_len(data: &Data) -> usize {
 
     let mut len = 0;
 
-    for field in data.iter() {
+    for field in data.values() {
         // tag
         len += 2;
         // val_type
@@ -285,7 +285,7 @@ where
 {
     use noodles_sam::record::data::field::Value;
 
-    for field in data.iter() {
+    for field in data.values() {
         writer.write_all(field.tag().as_ref().as_bytes())?;
 
         let value = field.value();
@@ -498,6 +498,9 @@ mod tests {
 
     #[test]
     fn test_region_to_bin() {
+        // § 5.3 C source code for computing bin number and overlapping bins (2021-01-07)
+        // [-1, 0]
+        assert_eq!(region_to_bin(-1, 0), 4680);
         // [8, 13]
         assert_eq!(region_to_bin(7, 13), 4681);
         // [63245986, 63245986]

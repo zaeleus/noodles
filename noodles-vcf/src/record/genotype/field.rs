@@ -137,7 +137,12 @@ mod tests {
         assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), Some(&Value::Integer(13)));
 
-        let key = Key::Other(String::from("CNQ"), Number::Count(1), Type::Float);
+        let key = Key::Other(
+            String::from("CNQ"),
+            Number::Count(1),
+            Type::Float,
+            String::default(),
+        );
         let actual = Field::from_str_key("8.333", &key)?;
         assert_eq!(actual.key(), &key);
         assert_eq!(actual.value(), Some(&Value::Float(8.333)));
@@ -158,7 +163,12 @@ mod tests {
         let field = Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13)));
         assert_eq!(field.to_string(), "13");
 
-        let key = Key::Other(String::from("CNQ"), Number::Count(1), Type::Float);
+        let key = Key::Other(
+            String::from("CNQ"),
+            Number::Count(1),
+            Type::Float,
+            String::default(),
+        );
         let field = Field::new(key, Some(Value::Float(8.333)));
         assert_eq!(field.to_string(), "8.333");
 

@@ -324,20 +324,48 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::{data, Data}};
     ///
     /// let record = sam::Record::default();
     /// assert!(record.data().is_empty());
     ///
-    /// let data = Data::from(vec![data::Field::new(
+    /// let data = Data::try_from(vec![data::Field::new(
     ///     data::field::Tag::AlignmentHitCount,
     ///     data::field::Value::Int32(1),
-    /// )]);
+    /// )])?;
     /// let record = sam::Record::builder().set_data(data).build();
     /// assert_eq!(record.data().to_string(), "NH:i:1");
+    /// # Ok::<(), data::TryFromFieldVectorError>(())
     /// ```
     pub fn data(&self) -> &Data {
         &self.data
+    }
+
+    /// Returns a mutable reference to the data fields for this record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::data};
+    ///
+    /// let mut record = sam::Record::default();
+    /// assert!(record.data().is_empty());
+    ///
+    /// let field = data::Field::new(
+    ///     data::field::Tag::AlignmentHitCount,
+    ///     data::field::Value::Int32(1),
+    /// );
+    ///
+    /// let data = record.data_mut();
+    /// data.insert(field.tag().clone(), field.clone());
+    ///
+    /// let data = record.data();
+    /// assert_eq!(data.len(), 1);
+    /// assert_eq!(data.get(field.tag()), Some(&field));
+    /// ```
+    pub fn data_mut(&mut self) -> &mut Data {
+        &mut self.data
     }
 }
 
@@ -555,6 +583,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use super::*;
 
     #[test]
@@ -564,11 +594,11 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt_with_data() {
-        let data = Data::from(vec![data::Field::new(
+    fn test_fmt_with_data() -> Result<(), data::TryFromFieldVectorError> {
+        let data = Data::try_from(vec![data::Field::new(
             data::field::Tag::ReadGroup,
             data::field::Value::String(String::from("rg0")),
-        )]);
+        )])?;
 
         let record = Record::builder().set_data(data).build();
 
@@ -576,5 +606,7 @@ mod tests {
             record.to_string(),
             "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0"
         );
+
+        Ok(())
     }
 }

@@ -8,7 +8,10 @@ pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
-use super::{record, Record};
+use super::{
+    record::{self, value::Fields},
+    Record,
+};
 
 /// A SAM header read group.
 ///
@@ -52,12 +55,15 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert_eq!(read_group.id(), "rg0");
     /// ```
-    pub fn new(id: String) -> Self {
+    pub fn new<I>(id: I) -> Self
+    where
+        I: Into<String>,
+    {
         Self {
-            id,
+            id: id.into(),
             barcode: None,
             sequencing_center: None,
             description: None,
@@ -81,7 +87,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert_eq!(read_group.id(), "rg0");
     /// ```
     pub fn id(&self) -> &str {
@@ -95,7 +101,7 @@ impl ReadGroup {
     /// ```
     /// use noodles_sam::header::ReadGroup;
     ///
-    /// let mut read_group = ReadGroup::new(String::from("rg0"));
+    /// let mut read_group = ReadGroup::new("rg0");
     /// assert_eq!(read_group.id(), "rg0");
     ///
     /// *read_group.id_mut() = String::from("rg1");
@@ -112,7 +118,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.barcode().is_none());
     /// ```
     pub fn barcode(&self) -> Option<&str> {
@@ -125,7 +131,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.sequencing_center().is_none());
     /// ```
     pub fn sequencing_center(&self) -> Option<&str> {
@@ -138,7 +144,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.description().is_none());
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -151,7 +157,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.produced_at().is_none());
     /// ```
     pub fn produced_at(&self) -> Option<&str> {
@@ -164,7 +170,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.flow_order().is_none());
     /// ```
     pub fn flow_order(&self) -> Option<&str> {
@@ -177,7 +183,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.key_sequence().is_none());
     /// ```
     pub fn key_sequence(&self) -> Option<&str> {
@@ -190,7 +196,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.library().is_none());
     /// ```
     pub fn library(&self) -> Option<&str> {
@@ -203,7 +209,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.program().is_none());
     /// ```
     pub fn program(&self) -> Option<&str> {
@@ -216,7 +222,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.predicted_median_insert_size().is_none());
     /// ```
     pub fn predicted_median_insert_size(&self) -> Option<&str> {
@@ -229,7 +235,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.platform().is_none());
     /// ```
     pub fn platform(&self) -> Option<Platform> {
@@ -242,7 +248,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.platform_model().is_none());
     /// ```
     pub fn platform_model(&self) -> Option<&str> {
@@ -255,7 +261,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.platform_unit().is_none());
     /// ```
     pub fn platform_unit(&self) -> Option<&str> {
@@ -268,7 +274,7 @@ impl ReadGroup {
     ///
     /// ```
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::new(String::from("rg0"));
+    /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.sample().is_none());
     /// ```
     pub fn sample(&self) -> Option<&str> {
@@ -286,7 +292,7 @@ impl ReadGroup {
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
     /// let read_group = ReadGroup::builder()
-    ///     .set_id(String::from("rg0"))
+    ///     .set_id("rg0")
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
     ///     .build();
     ///
@@ -412,7 +418,7 @@ impl TryFrom<Record> for ReadGroup {
     }
 }
 
-fn parse_map(raw_fields: Vec<(String, String)>) -> Result<ReadGroup, TryFromRecordError> {
+fn parse_map(raw_fields: Fields) -> Result<ReadGroup, TryFromRecordError> {
     let mut builder = ReadGroup::builder();
     let mut id = None;
 
@@ -481,15 +487,18 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_read_group_with_no_id() {
+    fn test_try_from_record_for_read_group_with_no_id(
+    ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::Map(vec![(String::from("PG"), String::from("noodles"))]),
+            record::Value::try_from_iter(vec![("PG", "noodles")])?,
         );
 
         assert_eq!(
             ReadGroup::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
+
+        Ok(())
     }
 }

@@ -1,0 +1,14 @@
+[package]
+name = "noodles-bcf"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+byteorder = "1.2.3"
+indexmap = "1.4.0"
+noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-core = { path = "../noodles-core" }
+noodles-csi = { path = "../noodles-csi" }
+noodles-vcf = { path = "../noodles-vcf" }

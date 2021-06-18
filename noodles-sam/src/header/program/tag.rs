@@ -101,13 +101,13 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("ID".parse::<Tag>(), Ok(Tag::Id));
-        assert_eq!("PN".parse::<Tag>(), Ok(Tag::Name));
-        assert_eq!("CL".parse::<Tag>(), Ok(Tag::CommandLine));
-        assert_eq!("PP".parse::<Tag>(), Ok(Tag::PreviousId));
-        assert_eq!("DS".parse::<Tag>(), Ok(Tag::Description));
-        assert_eq!("VN".parse::<Tag>(), Ok(Tag::Version));
-        assert_eq!("ND".parse::<Tag>(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("ID".parse(), Ok(Tag::Id));
+        assert_eq!("PN".parse(), Ok(Tag::Name));
+        assert_eq!("CL".parse(), Ok(Tag::CommandLine));
+        assert_eq!("PP".parse(), Ok(Tag::PreviousId));
+        assert_eq!("DS".parse(), Ok(Tag::Description));
+        assert_eq!("VN".parse(), Ok(Tag::Version));
+        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));

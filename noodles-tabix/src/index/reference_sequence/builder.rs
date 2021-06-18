@@ -1,11 +1,8 @@
 use std::{cmp, collections::HashMap};
 
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, index::Chunk};
 
-use super::{
-    bin::{self, Chunk},
-    Bin, Metadata, ReferenceSequence, WINDOW_SIZE,
-};
+use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
 
 #[derive(Debug, Default)]
 pub struct Builder {

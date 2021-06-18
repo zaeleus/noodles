@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 //! **noodles-bgzf** handles the reading and writing of the blocked gzip format (BGZF).
 //!
@@ -36,6 +36,7 @@
 
 mod block;
 mod gz;
+pub mod index;
 mod reader;
 pub mod virtual_position;
 mod writer;
