@@ -1,10 +1,9 @@
 use std::io::{self, BufRead};
 
-use super::Record;
+use super::Index;
 
 pub struct Reader<R> {
     inner: R,
-    line_buf: String,
 }
 
 impl<R> Reader<R>
@@ -12,54 +11,88 @@ where
     R: BufRead,
 {
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            line_buf: String::new(),
-        }
+        Self { inner }
     }
 
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        self.line_buf.clear();
+    pub fn read_index(&mut self) -> io::Result<Index> {
+        let mut buf = String::new();
+        let mut index = Vec::new();
 
-        match self.inner.read_line(&mut self.line_buf) {
-            Ok(0) => Ok(0),
-            Ok(n) => {
-                self.line_buf.pop();
+        loop {
+            buf.clear();
 
-                *record = self
-                    .line_buf
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            match read_line(&mut self.inner, &mut buf) {
+                Ok(0) => break,
+                Ok(_) => {
+                    let record = buf
+                        .parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                Ok(n)
+                    index.push(record);
+                }
+                Err(e) => return Err(e),
             }
-            Err(e) => Err(e),
         }
+
+        Ok(index)
+    }
+}
+
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match reader.read_line(buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            buf.pop();
+            Ok(n)
+        }
+        Err(e) => Err(e),
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use noodles_bam as bam;
+
+    use crate::crai::Record;
+
     use super::*;
 
     #[test]
-    fn test_read_record() -> io::Result<()> {
+    fn test_read_index() -> Result<(), Box<dyn std::error::Error>> {
         let data = b"\
 0\t10946\t6765\t17711\t233\t317811
 0\t17711\t121393\t317811\t233\t317811
 ";
 
         let mut reader = Reader::new(&data[..]);
-        let mut record = Record::default();
 
-        let bytes_read = reader.read_record(&mut record)?;
-        assert_eq!(bytes_read, 30);
+        let actual = reader.read_index()?;
 
-        let bytes_read = reader.read_record(&mut record)?;
-        assert_eq!(bytes_read, 33);
+        let expected = vec![
+            Record::new(
+                bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+                10946,
+                6765,
+                17711,
+                233,
+                317811,
+            ),
+            Record::new(
+                bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+                17711,
+                121393,
+                317811,
+                233,
+                317811,
+            ),
+        ];
 
-        let bytes_read = reader.read_record(&mut record)?;
-        assert_eq!(bytes_read, 0);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
