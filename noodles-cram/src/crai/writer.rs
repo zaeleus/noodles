@@ -63,7 +63,7 @@ where
         self.inner.finish()
     }
 
-    /// Writes a CRAM index record.
+    /// Writes a CRAM index.
     ///
     /// # Examples
     ///
@@ -74,35 +74,46 @@ where
     ///
     /// let mut writer = crai::Writer::new(Vec::new());
     ///
-    /// let record = crai::Record::new(
+    /// let index = vec![crai::Record::new(
     ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
     ///     10946,
     ///     6765,
     ///     17711,
     ///     233,
     ///     317811,
-    /// );
+    /// )];
     ///
-    /// writer.write_record(&record)?;
+    /// writer.write_index(&index)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let reference_sequence_id = record
-            .reference_sequence_id()
-            .map(i32::from)
-            .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+    pub fn write_index(&mut self, index: &[Record]) -> io::Result<()> {
+        for record in index {
+            write_record(&mut self.inner, record)?;
+        }
 
-        writeln!(
-            self.inner,
-            "{}\t{}\t{}\t{}\t{}\t{}",
-            reference_sequence_id,
-            record.alignment_start(),
-            record.alignment_span(),
-            record.offset(),
-            record.landmark(),
-            record.slice_length()
-        )
+        Ok(())
     }
+}
+
+fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+where
+    W: Write,
+{
+    let reference_sequence_id = record
+        .reference_sequence_id()
+        .map(i32::from)
+        .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+
+    writeln!(
+        writer,
+        "{}\t{}\t{}\t{}\t{}\t{}",
+        reference_sequence_id,
+        record.alignment_start(),
+        record.alignment_span(),
+        record.offset(),
+        record.landmark(),
+        record.slice_length()
+    )
 }
 
 #[cfg(test)]
@@ -117,16 +128,16 @@ mod tests {
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
-        let record = crai::Record::new(
+        let index = vec![crai::Record::new(
             bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
             10946,
             6765,
             17711,
             233,
             317811,
-        );
+        )];
 
-        writer.write_record(&record)?;
+        writer.write_index(&index)?;
 
         let data = writer.finish()?;
         let mut decoder = flate2::read::GzDecoder::new(&data[..]);

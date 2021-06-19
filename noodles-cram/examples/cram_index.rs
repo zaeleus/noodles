@@ -17,9 +17,7 @@ fn main() -> io::Result<()> {
     let handle = stdout.lock();
     let mut writer = crai::Writer::new(handle);
 
-    for record in &index {
-        writer.write_record(record)?;
-    }
+    writer.write_index(&index)?;
 
     Ok(())
 }
