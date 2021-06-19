@@ -12,7 +12,7 @@ enum State {
     End,
 }
 
-/// An iterator over records of a BAM reader that intersect a given region.
+/// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
 pub struct Query<'a, R>
