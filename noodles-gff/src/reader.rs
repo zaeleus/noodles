@@ -7,6 +7,8 @@ pub use self::{lines::Lines, records::Records};
 
 use std::io::{self, BufRead};
 
+const CARRIAGE_RETURN: char = '\r';
+
 /// A GFF reader.
 pub struct Reader<R> {
     inner: R,
@@ -95,9 +97,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
-        let result = self.inner.read_line(buf);
-        buf.pop();
-        result
+        read_line(&mut self.inner, buf)
     }
 
     /// Returns an iterator over lines starting from the current stream position.
@@ -158,6 +158,25 @@ where
     }
 }
 
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match reader.read_line(buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            buf.pop();
+
+            if buf.ends_with(CARRIAGE_RETURN) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,6 +220,24 @@ ACGT
         }
 
         assert_eq!(n, 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line() -> io::Result<()> {
+        let mut buf = String::new();
+
+        let data = b"noodles\n";
+        let mut reader = &data[..];
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles\r\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
 
         Ok(())
     }
