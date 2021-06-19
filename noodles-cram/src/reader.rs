@@ -284,6 +284,9 @@ mod tests {
     fn test_read_file_definition_with_invalid_magic_number() {
         let data = b"BAM\x01";
         let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_file_definition().is_err());
+        assert!(matches!(
+            reader.read_file_definition(),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
     }
 }
