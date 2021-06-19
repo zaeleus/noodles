@@ -215,4 +215,25 @@ dcba
 
         Ok(())
     }
+
+    #[test]
+    fn test_read_read_name() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let data = b"@r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_read_name(&mut reader, &mut buf)?;
+        assert_eq!(buf, b"r0");
+
+        let data = b"r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        assert!(matches!(
+            read_read_name(&mut reader, &mut buf),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
