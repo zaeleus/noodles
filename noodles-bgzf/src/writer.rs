@@ -179,7 +179,7 @@ where
         }
 
         let bytes_to_be_written = cmp::min(
-            (block::MAX_UNCOMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written) as usize,
+            block::MAX_UNCOMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written,
             buf.len(),
         );
         let bytes_written = self.encoder.write(&buf[..bytes_to_be_written])?;
