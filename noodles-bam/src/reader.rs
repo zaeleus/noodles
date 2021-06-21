@@ -260,8 +260,18 @@ where
         self.inner.seek(pos)
     }
 
-    // Seeks to the first record by setting the cursor to the beginning of the stream and
-    // (re)reading the header and binary reference sequences.
+    /// Seeks to the first record by setting the cursor to the beginning of the stream and
+    /// (re)reading the header and binary reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.seek_to_first_record()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn seek_to_first_record(&mut self) -> io::Result<VirtualPosition> {
         self.seek(VirtualPosition::default())?;
         self.read_header()?;
