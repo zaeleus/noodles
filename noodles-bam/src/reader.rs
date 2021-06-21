@@ -266,6 +266,7 @@ where
     /// # Examples
     ///
     /// ```no_run
+    /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
