@@ -262,7 +262,7 @@ where
 
     // Seeks to the first record by setting the cursor to the beginning of the stream and
     // (re)reading the header and binary reference sequences.
-    fn seek_to_first_record(&mut self) -> io::Result<VirtualPosition> {
+    pub fn seek_to_first_record(&mut self) -> io::Result<VirtualPosition> {
         self.seek(VirtualPosition::default())?;
         self.read_header()?;
         self.read_reference_sequences()?;
