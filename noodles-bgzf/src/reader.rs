@@ -252,7 +252,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{io::Cursor, convert::TryFrom};
+    use std::{convert::TryFrom, io::Cursor};
 
     use crate::writer::BGZF_EOF;
 
@@ -260,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
-        #[rustfmt::skip] 
+        #[rustfmt::skip]
         let data = [
             // block 0
             0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
