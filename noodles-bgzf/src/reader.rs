@@ -113,6 +113,7 @@ where
 
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
 
+        self.block.set_cpos(cpos);
         self.block.set_upos(u32::from(upos));
 
         Ok(pos)
