@@ -148,13 +148,9 @@ where
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if self.block.is_eof() {
-            match read_block(&mut self.inner, &mut self.cdata, &mut self.block) {
-                Ok(bs) => {
-                    self.block.set_cpos(self.position);
-                    self.position += bs as u64;
-                }
-                Err(e) => return Err(e),
-            }
+            let block_size = read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+            self.block.set_cpos(self.position);
+            self.position += block_size as u64;
         }
 
         Ok(self.block.fill_buf())
