@@ -70,7 +70,7 @@ impl Block {
         self.data.len() as u32
     }
 
-    /// Returns the uncompressed data length.
+    /// Returns the position in the uncompressed data.
     pub fn upos(&self) -> u32 {
         self.upos
     }
