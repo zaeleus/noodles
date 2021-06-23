@@ -68,9 +68,9 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// A field is missing.
-    Missing(Field),
+    MissingField(Field),
     /// A field is invalid.
-    Invalid(Field, std::num::ParseIntError),
+    InvalidField(Field, std::num::ParseIntError),
 }
 
 impl error::Error for ParseError {}
@@ -79,8 +79,8 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
-            Self::Missing(field) => write!(f, "missing field: {:?}", field),
-            Self::Invalid(field, message) => write!(f, "invalid {:?} field: {}", field, message),
+            Self::MissingField(field) => write!(f, "missing field: {:?}", field),
+            Self::InvalidField(field, e) => write!(f, "invalid {:?} field: {}", field, e),
         }
     }
 }
@@ -117,7 +117,7 @@ where
 {
     fields
         .next()
-        .ok_or(ParseError::Missing(field))
+        .ok_or(ParseError::MissingField(field))
         .map(|s| s.into())
 }
 
@@ -127,8 +127,8 @@ where
 {
     fields
         .next()
-        .ok_or(ParseError::Missing(field))
-        .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
+        .ok_or(ParseError::MissingField(field))
+        .and_then(|s| s.parse().map_err(|e| ParseError::InvalidField(field, e)))
 }
 
 #[cfg(test)]
@@ -146,12 +146,12 @@ mod tests {
 
         assert_eq!(
             "sq0".parse::<Record>(),
-            Err(ParseError::Missing(Field::Length))
+            Err(ParseError::MissingField(Field::Length))
         );
 
         assert!(matches!(
             "sq0\tnoodles".parse::<Record>(),
-            Err(ParseError::Invalid(Field::Length, _))
+            Err(ParseError::InvalidField(Field::Length, _))
         ));
     }
 }
