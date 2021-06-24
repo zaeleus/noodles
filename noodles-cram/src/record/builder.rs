@@ -189,3 +189,35 @@ impl Builder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert_eq!(builder.id, 0);
+        assert_eq!(builder.bam_flags, sam::record::Flags::UNMAPPED);
+        assert_eq!(builder.flags, Flags::default());
+        assert!(builder.reference_sequence_id.is_none());
+        assert_eq!(builder.read_length, 0);
+        assert_eq!(builder.alignment_start, 0);
+        assert_eq!(builder.read_group_id, ReadGroupId::default());
+        assert!(builder.read_name.is_empty());
+        assert_eq!(builder.next_mate_flags, NextMateFlags::default());
+        assert!(builder.next_fragment_reference_sequence_id.is_none());
+        assert_eq!(builder.next_mate_alignment_start, 0);
+        assert_eq!(builder.template_size, 0);
+        assert_eq!(builder.distance_to_next_fragment, 0);
+        assert!(builder.tags.is_empty());
+        assert!(builder.bases.is_empty());
+        assert!(builder.features.is_empty());
+        assert_eq!(
+            builder.mapping_quality,
+            sam::record::MappingQuality::default()
+        );
+        assert!(builder.quality_scores.is_empty());
+    }
+}
