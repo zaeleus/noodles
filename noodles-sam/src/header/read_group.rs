@@ -6,7 +6,7 @@ pub mod tag;
 
 pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
 
 use super::{
     record::{self, value::Fields},
@@ -28,7 +28,7 @@ pub struct ReadGroup {
     key_sequence: Option<String>,
     library: Option<String>,
     program: Option<String>,
-    predicted_median_insert_size: Option<String>,
+    predicted_median_insert_size: Option<i32>,
     platform: Option<Platform>,
     platform_model: Option<String>,
     platform_unit: Option<String>,
@@ -225,8 +225,8 @@ impl ReadGroup {
     /// let read_group = ReadGroup::new("rg0");
     /// assert!(read_group.predicted_median_insert_size().is_none());
     /// ```
-    pub fn predicted_median_insert_size(&self) -> Option<&str> {
-        self.predicted_median_insert_size.as_deref()
+    pub fn predicted_median_insert_size(&self) -> Option<i32> {
+        self.predicted_median_insert_size
     }
 
     /// Returns the platform used.
@@ -390,6 +390,8 @@ pub enum TryFromRecordError {
     MissingRequiredTag(Tag),
     /// A tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The predicted median insert size is invalid.
+    InvalidPredictedMedianInsertSize(num::ParseIntError),
     /// The platform is invalid.
     InvalidPlatform(platform::ParseError),
 }
@@ -402,6 +404,9 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
+            Self::InvalidPredictedMedianInsertSize(e) => {
+                write!(f, "invalid predicted median insert size: {}", e)
+            }
             Self::InvalidPlatform(e) => write!(f, "invalid platform: {}", e),
         }
     }
@@ -438,7 +443,13 @@ fn parse_map(raw_fields: Fields) -> Result<ReadGroup, TryFromRecordError> {
             Tag::KeySequence => builder.set_key_sequence(value),
             Tag::Library => builder.set_library(value),
             Tag::Program => builder.set_program(value),
-            Tag::PredictedMedianInsertSize => builder.set_predicted_median_insert_size(value),
+            Tag::PredictedMedianInsertSize => {
+                let predicted_median_insert_size = value
+                    .parse()
+                    .map_err(TryFromRecordError::InvalidPredictedMedianInsertSize)?;
+
+                builder.set_predicted_median_insert_size(predicted_median_insert_size)
+            }
             Tag::Platform => {
                 let platform = value.parse().map_err(TryFromRecordError::InvalidPlatform)?;
                 builder.set_platform(platform)
@@ -498,6 +509,22 @@ mod tests {
             ReadGroup::try_from(record),
             Err(TryFromRecordError::MissingRequiredTag(Tag::Id))
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_record_for_read_group_with_invalid_predicted_median_insert_size(
+    ) -> Result<(), record::value::TryFromIteratorError> {
+        let record = Record::new(
+            record::Kind::ReadGroup,
+            record::Value::try_from_iter(vec![("ID", "pg0"), ("PI", "unknown")])?,
+        );
+
+        assert!(matches!(
+            ReadGroup::try_from(record),
+            Err(TryFromRecordError::InvalidPredictedMedianInsertSize(_))
+        ));
 
         Ok(())
     }

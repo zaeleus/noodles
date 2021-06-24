@@ -14,7 +14,7 @@ pub struct Builder {
     key_sequence: Option<String>,
     library: Option<String>,
     program: Option<String>,
-    predicted_median_insert_size: Option<String>,
+    predicted_median_insert_size: Option<i32>,
     platform: Option<Platform>,
     platform_model: Option<String>,
     platform_unit: Option<String>,
@@ -225,16 +225,13 @@ impl Builder {
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
-    ///     .set_predicted_median_insert_size("101")
+    ///     .set_predicted_median_insert_size(101)
     ///     .build();
     ///
-    /// assert_eq!(read_group.predicted_median_insert_size(), Some("101"));
+    /// assert_eq!(read_group.predicted_median_insert_size(), Some(101));
     /// ```
-    pub fn set_predicted_median_insert_size<I>(mut self, predicted_median_insert_size: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.predicted_median_insert_size = Some(predicted_median_insert_size.into());
+    pub fn set_predicted_median_insert_size(mut self, predicted_median_insert_size: i32) -> Self {
+        self.predicted_median_insert_size = Some(predicted_median_insert_size);
         self
     }
 
