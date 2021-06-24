@@ -1,5 +1,6 @@
 use std::{
     cmp,
+    convert::TryFrom,
     ffi::CString,
     io::{self, Write},
     mem,
@@ -38,25 +39,10 @@ where
     let c_read_name =
         CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let reference_sequence_id = match record.reference_sequence_name() {
-        Some(name) => reference_sequences
-            .get_index_of(name.as_str())
-            .map(|i| i as i32)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
-            })?,
-        None => -1,
-    };
-
-    let mate_reference_sequence_id = match record.mate_reference_sequence_name() {
-        Some(name) => reference_sequences
-            .get_index_of(name.as_str())
-            .map(|i| i as i32)
-            .ok_or_else(|| {
-                io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence id")
-            })?,
-        None => -1,
-    };
+    let reference_sequence_id =
+        find_reference_sequence_id(reference_sequences, record.reference_sequence_name())?;
+    let mate_reference_sequence_id =
+        find_reference_sequence_id(reference_sequences, record.mate_reference_sequence_name())?;
 
     let read_name = c_read_name.as_bytes_with_nul();
     let l_read_name = read_name.len() as u8;
@@ -398,6 +384,28 @@ where
     }
 }
 
+fn find_reference_sequence_id(
+    reference_sequences: &ReferenceSequences,
+    reference_sequence_name: Option<&sam::record::ReferenceSequenceName>,
+) -> io::Result<i32> {
+    use crate::record::reference_sequence_id;
+
+    match reference_sequence_name {
+        Some(name) => reference_sequences
+            .get_index_of(name.as_str())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence name: {}", name),
+                )
+            })
+            .and_then(|i| {
+                i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            }),
+        None => Ok(reference_sequence_id::UNMAPPED),
+    }
+}
+
 // § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
@@ -492,6 +500,36 @@ mod tests {
         t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f])?;
         // i32::MAX
         t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_find_reference_sequence_id(
+    ) -> Result<(), sam::record::reference_sequence_name::ParseError> {
+        use sam::header::ReferenceSequence;
+
+        let reference_sequences = vec![("sq0", 8), ("sq1", 13), ("sq2", 21)]
+            .into_iter()
+            .map(|(name, len)| (name.into(), ReferenceSequence::new(name, len)))
+            .collect();
+
+        assert!(matches!(
+            find_reference_sequence_id(&reference_sequences, None),
+            Ok(-1)
+        ));
+
+        let name = "sq1".parse().map(Some)?;
+        assert!(matches!(
+            find_reference_sequence_id(&reference_sequences, name.as_ref()),
+            Ok(1)
+        ));
+
+        let name = "sq3".parse().map(Some)?;
+        assert!(matches!(
+            find_reference_sequence_id(&reference_sequences, name.as_ref()),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
 
         Ok(())
     }
