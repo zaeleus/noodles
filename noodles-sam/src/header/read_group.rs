@@ -107,7 +107,6 @@ impl ReadGroup {
     /// *read_group.id_mut() = String::from("rg1");
     /// assert_eq!(read_group.id(), "rg1");
     /// ```
-    //
     pub fn id_mut(&mut self) -> &mut String {
         &mut self.id
     }
