@@ -284,7 +284,9 @@ where
             )
         })?;
 
-        let query_bins = index_reference_sequence.query(start, end);
+        let query_bins = index_reference_sequence
+            .query(start, end)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
             .iter()
