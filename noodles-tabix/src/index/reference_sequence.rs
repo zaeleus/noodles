@@ -8,7 +8,10 @@ pub use self::{bin::Bin, metadata::Metadata};
 
 pub(crate) use self::builder::Builder;
 
-use std::{error, fmt};
+use std::{
+    error, fmt,
+    ops::{Bound, RangeBounds},
+};
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
@@ -136,7 +139,7 @@ impl ReferenceSequence {
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
     ///
-    /// `start` and `end` are 1-based, inclusive.
+    /// The interval values are 1-based.
     ///
     /// # Examples
     ///
@@ -144,14 +147,31 @@ impl ReferenceSequence {
     /// # use noodles_tabix::index::reference_sequence;
     /// use noodles_tabix::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
-    /// let query_bins = reference_sequence.query(8, 13)?;
+    /// let query_bins = reference_sequence.query(8..=13)?;
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), reference_sequence::QueryError>(())
     /// ```
-    pub fn query(&self, start: i32, end: i32) -> Result<Vec<&Bin>, QueryError> {
+    pub fn query<B>(&self, interval: B) -> Result<Vec<&Bin>, QueryError>
+    where
+        B: RangeBounds<i32>,
+    {
+        let start = match interval.start_bound() {
+            Bound::Included(s) => *s,
+            Bound::Excluded(s) => *s + 1,
+            Bound::Unbounded => MIN_POSITION,
+        };
+
         if start < MIN_POSITION {
             return Err(QueryError::InvalidStartPosition(start));
-        } else if end > MAX_POSITION {
+        }
+
+        let end = match interval.end_bound() {
+            Bound::Included(e) => *e,
+            Bound::Excluded(e) => *e - 1,
+            Bound::Unbounded => MAX_POSITION,
+        };
+
+        if end > MAX_POSITION {
             return Err(QueryError::InvalidEndPosition(end));
         }
 
@@ -223,12 +243,12 @@ mod tests {
         let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
 
         assert_eq!(
-            reference_sequence.query(0, 8),
+            reference_sequence.query(0..=8),
             Err(QueryError::InvalidStartPosition(0))
         );
 
         assert_eq!(
-            reference_sequence.query(1, i32::MAX),
+            reference_sequence.query(1..=i32::MAX),
             Err(QueryError::InvalidEndPosition(i32::MAX))
         );
     }
