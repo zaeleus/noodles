@@ -244,12 +244,14 @@ where
             )
         })?;
 
-        let query_bins = index_reference_sequence.query(
-            index.min_shift(),
-            index.depth(),
-            i64::from(start),
-            i64::from(end),
-        );
+        let query_bins = index_reference_sequence
+            .query(
+                index.min_shift(),
+                index.depth(),
+                i64::from(start),
+                i64::from(end),
+            )
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
             .iter()
