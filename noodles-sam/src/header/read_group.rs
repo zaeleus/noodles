@@ -527,4 +527,20 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_try_from_record_for_read_group_with_invalid_platform(
+    ) -> Result<(), record::value::TryFromIteratorError> {
+        let record = Record::new(
+            record::Kind::ReadGroup,
+            record::Value::try_from_iter(vec![("ID", "rg0"), ("PL", "unknown")])?,
+        );
+
+        assert!(matches!(
+            ReadGroup::try_from(record),
+            Err(TryFromRecordError::InvalidPlatform(_))
+        ));
+
+        Ok(())
+    }
 }
