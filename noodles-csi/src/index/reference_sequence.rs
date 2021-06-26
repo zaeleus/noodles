@@ -5,7 +5,10 @@ mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
-use std::{error, fmt};
+use std::{
+    error, fmt,
+    ops::{Bound, RangeBounds},
+};
 
 use bit_vec::BitVec;
 
@@ -103,7 +106,7 @@ impl ReferenceSequence {
 
     /// Returns a list of bins in this reference sequence that intersects the given range.
     ///
-    /// `start` and `end` are 1-based, inclusive.
+    /// The interval values are 1-based.
     ///
     /// # Examples
     ///
@@ -111,22 +114,31 @@ impl ReferenceSequence {
     /// # use noodles_csi::index::reference_sequence;
     /// use noodles_csi::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
-    /// let query_bins = reference_sequence.query(14, 5, 8, 13)?;
+    /// let query_bins = reference_sequence.query(14, 5, 8..=13)?;
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), reference_sequence::QueryError>(())
     /// ```
-    pub fn query(
-        &self,
-        min_shift: i32,
-        depth: i32,
-        start: i64,
-        end: i64,
-    ) -> Result<Vec<&Bin>, QueryError> {
+    pub fn query<B>(&self, min_shift: i32, depth: i32, interval: B) -> Result<Vec<&Bin>, QueryError>
+    where
+        B: RangeBounds<i64>,
+    {
+        let start = match interval.start_bound() {
+            Bound::Included(s) => *s,
+            Bound::Excluded(s) => *s + 1,
+            Bound::Unbounded => MIN_POSITION,
+        };
+
         if start < MIN_POSITION {
             return Err(QueryError::InvalidStartPosition(MIN_POSITION, start));
         }
 
         let max_position = Self::max_position(min_shift, depth);
+
+        let end = match interval.end_bound() {
+            Bound::Included(e) => *e,
+            Bound::Excluded(e) => *e - 1,
+            Bound::Unbounded => max_position,
+        };
 
         if end > max_position {
             return Err(QueryError::InvalidEndPosition(max_position, end));
@@ -186,13 +198,13 @@ mod tests {
         let reference_sequence = ReferenceSequence::new(Vec::new(), None);
 
         assert_eq!(
-            reference_sequence.query(MIN_SHIFT, DEPTH, 0, 8),
+            reference_sequence.query(MIN_SHIFT, DEPTH, 0..=8),
             Err(QueryError::InvalidStartPosition(1, 0))
         );
 
         let end = i64::from(i32::MAX);
         assert_eq!(
-            reference_sequence.query(MIN_SHIFT, DEPTH, 1, end),
+            reference_sequence.query(MIN_SHIFT, DEPTH, 1..=end),
             Err(QueryError::InvalidEndPosition(536870911, end))
         );
     }
