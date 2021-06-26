@@ -65,7 +65,7 @@ impl Region {
                     if reference_sequences.contains_key(s) {
                         return Err(ParseError::Ambiguous);
                     } else {
-                        let resolved_end = end.unwrap_or(reference_sequence.len() as i32);
+                        let resolved_end = end.unwrap_or_else(|| reference_sequence.len());
                         return Ok(Self::mapped(prefix, start, resolved_end));
                     }
                 }
@@ -73,7 +73,7 @@ impl Region {
         }
 
         if let Some(reference_sequence) = reference_sequences.get(s) {
-            let end = reference_sequence.len() as i32;
+            let end = reference_sequence.len();
             Ok(Self::mapped(s, MIN_POSITION, end))
         } else {
             Err(ParseError::Invalid)
