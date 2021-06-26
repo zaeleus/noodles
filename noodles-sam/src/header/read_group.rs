@@ -517,7 +517,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::try_from_iter(vec![("ID", "pg0"), ("PI", "unknown")])?,
+            record::Value::try_from_iter(vec![("ID", "rg0"), ("PI", "unknown")])?,
         );
 
         assert!(matches!(
