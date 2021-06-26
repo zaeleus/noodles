@@ -8,10 +8,45 @@ pub(crate) use self::builder::Builder;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
+use std::{error, fmt};
+
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 
+const MIN_SHIFT: i32 = 14;
+const DEPTH: i32 = 5;
+const MIN_POSITION: i32 = 1;
+const MAX_POSITION: i32 = 1 << (MIN_SHIFT + 3 * DEPTH);
+
 const WINDOW_SIZE: i32 = 16384;
+
+/// An error returned when a query fails.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QueryError {
+    /// The start position is invalid.
+    InvalidStartPosition(i32),
+    /// The end position is invalid.
+    InvalidEndPosition(i32),
+}
+
+impl error::Error for QueryError {}
+
+impl fmt::Display for QueryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidStartPosition(start) => {
+                write!(
+                    f,
+                    "expected start position >= {}, got {}",
+                    MIN_POSITION, start
+                )
+            }
+            Self::InvalidEndPosition(end) => {
+                write!(f, "expected end position <= {}, got {}", MAX_POSITION, end)
+            }
+        }
+    }
+}
 
 /// A reference sequence in the BAM index.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -106,18 +141,29 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_bam::bai::index::reference_sequence;
     /// use noodles_bam::bai::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
-    /// let query_bins = reference_sequence.query(8, 13);
+    /// let query_bins = reference_sequence.query(8, 13)?;
     /// assert!(query_bins.is_empty());
+    /// # Ok::<(), reference_sequence::QueryError>(())
     /// ```
-    pub fn query(&self, start: i32, end: i32) -> Vec<&Bin> {
+    pub fn query(&self, start: i32, end: i32) -> Result<Vec<&Bin>, QueryError> {
+        if start < MIN_POSITION {
+            return Err(QueryError::InvalidStartPosition(start));
+        } else if end > MAX_POSITION {
+            return Err(QueryError::InvalidEndPosition(end));
+        }
+
         let region_bins = region_to_bins((start - 1) as usize, end as usize);
 
-        self.bins()
+        let query_bins = self
+            .bins()
             .iter()
             .filter(|b| region_bins[b.id() as usize])
-            .collect()
+            .collect();
+
+        Ok(query_bins)
     }
 
     /// Finds in minimum start offset in the linear index for a given start position.
@@ -171,6 +217,21 @@ fn region_to_bins(start: usize, mut end: usize) -> BitVec {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_query() {
+        let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+
+        assert_eq!(
+            reference_sequence.query(0, 8),
+            Err(QueryError::InvalidStartPosition(0))
+        );
+
+        assert_eq!(
+            reference_sequence.query(1, i32::MAX),
+            Err(QueryError::InvalidEndPosition(i32::MAX))
+        );
+    }
 
     #[test]
     fn test_region_to_bins() {
