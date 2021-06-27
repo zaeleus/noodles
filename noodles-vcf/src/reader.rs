@@ -11,15 +11,13 @@ use std::{
 };
 
 use noodles_bgzf::{self as bgzf, index::optimize_chunks};
-use noodles_core::Region;
+use noodles_core::{region::Interval, Region};
 use noodles_tabix as tabix;
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
 const HEADER_PREFIX: u8 = b'#';
-
-type Interval = (Bound<i32>, Bound<i32>);
 
 /// A VCF reader.
 ///

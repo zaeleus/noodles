@@ -15,12 +15,10 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf::{self as bgzf, index::optimize_chunks, VirtualPosition};
-use noodles_core::Region;
+use noodles_core::{region::Interval, Region};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
-
-type Interval = (Bound<i32>, Bound<i32>);
 
 /// A BAM reader.
 ///

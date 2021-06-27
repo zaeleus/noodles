@@ -3,6 +3,9 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
+/// An interval.
+pub type Interval = (Bound<i32>, Bound<i32>);
+
 /// A mapped region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mapped {
@@ -95,7 +98,7 @@ impl Mapped {
     ///     Some((Bound::Included(5), Bound::Included(8)))
     /// );
     /// ```
-    pub fn interval(&self) -> (Bound<i32>, Bound<i32>) {
+    pub fn interval(&self) -> Interval {
         (self.start, self.end)
     }
 }

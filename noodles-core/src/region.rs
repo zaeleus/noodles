@@ -2,7 +2,7 @@
 
 mod mapped;
 
-pub use self::mapped::Mapped;
+pub use self::mapped::{Interval, Mapped};
 
 use std::{
     error, fmt, num,
@@ -212,7 +212,7 @@ impl FromStr for Region {
     }
 }
 
-fn parse_interval(s: &str) -> Result<(Bound<i32>, Bound<i32>), ParseError> {
+fn parse_interval(s: &str) -> Result<Interval, ParseError> {
     if s.is_empty() {
         return Ok((Bound::Unbounded, Bound::Unbounded));
     }
