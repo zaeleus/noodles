@@ -275,23 +275,20 @@ where
 }
 
 fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Interval)> {
-    match region {
-        Region::Mapped { name, start, end } => {
-            let i = contigs.get_index_of(name).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("region does not exist in contigs: {:?}", region),
-                )
-            })?;
+    if let Some(r) = region.as_mapped() {
+        let i = contigs.get_index_of(r.name()).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("region does not exist in contigs: {:?}", region),
+            )
+        })?;
 
-            let interval = (*start, *end);
-
-            Ok((i, interval))
-        }
-        _ => Err(io::Error::new(
+        Ok((i, r.interval()))
+    } else {
+        Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "region is not mapped",
-        )),
+        ))
     }
 }
 

@@ -1,5 +1,9 @@
 //! Genomic region.
 
+mod mapped;
+
+pub use self::mapped::Mapped;
+
 use std::{
     error, fmt, num,
     ops::{Bound, RangeBounds},
@@ -18,14 +22,7 @@ static ALL_NAME: &str = ".";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
     /// A mapped region.
-    Mapped {
-        /// The reference sequence name.
-        name: String,
-        /// The start position of the region (1-based).
-        start: Bound<i32>,
-        /// The end position of the region (1-based).
-        end: Bound<i32>,
-    },
+    Mapped(Mapped),
     /// An unmapped region.
     Unmapped,
     /// All reads.
@@ -84,25 +81,15 @@ impl Region {
     /// ```
     /// # use std::ops::Bound;
     /// use noodles_core::Region;
-    ///
     /// let region = Region::mapped("sq0", 1..=5);
-    ///
-    /// assert!(matches!(region, Region::Mapped {
-    ///     name,
-    ///     start: Bound::Included(1),
-    ///     end: Bound::Included(5)
-    /// }));
+    /// assert!(matches!(region, Region::Mapped(_)));
     /// ```
     pub fn mapped<I, B>(name: I, interval: B) -> Self
     where
         I: Into<String>,
         B: RangeBounds<i32>,
     {
-        Self::Mapped {
-            name: name.into(),
-            start: bound_cloned(interval.start_bound()),
-            end: bound_cloned(interval.end_bound()),
-        }
+        Self::Mapped(Mapped::new(name, interval))
     }
 
     /// Returns the reference name of the region.
@@ -123,9 +110,38 @@ impl Region {
     /// ```
     pub fn name(&self) -> &str {
         match self {
-            Self::Mapped { name, .. } => name,
+            Self::Mapped(m) => m.name(),
             Self::Unmapped => UNMAPPED_NAME,
             Self::All => ALL_NAME,
+        }
+    }
+
+    /// Returns whether the region is mapped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Region;
+    /// assert!(Region::mapped("sq0", 5..=8).is_mapped());
+    /// assert!(!Region::Unmapped.is_mapped());
+    /// ```
+    pub fn is_mapped(&self) -> bool {
+        matches!(self, Self::Mapped(_))
+    }
+
+    /// Returns the region as a mapped region if it is mapped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Region;
+    /// assert!(Region::mapped("sq0", 5..=8).as_mapped().is_some());
+    /// assert!(Region::Unmapped.as_mapped().is_none());
+    /// ```
+    pub fn as_mapped(&self) -> Option<&Mapped> {
+        match self {
+            Self::Mapped(m) => Some(m),
+            _ => None,
         }
     }
 }
@@ -133,12 +149,7 @@ impl Region {
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Mapped { name, start, end } => match (start, end) {
-                (Bound::Unbounded, Bound::Unbounded) => write!(f, "{}", name),
-                (Bound::Included(s), Bound::Unbounded) => write!(f, "{}:{}", name, s),
-                (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", name, s, e),
-                _ => todo!(),
-            },
+            Self::Mapped(m) => write!(f, "{}", m),
             Self::Unmapped => write!(f, "{}", UNMAPPED_NAME),
             Self::All => write!(f, "{}", ALL_NAME),
         }
@@ -227,18 +238,6 @@ fn parse_interval(s: &str) -> Result<(Bound<i32>, Bound<i32>), ParseError> {
     Ok((start, end))
 }
 
-// TODO: https://github.com/rust-lang/rust/issues/61356
-fn bound_cloned<T>(bound: Bound<&T>) -> Bound<T>
-where
-    T: Clone,
-{
-    match bound {
-        Bound::Included(v) => Bound::Included(v.clone()),
-        Bound::Excluded(v) => Bound::Excluded(v.clone()),
-        Bound::Unbounded => Bound::Unbounded,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use noodles_sam::header::ReferenceSequence;
@@ -270,56 +269,32 @@ mod tests {
 
         assert_eq!(
             Region::from_str_reference_sequences("sq0:3-5", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq0"),
-                start: Bound::Included(3),
-                end: Bound::Included(5),
-            })
+            Ok(Region::mapped("sq0", 3..=5))
         );
 
         assert_eq!(
             Region::from_str_reference_sequences("sq0:3", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq0"),
-                start: Bound::Included(3),
-                end: Bound::Unbounded,
-            })
+            Ok(Region::mapped("sq0", 3..))
         );
 
         assert_eq!(
             Region::from_str_reference_sequences("sq0", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq0"),
-                start: Bound::Unbounded,
-                end: Bound::Unbounded,
-            })
+            Ok(Region::mapped("sq0", ..))
         );
 
         assert_eq!(
             Region::from_str_reference_sequences("sq1:", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq1:"),
-                start: Bound::Unbounded,
-                end: Bound::Unbounded,
-            })
+            Ok(Region::mapped("sq1:", ..))
         );
 
         assert_eq!(
             Region::from_str_reference_sequences("sq2:5", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq2:5"),
-                start: Bound::Unbounded,
-                end: Bound::Unbounded,
-            })
+            Ok(Region::mapped("sq2:5", ..))
         );
 
         assert_eq!(
             Region::from_str_reference_sequences("sq3:8-13", &reference_sequences),
-            Ok(Region::Mapped {
-                name: String::from("sq3"),
-                start: Bound::Included(8),
-                end: Bound::Included(13),
-            })
+            Ok(Region::mapped("sq3", 8..=13))
         );
 
         assert_eq!(

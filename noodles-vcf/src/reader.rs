@@ -342,30 +342,27 @@ where
 }
 
 fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String, Interval)> {
-    match region {
-        Region::Mapped { name, start, end } => {
-            let i = index
-                .reference_sequence_names()
-                .iter()
-                .position(|n| name == n)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!(
-                            "region reference sequence does not exist in reference sequences: {:?}",
-                            region
-                        ),
-                    )
-                })?;
+    if let Some(r) = region.as_mapped() {
+        let i = index
+            .reference_sequence_names()
+            .iter()
+            .position(|n| r.name() == n)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!(
+                        "region reference sequence does not exist in reference sequences: {:?}",
+                        region
+                    ),
+                )
+            })?;
 
-            let interval = (*start, *end);
-
-            Ok((i, name.into(), interval))
-        }
-        _ => Err(io::Error::new(
+        Ok((i, r.name().into(), r.interval()))
+    } else {
+        Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "region is not mapped",
-        )),
+        ))
     }
 }
 
