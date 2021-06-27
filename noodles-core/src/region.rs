@@ -1,12 +1,12 @@
 //! Genomic region.
 
-use std::{error, fmt, num, str::FromStr};
+use std::{
+    error, fmt, num,
+    ops::{Bound, RangeBounds},
+    str::FromStr,
+};
 
 use noodles_sam::header::ReferenceSequences;
-
-// Position coordinates are 1-based.
-const MIN_POSITION: i32 = 1;
-const MAX_POSITION: i32 = i32::MAX;
 
 static UNMAPPED_NAME: &str = "*";
 static ALL_NAME: &str = ".";
@@ -22,9 +22,9 @@ pub enum Region {
         /// The reference sequence name.
         name: String,
         /// The start position of the region (1-based).
-        start: i32,
+        start: Bound<i32>,
         /// The end position of the region (1-based).
-        end: i32,
+        end: Bound<i32>,
     },
     /// An unmapped region.
     Unmapped,
@@ -40,9 +40,6 @@ impl Region {
     ///
     /// The reference sequence name can be "*" to represent unmapped records; or ".", all records.
     /// Otherwise, the reference sequence name must exist in the reference sequence dictionary.
-    ///
-    /// If no start position is given, the minimum position of 1 is used. If no end position is
-    /// given, the entire span of the reference sequence, i.e., its length, is used.
     pub fn from_str_reference_sequences(
         s: &str,
         reference_sequences: &ReferenceSequences,
@@ -58,23 +55,21 @@ impl Region {
         if let Some(i) = s.rfind(':') {
             let suffix = &s[i + 1..];
 
-            if let Ok((start, end)) = parse_interval(suffix) {
+            if let Ok(interval) = parse_interval(suffix) {
                 let prefix = &s[0..i];
 
-                if let Some(reference_sequence) = reference_sequences.get(prefix) {
+                if reference_sequences.get(prefix).is_some() {
                     if reference_sequences.contains_key(s) {
                         return Err(ParseError::Ambiguous);
                     } else {
-                        let resolved_end = end.unwrap_or_else(|| reference_sequence.len());
-                        return Ok(Self::mapped(prefix, start, resolved_end));
+                        return Ok(Self::mapped(prefix, interval));
                     }
                 }
             }
         }
 
-        if let Some(reference_sequence) = reference_sequences.get(s) {
-            let end = reference_sequence.len();
-            Ok(Self::mapped(s, MIN_POSITION, end))
+        if reference_sequences.get(s).is_some() {
+            Ok(Self::mapped(s, ..))
         } else {
             Err(ParseError::Invalid)
         }
@@ -82,27 +77,31 @@ impl Region {
 
     /// Creates a new mapped region.
     ///
-    /// `start` and `end` are the start and (optional) end positions of the region in the given
-    /// reference sequence `name`. When `end` is `None`, most analyses will assume the end to be
-    /// unbounded, i.e., until the end of the reference sequence.
-    ///
     /// Positions are assumed to be 1-based.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::ops::Bound;
     /// use noodles_core::Region;
-    /// let region = Region::mapped("sq0", 1, 5);
-    /// assert!(matches!(region, Region::Mapped { name, start: 1, end: 5 }));
+    ///
+    /// let region = Region::mapped("sq0", 1..=5);
+    ///
+    /// assert!(matches!(region, Region::Mapped {
+    ///     name,
+    ///     start: Bound::Included(1),
+    ///     end: Bound::Included(5)
+    /// }));
     /// ```
-    pub fn mapped<I>(name: I, start: i32, end: i32) -> Self
+    pub fn mapped<I, B>(name: I, interval: B) -> Self
     where
         I: Into<String>,
+        B: RangeBounds<i32>,
     {
         Self::Mapped {
             name: name.into(),
-            start,
-            end,
+            start: bound_cloned(interval.start_bound()),
+            end: bound_cloned(interval.end_bound()),
         }
     }
 
@@ -116,7 +115,7 @@ impl Region {
     /// ```
     /// use noodles_core::Region;
     ///
-    /// let region = Region::mapped("sq0", 1, 5);
+    /// let region = Region::mapped("sq0", 1..=5);
     /// assert_eq!(region.name(), "sq0");
     ///
     /// assert_eq!(Region::Unmapped.name(), "*");
@@ -134,7 +133,12 @@ impl Region {
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Mapped { name, start, end } => write!(f, "{}:{}-{}", name, start, end),
+            Self::Mapped { name, start, end } => match (start, end) {
+                (Bound::Unbounded, Bound::Unbounded) => write!(f, "{}", name),
+                (Bound::Included(s), Bound::Unbounded) => write!(f, "{}:{}", name, s),
+                (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", name, s, e),
+                _ => todo!(),
+            },
             Self::Unmapped => write!(f, "{}", UNMAPPED_NAME),
             Self::All => write!(f, "{}", ALL_NAME),
         }
@@ -186,39 +190,53 @@ impl FromStr for Region {
             let reference_sequence_name = &s[..i];
             let suffix = &s[i + 1..];
 
-            if let Ok((start, end)) = parse_interval(suffix) {
-                let resolved_end = end.unwrap_or(MAX_POSITION);
-                Ok(Self::mapped(reference_sequence_name, start, resolved_end))
+            if let Ok(interval) = parse_interval(suffix) {
+                Ok(Self::mapped(reference_sequence_name, interval))
             } else {
                 Err(ParseError::Invalid)
             }
         } else {
-            Ok(Self::mapped(s, MIN_POSITION, MAX_POSITION))
+            Ok(Self::mapped(s, ..))
         }
     }
 }
 
-fn parse_interval(s: &str) -> Result<(i32, Option<i32>), ParseError> {
+fn parse_interval(s: &str) -> Result<(Bound<i32>, Bound<i32>), ParseError> {
     if s.is_empty() {
-        return Ok((MIN_POSITION, None));
+        return Ok((Bound::Unbounded, Bound::Unbounded));
     }
 
     let mut components = s.splitn(2, '-');
 
     let start = match components.next() {
-        Some(t) => t.parse().map_err(ParseError::InvalidStartPosition)?,
-        None => MIN_POSITION,
+        Some(t) => t
+            .parse()
+            .map(Bound::Included)
+            .map_err(ParseError::InvalidStartPosition)?,
+        None => Bound::Unbounded,
     };
 
     let end = match components.next() {
         Some(t) => t
             .parse()
-            .map(Some)
+            .map(Bound::Included)
             .map_err(ParseError::InvalidEndPosition)?,
-        None => None,
+        None => Bound::Unbounded,
     };
 
     Ok((start, end))
+}
+
+// TODO: https://github.com/rust-lang/rust/issues/61356
+fn bound_cloned<T>(bound: Bound<&T>) -> Bound<T>
+where
+    T: Clone,
+{
+    match bound {
+        Bound::Included(v) => Bound::Included(v.clone()),
+        Bound::Excluded(v) => Bound::Excluded(v.clone()),
+        Bound::Unbounded => Bound::Unbounded,
+    }
 }
 
 #[cfg(test)]
@@ -254,8 +272,8 @@ mod tests {
             Region::from_str_reference_sequences("sq0:3-5", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq0"),
-                start: 3,
-                end: 5
+                start: Bound::Included(3),
+                end: Bound::Included(5),
             })
         );
 
@@ -263,8 +281,8 @@ mod tests {
             Region::from_str_reference_sequences("sq0:3", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq0"),
-                start: 3,
-                end: 8
+                start: Bound::Included(3),
+                end: Bound::Unbounded,
             })
         );
 
@@ -272,8 +290,8 @@ mod tests {
             Region::from_str_reference_sequences("sq0", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq0"),
-                start: 1,
-                end: 8
+                start: Bound::Unbounded,
+                end: Bound::Unbounded,
             })
         );
 
@@ -281,8 +299,8 @@ mod tests {
             Region::from_str_reference_sequences("sq1:", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq1:"),
-                start: 1,
-                end: 13
+                start: Bound::Unbounded,
+                end: Bound::Unbounded,
             })
         );
 
@@ -290,8 +308,8 @@ mod tests {
             Region::from_str_reference_sequences("sq2:5", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq2:5"),
-                start: 1,
-                end: 21
+                start: Bound::Unbounded,
+                end: Bound::Unbounded,
             })
         );
 
@@ -299,8 +317,8 @@ mod tests {
             Region::from_str_reference_sequences("sq3:8-13", &reference_sequences),
             Ok(Region::Mapped {
                 name: String::from("sq3"),
-                start: 8,
-                end: 13
+                start: Bound::Included(8),
+                end: Bound::Included(13),
             })
         );
 
@@ -317,7 +335,9 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Region::mapped("sq0", 3, 5).to_string(), "sq0:3-5");
+        assert_eq!(Region::mapped("sq0", ..).to_string(), "sq0");
+        assert_eq!(Region::mapped("sq0", 3..).to_string(), "sq0:3");
+        assert_eq!(Region::mapped("sq0", 3..=5).to_string(), "sq0:3-5");
         assert_eq!(Region::Unmapped.to_string(), "*");
         assert_eq!(Region::All.to_string(), ".");
     }
@@ -327,10 +347,10 @@ mod tests {
         assert_eq!("*".parse(), Ok(Region::Unmapped));
         assert_eq!(".".parse(), Ok(Region::All));
 
-        assert_eq!("sq0".parse(), Ok(Region::mapped("sq0", 1, MAX_POSITION)));
-        assert_eq!("sq1:".parse(), Ok(Region::mapped("sq1", 1, MAX_POSITION)));
-        assert_eq!("sq2:5".parse(), Ok(Region::mapped("sq2", 5, MAX_POSITION)));
-        assert_eq!("sq3:5-8".parse(), Ok(Region::mapped("sq3", 5, 8)));
+        assert_eq!("sq0".parse(), Ok(Region::mapped("sq0", ..)));
+        assert_eq!("sq1:".parse(), Ok(Region::mapped("sq1", ..)));
+        assert_eq!("sq2:5".parse(), Ok(Region::mapped("sq2", 5..)));
+        assert_eq!("sq3:5-8".parse(), Ok(Region::mapped("sq3", 5..=8)));
 
         assert_eq!("".parse::<Region>(), Err(ParseError::Empty));
     }

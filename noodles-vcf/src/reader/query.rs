@@ -1,4 +1,7 @@
-use std::io::{self, Read, Seek};
+use std::{
+    io::{self, Read, Seek},
+    ops::{Bound, RangeBounds},
+};
 
 use noodles_bgzf::{self as bgzf, index::Chunk};
 
@@ -33,13 +36,22 @@ impl<'a, R> Query<'a, R>
 where
     R: Read + Seek,
 {
-    pub(crate) fn new(
+    pub(crate) fn new<B>(
         reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_name: String,
-        start: i32,
-        end: i32,
-    ) -> Self {
+        interval: B,
+    ) -> Self
+    where
+        B: RangeBounds<i32>,
+    {
+        let (start, end) = match (interval.start_bound(), interval.end_bound()) {
+            (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
+            (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
+            (Bound::Included(s), Bound::Included(e)) => (*s, *e),
+            _ => todo!(),
+        };
+
         Self {
             reader,
             chunks,

@@ -10,6 +10,7 @@ use std::{
     convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
+    ops::{Bound, RangeBounds},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -19,6 +20,8 @@ use noodles_csi as csi;
 use noodles_vcf::header::Contigs;
 
 use super::{Record, MAGIC_NUMBER};
+
+type Interval = (Bound<i32>, Bound<i32>);
 
 /// A BCF reader.
 ///
@@ -235,7 +238,15 @@ where
         index: &csi::Index,
         region: &Region,
     ) -> io::Result<Query<'_, R>> {
-        let (i, start, end) = resolve_region(contigs, region)?;
+        fn cast_bound_i32_to_bound_i64(bound: Bound<&i32>) -> Bound<i64> {
+            match bound {
+                Bound::Included(v) => Bound::Included(i64::from(*v)),
+                Bound::Excluded(v) => Bound::Excluded(i64::from(*v)),
+                Bound::Unbounded => Bound::Unbounded,
+            }
+        }
+
+        let (i, interval) = resolve_region(contigs, region)?;
 
         let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
             io::Error::new(
@@ -244,9 +255,13 @@ where
             )
         })?;
 
-        let interval = i64::from(start)..=i64::from(end);
+        let query_interval = (
+            cast_bound_i32_to_bound_i64(interval.start_bound()),
+            cast_bound_i32_to_bound_i64(interval.end_bound()),
+        );
+
         let query_bins = index_reference_sequence
-            .query(index.min_shift(), index.depth(), interval)
+            .query(index.min_shift(), index.depth(), query_interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -255,11 +270,11 @@ where
             .cloned()
             .collect();
 
-        Ok(Query::new(self, chunks, i, start, end))
+        Ok(Query::new(self, chunks, i, interval))
     }
 }
 
-fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, i32, i32)> {
+fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Interval)> {
     match region {
         Region::Mapped { name, start, end } => {
             let i = contigs.get_index_of(name).ok_or_else(|| {
@@ -269,7 +284,9 @@ fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, i32,
                 )
             })?;
 
-            Ok((i, *start, *end))
+            let interval = (*start, *end);
+
+            Ok((i, interval))
         }
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,

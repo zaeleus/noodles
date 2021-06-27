@@ -5,7 +5,10 @@ mod records;
 
 pub use self::{query::Query, records::Records};
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    ops::{Bound, RangeBounds},
+};
 
 use noodles_bgzf::{self as bgzf, index::optimize_chunks};
 use noodles_core::Region;
@@ -15,6 +18,8 @@ const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
 const HEADER_PREFIX: u8 = b'#';
+
+type Interval = (Bound<i32>, Bound<i32>);
 
 /// A VCF reader.
 ///
@@ -261,7 +266,7 @@ where
     ///     .map(vcf::Reader::new)?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
-    /// let region = Region::mapped("sq0", 8, 13);
+    /// let region = Region::mapped("sq0", 8..=13);
     /// let query = reader.query(&index, &region)?;
     ///
     /// for result in query {
@@ -271,7 +276,7 @@ where
     /// Ok::<(), io::Error>(())
     /// ```
     pub fn query(&mut self, index: &tabix::Index, region: &Region) -> io::Result<Query<'_, R>> {
-        let (i, reference_sequence_name, start, end) = resolve_region(index, region)?;
+        let (i, reference_sequence_name, interval) = resolve_region(index, region)?;
 
         let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
             io::Error::new(
@@ -285,7 +290,7 @@ where
         })?;
 
         let query_bins = index_reference_sequence
-            .query(start..=end)
+            .query(interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -294,6 +299,12 @@ where
             .cloned()
             .collect();
 
+        let start = match interval.start_bound() {
+            Bound::Included(s) => *s,
+            Bound::Excluded(s) => *s + 1,
+            Bound::Unbounded => 1,
+        };
+
         let min_offset = index_reference_sequence.min_offset(start);
         let merged_chunks = optimize_chunks(&chunks, min_offset);
 
@@ -301,8 +312,7 @@ where
             self,
             merged_chunks,
             reference_sequence_name,
-            start,
-            end,
+            interval,
         ))
     }
 }
@@ -331,7 +341,7 @@ where
     }
 }
 
-fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String, i32, i32)> {
+fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String, Interval)> {
     match region {
         Region::Mapped { name, start, end } => {
             let i = index
@@ -348,7 +358,9 @@ fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, S
                     )
                 })?;
 
-            Ok((i, name.into(), *start, *end))
+            let interval = (*start, *end);
+
+            Ok((i, name.into(), interval))
         }
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,

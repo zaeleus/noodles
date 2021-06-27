@@ -10,6 +10,7 @@ use std::{
     convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
+    ops::{Bound, RangeBounds},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -18,6 +19,8 @@ use noodles_core::Region;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
+
+type Interval = (Bound<i32>, Bound<i32>);
 
 /// A BAM reader.
 ///
@@ -284,7 +287,7 @@ where
     ///
     /// let reference_sequences = header.reference_sequences();
     /// let index = bai::read("sample.bam.bai")?;
-    /// let region = Region::mapped("sq0", 17711, 28657);
+    /// let region = Region::mapped("sq0", 17711..=28657);
     /// let query = reader.query(&reference_sequences, &index, &region)?;
     ///
     /// for result in query {
@@ -299,7 +302,7 @@ where
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<'_, R>> {
-        let (i, start, end) = resolve_region(reference_sequences, region)?;
+        let (i, interval) = resolve_region(reference_sequences, region)?;
 
         let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
             io::Error::new(
@@ -313,7 +316,7 @@ where
         })?;
 
         let query_bins = index_reference_sequence
-            .query(start..=end)
+            .query(interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -322,10 +325,16 @@ where
             .cloned()
             .collect();
 
+        let start = match interval.start_bound() {
+            Bound::Included(s) => *s,
+            Bound::Excluded(s) => *s + 1,
+            Bound::Unbounded => 1,
+        };
+
         let min_offset = index_reference_sequence.min_offset(start);
         let merged_chunks = optimize_chunks(&chunks, min_offset);
 
-        Ok(Query::new(self, merged_chunks, i, start, end))
+        Ok(Query::new(self, merged_chunks, i, interval))
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
@@ -421,7 +430,7 @@ fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
 fn resolve_region(
     reference_sequences: &ReferenceSequences,
     region: &Region,
-) -> io::Result<(usize, i32, i32)> {
+) -> io::Result<(usize, Interval)> {
     match region {
         Region::Mapped { name, start, end } => {
             let i = reference_sequences.get_index_of(name).ok_or_else(|| {
@@ -434,7 +443,9 @@ fn resolve_region(
                 )
             })?;
 
-            Ok((i, *start, *end))
+            let interval = (*start, *end);
+
+            Ok((i, interval))
         }
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
