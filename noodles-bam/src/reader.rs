@@ -405,7 +405,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut c_name = vec![0; l_name as usize];
+    let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name)?;
 
     let name = bytes_with_nul_to_string(&c_name)?;
