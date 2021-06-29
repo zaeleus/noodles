@@ -230,6 +230,31 @@ where
     }
 
     /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bcf as bcf;
+    /// use noodles_core::Region;
+    /// use noodles_csi as csi;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    ///
+    /// let header: vcf::Header = reader.read_header()?.parse()?;
+    /// let contigs = header.contigs();
+    ///
+    /// let index = csi::read("sample.bcf.csi")?;
+    /// let region = Region::mapped("sq0", 8..=13);
+    /// let query = reader.query(&contigs, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn query(
         &mut self,
         contigs: &Contigs,
