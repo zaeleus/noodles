@@ -147,7 +147,7 @@ impl ReferenceSequence {
         let max_bin_id = Bin::max_id(depth);
         let mut region_bins = BitVec::from_elem(max_bin_id as usize, false);
 
-        reg2bins(start, end, min_shift, depth, &mut region_bins);
+        reg2bins(start - 1, end, min_shift, depth, &mut region_bins);
 
         let query_bins = self
             .bins()
@@ -160,8 +160,11 @@ impl ReferenceSequence {
 }
 
 // `CSIv1.pdf` (2020-07-21)
+// [beg, end), 0-based
 #[allow(clippy::many_single_char_names)]
-fn reg2bins(beg: i64, end: i64, min_shift: i32, depth: i32, bins: &mut BitVec) {
+fn reg2bins(beg: i64, mut end: i64, min_shift: i32, depth: i32, bins: &mut BitVec) {
+    end -= 1;
+
     let mut l = 0;
     let mut t = 0;
     let mut s = min_shift + depth * 3;
@@ -207,5 +210,42 @@ mod tests {
             reference_sequence.query(MIN_SHIFT, DEPTH, 1..=end),
             Err(QueryError::InvalidEndPosition(536870911, end))
         );
+    }
+
+    #[test]
+    fn test_reg2bins() {
+        // +------------------------------------------------------------------------------------...
+        // | 0                                                                                  ...
+        // | 0-1023                                                                             ...
+        // +-------------------------------------------------------------------------+----------...
+        // | 1                                                                       | 2        ...
+        // | 0-127                                                                   | 128-255  ...
+        // +--------+--------+--------+--------+--------+--------+---------+---------+---------+...
+        // | 9      | 10     | 11     | 12     | 13     | 14     | 15      | 16      | 17      |...
+        // | 0-15   | 16-31  | 32-47  | 48-63  | 64-79  | 80-95  | 96-111  | 112-127 | 128-143 |...
+        // +--------+--------+--------+--------+--------+--------+---------+---------+---------+...
+
+        const MIN_SHIFT: i32 = 4;
+        const DEPTH: i32 = 2;
+
+        fn t(start: i64, end: i64, expected_bin_ids: &[u32]) {
+            let max_bin_id = Bin::max_id(DEPTH);
+
+            let mut actual = BitVec::from_elem(max_bin_id as usize, false);
+            reg2bins(start, end, MIN_SHIFT, DEPTH, &mut actual);
+
+            let mut expected = BitVec::from_elem(max_bin_id as usize, false);
+
+            for &bin_id in expected_bin_ids {
+                expected.set(bin_id as usize, true);
+            }
+
+            assert_eq!(actual, expected);
+        }
+
+        t(0, 16, &[0, 1, 9]);
+        t(8, 13, &[0, 1, 9]);
+        t(35, 67, &[0, 1, 11, 12, 13]);
+        t(48, 143, &[0, 1, 2, 12, 13, 14, 15, 16, 17]);
     }
 }
