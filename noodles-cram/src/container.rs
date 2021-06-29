@@ -145,13 +145,13 @@ impl Container {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromSamHeader {
+pub enum TryFromSamHeaderError {
     ReferenceSequenceMissingMd5Checksum,
 }
 
-impl error::Error for TryFromSamHeader {}
+impl error::Error for TryFromSamHeaderError {}
 
-impl fmt::Display for TryFromSamHeader {
+impl fmt::Display for TryFromSamHeaderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ReferenceSequenceMissingMd5Checksum => {
@@ -162,7 +162,7 @@ impl fmt::Display for TryFromSamHeader {
 }
 
 impl TryFrom<&sam::Header> for Container {
-    type Error = TryFromSamHeader;
+    type Error = TryFromSamHeaderError;
 
     fn try_from(header: &sam::Header) -> Result<Self, Self::Error> {
         use crate::container::block::ContentType;
@@ -199,10 +199,10 @@ impl TryFrom<&sam::Header> for Container {
 
 fn validate_reference_sequences(
     reference_sequences: &sam::header::ReferenceSequences,
-) -> Result<(), TryFromSamHeader> {
+) -> Result<(), TryFromSamHeaderError> {
     for reference_sequence in reference_sequences.values() {
         if reference_sequence.md5_checksum().is_none() {
-            return Err(TryFromSamHeader::ReferenceSequenceMissingMd5Checksum);
+            return Err(TryFromSamHeaderError::ReferenceSequenceMissingMd5Checksum);
         }
     }
 
@@ -273,7 +273,7 @@ mod tests {
 
         assert_eq!(
             Container::try_from(&header),
-            Err(TryFromSamHeader::ReferenceSequenceMissingMd5Checksum)
+            Err(TryFromSamHeaderError::ReferenceSequenceMissingMd5Checksum)
         );
     }
 }
