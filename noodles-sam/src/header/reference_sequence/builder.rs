@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+//! SAM header reference sequence builder.
+
+use std::{collections::HashMap, error, fmt};
 
 use super::{AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag};
 
@@ -18,20 +20,42 @@ pub struct Builder {
     fields: HashMap<Tag, String>,
 }
 
+/// An error returned when a SAM header reference sequence fails to build.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BuildError {
+    /// The name is missing.
+    MissingName,
+    /// The length is missing.
+    MissingLength,
+}
+
+impl error::Error for BuildError {}
+
+impl fmt::Display for BuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingName => f.write_str("missing name"),
+            Self::MissingLength => f.write_str("missing length"),
+        }
+    }
+}
+
 impl Builder {
     /// Sets a reference sequence name.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.name(), "sq0");
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_name<I>(mut self, name: I) -> Self
     where
@@ -46,14 +70,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.len(), 13);
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_length(mut self, len: i32) -> Self {
         self.len = Some(len);
@@ -65,15 +91,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_alternative_locus("sq0_alt")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.alternative_locus(), Some("sq0_alt"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_alternative_locus<I>(mut self, alternative_locus: I) -> Self
     where
@@ -89,7 +117,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam::header::{
-    ///     reference_sequence::{alternative_names, AlternativeNames},
+    ///     reference_sequence::AlternativeNames,
     ///     ReferenceSequence,
     /// };
     ///
@@ -99,10 +127,10 @@ impl Builder {
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_alternative_names(alternative_names.clone())
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.alternative_names(), Some(&alternative_names));
-    /// # Ok::<(), alternative_names::ParseError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_alternative_names(mut self, alternative_names: AlternativeNames) -> Self {
         self.alternative_names = Some(alternative_names);
@@ -114,15 +142,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_assembly_id("ref")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.assembly_id(), Some("ref"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_assembly_id<I>(mut self, assembly_id: I) -> Self
     where
@@ -137,15 +167,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_description("noodles")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.description(), Some("noodles"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
@@ -160,6 +192,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Md5Checksum, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
@@ -169,12 +202,13 @@ impl Builder {
     ///         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
     ///         0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
     ///     ]))
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.md5_checksum(), Some(Md5Checksum::from([
     ///     0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
     ///     0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
     /// ])));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_md5_checksum(mut self, md5_checksum: Md5Checksum) -> Self {
         self.md5_checksum = Some(md5_checksum);
@@ -186,15 +220,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_species("human")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.species(), Some("human"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_species<I>(mut self, species: I) -> Self
     where
@@ -209,15 +245,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::MoleculeTopology, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_molecule_topology(MoleculeTopology::Linear)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.molecule_topology(), Some(MoleculeTopology::Linear));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_molecule_topology(mut self, molecule_topology: MoleculeTopology) -> Self {
         self.molecule_topology = Some(molecule_topology);
@@ -229,15 +267,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .set_uri("file:///tmp/ref.fasta")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.uri(), Some("file:///tmp/ref.fasta"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_uri<I>(mut self, uri: I) -> Self
     where
@@ -252,6 +292,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let zn = Tag::Other(String::from("zn"));
@@ -260,12 +301,13 @@ impl Builder {
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .insert(zn.clone(), String::from("noodles"))
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(
     ///     reference_sequence.fields().get(&zn),
     ///     Some(&String::from("noodles"))
     /// );
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where
@@ -280,16 +322,22 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
+    ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .build();
+    ///     .build()?;
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
-    pub fn build(self) -> ReferenceSequence {
-        ReferenceSequence {
-            name: self.name.expect("missing name"),
-            len: self.len.expect("missing len"),
+    pub fn build(self) -> Result<ReferenceSequence, BuildError> {
+        let name = self.name.ok_or(BuildError::MissingName)?;
+        let len = self.len.ok_or(BuildError::MissingLength)?;
+
+        Ok(ReferenceSequence {
+            name,
+            len,
             alternative_locus: self.alternative_locus,
             alternative_names: self.alternative_names,
             assembly_id: self.assembly_id,
@@ -299,6 +347,24 @@ impl Builder {
             molecule_topology: self.molecule_topology,
             uri: self.uri,
             fields: self.fields,
-        }
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build() {
+        assert_eq!(
+            Builder::default().set_length(13).build(),
+            Err(BuildError::MissingName)
+        );
+
+        assert_eq!(
+            Builder::default().set_name("sq0").build(),
+            Err(BuildError::MissingLength)
+        );
     }
 }

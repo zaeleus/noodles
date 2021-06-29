@@ -1,7 +1,7 @@
 //! SAM header reference sequence and fields.
 
 pub mod alternative_names;
-mod builder;
+pub mod builder;
 pub mod md5_checksum;
 pub mod molecule_topology;
 pub mod tag;
@@ -257,13 +257,14 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
-    ///     .build();
+    ///     .build()?;
     ///
     /// let fields = reference_sequence.fields();
     /// assert_eq!(fields.len(), 1);
@@ -277,6 +278,8 @@ impl ReferenceSequence {
     ///
     /// assert_eq!(fields.get(&Tag::Length), None);
     /// assert_eq!(reference_sequence.len(), 13);
+    ///
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
@@ -445,7 +448,7 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
         return Err(TryFromRecordError::MissingRequiredTag(Tag::Length));
     }
 
-    Ok(builder.build())
+    Ok(builder.build().unwrap())
 }
 
 #[cfg(test)]
@@ -453,7 +456,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), builder::BuildError> {
         let reference_sequence = ReferenceSequence::builder()
             .set_name("sq0")
             .set_length(13)
@@ -461,12 +464,14 @@ mod tests {
                 0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6,
                 0x15, 0x34,
             ]))
-            .build();
+            .build()?;
 
         assert_eq!(
             reference_sequence.to_string(),
             "@SQ\tSN:sq0\tLN:13\tM5:d7eba311421bbc9d3ada44709dd61534"
         );
+
+        Ok(())
     }
 
     #[test]

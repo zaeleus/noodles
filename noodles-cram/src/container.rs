@@ -214,7 +214,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_sam_header_for_container() -> Result<(), TryFromSamHeader> {
+    fn test_try_from_sam_header_for_container() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = sam::header::ReferenceSequence::builder()
             .set_name("sq0")
             .set_length(8)
@@ -225,7 +225,7 @@ mod tests {
                 ]
                 .into(),
             )
-            .build();
+            .build()?;
 
         let sam_header = sam::Header::builder()
             .add_reference_sequence(reference_sequence)

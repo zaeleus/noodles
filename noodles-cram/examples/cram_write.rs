@@ -26,7 +26,9 @@ GATCTTACTTTTT
 GGCGCCCCGCTGTGCAAAAAT
 ";
 
-fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
+fn build_header(
+    reference_sequence_records: &[fasta::Record],
+) -> Result<sam::Header, sam::header::reference_sequence::builder::BuildError> {
     let mut builder = sam::Header::builder()
         .set_header(header::header::Header::default())
         .add_program(Program::new("noodles-cram"))
@@ -43,12 +45,12 @@ fn build_header(reference_sequence_records: &[fasta::Record]) -> sam::Header {
             .set_name(record.reference_sequence_name())
             .set_length(sequence.len() as i32)
             .set_md5_checksum(md5_checksum)
-            .build();
+            .build()?;
 
         builder = builder.add_reference_sequence(reference_sequence);
     }
 
-    builder.build()
+    Ok(builder.build())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -56,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .records()
         .collect::<Result<_, _>>()?;
 
-    let header = build_header(&reference_sequence_records);
+    let header = build_header(&reference_sequence_records)?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();
