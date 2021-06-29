@@ -109,7 +109,7 @@ impl FromStr for Cigar {
 
         let mut ops = Vec::new();
 
-        let matches = s.match_indices(|c: char| !c.is_digit(10));
+        let matches = s.match_indices(|c: char| !c.is_ascii_digit());
         let mut start = 0;
 
         for (end, raw_kind) in matches {
