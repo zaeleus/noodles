@@ -394,7 +394,7 @@ impl fmt::Display for Record {
             .map(|mate_reference_sequence_name| {
                 if let Some(reference_sequence_name) = self.reference_sequence_name() {
                     if mate_reference_sequence_name == reference_sequence_name {
-                        return "=";
+                        return EQ_FIELD;
                     }
                 }
 
