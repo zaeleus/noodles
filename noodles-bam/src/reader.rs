@@ -413,7 +413,7 @@ where
         i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    Ok(ReferenceSequence::new(name, l_ref))
+    ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {

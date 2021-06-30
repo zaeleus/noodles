@@ -240,22 +240,22 @@ fn parse_interval(s: &str) -> Result<Interval, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::header::ReferenceSequence;
+    use noodles_sam::header::{reference_sequence, ReferenceSequence};
 
     use super::*;
 
     #[test]
-    fn test_from_str_reference_sequences() {
-        let reference_sequences: ReferenceSequences = vec![
-            ReferenceSequence::new("sq0", 8),
-            ReferenceSequence::new("sq1:", 13),
-            ReferenceSequence::new("sq2:5", 21),
-            ReferenceSequence::new("sq3", 34),
-            ReferenceSequence::new("sq3:5-8", 55),
+    fn test_from_str_reference_sequences() -> Result<(), reference_sequence::NewError> {
+        let reference_sequences = vec![
+            ("sq0", 8),
+            ("sq1:", 13),
+            ("sq2:5", 21),
+            ("sq3", 34),
+            ("sq3:5-8", 55),
         ]
         .into_iter()
-        .map(|rs| (rs.name().into(), rs))
-        .collect();
+        .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (rs.name().into(), rs)))
+        .collect::<Result<_, _>>()?;
 
         assert_eq!(
             Region::from_str_reference_sequences("*", &reference_sequences),
@@ -306,6 +306,8 @@ mod tests {
             Region::from_str_reference_sequences("", &reference_sequences),
             Err(ParseError::Empty)
         );
+
+        Ok(())
     }
 
     #[test]

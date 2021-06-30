@@ -50,13 +50,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::{ReferenceSequence, ReferenceSequences}};
+    /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
-    /// let reference_sequences: ReferenceSequences = vec![
-    ///     (String::from("sq0"), ReferenceSequence::new("sq0", 13))
-    /// ]
-    /// .into_iter()
-    /// .collect();
+    /// let reference_sequences = vec![("sq0", 13)]
+    ///     .into_iter()
+    ///     .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+    ///     .collect::<Result<_, _>>()?;
     ///
     /// let header = sam::Header::builder()
     ///     .set_reference_sequences(reference_sequences)
@@ -65,6 +64,7 @@ impl Builder {
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
+    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
         self.reference_sequences = reference_sequences;
@@ -79,12 +79,13 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
+    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn add_reference_sequence(mut self, reference_sequence: ReferenceSequence) -> Self {
         let name = reference_sequence.name().into();
@@ -173,6 +174,8 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
+    use crate::header::reference_sequence;
+
     use super::*;
 
     #[test]
@@ -187,11 +190,11 @@ mod tests {
     }
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), reference_sequence::NewError> {
         let header = Builder::new()
-            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
-            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
-            .add_reference_sequence(ReferenceSequence::new("sq2", 21))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
+            .add_reference_sequence(ReferenceSequence::new("sq2", 21)?)
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
             .add_program(Program::new("noodles-sam"))
@@ -211,5 +214,7 @@ mod tests {
         let comments = header.comments();
         assert_eq!(comments.len(), 1);
         assert_eq!(&comments[0], "written by noodles-sam");
+
+        Ok(())
     }
 }

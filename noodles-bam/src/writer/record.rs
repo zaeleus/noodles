@@ -505,14 +505,13 @@ mod tests {
     }
 
     #[test]
-    fn test_find_reference_sequence_id(
-    ) -> Result<(), sam::record::reference_sequence_name::ParseError> {
+    fn test_find_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::ReferenceSequence;
 
         let reference_sequences = vec![("sq0", 8), ("sq1", 13), ("sq2", 21)]
             .into_iter()
-            .map(|(name, len)| (name.into(), ReferenceSequence::new(name, len)))
-            .collect();
+            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .collect::<Result<_, _>>()?;
 
         assert!(matches!(
             find_reference_sequence_id(&reference_sequences, None),

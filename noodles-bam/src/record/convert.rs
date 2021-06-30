@@ -168,23 +168,14 @@ mod tests {
 
     use super::*;
 
-    fn build_reference_sequences() -> sam::header::ReferenceSequences {
-        vec![
-            (
-                String::from("sq0"),
-                sam::header::ReferenceSequence::new("sq0", 5),
-            ),
-            (
-                String::from("sq1"),
-                sam::header::ReferenceSequence::new("sq1", 8),
-            ),
-            (
-                String::from("sq2"),
-                sam::header::ReferenceSequence::new("sq2", 13),
-            ),
-        ]
-        .into_iter()
-        .collect()
+    fn build_reference_sequences(
+    ) -> Result<sam::header::ReferenceSequences, sam::header::reference_sequence::NewError> {
+        use sam::header::ReferenceSequence;
+
+        vec![("sq0", 5), ("sq1", 8), ("sq2", 13)]
+            .into_iter()
+            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .collect()
     }
 
     fn build_record() -> io::Result<Record> {
@@ -246,7 +237,7 @@ mod tests {
         };
 
         let bam_record = build_record()?;
-        let reference_sequences = build_reference_sequences();
+        let reference_sequences = build_reference_sequences()?;
         let actual = bam_record.try_into_sam_record(&reference_sequences)?;
 
         let expected = sam::Record::builder()

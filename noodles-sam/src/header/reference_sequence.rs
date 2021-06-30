@@ -18,6 +18,8 @@ use super::{
     Record,
 };
 
+const MIN_LENGTH: i32 = 1;
+
 /// A SAM header reference sequence.
 ///
 /// The reference sequence describes a sequence a read possibly mapped to. Both the reference
@@ -37,6 +39,23 @@ pub struct ReferenceSequence {
     molecule_topology: Option<MoleculeTopology>,
     uri: Option<String>,
     fields: HashMap<Tag, String>,
+}
+
+/// An error returned when a SAM header reference sequence fails to construct.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NewError {
+    /// The length is invalid.
+    InvalidLength(i32),
+}
+
+impl error::Error for NewError {}
+
+impl fmt::Display for NewError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidLength(len) => write!(f, "invalid length: {}", len),
+        }
+    }
 }
 
 #[allow(clippy::len_without_is_empty)]
@@ -59,17 +78,18 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    ///
-    /// let reference_sequence = ReferenceSequence::new("sq0", 13);
-    ///
-    /// assert_eq!(reference_sequence.name(), "sq0");
-    /// assert_eq!(reference_sequence.len(), 13);
+    /// let reference_sequence = ReferenceSequence::new("sq0", 13)?;
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
-    pub fn new<I>(name: I, len: i32) -> Self
+    pub fn new<I>(name: I, len: i32) -> Result<Self, NewError>
     where
         I: Into<String>,
     {
-        Self {
+        if len < MIN_LENGTH {
+            return Err(NewError::InvalidLength(len));
+        }
+
+        Ok(Self {
             name: name.into(),
             len,
             alternative_locus: None,
@@ -81,7 +101,7 @@ impl ReferenceSequence {
             molecule_topology: None,
             uri: None,
             fields: HashMap::new(),
-        }
+        })
     }
 
     /// Returns the reference sequence name.
@@ -90,8 +110,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert_eq!(reference_sequence.name(), "sq0");
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn name(&self) -> &str {
         &self.name
@@ -104,11 +125,12 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert_eq!(reference_sequence.name(), "sq0");
     ///
     /// *reference_sequence.name_mut() = String::from("sq1");
     /// assert_eq!(reference_sequence.name(), "sq1");
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn name_mut(&mut self) -> &mut String {
         &mut self.name
@@ -120,8 +142,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert_eq!(reference_sequence.len(), 13);
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn len(&self) -> i32 {
         self.len
@@ -134,11 +157,12 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     ///
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert_eq!(reference_sequence.len(), 13);
     ///
     /// *reference_sequence.len_mut() = 8;
     /// assert_eq!(reference_sequence.len(), 8);
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn len_mut(&mut self) -> &mut i32 {
         &mut self.len
@@ -150,8 +174,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.alternative_locus().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn alternative_locus(&self) -> Option<&str> {
         self.alternative_locus.as_deref()
@@ -163,8 +188,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.alternative_names().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn alternative_names(&self) -> Option<&AlternativeNames> {
         self.alternative_names.as_ref()
@@ -176,8 +202,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.assembly_id().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn assembly_id(&self) -> Option<&str> {
         self.assembly_id.as_deref()
@@ -189,8 +216,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.description().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
@@ -202,8 +230,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.md5_checksum().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn md5_checksum(&self) -> Option<Md5Checksum> {
         self.md5_checksum
@@ -215,8 +244,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.species().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn species(&self) -> Option<&str> {
         self.species.as_deref()
@@ -228,8 +258,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.molecule_topology().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn molecule_topology(&self) -> Option<MoleculeTopology> {
         self.molecule_topology
@@ -241,8 +272,9 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
-    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13);
+    /// let mut reference_sequence = ReferenceSequence::new("sq0", 13)?;
     /// assert!(reference_sequence.uri().is_none());
+    /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn uri(&self) -> Option<&str> {
         self.uri.as_deref()
@@ -454,6 +486,14 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_new() {
+        assert_eq!(
+            ReferenceSequence::new("sq0", 0),
+            Err(NewError::InvalidLength(0))
+        );
+    }
 
     #[test]
     fn test_fmt() -> Result<(), builder::BuildError> {

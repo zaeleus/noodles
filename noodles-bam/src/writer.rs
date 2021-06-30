@@ -131,20 +131,19 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
     /// writer.write_header(&header)?;
     /// writer.write_reference_sequences(header.reference_sequences())?;
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_reference_sequences(
         &mut self,
@@ -256,11 +255,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_reference_sequences() -> io::Result<()> {
+    fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
+        let reference_sequence = ReferenceSequence::new("sq0", 8)?;
+
         let header = sam::Header::builder()
-            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(reference_sequence.clone())
             .set_header(sam::header::header::Header::default())
             .build();
 
@@ -273,7 +274,7 @@ mod tests {
         let actual = reader.read_reference_sequences()?;
 
         assert_eq!(actual.len(), 1);
-        assert_eq!(&actual[0], &sam::header::ReferenceSequence::new("sq0", 8));
+        assert_eq!(&actual[0], &reference_sequence);
 
         Ok(())
     }

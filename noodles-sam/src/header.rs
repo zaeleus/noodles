@@ -48,8 +48,8 @@
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(header::header::Header::default())
-//!     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
-//!     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+//!     .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+//!     .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -57,6 +57,7 @@
 //! assert!(header.read_groups().is_empty());
 //! assert!(header.programs().is_empty());
 //! assert!(header.comments().is_empty());
+//! # Ok::<(), sam::header::reference_sequence::NewError>(())
 //! ```
 
 mod builder;
@@ -106,18 +107,8 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
-    ///
-    /// let header = sam::Header::builder()
-    ///     .set_header(header::header::Header::default())
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
-    ///     .build();
-    ///
-    /// assert!(header.header().is_some());
-    /// assert_eq!(header.reference_sequences().len(), 1);
-    /// assert!(header.read_groups().is_empty());
-    /// assert!(header.programs().is_empty());
-    /// assert!(header.comments().is_empty());
+    /// use noodles_sam as sam;
+    /// let builder = sam::Header::builder();
     /// ```
     pub fn builder() -> Builder {
         Builder::new()
@@ -177,12 +168,13 @@ impl Header {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
+    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn reference_sequences(&self) -> &ReferenceSequences {
         &self.reference_sequences
@@ -202,12 +194,13 @@ impl Header {
     ///
     /// header.reference_sequences_mut().insert(
     ///     String::from("sq0"),
-    ///     ReferenceSequence::new("sq0", 13),
+    ///     ReferenceSequence::new("sq0", 13)?,
     /// );
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
+    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
     /// ```
     pub fn reference_sequences_mut(&mut self) -> &mut ReferenceSequences {
         &mut self.reference_sequences
@@ -384,8 +377,8 @@ impl fmt::Display for Header {
     ///
     /// let header = sam::Header::builder()
     ///     .set_header(header::header::Header::new(header::header::Version::new(1, 6)))
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8))
-    ///     .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+    ///     .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
     ///     .build();
     ///
     /// let expected = "\
@@ -395,6 +388,7 @@ impl fmt::Display for Header {
     /// ";
     ///
     /// assert_eq!(header.to_string(), expected);
+    /// # Ok::<(), header::reference_sequence::NewError>(())
     /// ```
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(header) = self.header() {
@@ -559,11 +553,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), reference_sequence::NewError> {
         let header = Header::builder()
             .set_header(header::Header::new(header::Version::new(1, 6)))
-            .add_reference_sequence(ReferenceSequence::new("sq0", 8))
-            .add_reference_sequence(ReferenceSequence::new("sq1", 13))
+            .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+            .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
             .add_program(Program::new("pg0"))
@@ -586,6 +580,8 @@ mod tests {
 ";
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]

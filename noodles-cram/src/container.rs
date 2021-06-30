@@ -266,14 +266,17 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_sam_header_for_container_with_missing_reference_sequence_md5_checksum() {
+    fn test_try_from_sam_header_for_container_with_missing_reference_sequence_md5_checksum(
+    ) -> Result<(), sam::header::reference_sequence::NewError> {
         let header = sam::Header::builder()
-            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8))
+            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8)?)
             .build();
 
         assert_eq!(
             Container::try_from(&header),
             Err(TryFromSamHeaderError::ReferenceSequenceMissingMd5Checksum)
         );
+
+        Ok(())
     }
 }

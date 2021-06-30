@@ -117,7 +117,6 @@ mod tests {
 
     use noodles_sam::{
         self as sam,
-        header::ReferenceSequences,
         record::{Flags, Position},
     };
 
@@ -125,11 +124,12 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let mut reference_sequences = ReferenceSequences::default();
-        reference_sequences.insert(
-            String::from("sq0"),
-            sam::header::ReferenceSequence::new("sq0", 8),
-        );
+        let reference_sequences = vec![("sq0", 8)]
+            .into_iter()
+            .map(|(name, len)| {
+                sam::header::ReferenceSequence::new(name, len).map(|rs| (name.into(), rs))
+            })
+            .collect::<Result<_, _>>()?;
 
         let mut builder = Builder::default();
 
