@@ -423,30 +423,24 @@ impl TryFrom<Record> for ReferenceSequence {
 }
 
 fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError> {
-    let mut builder = ReferenceSequence::builder();
+    use builder::BuildError;
 
-    let mut name = None;
-    let mut len = None;
+    let mut builder = ReferenceSequence::builder();
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         builder = match tag {
             Tag::Name => {
-                if is_valid_name(&value) {
-                    name = Some(value);
-                } else {
+                if !is_valid_name(&value) {
                     return Err(TryFromRecordError::InvalidName);
                 }
 
-                builder
+                builder.set_name(value)
             }
             Tag::Length => {
-                len = value
-                    .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidLength)?;
-                builder
+                let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
+                builder.set_length(len)
             }
             Tag::AlternativeLocus => builder.set_alternative_locus(value),
             Tag::AlternativeNames => {
@@ -475,19 +469,11 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
         }
     }
 
-    if let Some(n) = name {
-        builder = builder.set_name(n);
-    } else {
-        return Err(TryFromRecordError::MissingRequiredTag(Tag::Name));
+    match builder.build() {
+        Ok(rs) => Ok(rs),
+        Err(BuildError::MissingName) => Err(TryFromRecordError::MissingRequiredTag(Tag::Name)),
+        Err(BuildError::MissingLength) => Err(TryFromRecordError::MissingRequiredTag(Tag::Length)),
     }
-
-    if let Some(l) = len {
-        builder = builder.set_length(l);
-    } else {
-        return Err(TryFromRecordError::MissingRequiredTag(Tag::Length));
-    }
-
-    Ok(builder.build().unwrap())
 }
 
 #[cfg(test)]
