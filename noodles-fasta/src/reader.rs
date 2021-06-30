@@ -219,7 +219,7 @@ where
 
 impl<R> Seek for Reader<R>
 where
-    R: BufRead + Seek,
+    R: Read + Seek,
 {
     /// Seeks the underlying stream to the given position.
     ///
