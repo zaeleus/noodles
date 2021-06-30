@@ -13,6 +13,8 @@ pub use self::{
     molecule_topology::MoleculeTopology, tag::Tag,
 };
 
+use crate::record::reference_sequence_name::is_valid_name;
+
 use super::{
     record::{self, value::Fields},
     Record,
@@ -44,6 +46,8 @@ pub struct ReferenceSequence {
 /// An error returned when a SAM header reference sequence fails to construct.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NewError {
+    /// The name is invalid.
+    InvalidName,
     /// The length is invalid.
     InvalidLength(i32),
 }
@@ -53,6 +57,7 @@ impl error::Error for NewError {}
 impl fmt::Display for NewError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidName => f.write_str("invalid name"),
             Self::InvalidLength(len) => write!(f, "invalid length: {}", len),
         }
     }
@@ -85,12 +90,16 @@ impl ReferenceSequence {
     where
         I: Into<String>,
     {
-        if len < MIN_LENGTH {
+        let name = name.into();
+
+        if !is_valid_name(&name) {
+            return Err(NewError::InvalidName);
+        } else if len < MIN_LENGTH {
             return Err(NewError::InvalidLength(len));
         }
 
         Ok(Self {
-            name: name.into(),
+            name,
             len,
             alternative_locus: None,
             alternative_names: None,
@@ -414,8 +423,6 @@ impl TryFrom<Record> for ReferenceSequence {
 }
 
 fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError> {
-    use crate::record::reference_sequence_name::is_valid_name;
-
     let mut builder = ReferenceSequence::builder();
 
     let mut name = None;
@@ -489,6 +496,11 @@ mod tests {
 
     #[test]
     fn test_new() {
+        assert_eq!(
+            ReferenceSequence::new("sq 0", 8),
+            Err(NewError::InvalidName)
+        );
+
         assert_eq!(
             ReferenceSequence::new("sq0", 0),
             Err(NewError::InvalidLength(0))
