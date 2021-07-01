@@ -6,7 +6,7 @@ pub mod md5_checksum;
 pub mod molecule_topology;
 pub mod tag;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
+use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{
     alternative_names::AlternativeNames, builder::Builder, md5_checksum::Md5Checksum,
@@ -385,7 +385,7 @@ pub enum TryFromRecordError {
     /// The name tag (`SN`) has an invalid value.
     InvalidName,
     /// The length tag (`LN`) has an invalid value.
-    InvalidLength(num::ParseIntError),
+    InvalidLength,
     /// The alternative names tag (`AN`) has an invalid value.
     InvalidAlternativeNames(alternative_names::ParseError),
     /// The MD5 checksum is invalid.
@@ -403,7 +403,7 @@ impl fmt::Display for TryFromRecordError {
             Self::MissingRequiredTag(tag) => write!(f, "missing required tag: {:?}", tag),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::InvalidName => write!(f, "invalid name"),
-            Self::InvalidLength(e) => write!(f, "invalid reference sequence length: {}", e),
+            Self::InvalidLength => write!(f, "invalid length"),
             Self::InvalidAlternativeNames(e) => write!(f, "invalid alternative names: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
@@ -433,7 +433,10 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
         builder = match tag {
             Tag::Name => builder.set_name(value),
             Tag::Length => {
-                let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
+                let len = value
+                    .parse()
+                    .map_err(|_| TryFromRecordError::InvalidLength)?;
+
                 builder.set_length(len)
             }
             Tag::AlternativeLocus => builder.set_alternative_locus(value),
@@ -468,6 +471,7 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
         Err(BuildError::MissingName) => Err(TryFromRecordError::MissingRequiredTag(Tag::Name)),
         Err(BuildError::InvalidName) => Err(TryFromRecordError::InvalidName),
         Err(BuildError::MissingLength) => Err(TryFromRecordError::MissingRequiredTag(Tag::Length)),
+        Err(BuildError::InvalidLength(_)) => Err(TryFromRecordError::InvalidLength),
     }
 }
 
@@ -600,7 +604,17 @@ mod tests {
 
         assert!(matches!(
             ReferenceSequence::try_from(record),
-            Err(TryFromRecordError::InvalidLength(_))
+            Err(TryFromRecordError::InvalidLength)
+        ));
+
+        let record = Record::new(
+            record::Kind::ReferenceSequence,
+            record::Value::try_from_iter(vec![("SN", "sq0"), ("LN", "0")])?,
+        );
+
+        assert!(matches!(
+            ReferenceSequence::try_from(record),
+            Err(TryFromRecordError::InvalidLength)
         ));
 
         Ok(())

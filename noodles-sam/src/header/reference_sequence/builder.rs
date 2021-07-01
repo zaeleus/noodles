@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, error, fmt};
 
-use super::{AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag};
+use super::{AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag, MIN_LENGTH};
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
@@ -29,6 +29,8 @@ pub enum BuildError {
     InvalidName,
     /// The length is missing.
     MissingLength,
+    /// The length is invalid.
+    InvalidLength(i32),
 }
 
 impl error::Error for BuildError {}
@@ -39,6 +41,7 @@ impl fmt::Display for BuildError {
             Self::MissingName => f.write_str("missing name"),
             Self::InvalidName => f.write_str("invalid name"),
             Self::MissingLength => f.write_str("missing length"),
+            Self::InvalidLength(len) => write!(f, "invalid length: {}", len),
         }
     }
 }
@@ -345,6 +348,10 @@ impl Builder {
 
         let len = self.len.ok_or(BuildError::MissingLength)?;
 
+        if len < MIN_LENGTH {
+            return Err(BuildError::InvalidLength(len));
+        }
+
         Ok(ReferenceSequence {
             name,
             len,
@@ -380,6 +387,11 @@ mod tests {
         assert_eq!(
             Builder::default().set_name("sq0").build(),
             Err(BuildError::MissingLength)
+        );
+
+        assert_eq!(
+            Builder::default().set_name("sq0").set_length(0).build(),
+            Err(BuildError::InvalidLength(0))
         );
     }
 }
