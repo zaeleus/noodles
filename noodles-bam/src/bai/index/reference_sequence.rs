@@ -21,7 +21,7 @@ const DEPTH: i32 = 5;
 const MIN_POSITION: i32 = 1;
 const MAX_POSITION: i32 = 1 << (MIN_SHIFT + 3 * DEPTH);
 
-const WINDOW_SIZE: i32 = 16384;
+const WINDOW_SIZE: i32 = 1 << MIN_SHIFT;
 
 /// An error returned when a query fails.
 #[derive(Clone, Debug, Eq, PartialEq)]
