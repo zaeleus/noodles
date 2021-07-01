@@ -43,7 +43,6 @@ impl FromStr for StringMap {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use vcf::header::record::Key;
 
-        let pass_filter = Filter::pass();
         let mut string_map = StringMap::default();
 
         for line in s.lines() {
@@ -56,10 +55,7 @@ impl FromStr for StringMap {
             match record.key() {
                 Key::Filter => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
-
-                    if filter.id() != pass_filter.id() {
-                        string_map.insert(filter.id().into());
-                    }
+                    string_map.insert(filter.id().into());
                 }
                 Key::Format => {
                     let format = Format::try_from(record).map_err(ParseError::InvalidFormat)?;
