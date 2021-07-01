@@ -10,6 +10,8 @@ use vcf::header::{Format, Info};
 /// An indexed map of VCF strings.
 ///
 /// This is also called a dictionary of strings.
+///
+/// See § 6.2.1 Dictionary of strings (2021-05-13).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringMap(IndexSet<String>);
 
