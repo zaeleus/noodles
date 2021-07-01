@@ -431,13 +431,7 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         builder = match tag {
-            Tag::Name => {
-                if !is_valid_name(&value) {
-                    return Err(TryFromRecordError::InvalidName);
-                }
-
-                builder.set_name(value)
-            }
+            Tag::Name => builder.set_name(value),
             Tag::Length => {
                 let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
                 builder.set_length(len)
@@ -472,6 +466,7 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
     match builder.build() {
         Ok(rs) => Ok(rs),
         Err(BuildError::MissingName) => Err(TryFromRecordError::MissingRequiredTag(Tag::Name)),
+        Err(BuildError::InvalidName) => Err(TryFromRecordError::InvalidName),
         Err(BuildError::MissingLength) => Err(TryFromRecordError::MissingRequiredTag(Tag::Length)),
     }
 }

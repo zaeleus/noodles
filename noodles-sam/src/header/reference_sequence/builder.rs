@@ -25,6 +25,8 @@ pub struct Builder {
 pub enum BuildError {
     /// The name is missing.
     MissingName,
+    /// The name is invalid.
+    InvalidName,
     /// The length is missing.
     MissingLength,
 }
@@ -35,6 +37,7 @@ impl fmt::Display for BuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingName => f.write_str("missing name"),
+            Self::InvalidName => f.write_str("invalid name"),
             Self::MissingLength => f.write_str("missing length"),
         }
     }
@@ -332,7 +335,14 @@ impl Builder {
     /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<ReferenceSequence, BuildError> {
+        use crate::record::reference_sequence_name::is_valid_name;
+
         let name = self.name.ok_or(BuildError::MissingName)?;
+
+        if !is_valid_name(&name) {
+            return Err(BuildError::InvalidName);
+        }
+
         let len = self.len.ok_or(BuildError::MissingLength)?;
 
         Ok(ReferenceSequence {
@@ -360,6 +370,11 @@ mod tests {
         assert_eq!(
             Builder::default().set_length(13).build(),
             Err(BuildError::MissingName)
+        );
+
+        assert_eq!(
+            Builder::default().set_name("sq 0").set_length(13).build(),
+            Err(BuildError::InvalidName)
         );
 
         assert_eq!(
