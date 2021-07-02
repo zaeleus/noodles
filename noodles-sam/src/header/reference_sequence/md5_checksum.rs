@@ -1,6 +1,6 @@
 //! SAM header reference sequence MD5 checksum.
 
-use std::{error, fmt, num, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 /// A SAM header reference sequence MD5 checksum.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -35,8 +35,8 @@ impl From<[u8; 16]> for Md5Checksum {
 pub enum ParseError {
     /// The length is invalid.
     InvalidLength(usize),
-    /// The input has invalid hex.
-    InvalidHex(num::ParseIntError),
+    /// The input has an invalid hex digit.
+    InvalidHexDigit(char),
 }
 
 impl error::Error for ParseError {}
@@ -45,7 +45,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLength(len) => write!(f, "expected length to be 32, got {}", len),
-            Self::InvalidHex(e) => write!(f, "invalid hex: {}", e),
+            Self::InvalidHexDigit(c) => write!(f, "invalid hex digit: {}", c),
         }
     }
 }
@@ -60,11 +60,10 @@ impl FromStr for Md5Checksum {
 
         let mut checksum = [0; 16];
 
-        for (i, value) in checksum.iter_mut().enumerate() {
-            let start = 2 * i;
-            let end = start + 1;
-            let hex = &s[start..=end];
-            *value = u8::from_str_radix(hex, 16).map_err(ParseError::InvalidHex)?;
+        for (digits, value) in s.as_bytes().chunks(2).zip(checksum.iter_mut()) {
+            let l = parse_digit(digits[0])?;
+            let r = parse_digit(digits[1])?;
+            *value = l << 4 | r;
         }
 
         Ok(Self(checksum))
@@ -74,6 +73,16 @@ impl FromStr for Md5Checksum {
 impl From<Md5Checksum> for [u8; 16] {
     fn from(md5_checksum: Md5Checksum) -> Self {
         md5_checksum.0
+    }
+}
+
+// § 1.3.2 Reference MD5 calculation (2021-06-03): "The MD5 digest is ... presented as a 32
+// character lowercase hexadecimal number."
+fn parse_digit(b: u8) -> Result<u8, ParseError> {
+    match b {
+        b'a'..=b'f' => Ok(b - b'a' + 10),
+        b'0'..=b'9' => Ok(b - b'0'),
+        _ => Err(ParseError::InvalidHexDigit(char::from(b))),
     }
 }
 
@@ -126,9 +135,14 @@ mod tests {
             Err(ParseError::InvalidLength(64))
         );
 
+        assert_eq!(
+            "D7EBA311421BBC9D3ADA44709DD61534".parse::<Md5Checksum>(),
+            Err(ParseError::InvalidHexDigit('D'))
+        );
+
         assert!(matches!(
             "n7eba311421bbc9d3ada44709dd61534".parse::<Md5Checksum>(),
-            Err(ParseError::InvalidHex(_))
+            Err(ParseError::InvalidHexDigit('n'))
         ));
     }
 
