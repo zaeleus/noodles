@@ -74,8 +74,7 @@ impl FromStr for Allele {
                         .parse()
                         .map(Self::Symbol)
                         .map_err(ParseError::InvalidSymbol)
-                } else if s.contains(|c| c == '[' || c == ']') || (s.len() == 2 && s.contains('.'))
-                {
+                } else if is_breakend(s) {
                     Ok(Self::Breakend(s.into()))
                 } else {
                     s.chars()
@@ -88,6 +87,10 @@ impl FromStr for Allele {
             }
         }
     }
+}
+
+fn is_breakend(s: &str) -> bool {
+    s.contains(|c| c == '[' || c == ']') || s.starts_with('.') || s.ends_with('.')
 }
 
 #[cfg(test)]
@@ -122,8 +125,14 @@ mod tests {
         let allele = Allele::Breakend(String::from("G."));
         assert_eq!(allele.to_string(), "G.");
 
+        let allele = Allele::Breakend(String::from("CT."));
+        assert_eq!(allele.to_string(), "CT.");
+
         let allele = Allele::Breakend(String::from(".A"));
         assert_eq!(allele.to_string(), ".A");
+
+        let allele = Allele::Breakend(String::from(".GC"));
+        assert_eq!(allele.to_string(), ".GC");
     }
 
     #[test]
@@ -172,8 +181,18 @@ mod tests {
         );
 
         assert_eq!(
+            "CT.".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from("CT.")))
+        );
+
+        assert_eq!(
             ".A".parse::<Allele>(),
             Ok(Allele::Breakend(String::from(".A")))
+        );
+
+        assert_eq!(
+            ".GC".parse::<Allele>(),
+            Ok(Allele::Breakend(String::from(".GC")))
         );
 
         assert_eq!("".parse::<Allele>(), Err(ParseError::Empty));
