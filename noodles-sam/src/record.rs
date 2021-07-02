@@ -456,6 +456,8 @@ pub enum ParseError {
     InvalidTemplateLength(num::ParseIntError),
     /// The record sequence is invalid.
     InvalidSequence(sequence::ParseError),
+    /// The sequence length does not match the CIGAR string read length.
+    SequenceLengthMismatch(u32, u32),
     /// The record quality score is invalid.
     InvalidQualityScores(quality_scores::ParseError),
     /// The record data is invalid.
@@ -482,6 +484,11 @@ impl fmt::Display for ParseError {
             Self::InvalidMatePosition(e) => write!(f, "invalid mate position: {}", e),
             Self::InvalidTemplateLength(e) => write!(f, "invalid template length: {}", e),
             Self::InvalidSequence(e) => write!(f, "invalid sequence: {}", e),
+            Self::SequenceLengthMismatch(sequence_len, cigar_read_len) => write!(
+                f,
+                "sequence length mismatch: expected {}, got {}",
+                cigar_read_len, sequence_len
+            ),
             Self::InvalidQualityScores(e) => write!(f, "invalid quality scores: {}", e),
             Self::InvalidData(e) => write!(f, "invalid data: {}", e),
         }
@@ -525,7 +532,7 @@ impl FromStr for Record {
             .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
             .map(MappingQuality::from)?;
 
-        let cigar = parse_string(&mut fields, Field::Cigar)
+        let cigar: Cigar = parse_string(&mut fields, Field::Cigar)
             .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;
 
         let rnext =
@@ -546,8 +553,22 @@ impl FromStr for Record {
         let tlen = parse_string(&mut fields, Field::TemplateLength)
             .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidTemplateLength))?;
 
-        let seq = parse_string(&mut fields, Field::Sequence)
+        let seq: Sequence = parse_string(&mut fields, Field::Sequence)
             .and_then(|s| s.parse().map_err(ParseError::InvalidSequence))?;
+
+        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
+        if !seq.is_empty() {
+            let sequence_len = seq.len() as u32;
+            let cigar_read_len = cigar.read_len();
+
+            if sequence_len != cigar_read_len {
+                return Err(ParseError::SequenceLengthMismatch(
+                    sequence_len,
+                    cigar_read_len,
+                ));
+            }
+        }
 
         let qual = parse_string(&mut fields, Field::QualityScores)
             .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
@@ -608,5 +629,15 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_sequence_length_mismatch() {
+        let s = "*\t0\tsq0\t1\t255\t2M\t*\t0\t0\tACGT\tNDLS";
+
+        assert_eq!(
+            s.parse::<Record>(),
+            Err(ParseError::SequenceLengthMismatch(4, 2))
+        );
     }
 }
