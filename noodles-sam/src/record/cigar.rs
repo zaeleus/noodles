@@ -44,6 +44,38 @@ impl Cigar {
             })
             .sum()
     }
+
+    /// Calculates the read length.
+    ///
+    /// This sums the lengths of the CIGAR operations that consume the read, i.e., alignment
+    /// matches (`M`), insertions to the reference (`I`), soft clips (`S`), sequence matches (`=`),
+    /// and sequence mismatches (`X`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    ///
+    /// let cigar = Cigar::from(vec![
+    ///     Op::new(Kind::Match, 36),
+    ///     Op::new(Kind::Deletion, 4),
+    ///     Op::new(Kind::SoftClip, 8),
+    /// ]);
+    ///
+    /// assert_eq!(cigar.read_len(), 44);
+    /// ```
+    pub fn read_len(&self) -> u32 {
+        self.iter()
+            .filter_map(|op| match op.kind() {
+                Kind::Match
+                | Kind::Insertion
+                | Kind::SoftClip
+                | Kind::SeqMatch
+                | Kind::SeqMismatch => Some(op.len()),
+                _ => None,
+            })
+            .sum()
+    }
 }
 
 impl Deref for Cigar {
