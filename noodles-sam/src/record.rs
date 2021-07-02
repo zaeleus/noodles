@@ -525,7 +525,7 @@ impl FromStr for Record {
 
         let pos = parse_string(&mut fields, Field::Position).and_then(|s| match s {
             ZERO_FIELD => Ok(None),
-            _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
         })?;
 
         let mapq = parse_string(&mut fields, Field::MappingQuality)
@@ -629,6 +629,23 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_invalid_position() {
+        let s = "*\t0\tsq0\t-1\t255\t4M\t*\t0\t0\tACGT\tNDLS";
+
+        assert!(matches!(
+            s.parse::<Record>(),
+            Err(ParseError::InvalidPosition(_))
+        ));
+
+        let s = "*\t0\tsq0\tzero\t255\t4M\t*\t0\t0\tACGT\tNDLS";
+
+        assert!(matches!(
+            s.parse::<Record>(),
+            Err(ParseError::InvalidPosition(_))
+        ));
     }
 
     #[test]
