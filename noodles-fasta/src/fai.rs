@@ -6,5 +6,52 @@ mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
 
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    path::Path,
+};
+
 /// A FASTA index.
 pub type Index = Vec<Record>;
+
+/// Reads the entire contents of a FASTA index.
+///
+/// This is a convenience function and is equivalent to opening the file at the given path and
+/// parsing each record.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_fasta::fai;
+/// let index = fai::read("reference.fa.fai")?;
+/// # Ok::<(), io::Error>(())
+/// ```
+pub fn read<P>(src: P) -> io::Result<Index>
+where
+    P: AsRef<Path>,
+{
+    let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
+
+    let mut buf = String::new();
+    let mut index = Vec::new();
+
+    loop {
+        buf.clear();
+
+        match reader.read_record(&mut buf) {
+            Ok(0) => break,
+            Ok(_) => {
+                let record = buf
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                index.push(record);
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok(index)
+}
