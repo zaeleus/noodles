@@ -135,7 +135,9 @@ impl Record {
 
         builder = builder.set_data(data);
 
-        Ok(builder.build())
+        builder
+            .build()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 }
 
@@ -256,7 +258,7 @@ mod tests {
                 Field::new(Tag::EditDistance, Value::Int32(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
             ])?)
-            .build();
+            .build()?;
 
         assert_eq!(actual, expected);
 

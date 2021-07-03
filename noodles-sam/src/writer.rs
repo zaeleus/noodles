@@ -126,7 +126,7 @@ mod tests {
             data::field::Value::String(String::from("rg0")),
         )])?;
 
-        let record = Record::builder().set_data(data).build();
+        let record = Record::builder().set_data(data).build()?;
 
         writer.write_record(&record)?;
 

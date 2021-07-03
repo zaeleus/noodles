@@ -1,6 +1,6 @@
 //! SAM record and fields.
 
-mod builder;
+pub mod builder;
 pub mod cigar;
 pub mod data;
 mod field;
@@ -70,7 +70,7 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
     ///     .set_flags(Flags::UNMAPPED)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
@@ -96,7 +96,7 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
-    ///     .build();
+    ///     .build()?;
     /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -115,8 +115,11 @@ impl Record {
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// assert_eq!(u16::from(record.flags()), 4);
     ///
-    /// let record = sam::Record::builder().set_flags(Flags::PAIRED | Flags::READ_1).build();
+    /// let record = sam::Record::builder()
+    ///     .set_flags(Flags::PAIRED | Flags::READ_1)
+    ///     .build()?;
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn flags(&self) -> Flags {
         self.flags
@@ -132,7 +135,9 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert_eq!(record.reference_sequence_name(), None);
     ///
-    /// let record = sam::Record::builder().set_reference_sequence_name("sq0".parse()?).build();
+    /// let record = sam::Record::builder()
+    ///     .set_reference_sequence_name("sq0".parse()?)
+    ///     .build()?;
     /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -155,9 +160,9 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
-    ///     .build();
+    ///     .build()?;
     /// assert_eq!(record.position().map(i32::from), Some(13));
-    /// # Ok::<(), sam::record::position::TryFromIntError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn position(&self) -> Option<Position> {
         self.position
@@ -177,8 +182,9 @@ impl Record {
     /// assert!(record.mapping_quality().is_none());
     /// assert_eq!(u8::from(record.mapping_quality()), 255);
     ///
-    /// let record = sam::Record::builder().set_mapping_quality(MappingQuality::from(8)).build();
+    /// let record = sam::Record::builder().set_mapping_quality(MappingQuality::from(8)).build()?;
     /// assert_eq!(*record.mapping_quality(), Some(8));
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn mapping_quality(&self) -> MappingQuality {
         self.mapping_quality
@@ -195,7 +201,7 @@ impl Record {
     /// assert!(record.cigar().is_empty());
     /// assert_eq!(record.cigar().to_string(), "*");
     ///
-    /// let record = sam::Record::builder().set_cigar("34M2S".parse()?).build();
+    /// let record = sam::Record::builder().set_cigar("34M2S".parse()?).build()?;
     /// assert_eq!(record.cigar().to_string(), "34M2S");
     ///
     /// let mut ops = record.cigar().iter();
@@ -220,7 +226,7 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(
     ///     record.mate_reference_sequence_name().map(|name| name.as_str()),
@@ -247,9 +253,9 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_position(Position::try_from(21)?)
-    ///     .build();
+    ///     .build()?;
     /// assert_eq!(record.mate_position().map(i32::from), Some(21));
-    /// # Ok::<(), sam::record::position::TryFromIntError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn mate_position(&self) -> Option<Position> {
         self.mate_position
@@ -265,8 +271,9 @@ impl Record {
     /// let record = sam::Record::default();
     /// assert_eq!(record.template_length(), 0);
     ///
-    /// let record = sam::Record::builder().set_template_length(101).build();
+    /// let record = sam::Record::builder().set_template_length(101).build()?;
     /// assert_eq!(record.template_length(), 101);
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn template_length(&self) -> i32 {
         self.template_length
@@ -283,7 +290,11 @@ impl Record {
     /// assert!(record.sequence().is_empty());
     /// assert_eq!(record.sequence().to_string(), "*");
     ///
-    /// let record = sam::Record::builder().set_sequence("AT".parse()?).build();
+    /// let record = sam::Record::builder()
+    ///     .set_cigar("2M".parse()?)
+    ///     .set_sequence("AT".parse()?)
+    ///     .build()?;
+    ///
     /// assert_eq!(record.sequence().to_string(), "AT");
     ///
     /// let mut bases = record.sequence().iter();
@@ -307,7 +318,7 @@ impl Record {
     /// assert!(record.quality_scores().is_empty());
     /// assert_eq!(record.quality_scores().to_string(), "*");
     ///
-    /// let record = sam::Record::builder().set_quality_scores("ND".parse()?).build();
+    /// let record = sam::Record::builder().set_quality_scores("ND".parse()?).build()?;
     /// assert_eq!(record.quality_scores().to_string(), "ND");
     /// let mut scores = record.quality_scores().iter().copied().map(u8::from);
     /// assert_eq!(scores.next(), Some(45));
@@ -334,9 +345,9 @@ impl Record {
     ///     data::field::Tag::AlignmentHitCount,
     ///     data::field::Value::Int32(1),
     /// )])?;
-    /// let record = sam::Record::builder().set_data(data).build();
+    /// let record = sam::Record::builder().set_data(data).build()?;
     /// assert_eq!(record.data().to_string(), "NH:i:1");
-    /// # Ok::<(), data::TryFromFieldVectorError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn data(&self) -> &Data {
         &self.data
@@ -371,7 +382,8 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
-        Builder::new().build()
+        // TODO
+        Builder::new().build().unwrap()
     }
 }
 
@@ -615,13 +627,13 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt_with_data() -> Result<(), data::TryFromFieldVectorError> {
+    fn test_fmt_with_data() -> Result<(), Box<dyn std::error::Error>> {
         let data = Data::try_from(vec![data::Field::new(
             data::field::Tag::ReadGroup,
             data::field::Value::String(String::from("rg0")),
         )])?;
 
-        let record = Record::builder().set_data(data).build();
+        let record = Record::builder().set_data(data).build()?;
 
         assert_eq!(
             record.to_string(),

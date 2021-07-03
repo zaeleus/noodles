@@ -319,9 +319,10 @@ mod tests {
 
         let header = sam::Header::default();
         let record = sam::Record::builder()
+            .set_cigar("2M".parse()?)
             .set_sequence("AT".parse()?)
             .set_quality_scores("NDLS".parse()?)
-            .build();
+            .build()?;
 
         assert!(writer
             .write_sam_record(header.reference_sequences(), &record)
@@ -337,9 +338,10 @@ mod tests {
 
         let header = sam::Header::default();
         let record = sam::Record::builder()
+            .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("ND".parse()?)
-            .build();
+            .build()?;
 
         assert!(writer
             .write_sam_record(header.reference_sequences(), &record)
@@ -354,9 +356,12 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
-        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
+        let sam_record = sam::Record::builder()
+            .set_cigar("4M".parse()?)
+            .set_sequence("ATCG".parse()?)
+            .build()?;
 
+        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().as_slice());
@@ -382,9 +387,10 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
+            .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("NDLS".parse()?)
-            .build();
+            .build()?;
 
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
@@ -422,7 +428,7 @@ mod tests {
                 SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
                 SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
             ])?)
-            .build();
+            .build()?;
 
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;

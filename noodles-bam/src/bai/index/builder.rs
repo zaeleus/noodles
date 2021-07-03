@@ -129,7 +129,7 @@ mod tests {
                 .set_reference_sequence_name("sq0".parse()?)
                 .set_position(Position::try_from(2)?)
                 .set_cigar("4M".parse()?)
-                .build(),
+                .build()?,
         )?;
 
         builder.add_record(

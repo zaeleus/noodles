@@ -1,7 +1,32 @@
+//! SAM record builder.
+
+use std::{error, fmt};
+
 use super::{
     Cigar, Data, Flags, MappingQuality, Position, QualityScores, ReadName, Record,
     ReferenceSequenceName, Sequence,
 };
+
+/// An error returned when a SAM record fails to build.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BuildError {
+    /// The sequence length does not match the CIGAR string read length.
+    SequenceLengthMismatch(u32, u32),
+}
+
+impl error::Error for BuildError {}
+
+impl fmt::Display for BuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::SequenceLengthMismatch(sequence_len, cigar_read_len) => write!(
+                f,
+                "sequence length mismatch: expected {}, got {}",
+                cigar_read_len, sequence_len
+            ),
+        }
+    }
+}
 
 /// A SAM record builder.
 #[derive(Debug)]
@@ -44,10 +69,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
-    /// Ok::<(), sam::record::read_name::ParseError>(())
+    /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_read_name(mut self, read_name: ReadName) -> Self {
         self.read_name = Some(read_name);
@@ -63,9 +88,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn set_flags(mut self, flags: Flags) -> Self {
         self.flags = flags;
@@ -81,10 +107,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_reference_sequence_name("sq0".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
-    /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
+    /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_reference_sequence_name(
         mut self,
@@ -104,10 +130,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.position().map(i32::from), Some(13));
-    /// # Ok::<(), sam::record::position::TryFromIntError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
         self.position = Some(position);
@@ -123,9 +149,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::from(34))
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(*record.mapping_quality(), Some(34));
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: MappingQuality) -> Self {
         self.mapping_quality = mapping_quality;
@@ -141,10 +168,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_cigar("36M".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(**record.cigar(), [Op::new(Kind::Match, 36)]);
-    /// Ok::<(), sam::record::cigar::ParseError>(())
+    /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
         self.cigar = cigar;
@@ -160,10 +187,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.mate_reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
-    /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
+    /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mate_reference_sequence_name(
         mut self,
@@ -183,10 +210,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_position(Position::try_from(17)?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(record.mate_position().map(i32::from), Some(17));
-    /// # Ok::<(), sam::record::position::TryFromIntError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
         self.mate_position = Some(mate_position);
@@ -199,8 +226,9 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let record = sam::Record::builder().set_template_length(36).build();
+    /// let record = sam::Record::builder().set_template_length(36).build()?;
     /// assert_eq!(record.template_length(), 36);
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn set_template_length(mut self, template_length: i32) -> Self {
         self.template_length = template_length;
@@ -215,11 +243,12 @@ impl Builder {
     /// use noodles_sam::{self as sam, record::sequence::Base};
     ///
     /// let record = sam::Record::builder()
+    ///     .set_cigar("4M".parse()?)
     ///     .set_sequence("ACGT".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(**record.sequence(), [Base::A, Base::C, Base::G, Base::T]);
-    /// Ok::<(), sam::record::sequence::ParseError>(())
+    /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {
         self.sequence = sequence;
@@ -236,7 +265,7 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_quality_scores("NDLS".parse()?)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(**record.quality_scores(), [
     ///     Score::try_from('N')?,
@@ -266,9 +295,9 @@ impl Builder {
     ///     data::field::Tag::AlignmentHitCount,
     ///     data::field::Value::Int32(1),
     /// )])?;
-    /// let record = sam::Record::builder().set_data(data).build();
+    /// let record = sam::Record::builder().set_data(data).build()?;
     /// assert_eq!(record.data().to_string(), "NH:i:1");
-    /// # Ok::<(), data::TryFromFieldVectorError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;
@@ -281,10 +310,25 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let record = sam::Record::builder().build();
+    /// let record = sam::Record::builder().build()?;
+    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
-    pub fn build(self) -> Record {
-        Record {
+    pub fn build(self) -> Result<Record, BuildError> {
+        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
+        if !self.sequence.is_empty() {
+            let sequence_len = self.sequence.len() as u32;
+            let cigar_read_len = self.cigar.read_len();
+
+            if sequence_len != cigar_read_len {
+                return Err(BuildError::SequenceLengthMismatch(
+                    sequence_len,
+                    cigar_read_len,
+                ));
+            }
+        }
+
+        Ok(Record {
             read_name: self.read_name,
             flags: self.flags,
             reference_sequence_name: self.reference_sequence_name,
@@ -297,7 +341,7 @@ impl Builder {
             sequence: self.sequence,
             quality_scores: self.quality_scores,
             data: self.data,
-        }
+        })
     }
 }
 
@@ -352,8 +396,8 @@ mod tests {
         let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
         let cigar = Cigar::from(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
         let mate_reference_sequence_name = reference_sequence_name.clone();
-        let sequence: Sequence = "ATCGATC".parse()?;
-        let quality_scores: QualityScores = "NOODLES".parse()?;
+        let sequence: Sequence = "ATCG".parse()?;
+        let quality_scores: QualityScores = "NDLS".parse()?;
 
         let data = Data::try_from(vec![data::Field::new(
             data::field::Tag::AlignmentHitCount,
@@ -373,7 +417,7 @@ mod tests {
             .set_sequence(sequence.clone())
             .set_quality_scores(quality_scores.clone())
             .set_data(data)
-            .build();
+            .build()?;
 
         assert_eq!(record.read_name(), Some(&read_name));
         assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
