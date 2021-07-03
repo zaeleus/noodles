@@ -330,20 +330,20 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let record = Builder::new().build();
+        let builder = Builder::default();
 
-        assert!(record.read_name().is_none());
-        assert_eq!(record.flags(), Flags::UNMAPPED);
-        assert!(record.reference_sequence_name().is_none());
-        assert!(record.position().is_none());
-        assert!(record.mapping_quality().is_none());
-        assert!(record.cigar().is_empty());
-        assert!(record.mate_reference_sequence_name().is_none());
-        assert!(record.mate_position().is_none());
-        assert_eq!(record.template_length(), 0);
-        assert!(record.sequence().is_empty());
-        assert!(record.quality_scores().is_empty());
-        assert!(record.data().is_empty());
+        assert!(builder.read_name.is_none());
+        assert_eq!(builder.flags, Flags::UNMAPPED);
+        assert!(builder.reference_sequence_name.is_none());
+        assert!(builder.position.is_none());
+        assert!(builder.mapping_quality.is_none());
+        assert!(builder.cigar.is_empty());
+        assert!(builder.mate_reference_sequence_name.is_none());
+        assert!(builder.mate_position.is_none());
+        assert_eq!(builder.template_length, 0);
+        assert!(builder.sequence.is_empty());
+        assert!(builder.quality_scores.is_empty());
+        assert!(builder.data.is_empty());
     }
 
     #[test]
