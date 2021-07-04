@@ -100,6 +100,51 @@ impl<'a> Cigar<'a> {
 
         Ok(len)
     }
+
+    /// Calculates the read length.
+    ///
+    /// This sums the lengths of the CIGAR operations that consume the read, i.e., alignment
+    /// matches (`M`), insertions to the reference (`I`), soft clips (`S`), sequence matches (`=`),
+    /// and sequence mismatches (`X`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{cigar::Op, Cigar};
+    /// use noodles_sam::record::cigar::op::Kind;
+    ///
+    /// let data = [
+    ///     0x40, 0x02, 0x00, 0x00, // 36M
+    ///     0x43, 0x00, 0x00, 0x00, // 4D
+    ///     0x84, 0x00, 0x00, 0x00, // 8S
+    /// ];
+    ///
+    /// let cigar = Cigar::new(&data);
+    ///
+    /// assert_eq!(cigar.read_len()?, 44);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_len(&self) -> io::Result<u32> {
+        let mut len = 0;
+
+        for result in self.ops() {
+            let op = result?;
+
+            match op.kind() {
+                Kind::Match
+                | Kind::Insertion
+                | Kind::SoftClip
+                | Kind::SeqMatch
+                | Kind::SeqMismatch => {
+                    len += op.len();
+                }
+                _ => {}
+            }
+        }
+
+        Ok(len)
+    }
 }
 
 impl<'a> fmt::Debug for Cigar<'a> {
