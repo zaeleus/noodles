@@ -20,8 +20,11 @@ impl<'a> Cigar<'a> {
     /// ```
     /// use noodles_bam::record::Cigar;
     ///
-    /// // 36M8S
-    /// let data = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let data = [
+    ///     0x40, 0x02, 0x00, 0x00, // 36M
+    ///     0x84, 0x00, 0x00, 0x00, // 8S
+    /// ];
+    ///
     /// let cigar = Cigar::new(&data);
     ///
     /// assert_eq!(*cigar, data);
@@ -39,8 +42,11 @@ impl<'a> Cigar<'a> {
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// // 36M8S
-    /// let data = [0x40, 0x02, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let data = [
+    ///     0x40, 0x02, 0x00, 0x00, // 36M
+    ///     0x84, 0x00, 0x00, 0x00, // 8S
+    /// ];
+    ///
     /// let cigar = Cigar::new(&data);
     ///
     /// let mut ops = cigar.ops();
@@ -67,8 +73,12 @@ impl<'a> Cigar<'a> {
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// // 36M4D8S
-    /// let data = [0x40, 0x02, 0x00, 0x00, 0x43, 0x00, 0x00, 0x00, 0x84, 0x00, 0x00, 0x00];
+    /// let data = [
+    ///     0x40, 0x02, 0x00, 0x00, // 36M
+    ///     0x43, 0x00, 0x00, 0x00, // 4D
+    ///     0x84, 0x00, 0x00, 0x00, // 8S
+    /// ];
+    ///
     /// let cigar = Cigar::new(&data);
     ///
     /// assert_eq!(cigar.reference_len()?, 40);
