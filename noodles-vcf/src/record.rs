@@ -27,19 +27,12 @@ pub(crate) const FIELD_DELIMITER: char = '\t';
 
 /// A VCF record.
 ///
-/// A VCF record has 8 required fields:
+/// A VCF record has 8 required fields: chromosome (`CHROM`), position (`POS`), IDs (`ID`),
+/// reference bases (`REF`), alternate bases (`ALT`), quality score (`QUAL`), filters (`FILTER`),
+/// and information (`INFO`).
 ///
-///   1. chromosome (`CHROM`),
-///   2. position (`POS`),
-///   3. IDs (`ID`),
-///   4. reference bases (`REF`),
-///   5. alternate bases (`ALT`),
-///   6. quality score (`QUAL`),
-///   7. filters (`FILTER`), and
-///   8. information (`INFO`),
-///
-/// Additionally, each record can have genotype information. This adds the extra `FORMAT` field
-/// and a number of genotype fields.
+/// Additionally, each record can have genotype information. This adds the extra `FORMAT` field and
+/// a number of genotype fields.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     chromosome: Chromosome,
