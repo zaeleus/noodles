@@ -407,28 +407,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default() -> Result<(), Box<dyn std::error::Error>> {
-        let chromosome: Chromosome = "sq0".parse()?;
-        let reference_bases: ReferenceBases = "A".parse()?;
+    fn test_default() {
+        let record = Builder::default();
 
-        let record = Builder::default()
-            .set_chromosome(chromosome.clone())
-            .set_position(Position::try_from(5)?)
-            .set_reference_bases(reference_bases.clone())
-            .build()?;
-
-        assert_eq!(record.chromosome(), &chromosome);
-        assert_eq!(i32::from(record.position()), 5);
-        assert!(record.ids().is_empty());
-        assert_eq!(record.reference_bases(), &reference_bases);
-        assert!(record.alternate_bases().is_empty());
-        assert!(record.quality_score().is_none());
-        assert_eq!(record.filters(), &Filters::Missing);
-        assert!(record.info().is_empty());
-        assert!(record.format().is_none());
-        assert!(record.genotypes().is_empty());
-
-        Ok(())
+        assert!(record.chromosome.is_none());
+        assert!(record.position.is_none());
+        assert!(record.ids.is_empty());
+        assert!(record.reference_bases.is_empty());
+        assert!(record.alternate_bases.is_empty());
+        assert!(record.quality_score.is_none());
+        assert!(matches!(record.filters, Filters::Missing));
+        assert!(record.info.is_empty());
+        assert!(record.format.is_none());
+        assert!(record.genotypes.is_empty());
     }
 
     #[test]
