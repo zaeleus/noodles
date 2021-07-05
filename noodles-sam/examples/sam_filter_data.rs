@@ -14,6 +14,8 @@ use noodles_sam::{
 };
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
+    use sam::record::data::field::value::Type;
+
     let value = record
         .data()
         .get(&Tag::AlignmentHitCount)
@@ -23,7 +25,7 @@ fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
         Some(Value::Int32(n)) => Ok(*n == 1),
         Some(v) => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("expected Int32, got {:?}", v),
+            format!("expected {:?}, got {:?}", Type::Int32, v),
         )),
         None => Ok(false),
     }
