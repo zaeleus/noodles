@@ -33,25 +33,5 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(BufReader::new).map(Reader::new)?;
-
-    let mut buf = String::new();
-    let mut index = Vec::new();
-
-    loop {
-        buf.clear();
-
-        match reader.read_record(&mut buf) {
-            Ok(0) => break,
-            Ok(_) => {
-                let record = buf
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                index.push(record);
-            }
-            Err(e) => return Err(e),
-        }
-    }
-
-    Ok(index)
+    reader.read_index()
 }
