@@ -34,6 +34,9 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+mod r#async;
+
 mod block;
 mod gz;
 mod reader;
@@ -41,6 +44,9 @@ pub mod virtual_position;
 mod writer;
 
 pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use self::block::Block;
 
