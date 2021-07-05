@@ -36,7 +36,7 @@ where
         &self.inner
     }
 
-    /// Writes a FASTA index record.
+    /// Writes a FASTA index.
     ///
     /// # Examples
     ///
@@ -46,21 +46,31 @@ where
     ///
     /// let mut writer = fai::Writer::new(Vec::new());
     ///
-    /// let record = fai::Record::new(String::from("sq0"), 13, 5, 80, 81);
-    /// writer.write_record(&record)?;
+    /// let index = vec![fai::Record::new(String::from("sq0"), 13, 5, 80, 81)];
+    /// writer.write_index(&index)?;
     ///
     /// assert_eq!(writer.get_ref(), b"sq0\t13\t5\t80\t81\n");
     /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(
-            self.inner,
-            "{reference_sequence_name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
-            reference_sequence_name = record.reference_sequence_name(),
-            len = record.len(),
-            offset = record.offset(),
-            line_bases = record.line_bases(),
-            line_width = record.line_width(),
-        )
+    pub fn write_index(&mut self, index: &[Record]) -> io::Result<()> {
+        for record in index {
+            write_record(&mut self.inner, record)?;
+        }
+
+        Ok(())
     }
+}
+
+fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+where
+    W: Write,
+{
+    writeln!(
+        writer,
+        "{reference_sequence_name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
+        reference_sequence_name = record.reference_sequence_name(),
+        len = record.len(),
+        offset = record.offset(),
+        line_bases = record.line_bases(),
+        line_width = record.line_width(),
+    )
 }
