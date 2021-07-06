@@ -473,6 +473,8 @@ pub enum ParseError {
     SequenceLengthMismatch(u32, u32),
     /// The record quality score is invalid.
     InvalidQualityScores(quality_scores::ParseError),
+    /// The quality scores length does not match the sequence length.
+    QualityScoresLengthMismatch(u32, u32),
     /// The record data is invalid.
     InvalidData(data::ParseError),
 }
@@ -501,6 +503,11 @@ impl fmt::Display for ParseError {
                 f,
                 "sequence length mismatch: expected {}, got {}",
                 cigar_read_len, sequence_len
+            ),
+            Self::QualityScoresLengthMismatch(quality_scores_len, sequence_len) => write!(
+                f,
+                "quality scores length mismatch: expected {}, got {}",
+                sequence_len, quality_scores_len
             ),
             Self::InvalidQualityScores(e) => write!(f, "invalid quality scores: {}", e),
             Self::InvalidData(e) => write!(f, "invalid data: {}", e),
@@ -569,9 +576,12 @@ impl FromStr for Record {
         let seq: Sequence = parse_string(&mut fields, Field::Sequence)
             .and_then(|s| s.parse().map_err(ParseError::InvalidSequence))?;
 
-        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
-        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
+        let qual: QualityScores = parse_string(&mut fields, Field::QualityScores)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
+
         if !seq.is_empty() {
+            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+            // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
             let sequence_len = seq.len() as u32;
             let cigar_read_len = cigar.read_len();
 
@@ -581,10 +591,19 @@ impl FromStr for Record {
                     cigar_read_len,
                 ));
             }
-        }
 
-        let qual = parse_string(&mut fields, Field::QualityScores)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
+            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ`
+            // must not be a '*' and the length of the quality string ought to equal the length of
+            // `SEQ`."
+            let quality_scores_len = qual.len() as u32;
+
+            if sequence_len != quality_scores_len {
+                return Err(ParseError::QualityScoresLengthMismatch(
+                    quality_scores_len,
+                    sequence_len,
+                ));
+            }
+        }
 
         let data = match fields.next() {
             Some(s) => s.parse().map_err(ParseError::InvalidData)?,
@@ -668,6 +687,16 @@ mod tests {
         assert_eq!(
             s.parse::<Record>(),
             Err(ParseError::SequenceLengthMismatch(4, 2))
+        );
+    }
+
+    #[test]
+    fn test_from_str_with_quality_scores_length_mismatch() {
+        let s = "*\t0\tsq0\t1\t255\t4M\t*\t0\t0\tACGT\tNDL";
+
+        assert_eq!(
+            s.parse::<Record>(),
+            Err(ParseError::QualityScoresLengthMismatch(3, 4))
         );
     }
 }
