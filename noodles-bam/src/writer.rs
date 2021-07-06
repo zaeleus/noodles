@@ -313,17 +313,17 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_write_sam_record_with_sequence_length_less_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let record = sam::Record::builder()
+
+        let mut record = sam::Record::builder()
             .set_cigar("2M".parse()?)
             .set_sequence("AT".parse()?)
-            .set_quality_scores("NDLS".parse()?)
             .build()?;
+        *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer
             .write_sam_record(header.reference_sequences(), &record)
@@ -333,17 +333,17 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_write_sam_record_with_sequence_length_greater_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let record = sam::Record::builder()
+
+        let mut record = sam::Record::builder()
             .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
-            .set_quality_scores("ND".parse()?)
             .build()?;
+        *record.quality_scores_mut() = "ND".parse()?;
 
         assert!(writer
             .write_sam_record(header.reference_sequences(), &record)
@@ -353,7 +353,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_write_sam_record_with_sequence_and_no_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
