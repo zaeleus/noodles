@@ -308,6 +308,26 @@ impl Record {
         &self.sequence
     }
 
+    /// Returns a mutable reference to the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::{sequence, Sequence}};
+    ///
+    /// let mut record = sam::Record::default();
+    /// assert!(record.sequence().is_empty());
+    ///
+    /// let sequence: Sequence = "ACGT".parse()?;
+    /// *record.sequence_mut() = sequence.clone();
+    ///
+    /// assert_eq!(record.sequence(), &sequence);
+    /// # Ok::<(), sequence::ParseError>(())
+    /// ```
+    pub fn sequence_mut(&mut self) -> &mut Sequence {
+        &mut self.sequence
+    }
+
     /// Returns the quality score for each base in the sequence.
     ///
     /// # Examples
