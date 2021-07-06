@@ -331,6 +331,26 @@ impl Record {
         &self.quality_scores
     }
 
+    /// Returns a mutable reference to the quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::{quality_scores, QualityScores}};
+    ///
+    /// let mut record = sam::Record::default();
+    /// assert!(record.quality_scores().is_empty());
+    ///
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
+    /// *record.quality_scores_mut() = quality_scores.clone();
+    ///
+    /// assert_eq!(record.quality_scores(), &quality_scores);
+    /// # Ok::<(), quality_scores::ParseError>(())
+    /// ```
+    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
+        &mut self.quality_scores
+    }
+
     /// Returns the optional data fields for this record.
     ///
     /// # Examples
