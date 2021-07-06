@@ -272,14 +272,14 @@ impl Builder {
     /// use noodles_sam::{self as sam, record::quality_scores::Score};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_quality_scores("NDLS".parse()?)
+    ///     .set_cigar("2M".parse()?)
+    ///     .set_sequence("AC".parse()?)
+    ///     .set_quality_scores("ND".parse()?)
     ///     .build()?;
     ///
     /// assert_eq!(**record.quality_scores(), [
     ///     Score::try_from('N')?,
     ///     Score::try_from('D')?,
-    ///     Score::try_from('L')?,
-    ///     Score::try_from('S')?,
     /// ]);
     /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -322,9 +322,9 @@ impl Builder {
     /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
+        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
         if !self.sequence.is_empty() {
-            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
-            // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
             let sequence_len = self.sequence.len() as u32;
             let cigar_read_len = self.cigar.read_len();
 
@@ -334,13 +334,15 @@ impl Builder {
                     cigar_read_len,
                 ));
             }
+        }
 
-            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ`
-            // must not be a '*' and the length of the quality string ought to equal the length of
-            // `SEQ`."
+        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ` must
+        // not be a '*' and the length of the quality string ought to equal the length of `SEQ`."
+        if !self.quality_scores.is_empty() {
             let quality_scores_len = self.quality_scores.len() as u32;
+            let sequence_len = self.sequence.len() as u32;
 
-            if sequence_len != quality_scores_len {
+            if quality_scores_len != sequence_len {
                 return Err(BuildError::QualityScoresLengthMismatch(
                     quality_scores_len,
                     sequence_len,

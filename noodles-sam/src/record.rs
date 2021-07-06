@@ -339,8 +339,14 @@ impl Record {
     /// assert!(record.quality_scores().is_empty());
     /// assert_eq!(record.quality_scores().to_string(), "*");
     ///
-    /// let record = sam::Record::builder().set_quality_scores("ND".parse()?).build()?;
+    /// let record = sam::Record::builder()
+    ///     .set_cigar("2M".parse()?)
+    ///     .set_sequence("AC".parse()?)
+    ///     .set_quality_scores("ND".parse()?)
+    ///     .build()?;
+    ///
     /// assert_eq!(record.quality_scores().to_string(), "ND");
+    ///
     /// let mut scores = record.quality_scores().iter().copied().map(u8::from);
     /// assert_eq!(scores.next(), Some(45));
     /// assert_eq!(scores.next(), Some(35));
