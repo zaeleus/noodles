@@ -313,6 +313,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_write_sam_record_with_sequence_length_less_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
@@ -332,6 +333,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_write_sam_record_with_sequence_length_greater_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
@@ -351,6 +353,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_write_sam_record_with_sequence_and_no_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());

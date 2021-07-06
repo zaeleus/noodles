@@ -293,6 +293,7 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_cigar("2M".parse()?)
     ///     .set_sequence("AT".parse()?)
+    ///     .set_quality_scores("ND".parse()?)
     ///     .build()?;
     ///
     /// assert_eq!(record.sequence().to_string(), "AT");

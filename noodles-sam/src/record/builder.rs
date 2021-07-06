@@ -12,6 +12,8 @@ use super::{
 pub enum BuildError {
     /// The sequence length does not match the CIGAR string read length.
     SequenceLengthMismatch(u32, u32),
+    /// The quality scores length does not match the sequence length.
+    QualityScoresLengthMismatch(u32, u32),
 }
 
 impl error::Error for BuildError {}
@@ -23,6 +25,11 @@ impl fmt::Display for BuildError {
                 f,
                 "sequence length mismatch: expected {}, got {}",
                 cigar_read_len, sequence_len
+            ),
+            Self::QualityScoresLengthMismatch(quality_scores_len, sequence_len) => write!(
+                f,
+                "quality scores length mismatch: expected {}, got {}",
+                sequence_len, quality_scores_len
             ),
         }
     }
@@ -245,6 +252,7 @@ impl Builder {
     /// let record = sam::Record::builder()
     ///     .set_cigar("4M".parse()?)
     ///     .set_sequence("ACGT".parse()?)
+    ///     .set_quality_scores("NDLS".parse()?)
     ///     .build()?;
     ///
     /// assert_eq!(**record.sequence(), [Base::A, Base::C, Base::G, Base::T]);
@@ -314,9 +322,9 @@ impl Builder {
     /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
-        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
-        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
         if !self.sequence.is_empty() {
+            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+            // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
             let sequence_len = self.sequence.len() as u32;
             let cigar_read_len = self.cigar.read_len();
 
@@ -324,6 +332,18 @@ impl Builder {
                 return Err(BuildError::SequenceLengthMismatch(
                     sequence_len,
                     cigar_read_len,
+                ));
+            }
+
+            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ`
+            // must not be a '*' and the length of the quality string ought to equal the length of
+            // `SEQ`."
+            let quality_scores_len = self.quality_scores.len() as u32;
+
+            if sequence_len != quality_scores_len {
+                return Err(BuildError::QualityScoresLengthMismatch(
+                    quality_scores_len,
+                    sequence_len,
                 ));
             }
         }
@@ -439,6 +459,21 @@ mod tests {
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
         assert_eq!(record.data().len(), 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_build_with_quality_scores_length_mismatch() -> Result<(), Box<dyn std::error::Error>> {
+        let builder = Builder::default()
+            .set_cigar("4M".parse()?)
+            .set_sequence("ACGT".parse()?)
+            .set_quality_scores("NDL".parse()?);
+
+        assert_eq!(
+            builder.build(),
+            Err(BuildError::QualityScoresLengthMismatch(3, 4))
+        );
 
         Ok(())
     }
