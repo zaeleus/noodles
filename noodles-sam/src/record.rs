@@ -519,111 +519,79 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use builder::BuildError;
+
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let qname = parse_string(&mut fields, Field::Name).and_then(|s| {
-            if s == NULL_FIELD {
-                Ok(None)
-            } else {
-                s.parse().map(Some).map_err(ParseError::InvalidReadName)
-            }
-        })?;
+        let mut builder = Self::builder();
+
+        if let Some(qname) = parse_qname(&mut fields)? {
+            builder = builder.set_read_name(qname);
+        }
 
         let flag = parse_string(&mut fields, Field::Flags)
             .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
             .map(Flags::from)?;
 
-        let rname = parse_string(&mut fields, Field::ReferenceSequenceName).and_then(|s| {
-            if s == NULL_FIELD {
-                Ok(None)
-            } else {
-                s.parse()
-                    .map(Some)
-                    .map_err(ParseError::InvalidReferenceSequenceName)
-            }
-        })?;
+        builder = builder.set_flags(flag);
 
-        let pos = parse_string(&mut fields, Field::Position).and_then(|s| match s {
-            ZERO_FIELD => Ok(None),
-            _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
-        })?;
+        let rname = parse_rname(&mut fields)?;
+
+        if let Some(pos) = parse_pos(&mut fields)? {
+            builder = builder.set_position(pos);
+        }
 
         let mapq = parse_string(&mut fields, Field::MappingQuality)
             .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
             .map(MappingQuality::from)?;
 
+        builder = builder.set_mapping_quality(mapq);
+
         let cigar: Cigar = parse_string(&mut fields, Field::Cigar)
             .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;
 
-        let rnext =
-            parse_string(&mut fields, Field::MateReferenceSequenceName).and_then(|s| match s {
-                NULL_FIELD => Ok(None),
-                EQ_FIELD => Ok(rname.clone()),
-                _ => s
-                    .parse()
-                    .map(Some)
-                    .map_err(ParseError::InvalidMateReferenceSequenceName),
-            })?;
+        builder = builder.set_cigar(cigar);
 
-        let pnext = parse_string(&mut fields, Field::MatePosition).and_then(|s| match s {
-            ZERO_FIELD => Ok(None),
-            _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
-        })?;
+        if let Some(rnext) = parse_rnext(&mut fields, rname.as_ref())? {
+            builder = builder.set_mate_reference_sequence_name(rnext);
+        }
+
+        if let Some(reference_sequence_name) = rname {
+            builder = builder.set_reference_sequence_name(reference_sequence_name);
+        }
+
+        if let Some(pnext) = parse_pnext(&mut fields)? {
+            builder = builder.set_mate_position(pnext);
+        }
 
         let tlen = parse_string(&mut fields, Field::TemplateLength)
             .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidTemplateLength))?;
 
-        let seq: Sequence = parse_string(&mut fields, Field::Sequence)
+        builder = builder.set_template_length(tlen);
+
+        let seq = parse_string(&mut fields, Field::Sequence)
             .and_then(|s| s.parse().map_err(ParseError::InvalidSequence))?;
 
-        let qual: QualityScores = parse_string(&mut fields, Field::QualityScores)
+        builder = builder.set_sequence(seq);
+
+        let qual = parse_string(&mut fields, Field::QualityScores)
             .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
 
-        if !seq.is_empty() {
-            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
-            // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
-            let sequence_len = seq.len() as u32;
-            let cigar_read_len = cigar.read_len();
+        builder = builder.set_quality_scores(qual);
 
-            if sequence_len != cigar_read_len {
-                return Err(ParseError::SequenceLengthMismatch(
-                    sequence_len,
-                    cigar_read_len,
-                ));
-            }
-
-            // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ`
-            // must not be a '*' and the length of the quality string ought to equal the length of
-            // `SEQ`."
-            let quality_scores_len = qual.len() as u32;
-
-            if sequence_len != quality_scores_len {
-                return Err(ParseError::QualityScoresLengthMismatch(
-                    quality_scores_len,
-                    sequence_len,
-                ));
-            }
+        if let Some(data) = parse_data(&mut fields)? {
+            builder = builder.set_data(data);
         }
 
-        let data = match fields.next() {
-            Some(s) => s.parse().map_err(ParseError::InvalidData)?,
-            None => Data::default(),
-        };
-
-        Ok(Self {
-            read_name: qname,
-            flags: flag,
-            reference_sequence_name: rname,
-            position: pos,
-            mapping_quality: mapq,
-            cigar,
-            mate_reference_sequence_name: rnext,
-            mate_position: pnext,
-            template_length: tlen,
-            sequence: seq,
-            quality_scores: qual,
-            data,
-        })
+        match builder.build() {
+            Ok(r) => Ok(r),
+            Err(BuildError::SequenceLengthMismatch(sequence_len, cigar_read_len)) => Err(
+                ParseError::SequenceLengthMismatch(sequence_len, cigar_read_len),
+            ),
+            Err(BuildError::QualityScoresLengthMismatch(quality_scores_len, sequence_len)) => Err(
+                ParseError::QualityScoresLengthMismatch(quality_scores_len, sequence_len),
+            ),
+        }
     }
 }
 
@@ -632,6 +600,81 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or(ParseError::MissingField(field))
+}
+
+fn parse_qname<'a, I>(fields: &mut I) -> Result<Option<ReadName>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Name).and_then(|s| {
+        if s == NULL_FIELD {
+            Ok(None)
+        } else {
+            s.parse().map(Some).map_err(ParseError::InvalidReadName)
+        }
+    })
+}
+
+fn parse_rname<'a, I>(fields: &mut I) -> Result<Option<ReferenceSequenceName>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::ReferenceSequenceName).and_then(|s| {
+        if s == NULL_FIELD {
+            Ok(None)
+        } else {
+            s.parse()
+                .map(Some)
+                .map_err(ParseError::InvalidReferenceSequenceName)
+        }
+    })
+}
+
+fn parse_pos<'a, I>(fields: &mut I) -> Result<Option<Position>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Position).and_then(|s| match s {
+        ZERO_FIELD => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
+    })
+}
+
+fn parse_rnext<'a, I>(
+    fields: &mut I,
+    rname: Option<&ReferenceSequenceName>,
+) -> Result<Option<ReferenceSequenceName>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::MateReferenceSequenceName).and_then(|s| match s {
+        NULL_FIELD => Ok(None),
+        EQ_FIELD => Ok(rname.cloned()),
+        _ => s
+            .parse()
+            .map(Some)
+            .map_err(ParseError::InvalidMateReferenceSequenceName),
+    })
+}
+
+fn parse_pnext<'a, I>(fields: &mut I) -> Result<Option<Position>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::MatePosition).and_then(|s| match s {
+        ZERO_FIELD => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
+    })
+}
+
+fn parse_data<'a, I>(fields: &mut I) -> Result<Option<Data>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .map(|s| s.parse().map_err(ParseError::InvalidData))
+        .transpose()
 }
 
 #[cfg(test)]
