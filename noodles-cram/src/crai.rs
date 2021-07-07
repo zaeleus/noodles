@@ -4,13 +4,7 @@ mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
 
-use std::{
-    fs::File,
-    io::{self, BufReader},
-    path::Path,
-};
-
-use flate2::read::GzDecoder;
+use std::{fs::File, io, path::Path};
 
 /// A CRAM index.
 pub type Index = Vec<Record>;
@@ -32,10 +26,6 @@ pub fn read<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src)
-        .map(GzDecoder::new)
-        .map(BufReader::new)
-        .map(Reader::new)?;
-
+    let mut reader = File::open(src).map(Reader::new)?;
     reader.read_index()
 }

@@ -1,17 +1,21 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader, Read};
+
+use flate2::read::GzDecoder;
 
 use super::Index;
 
 pub struct Reader<R> {
-    inner: R,
+    inner: BufReader<GzDecoder<R>>,
 }
 
 impl<R> Reader<R>
 where
-    R: BufRead,
+    R: Read,
 {
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner: BufReader::new(GzDecoder::new(inner)),
+        }
     }
 
     pub fn read_index(&mut self) -> io::Result<Index> {
@@ -54,8 +58,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::{convert::TryFrom, io::Write};
 
+    use flate2::write::GzEncoder;
     use noodles_bam as bam;
 
     use crate::crai::Record;
@@ -69,7 +74,11 @@ mod tests {
 0\t17711\t121393\t317811\t233\t317811
 ";
 
-        let mut reader = Reader::new(&data[..]);
+        let mut writer = GzEncoder::new(Vec::new(), Default::default());
+        writer.write_all(data)?;
+        let compressed_data = writer.finish()?;
+
+        let mut reader = Reader::new(&compressed_data[..]);
 
         let actual = reader.read_index()?;
 
