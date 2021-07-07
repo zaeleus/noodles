@@ -50,10 +50,11 @@
 //! ```
 
 pub mod bai;
+pub mod pileup;
 pub mod reader;
 pub mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+pub use self::{pileup::Pileup, reader::Reader, record::Record, writer::Writer};
 
 static MAGIC_NUMBER: &[u8] = b"BAM\x01";
