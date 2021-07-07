@@ -8,6 +8,9 @@ use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
+use noodles_core::{region::Interval, Region};
+
+use super::{fai, Record};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 pub(crate) const NEWLINE: u8 = b'\n';
@@ -189,6 +192,57 @@ where
     }
 }
 
+impl<R> Reader<R>
+where
+    R: BufRead + Seek,
+{
+    /// Returns a record of the given region.
+    ///
+    /// This currently only supports querying the entirety of a reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor};
+    /// use noodles_core::Region;
+    /// use noodles_fasta::{self as fasta, fai};
+    ///
+    /// let data = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
+    /// let index = vec![
+    ///     fai::Record::new(String::from("sq0"), 4, 5, 4, 5),
+    ///     fai::Record::new(String::from("sq1"), 4, 15, 4, 5),
+    ///     fai::Record::new(String::from("sq2"), 4, 25, 4, 5),
+    /// ];
+    ///
+    /// let mut reader = fasta::Reader::new(Cursor::new(data));
+    ///
+    /// let region = Region::mapped("sq1", ..);
+    /// let record = reader.query(&index, &region)?;
+    ///
+    /// assert_eq!(record, fasta::Record::new(
+    ///     fasta::record::Definition::new(String::from("sq1"), None),
+    ///     b"ACGT".to_vec(),
+    /// ));
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
+        use crate::record::Definition;
+
+        let (i, _) = resolve_region(index, region)?;
+        let index_record = &index[i];
+
+        let pos = index_record.offset();
+        self.seek(SeekFrom::Start(pos))?;
+
+        let definition = Definition::new(region.to_string(), None);
+        let mut sequence = Vec::new();
+
+        self.read_sequence(&mut sequence)?;
+
+        Ok(Record::new(definition, sequence))
+    }
+}
+
 impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
@@ -269,6 +323,27 @@ where
             Ok(n)
         }
         Err(e) => Err(e),
+    }
+}
+
+fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, Interval)> {
+    if let Some(r) = region.as_mapped() {
+        let i = index
+            .iter()
+            .position(|r| r.reference_sequence_name() == region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence name: {}", r.name()),
+                )
+            })?;
+
+        Ok((i, r.interval()))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "region is not mapped",
+        ))
     }
 }
 
