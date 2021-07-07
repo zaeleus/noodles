@@ -15,7 +15,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
+use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
 /// A CRAM reader.
 ///
@@ -116,17 +116,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let header_container = self.read_container()?;
+        let container = self.read_container()?;
 
-        if let Some(block) = header_container.blocks().first() {
-            let data = block.decompressed_data()?;
-            let mut reader = &data[..];
-
-            let _header_len = reader.read_i32::<LittleEndian>()?;
-
-            str::from_utf8(reader)
-                .map(|s| s.into())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        if let Some(block) = container.blocks().first() {
+            read_file_header_block(block)
         } else {
             Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -242,8 +235,34 @@ where
     Ok(buf)
 }
 
+fn read_file_header_block(block: &Block) -> io::Result<String> {
+    use crate::container::block::ContentType;
+
+    if block.content_type() != ContentType::FileHeader {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                ContentType::FileHeader,
+                block.content_type()
+            ),
+        ));
+    }
+
+    let data = block.decompressed_data()?;
+    let mut reader = &data[..];
+
+    let _header_len = reader.read_i32::<LittleEndian>()?;
+
+    str::from_utf8(reader)
+        .map(|s| s.into())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::{container::block::ContentType, num::Itf8};
+
     use super::*;
 
     fn build_file_definition() -> Vec<u8> {
@@ -287,6 +306,41 @@ mod tests {
         assert!(matches!(
             reader.read_file_definition(),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+    }
+
+    #[test]
+    fn test_read_file_header_block() -> io::Result<()> {
+        let expected = "noodles";
+
+        let header_data = expected.as_bytes();
+        let header_data_len = header_data.len() as i32;
+
+        let mut data = header_data_len.to_le_bytes().to_vec();
+        data.extend(header_data);
+
+        let block = Block::builder()
+            .set_content_type(ContentType::FileHeader)
+            .set_uncompressed_len(data.len() as Itf8)
+            .set_data(data.to_vec())
+            .build();
+
+        let actual = read_file_header_block(&block)?;
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_file_header_block_with_invalid_content_type() {
+        let block = Block::builder()
+            .set_content_type(ContentType::ExternalData)
+            .build();
+
+        assert!(matches!(
+            read_file_header_block(&block),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
 }
