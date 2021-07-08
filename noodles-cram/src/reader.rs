@@ -20,7 +20,7 @@ use super::{container::Block, file_definition::Version, Container, FileDefinitio
 /// A CRAM reader.
 ///
 /// The CRAM format is comprised of four main parts: 1) a file definition, 2) a file header, 3) a
-/// list of data containers, and 4) a end-of-file (EOF) container.
+/// list of data containers, and 4) an end-of-file (EOF) container.
 ///
 /// # Examples
 ///
