@@ -229,17 +229,17 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let record = Builder::default().build();
+        let record = Builder::default();
 
-        assert_eq!(record.reference_sequence_name(), ".");
-        assert_eq!(record.source(), ".");
-        assert_eq!(record.ty(), ".");
-        assert_eq!(record.start(), 1);
-        assert_eq!(record.end(), 1);
-        assert!(record.score().is_none());
-        assert_eq!(record.strand(), Strand::default());
-        assert!(record.phase().is_none());
-        assert!(record.attributes().is_empty());
+        assert_eq!(record.reference_sequence_name, ".");
+        assert_eq!(record.source, ".");
+        assert_eq!(record.ty, ".");
+        assert_eq!(record.start, 1);
+        assert_eq!(record.end, 1);
+        assert!(record.score.is_none());
+        assert_eq!(record.strand, Strand::default());
+        assert!(record.phase.is_none());
+        assert!(record.attributes.is_empty());
     }
 
     #[test]
