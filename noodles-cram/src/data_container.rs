@@ -34,8 +34,15 @@ impl TryFrom<Container> for DataContainer {
     fn try_from(container: Container) -> Result<Self, Self::Error> {
         let blocks = container.blocks();
 
-        let compression_header =
-            CompressionHeader::try_from(&blocks[0]).expect("missing compression header");
+        let compression_header = blocks
+            .first()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "missing compression header block",
+                )
+            })
+            .and_then(CompressionHeader::try_from)?;
 
         let mut start = 1;
 
@@ -43,7 +50,7 @@ impl TryFrom<Container> for DataContainer {
         let mut slices = Vec::with_capacity(slices_len);
 
         for _ in 0..slices_len {
-            let slice = Slice::try_from(&blocks[start..]).expect("missing slice");
+            let slice = Slice::try_from(&blocks[start..])?;
 
             // (core data block + external blocks) + header block
             let block_count = slice.header().block_count() + 1;
