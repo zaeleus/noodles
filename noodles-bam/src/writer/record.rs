@@ -59,7 +59,7 @@ where
 
     writer.write_i32::<LittleEndian>(block_size)?;
 
-    let ref_id = reference_sequence_id as i32;
+    let ref_id = reference_sequence_id;
     writer.write_i32::<LittleEndian>(ref_id)?;
 
     let pos = record
@@ -93,7 +93,7 @@ where
 
     writer.write_i32::<LittleEndian>(l_seq)?;
 
-    let next_ref_id = mate_reference_sequence_id as i32;
+    let next_ref_id = mate_reference_sequence_id;
     writer.write_i32::<LittleEndian>(next_ref_id)?;
 
     let next_pos = record
@@ -149,7 +149,7 @@ where
     W: Write,
 {
     for op in cigar.iter() {
-        let len = op.len() as u32;
+        let len = op.len();
         let kind = op.kind() as u32;
         let value = len << 4 | kind;
         writer.write_u32::<LittleEndian>(value)?;
