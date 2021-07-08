@@ -14,7 +14,7 @@ where
     let method = block.compression_method() as u8;
     crc_writer.write_u8(method)?;
 
-    let content_type = block.content_type() as u8;
+    let content_type = u8::from(block.content_type());
     crc_writer.write_u8(content_type)?;
 
     let block_content_id = block.content_id();
