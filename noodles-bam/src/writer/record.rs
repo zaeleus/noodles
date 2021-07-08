@@ -363,23 +363,23 @@ where
 
     if n >= 0 {
         if n <= i32::from(u8::MAX) {
-            writer.write_u8(char::from(Type::UInt8) as u8)?;
+            writer.write_u8(u8::from(Type::UInt8))?;
             writer.write_u8(n as u8)
         } else if n <= i32::from(u16::MAX) {
-            writer.write_u8(char::from(Type::UInt16) as u8)?;
+            writer.write_u8(u8::from(Type::UInt16))?;
             writer.write_u16::<LittleEndian>(n as u16)
         } else {
-            writer.write_u8(char::from(Type::UInt32) as u8)?;
+            writer.write_u8(u8::from(Type::UInt32))?;
             writer.write_u32::<LittleEndian>(n as u32)
         }
     } else if n >= i32::from(i8::MIN) {
-        writer.write_u8(char::from(Type::Int8) as u8)?;
+        writer.write_u8(u8::from(Type::Int8))?;
         writer.write_i8(n as i8)
     } else if n >= i32::from(i16::MIN) {
-        writer.write_u8(char::from(Type::Int16) as u8)?;
+        writer.write_u8(u8::from(Type::Int16))?;
         writer.write_i16::<LittleEndian>(n as i16)
     } else {
-        writer.write_u8(char::from(Type::Int32) as u8)?;
+        writer.write_u8(u8::from(Type::Int32))?;
         writer.write_i32::<LittleEndian>(n)
     }
 }
