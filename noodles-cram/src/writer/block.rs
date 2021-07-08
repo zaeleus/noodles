@@ -11,7 +11,7 @@ where
 {
     let mut crc_writer = CrcWriter::new(writer);
 
-    let method = block.compression_method() as u8;
+    let method = u8::from(block.compression_method());
     crc_writer.write_u8(method)?;
 
     let content_type = u8::from(block.content_type());

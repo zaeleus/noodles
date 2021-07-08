@@ -56,6 +56,18 @@ impl TryFrom<u8> for CompressionMethod {
     }
 }
 
+impl From<CompressionMethod> for u8 {
+    fn from(compression_method: CompressionMethod) -> Self {
+        match compression_method {
+            CompressionMethod::None => 0,
+            CompressionMethod::Gzip => 1,
+            CompressionMethod::Bzip2 => 2,
+            CompressionMethod::Lzma => 3,
+            CompressionMethod::Rans => 4,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,12 +78,21 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from() {
+    fn test_try_from_u8_for_compression_method() {
         assert_eq!(CompressionMethod::try_from(0), Ok(CompressionMethod::None));
         assert_eq!(CompressionMethod::try_from(1), Ok(CompressionMethod::Gzip));
         assert_eq!(CompressionMethod::try_from(2), Ok(CompressionMethod::Bzip2));
         assert_eq!(CompressionMethod::try_from(3), Ok(CompressionMethod::Lzma));
         assert_eq!(CompressionMethod::try_from(4), Ok(CompressionMethod::Rans));
         assert_eq!(CompressionMethod::try_from(5), Err(TryFromByteError(5)));
+    }
+
+    #[test]
+    fn test_from_compression_method_for_u8() {
+        assert_eq!(u8::from(CompressionMethod::None), 0);
+        assert_eq!(u8::from(CompressionMethod::Gzip), 1);
+        assert_eq!(u8::from(CompressionMethod::Bzip2), 2);
+        assert_eq!(u8::from(CompressionMethod::Lzma), 3);
+        assert_eq!(u8::from(CompressionMethod::Rans), 4);
     }
 }
