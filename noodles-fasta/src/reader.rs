@@ -4,7 +4,11 @@ mod records;
 
 pub use self::records::Records;
 
-use std::io::{self, BufRead, Read, Seek, SeekFrom};
+use std::{
+    convert::TryFrom,
+    io::{self, BufRead, Read, Seek, SeekFrom},
+    ops::{Bound, RangeBounds},
+};
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
@@ -198,8 +202,6 @@ where
 {
     /// Returns a record of the given region.
     ///
-    /// This currently only supports querying the entirety of a reference sequence.
-    ///
     /// # Examples
     ///
     /// ```
@@ -218,28 +220,35 @@ where
     ///
     /// let region = Region::mapped("sq1", ..);
     /// let record = reader.query(&index, &region)?;
-    ///
     /// assert_eq!(record, fasta::Record::new(
     ///     fasta::record::Definition::new(String::from("sq1"), None),
     ///     b"ACGT".to_vec(),
+    /// ));
+    ///
+    /// let region = Region::mapped("sq1", 2..=3);
+    /// let record = reader.query(&index, &region)?;
+    /// assert_eq!(record, fasta::Record::new(
+    ///     fasta::record::Definition::new(String::from("sq1:2-3"), None),
+    ///     b"CG".to_vec(),
     /// ));
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
         use crate::record::Definition;
 
-        let (i, _) = resolve_region(index, region)?;
+        let (i, interval) = resolve_region(index, region)?;
         let index_record = &index[i];
 
         let pos = index_record.offset();
         self.seek(SeekFrom::Start(pos))?;
 
         let definition = Definition::new(region.to_string(), None);
-        let mut sequence = Vec::new();
 
+        let mut sequence = Vec::new();
         self.read_sequence(&mut sequence)?;
 
-        Ok(Record::new(definition, sequence))
+        let range = interval_to_range_indices(interval)?;
+        Ok(Record::new(definition, sequence[range].to_vec()))
     }
 }
 
@@ -345,6 +354,47 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
             "region is not mapped",
         ))
     }
+}
+
+// Shifts an 1-based interval to a 0-based range for slicing.
+fn interval_to_range_indices(interval: Interval) -> io::Result<(Bound<usize>, Bound<usize>)> {
+    let start = match interval.start_bound() {
+        Bound::Included(&s) => {
+            if s > 0 {
+                // SAFETY: `s` cannot be < 1
+                Bound::Included((s - 1) as usize)
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid interval start bound",
+                ));
+            }
+        }
+        Bound::Excluded(&s) => usize::try_from(s)
+            .map(Bound::Excluded)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+        Bound::Unbounded => Bound::Unbounded,
+    };
+
+    let end = match interval.end_bound() {
+        Bound::Included(&e) => {
+            if e > 0 {
+                // SAFETY: `e` cannot be < 1
+                Bound::Included((e - 1) as usize)
+            } else {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid interval end bound",
+                ));
+            }
+        }
+        Bound::Excluded(&e) => usize::try_from(e)
+            .map(Bound::Excluded)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+        Bound::Unbounded => Bound::Unbounded,
+    };
+
+    Ok((start, end))
 }
 
 #[cfg(test)]
