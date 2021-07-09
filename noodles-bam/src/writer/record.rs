@@ -44,9 +44,12 @@ where
         find_reference_sequence_id(reference_sequences, record.mate_reference_sequence_name())?;
 
     let read_name = c_read_name.as_bytes_with_nul();
-    let l_read_name = read_name.len() as u8;
-    let n_cigar_op = record.cigar().len() as u16;
-    let l_seq = record.sequence().len() as i32;
+    let l_read_name = u8::try_from(read_name.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let n_cigar_op = u16::try_from(record.cigar().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let l_seq = i32::try_from(record.sequence().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let data_len = calculate_data_len(record.data()) as i32;
 
     let block_size = BLOCK_HEADER_SIZE as i32
