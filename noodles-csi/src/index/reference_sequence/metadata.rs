@@ -1,10 +1,6 @@
 //! CSI reference sequence metadata.
 
-use std::{convert::TryFrom, error, fmt};
-
 use noodles_bgzf as bgzf;
-
-use super::Bin;
 
 /// CSI reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -127,45 +123,5 @@ impl Metadata {
     /// ```
     pub fn unmapped_record_count(&self) -> u64 {
         self.unmapped_record_count
-    }
-}
-
-/// An error returned when a raw bin fails to convert to metadata.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromBinError {
-    /// The positions chunk is missing.
-    MissingPositionsChunk,
-    /// The counts chunk is missing.
-    MissingCountsChunk,
-}
-
-impl error::Error for TryFromBinError {}
-
-impl fmt::Display for TryFromBinError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MissingPositionsChunk => f.write_str("missing positions chunk"),
-            Self::MissingCountsChunk => f.write_str("missing counts chunk"),
-        }
-    }
-}
-
-impl TryFrom<&Bin> for Metadata {
-    type Error = TryFromBinError;
-
-    fn try_from(bin: &Bin) -> Result<Self, Self::Error> {
-        let mut chunks_iter = bin.chunks().iter();
-
-        let (ref_beg, ref_end) = chunks_iter
-            .next()
-            .map(|c| (c.start(), c.end()))
-            .ok_or(TryFromBinError::MissingPositionsChunk)?;
-
-        let (n_mapped, n_unmapped) = chunks_iter
-            .next()
-            .map(|c| (u64::from(c.start()), u64::from(c.end())))
-            .ok_or(TryFromBinError::MissingCountsChunk)?;
-
-        Ok(Self::new(ref_beg, ref_end, n_mapped, n_unmapped))
     }
 }

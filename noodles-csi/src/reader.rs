@@ -136,23 +136,21 @@ where
 
     let mut bins = Vec::with_capacity(n_bin);
 
-    let metadata_bin_id = Bin::metadata_id(depth);
+    let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
 
     for _ in 0..n_bin {
         let id = reader.read_u32::<LittleEndian>()?;
+
         let loffset = reader
             .read_u64::<LittleEndian>()
             .map(bgzf::VirtualPosition::from)?;
-        let chunks = read_chunks(reader)?;
 
-        let bin = Bin::new(id, loffset, chunks);
-
-        if id == metadata_bin_id {
-            metadata = Metadata::try_from(&bin)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        if id == metadata_id {
+            metadata = read_metadata(reader).map(Some)?;
         } else {
+            let chunks = read_chunks(reader)?;
+            let bin = Bin::new(id, loffset, chunks);
             bins.push(bin);
         }
     }
@@ -183,4 +181,51 @@ where
     }
 
     Ok(chunks)
+}
+
+fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
+where
+    R: Read,
+{
+    let ref_beg = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
+
+    let ref_end = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
+
+    let n_mapped = reader.read_u64::<LittleEndian>()?;
+    let n_unmapped = reader.read_u64::<LittleEndian>()?;
+
+    Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_metadata() -> io::Result<()> {
+        let data = [
+            0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
+            0x3d, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_end = 1597
+            0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_mapped = 55
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_unmapped = 0
+        ];
+
+        let mut reader = &data[..];
+        let actual = read_metadata(&mut reader)?;
+
+        let expected = Metadata::new(
+            bgzf::VirtualPosition::from(610),
+            bgzf::VirtualPosition::from(1597),
+            55,
+            0,
+        );
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 }
