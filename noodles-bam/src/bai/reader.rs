@@ -215,15 +215,24 @@ mod tests {
     fn test_read_header_with_invalid_magic_number() {
         let data = [];
         let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_header().is_err());
+        assert!(matches!(
+            reader.read_header(),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         let data = b"BAI";
         let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_header().is_err());
+        assert!(matches!(
+            reader.read_header(),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         let data = b"MThd";
         let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_header().is_err());
+        assert!(matches!(
+            reader.read_header(),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
