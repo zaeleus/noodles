@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
@@ -123,7 +120,7 @@ fn read_bins<R>(reader: &mut R) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {
-    use reference_sequence::metadata::TryFromBinError;
+    use reference_sequence::bin::METADATA_ID;
 
     let n_bin = reader.read_u32::<LittleEndian>()?;
 
@@ -132,14 +129,13 @@ where
 
     for _ in 0..n_bin {
         let id = reader.read_u32::<LittleEndian>()?;
-        let chunks = read_chunks(reader)?;
 
-        let bin = Bin::new(id, chunks);
-
-        match Metadata::try_from(&bin) {
-            Ok(m) => metadata = Some(m),
-            Err(TryFromBinError::InvalidId(_)) => bins.push(bin),
-            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
+        if id == METADATA_ID {
+            metadata = read_metadata(reader).map(Some)?;
+        } else {
+            let chunks = read_chunks(reader)?;
+            let bin = Bin::new(id, chunks);
+            bins.push(bin);
         }
     }
 
@@ -186,6 +182,24 @@ where
     Ok(intervals)
 }
 
+fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
+where
+    R: Read,
+{
+    let ref_beg = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
+
+    let ref_end = reader
+        .read_u64::<LittleEndian>()
+        .map(bgzf::VirtualPosition::from)?;
+
+    let n_mapped = reader.read_u64::<LittleEndian>()?;
+    let n_unmapped = reader.read_u64::<LittleEndian>()?;
+
+    Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -210,5 +224,29 @@ mod tests {
         let data = b"MThd";
         let mut reader = Reader::new(&data[..]);
         assert!(reader.read_header().is_err());
+    }
+
+    #[test]
+    fn test_read_metadata() -> io::Result<()> {
+        let data = [
+            0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
+            0x3d, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_end = 1597
+            0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_mapped = 55
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_unmapped = 0
+        ];
+
+        let mut reader = &data[..];
+        let actual = read_metadata(&mut reader)?;
+
+        let expected = Metadata::new(
+            bgzf::VirtualPosition::from(610),
+            bgzf::VirtualPosition::from(1597),
+            55,
+            0,
+        );
+
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
