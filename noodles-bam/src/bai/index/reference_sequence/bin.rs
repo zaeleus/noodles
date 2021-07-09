@@ -6,8 +6,10 @@ pub(crate) use self::builder::Builder;
 
 use noodles_bgzf::index::Chunk;
 
-// § 5.3 C source code for computing bin number and overlapping bins: MAX_BIN (2020-07-19)
-pub(crate) const MAX_ID: usize = ((1 << 18) - 1) / 7 + 1;
+use super::DEPTH;
+
+pub(crate) const MAX_ID: u32 = ((1 << (3 * (DEPTH + 1))) - 1) / 7;
+pub(crate) const METADATA_ID: u32 = MAX_ID + 1;
 
 /// A bin in a BAM index reference sequence.
 ///

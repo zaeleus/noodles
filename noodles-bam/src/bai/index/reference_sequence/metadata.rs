@@ -4,9 +4,7 @@ use std::{convert::TryFrom, error, fmt};
 
 use noodles_bgzf::{index::Chunk, VirtualPosition};
 
-use super::Bin;
-
-pub(crate) const MAGIC_NUMBER: u32 = 37450;
+use super::{bin::METADATA_ID, Bin};
 
 /// BAM index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -136,7 +134,7 @@ impl Metadata {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromBinError {
     /// The bin number is invalid.
-    InvalidMagicNumber(u32),
+    InvalidId(u32),
     /// The positions chunk is missing.
     MissingPositionsChunk,
     /// The counts chunk is missing.
@@ -148,11 +146,7 @@ impl error::Error for TryFromBinError {}
 impl fmt::Display for TryFromBinError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidMagicNumber(n) => write!(
-                f,
-                "invalid magic number: expected {}, got {}",
-                MAGIC_NUMBER, n
-            ),
+            Self::InvalidId(n) => write!(f, "invalid id: expected {}, got {}", METADATA_ID, n),
             Self::MissingPositionsChunk => f.write_str("missing positions chunk"),
             Self::MissingCountsChunk => f.write_str("missing counts chunk"),
         }
@@ -163,8 +157,8 @@ impl TryFrom<&Bin> for Metadata {
     type Error = TryFromBinError;
 
     fn try_from(bin: &Bin) -> Result<Self, Self::Error> {
-        if bin.id() != MAGIC_NUMBER {
-            return Err(TryFromBinError::InvalidMagicNumber(bin.id()));
+        if bin.id() != METADATA_ID {
+            return Err(TryFromBinError::InvalidId(bin.id()));
         }
 
         let mut chunks_iter = bin.chunks().iter();
@@ -199,6 +193,6 @@ impl From<Metadata> for Bin {
 
         let chunks = vec![positions_chunk, counts_chunk];
 
-        Self::new(MAGIC_NUMBER, chunks)
+        Self::new(METADATA_ID, chunks)
     }
 }
