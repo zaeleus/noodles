@@ -382,7 +382,7 @@ where
     ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
+pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
     CStr::from_bytes_with_nul(buf)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|c_str| {
