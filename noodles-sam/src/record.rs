@@ -214,6 +214,28 @@ impl Record {
         &self.cigar
     }
 
+    /// Returns a mutable reference to the CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::{cigar::{op, Op}, Cigar}};
+    ///
+    /// let mut record = sam::Record::default();
+    /// assert!(record.cigar().is_empty());
+    ///
+    /// let cigar = Cigar::from(vec![
+    ///     Op::new(op::Kind::Match, 36),
+    ///     Op::new(op::Kind::SoftClip, 2),
+    /// ]);
+    /// *record.cigar_mut() = cigar.clone();
+    ///
+    /// assert_eq!(record.cigar(), &cigar);
+    /// ```
+    pub fn cigar_mut(&mut self) -> &mut Cigar {
+        &mut self.cigar
+    }
+
     /// Returns the mate reference sequence name of this record.
     ///
     /// # Examples
