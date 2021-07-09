@@ -130,6 +130,29 @@ impl From<Base> for char {
     }
 }
 
+impl From<Base> for u8 {
+    fn from(base: Base) -> Self {
+        match base {
+            Base::Eq => 0,
+            Base::A => 1,
+            Base::C => 2,
+            Base::M => 3,
+            Base::G => 4,
+            Base::R => 5,
+            Base::S => 6,
+            Base::V => 7,
+            Base::T => 8,
+            Base::W => 9,
+            Base::Y => 10,
+            Base::H => 11,
+            Base::K => 12,
+            Base::D => 13,
+            Base::B => 14,
+            Base::N => 15,
+        }
+    }
+}
+
 impl From<Base> for sam::record::sequence::Base {
     fn from(base: Base) -> Self {
         match base {
@@ -239,6 +262,26 @@ mod tests {
         assert_eq!(char::from(Base::D), 'D');
         assert_eq!(char::from(Base::B), 'B');
         assert_eq!(char::from(Base::N), 'N');
+    }
+
+    #[test]
+    fn test_from_base_for_u8() {
+        assert_eq!(u8::from(Base::Eq), 0);
+        assert_eq!(u8::from(Base::A), 1);
+        assert_eq!(u8::from(Base::C), 2);
+        assert_eq!(u8::from(Base::M), 3);
+        assert_eq!(u8::from(Base::G), 4);
+        assert_eq!(u8::from(Base::R), 5);
+        assert_eq!(u8::from(Base::S), 6);
+        assert_eq!(u8::from(Base::V), 7);
+        assert_eq!(u8::from(Base::T), 8);
+        assert_eq!(u8::from(Base::W), 9);
+        assert_eq!(u8::from(Base::Y), 10);
+        assert_eq!(u8::from(Base::H), 11);
+        assert_eq!(u8::from(Base::K), 12);
+        assert_eq!(u8::from(Base::D), 13);
+        assert_eq!(u8::from(Base::B), 14);
+        assert_eq!(u8::from(Base::N), 15);
     }
 
     #[test]

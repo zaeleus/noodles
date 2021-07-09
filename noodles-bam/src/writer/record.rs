@@ -161,15 +161,8 @@ where
 {
     for chunk in sequence.chunks(2) {
         let l = Base::from(chunk[0]);
-
-        let r = if let Some(c) = chunk.get(1) {
-            Base::from(*c)
-        } else {
-            Base::Eq
-        };
-
-        let value = (l as u8) << 4 | (r as u8);
-
+        let r = chunk.get(1).copied().map(Base::from).unwrap_or(Base::Eq);
+        let value = u8::from(l) << 4 | u8::from(r);
         writer.write_u8(value)?;
     }
 
