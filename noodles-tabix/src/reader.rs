@@ -282,18 +282,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_index_with_invalid_magic_number() {
+    fn test_read_magic_with_invalid_magic_number() {
         let data = [];
-        let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_index().is_err());
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         let data = b"TBI";
-        let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_index().is_err());
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         let data = b"MThd";
-        let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_index().is_err());
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
