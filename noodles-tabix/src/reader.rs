@@ -212,7 +212,7 @@ where
 
         match Metadata::try_from(&bin) {
             Ok(m) => metadata = Some(m),
-            Err(TryFromBinError::InvalidMagicNumber(_)) => bins.push(bin),
+            Err(TryFromBinError::InvalidId(_)) => bins.push(bin),
             Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
         }
     }
