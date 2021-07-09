@@ -82,19 +82,6 @@ impl Record {
             builder = builder.set_reference_sequence_name(reference_sequence_name);
         }
 
-        if let Some(reference_sequence_id) = self.reference_sequence_id() {
-            let id = i32::from(reference_sequence_id);
-
-            let reference_sequence_name = reference_sequences
-                .get_index(id as usize)
-                .and_then(|(_, rs)| rs.name().parse().ok())
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence ID")
-                })?;
-
-            builder = builder.set_reference_sequence_name(reference_sequence_name);
-        }
-
         if let Some(position) = self.position() {
             builder = builder.set_position(position);
         }
