@@ -7,7 +7,7 @@ pub use self::records::Records;
 use std::{
     convert::TryFrom,
     io::{self, BufRead, Read, Seek, SeekFrom},
-    ops::{Bound, RangeBounds},
+    ops::{Bound, Range, RangeBounds},
 };
 
 use memchr::memchr;
@@ -247,7 +247,7 @@ where
         let mut sequence = Vec::new();
         self.read_sequence(&mut sequence)?;
 
-        let range = interval_to_range_indices(interval)?;
+        let range = interval_to_slice_range(interval, sequence.len())?;
         Ok(Record::new(definition, sequence[range].to_vec()))
     }
 }
@@ -357,44 +357,36 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
 }
 
 // Shifts an 1-based interval to a 0-based range for slicing.
-fn interval_to_range_indices(interval: Interval) -> io::Result<(Bound<usize>, Bound<usize>)> {
+fn interval_to_slice_range(interval: Interval, len: usize) -> io::Result<Range<usize>> {
     let start = match interval.start_bound() {
-        Bound::Included(&s) => {
-            if s > 0 {
-                // SAFETY: `s` cannot be < 1
-                Bound::Included((s - 1) as usize)
-            } else {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "invalid interval start bound",
-                ));
-            }
+        Bound::Included(&s) => usize::try_from(s)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|s| {
+                s.checked_sub(1).ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "invalid start position")
+                })
+            })?,
+        Bound::Excluded(&s) => {
+            usize::try_from(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         }
-        Bound::Excluded(&s) => usize::try_from(s)
-            .map(Bound::Excluded)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-        Bound::Unbounded => Bound::Unbounded,
+        Bound::Unbounded => 0,
     };
 
     let end = match interval.end_bound() {
         Bound::Included(&e) => {
-            if e > 0 {
-                // SAFETY: `e` cannot be < 1
-                Bound::Included((e - 1) as usize)
-            } else {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "invalid interval end bound",
-                ));
-            }
+            usize::try_from(e).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         }
         Bound::Excluded(&e) => usize::try_from(e)
-            .map(Bound::Excluded)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-        Bound::Unbounded => Bound::Unbounded,
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|e| {
+                e.checked_sub(1).ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidInput, "invalid end position")
+                })
+            })?,
+        Bound::Unbounded => len,
     };
 
-    Ok((start, end))
+    Ok(start..end)
 }
 
 #[cfg(test)]
@@ -499,6 +491,29 @@ mod tests {
         buf.clear();
         read_line(&mut reader, &mut buf)?;
         assert_eq!(buf, "noodles");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_interval_to_slice_range() -> io::Result<()> {
+        const LENGTH: usize = 4;
+
+        let interval = (Bound::Unbounded, Bound::Unbounded);
+        let range = interval_to_slice_range(interval, LENGTH)?;
+        assert_eq!(range, 0..4);
+
+        let interval = (Bound::Included(2), Bound::Unbounded);
+        let range = interval_to_slice_range(interval, LENGTH)?;
+        assert_eq!(range, 1..4);
+
+        let interval = (Bound::Unbounded, Bound::Included(3));
+        let range = interval_to_slice_range(interval, LENGTH)?;
+        assert_eq!(range, 0..3);
+
+        let interval = (Bound::Included(2), Bound::Included(3));
+        let range = interval_to_slice_range(interval, LENGTH)?;
+        assert_eq!(range, 1..3);
 
         Ok(())
     }
