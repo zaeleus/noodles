@@ -1,6 +1,6 @@
 //! Coordinate-sorted index (CSI) reference sequence and fields.
 
-mod bin;
+pub mod bin;
 mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};

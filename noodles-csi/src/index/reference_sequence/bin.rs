@@ -1,4 +1,8 @@
+//! CSI reference sequence bin and fields.
+
 use noodles_bgzf::{self as bgzf, index::Chunk};
+
+pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
 /// A CSI reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
