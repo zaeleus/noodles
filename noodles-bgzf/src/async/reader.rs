@@ -11,7 +11,7 @@ use futures::{stream::TryBuffered, Stream, TryStreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, ReadBuf};
 
-use crate::Block;
+use crate::{Block, VirtualPosition};
 
 use self::blocks::Blocks;
 
@@ -39,6 +39,22 @@ where
             stream: Blocks::new(inner).try_buffered(WORKER_COUNT),
             block: Block::default(),
         }
+    }
+
+    /// Returns the current virtual position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn virtual_position(&self) -> VirtualPosition {
+        self.block.virtual_position()
     }
 }
 
