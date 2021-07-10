@@ -9,10 +9,10 @@ use bytes::BytesMut;
 use flate2::bufread::DeflateDecoder;
 use futures::Stream;
 use pin_project_lite::pin_project;
-use tokio::io::AsyncRead;
+use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 use tokio_util::codec::FramedRead;
 
-use crate::{gz, Block, BGZF_HEADER_SIZE};
+use crate::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
 use super::block_decoder::BlockDecoder;
 
@@ -31,6 +31,20 @@ where
         Self {
             inner: FramedRead::new(inner, BlockDecoder),
         }
+    }
+}
+
+impl<R> Blocks<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        let cpos = pos.compressed();
+        self.inner.get_mut().seek(SeekFrom::Start(cpos)).await?;
+
+        self.inner.read_buffer_mut().clear();
+
+        Ok(pos)
     }
 }
 

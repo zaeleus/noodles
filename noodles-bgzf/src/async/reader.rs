@@ -7,9 +7,9 @@ use std::{
     task::{Context, Poll},
 };
 
-use futures::{stream::TryBuffered, Stream, TryStreamExt};
+use futures::{stream::TryBuffered, Stream, StreamExt, TryStreamExt};
 use pin_project_lite::pin_project;
-use tokio::io::{AsyncBufRead, AsyncRead, ReadBuf};
+use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 use crate::{Block, VirtualPosition};
 
@@ -24,7 +24,7 @@ pin_project! {
         R: AsyncRead,
     {
         #[pin]
-        stream: TryBuffered<Blocks<R>>,
+        stream: Option<TryBuffered<Blocks<R>>>,
         block: Block,
     }
 }
@@ -36,7 +36,7 @@ where
     /// Creates an async BGZF reader.
     pub fn new(inner: R) -> Self {
         Self {
-            stream: Blocks::new(inner).try_buffered(WORKER_COUNT),
+            stream: Some(Blocks::new(inner).try_buffered(WORKER_COUNT)),
             block: Block::default(),
         }
     }
@@ -55,6 +55,51 @@ where
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
         self.block.virtual_position()
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Seeks the stream to the given virtual position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bgzf as bgzf;
+    /// let mut reader = bgzf::AsyncReader::new(Cursor::new(Vec::new()));
+    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// reader.seek(virtual_position).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        let stream = self.stream.take().expect("missing stream");
+        let mut blocks = stream.into_inner();
+
+        blocks.seek(pos).await?;
+
+        let mut stream = blocks.try_buffered(WORKER_COUNT);
+
+        self.block = match stream.next().await {
+            Some(Ok(mut block)) => {
+                let (cpos, upos) = pos.into();
+                block.set_cpos(cpos);
+                block.set_upos(u32::from(upos));
+                block
+            }
+            Some(Err(e)) => return Err(e),
+            None => Block::default(),
+        };
+
+        self.stream.replace(stream);
+
+        Ok(pos)
     }
 }
 
@@ -90,7 +135,9 @@ where
         let this = self.project();
 
         if this.block.is_eof() {
-            match this.stream.poll_next(cx) {
+            let stream = this.stream.as_pin_mut().expect("missing stream");
+
+            match stream.poll_next(cx) {
                 Poll::Ready(Some(Ok(block))) => {
                     *this.block = block;
                 }
