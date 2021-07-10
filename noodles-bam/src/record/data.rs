@@ -106,37 +106,11 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
     type Error = TryFromDataError;
 
     fn try_from(data: Data<'_>) -> Result<Self, Self::Error> {
-        use field::Value as BamValue;
-        use sam::record::data::field::Value as SamValue;
-
         let mut sam_fields = Vec::new();
 
         for result in data.fields() {
             let field = result.map_err(|_| TryFromDataError::InvalidField)?;
-            let tag = field.tag();
-
-            let value = match field.value() {
-                BamValue::Char(c) => SamValue::Char(*c),
-                BamValue::Int8(n) => SamValue::Int(i64::from(*n)),
-                BamValue::UInt8(n) => SamValue::Int(i64::from(*n)),
-                BamValue::Int16(n) => SamValue::Int(i64::from(*n)),
-                BamValue::UInt16(n) => SamValue::Int(i64::from(*n)),
-                BamValue::Int32(n) => SamValue::Int(i64::from(*n)),
-                BamValue::UInt32(n) => SamValue::Int(i64::from(*n)),
-                BamValue::Float(n) => SamValue::Float(*n),
-                BamValue::String(s) => SamValue::String(s.clone()),
-                BamValue::Hex(s) => SamValue::Hex(s.clone()),
-                BamValue::Int8Array(values) => SamValue::Int8Array(values.clone()),
-                BamValue::UInt8Array(values) => SamValue::UInt8Array(values.clone()),
-                BamValue::Int16Array(values) => SamValue::Int16Array(values.clone()),
-                BamValue::UInt16Array(values) => SamValue::UInt16Array(values.clone()),
-                BamValue::Int32Array(values) => SamValue::Int32Array(values.clone()),
-                BamValue::UInt32Array(values) => SamValue::UInt32Array(values.clone()),
-                BamValue::FloatArray(values) => SamValue::FloatArray(values.clone()),
-            };
-
-            let sam_field = sam::record::data::Field::new(tag.clone(), value);
-            sam_fields.push(sam_field);
+            sam_fields.push(field.into());
         }
 
         Self::try_from(sam_fields).map_err(TryFromDataError::InvalidData)

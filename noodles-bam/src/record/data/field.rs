@@ -4,7 +4,7 @@ pub mod value;
 
 pub use self::value::Value;
 
-use noodles_sam::record::data::field::Tag;
+use noodles_sam::{self as sam, record::data::field::Tag};
 
 /// A BAM record data field.
 #[derive(Clone, Debug, PartialEq)]
@@ -57,5 +57,29 @@ impl Field {
     /// ```
     pub fn value(&self) -> &Value {
         &self.value
+    }
+}
+
+impl From<Field> for sam::record::data::Field {
+    fn from(field: Field) -> Self {
+        Self::new(field.tag, field.value.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_field_for_sam_record_data_field() {
+        let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+
+        let actual = sam::record::data::Field::from(field);
+        let expected = sam::record::data::Field::new(
+            Tag::AlignmentHitCount,
+            sam::record::data::field::Value::Int(1),
+        );
+
+        assert_eq!(actual, expected);
     }
 }
