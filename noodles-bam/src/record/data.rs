@@ -122,13 +122,13 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
             let value = match field.value() {
                 BamValue::Char(c) => SamValue::Char(*c),
-                BamValue::Int8(n) => SamValue::Int32(i32::from(*n)),
-                BamValue::UInt8(n) => SamValue::Int32(i32::from(*n)),
-                BamValue::Int16(n) => SamValue::Int32(i32::from(*n)),
-                BamValue::UInt16(n) => SamValue::Int32(i32::from(*n)),
-                BamValue::Int32(n) => SamValue::Int32(*n),
+                BamValue::Int8(n) => SamValue::Int(i32::from(*n)),
+                BamValue::UInt8(n) => SamValue::Int(i32::from(*n)),
+                BamValue::Int16(n) => SamValue::Int(i32::from(*n)),
+                BamValue::UInt16(n) => SamValue::Int(i32::from(*n)),
+                BamValue::Int32(n) => SamValue::Int(*n),
                 BamValue::UInt32(n) => i32::try_from(*n)
-                    .map(SamValue::Int32)
+                    .map(SamValue::Int)
                     .map_err(|_| TryFromDataError::OutOfRange(*n))?,
                 BamValue::Float(n) => SamValue::Float(*n),
                 BamValue::String(s) => SamValue::String(s.clone()),
@@ -169,7 +169,7 @@ mod tests {
 
         let actual = sam::record::Data::try_from(data)?;
         let expected = sam::record::Data::try_from(vec![
-            Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+            Field::new(Tag::AlignmentHitCount, Value::Int(1)),
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
         ])?;
 

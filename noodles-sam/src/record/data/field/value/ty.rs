@@ -7,8 +7,8 @@ use std::{error, fmt, str::FromStr};
 pub enum Type {
     /// Character (`A`).
     Char,
-    /// 32-bit integer (`i`).
-    Int32,
+    /// Integer (`i`).
+    Int,
     /// Single-precision floating-point (`f`).
     Float,
     /// String (`Z`).
@@ -47,7 +47,7 @@ impl FromStr for Type {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "A" => Ok(Self::Char),
-            "i" => Ok(Self::Int32),
+            "i" => Ok(Self::Int),
             "f" => Ok(Self::Float),
             "Z" => Ok(Self::String),
             "H" => Ok(Self::Hex),
@@ -61,7 +61,7 @@ impl From<Type> for char {
     fn from(ty: Type) -> Self {
         match ty {
             Type::Char => 'A',
-            Type::Int32 => 'i',
+            Type::Int => 'i',
             Type::Float => 'f',
             Type::String => 'Z',
             Type::Hex => 'H',
@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(Type::Char.to_string(), "A");
-        assert_eq!(Type::Int32.to_string(), "i");
+        assert_eq!(Type::Int.to_string(), "i");
         assert_eq!(Type::Float.to_string(), "f");
         assert_eq!(Type::String.to_string(), "Z");
         assert_eq!(Type::Hex.to_string(), "H");
@@ -87,7 +87,7 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!("A".parse(), Ok(Type::Char));
-        assert_eq!("i".parse(), Ok(Type::Int32));
+        assert_eq!("i".parse(), Ok(Type::Int));
         assert_eq!("f".parse(), Ok(Type::Float));
         assert_eq!("Z".parse(), Ok(Type::String));
         assert_eq!("H".parse(), Ok(Type::Hex));
@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn test_from_type_for_char() {
         assert_eq!(char::from(Type::Char), 'A');
-        assert_eq!(char::from(Type::Int32), 'i');
+        assert_eq!(char::from(Type::Int), 'i');
         assert_eq!(char::from(Type::Float), 'f');
         assert_eq!(char::from(Type::String), 'Z');
         assert_eq!(char::from(Type::Hex), 'H');

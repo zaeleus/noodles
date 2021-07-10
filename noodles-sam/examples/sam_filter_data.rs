@@ -22,10 +22,10 @@ fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
         .map(|field| field.value());
 
     match value {
-        Some(Value::Int32(n)) => Ok(*n == 1),
+        Some(Value::Int(n)) => Ok(*n == 1),
         Some(v) => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("expected {:?}, got {:?}", Type::Int32, v),
+            format!("expected {:?}, got {:?}", Type::Int, v),
         )),
         None => Ok(false),
     }

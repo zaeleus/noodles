@@ -412,7 +412,7 @@ impl Record {
     ///
     /// let data = Data::try_from(vec![data::Field::new(
     ///     data::field::Tag::AlignmentHitCount,
-    ///     data::field::Value::Int32(1),
+    ///     data::field::Value::Int(1),
     /// )])?;
     /// let record = sam::Record::builder().set_data(data).build()?;
     /// assert_eq!(record.data().to_string(), "NH:i:1");
@@ -434,7 +434,7 @@ impl Record {
     ///
     /// let field = data::Field::new(
     ///     data::field::Tag::AlignmentHitCount,
-    ///     data::field::Value::Int32(1),
+    ///     data::field::Value::Int(1),
     /// );
     ///
     /// let data = record.data_mut();

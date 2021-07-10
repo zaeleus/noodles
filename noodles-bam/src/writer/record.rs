@@ -205,7 +205,7 @@ fn calculate_data_len(data: &Data) -> usize {
             Value::Char(_) => {
                 len += mem::size_of::<u8>();
             }
-            Value::Int32(n) => {
+            Value::Int(n) => {
                 if *n >= 0 {
                     if *n <= i32::from(u8::MAX) {
                         len += mem::size_of::<u8>();
@@ -266,8 +266,8 @@ where
 
         let value = field.value();
 
-        if let Value::Int32(n) = value {
-            write_data_i32_value(writer, *n)?;
+        if let Value::Int(n) = value {
+            write_data_int_value(writer, *n)?;
             continue;
         }
 
@@ -281,7 +281,7 @@ where
             Value::Char(c) => {
                 writer.write_u8(*c as u8)?;
             }
-            Value::Int32(_) => unreachable!(),
+            Value::Int(_) => unreachable!(),
             Value::Float(n) => {
                 writer.write_f32::<LittleEndian>(*n)?;
             }
@@ -345,7 +345,7 @@ where
     Ok(())
 }
 
-fn write_data_i32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
+fn write_data_int_value<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -422,10 +422,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_data_i32_value() -> io::Result<()> {
+    fn test_write_data_int_value() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_data_i32_value(buf, n)?;
+            write_data_int_value(buf, n)?;
             assert_eq!(&buf[..], expected, "n = {}", n);
             Ok(())
         }

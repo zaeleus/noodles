@@ -428,7 +428,7 @@ mod tests {
         let sam_record = sam::Record::builder()
             .set_data(Data::try_from(vec![
                 SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
-                SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
+                SamField::new(SamTag::AlignmentHitCount, SamValue::Int(1)),
             ])?)
             .build()?;
 

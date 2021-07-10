@@ -16,8 +16,8 @@ const ARRAY_VALUE_DELIMITER: char = ',';
 pub enum Value {
     /// A character (`A`).
     Char(char),
-    /// A 32-bit integer (`i`).
-    Int32(i32),
+    /// An integer (`i`).
+    Int(i32),
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
@@ -47,12 +47,12 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::{value::Type, Value};
-    /// assert_eq!(Value::Int32(0).ty(), Type::Int32);
+    /// assert_eq!(Value::Int(0).ty(), Type::Int);
     /// ```
     pub fn ty(&self) -> Type {
         match *self {
             Self::Char(_) => Type::Char,
-            Self::Int32(_) => Type::Int32,
+            Self::Int(_) => Type::Int,
             Self::Float(_) => Type::Float,
             Self::String(_) => Type::String,
             Self::Hex(_) => Type::Hex,
@@ -75,7 +75,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::{value::Subtype, Value};
     /// assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
-    /// assert_eq!(Value::Int32(0).subtype(), None);
+    /// assert_eq!(Value::Int(0).subtype(), None);
     /// ```
     pub fn subtype(&self) -> Option<Subtype> {
         match *self {
@@ -97,7 +97,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Char('a').as_char(), Some('a'));
-    /// assert_eq!(Value::Int32(0).as_char(), None);
+    /// assert_eq!(Value::Int(0).as_char(), None);
     /// ```
     pub fn as_char(&self) -> Option<char> {
         match *self {
@@ -113,39 +113,39 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Char('a').is_char());
-    /// assert!(!Value::Int32(0).is_char());
+    /// assert!(!Value::Int(0).is_char());
     /// ```
     pub fn is_char(&self) -> bool {
         matches!(self, Self::Char(_))
     }
 
-    /// Returns the value as a 32-bit integer if it is a 32-bit integer.
+    /// Returns the value as a 32-bit integer if it is an integer.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Int32(0).as_int32(), Some(0));
-    /// assert_eq!(Value::Char('a').as_int32(), None);
+    /// assert_eq!(Value::Int(0).as_int(), Some(0));
+    /// assert_eq!(Value::Char('a').as_int(), None);
     /// ```
-    pub fn as_int32(&self) -> Option<i32> {
+    pub fn as_int(&self) -> Option<i32> {
         match *self {
-            Self::Int32(i) => Some(i),
+            Self::Int(i) => Some(i),
             _ => None,
         }
     }
 
-    /// Returns whether the value is a 32-bit integer.
+    /// Returns whether the value is an integer.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Int32(0).is_int32());
-    /// assert!(!Value::Char('a').is_int32());
+    /// assert!(Value::Int(0).is_int());
+    /// assert!(!Value::Char('a').is_int());
     /// ```
-    pub fn is_int32(&self) -> bool {
-        matches!(self, Self::Int32(_))
+    pub fn is_int(&self) -> bool {
+        matches!(self, Self::Int(_))
     }
 
     /// Returns the value as a single-precision floating-point if it is a single-precision
@@ -156,7 +156,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Float(0.0).as_float(), Some(0.0));
-    /// assert_eq!(Value::Int32(0).as_float(), None);
+    /// assert_eq!(Value::Int(0).as_float(), None);
     /// ```
     pub fn as_float(&self) -> Option<f32> {
         match *self {
@@ -172,7 +172,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Float(0.0).is_float());
-    /// assert!(!Value::Int32(0).is_float());
+    /// assert!(!Value::Int(0).is_float());
     /// ```
     pub fn is_float(&self) -> bool {
         matches!(self, Self::Float(_))
@@ -185,7 +185,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::String(String::from("noodles")).as_str(), Some("noodles"));
-    /// assert_eq!(Value::Int32(0).as_str(), None);
+    /// assert_eq!(Value::Int(0).as_str(), None);
     /// ```
     pub fn as_str(&self) -> Option<&str> {
         match *self {
@@ -201,7 +201,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::String(String::from("noodles")).is_str());
-    /// assert!(!Value::Int32(0).is_str());
+    /// assert!(!Value::Int(0).is_str());
     /// ```
     pub fn is_str(&self) -> bool {
         matches!(self, Self::String(_))
@@ -214,7 +214,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Hex(String::from("cafe")).as_hex(), Some("cafe"));
-    /// assert_eq!(Value::Int32(0).as_hex(), None);
+    /// assert_eq!(Value::Int(0).as_hex(), None);
     /// ```
     pub fn as_hex(&self) -> Option<&str> {
         match *self {
@@ -230,7 +230,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Hex(String::from("cafe")).is_hex());
-    /// assert!(!Value::Int32(0).is_hex());
+    /// assert!(!Value::Int(0).is_hex());
     /// ```
     pub fn is_hex(&self) -> bool {
         matches!(self, Self::Hex(_))
@@ -243,7 +243,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Int8Array(vec![0]).as_int8_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int8_array(), None);
+    /// assert_eq!(Value::Int(0).as_int8_array(), None);
     /// ```
     pub fn as_int8_array(&self) -> Option<&[i8]> {
         match *self {
@@ -259,7 +259,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int8Array(vec![0]).is_int8_array());
-    /// assert!(!Value::Int32(0).is_int8_array());
+    /// assert!(!Value::Int(0).is_int8_array());
     /// ```
     pub fn is_int8_array(&self) -> bool {
         matches!(self, Self::Int8Array(_))
@@ -273,7 +273,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::UInt8Array(vec![0]).as_uint8_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint8_array(), None);
+    /// assert_eq!(Value::Int(0).as_uint8_array(), None);
     /// ```
     pub fn as_uint8_array(&self) -> Option<&[u8]> {
         match *self {
@@ -289,7 +289,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::UInt8Array(vec![0]).is_uint8_array());
-    /// assert!(!Value::Int32(0).is_uint8_array());
+    /// assert!(!Value::Int(0).is_uint8_array());
     /// ```
     pub fn is_uint8_array(&self) -> bool {
         matches!(self, Self::UInt8Array(_))
@@ -302,7 +302,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Int16Array(vec![0]).as_int16_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int16_array(), None);
+    /// assert_eq!(Value::Int(0).as_int16_array(), None);
     /// ```
     pub fn as_int16_array(&self) -> Option<&[i16]> {
         match *self {
@@ -318,7 +318,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int16Array(vec![0]).is_int16_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
+    /// assert!(!Value::Int(0).is_int16_array());
     /// ```
     pub fn is_int16_array(&self) -> bool {
         matches!(self, Self::Int16Array(_))
@@ -332,7 +332,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::UInt16Array(vec![0]).as_uint16_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint16_array(), None);
+    /// assert_eq!(Value::Int(0).as_uint16_array(), None);
     /// ```
     pub fn as_uint16_array(&self) -> Option<&[u16]> {
         match *self {
@@ -348,7 +348,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::UInt16Array(vec![0]).is_uint16_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
+    /// assert!(!Value::Int(0).is_int16_array());
     /// ```
     pub fn is_uint16_array(&self) -> bool {
         matches!(self, Self::UInt16Array(_))
@@ -361,7 +361,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Int32Array(vec![0]).as_int32_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_int32_array(), None);
+    /// assert_eq!(Value::Int(0).as_int32_array(), None);
     /// ```
     pub fn as_int32_array(&self) -> Option<&[i32]> {
         match *self {
@@ -377,7 +377,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int32Array(vec![0]).is_int32_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
+    /// assert!(!Value::Int(0).is_int16_array());
     /// ```
     pub fn is_int32_array(&self) -> bool {
         matches!(self, Self::Int32Array(_))
@@ -391,7 +391,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::UInt32Array(vec![0]).as_uint32_array(), Some(&[0][..]));
-    /// assert_eq!(Value::Int32(0).as_uint32_array(), None);
+    /// assert_eq!(Value::Int(0).as_uint32_array(), None);
     /// ```
     pub fn as_uint32_array(&self) -> Option<&[u32]> {
         match *self {
@@ -407,7 +407,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::UInt32Array(vec![0]).is_uint32_array());
-    /// assert!(!Value::Int32(0).is_int32_array());
+    /// assert!(!Value::Int(0).is_int32_array());
     /// ```
     pub fn is_uint32_array(&self) -> bool {
         matches!(self, Self::UInt32Array(_))
@@ -421,7 +421,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::FloatArray(vec![0.0]).as_float_array(), Some(&[0.0][..]));
-    /// assert_eq!(Value::Int32(0).as_float_array(), None);
+    /// assert_eq!(Value::Int(0).as_float_array(), None);
     /// ```
     pub fn as_float_array(&self) -> Option<&[f32]> {
         match *self {
@@ -437,7 +437,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int32Array(vec![0]).is_int32_array());
-    /// assert!(!Value::Int32(0).is_int16_array());
+    /// assert!(!Value::Int(0).is_int16_array());
     /// ```
     pub fn is_float_array(&self) -> bool {
         matches!(self, Self::FloatArray(_))
@@ -448,7 +448,7 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Char(c) => write!(f, "{}", c),
-            Self::Int32(n) => write!(f, "{}", n),
+            Self::Int(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => f.write_str(s),
@@ -578,7 +578,7 @@ impl FromStr for Value {
 
         match ty {
             Type::Char => parse_char(value).map(Self::Char),
-            Type::Int32 => parse_i32(value).map(Self::Int32),
+            Type::Int => parse_i32(value).map(Self::Int),
             Type::Float => parse_f32(value).map(Self::Float),
             Type::String => parse_string(value).map(Self::String),
             Type::Hex => parse_hex(value).map(Self::Hex),
@@ -704,7 +704,7 @@ mod tests {
     #[test]
     fn test_ty() {
         assert_eq!(Value::Char('n').ty(), Type::Char);
-        assert_eq!(Value::Int32(0).ty(), Type::Int32);
+        assert_eq!(Value::Int(0).ty(), Type::Int);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
         assert_eq!(Value::Hex(String::from("cafe")).ty(), Type::Hex);
@@ -720,7 +720,7 @@ mod tests {
     #[test]
     fn test_subtype() {
         assert_eq!(Value::Char('n').subtype(), None);
-        assert_eq!(Value::Int32(0).subtype(), None);
+        assert_eq!(Value::Int(0).subtype(), None);
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
         assert_eq!(Value::Hex(String::from("cafe")).subtype(), None);
@@ -736,7 +736,7 @@ mod tests {
     #[test]
     fn test_fmt() {
         assert_eq!(Value::Char('n').to_string(), "n");
-        assert_eq!(Value::Int32(13).to_string(), "13");
+        assert_eq!(Value::Int(13).to_string(), "13");
         assert_eq!(Value::Float(3.14).to_string(), "3.14");
 
         assert_eq!(
@@ -764,7 +764,7 @@ mod tests {
         assert_eq!("A:".parse::<Value>(), Err(ParseError::InvalidCharValue));
         assert_eq!("A:🍜".parse::<Value>(), Err(ParseError::InvalidCharValue));
 
-        assert_eq!("i:13".parse(), Ok(Value::Int32(13)));
+        assert_eq!("i:13".parse(), Ok(Value::Int(13)));
         assert!(matches!(
             "i:".parse::<Value>(),
             Err(ParseError::InvalidIntValue(_))

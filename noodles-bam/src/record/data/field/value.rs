@@ -694,13 +694,13 @@ impl TryFrom<Value> for sam::record::data::field::Value {
     fn try_from(value: Value) -> Result<Self, Self::Error> {
         match value {
             Value::Char(c) => Ok(Self::Char(c)),
-            Value::Int8(n) => Ok(Self::Int32(i32::from(n))),
-            Value::UInt8(n) => Ok(Self::Int32(i32::from(n))),
-            Value::Int16(n) => Ok(Self::Int32(i32::from(n))),
-            Value::UInt16(n) => Ok(Self::Int32(i32::from(n))),
-            Value::Int32(n) => Ok(Self::Int32(n)),
+            Value::Int8(n) => Ok(Self::Int(i32::from(n))),
+            Value::UInt8(n) => Ok(Self::Int(i32::from(n))),
+            Value::Int16(n) => Ok(Self::Int(i32::from(n))),
+            Value::UInt16(n) => Ok(Self::Int(i32::from(n))),
+            Value::Int32(n) => Ok(Self::Int(n)),
             Value::UInt32(n) => i32::try_from(n)
-                .map(Self::Int32)
+                .map(Self::Int)
                 .map_err(TryFromValueError::InvalidUInt32),
             Value::Float(n) => Ok(Self::Float(n)),
             Value::String(s) => Ok(Self::String(s)),
@@ -813,12 +813,12 @@ mod tests {
             Ok(SamValue::Char('m'))
         );
 
-        assert_eq!(SamValue::try_from(Value::Int8(0)), Ok(SamValue::Int32(0)));
-        assert_eq!(SamValue::try_from(Value::UInt8(0)), Ok(SamValue::Int32(0)));
-        assert_eq!(SamValue::try_from(Value::Int16(0)), Ok(SamValue::Int32(0)));
-        assert_eq!(SamValue::try_from(Value::UInt16(0)), Ok(SamValue::Int32(0)));
-        assert_eq!(SamValue::try_from(Value::Int32(0)), Ok(SamValue::Int32(0)));
-        assert_eq!(SamValue::try_from(Value::UInt32(0)), Ok(SamValue::Int32(0)));
+        assert_eq!(SamValue::try_from(Value::Int8(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::try_from(Value::UInt8(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::try_from(Value::Int16(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::try_from(Value::UInt16(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::try_from(Value::Int32(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::try_from(Value::UInt32(0)), Ok(SamValue::Int(0)));
 
         assert_eq!(
             SamValue::try_from(Value::String(String::from("noodles"))),
