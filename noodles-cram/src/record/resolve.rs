@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 
 use noodles_fasta as fasta;
+use noodles_sam::record::Cigar;
 
 use crate::{
     container::compression_header::preservation_map::substitution_matrix::Base,
@@ -73,4 +74,85 @@ pub fn resolve_bases(
     }
 
     buf
+}
+
+pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
+    use noodles_sam::record::cigar::{op::Kind, Op};
+
+    let mut ops = Vec::new();
+    let mut i = 1;
+
+    for feature in features {
+        if feature.position() > i {
+            let len = feature.position() - i;
+            let op = Op::new(Kind::Match, len as u32);
+            ops.push(op);
+
+            i = feature.position();
+        }
+
+        let (kind, len) = match feature {
+            Feature::Substitution(..) => (Kind::Match, 1),
+            Feature::Insertion(_, bases) => (Kind::Insertion, bases.len() as i32),
+            Feature::Deletion(_, len) => (Kind::Deletion, *len),
+            Feature::InsertBase(..) => (Kind::Insertion, 1),
+            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len),
+            Feature::SoftClip(_, bases) => (Kind::SoftClip, bases.len() as i32),
+            Feature::Padding(_, len) => (Kind::Pad, *len),
+            Feature::HardClip(_, len) => (Kind::HardClip, *len),
+            _ => continue,
+        };
+
+        let op = Op::new(kind, len as u32);
+        ops.push(op);
+
+        i += len;
+    }
+
+    if i < read_len {
+        let len = read_len - i + 1;
+        let op = Op::new(Kind::Match, len as u32);
+        ops.push(op);
+    }
+
+    Cigar::from(ops)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resolve_features() {
+        use noodles_sam::record::cigar::{op::Kind, Op};
+
+        let features = [];
+        assert_eq!(
+            resolve_features(&features, 4),
+            Cigar::from(vec![Op::new(Kind::Match, 4)])
+        );
+
+        let features = [Feature::SoftClip(1, b"AT".to_vec())];
+        assert_eq!(
+            resolve_features(&features, 4),
+            Cigar::from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])
+        );
+
+        let features = [Feature::SoftClip(4, b"G".to_vec())];
+        assert_eq!(
+            resolve_features(&features, 4),
+            Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
+        );
+
+        // FIXME
+        let features = [Feature::Substitution(2, 0)];
+        assert_eq!(
+            resolve_features(&features, 4),
+            Cigar::from(vec![
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 1),
+                Op::new(Kind::Match, 2)
+            ])
+        );
+    }
 }
