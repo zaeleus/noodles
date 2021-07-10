@@ -186,6 +186,20 @@ fn read_metadata<R>(reader: &mut R) -> io::Result<Metadata>
 where
     R: Read,
 {
+    use reference_sequence::bin::METADATA_CHUNK_COUNT;
+
+    let n_chunk = reader.read_u32::<LittleEndian>()?;
+
+    if n_chunk != METADATA_CHUNK_COUNT {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid metadata pseudo-bin chunk count: expected {}, got {}",
+                METADATA_CHUNK_COUNT, n_chunk
+            ),
+        ));
+    }
+
     let ref_beg = reader
         .read_u64::<LittleEndian>()
         .map(bgzf::VirtualPosition::from)?;
@@ -238,6 +252,7 @@ mod tests {
     #[test]
     fn test_read_metadata() -> io::Result<()> {
         let data = [
+            0x02, 0x00, 0x00, 0x00, // n_chunk = 2
             0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
             0x3d, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_end = 1597
             0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_mapped = 55
