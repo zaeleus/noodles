@@ -15,6 +15,8 @@ use crate::Block;
 
 use self::blocks::Blocks;
 
+const WORKER_COUNT: usize = 8;
+
 pin_project! {
     /// An async BGZF reader.
     pub struct Reader<R>
@@ -34,7 +36,7 @@ where
     /// Creates an async BGZF reader.
     pub fn new(inner: R) -> Self {
         Self {
-            stream: Blocks::new(inner).try_buffered(8),
+            stream: Blocks::new(inner).try_buffered(WORKER_COUNT),
             block: Block::default(),
         }
     }
