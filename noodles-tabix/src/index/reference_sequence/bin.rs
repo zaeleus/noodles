@@ -9,7 +9,9 @@ use noodles_bgzf::index::Chunk;
 use super::DEPTH;
 
 pub(crate) const MAX_ID: u32 = ((1 << (3 * (DEPTH + 1))) - 1) / 7;
+
 pub(crate) const METADATA_ID: u32 = MAX_ID + 1;
+pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
 /// A tabix index reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
