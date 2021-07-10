@@ -87,8 +87,6 @@ impl<'a> fmt::Debug for Data<'a> {
 pub enum TryFromDataError {
     /// A field is invalid.
     InvalidField,
-    /// A BAM u32 value is out of range for a SAM i32 value.
-    OutOfRange(u32),
     /// The data is invalid.
     InvalidData(sam::record::data::TryFromFieldVectorError),
 }
@@ -99,9 +97,6 @@ impl fmt::Display for TryFromDataError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField => write!(f, "invalid field"),
-            Self::OutOfRange(value) => {
-                write!(f, "value is out of range: {}", value)
-            }
             Self::InvalidData(e) => write!(f, "invalid data: {}", e),
         }
     }
@@ -122,14 +117,12 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
             let value = match field.value() {
                 BamValue::Char(c) => SamValue::Char(*c),
-                BamValue::Int8(n) => SamValue::Int(i32::from(*n)),
-                BamValue::UInt8(n) => SamValue::Int(i32::from(*n)),
-                BamValue::Int16(n) => SamValue::Int(i32::from(*n)),
-                BamValue::UInt16(n) => SamValue::Int(i32::from(*n)),
-                BamValue::Int32(n) => SamValue::Int(*n),
-                BamValue::UInt32(n) => i32::try_from(*n)
-                    .map(SamValue::Int)
-                    .map_err(|_| TryFromDataError::OutOfRange(*n))?,
+                BamValue::Int8(n) => SamValue::Int(i64::from(*n)),
+                BamValue::UInt8(n) => SamValue::Int(i64::from(*n)),
+                BamValue::Int16(n) => SamValue::Int(i64::from(*n)),
+                BamValue::UInt16(n) => SamValue::Int(i64::from(*n)),
+                BamValue::Int32(n) => SamValue::Int(i64::from(*n)),
+                BamValue::UInt32(n) => SamValue::Int(i64::from(*n)),
                 BamValue::Float(n) => SamValue::Float(*n),
                 BamValue::String(s) => SamValue::String(s.clone()),
                 BamValue::Hex(s) => SamValue::Hex(s.clone()),
@@ -176,18 +169,5 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_try_from_data_for_sam_record_data_with_out_of_range_u32_value() {
-        let raw_data = [
-            0x5a, 0x4e, 0x49, 0xff, 0xff, 0xff, 0xff, // ZN:I:4294967295
-        ];
-        let data = Data::new(&raw_data);
-
-        assert_eq!(
-            sam::record::Data::try_from(data),
-            Err(TryFromDataError::OutOfRange(u32::MAX))
-        );
     }
 }

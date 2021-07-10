@@ -3,8 +3,6 @@
 pub mod subtype;
 pub mod ty;
 
-use std::{convert::TryFrom, error, fmt, num};
-
 use noodles_sam as sam;
 
 pub use self::{subtype::Subtype, ty::Type};
@@ -671,47 +669,26 @@ impl Value {
     }
 }
 
-/// An error returned when a BAM data field value fails to convert to a SAM data field value.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromValueError {
-    /// The BAM data u32 value exceeds the range of a SAM data i32 value.
-    InvalidUInt32(num::TryFromIntError),
-}
-
-impl error::Error for TryFromValueError {}
-
-impl fmt::Display for TryFromValueError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidUInt32(e) => write!(f, "invalid u32 value: {}", e),
-        }
-    }
-}
-
-impl TryFrom<Value> for sam::record::data::field::Value {
-    type Error = TryFromValueError;
-
-    fn try_from(value: Value) -> Result<Self, Self::Error> {
+impl From<Value> for sam::record::data::field::Value {
+    fn from(value: Value) -> Self {
         match value {
-            Value::Char(c) => Ok(Self::Char(c)),
-            Value::Int8(n) => Ok(Self::Int(i32::from(n))),
-            Value::UInt8(n) => Ok(Self::Int(i32::from(n))),
-            Value::Int16(n) => Ok(Self::Int(i32::from(n))),
-            Value::UInt16(n) => Ok(Self::Int(i32::from(n))),
-            Value::Int32(n) => Ok(Self::Int(n)),
-            Value::UInt32(n) => i32::try_from(n)
-                .map(Self::Int)
-                .map_err(TryFromValueError::InvalidUInt32),
-            Value::Float(n) => Ok(Self::Float(n)),
-            Value::String(s) => Ok(Self::String(s)),
-            Value::Hex(s) => Ok(Self::Hex(s)),
-            Value::Int8Array(a) => Ok(Self::Int8Array(a)),
-            Value::UInt8Array(a) => Ok(Self::UInt8Array(a)),
-            Value::Int16Array(a) => Ok(Self::Int16Array(a)),
-            Value::UInt16Array(a) => Ok(Self::UInt16Array(a)),
-            Value::Int32Array(a) => Ok(Self::Int32Array(a)),
-            Value::UInt32Array(a) => Ok(Self::UInt32Array(a)),
-            Value::FloatArray(a) => Ok(Self::FloatArray(a)),
+            Value::Char(c) => Self::Char(c),
+            Value::Int8(n) => Self::Int(i64::from(n)),
+            Value::UInt8(n) => Self::Int(i64::from(n)),
+            Value::Int16(n) => Self::Int(i64::from(n)),
+            Value::UInt16(n) => Self::Int(i64::from(n)),
+            Value::Int32(n) => Self::Int(i64::from(n)),
+            Value::UInt32(n) => Self::Int(i64::from(n)),
+            Value::Float(n) => Self::Float(n),
+            Value::String(s) => Self::String(s),
+            Value::Hex(s) => Self::Hex(s),
+            Value::Int8Array(a) => Self::Int8Array(a),
+            Value::UInt8Array(a) => Self::UInt8Array(a),
+            Value::Int16Array(a) => Self::Int16Array(a),
+            Value::UInt16Array(a) => Self::UInt16Array(a),
+            Value::Int32Array(a) => Self::Int32Array(a),
+            Value::UInt32Array(a) => Self::UInt32Array(a),
+            Value::FloatArray(a) => Self::FloatArray(a),
         }
     }
 }
@@ -805,69 +782,61 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_value_for_sam_record_data_field_value() {
+    fn test_from_value_for_sam_record_data_field_value() {
         use sam::record::data::field::Value as SamValue;
 
-        assert_eq!(
-            SamValue::try_from(Value::Char('m')),
-            Ok(SamValue::Char('m'))
-        );
+        assert_eq!(SamValue::from(Value::Char('m')), SamValue::Char('m'));
 
-        assert_eq!(SamValue::try_from(Value::Int8(0)), Ok(SamValue::Int(0)));
-        assert_eq!(SamValue::try_from(Value::UInt8(0)), Ok(SamValue::Int(0)));
-        assert_eq!(SamValue::try_from(Value::Int16(0)), Ok(SamValue::Int(0)));
-        assert_eq!(SamValue::try_from(Value::UInt16(0)), Ok(SamValue::Int(0)));
-        assert_eq!(SamValue::try_from(Value::Int32(0)), Ok(SamValue::Int(0)));
-        assert_eq!(SamValue::try_from(Value::UInt32(0)), Ok(SamValue::Int(0)));
+        assert_eq!(SamValue::from(Value::Int8(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::UInt8(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::Int16(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::UInt16(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::Int32(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::UInt32(0)), SamValue::Int(0));
 
         assert_eq!(
-            SamValue::try_from(Value::String(String::from("noodles"))),
-            Ok(SamValue::String(String::from("noodles")))
+            SamValue::from(Value::String(String::from("noodles"))),
+            SamValue::String(String::from("noodles"))
         );
 
         assert_eq!(
-            SamValue::try_from(Value::Hex(String::from("cafe"))),
-            Ok(SamValue::Hex(String::from("cafe")))
+            SamValue::from(Value::Hex(String::from("cafe"))),
+            SamValue::Hex(String::from("cafe"))
         );
 
         assert_eq!(
-            SamValue::try_from(Value::Int8Array(vec![0])),
-            Ok(SamValue::Int8Array(vec![0]))
+            SamValue::from(Value::Int8Array(vec![0])),
+            SamValue::Int8Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::UInt8Array(vec![0])),
-            Ok(SamValue::UInt8Array(vec![0]))
+            SamValue::from(Value::UInt8Array(vec![0])),
+            SamValue::UInt8Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::Int16Array(vec![0])),
-            Ok(SamValue::Int16Array(vec![0]))
+            SamValue::from(Value::Int16Array(vec![0])),
+            SamValue::Int16Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::UInt16Array(vec![0])),
-            Ok(SamValue::UInt16Array(vec![0]))
+            SamValue::from(Value::UInt16Array(vec![0])),
+            SamValue::UInt16Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::Int32Array(vec![0])),
-            Ok(SamValue::Int32Array(vec![0]))
+            SamValue::from(Value::Int32Array(vec![0])),
+            SamValue::Int32Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::UInt32Array(vec![0])),
-            Ok(SamValue::UInt32Array(vec![0]))
+            SamValue::from(Value::UInt32Array(vec![0])),
+            SamValue::UInt32Array(vec![0])
         );
 
         assert_eq!(
-            SamValue::try_from(Value::FloatArray(vec![0.0])),
-            Ok(SamValue::FloatArray(vec![0.0]))
+            SamValue::from(Value::FloatArray(vec![0.0])),
+            SamValue::FloatArray(vec![0.0])
         );
-
-        assert!(matches!(
-            SamValue::try_from(Value::UInt32(u32::MAX)),
-            Err(TryFromValueError::InvalidUInt32(_))
-        ));
     }
 }

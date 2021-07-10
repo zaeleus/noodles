@@ -17,7 +17,7 @@ pub enum Value {
     /// A character (`A`).
     Char(char),
     /// An integer (`i`).
-    Int(i32),
+    Int(i64),
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
@@ -128,7 +128,7 @@ impl Value {
     /// assert_eq!(Value::Int(0).as_int(), Some(0));
     /// assert_eq!(Value::Char('a').as_int(), None);
     /// ```
-    pub fn as_int(&self) -> Option<i32> {
+    pub fn as_int(&self) -> Option<i64> {
         match *self {
             Self::Int(i) => Some(i),
             _ => None,
@@ -578,7 +578,7 @@ impl FromStr for Value {
 
         match ty {
             Type::Char => parse_char(value).map(Self::Char),
-            Type::Int => parse_i32(value).map(Self::Int),
+            Type::Int => parse_int(value).map(Self::Int),
             Type::Float => parse_f32(value).map(Self::Float),
             Type::String => parse_string(value).map(Self::String),
             Type::Hex => parse_hex(value).map(Self::Hex),
@@ -618,6 +618,10 @@ fn parse_i32(s: &str) -> Result<i32, ParseError> {
 }
 
 fn parse_u32(s: &str) -> Result<u32, ParseError> {
+    s.parse().map_err(ParseError::InvalidIntValue)
+}
+
+fn parse_int(s: &str) -> Result<i64, ParseError> {
     s.parse().map_err(ParseError::InvalidIntValue)
 }
 
