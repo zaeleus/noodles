@@ -319,10 +319,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = sam::Record::builder()
-            .set_cigar("2M".parse()?)
-            .set_sequence("AT".parse()?)
-            .build()?;
+        let mut record = sam::Record::builder().set_sequence("AT".parse()?).build()?;
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer
@@ -340,7 +337,6 @@ mod tests {
         let header = sam::Header::default();
 
         let mut record = sam::Record::builder()
-            .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
             .build()?;
         *record.quality_scores_mut() = "ND".parse()?;
@@ -359,7 +355,6 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
-            .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
             .build()?;
 
@@ -389,7 +384,6 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
-            .set_cigar("4M".parse()?)
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .build()?;

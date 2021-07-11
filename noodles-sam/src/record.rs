@@ -313,9 +313,7 @@ impl Record {
     /// assert_eq!(record.sequence().to_string(), "*");
     ///
     /// let record = sam::Record::builder()
-    ///     .set_cigar("2M".parse()?)
     ///     .set_sequence("AT".parse()?)
-    ///     .set_quality_scores("ND".parse()?)
     ///     .build()?;
     ///
     /// assert_eq!(record.sequence().to_string(), "AT");
@@ -362,7 +360,6 @@ impl Record {
     /// assert_eq!(record.quality_scores().to_string(), "*");
     ///
     /// let record = sam::Record::builder()
-    ///     .set_cigar("2M".parse()?)
     ///     .set_sequence("AC".parse()?)
     ///     .set_quality_scores("ND".parse()?)
     ///     .build()?;
