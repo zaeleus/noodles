@@ -1,10 +1,10 @@
-pub mod block;
-pub mod compression_header;
+pub(crate) mod block;
+pub(crate) mod compression_header;
 mod container;
 mod encoding;
-pub mod record;
+pub(crate) mod record;
 mod records;
-pub mod slice;
+pub(crate) mod slice;
 
 pub use self::records::Records;
 
