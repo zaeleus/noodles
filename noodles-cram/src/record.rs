@@ -1,3 +1,5 @@
+//! CRAM record and fields.
+
 mod builder;
 pub mod feature;
 mod flags;

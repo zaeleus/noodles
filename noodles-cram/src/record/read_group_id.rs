@@ -4,6 +4,7 @@ use std::ops::Deref;
 const NULL: i32 = -1;
 const MIN: i32 = 0;
 
+/// A CRAM record read group ID.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ReadGroupId(Option<i32>);
 

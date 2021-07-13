@@ -1,16 +1,35 @@
 bitflags::bitflags! {
+    /// CRAM record next mate flags.
     #[derive(Default)]
     pub struct NextMateFlags: u8 {
+        /// The mate is on the negative strand (`0x01`).
         const ON_NEGATIVE_STRAND = 0x01;
+        /// The mate is unmapped (`0x02`).
         const UNMAPPED = 0x02;
     }
 }
 
 impl NextMateFlags {
+    /// Returns whether the `ON_NEGATIVE_STRAND` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::record::NextMateFlags;
+    /// assert!(NextMateFlags::ON_NEGATIVE_STRAND.is_on_negative_strand());
+    /// ```
     pub fn is_on_negative_strand(self) -> bool {
         self.contains(Self::ON_NEGATIVE_STRAND)
     }
 
+    /// Returns whether the `IS_UNMAPPED` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::record::NextMateFlags;
+    /// assert!(NextMateFlags::UNMAPPED.is_unmapped());
+    /// ```
     pub fn is_unmapped(self) -> bool {
         self.contains(Self::UNMAPPED)
     }
