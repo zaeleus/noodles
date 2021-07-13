@@ -16,6 +16,7 @@ use std::{fmt, str};
 use noodles_bam as bam;
 use noodles_sam as sam;
 
+/// A CRAM record.
 #[derive(Clone, PartialEq)]
 pub struct Record {
     pub id: i64,
@@ -39,34 +40,48 @@ pub struct Record {
 }
 
 impl Record {
+    /// Returns a builder to create a record from each of its fields.
     pub fn builder() -> Builder {
         Builder::default()
     }
 
-    pub fn id(&self) -> i64 {
+    pub(crate) fn id(&self) -> i64 {
         self.id
     }
 
+    /// Returns the BAM flags.
+    ///
+    /// This is also called the BAM bit flags.
     pub fn bam_flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
 
+    /// Returns the CRAM flags.
+    ///
+    /// This is also called the CRAM bit flags or compression bit flags.
     pub fn flags(&self) -> Flags {
         self.cram_bit_flags
     }
 
+    /// Returns the reference sequence ID.
+    ///
+    /// This is also called the reference ID. It is the position of the reference sequence in the
+    /// SAM header.
     pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
     }
 
+    /// Returns the read length.
     pub fn read_length(&self) -> i32 {
         self.read_length
     }
 
+    /// Returns the alignment start position.
     pub fn alignment_start(&self) -> i32 {
         self.alignment_start
     }
 
+    /// Returns the alignment end position.
     pub fn alignment_end(&self) -> i32 {
         let mut alignment_span = self.read_length();
 
@@ -95,58 +110,81 @@ impl Record {
         self.alignment_start() + alignment_span - 1
     }
 
+    /// Returns the read group ID.
+    ///
+    /// This is also simply called the read group. It is the position of the read group in the SAM
+    /// header.
     pub fn read_group_id(&self) -> ReadGroupId {
         self.read_group
     }
 
+    /// Returns the read name.
+    ///
+    /// This may be the original read name or a generated one.
     pub fn read_name(&self) -> &[u8] {
         &self.read_name
     }
 
+    /// Returns the next mate flags.
+    ///
+    /// This is also call the next mate bit flags.
     pub fn next_mate_flags(&self) -> NextMateFlags {
         self.next_mate_bit_flags
     }
 
+    /// Returns the reference sequence ID of the next fragment.
+    ///
+    /// It is the position of the reference sequence in the SAM header.
     pub fn next_fragment_reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.next_fragment_reference_sequence_id
     }
 
+    /// Returns the alignment start position of the next mate.
     pub fn next_mate_alignment_start(&self) -> i32 {
         self.next_mate_alignment_start
     }
 
+    /// Returns the template size.
     pub fn template_size(&self) -> i32 {
         self.template_size
     }
 
+    /// Returns the distance to the next fragment.
+    ///
+    /// This is the number of records to the next fragment within a slice.
     pub fn distance_to_next_fragment(&self) -> i32 {
         self.distance_to_next_fragment
     }
 
+    /// Returns the tag dictionary.
     pub fn tags(&self) -> &[Tag] {
         &self.tags
     }
 
-    pub fn add_tag(&mut self, tag: Tag) {
+    pub(crate) fn add_tag(&mut self, tag: Tag) {
         self.tags.push(tag);
     }
 
+    /// Returns the read bases.
     pub fn bases(&self) -> &[u8] {
         &self.bases
     }
 
+    /// Returns the read features.
     pub fn features(&self) -> &[Feature] {
         &self.features
     }
 
-    pub fn add_feature(&mut self, feature: Feature) {
+    pub(crate) fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
     }
 
+    /// Returns the mapping quality.
     pub fn mapping_quality(&self) -> sam::record::MappingQuality {
         self.mapping_quality
     }
 
+    /// Returns the per-base quality scores.
     pub fn quality_scores(&self) -> &[u8] {
         &self.quality_scores
     }
