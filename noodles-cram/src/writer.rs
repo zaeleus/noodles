@@ -1,9 +1,9 @@
 mod block;
-pub mod compression_header;
+pub(crate) mod compression_header;
 mod container;
 mod encoding;
-pub mod record;
-pub mod slice;
+pub(crate) mod record;
+pub(crate) mod slice;
 
 use std::{
     convert::TryFrom,
