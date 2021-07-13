@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+      - master
+
+name: CD 
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GoogleCloudPlatform/release-please-action@v2
+        id: release-noodles 
+        with:
+          release-type: rust
+          package-name: noodles 
+          bump-minor-pre-major: Yes
+          monorepo-tags: true
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        if: ${{ steps.release_main.outputs.release_created || steps.release_sys.outputs.release_created }}
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install system dependencies
+        if: ${{ steps.release_main.outputs.release_created || steps.release_sys.outputs.release_created }}
+        run: |
+            sudo apt-get install --yes zlib1g-dev libbz2-dev musl musl-dev musl-tools clang libc6-dev build-essential
+
+      - uses: Swatinem/rust-cache@v1.3.0
+        if: ${{ steps.release_main.outputs.release_created || steps.release_sys.outputs.release_created }}
+      
+      - name: Publish to crates.io 
+        if: github.repository == 'zaeleus/noodles' && ${{ steps.release_main.outputs.release_created }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${{ secrets.CRATES_IO_TOKEN }}
