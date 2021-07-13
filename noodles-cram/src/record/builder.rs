@@ -25,31 +25,6 @@ pub struct Builder {
     quality_scores: Vec<u8>,
 }
 
-impl Default for Builder {
-    fn default() -> Self {
-        Self {
-            id: 0,
-            bam_flags: sam::record::Flags::UNMAPPED,
-            flags: Flags::default(),
-            reference_sequence_id: None,
-            read_length: 0,
-            alignment_start: 0,
-            read_group_id: ReadGroupId::default(),
-            read_name: Vec::new(),
-            next_mate_flags: NextMateFlags::default(),
-            next_fragment_reference_sequence_id: None,
-            next_mate_alignment_start: 0,
-            template_size: 0,
-            distance_to_next_fragment: 0,
-            tags: Vec::new(),
-            bases: Vec::new(),
-            features: Vec::new(),
-            mapping_quality: sam::record::MappingQuality::default(),
-            quality_scores: Vec::new(),
-        }
-    }
-}
-
 impl Builder {
     /// Sets the CRAM record ID.
     pub fn set_id(mut self, id: i64) -> Self {
@@ -210,6 +185,31 @@ impl Builder {
             features: self.features,
             mapping_quality: self.mapping_quality,
             quality_scores: self.quality_scores,
+        }
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            bam_flags: sam::record::Flags::UNMAPPED,
+            flags: Flags::default(),
+            reference_sequence_id: None,
+            read_length: 0,
+            alignment_start: 0,
+            read_group_id: ReadGroupId::default(),
+            read_name: Vec::new(),
+            next_mate_flags: NextMateFlags::default(),
+            next_fragment_reference_sequence_id: None,
+            next_mate_alignment_start: 0,
+            template_size: 0,
+            distance_to_next_fragment: 0,
+            tags: Vec::new(),
+            bases: Vec::new(),
+            features: Vec::new(),
+            mapping_quality: sam::record::MappingQuality::default(),
+            quality_scores: Vec::new(),
         }
     }
 }
