@@ -9,10 +9,13 @@ use noodles_bam as bam;
 #[derive(Debug, Default)]
 struct Counts {
     read: u64,
+    primary: u64,
     secondary: u64,
     supplementary: u64,
     duplicate: u64,
+    primary_duplicate: u64,
     mapped: u64,
+    primary_mapped: u64,
     paired: u64,
     read_1: u64,
     read_2: u64,
@@ -40,32 +43,44 @@ fn count(counts: &mut Counts, record: &bam::Record) {
         counts.secondary += 1;
     } else if flags.is_supplementary() {
         counts.supplementary += 1;
-    } else if flags.is_paired() {
-        counts.paired += 1;
-
-        if flags.is_read_1() {
-            counts.read_1 += 1;
-        }
-
-        if flags.is_read_2() {
-            counts.read_2 += 1;
-        }
+    } else {
+        counts.primary += 1;
 
         if !flags.is_unmapped() {
-            if flags.is_proper_pair() {
-                counts.proper_pair += 1;
+            counts.primary_mapped += 1;
+        }
+
+        if flags.is_duplicate() {
+            counts.primary_duplicate += 1;
+        }
+
+        if flags.is_paired() {
+            counts.paired += 1;
+
+            if flags.is_read_1() {
+                counts.read_1 += 1;
             }
 
-            if flags.is_mate_unmapped() {
-                counts.singleton += 1;
-            } else {
-                counts.mate_mapped += 1;
+            if flags.is_read_2() {
+                counts.read_2 += 1;
+            }
 
-                if record.mate_reference_sequence_id() != record.reference_sequence_id() {
-                    counts.mate_reference_sequence_id_mismatch += 1;
+            if !flags.is_unmapped() {
+                if flags.is_proper_pair() {
+                    counts.proper_pair += 1;
+                }
 
-                    if u8::from(record.mapping_quality()) >= 5 {
-                        counts.mate_reference_sequence_id_mismatch_hq += 1;
+                if flags.is_mate_unmapped() {
+                    counts.singleton += 1;
+                } else {
+                    counts.mate_mapped += 1;
+
+                    if record.mate_reference_sequence_id() != record.reference_sequence_id() {
+                        counts.mate_reference_sequence_id_mismatch += 1;
+
+                        if u8::from(record.mapping_quality()) >= 5 {
+                            counts.mate_reference_sequence_id_mismatch_hq += 1;
+                        }
                     }
                 }
             }
@@ -92,6 +107,10 @@ fn print_stats(qc_pass_counts: &Counts, qc_fail_counts: &Counts) {
         qc_pass_counts.read, qc_fail_counts.read
     );
     println!(
+        "{} + {} primary",
+        qc_pass_counts.primary, qc_fail_counts.primary
+    );
+    println!(
         "{} + {} secondary",
         qc_pass_counts.secondary, qc_fail_counts.secondary
     );
@@ -104,11 +123,22 @@ fn print_stats(qc_pass_counts: &Counts, qc_fail_counts: &Counts) {
         qc_pass_counts.duplicate, qc_fail_counts.duplicate
     );
     println!(
+        "{} + {} primary duplicates",
+        qc_pass_counts.primary_duplicate, qc_fail_counts.primary_duplicate
+    );
+    println!(
         "{} + {} mapped ({} : {})",
         qc_pass_counts.mapped,
         qc_fail_counts.mapped,
         PercentageFormat(qc_pass_counts.mapped, qc_pass_counts.read),
         PercentageFormat(qc_fail_counts.mapped, qc_fail_counts.read)
+    );
+    println!(
+        "{} + {} primary mapped ({} : {})",
+        qc_pass_counts.primary_mapped,
+        qc_fail_counts.primary_mapped,
+        PercentageFormat(qc_pass_counts.primary_mapped, qc_pass_counts.read),
+        PercentageFormat(qc_fail_counts.primary_mapped, qc_fail_counts.read)
     );
     println!(
         "{} + {} paired in sequencing",
