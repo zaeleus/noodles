@@ -1,5 +1,6 @@
 use noodles_bam::record::data::field::value::Type;
 
+/// A CRAM record tag key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
     tag: [u8; 2],
@@ -7,19 +8,48 @@ pub struct Key {
 }
 
 impl Key {
+    /// Creates a CRAM record tag key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::field::value::Type;
+    /// use noodles_cram::record::tag::Key;
+    /// let key = Key::new([b'N', b'H'], Type::Int8);
+    /// ```
     pub fn new(tag: [u8; 2], ty: Type) -> Self {
         Self { tag, ty }
     }
 
+    /// Returns the tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::field::value::Type;
+    /// use noodles_cram::record::tag::Key;
+    /// let key = Key::new([b'N', b'H'], Type::Int8);
+    /// assert_eq!(key.tag(), [b'N', b'H']);
+    /// ```
     pub fn tag(self) -> [u8; 2] {
         self.tag
     }
 
+    /// Returns the type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::data::field::value::Type;
+    /// use noodles_cram::record::tag::Key;
+    /// let key = Key::new([b'N', b'H'], Type::Int8);
+    /// assert_eq!(key.ty(), Type::Int8);
+    /// ```
     pub fn ty(self) -> Type {
         self.ty
     }
 
-    pub fn id(self) -> i32 {
+    pub(crate) fn id(self) -> i32 {
         let [l, r] = self.tag;
         let ty = char::from(self.ty) as u8;
         i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
