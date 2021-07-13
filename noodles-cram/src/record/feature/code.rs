@@ -1,3 +1,5 @@
+//! CRAM record feature kind.
+
 use std::{convert::TryFrom, error, fmt};
 
 /// A CRAM record feature kind.

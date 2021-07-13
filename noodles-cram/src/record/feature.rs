@@ -1,24 +1,48 @@
+//! CRAM record feature.
+
 pub mod code;
 
 pub use self::code::Code;
 
+/// A CRAM record feature.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature {
+    /// A stretch of bases (position, bases).
     Bases(i32, Vec<u8>),
+    /// A stretch of quality scores (position, quality scores).
     Scores(i32, Vec<u8>),
+    /// A base-quality score pair (position, base, quality score).
     ReadBase(i32, u8, u8),
+    /// A base substitution (position, code).
     Substitution(i32, u8),
+    /// Inserted bases (position, bases).
     Insertion(i32, Vec<u8>),
+    /// A number of deleted bases (position, length).
     Deletion(i32, i32),
+    /// A single inserted base (position, base).
     InsertBase(i32, u8),
+    /// A single quality score (position, score).
     QualityScore(i32, u8),
+    /// A number of skipped bases (position, length).
     ReferenceSkip(i32, i32),
+    /// Soft clipped bases (position, bases).
     SoftClip(i32, Vec<u8>),
+    /// A number of padded bases (position, length).
     Padding(i32, i32),
+    /// A number of hard clipped bases (position, length).
     HardClip(i32, i32),
 }
 
 impl Feature {
+    /// Returns the feature code.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::record::{feature::Code, Feature};
+    /// let feature = Feature::InsertBase(8, b'A');
+    /// assert_eq!(feature.code(), Code::InsertBase);
+    /// ```
     pub fn code(&self) -> Code {
         match self {
             Self::Bases(..) => Code::Bases,
@@ -36,6 +60,15 @@ impl Feature {
         }
     }
 
+    /// Returns the feature position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::record::Feature;
+    /// let feature = Feature::InsertBase(8, b'A');
+    /// assert_eq!(feature.position(), 8);
+    /// ```
     pub fn position(&self) -> i32 {
         match self {
             Self::Bases(pos, _) => *pos,
