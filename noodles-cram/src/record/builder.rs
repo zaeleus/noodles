@@ -3,6 +3,7 @@ use noodles_sam as sam;
 
 use super::{Feature, Flags, NextMateFlags, ReadGroupId, Record, Tag};
 
+/// A CRAM record builder.
 pub struct Builder {
     id: i64,
     bam_flags: sam::record::Flags,
@@ -50,21 +51,25 @@ impl Default for Builder {
 }
 
 impl Builder {
+    /// Sets the CRAM record ID.
     pub fn set_id(mut self, id: i64) -> Self {
         self.id = id;
         self
     }
 
+    /// Sets the BAM flags.
     pub fn set_bam_flags(mut self, bam_flags: sam::record::Flags) -> Self {
         self.bam_flags = bam_flags;
         self
     }
 
+    /// Sets the CRAM flags.
     pub fn set_flags(mut self, flags: Flags) -> Self {
         self.flags = flags;
         self
     }
 
+    /// Sets the reference sequence ID.
     pub fn set_reference_sequence_id(
         mut self,
         reference_sequence_id: bam::record::ReferenceSequenceId,
@@ -73,31 +78,37 @@ impl Builder {
         self
     }
 
+    /// Sets the read length.
     pub fn set_read_length(mut self, read_length: i32) -> Self {
         self.read_length = read_length;
         self
     }
 
+    /// Sets the alignment start position.
     pub fn set_alignment_start(mut self, alignment_start: i32) -> Self {
         self.alignment_start = alignment_start;
         self
     }
 
+    /// Sets the read group ID.
     pub fn set_read_group_id(mut self, read_group_id: ReadGroupId) -> Self {
         self.read_group_id = read_group_id;
         self
     }
 
+    /// Sets the read name.
     pub fn set_read_name(mut self, read_name: Vec<u8>) -> Self {
         self.read_name = read_name;
         self
     }
 
+    /// Sets the next mate flags.
     pub fn set_next_mate_flags(mut self, next_mate_flags: NextMateFlags) -> Self {
         self.next_mate_flags = next_mate_flags;
         self
     }
 
+    /// Sets the reference sequence ID of the next fragment.
     pub fn set_next_fragment_reference_sequence_id(
         mut self,
         next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
@@ -106,66 +117,79 @@ impl Builder {
         self
     }
 
+    /// Sets the alignment start position of the next mate.
     pub fn set_next_mate_alignment_start(mut self, next_mate_alignment_start: i32) -> Self {
         self.next_mate_alignment_start = next_mate_alignment_start;
         self
     }
 
+    /// Sets the template size.
     pub fn set_template_size(mut self, template_size: i32) -> Self {
         self.template_size = template_size;
         self
     }
 
+    /// Sets the distance to the next fragment.
     pub fn set_distance_to_next_fragment(mut self, distance_to_next_fragment: i32) -> Self {
         self.distance_to_next_fragment = distance_to_next_fragment;
         self
     }
 
+    /// Sets the tag dictionary.
     pub fn set_tags(mut self, tags: Vec<Tag>) -> Self {
         self.tags = tags;
         self
     }
 
+    /// Adds a tag to the tag dictionary.
     pub fn add_tag(mut self, tag: Tag) -> Self {
         self.tags.push(tag);
         self
     }
 
+    /// Sets the read bases.
     pub fn set_bases(mut self, bases: Vec<u8>) -> Self {
         self.bases = bases;
         self
     }
 
+    /// Adds a base to the read bases.
     pub fn add_base(mut self, base: u8) -> Self {
         self.bases.push(base);
         self
     }
 
+    /// Sets the read features.
     pub fn set_features(mut self, features: Vec<Feature>) -> Self {
         self.features = features;
         self
     }
 
+    /// Adds a read feature.
     pub fn add_feature(mut self, feature: Feature) -> Self {
         self.features.push(feature);
         self
     }
 
+    /// Sets the mapping quality.
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = mapping_quality;
         self
     }
 
+    /// Sets the per-base quality scores.
     pub fn set_quality_scores(mut self, quality_scores: Vec<u8>) -> Self {
         self.quality_scores = quality_scores;
         self
     }
 
+    /// Adds a quality score.
     pub fn add_quality_score(mut self, quality_score: u8) -> Self {
         self.quality_scores.push(quality_score);
         self
     }
 
+    /// Builds a CRAM record.
     pub fn build(self) -> Record {
         Record {
             id: self.id,
