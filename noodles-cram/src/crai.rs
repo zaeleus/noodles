@@ -1,5 +1,5 @@
 mod reader;
-mod record;
+pub mod record;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
