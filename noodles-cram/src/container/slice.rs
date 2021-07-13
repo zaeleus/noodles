@@ -112,7 +112,7 @@ impl Slice {
             let mut record = record_cell.borrow_mut();
 
             if record.read_name.is_empty() {
-                let read_name = record.id.to_string().into_bytes();
+                let read_name = record.id().to_string().into_bytes();
                 record.read_name.extend(read_name);
             }
 
