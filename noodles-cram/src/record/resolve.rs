@@ -1,3 +1,5 @@
+//! CRAM record field resolvers.
+
 use std::convert::TryFrom;
 
 use noodles_fasta as fasta;
@@ -10,6 +12,7 @@ use crate::{
 
 use super::Feature;
 
+/// Resolves the read bases.
 pub fn resolve_bases(
     reference_sequence_record: &fasta::Record,
     substitution_matrix: &SubstitutionMatrix,
@@ -76,6 +79,7 @@ pub fn resolve_bases(
     buf
 }
 
+/// Resolves the read features as CIGAR operations.
 pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
     use noodles_sam::record::cigar::{op::Kind, Op};
 
