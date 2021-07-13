@@ -1,3 +1,5 @@
+//! CRAM reader and record iterator.
+
 pub(crate) mod block;
 pub(crate) mod compression_header;
 mod container;
