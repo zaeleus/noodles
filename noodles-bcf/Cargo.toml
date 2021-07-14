@@ -12,7 +12,7 @@ documentation = "https://doc.rs/noodles-bcf"
 [dependencies]
 byteorder = "1.2.3"
 indexmap = "1.4.0"
-noodles-bgzf = { path = "../noodles-bgzf" }
-noodles-core = { path = "../noodles-core" }
-noodles-csi = { path = "../noodles-csi" }
-noodles-vcf = { path = "../noodles-vcf" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
+noodles-core = { path = "../noodles-core", version = "0.1.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.1.0" }
+noodles-vcf = { path = "../noodles-vcf", version = "0.1.0" }

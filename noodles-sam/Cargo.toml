@@ -12,4 +12,4 @@ documentation = "https://doc.rs/noodles-sam"
 [dependencies]
 bitflags = "1.2.1"
 indexmap = "1.4.0"
-noodles-bgzf = { path = "../noodles-bgzf" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }

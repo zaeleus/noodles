@@ -11,5 +11,5 @@ documentation = "https://doc.rs/noodles-fasta"
 
 [dependencies]
 memchr = "2.3.3"
-noodles-bgzf = { path = "../noodles-bgzf" }
-noodles-core = { path = "../noodles-core" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
+noodles-core = { path = "../noodles-core", version = "0.1.0" }

@@ -10,4 +10,4 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://doc.rs/noodles-core"
 
 [dependencies]
-noodles-sam = { path = "../noodles-sam" }
+noodles-sam = { path = "../noodles-sam", version = "0.1.0" }
