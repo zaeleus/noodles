@@ -1,3 +1,5 @@
+//! **noodles-cram** handles the reading and writing of the CRAM format.
+
 mod bit_reader;
 mod bit_writer;
 pub mod container;
