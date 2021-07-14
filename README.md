@@ -6,8 +6,6 @@
 currently includes readers and writers for BAM 1.6, BCF 2.2, BGZF, CRAM 3.0,
 CSI, FASTA, FASTQ, GFF3, SAM 1.6, tabix, and VCF 4.3.
 
-Notably, the BAM and CRAM parsers are pure Rust implementations.
-
 ## Usage
 
 noodles is published on [crates.io]. Early versions can be used in projects,
