@@ -21,10 +21,6 @@ where
         }
     }
 
-    pub fn get_ref(&self) -> &W {
-        &self.inner
-    }
-
     pub fn try_finish(&mut self) -> io::Result<()> {
         if self.i > 0 {
             self.write_u32(0, 8 - self.i)
@@ -86,7 +82,7 @@ mod tests {
         writer.try_finish()?;
 
         let expected = [0b11001111, 0b01000000];
-        assert_eq!(writer.get_ref(), &expected);
+        assert_eq!(writer.inner, expected);
 
         Ok(())
     }
@@ -95,7 +91,7 @@ mod tests {
     fn test_write_u32_with_0_len() -> io::Result<()> {
         let mut writer = BitWriter::new(Vec::new());
         writer.write_u32(0xff, 0)?;
-        assert!(writer.get_ref().is_empty());
+        assert!(writer.inner.is_empty());
         Ok(())
     }
 

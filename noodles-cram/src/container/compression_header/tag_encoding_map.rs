@@ -11,12 +11,6 @@ use super::Encoding;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TagEncodingMap(HashMap<Itf8, Encoding>);
 
-impl TagEncodingMap {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-}
-
 impl Deref for TagEncodingMap {
     type Target = HashMap<Itf8, Encoding>;
 

@@ -2,7 +2,7 @@
 
 mod bit_reader;
 mod bit_writer;
-pub mod container;
+pub(crate) mod container;
 pub mod crai;
 mod data_container;
 pub mod file_definition;
@@ -11,12 +11,13 @@ mod num;
 mod rans;
 pub mod reader;
 pub mod record;
-pub mod writer;
+pub(crate) mod writer;
 
-pub use self::{
+pub use self::{file_definition::FileDefinition, reader::Reader, record::Record, writer::Writer};
+
+pub(crate) use self::{
     bit_reader::BitReader, bit_writer::BitWriter, container::Container,
-    data_container::DataContainer, file_definition::FileDefinition, reader::Reader, record::Record,
-    writer::Writer,
+    data_container::DataContainer,
 };
 
 use std::{cmp, collections::HashMap, convert::TryFrom, fs::File, io, path::Path};

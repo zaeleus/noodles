@@ -28,7 +28,6 @@ pub struct Builder {
 pub enum AddRecordError {
     ContainerFull(Record),
     SliceFull(Record),
-    ReferenceSequenceIdMismatch(Record),
 }
 
 impl Builder {

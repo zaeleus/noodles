@@ -79,10 +79,6 @@ impl Header {
         &self.landmarks
     }
 
-    pub fn crc32(&self) -> u32 {
-        self.crc32
-    }
-
     pub fn is_eof(&self) -> bool {
         self.length == EOF_LEN
             && self.reference_sequence_id.is_none()

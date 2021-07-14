@@ -9,12 +9,6 @@ use crate::record;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TagIdsDictionary(Vec<Vec<record::tag::Key>>);
 
-impl TagIdsDictionary {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-}
-
 impl Deref for TagIdsDictionary {
     type Target = [Vec<record::tag::Key>];
 

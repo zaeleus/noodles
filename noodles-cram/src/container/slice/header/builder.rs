@@ -55,11 +55,6 @@ impl Builder {
         self
     }
 
-    pub fn add_block_content_id(mut self, block_content_id: Itf8) -> Self {
-        self.block_content_ids.push(block_content_id);
-        self
-    }
-
     pub fn set_embedded_reference_bases_block_content_id(
         mut self,
         embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,

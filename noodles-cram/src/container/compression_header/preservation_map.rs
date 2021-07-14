@@ -18,10 +18,6 @@ pub struct PreservationMap {
 }
 
 impl PreservationMap {
-    pub fn builder() -> Builder {
-        Builder::default()
-    }
-
     pub fn new(
         read_names_included: bool,
         ap_data_series_delta: bool,

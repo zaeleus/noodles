@@ -99,10 +99,6 @@ impl Block {
         }
     }
 
-    pub fn crc32(&self) -> u32 {
-        self.crc32
-    }
-
     pub fn len(&self) -> usize {
         // method
         mem::size_of::<u8>()

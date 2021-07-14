@@ -2,6 +2,7 @@ mod kind;
 
 pub use self::kind::Kind;
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Encoding {
     Null,

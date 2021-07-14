@@ -195,8 +195,7 @@ where
                     return Ok(());
                 }
                 Err(e) => match e {
-                    data_container::builder::AddRecordError::ContainerFull(r)
-                    | data_container::builder::AddRecordError::ReferenceSequenceIdMismatch(r) => {
+                    data_container::builder::AddRecordError::ContainerFull(r) => {
                         record = r;
                         self.flush()?;
                     }
