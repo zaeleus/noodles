@@ -1,3 +1,5 @@
+//! CRAM index.
+
 mod reader;
 pub mod record;
 mod writer;

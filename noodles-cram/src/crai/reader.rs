@@ -4,6 +4,7 @@ use flate2::read::GzDecoder;
 
 use super::Index;
 
+/// A CRAM index reader.
 pub struct Reader<R> {
     inner: BufReader<GzDecoder<R>>,
 }
@@ -12,12 +13,34 @@ impl<R> Reader<R>
 where
     R: Read,
 {
+    /// Creates a CRAM index reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::crai;
+    /// let data = [];
+    /// let reader = crai::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self {
             inner: BufReader::new(GzDecoder::new(inner)),
         }
     }
 
+    /// Reads an CRAM index.
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::crai;
+    /// let mut reader = File::open("sample.cram.crai").map(crai::Reader::new)?;
+    /// let index = reader.read_index()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let mut buf = String::new();
         let mut index = Vec::new();

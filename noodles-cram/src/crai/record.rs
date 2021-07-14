@@ -1,3 +1,5 @@
+//! CRAM index record and fields.
+
 mod field;
 
 pub use self::field::Field;
@@ -9,6 +11,7 @@ use noodles_bam as bam;
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
 
+/// A CRAM index record.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
@@ -20,6 +23,25 @@ pub struct Record {
 }
 
 impl Record {
+    /// Creates a CRAM index record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn new(
         reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
         alignment_start: i32,
@@ -38,35 +60,165 @@ impl Record {
         }
     }
 
+    /// Returns the reference sequence ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.reference_sequence_id().map(i32::from), Some(0));
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
     }
 
+    /// Returns the alignment start.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.alignment_start(), 10946);
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn alignment_start(&self) -> i32 {
         self.alignment_start
     }
 
+    /// Returns the alignment span.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.alignment_span(), 6765);
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn alignment_span(&self) -> i32 {
         self.alignment_span
     }
 
+    /// Returns the offset of the container from the start of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.offset(), 17711);
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn offset(&self) -> u64 {
         self.offset
     }
 
+    /// Returns the offset of the slice from the start of the container.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.landmark(), 233);
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn landmark(&self) -> u64 {
         self.landmark
     }
 
+    /// Returns the size of the slice in bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_bam as bam;
+    /// use noodles_cram::crai;
+    ///
+    /// let record = crai::Record::new(
+    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     10946,
+    ///     6765,
+    ///     17711,
+    ///     233,
+    ///     317811,
+    /// );
+    ///
+    /// assert_eq!(record.slice_length(), 317811);
+    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
     pub fn slice_length(&self) -> u64 {
         self.slice_length
     }
 }
 
+/// An error returned when a raw CRAM index record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// A field is missing.
     Missing(Field),
+    /// A field is invalid.
     Invalid(Field, std::num::ParseIntError),
+    /// The reference sequence ID is invalid.
     InvalidReferenceSequenceId(bam::record::reference_sequence_id::TryFromIntError),
 }
 
