@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
+description = "Coorindate-sorted index (CSI) format reader and writer"
+homepage = "https://github.com/zaeleus/noodles"
+repository = "https://github.com/zaeleus/noodles"
+documentation = "https://doc.rs/noodles-csi"
 
 [dependencies]
 bit-vec = "0.6.1"
