@@ -246,14 +246,12 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
+    /// ```
+    /// # use std::io::{self, Cursor};
     /// use noodles_bam as bam;
     /// use noodles_bgzf as bgzf;
-    ///
-    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
-    ///
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// let mut reader = bam::Reader::new(Cursor::new(Vec::new()));
+    /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
