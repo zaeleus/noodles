@@ -42,7 +42,11 @@ where
         self.records = data_container
             .slices()
             .iter()
-            .map(|slice| slice.records(data_container.compression_header()))
+            .map(|slice| {
+                slice
+                    .records(data_container.compression_header())
+                    .map(|r| slice.resolve_mates(r))
+            })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
             .flatten()
