@@ -38,3 +38,6 @@ gff = ["noodles-gff"]
 sam = ["noodles-sam"]
 tabix = ["noodles-tabix"]
 vcf = ["noodles-vcf"]
+
+[package.metadata.docs.rs]
+all-features = true
