@@ -10,8 +10,8 @@ Notably, the BAM and CRAM parsers are pure Rust implementations.
 
 ## Usage
 
-There is currently no release of noodles, as the API is still experimental, but
-it can be added to a test project as a preview.
+noodles is published on [crates.io]. Early versions can be used in projects,
+but keep in mind that the API is still considered experimental.
 
 noodles is split into multiple crates by file format. For convenience, a
 top-level meta crate named `noodles` can be added to your project's dependency
@@ -19,7 +19,7 @@ list; and formats, listed as [features]. For example, to work with the BAM
 format, enable the `bam` feature.
 
 ```toml
-noodles = { git = "https://github.com/zaeleus/noodles.git", features = ["bam"] }
+noodles = { version = "0.1.0", features = ["bam"] }
 ```
 
 Each enabled feature can then be imported by its re-exported name, e.g.,
@@ -28,6 +28,7 @@ Each enabled feature can then be imported by its re-exported name, e.g.,
 use noodles::bam;
 ```
 
+[crates.io]: https://crates.io/
 [features]: https://doc.rust-lang.org/cargo/reference/features.html
 
 ## Examples
