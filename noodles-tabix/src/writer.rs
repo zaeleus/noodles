@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf::{self as bgzf, index::Chunk};
@@ -82,17 +85,20 @@ where
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_magic(&mut self.inner)?;
 
-        let n_ref = index.reference_sequences().len() as i32;
+        let n_ref = i32::try_from(index.reference_sequences().len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_i32::<LittleEndian>(n_ref)?;
 
         write_header(&mut self.inner, index.header())?;
 
         // Add 1 for each trailing nul.
-        let l_nm = index
+        let len = index
             .reference_sequence_names()
             .iter()
             .map(|n| n.len() + 1)
-            .sum::<usize>() as i32;
+            .sum::<usize>();
+        let l_nm =
+            i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_i32::<LittleEndian>(l_nm)?;
 
         for reference_sequence_name in index.reference_sequence_names() {
@@ -126,22 +132,24 @@ where
     let format = i32::from(header.format());
     writer.write_i32::<LittleEndian>(format)?;
 
-    let col_seq = header.reference_sequence_name_index() as i32;
+    let col_seq = i32::try_from(header.reference_sequence_name_index())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(col_seq)?;
 
-    let col_beg = header.start_position_index() as i32;
+    let col_beg = i32::try_from(header.start_position_index())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(col_beg)?;
 
-    let col_end = header
-        .end_position_index()
-        .map(|i| i as i32)
-        .unwrap_or_default();
+    let col_end = header.end_position_index().map_or(Ok(0), |i| {
+        i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
     writer.write_i32::<LittleEndian>(col_end)?;
 
     let meta = i32::from(header.line_comment_prefix());
     writer.write_i32::<LittleEndian>(meta)?;
 
-    let skip = header.line_skip_count() as i32;
+    let skip = i32::try_from(header.line_skip_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(skip)?;
 
     Ok(())
@@ -151,10 +159,13 @@ pub fn write_reference_sequence<W>(writer: &mut W, reference: &ReferenceSequence
 where
     W: Write,
 {
-    let mut n_bin = reference.bins().len() as i32;
+    let mut n_bin = i32::try_from(reference.bins().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if reference.metadata().is_some() {
-        n_bin += 1;
+        n_bin = n_bin
+            .checked_add(1)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "n_bin overflow"))?;
     }
 
     writer.write_i32::<LittleEndian>(n_bin)?;
@@ -168,7 +179,8 @@ where
         write_bin(writer, &bin)?;
     }
 
-    let n_intv = reference.intervals().len() as i32;
+    let n_intv = i32::try_from(reference.intervals().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_intv)?;
 
     for interval in reference.intervals() {
@@ -185,7 +197,8 @@ where
 {
     writer.write_u32::<LittleEndian>(bin.id())?;
 
-    let n_chunk = bin.chunks().len() as i32;
+    let n_chunk = i32::try_from(bin.chunks().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_chunk)?;
 
     for chunk in bin.chunks() {
