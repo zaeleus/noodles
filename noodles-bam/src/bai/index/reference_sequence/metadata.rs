@@ -1,8 +1,6 @@
 //! BAM index reference sequence metadata.
 
-use noodles_bgzf::{index::Chunk, VirtualPosition};
-
-use super::{bin::METADATA_ID, Bin};
+use noodles_bgzf::VirtualPosition;
 
 /// BAM index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -125,20 +123,5 @@ impl Metadata {
     /// ```
     pub fn unmapped_record_count(&self) -> u64 {
         self.unmapped_record_count
-    }
-}
-
-impl From<Metadata> for Bin {
-    fn from(metadata: Metadata) -> Self {
-        let positions_chunk = Chunk::new(metadata.start_position(), metadata.end_position());
-
-        let counts_chunk = Chunk::new(
-            VirtualPosition::from(metadata.mapped_record_count()),
-            VirtualPosition::from(metadata.unmapped_record_count()),
-        );
-
-        let chunks = vec![positions_chunk, counts_chunk];
-
-        Self::new(METADATA_ID, chunks)
     }
 }
