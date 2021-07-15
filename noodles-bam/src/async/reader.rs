@@ -1,3 +1,9 @@
+//! Async BAM reader and streams.
+
+mod records;
+
+pub use self::records::Records;
+
 use std::convert::TryFrom;
 
 use noodles_bgzf as bgzf;
@@ -111,6 +117,39 @@ where
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// The (input) stream is expected to be directly after the reference sequences or at the start
+    /// of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::StreamExt;
+    /// use noodles_bam as bam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// reader.read_header().await?;
+    /// reader.read_reference_sequences().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(result) = records.next().await {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> Records<'_, R> {
+        Records::new(self)
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
