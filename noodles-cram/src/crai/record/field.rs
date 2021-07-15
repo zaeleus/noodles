@@ -5,7 +5,7 @@ pub enum Field {
     ReferenceSequenceId,
     /// Alignment start.
     AlignmentStart,
-    /// Alignment end.
+    /// Alignment span.
     AlignmentSpan,
     /// Offset of the container from the start of the stream.
     Offset,
