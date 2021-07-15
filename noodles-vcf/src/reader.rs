@@ -231,16 +231,15 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
+    /// ```
+    /// # use std::io::{self, Cursor};
     /// use noodles_bgzf as bgzf;
     /// use noodles_vcf as vcf;
     ///
-    /// let mut reader = File::open("sample.vcf.gz")
-    ///     .map(bgzf::Reader::new)
-    ///     .map(vcf::Reader::new)?;
+    /// let data = Cursor::new(Vec::new());
+    /// let mut reader = vcf::Reader::new(bgzf::Reader::new(data));
     ///
-    /// let virtual_position = bgzf::VirtualPosition::from(102334155);
+    /// let virtual_position = bgzf::VirtualPosition::default();
     /// reader.seek(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
