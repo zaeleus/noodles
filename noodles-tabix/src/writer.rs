@@ -7,7 +7,11 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf::{self as bgzf, index::Chunk};
 
 use super::{
-    index::{self, reference_sequence::Bin, ReferenceSequence},
+    index::{
+        self,
+        reference_sequence::{Bin, Metadata},
+        ReferenceSequence,
+    },
     Index, MAGIC_NUMBER,
 };
 
@@ -175,8 +179,7 @@ where
     }
 
     if let Some(metadata) = reference.metadata() {
-        let bin = Bin::from(metadata.clone());
-        write_bin(writer, &bin)?;
+        write_metadata(writer, metadata)?;
     }
 
     let n_intv = i32::try_from(reference.intervals().len())
@@ -217,6 +220,33 @@ where
 
     let cnk_end = u64::from(chunk.end());
     writer.write_u64::<LittleEndian>(cnk_end)?;
+
+    Ok(())
+}
+
+fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::index::reference_sequence::bin::{METADATA_CHUNK_COUNT, METADATA_ID};
+
+    let bin_id = METADATA_ID;
+    writer.write_u32::<LittleEndian>(bin_id)?;
+
+    let n_chunk = METADATA_CHUNK_COUNT;
+    writer.write_u32::<LittleEndian>(n_chunk)?;
+
+    let ref_beg = u64::from(metadata.start_position());
+    writer.write_u64::<LittleEndian>(ref_beg)?;
+
+    let ref_end = u64::from(metadata.end_position());
+    writer.write_u64::<LittleEndian>(ref_end)?;
+
+    let n_mapped = metadata.mapped_record_count();
+    writer.write_u64::<LittleEndian>(n_mapped)?;
+
+    let n_unmapped = metadata.unmapped_record_count();
+    writer.write_u64::<LittleEndian>(n_unmapped)?;
 
     Ok(())
 }
@@ -293,6 +323,32 @@ mod tests {
         let expected = expected_writer.get_ref();
 
         assert_eq!(&actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_metadata() -> io::Result<()> {
+        let metadata = Metadata::new(
+            bgzf::VirtualPosition::from(610),
+            bgzf::VirtualPosition::from(1597),
+            55,
+            0,
+        );
+
+        let mut buf = Vec::new();
+        write_metadata(&mut buf, &metadata)?;
+
+        let expected = [
+            0x4a, 0x92, 0x00, 0x00, // bin = 37450
+            0x02, 0x00, 0x00, 0x00, // chunks = 2
+            0x62, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_beg = 610
+            0x3d, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ref_end = 1597
+            0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_mapped = 55
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // n_unmapped = 0
+        ];
+
+        assert_eq!(buf, expected);
 
         Ok(())
     }
