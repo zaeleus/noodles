@@ -1,8 +1,6 @@
-//! Tabix reference sequence metadata.
+use crate::VirtualPosition;
 
-use noodles_bgzf::VirtualPosition;
-
-/// Tabix reference sequence metadata.
+/// Index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Metadata {
     start_position: VirtualPosition,
@@ -17,8 +15,7 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_tabix::index::reference_sequence::Metadata;
+    /// use noodles_bgzf::{self as bgzf, index::Metadata};
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -46,8 +43,7 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_tabix::index::reference_sequence::Metadata;
+    /// use noodles_bgzf::{self as bgzf, index::Metadata};
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -67,8 +63,7 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_tabix::index::reference_sequence::Metadata;
+    /// use noodles_bgzf::{self as bgzf, index::Metadata};
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -88,8 +83,7 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;;
-    /// use noodles_tabix::index::reference_sequence::Metadata;
+    /// use noodles_bgzf::{self as bgzf, index::Metadata};
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -109,8 +103,7 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf as bgzf;;
-    /// use noodles_tabix::index::reference_sequence::Metadata;
+    /// use noodles_bgzf::{self as bgzf, index::Metadata};
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),

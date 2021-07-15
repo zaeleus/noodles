@@ -2,9 +2,8 @@
 
 pub mod bin;
 mod builder;
-pub mod metadata;
 
-pub use self::{bin::Bin, metadata::Metadata};
+pub use self::bin::Bin;
 
 pub(crate) use self::builder::Builder;
 
@@ -14,7 +13,7 @@ use std::{
 };
 
 use bit_vec::BitVec;
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, index::Metadata};
 
 const MIN_SHIFT: i32 = 14;
 const DEPTH: i32 = 5;
@@ -120,8 +119,8 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::VirtualPosition;
-    /// use noodles_tabix::index::{reference_sequence::Metadata, ReferenceSequence};
+    /// use noodles_bgzf::{index::Metadata, VirtualPosition};
+    /// use noodles_tabix::index::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.metadata().is_none());

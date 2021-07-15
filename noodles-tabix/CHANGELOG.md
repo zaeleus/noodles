@@ -11,11 +11,9 @@
 
 ### Removed
 
-  * index/reference_sequence/metadata: Remove conversion to `Bin`.
+  * index/reference_sequence: Removed `Metadata`.
 
-    The metadata fields do not have a practical usage as bin chunks. The
-    conversion was only used when writing the index, which now uses a metadata
-    writer.
+    Use `bgzf::index::Metadata` instead.
 
 ## 0.1.0 - 2021-07-14
 

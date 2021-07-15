@@ -5,12 +5,15 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_bgzf::{self as bgzf, index::Chunk};
+use noodles_bgzf::{
+    self as bgzf,
+    index::{Chunk, Metadata},
+};
 
 use crate::index::{
     self,
     header::Format,
-    reference_sequence::{self, Bin, Metadata},
+    reference_sequence::{self, Bin},
     ReferenceSequence,
 };
 

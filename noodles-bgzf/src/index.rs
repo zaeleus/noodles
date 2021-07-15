@@ -1,8 +1,9 @@
 //! BGZF index structures.
 
 mod chunk;
+mod metadata;
 
-pub use self::chunk::Chunk;
+pub use self::{chunk::Chunk, metadata::Metadata};
 
 use super::VirtualPosition;
 
