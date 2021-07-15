@@ -1,6 +1,7 @@
 # noodles
 
 [![crates.io](https://img.shields.io/crates/v/noodles.svg)](https://crates.io/crates/noodles)
+[![Docs.rs](https://docs.rs/noodles/badge.svg)](https://docs.rs/noodles)
 [![CI status](https://github.com/zaeleus/noodles/actions/workflows/ci.yml/badge.svg)](https://github.com/zaeleus/noodles/actions/workflows/ci.yml)
 
 **noodles** is a library for handling various bioinformatics file formats. It
