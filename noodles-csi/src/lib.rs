@@ -7,7 +7,12 @@ pub mod index;
 mod reader;
 mod writer;
 
-pub use self::{index::Index, reader::Reader, writer::Writer};
+pub use self::{
+    binning_index::{BinningIndex, BinningIndexReferenceSequence},
+    index::Index,
+    reader::Reader,
+    writer::Writer,
+};
 
 use std::{fs::File, io, path::Path};
 

@@ -2,7 +2,25 @@
 
 use noodles_bgzf as bgzf;
 
-use super::index::reference_sequence::bin::Chunk;
+use super::index::reference_sequence::{bin::Chunk, Metadata};
+
+/// A binning index reference sequence.
+pub trait BinningIndexReferenceSequence {
+    /// Returns the optional metadata for the reference sequence.
+    fn metadata(&self) -> Option<&Metadata>;
+}
+
+/// A binning index.
+pub trait BinningIndex<R>
+where
+    R: BinningIndexReferenceSequence,
+{
+    /// Returns a list of indexed reference sequences.
+    fn reference_sequences(&self) -> &[R];
+
+    /// Returns the number of unplaced, unmapped records in the associated file.
+    fn unplaced_unmapped_record_count(&self) -> Option<u64>;
+}
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///

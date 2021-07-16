@@ -12,6 +12,9 @@
     Chunks are merged when they overlap and can be filtered by a minimum
     offset.
 
+  * binning_index: Added `BinningIndex` and `BinningIndexReferenceSequence`
+    traits to define shared behavior among binning index formats.
+
 ## 0.1.0 - 2021-07-14
 
   * Initial release.
