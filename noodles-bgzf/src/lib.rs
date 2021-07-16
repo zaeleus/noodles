@@ -36,7 +36,6 @@
 
 mod block;
 mod gz;
-pub mod index;
 mod reader;
 pub mod virtual_position;
 mod writer;

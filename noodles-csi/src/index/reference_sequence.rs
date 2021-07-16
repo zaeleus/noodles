@@ -1,8 +1,9 @@
 //! Coordinate-sorted index (CSI) reference sequence and fields.
 
 pub mod bin;
+mod metadata;
 
-pub use self::bin::Bin;
+pub use self::{bin::Bin, metadata::Metadata};
 
 use std::{
     error, fmt,
@@ -10,7 +11,6 @@ use std::{
 };
 
 use bit_vec::BitVec;
-use noodles_bgzf::index::Metadata;
 
 const MIN_POSITION: i64 = 1;
 
@@ -88,8 +88,8 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
-    /// use noodles_csi::index::ReferenceSequence;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
     ///     bgzf::VirtualPosition::from(610),

@@ -1,4 +1,4 @@
-use noodles_bgzf::index::Chunk;
+use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::{reference_sequence, Header, Index, ReferenceSequence};
 
@@ -29,7 +29,8 @@ impl Indexer {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Chunk};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// use noodles_tabix as tabix;
     ///
     /// let mut indexer = tabix::Index::indexer();

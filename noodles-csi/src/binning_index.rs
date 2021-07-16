@@ -1,11 +1,8 @@
-//! BGZF index structures.
+//! Binning index utilities.
 
-mod chunk;
-mod metadata;
+use noodles_bgzf as bgzf;
 
-pub use self::{chunk::Chunk, metadata::Metadata};
-
-use super::VirtualPosition;
+use super::index::reference_sequence::bin::Chunk;
 
 /// Merges a list of chunks into a list of non-overlapping chunks.
 ///
@@ -14,7 +11,11 @@ use super::VirtualPosition;
 /// # Examples
 ///
 /// ```
-/// use noodles_bgzf::{self as bgzf, index::{merge_chunks, Chunk}};
+/// use noodles_bgzf as bgzf;
+/// use noodles_csi::{
+///     binning_index::merge_chunks,
+///     index::reference_sequence::bin::Chunk,
+/// };
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
@@ -34,7 +35,7 @@ use super::VirtualPosition;
 /// assert_eq!(actual, expected);
 /// ```
 pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
-    optimize_chunks(chunks, VirtualPosition::default())
+    optimize_chunks(chunks, bgzf::VirtualPosition::default())
 }
 
 /// Optimizes a list of chunks into a list of non-overlapping chunks.
@@ -45,7 +46,11 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 /// # Examples
 ///
 /// ```
-/// use noodles_bgzf::{self as bgzf, index::{optimize_chunks, Chunk}};
+/// use noodles_bgzf as bgzf;
+/// use noodles_csi::{
+///     binning_index::optimize_chunks,
+///     index::reference_sequence::bin::Chunk,
+/// };
 ///
 /// let chunks = [
 ///     Chunk::new(bgzf::VirtualPosition::from(2), bgzf::VirtualPosition::from(3)),
@@ -64,7 +69,7 @@ pub fn merge_chunks(chunks: &[Chunk]) -> Vec<Chunk> {
 ///
 /// assert_eq!(actual, expected);
 /// ```
-pub fn optimize_chunks(chunks: &[Chunk], min_offset: VirtualPosition) -> Vec<Chunk> {
+pub fn optimize_chunks(chunks: &[Chunk], min_offset: bgzf::VirtualPosition) -> Vec<Chunk> {
     let mut chunks: Vec<_> = chunks
         .iter()
         .filter(|c| c.end() > min_offset)
@@ -103,12 +108,30 @@ mod tests {
 
     fn build_chunks() -> Vec<Chunk> {
         vec![
-            Chunk::new(VirtualPosition::from(2), VirtualPosition::from(5)),
-            Chunk::new(VirtualPosition::from(3), VirtualPosition::from(4)),
-            Chunk::new(VirtualPosition::from(5), VirtualPosition::from(7)),
-            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(12)),
-            Chunk::new(VirtualPosition::from(10), VirtualPosition::from(15)),
-            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(2),
+                bgzf::VirtualPosition::from(5),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(3),
+                bgzf::VirtualPosition::from(4),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(5),
+                bgzf::VirtualPosition::from(7),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(12),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(10),
+                bgzf::VirtualPosition::from(15),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(16),
+                bgzf::VirtualPosition::from(21),
+            ),
         ]
     }
 
@@ -118,9 +141,18 @@ mod tests {
         let actual = merge_chunks(&chunks);
 
         let expected = [
-            Chunk::new(VirtualPosition::from(2), VirtualPosition::from(7)),
-            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(15)),
-            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(2),
+                bgzf::VirtualPosition::from(7),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(15),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(16),
+                bgzf::VirtualPosition::from(21),
+            ),
         ];
 
         assert_eq!(actual, expected);
@@ -136,11 +168,17 @@ mod tests {
     #[test]
     fn test_optimize_chunks() {
         let chunks = build_chunks();
-        let actual = optimize_chunks(&chunks, VirtualPosition::from(10));
+        let actual = optimize_chunks(&chunks, bgzf::VirtualPosition::from(10));
 
         let expected = [
-            Chunk::new(VirtualPosition::from(9), VirtualPosition::from(15)),
-            Chunk::new(VirtualPosition::from(16), VirtualPosition::from(21)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(9),
+                bgzf::VirtualPosition::from(15),
+            ),
+            Chunk::new(
+                bgzf::VirtualPosition::from(16),
+                bgzf::VirtualPosition::from(21),
+            ),
         ];
 
         assert_eq!(actual, expected);

@@ -4,13 +4,13 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_bgzf::{
-    self as bgzf,
-    index::{Chunk, Metadata},
-};
+use noodles_bgzf as bgzf;
 
 use super::{
-    index::{reference_sequence::Bin, ReferenceSequence},
+    index::{
+        reference_sequence::{bin::Chunk, Bin, Metadata},
+        ReferenceSequence,
+    },
     Index, MAGIC_NUMBER,
 };
 

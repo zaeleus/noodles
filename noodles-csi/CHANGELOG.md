@@ -6,11 +6,11 @@
 
   * Add convenience function to write an entire index to a file: `csi::write`.
 
-### Removed
+  * binning_index: Added chunk merging functions for chunk list reduction
+    (`noodles_csi::binning_index::{merge_chunks, optimize_chunks}`).
 
-  * index/reference_sequence: Removed `Metadata`.
-
-    Use `bgzf::index::Metadata` instead.
+    Chunks are merged when they overlap and can be filtered by a minimum
+    offset.
 
 ## 0.1.0 - 2021-07-14
 

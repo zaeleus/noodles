@@ -2,13 +2,22 @@
 
 ## Unreleased
 
-### Added
+### Removed
 
-  * index: Added shared `Metadata` struct.
+  * index: Moved `Chunk` to noodles-csi.
 
-    This is parsed from an optional pseudo-bin used in the binning index
-    formats (BAI, CSI, and tabix). It contains start/end positions and
-    mapped/unmapped record counts for a reference sequence.
+    Replace usages of `noodles_bgzf::index::Chunk` with
+    `noodles-csi::index::reference_sequence::bin::Chunk`.
+
+  * index: Moved `Metadata` to noodles-csi.
+
+    Replace usages of `noodles_bgzf::index::Metadata` with
+    `noodles-csi::index::reference_sequence::Metadata`.
+
+  * index: Moved chunk merging functions to noodles-csi.
+
+    Replace usages of `noodles_bgzf::index::{merge_chunks, optimize_chunks}`
+    with `noodles_csi::binning_index::{merge_chunks, optimize_chunks}`.
 
 ## 0.1.0 - 2021-07-14
 

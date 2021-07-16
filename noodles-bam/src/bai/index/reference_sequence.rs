@@ -13,7 +13,8 @@ use std::{
 };
 
 use bit_vec::BitVec;
-use noodles_bgzf::{self as bgzf, index::Metadata};
+use noodles_bgzf as bgzf;
+use noodles_csi::index::reference_sequence::Metadata;
 
 const MIN_SHIFT: i32 = 14;
 const DEPTH: i32 = 5;
@@ -120,7 +121,8 @@ impl ReferenceSequence {
     ///
     /// ```
     /// use noodles_bam::bai::index::ReferenceSequence;
-    /// use noodles_bgzf::{index::Metadata, VirtualPosition};
+    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// assert!(reference_sequence.metadata().is_none());

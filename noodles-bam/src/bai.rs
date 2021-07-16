@@ -31,8 +31,6 @@ pub use self::{index::Index, reader::Reader, writer::Writer};
 
 use std::{fs::File, io, path::Path};
 
-use noodles_bgzf::index::Chunk;
-
 use self::index::reference_sequence::Bin;
 
 static MAGIC_NUMBER: &[u8] = b"BAI\x01";

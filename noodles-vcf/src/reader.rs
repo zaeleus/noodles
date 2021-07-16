@@ -10,8 +10,9 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
-use noodles_bgzf::{self as bgzf, index::optimize_chunks};
+use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
+use noodles_csi::binning_index::optimize_chunks;
 use noodles_tabix as tabix;
 
 const LINE_FEED: char = '\n';

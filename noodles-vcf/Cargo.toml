@@ -14,5 +14,6 @@ indexmap = "1.4.0"
 nom = "6.1.2"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
 noodles-core = { path = "../noodles-core", version = "0.1.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.1.0" }
 noodles-tabix = { path = "../noodles-tabix", version = "0.1.0" }
 percent-encoding = "2.1.0"

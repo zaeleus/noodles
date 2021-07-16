@@ -3,7 +3,8 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
-use noodles_bgzf::{index::Chunk, VirtualPosition};
+use noodles_bgzf::VirtualPosition;
+use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use crate::Record;
 

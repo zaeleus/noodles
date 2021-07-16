@@ -14,4 +14,5 @@ bit-vec = "0.6.1"
 byteorder = "1.2.3"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
 noodles-core = { path = "../noodles-core", version = "0.1.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.1.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.1.0" }

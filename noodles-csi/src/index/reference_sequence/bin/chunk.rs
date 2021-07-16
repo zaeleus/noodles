@@ -1,10 +1,10 @@
-use crate::VirtualPosition;
+use noodles_bgzf as bgzf;
 
 /// An index reference sequence bin chunk.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
-    start: VirtualPosition,
-    end: VirtualPosition,
+    start: bgzf::VirtualPosition,
+    end: bgzf::VirtualPosition,
 }
 
 impl Chunk {
@@ -13,10 +13,11 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Chunk};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// ```
-    pub fn new(start: VirtualPosition, end: VirtualPosition) -> Self {
+    pub fn new(start: bgzf::VirtualPosition, end: bgzf::VirtualPosition) -> Self {
         Self { start, end }
     }
 
@@ -25,11 +26,12 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Chunk};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.start(), bgzf::VirtualPosition::from(8));
     /// ```
-    pub fn start(&self) -> VirtualPosition {
+    pub fn start(&self) -> bgzf::VirtualPosition {
         self.start
     }
 
@@ -38,11 +40,12 @@ impl Chunk {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Chunk};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// let chunk = Chunk::new(bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13));
     /// assert_eq!(chunk.end(), bgzf::VirtualPosition::from(13));
     /// ```
-    pub fn end(&self) -> VirtualPosition {
+    pub fn end(&self) -> bgzf::VirtualPosition {
         self.end
     }
 }

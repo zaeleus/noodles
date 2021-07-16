@@ -9,7 +9,7 @@
 use std::{env, fs::File, io};
 
 use noodles_bam::{self as bam, bai};
-use noodles_bgzf::index::Chunk;
+use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::{self as sam, header::header::SortOrder};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {

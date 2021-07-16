@@ -4,10 +4,8 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_bgzf::{
-    self as bgzf,
-    index::{Chunk, Metadata},
-};
+use noodles_bgzf as bgzf;
+use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 
 use super::{
     index::{self, reference_sequence::Bin, ReferenceSequence},

@@ -1,4 +1,4 @@
-use noodles_bgzf::index::Chunk;
+use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::Bin;
 

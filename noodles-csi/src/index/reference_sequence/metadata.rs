@@ -1,10 +1,10 @@
-use crate::VirtualPosition;
+use noodles_bgzf as bgzf;
 
 /// Index reference sequence metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Metadata {
-    start_position: VirtualPosition,
-    end_position: VirtualPosition,
+    start_position: bgzf::VirtualPosition,
+    end_position: bgzf::VirtualPosition,
     mapped_record_count: u64,
     unmapped_record_count: u64,
 }
@@ -15,7 +15,8 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -25,8 +26,8 @@ impl Metadata {
     /// );
     /// ```
     pub fn new(
-        start_position: VirtualPosition,
-        end_position: VirtualPosition,
+        start_position: bgzf::VirtualPosition,
+        end_position: bgzf::VirtualPosition,
         mapped_record_count: u64,
         unmapped_record_count: u64,
     ) -> Self {
@@ -43,7 +44,8 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -54,7 +56,7 @@ impl Metadata {
     ///
     /// assert_eq!(metadata.start_position(), bgzf::VirtualPosition::from(610));
     /// ```
-    pub fn start_position(&self) -> VirtualPosition {
+    pub fn start_position(&self) -> bgzf::VirtualPosition {
         self.start_position
     }
 
@@ -63,7 +65,8 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -74,7 +77,7 @@ impl Metadata {
     ///
     /// assert_eq!(metadata.end_position(), bgzf::VirtualPosition::from(1597));
     /// ```
-    pub fn end_position(&self) -> VirtualPosition {
+    pub fn end_position(&self) -> bgzf::VirtualPosition {
         self.end_position
     }
 
@@ -83,7 +86,8 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),
@@ -103,7 +107,8 @@ impl Metadata {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, index::Metadata};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::index::reference_sequence::Metadata;
     ///
     /// let metadata = Metadata::new(
     ///     bgzf::VirtualPosition::from(610),

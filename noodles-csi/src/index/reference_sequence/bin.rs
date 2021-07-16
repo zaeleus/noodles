@@ -1,6 +1,10 @@
 //! CSI reference sequence bin and fields.
 
-use noodles_bgzf::{self as bgzf, index::Chunk};
+mod chunk;
+
+pub use self::chunk::Chunk;
+
+use noodles_bgzf as bgzf;
 
 pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 
