@@ -11,7 +11,7 @@ use super::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         ReferenceSequence,
     },
-    Index, MAGIC_NUMBER,
+    BinningIndexReferenceSequence, Index, MAGIC_NUMBER,
 };
 
 /// A CSI writer.

@@ -12,6 +12,8 @@ use std::{
 
 use bit_vec::BitVec;
 
+use crate::BinningIndexReferenceSequence;
+
 const MIN_POSITION: i64 = 1;
 
 /// A CSI reference sequence.
@@ -83,27 +85,6 @@ impl ReferenceSequence {
         &self.bins
     }
 
-    /// Returns metadata for this reference sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::index::{reference_sequence::Metadata, ReferenceSequence};
-    ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
-    ///     bgzf::VirtualPosition::from(610),
-    ///     bgzf::VirtualPosition::from(1597),
-    ///     55,
-    ///     0,
-    /// )));
-    ///
-    /// assert!(reference_sequence.metadata().is_some());
-    /// ```
-    pub fn metadata(&self) -> Option<&Metadata> {
-        self.metadata.as_ref()
-    }
-
     /// Returns a list of bins in this reference sequence that intersects the given range.
     ///
     /// The interval values are 1-based.
@@ -156,6 +137,32 @@ impl ReferenceSequence {
             .collect();
 
         Ok(query_bins)
+    }
+}
+
+impl BinningIndexReferenceSequence for ReferenceSequence {
+    /// Returns the optional metadata for the reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::{
+    ///     index::{reference_sequence::Metadata, ReferenceSequence},
+    ///     BinningIndexReferenceSequence,
+    /// };
+    ///
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
+    ///     bgzf::VirtualPosition::from(610),
+    ///     bgzf::VirtualPosition::from(1597),
+    ///     55,
+    ///     0,
+    /// )));
+    ///
+    /// assert!(reference_sequence.metadata().is_some());
+    /// ```
+    fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 }
 

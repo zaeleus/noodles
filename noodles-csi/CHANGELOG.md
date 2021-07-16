@@ -15,6 +15,9 @@
   * binning_index: Added `BinningIndex` and `BinningIndexReferenceSequence`
     traits to define shared behavior among binning index formats.
 
+  * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
+    `ReferenceSequence`.
+
 ## 0.1.0 - 2021-07-14
 
   * Initial release.
