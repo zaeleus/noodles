@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
+    for `ReferenceSequence`.
+
 ### Removed
 
   * bai/index/reference_sequence: Removed `Metadata`.

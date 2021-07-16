@@ -1,7 +1,10 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
+use noodles_csi::{
+    index::reference_sequence::{bin::Chunk, Metadata},
+    BinningIndexReferenceSequence,
+};
 
 use super::{
     index::{reference_sequence::Bin, ReferenceSequence},
