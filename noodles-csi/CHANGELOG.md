@@ -15,8 +15,16 @@
   * binning_index: Added `BinningIndex` and `BinningIndexReferenceSequence`
     traits to define shared behavior among binning index formats.
 
+  * index: Implemented `BinningIndex` for `Index`.
+
   * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
     `ReferenceSequence`.
+
+### Deprecated
+
+  * index: Deprecated `Index::unmapped_read_count`.
+
+    Use `unplaced_unmapped_record_count` instead.
 
 ## 0.1.0 - 2021-07-14
 

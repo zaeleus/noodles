@@ -59,7 +59,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi::{self as csi, index::ReferenceSequence};
+    /// use noodles_csi::{self as csi, index::ReferenceSequence, BinningIndex};
     ///
     /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), None)];
     /// let index = csi::Index::builder()
@@ -78,9 +78,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_csi as csi;
+    /// use noodles_csi::{self as csi, BinningIndex};
     /// let index = csi::Index::builder().set_n_no_coor(21).build();
-    /// assert_eq!(index.unmapped_read_count(), Some(21));
+    /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```
     pub fn set_n_no_coor(mut self, n_no_coor: u64) -> Self {
         self.n_no_coor = Some(n_no_coor);

@@ -11,7 +11,7 @@ use super::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         ReferenceSequence,
     },
-    BinningIndexReferenceSequence, Index, MAGIC_NUMBER,
+    BinningIndex, BinningIndexReferenceSequence, Index, MAGIC_NUMBER,
 };
 
 /// A CSI writer.
@@ -64,7 +64,7 @@ where
         write_aux(&mut self.inner, index.aux())?;
         write_reference_sequences(&mut self.inner, depth, index.reference_sequences())?;
 
-        if let Some(n_no_coor) = index.unmapped_read_count() {
+        if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
             self.inner.write_u64::<LittleEndian>(n_no_coor)?;
         }
 

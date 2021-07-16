@@ -16,7 +16,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
-use noodles_csi as csi;
+use noodles_csi::{self as csi, BinningIndex};
 use noodles_vcf::header::Contigs;
 
 use super::{Record, MAGIC_NUMBER};
