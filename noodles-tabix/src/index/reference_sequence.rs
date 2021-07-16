@@ -14,7 +14,7 @@ use std::{
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
-use noodles_csi::index::reference_sequence::Metadata;
+use noodles_csi::{index::reference_sequence::Metadata, BinningIndexReferenceSequence};
 
 const MIN_SHIFT: i32 = 14;
 const DEPTH: i32 = 5;
@@ -113,31 +113,6 @@ impl ReferenceSequence {
         &self.intervals
     }
 
-    /// Returns metadata for this reference sequence.
-    ///
-    /// Metadata is parsed from the optional pseudo-bin 37450.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf::VirtualPosition;
-    /// use noodles_csi::index::reference_sequence::Metadata;
-    /// use noodles_tabix::index::ReferenceSequence;
-    ///
-    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
-    /// assert!(reference_sequence.metadata().is_none());
-    ///
-    /// let reference_sequence = ReferenceSequence::new(
-    ///     Vec::new(),
-    ///     Vec::new(),
-    ///     Some(Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0))
-    /// );
-    /// assert!(reference_sequence.metadata().is_some());
-    /// ```
-    pub fn metadata(&self) -> Option<&Metadata> {
-        self.metadata.as_ref()
-    }
-
     /// Returns a list of bins in this reference sequence that intersects the given range.
     ///
     /// The interval values are 1-based.
@@ -202,6 +177,33 @@ impl ReferenceSequence {
     pub fn min_offset(&self, start: i32) -> bgzf::VirtualPosition {
         let i = ((start - 1) / WINDOW_SIZE) as usize;
         self.intervals.get(i).copied().unwrap_or_default()
+    }
+}
+
+impl BinningIndexReferenceSequence for ReferenceSequence {
+    /// Returns the optional metadata for the reference sequence.
+    ///
+    /// Metadata is parsed from the optional pseudo-bin 37450.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf::VirtualPosition;
+    /// use noodles_csi::{index::reference_sequence::Metadata, BinningIndexReferenceSequence};
+    /// use noodles_tabix::index::ReferenceSequence;
+    ///
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+    /// assert!(reference_sequence.metadata().is_none());
+    ///
+    /// let reference_sequence = ReferenceSequence::new(
+    ///     Vec::new(),
+    ///     Vec::new(),
+    ///     Some(Metadata::new(VirtualPosition::from(610), VirtualPosition::from(1597), 55, 0))
+    /// );
+    /// assert!(reference_sequence.metadata().is_some());
+    /// ```
+    fn metadata(&self) -> Option<&Metadata> {
+        self.metadata.as_ref()
     }
 }
 

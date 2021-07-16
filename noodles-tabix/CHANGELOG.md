@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
+    `ReferenceSequence`.
+
 ### Fixed
 
   * writer: Avoid casts that may truncate.
