@@ -4,8 +4,16 @@
 
 ### Added
 
+  * index: Implemented `BinningIndex` for `Index`.
+
   * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
     `ReferenceSequence`.
+
+### Deprecated
+
+  * index: Deprecated `Index::unmapped_read_count`.
+
+    Use `unplaced_unmapped_record_count` instead.
 
 ### Fixed
 

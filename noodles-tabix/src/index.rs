@@ -9,6 +9,8 @@ pub use self::{
     builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
 };
 
+use noodles_csi::BinningIndex;
+
 /// A tabix index.
 #[derive(Debug)]
 pub struct Index {
@@ -67,25 +69,6 @@ impl Index {
         &self.reference_sequence_names
     }
 
-    /// Returns a list of reference sequences.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_tabix::{self as tabix, index::ReferenceSequence};
-    ///
-    /// let reference_sequences = vec![ReferenceSequence::new(Vec::new(), Vec::new(), None)];
-    ///
-    /// let index = tabix::Index::builder()
-    ///     .set_reference_sequences(reference_sequences)
-    ///     .build();
-    ///
-    /// assert_eq!(index.reference_sequences().len(), 1);
-    /// ```
-    pub fn reference_sequences(&self) -> &[ReferenceSequence] {
-        &self.reference_sequences
-    }
-
     /// Returns the number of unmapped records in the associated file.
     ///
     /// # Examples
@@ -99,7 +82,41 @@ impl Index {
     ///
     /// assert_eq!(index.unmapped_read_count(), Some(21));
     /// ```
+    #[deprecated(
+        since = "0.2.0",
+        note = "Use `unplaced_unmapped_record_count` instead."
+    )]
     pub fn unmapped_read_count(&self) -> Option<u64> {
+        self.unmapped_read_count
+    }
+}
+
+impl BinningIndex<ReferenceSequence> for Index {
+    /// Returns a list of indexed reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::BinningIndex;
+    /// use noodles_tabix as tabix;
+    /// let index = tabix::Index::default();
+    /// assert!(index.reference_sequences().is_empty());
+    /// ```
+    fn reference_sequences(&self) -> &[ReferenceSequence] {
+        &self.reference_sequences
+    }
+
+    /// Returns the number of unplaced, unmapped records in the associated file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::BinningIndex;
+    /// use noodles_tabix as tabix;
+    /// let index = tabix::Index::default();
+    /// assert!(index.unplaced_unmapped_record_count().is_none());
+    /// ```
+    fn unplaced_unmapped_record_count(&self) -> Option<u64> {
         self.unmapped_read_count
     }
 }

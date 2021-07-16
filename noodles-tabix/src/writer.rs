@@ -7,7 +7,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     index::reference_sequence::{bin::Chunk, Metadata},
-    BinningIndexReferenceSequence,
+    BinningIndex, BinningIndexReferenceSequence,
 };
 
 use super::{
@@ -114,7 +114,7 @@ where
             write_reference_sequence(&mut self.inner, reference_sequence)?;
         }
 
-        if let Some(n_no_coor) = index.unmapped_read_count() {
+        if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
             self.inner.write_u64::<LittleEndian>(n_no_coor)?;
         }
 
