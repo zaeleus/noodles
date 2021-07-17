@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+  * Fixed documentation link in package manifest ([#31]).
+
+[#31]: https://github.com/zaeleus/noodles/issues/31
+
 ### Removed
 
   * index: Moved `Chunk` to noodles-csi.

@@ -7,7 +7,7 @@ edition = "2018"
 description = "Binary Call Format (BCF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
-documentation = "https://doc.rs/noodles-bcf"
+documentation = "https://docs.rs/noodles-bcf"
 
 [dependencies]
 byteorder = "1.2.3"

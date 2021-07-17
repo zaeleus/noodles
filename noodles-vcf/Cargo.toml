@@ -7,7 +7,7 @@ edition = "2018"
 description = "Variant Call Format (VCF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
-documentation = "https://doc.rs/noodles-vcf"
+documentation = "https://docs.rs/noodles-vcf"
 
 [dependencies]
 indexmap = "1.4.0"

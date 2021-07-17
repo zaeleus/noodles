@@ -7,7 +7,7 @@ edition = "2018"
 description = "Binary Alignment/Map (BAM) format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
-documentation = "https://doc.rs/noodles-bam"
+documentation = "https://docs.rs/noodles-bam"
 
 [dependencies]
 bit-vec = "0.6.1"

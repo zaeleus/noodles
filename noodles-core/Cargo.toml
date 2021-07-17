@@ -7,7 +7,7 @@ edition = "2018"
 description = "Shared utilities when working with noodles"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
-documentation = "https://doc.rs/noodles-core"
+documentation = "https://docs.rs/noodles-core"
 
 [dependencies]
 noodles-sam = { path = "../noodles-sam", version = "0.1.0" }

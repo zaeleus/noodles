@@ -7,7 +7,7 @@ edition = "2018"
 description = "Blocked gzip format (BGZF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
-documentation = "https://doc.rs/noodles-bgzf"
+documentation = "https://docs.rs/noodles-bgzf"
 
 [dependencies]
 byteorder = "1.2.3"

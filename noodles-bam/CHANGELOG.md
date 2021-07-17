@@ -9,6 +9,12 @@
   * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
     for `ReferenceSequence`.
 
+### Fixed
+
+  * Fixed documentation link in package manifest ([#31]).
+
+[#31]: https://github.com/zaeleus/noodles/issues/31
+
 ### Removed
 
   * bai/index/reference_sequence: Removed `Metadata`.
