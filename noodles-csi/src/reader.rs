@@ -69,7 +69,7 @@ where
             .set_reference_sequences(reference_sequences);
 
         if let Some(n_no_coor) = n_no_coor {
-            builder = builder.set_n_no_coor(n_no_coor);
+            builder = builder.set_unplaced_unmapped_record_count(n_no_coor);
         }
 
         Ok(builder.build())

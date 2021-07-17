@@ -8,7 +8,7 @@ pub struct Builder {
     depth: i32,
     aux: Vec<u8>,
     reference_sequences: Vec<ReferenceSequence>,
-    n_no_coor: Option<u64>,
+    unplaced_unmapped_record_count: Option<u64>,
 }
 
 impl Builder {
@@ -82,8 +82,28 @@ impl Builder {
     /// let index = csi::Index::builder().set_n_no_coor(21).build();
     /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
     /// ```
-    pub fn set_n_no_coor(mut self, n_no_coor: u64) -> Self {
-        self.n_no_coor = Some(n_no_coor);
+    #[deprecated(
+        since = "0.2.0",
+        note = "Use `set_unplaced_unmapped_record_count` instead."
+    )]
+    pub fn set_n_no_coor(self, n_no_coor: u64) -> Self {
+        self.set_unplaced_unmapped_record_count(n_no_coor)
+    }
+
+    /// Sets an unplaced, unmapped record count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::{self as csi, BinningIndex};
+    /// let index = csi::Index::builder().set_unplaced_unmapped_record_count(21).build();
+    /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
+    /// ```
+    pub fn set_unplaced_unmapped_record_count(
+        mut self,
+        unplaced_unmapped_record_count: u64,
+    ) -> Self {
+        self.unplaced_unmapped_record_count = Some(unplaced_unmapped_record_count);
         self
     }
 
@@ -101,7 +121,7 @@ impl Builder {
             depth: self.depth,
             aux: self.aux,
             reference_sequences: self.reference_sequences,
-            n_no_coor: self.n_no_coor,
+            n_no_coor: self.unplaced_unmapped_record_count,
         }
     }
 }
@@ -113,7 +133,7 @@ impl Default for Builder {
             depth: 5,
             aux: Vec::new(),
             reference_sequences: Vec::new(),
-            n_no_coor: None,
+            unplaced_unmapped_record_count: None,
         }
     }
 }
@@ -130,6 +150,6 @@ mod tests {
         assert_eq!(builder.depth, 5);
         assert!(builder.aux.is_empty());
         assert!(builder.reference_sequences.is_empty());
-        assert!(builder.n_no_coor.is_none());
+        assert!(builder.unplaced_unmapped_record_count.is_none());
     }
 }

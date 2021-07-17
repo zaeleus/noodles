@@ -31,6 +31,10 @@
 
     Use `unplaced_unmapped_record_count` instead.
 
+  * index/builder: Deprecated `Builder::set_n_no_coor`.
+
+    Use `set_unplaced_unmapped_record_count` instead.
+
 ### Fixed
 
   * Fixed documentation link in package manifest ([#31]).
