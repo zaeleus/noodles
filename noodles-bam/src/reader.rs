@@ -16,7 +16,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_core::{region::Interval, Region};
-use noodles_csi::binning_index::optimize_chunks;
+use noodles_csi::{binning_index::optimize_chunks, BinningIndex};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};

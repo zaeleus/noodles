@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bai/index: Implemented `BinningIndex` for `Index`.
+
   * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
     for `ReferenceSequence`.
 

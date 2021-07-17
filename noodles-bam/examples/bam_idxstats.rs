@@ -9,7 +9,7 @@
 use std::{env, fs::File, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
-use noodles_csi::BinningIndexReferenceSequence;
+use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
 use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    let unmapped_record_count = index.unplaced_unmapped_read_count().unwrap_or_default();
+    let unmapped_record_count = index.unplaced_unmapped_record_count().unwrap_or_default();
     println!("*\t0\t0\t{}", unmapped_record_count);
 
     Ok(())

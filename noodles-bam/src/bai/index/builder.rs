@@ -105,6 +105,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use noodles_bgzf as bgzf;
+    use noodles_csi::BinningIndex;
     use noodles_sam::{
         self as sam,
         record::{Flags, Position},
@@ -151,7 +152,7 @@ mod tests {
 
         let index = builder.build(reference_sequences.len());
         assert_eq!(index.reference_sequences().len(), 2);
-        assert_eq!(index.unplaced_unmapped_read_count(), Some(1));
+        assert_eq!(index.unplaced_unmapped_record_count(), Some(1));
 
         Ok(())
     }
