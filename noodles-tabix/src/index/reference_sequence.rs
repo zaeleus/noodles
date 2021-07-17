@@ -205,6 +205,29 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     fn metadata(&self) -> Option<&Metadata> {
         self.metadata.as_ref()
     }
+
+    /// Returns the start position of the first record in the last linear bin.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::BinningIndexReferenceSequence;
+    /// use noodles_tabix::index::ReferenceSequence;
+    ///
+    /// let reference_sequence = ReferenceSequence::default();
+    /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
+    ///
+    /// let intervals = vec![bgzf::VirtualPosition::from(8), bgzf::VirtualPosition::from(13)];
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), intervals, None);
+    /// assert_eq!(
+    ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
+    ///     Some(bgzf::VirtualPosition::from(13))
+    /// );
+    /// ```
+    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.intervals().last().copied()
+    }
 }
 
 // 0-based, [start, end)

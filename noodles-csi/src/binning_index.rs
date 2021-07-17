@@ -8,6 +8,9 @@ use super::index::reference_sequence::{bin::Chunk, Metadata};
 pub trait BinningIndexReferenceSequence {
     /// Returns the optional metadata for the reference sequence.
     fn metadata(&self) -> Option<&Metadata>;
+
+    /// Returns the start position of the first record in the last linear bin.
+    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition>;
 }
 
 /// A binning index.
@@ -20,6 +23,17 @@ where
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
+
+    /// Returns the start position of the first record in the last linear bin.
+    ///
+    /// This is the closest position to the unplaced, unmapped records, if any, that is available
+    /// in an index.
+    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.reference_sequences()
+            .iter()
+            .rev()
+            .find_map(|rs| rs.first_record_in_last_linear_bin_start_position())
+    }
 }
 
 /// Merges a list of chunks into a list of non-overlapping chunks.

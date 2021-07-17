@@ -353,14 +353,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn query_unmapped(&mut self, index: &bai::Index) -> io::Result<UnmappedRecords<'_, R>> {
-        let last_interval = index
-            .reference_sequences()
-            .iter()
-            .rev()
-            .find_map(|rs| rs.intervals().last());
-
-        if let Some(interval) = last_interval {
-            self.seek(*interval)?;
+        if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
+            self.seek(pos)?;
         } else {
             self.seek_to_first_record()?;
         }

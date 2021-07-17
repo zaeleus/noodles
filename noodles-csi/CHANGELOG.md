@@ -15,6 +15,11 @@
   * binning_index: Added `BinningIndex` and `BinningIndexReferenceSequence`
     traits to define shared behavior among binning index formats.
 
+  * binning_index: Added `first_record_in_last_linear_bin_start_position`.
+
+    This is the closest position to the unplaced, unmapped records, if any,
+    that is available in an index.
+
   * index: Implemented `BinningIndex` for `Index`.
 
   * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for

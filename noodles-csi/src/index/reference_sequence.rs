@@ -11,6 +11,7 @@ use std::{
 };
 
 use bit_vec::BitVec;
+use noodles_bgzf as bgzf;
 
 use crate::BinningIndexReferenceSequence;
 
@@ -163,6 +164,34 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     /// ```
     fn metadata(&self) -> Option<&Metadata> {
         self.metadata.as_ref()
+    }
+
+    /// Returns the start position of the first record in the last linear bin.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi::{
+    ///     index::{reference_sequence::Bin, ReferenceSequence},
+    ///     BinningIndexReferenceSequence,
+    /// };
+    ///
+    /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+    /// assert!(reference_sequence.first_record_in_last_linear_bin_start_position().is_none());
+    ///
+    /// let bins = vec![
+    ///     Bin::new(0, bgzf::VirtualPosition::from(8), Vec::new()),
+    ///     Bin::new(1, bgzf::VirtualPosition::from(13), Vec::new()),
+    /// ];
+    /// let reference_sequence = ReferenceSequence::new(bins, None);
+    /// assert_eq!(
+    ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
+    ///     Some(bgzf::VirtualPosition::from(13))
+    /// );
+    /// ```
+    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
+        self.bins().last().map(|bin| bin.loffset())
     }
 }
 
