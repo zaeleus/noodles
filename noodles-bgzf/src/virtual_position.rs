@@ -2,8 +2,8 @@
 
 use std::{convert::TryFrom, error, fmt};
 
-pub(crate) const MAX_COMPRESSED_POSITION: u64 = 281474976710655; // 2^48 - 1;
-pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX; // 2^16 - 1;
+pub(crate) const MAX_COMPRESSED_POSITION: u64 = (1 << 48) - 1;
+pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX;
 
 const COMPRESSED_POSITION_SHIFT: u64 = 16;
 const UNCOMPRESSED_POSITION_MASK: u64 = 0xffff;
