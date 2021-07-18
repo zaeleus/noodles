@@ -5,14 +5,11 @@ mod records;
 
 pub use self::{query::Query, records::Records};
 
-use std::{
-    io::{self, BufRead, Read, Seek},
-    ops::{Bound, RangeBounds},
-};
+use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
-use noodles_csi::{binning_index::optimize_chunks, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
 const LINE_FEED: char = '\n';
@@ -274,44 +271,10 @@ where
     /// Ok::<(), io::Error>(())
     /// ```
     pub fn query(&mut self, index: &tabix::Index, region: &Region) -> io::Result<Query<'_, R>> {
-        let (i, reference_sequence_name, interval) = resolve_region(index, region)?;
-
-        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "could not find reference in index: {} >= {}",
-                    i,
-                    index.reference_sequences().len()
-                ),
-            )
-        })?;
-
-        let query_bins = index_reference_sequence
-            .query(interval)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let chunks: Vec<_> = query_bins
-            .iter()
-            .flat_map(|bin| bin.chunks())
-            .cloned()
-            .collect();
-
-        let start = match interval.start_bound() {
-            Bound::Included(s) => *s,
-            Bound::Excluded(s) => *s + 1,
-            Bound::Unbounded => 1,
-        };
-
-        let min_offset = index_reference_sequence.min_offset(start);
-        let merged_chunks = optimize_chunks(&chunks, min_offset);
-
-        Ok(Query::new(
-            self,
-            merged_chunks,
-            reference_sequence_name,
-            interval,
-        ))
+        let (reference_sequence_id, reference_sequence_name, interval) =
+            resolve_region(index, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(Query::new(self, chunks, reference_sequence_name, interval))
     }
 }
 

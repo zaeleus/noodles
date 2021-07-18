@@ -10,7 +10,6 @@ use std::{
     convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::{Bound, RangeBounds},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -261,39 +260,9 @@ where
         index: &csi::Index,
         region: &Region,
     ) -> io::Result<Query<'_, R>> {
-        fn cast_bound_i32_to_bound_i64(bound: Bound<&i32>) -> Bound<i64> {
-            match bound {
-                Bound::Included(v) => Bound::Included(i64::from(*v)),
-                Bound::Excluded(v) => Bound::Excluded(i64::from(*v)),
-                Bound::Unbounded => Bound::Unbounded,
-            }
-        }
-
-        let (i, interval) = resolve_region(contigs, region)?;
-
-        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("invalid index reference sequence index: {}", i),
-            )
-        })?;
-
-        let query_interval = (
-            cast_bound_i32_to_bound_i64(interval.start_bound()),
-            cast_bound_i32_to_bound_i64(interval.end_bound()),
-        );
-
-        let query_bins = index_reference_sequence
-            .query(index.min_shift(), index.depth(), query_interval)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let chunks: Vec<_> = query_bins
-            .iter()
-            .flat_map(|bin| bin.chunks())
-            .cloned()
-            .collect();
-
-        Ok(Query::new(self, chunks, i, interval))
+        let (reference_sequence_id, interval) = resolve_region(contigs, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(Query::new(self, chunks, reference_sequence_id, interval))
     }
 }
 

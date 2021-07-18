@@ -5,7 +5,12 @@ pub mod reference_sequence;
 
 pub use self::{builder::Builder, reference_sequence::ReferenceSequence};
 
-use super::BinningIndex;
+use std::{
+    io,
+    ops::{Bound, RangeBounds},
+};
+
+use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -112,6 +117,46 @@ impl BinningIndex<ReferenceSequence> for Index {
     /// ```
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
         self.n_no_coor
+    }
+
+    fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
+    where
+        B: RangeBounds<i32> + Copy,
+    {
+        fn cast_bound_i32_to_bound_i64(bound: Bound<&i32>) -> Bound<i64> {
+            match bound {
+                Bound::Included(v) => Bound::Included(i64::from(*v)),
+                Bound::Excluded(v) => Bound::Excluded(i64::from(*v)),
+                Bound::Unbounded => Bound::Unbounded,
+            }
+        }
+
+        let reference_sequence = self
+            .reference_sequences()
+            .get(reference_sequence_id)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence ID: {}", reference_sequence_id),
+                )
+            })?;
+
+        let query_interval = (
+            cast_bound_i32_to_bound_i64(interval.start_bound()),
+            cast_bound_i32_to_bound_i64(interval.end_bound()),
+        );
+
+        let query_bins = reference_sequence
+            .query(self.min_shift(), self.depth(), query_interval)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let chunks: Vec<_> = query_bins
+            .iter()
+            .flat_map(|bin| bin.chunks())
+            .cloned()
+            .collect();
+
+        Ok(chunks)
     }
 }
 

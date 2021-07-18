@@ -10,13 +10,12 @@ use std::{
     convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::{Bound, RangeBounds},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_core::{region::Interval, Region};
-use noodles_csi::{binning_index::optimize_chunks, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use super::{bai, Record, MAGIC_NUMBER};
@@ -299,39 +298,9 @@ where
         index: &bai::Index,
         region: &Region,
     ) -> io::Result<Query<'_, R>> {
-        let (i, interval) = resolve_region(reference_sequences, region)?;
-
-        let index_reference_sequence = index.reference_sequences().get(i).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "could not find reference in index: {} >= {}",
-                    i,
-                    reference_sequences.len()
-                ),
-            )
-        })?;
-
-        let query_bins = index_reference_sequence
-            .query(interval)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let chunks: Vec<_> = query_bins
-            .iter()
-            .flat_map(|bin| bin.chunks())
-            .cloned()
-            .collect();
-
-        let start = match interval.start_bound() {
-            Bound::Included(s) => *s,
-            Bound::Excluded(s) => *s + 1,
-            Bound::Unbounded => 1,
-        };
-
-        let min_offset = index_reference_sequence.min_offset(start);
-        let merged_chunks = optimize_chunks(&chunks, min_offset);
-
-        Ok(Query::new(self, merged_chunks, i, interval))
+        let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(Query::new(self, chunks, reference_sequence_id, interval))
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.

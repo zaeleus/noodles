@@ -22,6 +22,8 @@
 
   * index: Implemented `BinningIndex` for `Index`.
 
+  * index: Added `query` method to find chunks that intersect the given region.
+
   * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
     `ReferenceSequence`.
 

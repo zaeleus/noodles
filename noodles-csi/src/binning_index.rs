@@ -1,5 +1,7 @@
 //! Binning index utilities.
 
+use std::{io, ops::RangeBounds};
+
 use noodles_bgzf as bgzf;
 
 use super::index::reference_sequence::{bin::Chunk, Metadata};
@@ -23,6 +25,11 @@ where
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
+
+    /// Returns the chunks that overlap with the given region.
+    fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
+    where
+        B: RangeBounds<i32> + Copy;
 
     /// Returns the start position of the first record in the last linear bin.
     ///

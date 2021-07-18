@@ -9,7 +9,14 @@ pub use self::{
     builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
 };
 
-use noodles_csi::BinningIndex;
+use std::{
+    io,
+    ops::{Bound, RangeBounds},
+};
+
+use noodles_csi::{
+    binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
+};
 
 /// A tabix index.
 #[derive(Debug)]
@@ -118,6 +125,42 @@ impl BinningIndex<ReferenceSequence> for Index {
     /// ```
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
         self.unmapped_read_count
+    }
+
+    fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
+    where
+        B: RangeBounds<i32> + Copy,
+    {
+        let reference_sequence = self
+            .reference_sequences()
+            .get(reference_sequence_id)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence ID: {}", reference_sequence_id),
+                )
+            })?;
+
+        let query_bins = reference_sequence
+            .query(interval)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let chunks: Vec<_> = query_bins
+            .iter()
+            .flat_map(|bin| bin.chunks())
+            .copied()
+            .collect();
+
+        let start = match interval.start_bound() {
+            Bound::Included(s) => *s,
+            Bound::Excluded(s) => *s + 1,
+            Bound::Unbounded => 1,
+        };
+
+        let min_offset = reference_sequence.min_offset(start);
+        let merged_chunks = optimize_chunks(&chunks, min_offset);
+
+        Ok(merged_chunks)
     }
 }
 

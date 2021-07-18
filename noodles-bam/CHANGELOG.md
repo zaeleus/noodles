@@ -6,6 +6,9 @@
 
   * bai/index: Implemented `BinningIndex` for `Index`.
 
+  * bai/index: Added `query` method to find chunks that intersect the given
+    region.
+
   * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
     for `ReferenceSequence`.
 
