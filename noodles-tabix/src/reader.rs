@@ -5,7 +5,6 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use indexmap::IndexSet;
 use noodles_bgzf as bgzf;
 use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 
@@ -13,7 +12,7 @@ use crate::index::{
     self,
     header::Format,
     reference_sequence::{self, Bin},
-    ReferenceSequence,
+    ReferenceSequence, ReferenceSequenceNames,
 };
 
 use super::{Index, MAGIC_NUMBER};
@@ -143,7 +142,7 @@ where
         .build())
 }
 
-fn read_names<R>(reader: &mut R) -> io::Result<IndexSet<String>>
+fn read_names<R>(reader: &mut R) -> io::Result<ReferenceSequenceNames>
 where
     R: Read,
 {
@@ -155,8 +154,8 @@ where
     parse_names(&names)
 }
 
-fn parse_names(buf: &[u8]) -> io::Result<IndexSet<String>> {
-    let mut names = IndexSet::new();
+fn parse_names(buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
+    let mut names = ReferenceSequenceNames::new();
     let mut start = 0;
 
     loop {
@@ -405,7 +404,7 @@ mod tests {
     fn test_parse_names() -> io::Result<()> {
         let data = b"noodles\x00tabix\x00";
         let actual = parse_names(&data[..])?;
-        let expected: IndexSet<String> = vec![String::from("noodles"), String::from("tabix")]
+        let expected: ReferenceSequenceNames = vec![String::from("noodles"), String::from("tabix")]
             .into_iter()
             .collect();
         assert_eq!(actual, expected);

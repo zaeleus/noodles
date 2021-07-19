@@ -19,11 +19,14 @@ use noodles_csi::{
     binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
 };
 
+/// A set of reference sequence names.
+pub type ReferenceSequenceNames = IndexSet<String>;
+
 /// A tabix index.
 #[derive(Debug)]
 pub struct Index {
     header: Header,
-    reference_sequence_names: IndexSet<String>,
+    reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
@@ -65,10 +68,9 @@ impl Index {
     /// # Examples
     ///
     /// ```
-    /// use indexmap::IndexSet;
-    /// use noodles_tabix as tabix;
+    /// use noodles_tabix::{self as tabix, index::ReferenceSequenceNames};
     ///
-    /// let reference_sequence_names: IndexSet<String> = vec![String::from("sq0")]
+    /// let reference_sequence_names: ReferenceSequenceNames = vec![String::from("sq0")]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -78,7 +80,7 @@ impl Index {
     ///
     /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
     /// ```
-    pub fn reference_sequence_names(&self) -> &IndexSet<String> {
+    pub fn reference_sequence_names(&self) -> &ReferenceSequenceNames {
         &self.reference_sequence_names
     }
 

@@ -1,14 +1,13 @@
-use indexmap::IndexSet;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use super::{reference_sequence, Header, Index, ReferenceSequence};
+use super::{reference_sequence, Header, Index, ReferenceSequence, ReferenceSequenceNames};
 
 /// A tabix indexer.
 #[derive(Debug, Default)]
 pub struct Indexer {
     header: Header,
     current_reference_sequence_name: String,
-    reference_sequence_names: IndexSet<String>,
+    reference_sequence_names: ReferenceSequenceNames,
     reference_sequence_builders: Vec<reference_sequence::Builder>,
 }
 

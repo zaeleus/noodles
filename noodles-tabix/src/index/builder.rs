@@ -2,12 +2,12 @@
 
 use indexmap::IndexSet;
 
-use super::{Header, Index, ReferenceSequence};
+use super::{Header, Index, ReferenceSequence, ReferenceSequenceNames};
 
 /// A tabix index builder.
 pub struct Builder {
     header: Header,
-    reference_sequence_names: IndexSet<String>,
+    reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
@@ -33,10 +33,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use indexmap::IndexSet;
-    /// use noodles_tabix as tabix;
+    /// use noodles_tabix::{self as tabix, index::ReferenceSequenceNames};
     ///
-    /// let reference_sequence_names: IndexSet<String> = vec![String::from("sq0")]
+    /// let reference_sequence_names: ReferenceSequenceNames = vec![String::from("sq0")]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -48,7 +47,7 @@ impl Builder {
     /// ```
     pub fn set_reference_sequence_names(
         mut self,
-        reference_sequence_names: IndexSet<String>,
+        reference_sequence_names: ReferenceSequenceNames,
     ) -> Self {
         self.reference_sequence_names = reference_sequence_names;
         self

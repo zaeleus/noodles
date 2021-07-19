@@ -13,7 +13,8 @@
 
 ### Changed
 
-  * index: Reference sequence names are stored as an `IndexSet<String>`.
+  * index: Reference sequence names are stored as an
+    `index::ReferenceSequenceNames` (`IndexSet<String>`).
 
 ### Deprecated
 
