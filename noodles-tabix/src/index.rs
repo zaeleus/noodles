@@ -14,6 +14,7 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
+use indexmap::IndexSet;
 use noodles_csi::{
     binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
 };
@@ -22,7 +23,7 @@ use noodles_csi::{
 #[derive(Debug)]
 pub struct Index {
     header: Header,
-    reference_sequence_names: Vec<String>,
+    reference_sequence_names: IndexSet<String>,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
@@ -64,15 +65,20 @@ impl Index {
     /// # Examples
     ///
     /// ```
+    /// use indexmap::IndexSet;
     /// use noodles_tabix as tabix;
     ///
+    /// let reference_sequence_names: IndexSet<String> = vec![String::from("sq0")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
     /// let index = tabix::Index::builder()
-    ///     .set_reference_sequence_names(vec![String::from("sq0")])
+    ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
-    /// assert_eq!(index.reference_sequence_names(), [String::from("sq0")]);
+    /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
     /// ```
-    pub fn reference_sequence_names(&self) -> &[String] {
+    pub fn reference_sequence_names(&self) -> &IndexSet<String> {
         &self.reference_sequence_names
     }
 

@@ -5,6 +5,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use indexmap::IndexSet;
 use noodles_bgzf as bgzf;
 use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 
@@ -142,7 +143,7 @@ where
         .build())
 }
 
-fn read_names<R>(reader: &mut R) -> io::Result<Vec<String>>
+fn read_names<R>(reader: &mut R) -> io::Result<IndexSet<String>>
 where
     R: Read,
 {
@@ -154,8 +155,8 @@ where
     parse_names(&names)
 }
 
-fn parse_names(buf: &[u8]) -> io::Result<Vec<String>> {
-    let mut names = Vec::new();
+fn parse_names(buf: &[u8]) -> io::Result<IndexSet<String>> {
+    let mut names = IndexSet::new();
     let mut start = 0;
 
     loop {
@@ -168,7 +169,7 @@ fn parse_names(buf: &[u8]) -> io::Result<Vec<String>> {
                     .map(|s| s.into())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                names.push(name);
+                names.insert(name);
 
                 start += end + 1;
             }
@@ -404,7 +405,9 @@ mod tests {
     fn test_parse_names() -> io::Result<()> {
         let data = b"noodles\x00tabix\x00";
         let actual = parse_names(&data[..])?;
-        let expected = vec![String::from("noodles"), String::from("tabix")];
+        let expected: IndexSet<String> = vec![String::from("noodles"), String::from("tabix")]
+            .into_iter()
+            .collect();
         assert_eq!(actual, expected);
 
         let data = b"";

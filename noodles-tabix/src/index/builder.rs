@@ -1,11 +1,13 @@
 //! Tabix index builder.
 
+use indexmap::IndexSet;
+
 use super::{Header, Index, ReferenceSequence};
 
 /// A tabix index builder.
 pub struct Builder {
     header: Header,
-    reference_sequence_names: Vec<String>,
+    reference_sequence_names: IndexSet<String>,
     reference_sequences: Vec<ReferenceSequence>,
     unmapped_read_count: Option<u64>,
 }
@@ -31,15 +33,23 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use indexmap::IndexSet;
     /// use noodles_tabix as tabix;
     ///
+    /// let reference_sequence_names: IndexSet<String> = vec![String::from("sq0")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
     /// let index = tabix::Index::builder()
-    ///     .set_reference_sequence_names(vec![String::from("sq0")])
+    ///     .set_reference_sequence_names(reference_sequence_names.clone())
     ///     .build();
     ///
-    /// assert_eq!(index.reference_sequence_names(), [String::from("sq0")]);
+    /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
     /// ```
-    pub fn set_reference_sequence_names(mut self, reference_sequence_names: Vec<String>) -> Self {
+    pub fn set_reference_sequence_names(
+        mut self,
+        reference_sequence_names: IndexSet<String>,
+    ) -> Self {
         self.reference_sequence_names = reference_sequence_names;
         self
     }
@@ -105,7 +115,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             header: Header::builder().build(),
-            reference_sequence_names: Vec::new(),
+            reference_sequence_names: IndexSet::new(),
             reference_sequences: Vec::new(),
             unmapped_read_count: None,
         }

@@ -306,8 +306,7 @@ fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, S
     if let Some(r) = region.as_mapped() {
         let i = index
             .reference_sequence_names()
-            .iter()
-            .position(|n| r.name() == n)
+            .get_index_of(r.name())
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,

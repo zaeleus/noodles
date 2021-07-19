@@ -11,6 +11,10 @@
   * index/reference_sequence: Implemented `BinningIndexReferenceSequence` for
     `ReferenceSequence`.
 
+### Changed
+
+  * index: Reference sequence names are stored as an `IndexSet<String>`.
+
 ### Deprecated
 
   * index: Deprecated `Index::unmapped_read_count`.

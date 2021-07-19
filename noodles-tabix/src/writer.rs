@@ -269,8 +269,12 @@ mod tests {
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals, None)];
 
+        let reference_sequence_names = vec![String::from("sq0"), String::from("sq1")]
+            .into_iter()
+            .collect();
+
         let index = Index::builder()
-            .set_reference_sequence_names(vec![String::from("sq0"), String::from("sq1")])
+            .set_reference_sequence_names(reference_sequence_names)
             .set_reference_sequences(references)
             .build();
 

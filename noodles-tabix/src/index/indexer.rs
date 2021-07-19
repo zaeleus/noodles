@@ -1,3 +1,4 @@
+use indexmap::IndexSet;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::{reference_sequence, Header, Index, ReferenceSequence};
@@ -7,7 +8,7 @@ use super::{reference_sequence, Header, Index, ReferenceSequence};
 pub struct Indexer {
     header: Header,
     current_reference_sequence_name: String,
-    reference_sequence_names: Vec<String>,
+    reference_sequence_names: IndexSet<String>,
     reference_sequence_builders: Vec<reference_sequence::Builder>,
 }
 
@@ -54,7 +55,7 @@ impl Indexer {
             self.current_reference_sequence_name = reference_sequence_name.into();
 
             self.reference_sequence_names
-                .push(reference_sequence_name.into());
+                .insert(reference_sequence_name.into());
         }
 
         let reference_sequence_builder = self
