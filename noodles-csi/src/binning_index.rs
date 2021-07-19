@@ -29,7 +29,7 @@ where
     /// Returns the chunks that overlap with the given region.
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<i32> + Copy;
+        B: RangeBounds<i32> + Clone;
 
     /// Returns the start position of the first record in the last linear bin.
     ///

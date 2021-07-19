@@ -110,7 +110,7 @@ impl BinningIndex<ReferenceSequence> for Index {
 
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<i32> + Copy,
+        B: RangeBounds<i32> + Clone,
     {
         let reference_sequence = self
             .reference_sequences()
@@ -123,7 +123,7 @@ impl BinningIndex<ReferenceSequence> for Index {
             })?;
 
         let query_bins = reference_sequence
-            .query(interval)
+            .query(interval.clone())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins

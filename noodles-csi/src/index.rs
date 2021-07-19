@@ -121,7 +121,7 @@ impl BinningIndex<ReferenceSequence> for Index {
 
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<i32> + Copy,
+        B: RangeBounds<i32> + Clone,
     {
         fn cast_bound_i32_to_bound_i64(bound: Bound<&i32>) -> Bound<i64> {
             match bound {
