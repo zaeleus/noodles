@@ -12,6 +12,8 @@
   * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
     for `ReferenceSequence`.
 
+  * reader: Accept any `BinningIndex` to query.
+
 ### Fixed
 
   * Fixed documentation link in package manifest ([#31]).
