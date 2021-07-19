@@ -26,6 +26,11 @@
 
   * Fixed documentation link in package manifest ([#31]).
 
+  * reader: Avoid casts that may truncate.
+
+    Fields that convert from `i32` to other integer types now check whether
+    they are in range.
+
   * writer: Avoid casts that may truncate.
 
     Fields that convert to `i32` from other integer types now check whether

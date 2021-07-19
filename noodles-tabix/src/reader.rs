@@ -62,12 +62,14 @@ where
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner)?;
 
-        let n_ref = self.inner.read_i32::<LittleEndian>()?;
+        let n_ref = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         let header = read_header(&mut self.inner)?;
 
         let names = read_names(&mut self.inner)?;
-        let references = read_references(&mut self.inner, n_ref as usize)?;
+        let references = read_references(&mut self.inner, n_ref)?;
         let n_no_coors = self.inner.read_u64::<LittleEndian>().ok();
 
         let mut builder = Index::builder()
@@ -130,15 +132,17 @@ where
         .read_i32::<LittleEndian>()
         .and_then(|b| u8::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
 
-    let skip = reader.read_i32::<LittleEndian>()?;
+    let skip = reader.read_i32::<LittleEndian>().and_then(|n| {
+        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     Ok(index::Header::builder()
         .set_format(format)
         .set_reference_sequence_name_index(col_seq)
         .set_start_position_index(col_beg)
         .set_end_position_index(col_end)
-        .set_line_comment_prefix(meta as u8)
-        .set_line_skip_count(skip as u32)
+        .set_line_comment_prefix(meta)
+        .set_line_skip_count(skip)
         .build())
 }
 
@@ -146,9 +150,11 @@ fn read_names<R>(reader: &mut R) -> io::Result<ReferenceSequenceNames>
 where
     R: Read,
 {
-    let l_nm = reader.read_i32::<LittleEndian>()?;
+    let l_nm = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut names = vec![0; l_nm as usize];
+    let mut names = vec![0; l_nm];
     reader.read_exact(&mut names)?;
 
     parse_names(&names)
@@ -200,9 +206,11 @@ where
 {
     use reference_sequence::bin::METADATA_ID;
 
-    let n_bin = reader.read_i32::<LittleEndian>()?;
+    let n_bin = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut bins = Vec::with_capacity(n_bin as usize);
+    let mut bins = Vec::with_capacity(n_bin);
     let mut metadata = None;
 
     for _ in 0..n_bin {
@@ -224,8 +232,11 @@ fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
 where
     R: Read,
 {
-    let n_chunk = reader.read_i32::<LittleEndian>()?;
-    let mut chunks = Vec::with_capacity(n_chunk as usize);
+    let n_chunk = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut chunks = Vec::with_capacity(n_chunk);
 
     for _ in 0..n_chunk {
         let cnk_beg = reader
@@ -246,8 +257,11 @@ fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>
 where
     R: Read,
 {
-    let n_intv = reader.read_i32::<LittleEndian>()?;
-    let mut intervals = Vec::with_capacity(n_intv as usize);
+    let n_intv = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut intervals = Vec::with_capacity(n_intv);
 
     for _ in 0..n_intv {
         let ioff = reader
