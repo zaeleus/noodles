@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::{
@@ -95,7 +98,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
-        let n_ref = index.reference_sequences().len() as u32;
+        let n_ref = u32::try_from(index.reference_sequences().len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(n_ref)?;
 
         for reference_sequence in index.reference_sequences() {
@@ -117,10 +121,13 @@ fn write_reference_sequence<W>(
 where
     W: Write,
 {
-    let mut n_bin = reference_sequence.bins().len() as u32;
+    let mut n_bin = u32::try_from(reference_sequence.bins().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if reference_sequence.metadata().is_some() {
-        n_bin += 1;
+        n_bin = n_bin
+            .checked_add(1)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "n_bin overflow"))?;
     }
 
     writer.write_u32::<LittleEndian>(n_bin)?;
@@ -133,7 +140,8 @@ where
         write_metadata(writer, metadata)?;
     }
 
-    let n_intv = reference_sequence.intervals().len() as u32;
+    let n_intv = u32::try_from(reference_sequence.intervals().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_intv)?;
 
     for interval in reference_sequence.intervals() {
@@ -150,7 +158,8 @@ where
 {
     writer.write_u32::<LittleEndian>(bin.id())?;
 
-    let n_chunk = bin.chunks().len() as u32;
+    let n_chunk = u32::try_from(bin.chunks().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_chunk)?;
 
     for chunk in bin.chunks() {

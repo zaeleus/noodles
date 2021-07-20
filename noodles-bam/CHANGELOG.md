@@ -18,6 +18,11 @@
 
   * Fixed documentation link in package manifest ([#31]).
 
+  * reader: Avoid casts that may truncate.
+
+    Fields that convert to `u32` from other integer types now check whether
+    they are in range.
+
 [#31]: https://github.com/zaeleus/noodles/issues/31
 
 ### Removed
