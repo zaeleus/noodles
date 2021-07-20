@@ -24,4 +24,4 @@ percent-encoding = "2.1.0"
 tokio = { version = "1.8.0", optional = true, features = ["io-util", "macros"] }
 
 [dev-dependencies]
-tokio = { version = "1.8.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.8.0", features = ["fs", "macros", "rt-multi-thread"] }
