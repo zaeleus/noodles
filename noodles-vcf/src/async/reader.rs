@@ -26,7 +26,7 @@ where
         Self { inner }
     }
 
-    /// Read the raw VCF header.
+    /// Reads the raw VCF header.
     ///
     /// The position of the stream is expected to be at the start.
     ///
