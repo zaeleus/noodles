@@ -235,10 +235,12 @@ mod tests {
 
     #[test]
     fn test_write_header() -> io::Result<()> {
+        use sam::header::header::{Header, Version};
+
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::builder()
-            .set_header(sam::header::header::Header::default())
+            .set_header(Header::new(Version::new(1, 6)))
             .build();
 
         writer.write_header(&header)?;
