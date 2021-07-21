@@ -28,6 +28,10 @@
     Fields that convert to `u32` from other integer types now check whether
     they are in range.
 
+  * writer/record: Fix bin calculation start position.
+
+    This incorrectly used a 1-based position rather than 0-based.
+
 [#31]: https://github.com/zaeleus/noodles/issues/31
 
 ### Removed
