@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * record/tag: Add conversion from `Tag` to `sam::record::data::Field`.
+
 ### Fixed
 
   * Fixed documentation link in package manifest ([#31]).
