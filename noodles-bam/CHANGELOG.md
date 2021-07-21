@@ -18,6 +18,11 @@
 
   * Fixed documentation link in package manifest ([#31]).
 
+  * bai/reader: Avoid casts that may truncate.
+
+    Fields that convert from `u32` to other integer types now check whether
+    they are in range.
+
   * bai/writer: Avoid casts that may truncate.
 
     Fields that convert to `u32` from other integer types now check whether

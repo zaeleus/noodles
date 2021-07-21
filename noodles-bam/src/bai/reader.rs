@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
@@ -102,8 +105,11 @@ fn read_references<R>(reader: &mut R) -> io::Result<Vec<ReferenceSequence>>
 where
     R: Read,
 {
-    let n_ref = reader.read_u32::<LittleEndian>()?;
-    let mut references = Vec::with_capacity(n_ref as usize);
+    let n_ref = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut references = Vec::with_capacity(n_ref);
 
     for _ in 0..n_ref {
         let (bins, metadata) = read_bins(reader)?;
@@ -120,9 +126,11 @@ where
 {
     use reference_sequence::bin::METADATA_ID;
 
-    let n_bin = reader.read_u32::<LittleEndian>()?;
+    let n_bin = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut bins = Vec::with_capacity(n_bin as usize);
+    let mut bins = Vec::with_capacity(n_bin);
     let mut metadata = None;
 
     for _ in 0..n_bin {
@@ -144,8 +152,11 @@ fn read_chunks<R>(reader: &mut R) -> io::Result<Vec<Chunk>>
 where
     R: Read,
 {
-    let n_chunk = reader.read_u32::<LittleEndian>()?;
-    let mut chunks = Vec::with_capacity(n_chunk as usize);
+    let n_chunk = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut chunks = Vec::with_capacity(n_chunk);
 
     for _ in 0..n_chunk {
         let chunk_beg = reader
@@ -166,8 +177,11 @@ fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>
 where
     R: Read,
 {
-    let n_intv = reader.read_u32::<LittleEndian>()?;
-    let mut intervals = Vec::with_capacity(n_intv as usize);
+    let n_intv = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut intervals = Vec::with_capacity(n_intv);
 
     for _ in 0..n_intv {
         let ioffset = reader
