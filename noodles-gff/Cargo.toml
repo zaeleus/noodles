@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gff"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"

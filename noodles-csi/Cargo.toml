@@ -1,6 +1,6 @@
 [package]
 name = "noodles-csi"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -12,4 +12,4 @@ documentation = "https://docs.rs/noodles-csi"
 [dependencies]
 bit-vec = "0.6.1"
 byteorder = "1.2.3"
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }

@@ -1,6 +1,6 @@
 [package]
 name = "noodles-tabix"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -13,5 +13,5 @@ documentation = "https://docs.rs/noodles-tabix"
 bit-vec = "0.6.1"
 byteorder = "1.2.3"
 indexmap = "1.4.0"
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.1.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.1.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.2.0" }
