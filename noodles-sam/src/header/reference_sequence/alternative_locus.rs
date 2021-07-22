@@ -32,6 +32,8 @@ pub enum ParseError {
     Empty,
     /// The reference sequence name is missing.
     MissingReferenceSequenceName,
+    /// The reference sequence name is invalid.
+    InvalidReferenceSequenceName,
     /// The interval is invalid.
     InvalidInterval,
 }
@@ -43,6 +45,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingReferenceSequenceName => f.write_str("missing reference sequence name"),
+            Self::InvalidReferenceSequenceName => f.write_str("invalid reference sequence name"),
             Self::InvalidInterval => f.write_str("invalid interval"),
         }
     }
@@ -52,6 +55,8 @@ impl FromStr for AlternativeLocus {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use crate::record::reference_sequence_name::is_valid_name;
+
         match s {
             "" => Err(ParseError::Empty),
             UNKNOWN => Ok(Self::Unknown),
@@ -60,15 +65,18 @@ impl FromStr for AlternativeLocus {
 
                 let reference_sequence_name = components
                     .next()
-                    .map(|t| t.into())
                     .ok_or(ParseError::MissingReferenceSequenceName)?;
+
+                if !is_valid_name(reference_sequence_name) {
+                    return Err(ParseError::InvalidReferenceSequenceName);
+                }
 
                 let interval = components
                     .next()
                     .map(|t| parse_interval(t).map(Some))
                     .unwrap_or(Ok(None))?;
 
-                Ok(Self::Region(reference_sequence_name, interval))
+                Ok(Self::Region(reference_sequence_name.into(), interval))
             }
         }
     }
@@ -124,5 +132,10 @@ mod tests {
         );
 
         assert_eq!("".parse::<AlternativeLocus>(), Err(ParseError::Empty));
+
+        assert_eq!(
+            "=".parse::<AlternativeLocus>(),
+            Err(ParseError::InvalidReferenceSequenceName)
+        );
     }
 }
