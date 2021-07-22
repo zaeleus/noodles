@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * header/reference_sequence: Add alternative locus (`AH`) parser.
+
 ## 0.1.1 - 2021-07-21
 
 ### Fixed

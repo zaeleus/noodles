@@ -1,5 +1,6 @@
 //! SAM header reference sequence and fields.
 
+pub mod alternative_locus;
 pub mod alternative_names;
 pub mod builder;
 pub mod md5_checksum;
@@ -9,8 +10,8 @@ pub mod tag;
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
 
 pub use self::{
-    alternative_names::AlternativeNames, builder::Builder, md5_checksum::Md5Checksum,
-    molecule_topology::MoleculeTopology, tag::Tag,
+    alternative_locus::AlternativeLocus, alternative_names::AlternativeNames, builder::Builder,
+    md5_checksum::Md5Checksum, molecule_topology::MoleculeTopology, tag::Tag,
 };
 
 use crate::record::reference_sequence_name::is_valid_name;
