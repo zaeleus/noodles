@@ -114,6 +114,21 @@ mod tests {
     ];
 
     #[test]
+    fn test_decode() -> io::Result<()> {
+        let mut decoder = BlockCodec;
+
+        let mut src = BytesMut::from(BLOCK);
+
+        let block = decoder.decode(&mut src)?;
+        assert_eq!(block.as_deref(), Some(BLOCK));
+
+        let block = decoder.decode(&mut src)?;
+        assert!(block.is_none());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_encode() -> io::Result<()> {
         let mut encoder = BlockCodec;
 
