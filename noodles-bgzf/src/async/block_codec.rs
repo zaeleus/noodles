@@ -6,9 +6,9 @@ use tokio_util::codec::Decoder;
 
 use crate::BGZF_HEADER_SIZE;
 
-pub struct BlockDecoder;
+pub struct BlockCodec;
 
-impl Decoder for BlockDecoder {
+impl Decoder for BlockCodec {
     type Item = BytesMut;
     type Error = io::Error;
 

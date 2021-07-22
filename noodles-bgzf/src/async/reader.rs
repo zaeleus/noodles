@@ -1,4 +1,3 @@
-mod block_decoder;
 mod blocks;
 
 use std::{

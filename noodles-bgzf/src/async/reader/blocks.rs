@@ -14,12 +14,12 @@ use tokio_util::codec::FramedRead;
 
 use crate::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
-use super::block_decoder::BlockDecoder;
+use crate::r#async::BlockCodec;
 
 pin_project! {
     pub struct Blocks<R> {
         #[pin]
-        inner: FramedRead<R, BlockDecoder>,
+        inner: FramedRead<R, BlockCodec>,
     }
 }
 
@@ -29,7 +29,7 @@ where
 {
     pub fn new(inner: R) -> Self {
         Self {
-            inner: FramedRead::new(inner, BlockDecoder),
+            inner: FramedRead::new(inner, BlockCodec),
         }
     }
 }
