@@ -33,7 +33,7 @@ const MIN_LENGTH: i32 = 1;
 pub struct ReferenceSequence {
     name: String,
     len: i32,
-    alternative_locus: Option<String>,
+    alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
     description: Option<String>,
@@ -188,8 +188,8 @@ impl ReferenceSequence {
     /// assert!(reference_sequence.alternative_locus().is_none());
     /// # Ok::<(), noodles_sam::header::reference_sequence::NewError>(())
     /// ```
-    pub fn alternative_locus(&self) -> Option<&str> {
-        self.alternative_locus.as_deref()
+    pub fn alternative_locus(&self) -> Option<&AlternativeLocus> {
+        self.alternative_locus.as_ref()
     }
 
     /// Returns the alternative names (aliases) of the reference sequence.
@@ -387,6 +387,8 @@ pub enum TryFromRecordError {
     InvalidName,
     /// The length tag (`LN`) has an invalid value.
     InvalidLength,
+    /// The alternative names tag (`AH`) has an invalid value.
+    InvalidAlternativeLocus(alternative_locus::ParseError),
     /// The alternative names tag (`AN`) has an invalid value.
     InvalidAlternativeNames(alternative_names::ParseError),
     /// The MD5 checksum is invalid.
@@ -405,6 +407,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
             Self::InvalidName => write!(f, "invalid name"),
             Self::InvalidLength => write!(f, "invalid length"),
+            Self::InvalidAlternativeLocus(e) => write!(f, "invalid alternative locus: {}", e),
             Self::InvalidAlternativeNames(e) => write!(f, "invalid alternative names: {}", e),
             Self::InvalidMd5Checksum(e) => write!(f, "invalid MD5 checksum: {}", e),
             Self::InvalidMoleculeTopology(e) => write!(f, "invalid molecule topology: {}", e),
@@ -440,7 +443,12 @@ fn parse_map(raw_fields: Fields) -> Result<ReferenceSequence, TryFromRecordError
 
                 builder.set_length(len)
             }
-            Tag::AlternativeLocus => builder.set_alternative_locus(value),
+            Tag::AlternativeLocus => {
+                let alternative_locus = value
+                    .parse()
+                    .map_err(TryFromRecordError::InvalidAlternativeLocus)?;
+                builder.set_alternative_locus(alternative_locus)
+            }
             Tag::AlternativeNames => {
                 let alternative_names = value
                     .parse()

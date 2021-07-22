@@ -2,14 +2,17 @@
 
 use std::{collections::HashMap, error, fmt};
 
-use super::{AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag, MIN_LENGTH};
+use super::{
+    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag,
+    MIN_LENGTH,
+};
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     name: Option<String>,
     len: Option<i32>,
-    alternative_locus: Option<String>,
+    alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
     description: Option<String>,
@@ -98,22 +101,22 @@ impl Builder {
     ///
     /// ```
     /// # use noodles_sam::header::reference_sequence::builder;
-    /// use noodles_sam::header::ReferenceSequence;
+    /// use noodles_sam::header::{reference_sequence::AlternativeLocus, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .set_alternative_locus("sq0_alt")
+    ///     .set_alternative_locus(AlternativeLocus::Unknown)
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.alternative_locus(), Some("sq0_alt"));
+    /// assert_eq!(
+    ///     reference_sequence.alternative_locus(),
+    ///     Some(&AlternativeLocus::Unknown)
+    /// );
     /// # Ok::<(), builder::BuildError>(())
     /// ```
-    pub fn set_alternative_locus<I>(mut self, alternative_locus: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.alternative_locus = Some(alternative_locus.into());
+    pub fn set_alternative_locus(mut self, alternative_locus: AlternativeLocus) -> Self {
+        self.alternative_locus = Some(alternative_locus);
         self
     }
 

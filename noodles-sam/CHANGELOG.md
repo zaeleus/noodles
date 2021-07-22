@@ -6,6 +6,12 @@
 
   * header/reference_sequence: Add alternative locus (`AH`) parser.
 
+### Changed
+
+  * header/reference_sequence: Parse alternative locus (`AH`) value.
+
+    This is no longer stored as a raw `String`.
+
 ## 0.1.1 - 2021-07-21
 
 ### Fixed
