@@ -145,14 +145,19 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let definition: Definition = ">sq0".parse()?;
-        assert_eq!(definition.name(), "sq0");
-        assert!(definition.description().is_none());
+    fn test_from_str() {
+        assert_eq!(
+            ">sq0".parse(),
+            Ok(Definition::new(String::from("sq0"), None))
+        );
 
-        let definition: Definition = ">sq0  LN:13".parse()?;
-        assert_eq!(definition.name(), "sq0");
-        assert_eq!(definition.description(), Some("LN:13"));
+        assert_eq!(
+            ">sq0  LN:13".parse(),
+            Ok(Definition::new(
+                String::from("sq0"),
+                Some(String::from("LN:13"))
+            ))
+        );
 
         assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));
         assert_eq!("sq0".parse::<Definition>(), Err(ParseError::MissingPrefix));
@@ -160,7 +165,5 @@ mod tests {
             ">".parse::<Definition>(),
             Err(ParseError::MissingReferenceSequenceName)
         );
-
-        Ok(())
     }
 }
