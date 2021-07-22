@@ -42,7 +42,7 @@ fn build_header(
         let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
 
         let reference_sequence = ReferenceSequence::builder()
-            .set_name(record.reference_sequence_name())
+            .set_name(record.name())
             .set_length(sequence.len() as i32)
             .set_md5_checksum(md5_checksum)
             .build()?;

@@ -125,7 +125,7 @@ where
         }
 
         let record = Record::new(
-            definition.reference_sequence_name().into(),
+            definition.name().into(),
             length as u64,
             offset,
             line_bases as u64,

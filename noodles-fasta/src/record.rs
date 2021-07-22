@@ -59,8 +59,26 @@ impl Record {
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
+    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
     pub fn reference_sequence_name(&self) -> &str {
-        self.definition.reference_sequence_name()
+        self.definition.name()
+    }
+
+    /// Returns the record name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    ///
+    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let sequence = b"ACGT".to_vec();
+    /// let record = fasta::Record::new(definition, sequence);
+    ///
+    /// assert_eq!(record.name(), "sq0");
+    /// ```
+    pub fn name(&self) -> &str {
+        self.definition.name()
     }
 
     /// Returns the description.

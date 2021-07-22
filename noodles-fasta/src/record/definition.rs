@@ -10,7 +10,7 @@ const PREFIX: char = '>';
 /// description.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Definition {
-    reference_sequence_name: String,
+    name: String,
     description: Option<String>,
 }
 
@@ -23,11 +23,8 @@ impl Definition {
     /// use noodles_fasta::record::Definition;
     /// let definition = Definition::new(String::from("sq0"), None);
     /// ```
-    pub fn new(reference_sequence_name: String, description: Option<String>) -> Self {
-        Self {
-            reference_sequence_name,
-            description,
-        }
+    pub fn new(name: String, description: Option<String>) -> Self {
+        Self { name, description }
     }
 
     /// Returns the reference sequence name.
@@ -39,8 +36,22 @@ impl Definition {
     /// let definition = Definition::new(String::from("sq0"), None);
     /// assert_eq!(definition.reference_sequence_name(), "sq0");
     /// ```
+    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
     pub fn reference_sequence_name(&self) -> &str {
-        &self.reference_sequence_name
+        &self.name
+    }
+
+    /// Returns the record name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::record::Definition;
+    /// let definition = Definition::new(String::from("sq0"), None);
+    /// assert_eq!(definition.name(), "sq0");
+    /// ```
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Returns the description if it is set.
@@ -63,7 +74,7 @@ impl Definition {
 
 impl fmt::Display for Definition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", PREFIX, self.reference_sequence_name())?;
+        write!(f, "{}{}", PREFIX, self.name())?;
 
         if let Some(description) = self.description() {
             write!(f, " {}", description)?;
@@ -109,17 +120,14 @@ impl FromStr for Definition {
         let line = &s[1..];
         let mut components = line.splitn(2, |c: char| c.is_ascii_whitespace());
 
-        let reference_sequence_name = components
+        let name = components
             .next()
             .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
             .ok_or(ParseError::MissingReferenceSequenceName)?;
 
         let description = components.next().map(|s| s.trim().into());
 
-        Ok(Self {
-            reference_sequence_name,
-            description,
-        })
+        Ok(Self { name, description })
     }
 }
 
@@ -139,11 +147,11 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         let definition: Definition = ">sq0".parse()?;
-        assert_eq!(definition.reference_sequence_name(), "sq0");
+        assert_eq!(definition.name(), "sq0");
         assert!(definition.description().is_none());
 
         let definition: Definition = ">sq0  LN:13".parse()?;
-        assert_eq!(definition.reference_sequence_name(), "sq0");
+        assert_eq!(definition.name(), "sq0");
         assert_eq!(definition.description(), Some("LN:13"));
 
         assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));
