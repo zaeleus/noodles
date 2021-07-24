@@ -34,13 +34,10 @@ impl Decoder for BlockCodec {
     }
 }
 
-impl<T> Encoder<T> for BlockCodec
-where
-    T: AsRef<[u8]>,
-{
+impl Encoder<BytesMut> for BlockCodec {
     type Error = io::Error;
 
-    fn encode(&mut self, data: T, dst: &mut BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, data: BytesMut, dst: &mut BytesMut) -> Result<(), Self::Error> {
         let buf = data.as_ref();
 
         let mut encoder = DeflateEncoder::new(Vec::new(), Default::default());
@@ -132,8 +129,9 @@ mod tests {
     fn test_encode() -> io::Result<()> {
         let mut encoder = BlockCodec;
 
+        let buf = BytesMut::from(&b"noodles"[..]);
         let mut dst = BytesMut::new();
-        encoder.encode(b"noodles", &mut dst)?;
+        encoder.encode(buf, &mut dst)?;
 
         assert_eq!(&dst[..], BLOCK);
 
