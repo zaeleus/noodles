@@ -129,6 +129,8 @@ impl Builder {
 
     /// Sets a SAM record position.
     ///
+    /// This value is 1-based.
+    ///
     /// # Examples
     ///
     /// ```
@@ -186,6 +188,8 @@ impl Builder {
     }
 
     /// Sets a SAM record mate reference sequence name.
+    ///
+    /// This value is 1-based.
     ///
     /// # Examples
     ///
