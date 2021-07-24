@@ -60,6 +60,6 @@ mod writer;
 pub use self::{reader::Reader, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 static MAGIC_NUMBER: &[u8] = b"BAM\x01";
