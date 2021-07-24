@@ -46,7 +46,7 @@ mod writer;
 pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use self::block::Block;
 
