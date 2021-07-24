@@ -80,7 +80,8 @@ impl Record {
 
     /// Returns the start position of this record.
     ///
-    /// This value is 1-based.
+    /// Despite the BAM format using 0-based positions, this normalizes the value as a 1-based
+    /// position.
     ///
     /// # Examples
     ///
@@ -187,7 +188,8 @@ impl Record {
 
     /// Returns the start position of the mate of this record.
     ///
-    /// This value is 1-based.
+    /// Despite the BAM format using 0-based positions, this normalizes the value as a 1-based
+    /// position.
     ///
     /// # Examples
     ///
