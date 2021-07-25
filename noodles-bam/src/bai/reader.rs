@@ -96,7 +96,7 @@ where
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let references = read_references(&mut self.inner)?;
-        let n_no_coor = self.inner.read_u64::<LittleEndian>().ok();
+        let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
         Ok(Index::new(references, n_no_coor))
     }
 }
@@ -226,6 +226,17 @@ where
     Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
 }
 
+fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
+where
+    R: Read,
+{
+    match reader.read_u64::<LittleEndian>() {
+        Ok(n) => Ok(Some(n)),
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -282,6 +293,19 @@ mod tests {
         );
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_unplaced_unmapped_record_count() -> io::Result<()> {
+        let data = [];
+        let mut reader = &data[..];
+        assert_eq!(read_unplaced_unmapped_record_count(&mut reader)?, None);
+
+        let data = [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        let mut reader = &data[..];
+        assert_eq!(read_unplaced_unmapped_record_count(&mut reader)?, Some(8));
 
         Ok(())
     }
