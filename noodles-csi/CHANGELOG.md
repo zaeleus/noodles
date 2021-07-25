@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * reader: Return I/O errors when failing to read `n_no_coor`.
+
+    This previously ignored all I/O errors but now only catches
+    `UnexpectedEof`.
+
 ## 0.2.0 - 2021-07-21
 
 ### Added
