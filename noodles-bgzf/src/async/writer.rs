@@ -9,7 +9,7 @@ use std::{
 };
 
 use bytes::BytesMut;
-use futures::{ready, Sink};
+use futures::{ready, sink::Buffer, Sink, SinkExt};
 use pin_project_lite::pin_project;
 use tokio::{
     io::{self, AsyncWrite},
@@ -23,11 +23,13 @@ use crate::{block, writer::BGZF_EOF};
 
 use self::{deflate::Deflate, deflater::Deflater};
 
+const WORKER_COUNT: usize = 8;
+
 pin_project! {
     /// An async BGZF writer.
     pub struct Writer<W> {
         #[pin]
-        sink: Deflater<W>,
+        sink: Buffer<Deflater<W>, Deflate>,
         buf: BytesMut,
     }
 }
@@ -46,7 +48,7 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
-            sink: Deflater::new(FramedWrite::new(inner, BlockCodec)),
+            sink: Deflater::new(FramedWrite::new(inner, BlockCodec)).buffer(WORKER_COUNT),
             buf: BytesMut::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
         }
     }
@@ -105,7 +107,7 @@ where
         let mut sink = this.project().sink;
         ready!(sink.as_mut().poll_close(cx))?;
 
-        let write_all = sink.get_mut().get_mut().write_all(BGZF_EOF);
+        let write_all = sink.get_mut().get_mut().get_mut().write_all(BGZF_EOF);
         pin!(write_all);
         write_all.poll(cx)
     }
