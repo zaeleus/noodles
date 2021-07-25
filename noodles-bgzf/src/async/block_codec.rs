@@ -1,11 +1,12 @@
-use std::io::{self, Write};
+use std::io;
 
 use byteorder::{ByteOrder, LittleEndian};
 use bytes::{BufMut, BytesMut};
-use flate2::{write::DeflateEncoder, Crc};
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::{gz, BGZF_HEADER_SIZE};
+
+use super::writer::deflate::GzData;
 
 pub struct BlockCodec;
 
@@ -34,27 +35,22 @@ impl Decoder for BlockCodec {
     }
 }
 
-impl Encoder<BytesMut> for BlockCodec {
+impl Encoder<GzData> for BlockCodec {
     type Error = io::Error;
 
-    fn encode(&mut self, data: BytesMut, dst: &mut BytesMut) -> Result<(), Self::Error> {
-        let buf = data.as_ref();
-
-        let mut encoder = DeflateEncoder::new(Vec::new(), Default::default());
-        encoder.write_all(buf)?;
-        let compressed_data = encoder.finish()?;
-
-        let cdata_len = compressed_data.len();
+    fn encode(
+        &mut self,
+        (cdata, crc32, r#isize): GzData,
+        dst: &mut BytesMut,
+    ) -> Result<(), Self::Error> {
+        let cdata_len = cdata.len();
         let block_size = BGZF_HEADER_SIZE + cdata_len + gz::TRAILER_SIZE;
+
         dst.reserve(block_size);
 
         put_header(dst, block_size);
-
-        dst.extend_from_slice(&compressed_data);
-
-        let mut crc = Crc::new();
-        crc.update(buf);
-        put_trailer(dst, crc.sum(), crc.amount());
+        dst.extend_from_slice(&cdata);
+        put_trailer(dst, crc32, r#isize);
 
         Ok(())
     }
@@ -129,9 +125,14 @@ mod tests {
     fn test_encode() -> io::Result<()> {
         let mut encoder = BlockCodec;
 
-        let buf = BytesMut::from(&b"noodles"[..]);
+        let cdata = vec![0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00];
+        let crc32 = 0x802a58a1;
+        let r#isize = 7;
+        let data = (cdata, crc32, r#isize);
+
         let mut dst = BytesMut::new();
-        encoder.encode(buf, &mut dst)?;
+
+        encoder.encode(data, &mut dst)?;
 
         assert_eq!(&dst[..], BLOCK);
 

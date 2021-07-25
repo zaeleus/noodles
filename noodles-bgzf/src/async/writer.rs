@@ -1,3 +1,6 @@
+pub(crate) mod deflate;
+mod deflater;
+
 use std::{
     cmp,
     future::Future,
@@ -18,11 +21,13 @@ use super::BlockCodec;
 
 use crate::{block, writer::BGZF_EOF};
 
+use self::{deflate::Deflate, deflater::Deflater};
+
 pin_project! {
     /// An async BGZF writer.
     pub struct Writer<W> {
         #[pin]
-        sink: FramedWrite<W, BlockCodec>,
+        sink: Deflater<W>,
         buf: BytesMut,
     }
 }
@@ -41,7 +46,7 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
-            sink: FramedWrite::new(inner, BlockCodec),
+            sink: Deflater::new(FramedWrite::new(inner, BlockCodec)),
             buf: BytesMut::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
         }
     }
@@ -82,7 +87,7 @@ where
         ready!(this.sink.as_mut().poll_ready(cx))?;
 
         let buf = this.buf.split();
-        this.sink.as_mut().start_send(buf)?;
+        this.sink.as_mut().start_send(Deflate::new(buf))?;
 
         Poll::Ready(Ok(()))
     }
