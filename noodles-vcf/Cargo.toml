@@ -13,7 +13,7 @@ documentation = "https://docs.rs/noodles-vcf"
 async = ["futures", "noodles-bgzf/async", "tokio"]
 
 [dependencies]
-futures = { version = "0.3.15", optional = true }
+futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
 indexmap = "1.4.0"
 nom = "6.1.2"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
