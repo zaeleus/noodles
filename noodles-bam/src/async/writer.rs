@@ -32,6 +32,25 @@ where
         }
     }
 
+    /// Shuts down the output stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam as bam;
+    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn shutdown(&mut self) -> io::Result<()> {
+        self.inner.shutdown().await
+    }
+
     /// Writes a SAM header.
     ///
     /// # Examples
