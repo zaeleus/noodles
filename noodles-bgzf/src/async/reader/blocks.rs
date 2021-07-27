@@ -7,7 +7,7 @@ use std::{
 
 use bytes::BytesMut;
 use flate2::bufread::DeflateDecoder;
-use futures::Stream;
+use futures::{ready, Stream};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 use tokio_util::codec::FramedRead;
@@ -55,11 +55,10 @@ where
     type Item = io::Result<Pin<Box<dyn Future<Output = io::Result<Block>>>>>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match self.project().inner.poll_next(cx) {
-            Poll::Ready(Some(Ok(buf))) => Poll::Ready(Some(Ok(Box::pin(build_block(buf))))),
-            Poll::Ready(Some(Err(e))) => Poll::Ready(Some(Err(e))),
-            Poll::Ready(None) => Poll::Ready(None),
-            Poll::Pending => Poll::Pending,
+        match ready!(self.project().inner.poll_next(cx)) {
+            Some(Ok(buf)) => Poll::Ready(Some(Ok(Box::pin(build_block(buf))))),
+            Some(Err(e)) => Poll::Ready(Some(Err(e))),
+            None => Poll::Ready(None),
         }
     }
 }

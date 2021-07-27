@@ -6,7 +6,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use futures::{stream::TryBuffered, Stream, StreamExt, TryStreamExt};
+use futures::{ready, stream::TryBuffered, Stream, StreamExt, TryStreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
@@ -111,11 +111,7 @@ where
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        let block_buf = match self.as_mut().poll_fill_buf(cx) {
-            Poll::Ready(Ok(b)) => b,
-            Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
-            Poll::Pending => return Poll::Pending,
-        };
+        let block_buf = ready!(self.as_mut().poll_fill_buf(cx))?;
 
         let len = cmp::min(block_buf.len(), buf.remaining());
         buf.put_slice(&block_buf[..len]);
@@ -136,13 +132,12 @@ where
         if this.block.is_eof() {
             let stream = this.stream.as_pin_mut().expect("missing stream");
 
-            match stream.poll_next(cx) {
-                Poll::Ready(Some(Ok(block))) => {
+            match ready!(stream.poll_next(cx)) {
+                Some(Ok(block)) => {
                     *this.block = block;
                 }
-                Poll::Ready(Some(Err(e))) => return Poll::Ready(Err(e)),
-                Poll::Ready(None) => return Poll::Ready(Ok(&[])),
-                Poll::Pending => return Poll::Pending,
+                Some(Err(e)) => return Poll::Ready(Err(e)),
+                None => return Poll::Ready(Ok(&[])),
             }
         }
 
