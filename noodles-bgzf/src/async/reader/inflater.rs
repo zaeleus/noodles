@@ -17,13 +17,13 @@ use crate::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 use crate::r#async::BlockCodec;
 
 pin_project! {
-    pub struct Blocks<R> {
+    pub struct Inflater<R> {
         #[pin]
         inner: FramedRead<R, BlockCodec>,
     }
 }
 
-impl<R> Blocks<R>
+impl<R> Inflater<R>
 where
     R: AsyncRead,
 {
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<R> Blocks<R>
+impl<R> Inflater<R>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<R> Stream for Blocks<R>
+impl<R> Stream for Inflater<R>
 where
     R: AsyncRead,
 {
@@ -56,14 +56,14 @@ where
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match ready!(self.project().inner.poll_next(cx)) {
-            Some(Ok(buf)) => Poll::Ready(Some(Ok(Box::pin(build_block(buf))))),
+            Some(Ok(buf)) => Poll::Ready(Some(Ok(Box::pin(inflate(buf))))),
             Some(Err(e)) => Poll::Ready(Some(Err(e))),
             None => Poll::Ready(None),
         }
     }
 }
 
-async fn build_block(src: BytesMut) -> io::Result<Block> {
+async fn inflate(src: BytesMut) -> io::Result<Block> {
     tokio::task::spawn_blocking(move || {
         let cdata_len = src.len() - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
         let cdata = &src[BGZF_HEADER_SIZE..BGZF_HEADER_SIZE + cdata_len];

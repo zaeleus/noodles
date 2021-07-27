@@ -1,4 +1,4 @@
-mod blocks;
+mod inflater;
 
 use std::{
     cmp, io,
@@ -12,7 +12,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 use crate::{Block, VirtualPosition};
 
-use self::blocks::Blocks;
+use self::inflater::Inflater;
 
 const WORKER_COUNT: usize = 8;
 
@@ -23,7 +23,7 @@ pin_project! {
         R: AsyncRead,
     {
         #[pin]
-        stream: Option<TryBuffered<Blocks<R>>>,
+        stream: Option<TryBuffered<Inflater<R>>>,
         block: Block,
     }
 }
@@ -35,7 +35,7 @@ where
     /// Creates an async BGZF reader.
     pub fn new(inner: R) -> Self {
         Self {
-            stream: Some(Blocks::new(inner).try_buffered(WORKER_COUNT)),
+            stream: Some(Inflater::new(inner).try_buffered(WORKER_COUNT)),
             block: Block::default(),
         }
     }
