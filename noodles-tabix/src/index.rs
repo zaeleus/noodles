@@ -28,7 +28,7 @@ pub struct Index {
     header: Header,
     reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
-    unmapped_read_count: Option<u64>,
+    unplaced_unmapped_record_count: Option<u64>,
 }
 
 impl Index {
@@ -102,7 +102,7 @@ impl Index {
         note = "Use `unplaced_unmapped_record_count` instead."
     )]
     pub fn unmapped_read_count(&self) -> Option<u64> {
-        self.unmapped_read_count
+        self.unplaced_unmapped_record_count
     }
 }
 
@@ -132,7 +132,7 @@ impl BinningIndex<ReferenceSequence> for Index {
     /// assert!(index.unplaced_unmapped_record_count().is_none());
     /// ```
     fn unplaced_unmapped_record_count(&self) -> Option<u64> {
-        self.unmapped_read_count
+        self.unplaced_unmapped_record_count
     }
 
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>

@@ -77,8 +77,8 @@ where
             .set_reference_sequence_names(names)
             .set_reference_sequences(references);
 
-        if let Some(unmapped_read_count) = n_no_coor {
-            builder = builder.set_unmapped_read_count(unmapped_read_count);
+        if let Some(unplaced_unmapped_record_count) = n_no_coor {
+            builder = builder.set_unplaced_unmapped_record_count(unplaced_unmapped_record_count);
         }
 
         Ok(builder.build())

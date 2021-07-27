@@ -9,7 +9,7 @@ pub struct Builder {
     header: Header,
     reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
-    unmapped_read_count: Option<u64>,
+    unplaced_unmapped_record_count: Option<u64>,
 }
 
 impl Builder {
@@ -87,8 +87,33 @@ impl Builder {
     ///
     /// assert_eq!(index.unmapped_read_count(), Some(21));
     /// ```
-    pub fn set_unmapped_read_count(mut self, unmapped_read_count: u64) -> Self {
-        self.unmapped_read_count = Some(unmapped_read_count);
+    #[deprecated(
+        since = "0.3.0",
+        note = "Use `set_unplaced_unmapped_record_count` instead."
+    )]
+    pub fn set_unmapped_read_count(self, unmapped_read_count: u64) -> Self {
+        self.set_unplaced_unmapped_record_count(unmapped_read_count)
+    }
+
+    /// Sets an unplaced, unmapped record count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_csi::BinningIndex;
+    /// use noodles_tabix as tabix;
+    ///
+    /// let index = tabix::Index::builder()
+    ///     .set_unplaced_unmapped_record_count(21)
+    ///     .build();
+    ///
+    /// assert_eq!(index.unplaced_unmapped_record_count(), Some(21));
+    /// ```
+    pub fn set_unplaced_unmapped_record_count(
+        mut self,
+        unplaced_unmapped_record_count: u64,
+    ) -> Self {
+        self.unplaced_unmapped_record_count = Some(unplaced_unmapped_record_count);
         self
     }
 
@@ -105,7 +130,7 @@ impl Builder {
             header: self.header,
             reference_sequence_names: self.reference_sequence_names,
             reference_sequences: self.reference_sequences,
-            unmapped_read_count: self.unmapped_read_count,
+            unplaced_unmapped_record_count: self.unplaced_unmapped_record_count,
         }
     }
 }
@@ -116,7 +141,7 @@ impl Default for Builder {
             header: Header::builder().build(),
             reference_sequence_names: IndexSet::new(),
             reference_sequences: Vec::new(),
-            unmapped_read_count: None,
+            unplaced_unmapped_record_count: None,
         }
     }
 }

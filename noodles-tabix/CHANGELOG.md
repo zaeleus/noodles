@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Deprecated
+
+  * index/builder: Deprecate `set_unmapped_read_count`.
+
+    Use `set_unplaced_unmapped_record_count` instead.
+
 ### Fixed
 
   * reader: Return I/O errors when failing to read `n_no_coor`.
