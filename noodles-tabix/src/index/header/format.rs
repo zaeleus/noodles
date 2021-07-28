@@ -85,7 +85,9 @@ impl TryFrom<i32> for Format {
 impl From<Format> for i32 {
     fn from(format: Format) -> Self {
         match format {
-            Format::Generic(coordinate_system) => i32::from(u16::from(coordinate_system)) << 16,
+            Format::Generic(coordinate_system) => {
+                i32::from(u16::from(coordinate_system)) << COORDINATE_SYSTEM_SHIFT
+            }
             Format::Sam => 1,
             Format::Vcf => 2,
         }
