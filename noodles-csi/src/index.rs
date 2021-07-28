@@ -153,7 +153,7 @@ impl BinningIndex<ReferenceSequence> for Index {
         let chunks: Vec<_> = query_bins
             .iter()
             .flat_map(|bin| bin.chunks())
-            .cloned()
+            .copied()
             .collect();
 
         Ok(chunks)
