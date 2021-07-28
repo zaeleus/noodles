@@ -55,4 +55,10 @@ mod tests {
         assert_eq!(CoordinateSystem::try_from(1), Ok(CoordinateSystem::Bed));
         assert_eq!(CoordinateSystem::try_from(2), Err(TryFromIntError(2)));
     }
+
+    #[test]
+    fn test_from_coordinate_system_for_u16() {
+        assert_eq!(u16::from(CoordinateSystem::Gff), 0);
+        assert_eq!(u16::from(CoordinateSystem::Bed), 1);
+    }
 }
