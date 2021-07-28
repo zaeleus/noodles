@@ -1,11 +1,8 @@
 //! Async BAM reader and streams.
 
-mod records;
-
-pub use self::records::Records;
-
 use std::convert::TryFrom;
 
+use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 use pin_project_lite::pin_project;
@@ -148,8 +145,17 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::unfold(
+            (&mut self.inner, Record::default()),
+            |(mut reader, mut record)| async {
+                match read_record(&mut reader, &mut record).await {
+                    Ok(0) => None,
+                    Ok(_) => Some((Ok(record.clone()), (reader, record))),
+                    Err(e) => Some((Err(e), (reader, record))),
+                }
+            },
+        ))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
