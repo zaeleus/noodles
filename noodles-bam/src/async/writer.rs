@@ -169,3 +169,25 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+        let reference_sequence = sam::header::ReferenceSequence::new("sq0", 8)?;
+        write_reference_sequence(&mut buf, &reference_sequence).await?;
+
+        let expected = [
+            0x04, 0x00, 0x00, 0x00, // l_name = 4
+            0x73, 0x71, 0x30, 0x00, // name = b"sq0\x00"
+            0x08, 0x00, 0x00, 0x00, // l_ref = 8
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+}
