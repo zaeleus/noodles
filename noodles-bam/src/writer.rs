@@ -154,7 +154,7 @@ where
         self.inner.write_i32::<LittleEndian>(n_ref)?;
 
         for reference_sequence in reference_sequences.values() {
-            write_reference(&mut self.inner, reference_sequence)?;
+            write_reference_sequence(&mut self.inner, reference_sequence)?;
         }
 
         Ok(())
@@ -204,7 +204,10 @@ where
     }
 }
 
-fn write_reference<W>(writer: &mut W, reference_sequence: &ReferenceSequence) -> io::Result<()>
+fn write_reference_sequence<W>(
+    writer: &mut W,
+    reference_sequence: &ReferenceSequence,
+) -> io::Result<()>
 where
     W: Write,
 {
