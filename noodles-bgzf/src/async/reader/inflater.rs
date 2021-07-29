@@ -1,11 +1,12 @@
 use std::{
     future::Future,
     io::{self, Read},
+    mem,
     pin::Pin,
     task::{Context, Poll},
 };
 
-use bytes::BytesMut;
+use bytes::{Buf, BytesMut};
 use flate2::bufread::DeflateDecoder;
 use futures::{ready, Stream};
 use pin_project_lite::pin_project;
@@ -63,15 +64,22 @@ where
     }
 }
 
-async fn inflate(src: BytesMut) -> io::Result<Block> {
+async fn inflate(mut src: BytesMut) -> io::Result<Block> {
     tokio::task::spawn_blocking(move || {
-        let cdata_len = src.len() - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
-        let cdata = &src[BGZF_HEADER_SIZE..BGZF_HEADER_SIZE + cdata_len];
+        // header
+        src.advance(BGZF_HEADER_SIZE);
+
+        let cdata = src.split_to(src.len() - gz::TRAILER_SIZE);
+
+        // trailer
+        src.advance(mem::size_of::<u32>()); // CRC32
+        let r#isize = src.get_u32_le();
 
         let mut block = Block::default();
         let udata = block.data_mut();
+        udata.reserve_exact(r#isize as usize);
 
-        let mut decoder = DeflateDecoder::new(cdata);
+        let mut decoder = DeflateDecoder::new(&cdata[..]);
         decoder.read_to_end(udata)?;
 
         Ok(block)
