@@ -53,7 +53,7 @@ impl<R> Stream for Inflater<R>
 where
     R: AsyncRead,
 {
-    type Item = io::Result<Pin<Box<dyn Future<Output = io::Result<Block>>>>>;
+    type Item = io::Result<Pin<Box<dyn Future<Output = io::Result<Block>> + Send>>>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match ready!(self.project().inner.poll_next(cx)) {
