@@ -6,7 +6,7 @@
 
 use std::{convert::TryFrom, io};
 
-use noodles_bcf as bcf;
+use noodles_bcf::{self as bcf, header::StringMap};
 use noodles_vcf::{self as vcf, header::Contig, record::Position};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,8 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    let raw_header = header.to_string();
-    let string_map = raw_header.parse()?;
+    let string_map = StringMap::from(&header);
 
     let record = vcf::Record::builder()
         .set_chromosome("sq0".parse()?)

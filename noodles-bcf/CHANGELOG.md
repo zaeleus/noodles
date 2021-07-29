@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * header/string_map: Implement conversion from `vcf::Header`.
+
 ## 0.2.0 - 2021-07-21
 
 ### Added

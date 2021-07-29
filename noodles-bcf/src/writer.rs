@@ -130,7 +130,7 @@ where
     ///
     /// ```
     /// # use std::convert::TryFrom;
-    /// use noodles_bcf as bcf;
+    /// use noodles_bcf::{self as bcf, header::StringMap};
     /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
     ///
     /// let mut writer = bcf::Writer::new(Vec::new());
@@ -141,7 +141,7 @@ where
     ///
     /// writer.write_header(&header)?;
     ///
-    /// let string_map = header.to_string().parse()?;
+    /// let string_map = StringMap::from(&header);
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)

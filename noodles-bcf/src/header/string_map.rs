@@ -72,6 +72,26 @@ impl FromStr for StringMap {
     }
 }
 
+impl From<&vcf::Header> for StringMap {
+    fn from(header: &vcf::Header) -> Self {
+        let mut string_map = StringMap::default();
+
+        for info in header.infos().values() {
+            string_map.insert(info.id().as_ref().into());
+        }
+
+        for filter in header.filters().values() {
+            string_map.insert(filter.id().into());
+        }
+
+        for format in header.formats().values() {
+            string_map.insert(format.id().as_ref().into());
+        }
+
+        string_map
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,6 +134,52 @@ mod tests {
                 .into_iter()
                 .collect()
             ))
+        );
+    }
+
+    #[test]
+    fn test_vcf_header_for_string_map() {
+        use vcf::{
+            header::{AlternativeAllele, Contig},
+            record::{
+                alternate_bases::allele::{
+                    symbol::{structural_variant::Type, StructuralVariant},
+                    Symbol,
+                },
+                genotype::field::Key as GenotypeKey,
+                info::field::Key as InfoKey,
+            },
+        };
+
+        let header = vcf::Header::builder()
+            .add_contig(Contig::new("sq0"))
+            .add_contig(Contig::new("sq1"))
+            .add_contig(Contig::new("sq2"))
+            .add_info(Info::from(InfoKey::SamplesWithDataCount))
+            .add_info(Info::from(vcf::record::info::field::Key::TotalDepth))
+            .add_filter(Filter::pass())
+            .add_filter(Filter::new("q10", "Quality below 10"))
+            .add_format(Format::from(GenotypeKey::Genotype))
+            .add_format(Format::from(GenotypeKey::ReadDepth))
+            .add_alternative_allele(AlternativeAllele::new(
+                Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+                String::from("Deletion"),
+            ))
+            .build();
+
+        assert_eq!(
+            StringMap::from(&header),
+            StringMap(
+                vec![
+                    String::from("PASS"),
+                    String::from("NS"),
+                    String::from("DP"),
+                    String::from("q10"),
+                    String::from("GT"),
+                ]
+                .into_iter()
+                .collect()
+            )
         );
     }
 }
