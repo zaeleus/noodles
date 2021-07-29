@@ -222,12 +222,12 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::Contig};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .add_contig(Contig::new("sq0"))
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
-    /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
+    /// assert_eq!(contigs[0], Contig::new("sq0"));
     /// ```
     pub fn contigs(&self) -> &Contigs {
         &self.contigs

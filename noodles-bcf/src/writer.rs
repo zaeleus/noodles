@@ -136,7 +136,7 @@ where
     /// let mut writer = bcf::Writer::new(Vec::new());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .add_contig(Contig::new("sq0"))
     ///     .build();
     ///
     /// writer.write_header(&header)?;

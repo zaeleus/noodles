@@ -28,11 +28,14 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new(String::from("sq0"));
+    /// let contig = Contig::new("sq0");
     /// ```
-    pub fn new(id: String) -> Self {
+    pub fn new<S>(id: S) -> Self
+    where
+        S: Into<String>,
+    {
         Self {
-            id,
+            id: id.into(),
             len: None,
             fields: IndexMap::new(),
         }
@@ -44,7 +47,7 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new(String::from("sq0"));
+    /// let contig = Contig::new("sq0");
     /// assert_eq!(contig.id(), "sq0");
     /// ```
     pub fn id(&self) -> &str {
@@ -57,7 +60,7 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new(String::from("sq0"));
+    /// let contig = Contig::new("sq0");
     /// assert_eq!(contig.len(), None);
     /// ```
     pub fn len(&self) -> Option<i32> {

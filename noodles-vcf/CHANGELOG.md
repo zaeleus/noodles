@@ -4,6 +4,8 @@
 
 ### Added
 
+  * vcf/header/contig: Accept `Into<String>` arguments in constructor.
+
   * vcf/header/filter: Accept `Into<String>` arguments in constructor.
 
 ## 0.1.1 - 2021-07-21

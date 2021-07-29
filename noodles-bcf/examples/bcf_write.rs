@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = vcf::Header::builder()
         .add_filter(vcf::header::Filter::pass())
-        .add_contig(Contig::new(String::from("sq0")))
+        .add_contig(Contig::new("sq0"))
         .build();
 
     writer.write_header(&header)?;
