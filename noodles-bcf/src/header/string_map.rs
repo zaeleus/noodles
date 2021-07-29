@@ -3,9 +3,8 @@ use std::{convert::TryFrom, ops::Deref, str::FromStr};
 use indexmap::IndexSet;
 use noodles_vcf::{
     self as vcf,
-    header::{Filter, ParseError, Record},
+    header::{Filter, Format, Info, ParseError, Record},
 };
-use vcf::header::{Format, Info};
 
 /// An indexed map of VCF strings.
 ///
