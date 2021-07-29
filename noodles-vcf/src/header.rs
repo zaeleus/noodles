@@ -571,7 +571,7 @@ impl FromStr for Header {
 
         let mut has_header = false;
 
-        while let Some(line) = lines.next() {
+        for line in &mut lines {
             if line.starts_with("#CHROM") {
                 builder = parse_header(builder, line)?;
                 has_header = true;
