@@ -886,7 +886,7 @@ where
             reader.read_u8()
         }
         Encoding::Huffman(alphabet, bit_lens) => {
-            let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
+            let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
             decoder.read(core_data_reader).map(|i| i as u8)
         }
         Encoding::Beta(offset, len) => core_data_reader
@@ -919,7 +919,7 @@ where
             read_itf8(reader)
         }
         Encoding::Huffman(alphabet, bit_lens) => {
-            let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
+            let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
             decoder.read(core_data_reader)
         }
         Encoding::Beta(offset, len) => core_data_reader
@@ -956,11 +956,11 @@ where
             Ok(buf)
         }
         Encoding::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = decode_itf8(&len_encoding, core_data_reader, external_data_readers)?;
+            let len = decode_itf8(len_encoding, core_data_reader, external_data_readers)?;
 
             let buf = vec![0; len as usize];
             let value = decode_byte_array(
-                &value_encoding,
+                value_encoding,
                 core_data_reader,
                 external_data_readers,
                 Some(buf),
