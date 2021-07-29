@@ -29,13 +29,10 @@ impl Filter {
     /// ```
     /// use noodles_vcf::header::Filter;
     /// let filter = Filter::pass();
-    /// assert_eq!(filter, Filter::new(String::from("PASS"), String::from("All filters passed")));
+    /// assert_eq!(filter, Filter::new("PASS", "All filters passed"));
     /// ```
     pub fn pass() -> Self {
-        Self::new(
-            Filters::Pass.to_string(),
-            String::from("All filters passed"),
-        )
+        Self::new(Filters::Pass.to_string(), "All filters passed")
     }
 
     /// Creates a VCF header filter record.
@@ -44,12 +41,16 @@ impl Filter {
     ///
     /// ```
     /// use noodles_vcf::header::Filter;
-    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// let filter = Filter::new("q10", "Quality below 10");
     /// ```
-    pub fn new(id: String, description: String) -> Self {
+    pub fn new<S, T>(id: S, description: T) -> Self
+    where
+        S: Into<String>,
+        T: Into<String>,
+    {
         Self {
-            id,
-            description,
+            id: id.into(),
+            description: description.into(),
             idx: None,
             fields: IndexMap::new(),
         }
@@ -61,7 +62,7 @@ impl Filter {
     ///
     /// ```
     /// use noodles_vcf::header::Filter;
-    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// let filter = Filter::new("q10", "Quality below 10");
     /// assert_eq!(filter.id(), "q10");
     /// ```
     pub fn id(&self) -> &str {
@@ -74,7 +75,7 @@ impl Filter {
     ///
     /// ```
     /// use noodles_vcf::header::Filter;
-    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// let filter = Filter::new("q10", "Quality below 10");
     /// assert_eq!(filter.description(), "Quality below 10");
     /// ```
     pub fn description(&self) -> &str {
@@ -89,7 +90,7 @@ impl Filter {
     ///
     /// ```
     /// use noodles_vcf::header::Filter;
-    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// let filter = Filter::new("q10", "Quality below 10");
     /// assert!(filter.idx().is_none());
     /// ```
     pub fn idx(&self) -> Option<usize> {
@@ -104,7 +105,7 @@ impl Filter {
     ///
     /// ```
     /// use noodles_vcf::header::Filter;
-    /// let filter = Filter::new(String::from("q10"), String::from("Quality below 10"));
+    /// let filter = Filter::new("q10", "Quality below 10");
     /// assert!(filter.fields().is_empty());
     /// ```
     pub fn fields(&self) -> &IndexMap<String, String> {
@@ -250,10 +251,7 @@ mod tests {
 
         assert_eq!(
             Filter::try_from(record),
-            Ok(Filter::new(
-                String::from("q10"),
-                String::from("Quality below 10"),
-            ))
+            Ok(Filter::new("q10", "Quality below 10"))
         );
     }
 

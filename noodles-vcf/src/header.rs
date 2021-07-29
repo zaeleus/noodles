@@ -135,10 +135,7 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::Filter};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_filter(Filter::new(
-    ///         String::from("q10"),
-    ///         String::from("Quality below 10"),
-    ///     ))
+    ///     .add_filter(Filter::new("q10", "Quality below 10"))
     ///     .build();
     ///
     /// let filters = header.filters();

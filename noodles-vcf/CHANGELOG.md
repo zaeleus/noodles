@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/filter: Accept `Into<String>` arguments in constructor.
+
 ## 0.1.1 - 2021-07-21
 
 ### Fixed

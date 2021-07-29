@@ -70,10 +70,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, header::Filter};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_filter(Filter::new(
-    ///         String::from("q10"),
-    ///         String::from("Quality below 10"),
-    ///     ))
+    ///     .add_filter(Filter::new("q10", "Quality below 10"))
     ///     .build();
     ///
     /// let filters = header.filters();
@@ -417,10 +414,7 @@ mod tests {
         let header = Builder::default()
             .set_file_format(FileFormat::new(4, 3))
             .add_info(Info::from(record::info::field::Key::SamplesWithDataCount))
-            .add_filter(Filter::new(
-                String::from("q10"),
-                String::from("Quality below 10"),
-            ))
+            .add_filter(Filter::new("q10", "Quality below 10"))
             .add_format(Format::from(record::genotype::field::Key::Genotype))
             .add_alternative_allele(AlternativeAllele::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
