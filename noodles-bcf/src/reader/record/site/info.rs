@@ -35,7 +35,7 @@ where
             )
         })?;
 
-        let value = read_info_field_value(reader, &info)?;
+        let value = read_info_field_value(reader, info)?;
 
         let field = vcf::record::info::Field::new(key, value);
         fields.push(field);
