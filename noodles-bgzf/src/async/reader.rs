@@ -153,20 +153,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Write;
-
-    use tokio::io::AsyncReadExt;
-
-    use crate::Writer;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
     use super::*;
+    use crate::AsyncWriter;
 
     #[tokio::test]
     async fn test_read() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-        writer.write_all(b"noodles")?;
+        let mut writer = AsyncWriter::new(Vec::new());
+        writer.write_all(b"noodles").await?;
+        writer.shutdown().await?;
 
-        let data = writer.finish()?;
+        let data = writer.into_inner();
         let mut reader = Reader::new(&data[..]);
 
         let mut buf = Vec::new();
