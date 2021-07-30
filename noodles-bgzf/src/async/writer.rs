@@ -3,18 +3,14 @@ mod deflater;
 
 use std::{
     cmp,
-    future::Future,
     pin::Pin,
     task::{Context, Poll},
 };
 
-use bytes::BytesMut;
+use bytes::{Buf, Bytes, BytesMut};
 use futures::{ready, sink::Buffer, Sink, SinkExt};
 use pin_project_lite::pin_project;
-use tokio::{
-    io::{self, AsyncWrite},
-    pin,
-};
+use tokio::io::{self, AsyncWrite};
 use tokio_util::codec::FramedWrite;
 
 use super::BlockCodec;
@@ -31,6 +27,8 @@ pin_project! {
         #[pin]
         sink: Buffer<Deflater<W>, Deflate>,
         buf: BytesMut,
+        #[pin]
+        eof_buf: Bytes,
     }
 }
 
@@ -50,6 +48,7 @@ where
         Self {
             sink: Deflater::new(FramedWrite::new(inner, BlockCodec)).buffer(WORKER_COUNT),
             buf: BytesMut::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
+            eof_buf: Bytes::from_static(BGZF_EOF),
         }
     }
 }
@@ -98,17 +97,25 @@ where
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
     ) -> Poll<Result<(), io::Error>> {
-        use tokio::io::AsyncWriteExt;
+        ready!(self.as_mut().poll_flush(cx))?;
 
-        let mut this = self.as_mut();
+        let mut this = self.project();
+        let mut sink = this.sink.as_mut();
 
-        ready!(this.as_mut().poll_flush(cx))?;
-
-        let mut sink = this.project().sink;
         ready!(sink.as_mut().poll_close(cx))?;
 
-        let write_all = sink.get_mut().get_mut().get_mut().write_all(BGZF_EOF);
-        pin!(write_all);
-        write_all.poll(cx)
+        let mut inner = sink.get_mut().get_mut().get_mut();
+
+        while this.eof_buf.has_remaining() {
+            let bytes_written = ready!(Pin::new(&mut inner).poll_write(cx, this.eof_buf.chunk()))?;
+
+            this.eof_buf.advance(bytes_written);
+
+            if bytes_written == 0 {
+                return Poll::Ready(Err(io::Error::from(io::ErrorKind::WriteZero)));
+            }
+        }
+
+        Poll::Ready(Ok(()))
     }
 }
