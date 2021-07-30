@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bcf"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -14,5 +14,5 @@ byteorder = "1.2.3"
 indexmap = "1.4.0"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
 noodles-core = { path = "../noodles-core", version = "0.1.1" }
-noodles-csi = { path = "../noodles-csi", version = "0.2.0" }
-noodles-vcf = { path = "../noodles-vcf", version = "0.1.1" }
+noodles-csi = { path = "../noodles-csi", version = "0.2.1" }
+noodles-vcf = { path = "../noodles-vcf", version = "0.2.0" }
