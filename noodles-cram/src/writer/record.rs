@@ -21,6 +21,7 @@ use crate::{
     BitWriter, Record,
 };
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WriteRecordError {
     MissingDataSeriesEncoding(DataSeries),

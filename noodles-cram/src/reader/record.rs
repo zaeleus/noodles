@@ -20,6 +20,7 @@ use crate::{
     BitReader, Record,
 };
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ReadRecordError {
     MissingDataSeriesEncoding(DataSeries),
