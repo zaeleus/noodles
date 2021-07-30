@@ -35,6 +35,10 @@ where
         self.sink.get_mut()
     }
 
+    pub fn into_inner(self) -> W {
+        self.sink.into_inner()
+    }
+
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         let mut this = self.project();
 

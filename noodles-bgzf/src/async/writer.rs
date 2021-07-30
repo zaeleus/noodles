@@ -51,6 +51,19 @@ where
             eof_buf: Bytes::from_static(BGZF_EOF),
         }
     }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::AsyncWriter::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.sink.into_inner().into_inner()
+    }
 }
 
 impl<W> AsyncWrite for Writer<W>
