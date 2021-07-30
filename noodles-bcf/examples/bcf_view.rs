@@ -18,8 +18,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let string_map: bcf::header::StringMap = raw_header.parse()?;
 
     for result in reader.records() {
-        let record = result.and_then(|r| r.try_into_vcf_record(&header, &string_map))?;
-        println!("{}", record);
+        let record = result?;
+        let vcf_record = record.try_into_vcf_record(&header, &string_map)?;
+        println!("{}", vcf_record);
     }
 
     Ok(())
