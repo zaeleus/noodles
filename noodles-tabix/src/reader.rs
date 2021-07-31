@@ -171,10 +171,14 @@ fn parse_names(buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
             Some(end) => {
                 let raw_name = &buf[..end];
                 let name = str::from_utf8(raw_name)
-                    .map(|s| s.into())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                names.insert(name);
+                if !names.insert(name.into()) {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("duplicate reference sequence name: {}", name),
+                    ));
+                }
 
                 start += end + 1;
             }
@@ -438,6 +442,16 @@ mod tests {
         assert!(parse_names(&data[..])?.is_empty());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_parse_names_with_duplicate_name() {
+        let data = b"sq0\x00sq0\x00";
+
+        assert!(matches!(
+            parse_names(data),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
     }
 
     #[test]

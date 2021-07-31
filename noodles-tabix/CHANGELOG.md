@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * reader: Disallow duplicate reference sequence names.
+
 ## 0.3.0 - 2021-07-30
 
 ### Deprecated
