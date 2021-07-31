@@ -5,20 +5,16 @@ use std::convert::TryFrom;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
-use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use crate::{reader::bytes_with_nul_to_string, Record, MAGIC_NUMBER};
 
-pin_project! {
-    /// An async BAM reader.
-    pub struct Reader<R>
-    where
-        R: AsyncRead,
-    {
-        #[pin]
-        inner: bgzf::AsyncReader<R>,
-    }
+/// An async BAM reader.
+pub struct Reader<R>
+where
+    R: AsyncRead,
+{
+    inner: bgzf::AsyncReader<R>,
 }
 
 impl<R> Reader<R>
