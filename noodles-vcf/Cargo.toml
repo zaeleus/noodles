@@ -13,7 +13,6 @@ documentation = "https://docs.rs/noodles-vcf"
 async = ["futures", "noodles-bgzf/async", "tokio"]
 
 [dependencies]
-futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
 indexmap = "1.4.0"
 nom = "6.1.2"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
@@ -21,6 +20,8 @@ noodles-core = { path = "../noodles-core", version = "0.1.2" }
 noodles-csi = { path = "../noodles-csi", version = "0.2.1" }
 noodles-tabix = { path = "../noodles-tabix", version = "0.4.0" }
 percent-encoding = "2.1.0"
+
+futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
 tokio = { version = "1.8.0", optional = true, features = ["io-util"] }
 
 [dev-dependencies]
