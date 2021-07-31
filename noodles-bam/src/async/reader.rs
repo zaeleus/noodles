@@ -1,5 +1,3 @@
-//! Async BAM reader and streams.
-
 use std::convert::TryFrom;
 
 use futures::{stream, Stream};
