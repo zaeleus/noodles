@@ -1,11 +1,19 @@
+mod query;
+
 use std::convert::TryFrom;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use crate::{reader::bytes_with_nul_to_string, Record, MAGIC_NUMBER};
+use self::query::query;
+use crate::{
+    reader::{bytes_with_nul_to_string, resolve_region},
+    Record, MAGIC_NUMBER,
+};
 
 /// An async BAM reader.
 pub struct Reader<R>
@@ -199,6 +207,49 @@ where
     /// ```
     pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos).await
+    }
+
+    /// Returns a stream over records that intersect the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>>{
+    /// use futures::StreamExt;
+    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_core::Region;
+    /// use noodles_sam as sam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// let header: sam::Header = reader.read_header().await?.parse()?;
+    ///
+    /// let reference_sequences = header.reference_sequences();
+    /// let index = bai::Index::default();
+    /// let region = Region::mapped("sq0", 8..=13);
+    /// let mut query = reader.query(reference_sequences, &index, &region)?;
+    ///
+    /// while let Some(result) = query.next().await {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<I, IRS>(
+        &mut self,
+        reference_sequences: &ReferenceSequences,
+        index: &I,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    where
+        I: BinningIndex<IRS>,
+        IRS: BinningIndexReferenceSequence,
+    {
+        let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(query(self, chunks, reference_sequence_id, interval))
     }
 }
 

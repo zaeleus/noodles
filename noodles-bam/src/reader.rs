@@ -393,7 +393,7 @@ pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
         })
 }
 
-fn resolve_region(
+pub(crate) fn resolve_region(
     reference_sequences: &ReferenceSequences,
     region: &Region,
 ) -> io::Result<(usize, Interval)> {
