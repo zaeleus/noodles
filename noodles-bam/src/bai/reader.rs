@@ -41,7 +41,7 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    /// Create a BAM index reader.
+    /// Creates a BAM index reader.
     ///
     /// # Examples
     ///
@@ -55,11 +55,13 @@ where
         Self { inner }
     }
 
-    /// Read the BAM index header.
+    /// Reads the BAM index header.
     ///
     /// The BAM index header is just the magic number of the file format.
     ///
     /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
     ///
     /// ```no_run
     /// # use std::{fs::File, io};
@@ -75,6 +77,8 @@ where
     /// Reads the BAM index.
     ///
     /// The position of the stream is expected to be directly after the header.
+    ///
+    /// # Examples
     ///
     /// ```no_run
     /// # use std::{fs::File, io};
