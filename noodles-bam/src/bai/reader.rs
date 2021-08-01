@@ -69,17 +69,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<()> {
-        let mut magic = [0; 4];
-        self.inner.read_exact(&mut magic)?;
-
-        if magic != MAGIC_NUMBER {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid BAI header",
-            ));
-        }
-
-        Ok(())
+        read_magic(&mut self.inner)
     }
 
     /// Reads the BAM index.
@@ -98,6 +88,23 @@ where
         let references = read_references(&mut self.inner)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
         Ok(Index::new(references, n_no_coor))
+    }
+}
+
+fn read_magic<R>(reader: &mut R) -> io::Result<()>
+where
+    R: Read,
+{
+    let mut magic = [0; 4];
+    reader.read_exact(&mut magic)?;
+
+    if magic == MAGIC_NUMBER {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BAI header",
+        ))
     }
 }
 
@@ -242,32 +249,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() {
+    fn test_read_magic() {
         let data = b"BAI\x01";
-        let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_header().is_ok());
+        let mut reader = &data[..];
+        assert!(read_magic(&mut reader).is_ok());
     }
 
     #[test]
-    fn test_read_header_with_invalid_magic_number() {
+    fn test_read_magic_with_invalid_magic_number() {
         let data = [];
-        let mut reader = Reader::new(&data[..]);
+        let mut reader = &data[..];
         assert!(matches!(
-            reader.read_header(),
+            read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         let data = b"BAI";
-        let mut reader = Reader::new(&data[..]);
+        let mut reader = &data[..];
         assert!(matches!(
-            reader.read_header(),
+            read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         let data = b"MThd";
-        let mut reader = Reader::new(&data[..]);
+        let mut reader = &data[..];
         assert!(matches!(
-            reader.read_header(),
+            read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
