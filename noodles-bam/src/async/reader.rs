@@ -226,7 +226,7 @@ where
     /// let header: sam::Header = reader.read_header().await?.parse()?;
     ///
     /// let reference_sequences = header.reference_sequences();
-    /// let index = bai::Index::default();
+    /// let index = bai::r#async::read("sample.bam.bai").await?;
     /// let region = Region::mapped("sq0", 8..=13);
     /// let mut query = reader.query(reference_sequences, &index, &region)?;
     ///

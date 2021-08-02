@@ -4,25 +4,13 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 
 use futures::StreamExt;
 use noodles_bam::{self as bam, bai};
 use noodles_core::Region;
 use noodles_sam as sam;
-use tokio::{fs::File, io};
-
-async fn read_bai<P>(src: P) -> io::Result<bai::Index>
-where
-    P: AsRef<Path>,
-{
-    let mut reader = File::open(src).await.map(bai::AsyncReader::new)?;
-    reader.read_header().await?;
-    reader.read_index().await
-}
+use tokio::fs::File;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -35,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let header: sam::Header = reader.read_header().await?.parse()?;
 
     let reference_sequences = header.reference_sequences();
-    let index = read_bai(src.with_extension("bam.bai")).await?;
+    let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
     let region = Region::from_str_reference_sequences(&raw_region, reference_sequences)?;
     let mut query = reader.query(reference_sequences, &index, &region)?;
 

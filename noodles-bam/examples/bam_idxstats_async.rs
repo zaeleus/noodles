@@ -6,24 +6,12 @@
 //!
 //! The result matches the output of `samtools idxstats <src>`.
 
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
 use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
 use noodles_sam as sam;
-use tokio::{fs::File, io};
-
-async fn read_bai<P>(src: P) -> io::Result<bai::Index>
-where
-    P: AsRef<Path>,
-{
-    let mut reader = File::open(src).await.map(bai::AsyncReader::new)?;
-    reader.read_header().await?;
-    reader.read_index().await
-}
+use tokio::fs::File;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -32,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).await.map(bam::AsyncReader::new)?;
     let header: sam::Header = reader.read_header().await?.parse()?;
 
-    let index = read_bai(src.with_extension("bam.bai")).await?;
+    let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
 
     for (reference_sequence, index_reference_sequence) in header
         .reference_sequences()
