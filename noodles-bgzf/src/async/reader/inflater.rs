@@ -77,7 +77,7 @@ async fn inflate(mut src: BytesMut) -> io::Result<Block> {
 
         let mut block = Block::default();
         let udata = block.data_mut();
-        udata.reserve_exact(r#isize as usize);
+        udata.reserve_exact((r#isize + 1) as usize);
 
         let mut decoder = DeflateDecoder::new(&cdata[..]);
         decoder.read_to_end(udata)?;
