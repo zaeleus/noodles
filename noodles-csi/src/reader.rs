@@ -52,7 +52,6 @@ where
     /// let index = reader.read_index();
     /// # Ok::<(), io::Error>(())
     /// ```
-
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner)?;
 
