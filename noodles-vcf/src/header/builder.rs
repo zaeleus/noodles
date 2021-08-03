@@ -119,7 +119,7 @@ impl Builder {
     /// let header = vcf::Header::builder()
     ///     .add_alternative_allele(AlternativeAllele::new(
     ///         Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///         String::from("Deletion"),
+    ///         "Deletion",
     ///     ))
     ///     .build();
     ///
@@ -420,7 +420,7 @@ mod tests {
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,
                 )),
-                String::from("Deletion"),
+                "Deletion",
             ))
             .set_assembly("file:///assemblies.fasta")
             .add_contig(Contig::new(String::from("sq0")))

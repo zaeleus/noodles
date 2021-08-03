@@ -182,7 +182,7 @@ impl Header {
     /// let header = vcf::Header::builder()
     ///     .add_alternative_allele(AlternativeAllele::new(
     ///         Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///         String::from("Deletion"),
+    ///         "Deletion",
     ///     ))
     ///     .build();
     ///

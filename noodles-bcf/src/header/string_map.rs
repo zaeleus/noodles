@@ -163,7 +163,7 @@ mod tests {
             .add_format(Format::from(GenotypeKey::ReadDepth))
             .add_alternative_allele(AlternativeAllele::new(
                 Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-                String::from("Deletion"),
+                "Deletion",
             ))
             .build();
 

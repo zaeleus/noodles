@@ -33,11 +33,17 @@ impl AlternativeAllele {
     ///
     /// let alternative_allele = AlternativeAllele::new(
     ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     String::from("Deletion"),
+    ///     "Deletion",
     /// );
     /// ```
-    pub fn new(id: Symbol, description: String) -> Self {
-        Self { id, description }
+    pub fn new<D>(id: Symbol, description: D) -> Self
+    where
+        D: Into<String>,
+    {
+        Self {
+            id,
+            description: description.into(),
+        }
     }
 
     /// Returns the alternate allele symbol.
@@ -55,7 +61,7 @@ impl AlternativeAllele {
     ///
     /// let alternative_allele = AlternativeAllele::new(
     ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     String::from("Deletion"),
+    ///     "Deletion",
     /// );
     ///
     /// assert_eq!(
@@ -82,7 +88,7 @@ impl AlternativeAllele {
     ///
     /// let alternative_allele = AlternativeAllele::new(
     ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///     String::from("Deletion"),
+    ///     "Deletion",
     /// );
     ///
     /// assert_eq!(alternative_allele.description(), "Deletion");
@@ -188,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let alternative_allele = AlternativeAllele::new(del(), String::from("Deletion"));
+        let alternative_allele = AlternativeAllele::new(del(), "Deletion");
         let expected = r#"##ALT=<ID=DEL,Description="Deletion">"#;
         assert_eq!(alternative_allele.to_string(), expected);
     }
@@ -199,7 +205,7 @@ mod tests {
 
         assert_eq!(
             AlternativeAllele::try_from(record),
-            Ok(AlternativeAllele::new(del(), String::from("Deletion")))
+            Ok(AlternativeAllele::new(del(), "Deletion"))
         );
     }
 

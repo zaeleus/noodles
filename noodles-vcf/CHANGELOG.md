@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/alternative_allele: Accept `Into<String>` for description in
+    constructor.
+
 ## 0.2.0 - 2021-07-30
 
 ### Added
