@@ -66,8 +66,9 @@ where
 
 async fn inflate(mut src: BytesMut) -> io::Result<Block> {
     tokio::task::spawn_blocking(move || {
-        // header
-        src.advance(BGZF_HEADER_SIZE);
+        let mut header = src.split_to(BGZF_HEADER_SIZE);
+        header.advance(16); // [ID1, ..., SLEN]
+        let bsize = u64::from(header.get_u16_le()) + 1;
 
         let cdata = src.split_to(src.len() - gz::TRAILER_SIZE);
 
@@ -81,6 +82,8 @@ async fn inflate(mut src: BytesMut) -> io::Result<Block> {
 
         let mut decoder = DeflateDecoder::new(&cdata[..]);
         decoder.read_to_end(udata)?;
+
+        block.set_clen(bsize);
 
         Ok(block)
     })

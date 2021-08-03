@@ -25,6 +25,7 @@ pin_project! {
         #[pin]
         stream: Option<TryBuffered<Inflater<R>>>,
         block: Block,
+        position: u64,
     }
 }
 
@@ -37,6 +38,7 @@ where
         Self {
             stream: Some(Inflater::new(inner).try_buffered(WORKER_COUNT)),
             block: Block::default(),
+            position: 0,
         }
     }
 
@@ -88,8 +90,12 @@ where
         self.block = match stream.next().await {
             Some(Ok(mut block)) => {
                 let (cpos, upos) = pos.into();
+
+                self.position = cpos + block.clen();
+
                 block.set_cpos(cpos);
                 block.set_upos(u32::from(upos));
+
                 block
             }
             Some(Err(e)) => return Err(e),
@@ -133,7 +139,9 @@ where
             let stream = this.stream.as_pin_mut().expect("missing stream");
 
             match ready!(stream.poll_next(cx)) {
-                Some(Ok(block)) => {
+                Some(Ok(mut block)) => {
+                    block.set_cpos(*this.position);
+                    *this.position += block.clen();
                     *this.block = block;
                 }
                 Some(Err(e)) => return Poll::Ready(Err(e)),

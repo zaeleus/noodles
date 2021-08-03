@@ -42,6 +42,11 @@ impl Block {
         self.clen = clen;
     }
 
+    /// Returns the compressed data length.
+    pub fn clen(&self) -> u64 {
+        self.clen
+    }
+
     /// Sets the position of this block in the compressed stream.
     pub fn set_cpos(&mut self, cpos: u64) {
         self.cpos = cpos;
