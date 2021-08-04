@@ -82,14 +82,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        let magic = read_magic(&mut self.inner)?;
-
-        if magic != MAGIC_NUMBER {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid CRAM header",
-            ));
-        }
+        read_magic_number(&mut self.inner)?;
 
         let format = read_format(&mut self.inner)?;
         let file_id = read_file_id(&mut self.inner)?;
@@ -210,13 +203,21 @@ where
     }
 }
 
-fn read_magic<R>(reader: &mut R) -> io::Result<[u8; 4]>
+fn read_magic_number<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read,
 {
     let mut buf = [0; 4];
     reader.read_exact(&mut buf)?;
-    Ok(buf)
+
+    if buf == MAGIC_NUMBER {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid CRAM header",
+        ))
+    }
 }
 
 fn read_format<R>(reader: &mut R) -> io::Result<Version>
@@ -302,16 +303,6 @@ mod tests {
     }
 
     #[test]
-    fn test_read_file_definition_with_invalid_magic_number() {
-        let data = b"BAM\x01";
-        let mut reader = Reader::new(&data[..]);
-        assert!(matches!(
-            reader.read_file_definition(),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
-        ));
-    }
-
-    #[test]
     fn test_read_file_header_block() -> io::Result<()> {
         let expected = "noodles";
 
@@ -343,6 +334,30 @@ mod tests {
         assert!(matches!(
             read_file_header_block(&block),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
+
+    #[test]
+    fn test_read_magic_number() {
+        let data = b"CRAM";
+        let mut reader = &data[..];
+        assert!(read_magic_number(&mut reader).is_ok());
+    }
+
+    #[test]
+    fn test_read_magic_number_with_invalid_input() {
+        let data = [];
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic_number(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let data = b"BAM\x01";
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic_number(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }
 }
