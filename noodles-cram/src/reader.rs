@@ -264,38 +264,26 @@ fn read_file_header_block(block: &Block) -> io::Result<String> {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use crate::{container::block::ContentType, num::Itf8};
 
     use super::*;
 
-    fn build_file_definition() -> Vec<u8> {
-        let mut data = MAGIC_NUMBER.to_vec();
-
-        let format = [0x03, 0x00];
-        data.extend_from_slice(&format);
-
-        let file_id = [
-            0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
-            0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f,
-        ];
-        data.extend_from_slice(&file_id);
-
-        data
-    }
-
     #[test]
-    fn test_read_file_definition() -> io::Result<()> {
-        let data = build_file_definition();
-        let mut reader = Reader::new(&data[..]);
+    fn test_read_file_definition() -> Result<(), Box<dyn std::error::Error>> {
+        let data = [
+            0x43, 0x52, 0x41, 0x4d, // magic number = b"CRAM"
+            0x03, 0x00, // format version = (3, 0)
+            0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
+            0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f, // file ID
+        ];
 
+        let mut reader = Reader::new(&data[..]);
         let actual = reader.read_file_definition()?;
-        let expected = FileDefinition::new(
-            Version::new(3, 0),
-            [
-                0x00, 0x68, 0xac, 0xf3, 0x06, 0x4d, 0xaa, 0x1e, 0x29, 0xa4, 0xa0, 0x8c, 0x56, 0xee,
-                0x91, 0x9b, 0x91, 0x04, 0x21, 0x1f,
-            ],
-        );
+
+        let file_id = <[u8; 20]>::try_from(&data[6..])?;
+        let expected = FileDefinition::new(Version::new(3, 0), file_id);
 
         assert_eq!(actual, expected);
 
