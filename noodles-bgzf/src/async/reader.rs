@@ -1,4 +1,7 @@
+mod builder;
 mod inflater;
+
+pub use self::builder::Builder;
 
 use std::{
     cmp, io,
@@ -14,8 +17,6 @@ use crate::{Block, VirtualPosition};
 
 use self::inflater::Inflater;
 
-const WORKER_COUNT: usize = 8;
-
 pin_project! {
     /// An async BGZF reader.
     pub struct Reader<R>
@@ -26,6 +27,7 @@ pin_project! {
         stream: Option<TryBuffered<Inflater<R>>>,
         block: Block,
         position: u64,
+        worker_count: usize,
     }
 }
 
@@ -33,13 +35,23 @@ impl<R> Reader<R>
 where
     R: AsyncRead,
 {
+    /// Creates an async BGZF reader builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let builder = bgzf::AsyncReader::builder(&data[..]);
+    /// let reader = builder.build();
+    /// ```
+    pub fn builder(inner: R) -> Builder<R> {
+        Builder::new(inner)
+    }
+
     /// Creates an async BGZF reader.
     pub fn new(inner: R) -> Self {
-        Self {
-            stream: Some(Inflater::new(inner).try_buffered(WORKER_COUNT)),
-            block: Block::default(),
-            position: 0,
-        }
+        Self::builder(inner).build()
     }
 
     /// Returns the current virtual position of the stream.
@@ -85,7 +97,7 @@ where
 
         blocks.seek(pos).await?;
 
-        let mut stream = blocks.try_buffered(WORKER_COUNT);
+        let mut stream = blocks.try_buffered(self.worker_count);
 
         self.block = match stream.next().await {
             Some(Ok(mut block)) => {
