@@ -6,7 +6,7 @@ use std::{
 };
 
 use bytes::BytesMut;
-use flate2::{write::DeflateEncoder, Crc};
+use flate2::{write::DeflateEncoder, Compression, Crc};
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
@@ -21,9 +21,9 @@ pin_project! {
 }
 
 impl Deflate {
-    pub fn new(data: BytesMut) -> Self {
+    pub fn new(data: BytesMut, compression: Compression) -> Self {
         Self {
-            handle: tokio::task::spawn_blocking(move || deflate(data)),
+            handle: tokio::task::spawn_blocking(move || deflate(data, compression)),
         }
     }
 }
@@ -36,8 +36,8 @@ impl Future for Deflate {
     }
 }
 
-fn deflate(data: BytesMut) -> io::Result<GzData> {
-    let mut encoder = DeflateEncoder::new(Vec::new(), Default::default());
+fn deflate(data: BytesMut, compression: Compression) -> io::Result<GzData> {
+    let mut encoder = DeflateEncoder::new(Vec::new(), compression);
     encoder.write_all(&data[..])?;
     let compressed_data = encoder.finish()?;
 

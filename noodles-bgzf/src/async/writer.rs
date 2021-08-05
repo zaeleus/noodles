@@ -11,6 +11,7 @@ use std::{
 };
 
 use bytes::{Buf, Bytes, BytesMut};
+use flate2::Compression;
 use futures::{ready, sink::Buffer, Sink};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
@@ -108,7 +109,9 @@ where
         ready!(this.sink.as_mut().poll_ready(cx))?;
 
         let buf = this.buf.split();
-        this.sink.as_mut().start_send(Deflate::new(buf))?;
+        this.sink
+            .as_mut()
+            .start_send(Deflate::new(buf, Compression::default()))?;
 
         Poll::Ready(Ok(()))
     }
