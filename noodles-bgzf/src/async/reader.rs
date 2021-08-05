@@ -50,6 +50,14 @@ where
     }
 
     /// Creates an async BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let data = [];
+    /// let reader = bgzf::AsyncReader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self::builder(inner).build()
     }
