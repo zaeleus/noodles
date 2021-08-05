@@ -1,7 +1,7 @@
 mod header;
 
 use noodles_bgzf as bgzf;
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead};
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::header::ReadHeader;
 
@@ -112,6 +112,37 @@ where
     ///
     pub fn virtual_position(&self) -> bgzf::VirtualPosition {
         self.inner.virtual_position()
+    }
+}
+
+impl<R> Reader<bgzf::AsyncReader<R>>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Seeks the underlying BGZF stream to the given virtual position.
+    ///
+    /// Virtual positions typically come from an associated index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = Cursor::new([]);
+    /// let mut reader = vcf::AsyncReader::new(bgzf::AsyncReader::new(data));
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::default();
+    /// reader.seek(virtual_position).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek(pos).await
     }
 }
 
