@@ -43,6 +43,7 @@ impl Block {
     }
 
     /// Returns the compressed data length.
+    #[cfg(feature = "async")]
     pub fn clen(&self) -> u64 {
         self.clen
     }
