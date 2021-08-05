@@ -1,6 +1,7 @@
 mod header;
 
-use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
+use noodles_bgzf as bgzf;
+use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead};
 
 use self::header::ReadHeader;
 
@@ -86,6 +87,31 @@ where
     /// ```
     pub async fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
+    }
+}
+
+impl<R> Reader<bgzf::AsyncReader<R>>
+where
+    R: AsyncRead,
+{
+    /// Returns the current virtual position of the underlying BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = [];
+    /// let reader = vcf::AsyncReader::new(bgzf::AsyncReader::new(&data[..]));
+    ///
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::default());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    ///
+    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
+        self.inner.virtual_position()
     }
 }
 
