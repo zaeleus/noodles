@@ -28,6 +28,7 @@ pin_project! {
         buf: BytesMut,
         #[pin]
         eof_buf: Bytes,
+        compression_level: Compression,
     }
 }
 
@@ -111,7 +112,7 @@ where
         let buf = this.buf.split();
         this.sink
             .as_mut()
-            .start_send(Deflate::new(buf, Compression::default()))?;
+            .start_send(Deflate::new(buf, *this.compression_level))?;
 
         Poll::Ready(Ok(()))
     }
