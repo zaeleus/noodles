@@ -1,5 +1,8 @@
+mod builder;
 pub(crate) mod deflate;
 mod deflater;
+
+pub use self::builder::Builder;
 
 use std::{
     cmp,
@@ -8,18 +11,13 @@ use std::{
 };
 
 use bytes::{Buf, Bytes, BytesMut};
-use futures::{ready, sink::Buffer, Sink, SinkExt};
+use futures::{ready, sink::Buffer, Sink};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
-use tokio_util::codec::FramedWrite;
 
-use super::BlockCodec;
-
-use crate::{block, writer::BGZF_EOF};
+use crate::block;
 
 use self::{deflate::Deflate, deflater::Deflater};
-
-const WORKER_COUNT: usize = 8;
 
 pin_project! {
     /// An async BGZF writer.
@@ -36,6 +34,19 @@ impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
 {
+    /// Creates an async BGZF writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let builder = bgzf::AsyncWriter::builder(Vec::new());
+    /// let writer = builder.build();
+    /// ```
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
+    }
+
     /// Creates an async BGZF writer with a default compression level.
     ///
     /// # Examples
@@ -45,11 +56,7 @@ where
     /// let writer = bgzf::AsyncWriter::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self {
-            sink: Deflater::new(FramedWrite::new(inner, BlockCodec)).buffer(WORKER_COUNT),
-            buf: BytesMut::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
-            eof_buf: Bytes::from_static(BGZF_EOF),
-        }
+        Self::builder(inner).build()
     }
 
     /// Returns the underlying writer.
@@ -138,6 +145,7 @@ mod tests {
     use tokio::io::AsyncWriteExt;
 
     use super::*;
+    use crate::writer::BGZF_EOF;
 
     #[tokio::test]
     async fn test_write() -> io::Result<()> {
