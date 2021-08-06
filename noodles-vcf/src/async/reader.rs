@@ -1,11 +1,15 @@
 mod header;
+mod query;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi::BinningIndex;
+use noodles_tabix as tabix;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
-use self::header::ReadHeader;
-use crate::Record;
+use self::{header::ReadHeader, query::query};
+use crate::{reader::resolve_region, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -198,6 +202,46 @@ where
     /// ```
     pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos).await
+    }
+
+    /// Returns a stream over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_core::Region;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .await
+    ///     .map(bgzf::AsyncReader::new)
+    ///     .map(vcf::AsyncReader::new)?;
+    ///
+    /// let index = tabix::read("sample.vcf.gz.tbi")?;
+    /// let region = Region::mapped("sq0", 8..=13);
+    /// let mut query = reader.query(&index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query(
+        &mut self,
+        index: &tabix::Index,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+        let (reference_sequence_id, reference_sequence_name, interval) =
+            resolve_region(index, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(query(self, chunks, reference_sequence_name, interval))
     }
 }
 

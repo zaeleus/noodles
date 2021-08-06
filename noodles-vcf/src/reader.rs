@@ -302,7 +302,10 @@ where
     }
 }
 
-fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String, Interval)> {
+pub(crate) fn resolve_region(
+    index: &tabix::Index,
+    region: &Region,
+) -> io::Result<(usize, String, Interval)> {
     if let Some(r) = region.as_mapped() {
         let i = index
             .reference_sequence_names()
