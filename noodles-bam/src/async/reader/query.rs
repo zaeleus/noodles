@@ -71,23 +71,15 @@ where
                                 context.state = State::Seek;
                             }
 
-                            if let Some(reference_sequence_id) = record.reference_sequence_id() {
-                                let reference_sequence_id =
-                                    i32::from(reference_sequence_id) as usize;
-
-                                let start =
-                                    record.position().map(i32::from).expect("missing position");
-                                let len = match record.cigar().reference_len() {
-                                    Ok(len) => len as i32,
-                                    Err(e) => return Some((Err(e), (reader, context))),
-                                };
-                                let end = start + len - 1;
-
-                                if reference_sequence_id == context.reference_sequence_id
-                                    && in_interval(start, end, context.start, context.end)
-                                {
-                                    return Some((Ok(record), (reader, context)));
-                                }
+                            match intersects(
+                                &record,
+                                context.reference_sequence_id,
+                                context.start,
+                                context.end,
+                            ) {
+                                Ok(true) => return Some((Ok(record), (reader, context))),
+                                Ok(false) => {}
+                                Err(e) => return Some((Err(e), (reader, context))),
                             }
                         }
                         Some(Err(e)) => {
@@ -135,6 +127,24 @@ where
         Ok(_) => Some(Ok(record)),
         Err(e) => Some(Err(e)),
     }
+}
+
+fn intersects(
+    record: &Record,
+    reference_sequence_id: usize,
+    interval_start: i32,
+    interval_end: i32,
+) -> io::Result<bool> {
+    let id = match record.reference_sequence_id() {
+        Some(i) => i32::from(i) as usize,
+        None => return Ok(false),
+    };
+
+    let start = record.position().map(i32::from).expect("missing position");
+    let len = record.cigar().reference_len().map(|len| len as i32)?;
+    let end = start + len - 1;
+
+    Ok(id == reference_sequence_id && in_interval(start, end, interval_start, interval_end))
 }
 
 fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
