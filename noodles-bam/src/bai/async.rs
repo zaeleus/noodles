@@ -36,3 +36,31 @@ where
     reader.read_header().await?;
     reader.read_index().await
 }
+
+/// Writes a BAM index to a file.
+///
+/// This is a convenience function and is equivalent to creating a file at the given path, writing
+/// the header, and writing the index.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// #
+/// # #[tokio::main]
+/// # async fn main() -> io::Result<()> {
+/// use noodles_bam::bai;
+/// let index = bai::Index::default();
+/// bai::r#async::write("sample.bam.bai", &index).await?;
+/// # Ok(())
+/// # }
+/// ```
+pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let mut writer = File::create(dst).await.map(Writer::new)?;
+    writer.write_header().await?;
+    writer.write_index(index).await?;
+    Ok(())
+}
