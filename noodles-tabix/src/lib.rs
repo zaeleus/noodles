@@ -26,7 +26,7 @@
 //! ```
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 pub mod index;
 mod reader;
