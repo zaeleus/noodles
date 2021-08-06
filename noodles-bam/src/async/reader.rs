@@ -1,4 +1,7 @@
+mod builder;
 mod query;
+
+pub use self::builder::Builder;
 
 use std::convert::TryFrom;
 
@@ -27,6 +30,20 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
+    /// Creates an async BAM reader builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let data = [];
+    /// let builder = bam::AsyncReader::builder(&data[..]);
+    /// let reader = builder.build();
+    /// ```
+    pub fn builder(inner: R) -> Builder<R> {
+        Builder::new(inner)
+    }
+
     /// Creates an async BAM reader.
     ///
     /// # Examples
