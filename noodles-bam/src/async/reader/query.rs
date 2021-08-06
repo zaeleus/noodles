@@ -14,7 +14,12 @@ enum State {
     Done,
 }
 
-struct Context {
+struct Context<'a, R>
+where
+    R: AsyncRead + AsyncSeek,
+{
+    reader: &'a mut Reader<R>,
+
     chunks: Vec<Chunk>,
     i: usize,
 
@@ -37,7 +42,9 @@ where
 {
     let (start, end) = resolve_interval(interval);
 
-    let context = Context {
+    let ctx = Context {
+        reader,
+
         chunks,
         i: 0,
 
@@ -48,54 +55,40 @@ where
         state: State::Seek,
     };
 
-    Box::pin(stream::unfold(
-        (reader, context),
-        |(mut reader, mut context)| async {
-            loop {
-                match context.state {
-                    State::Seek => {
-                        context.state = match next_chunk(&mut context) {
-                            Some(chunk) => {
-                                if let Err(e) = reader.seek(chunk.start()).await {
-                                    return Some((Err(e), (reader, context)));
-                                }
-
-                                State::Read(chunk.end())
-                            }
-                            None => State::Done,
-                        };
-                    }
-                    State::Read(chunk_end) => match next_record(&mut reader).await {
-                        Some(Ok(record)) => {
-                            if reader.virtual_position() >= chunk_end {
-                                context.state = State::Seek;
+    Box::pin(stream::unfold(ctx, |mut ctx| async {
+        loop {
+            match ctx.state {
+                State::Seek => {
+                    ctx.state = match next_chunk(&ctx.chunks, &mut ctx.i) {
+                        Some(chunk) => {
+                            if let Err(e) = ctx.reader.seek(chunk.start()).await {
+                                return Some((Err(e), ctx));
                             }
 
-                            match intersects(
-                                &record,
-                                context.reference_sequence_id,
-                                context.start,
-                                context.end,
-                            ) {
-                                Ok(true) => return Some((Ok(record), (reader, context))),
-                                Ok(false) => {}
-                                Err(e) => return Some((Err(e), (reader, context))),
-                            }
+                            State::Read(chunk.end())
                         }
-                        Some(Err(e)) => {
-                            return Some((Err(e), (reader, context)));
-                        }
-                        None => {
-                            context.state = State::Seek;
-                        }
-                    },
-                    State::Done => {
-                        return None;
-                    }
+                        None => State::Done,
+                    };
                 }
+                State::Read(chunk_end) => match next_record(&mut ctx.reader).await {
+                    Some(Ok(record)) => {
+                        if ctx.reader.virtual_position() >= chunk_end {
+                            ctx.state = State::Seek;
+                        }
+
+                        match intersects(&record, ctx.reference_sequence_id, ctx.start, ctx.end) {
+                            Ok(true) => return Some((Ok(record), ctx)),
+                            Ok(false) => {}
+                            Err(e) => return Some((Err(e), ctx)),
+                        }
+                    }
+                    Some(Err(e)) => return Some((Err(e), ctx)),
+                    None => ctx.state = State::Seek,
+                },
+                State::Done => return None,
             }
-        },
-    ))
+        }
+    }))
 }
 
 fn resolve_interval<B>(interval: B) -> (i32, i32)
@@ -110,9 +103,9 @@ where
     }
 }
 
-fn next_chunk(context: &mut Context) -> Option<Chunk> {
-    let chunk = context.chunks.get(context.i).copied();
-    context.i += 1;
+fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
+    let chunk = chunks.get(*i).copied();
+    *i += 1;
     chunk
 }
 
