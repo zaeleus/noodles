@@ -35,7 +35,7 @@ where
         Builder::new(inner)
     }
 
-    /// Creates an async BAm writer with a default compression level.
+    /// Creates an async BAM writer with a default compression level.
     ///
     /// # Examples
     ///
