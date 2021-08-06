@@ -4,7 +4,7 @@
 
 use std::env;
 
-use futures::StreamExt;
+use futures::TryStreamExt;
 use noodles_bam as bam;
 use tokio::{fs::File, io};
 
@@ -19,8 +19,7 @@ async fn main() -> io::Result<()> {
     let mut records = reader.records();
     let mut n = 0;
 
-    while let Some(result) = records.next().await {
-        let _ = result?;
+    while records.try_next().await?.is_some() {
         n += 1;
     }
 

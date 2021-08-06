@@ -6,7 +6,7 @@
 
 use std::{env, path::PathBuf};
 
-use futures::StreamExt;
+use futures::TryStreamExt;
 use noodles_bam::{self as bam, bai};
 use noodles_core::Region;
 use noodles_sam as sam;
@@ -27,8 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let region = Region::from_str_reference_sequences(&raw_region, reference_sequences)?;
     let mut query = reader.query(reference_sequences, &index, &region)?;
 
-    while let Some(result) = query.next().await {
-        let record = result?;
+    while let Some(record) = query.try_next().await? {
         let sam_record = record.try_into_sam_record(reference_sequences)?;
         println!("{}", sam_record);
     }

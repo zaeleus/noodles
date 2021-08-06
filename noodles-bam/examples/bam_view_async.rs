@@ -4,7 +4,7 @@
 
 use std::env;
 
-use futures::StreamExt;
+use futures::TryStreamExt;
 use noodles_bam as bam;
 use noodles_sam as sam;
 use tokio::fs::File;
@@ -19,8 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut records = reader.records();
 
-    while let Some(result) = records.next().await {
-        let record = result?;
+    while let Some(record) = records.try_next().await? {
         let sam_record = record.try_into_sam_record(header.reference_sequences())?;
         println!("{}", sam_record);
     }
