@@ -132,6 +132,8 @@ where
         Box::pin(stream::unfold(
             (&mut self.inner, String::new()),
             |(mut reader, mut buf)| async {
+                buf.clear();
+
                 match read_line(&mut reader, &mut buf).await {
                     Ok(0) => None,
                     Ok(_) => {
