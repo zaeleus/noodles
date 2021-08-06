@@ -1,9 +1,11 @@
 mod header;
 
+use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::header::ReadHeader;
+use crate::Record;
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -87,6 +89,59 @@ where
     /// ```
     pub async fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// The (input) stream is expected to be directly after the header or at the start of another
+    /// record.
+    ///
+    /// Unlike [`Self::read_record`], each record is parsed as a [`Record`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::StreamExt;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let data = b"##fileformat=VCFv4.3
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// sq0\t1\t.\tA\t.\t.\tPASS\t.
+    /// ";
+    ///
+    /// let mut reader = vcf::AsyncReader::new(&data[..]);
+    /// reader.read_header().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(result) = records.next().await {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::unfold(
+            (&mut self.inner, String::new()),
+            |(mut reader, mut buf)| async {
+                match read_line(&mut reader, &mut buf).await {
+                    Ok(0) => None,
+                    Ok(_) => {
+                        let result = buf
+                            .parse()
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
+
+                        Some((result, (reader, buf)))
+                    }
+                    Err(e) => Some((Err(e), (reader, buf))),
+                }
+            },
+        ))
     }
 }
 

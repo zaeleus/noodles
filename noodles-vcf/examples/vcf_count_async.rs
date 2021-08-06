@@ -4,6 +4,7 @@
 
 use std::env;
 
+use futures::TryStreamExt;
 use noodles_vcf as vcf;
 use tokio::{
     fs::File,
@@ -21,15 +22,11 @@ async fn main() -> io::Result<()> {
 
     reader.read_header().await?;
 
-    let mut buf = String::new();
+    let mut records = reader.records();
     let mut n = 0;
 
-    loop {
-        match reader.read_record(&mut buf).await {
-            Ok(0) => break,
-            Ok(_) => n += 1,
-            Err(e) => return Err(e),
-        }
+    while records.try_next().await?.is_some() {
+        n += 1;
     }
 
     println!("{}", n);
