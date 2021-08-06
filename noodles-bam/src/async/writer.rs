@@ -1,3 +1,7 @@
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::{convert::TryFrom, ffi::CString};
 
 use noodles_bgzf as bgzf;
@@ -18,6 +22,19 @@ impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
 {
+    /// Creates an async BAM writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let builder = bam::AsyncWriter::builder(Vec::new());
+    /// let writer = builder.build();
+    /// ```
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
+    }
+
     /// Creates an async BAm writer with a default compression level.
     ///
     /// # Examples
