@@ -25,11 +25,17 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+mod r#async;
+
 pub mod index;
 mod reader;
 mod writer;
 
 pub use self::{index::Index, reader::Reader, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{fs::File, io, path::Path};
 

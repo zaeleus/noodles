@@ -160,7 +160,7 @@ where
     parse_names(&names)
 }
 
-fn parse_names(buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
+pub(crate) fn parse_names(buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
     let mut names = ReferenceSequenceNames::new();
     let mut start = 0;
 
