@@ -9,7 +9,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use futures::{ready, stream::TryBuffered, Stream, StreamExt, TryStreamExt};
+use futures::{ready, stream::TryBuffered, Stream, TryStreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
@@ -107,8 +107,8 @@ where
 
         let mut stream = blocks.try_buffered(self.worker_count);
 
-        self.block = match stream.next().await {
-            Some(Ok(mut block)) => {
+        self.block = match stream.try_next().await? {
+            Some(mut block) => {
                 let (cpos, upos) = pos.into();
 
                 self.position = cpos + block.clen();
@@ -118,7 +118,6 @@ where
 
                 block
             }
-            Some(Err(e)) => return Err(e),
             None => Block::default(),
         };
 

@@ -109,7 +109,7 @@ where
     ///
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use futures::StreamExt;
+    /// use futures::TryStreamExt;
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
@@ -122,8 +122,7 @@ where
     ///
     /// let mut records = reader.records();
     ///
-    /// while let Some(result) = records.next().await {
-    ///     let record = result?;
+    /// while let Some(record) = records.try_next().await? {
     ///     // ...
     /// }
     /// # Ok(())

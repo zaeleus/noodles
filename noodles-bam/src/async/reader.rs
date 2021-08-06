@@ -130,7 +130,7 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use futures::StreamExt;
+    /// use futures::TryStreamExt;
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
@@ -140,8 +140,7 @@ where
     ///
     /// let mut records = reader.records();
     ///
-    /// while let Some(result) = records.next().await {
-    ///     let record = result?;
+    /// while let Some(record) = records.try_next().await? {
     ///     // ...
     /// }
     /// # Ok(())
@@ -216,7 +215,7 @@ where
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>>{
-    /// use futures::StreamExt;
+    /// use futures::TryStreamExt;
     /// use noodles_bam::{self as bam, bai};
     /// use noodles_core::Region;
     /// use noodles_sam as sam;
@@ -230,8 +229,7 @@ where
     /// let region = Region::mapped("sq0", 8..=13);
     /// let mut query = reader.query(reference_sequences, &index, &region)?;
     ///
-    /// while let Some(result) = query.next().await {
-    ///     let record = result?;
+    /// while let Some(record) = query.try_next().await? {
     ///     // ...
     /// }
     /// # Ok(())
