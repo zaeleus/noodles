@@ -19,6 +19,30 @@ use crate::{
 };
 
 /// An async BAM reader.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// #
+/// # #[tokio::main]
+/// # async fn main() -> io::Result<()> {
+/// use futures::TryStreamExt;
+/// use noodles_bam as bam;
+/// use tokio::fs::File;
+///
+/// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+/// reader.read_header().await?;
+/// reader.read_reference_sequences().await?;
+///
+/// let mut records = reader.records();
+///
+/// while let Some(record) = records.try_next().await? {
+///     // ...
+/// }
+/// # Ok(())
+/// # }
+/// ```
 pub struct Reader<R>
 where
     R: AsyncRead,
@@ -61,7 +85,12 @@ where
 
     /// Reads the raw SAM header.
     ///
+    /// The BAM magic number is also checked.
+    ///
     /// The position of the stream is expected to be at the start.
+    ///
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`noodles_sam::Header`].
     ///
     /// # Examples
     ///
@@ -85,7 +114,14 @@ where
 
     /// Reads the binary reference sequences after the SAM header.
     ///
+    /// This is not the same as the `@SQ` records in the SAM header. A BAM has a list of reference
+    /// sequences containing name and length tuples after the SAM header and before the list of
+    /// records.
+    ///
     /// The position of the stream is expected to be directly after the header.
+    ///
+    /// This returns a reference sequence dictionary ([`noodles_sam::header::ReferenceSequences`]),
+    /// which can be used to build a minimal [`noodles_sam::Header`] if the SAM header is empty.
     ///
     /// # Examples
     ///
@@ -109,8 +145,18 @@ where
 
     /// Reads a single record.
     ///
+    /// The record block size (`bs`) is read from the underlying stream, and `bs` bytes are read
+    /// into the given record buffer.
+    ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
+    ///
+    /// It is more ergonomic to read records using a stream (see [`Self::records`] and
+    /// [`Self::query`]), but using this method directly allows the reuse of a single [`Record`]
+    /// buffer.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
     ///
     /// # Examples
     ///
