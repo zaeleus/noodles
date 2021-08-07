@@ -1,8 +1,9 @@
 //! Async tabix index and fields.
 
 mod reader;
+mod writer;
 
-pub use self::reader::Reader;
+pub use self::{reader::Reader, writer::Writer};
 
 use std::path::Path;
 

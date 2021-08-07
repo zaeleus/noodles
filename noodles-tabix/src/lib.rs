@@ -35,7 +35,7 @@ mod writer;
 pub use self::{index::Index, reader::Reader, writer::Writer};
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{fs::File, io, path::Path};
 
