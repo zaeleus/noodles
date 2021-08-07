@@ -61,6 +61,27 @@ where
     /// Reads the BAM index.
     ///
     /// The position of the stream is expected to be directly after the header.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam::bai;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam.bai")
+    ///     .await
+    ///     .map(bai::AsyncReader::new)?;
+    ///
+    /// reader.read_header().await?;
+    ///
+    /// let index = reader.read_index().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
         let reference_sequences = read_reference_sequences(&mut self.inner).await?;
 
