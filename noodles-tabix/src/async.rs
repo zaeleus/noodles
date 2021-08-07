@@ -35,3 +35,30 @@ where
     let mut reader = File::open(src).await.map(Reader::new)?;
     reader.read_index().await
 }
+
+/// Writes a tabix index to a file.
+///
+/// This is a convenience function and is equivalent to creating a file at the given path and
+/// writing the index.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// #
+/// # #[tokio::main]
+/// # async fn main() -> io::Result<()> {
+/// use noodles_tabix as tabix;;
+/// let index = tabix::Index::default();
+/// tabix::r#async::write("sample.vcf.gz.tbi", &index).await?;
+/// # Ok(())
+/// # }
+/// ```
+pub async fn write<P>(dst: P, index: &Index) -> io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let mut writer = File::create(dst).await.map(Writer::new)?;
+    writer.write_index(index).await?;
+    Ok(())
+}
