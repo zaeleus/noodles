@@ -15,6 +15,40 @@ const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
 /// An async VCF reader.
+///
+/// The VCF format has two main parts: 1) a header and 2) a list of VCF records.
+///
+/// Each header line is prefixed with a `#` (number sign) and is terminated by the header header
+/// (`#CHROM`...; inclusive).
+///
+/// VCF records are line-based and follow directly after the header until EOF.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// #
+/// # #[tokio::main]
+/// # async fn main() -> io::Result<()> {
+/// use futures::TryStreamExt;
+/// use noodles_vcf as vcf;
+/// use tokio::{fs::File, io::BufReader};
+///
+/// let mut reader = File::open("sample.vcf")
+///     .await
+///     .map(BufReader::new)
+///     .map(vcf::AsyncReader::new)?;
+///
+/// reader.read_header().await?;
+///
+/// let mut records = reader.records();
+///
+/// while let Some(record) = records.try_next().await? {
+///     // ...
+/// }
+/// # Ok(())
+/// # }
+/// ```
 pub struct Reader<R> {
     inner: R,
 }
@@ -38,7 +72,13 @@ where
 
     /// Reads the raw VCF header.
     ///
+    /// This reads all header lines prefixed with a `#` (number sign), which includes the header
+    /// header (`#CHROM`...).
+    ///
     /// The position of the stream is expected to be at the start.
+    ///
+    /// This returns the raw VCF header as a [`String`], and as such, it is not necessarily valid.
+    /// The raw header can subsequently be parsed as a [`crate::Header`].
     ///
     /// # Examples
     ///
@@ -66,6 +106,19 @@ where
     }
 
     /// Reads a single raw VCF record.
+    ///
+    /// This reads from the underlying stream until a newline is reached and appends it to the
+    /// given buffer, sans the final newline. The buffer does not necessarily represent a valid VCF
+    /// record but can subsequently be parsed as a [`crate::Record`].
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// It is more ergonomic to read records using a stream (see [`Self::records`] and
+    /// [`Self::query`]), but using this method allows control of the line buffer and whether the
+    /// raw record should be parsed.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
     ///
     /// # Examples
     ///
@@ -206,6 +259,9 @@ where
     }
 
     /// Returns a stream over records that intersects the given region.
+    ///
+    /// The position of the (input) stream is expected to after the header or at the start of
+    /// another record.
     ///
     /// # Examples
     ///
