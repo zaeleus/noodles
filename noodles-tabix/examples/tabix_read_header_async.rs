@@ -1,0 +1,35 @@
+//! Prints the header of the file associated with the index.
+//!
+//! The results match the output of `tabix --only-header <src>`.
+
+use std::env;
+
+use noodles_bgzf as bgzf;
+use noodles_tabix as tabix;
+use tokio::{
+    fs::File,
+    io::{self, AsyncBufReadExt},
+};
+
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let src = env::args().nth(1).expect("missing src");
+
+    let tabix_src = format!("{}.tbi", src);
+    let index = tabix::r#async::read(tabix_src).await?;
+
+    let reader = File::open(src).await.map(bgzf::AsyncReader::new)?;
+    let line_comment_prefix = char::from(index.header().line_comment_prefix());
+
+    let mut lines = reader.lines();
+
+    while let Some(line) = lines.next_line().await? {
+        if !line.starts_with(line_comment_prefix) {
+            break;
+        }
+
+        println!("{}", line);
+    }
+
+    Ok(())
+}
