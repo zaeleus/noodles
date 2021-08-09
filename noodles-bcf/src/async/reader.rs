@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use noodles_bgzf as bgzf;
-use tokio::io::{self, AsyncRead, AsyncReadExt};
+use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use crate::Record;
 
@@ -131,6 +131,37 @@ where
     /// ```
     pub fn virtual_position(&self) -> bgzf::VirtualPosition {
         self.inner.virtual_position()
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Seeks the underlying BGZF reader to the given virtual position.
+    ///
+    /// Virtual positions typically come from an associated index file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io::{self, Cursor};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bcf as bcf;
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let data = [];
+    /// let mut reader = bcf::AsyncReader::new(Cursor::new(data));
+    ///
+    /// let virtual_position = bgzf::VirtualPosition::default();
+    /// reader.seek(virtual_position).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek(pos).await
     }
 }
 
