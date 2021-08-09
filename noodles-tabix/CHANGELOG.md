@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+## Added
+
+  * Add convenience write function to write an index to a file: `tabix::write`.
+
 ## 0.4.0 - 2021-08-04
 
 ### Changed
