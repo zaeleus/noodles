@@ -114,6 +114,24 @@ where
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record).await
     }
+
+    /// Returns the current virtual position of the underlying BGZF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let data = Vec::new();
+    /// let reader = bcf::AsyncReader::new(&data[..]);
+    /// let virtual_position = reader.virtual_position();
+    ///
+    /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
+    /// ```
+    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
+        self.inner.virtual_position()
+    }
 }
 
 async fn read_magic<R>(reader: &mut R) -> io::Result<()>
