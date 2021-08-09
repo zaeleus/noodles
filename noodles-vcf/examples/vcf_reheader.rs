@@ -1,4 +1,4 @@
-//! Replaes the header of a VCF file.
+//! Replaces the header of a VCF file.
 //!
 //! This is similar to the functionality of `bcftools reheader --header <header-src> <src>`.
 //!
