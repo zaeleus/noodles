@@ -128,6 +128,21 @@ where
     ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    /// reader.read_header()?;
+    ///
+    /// let mut record = bcf::Record::default();
+    /// reader.read_record(&mut record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let l_shared = match self.inner.read_u32::<LittleEndian>() {
             Ok(len) => len,
