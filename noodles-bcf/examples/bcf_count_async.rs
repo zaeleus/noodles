@@ -4,6 +4,7 @@
 
 use std::env;
 
+use futures::TryStreamExt;
 use noodles_bcf as bcf;
 use tokio::{fs::File, io};
 
@@ -15,15 +16,11 @@ async fn main() -> io::Result<()> {
     reader.read_file_format().await?;
     reader.read_header().await?;
 
-    let mut record = bcf::Record::default();
+    let mut records = reader.records();
     let mut n = 0;
 
-    loop {
-        match reader.read_record(&mut record).await {
-            Ok(0) => break,
-            Ok(_) => n += 1,
-            Err(e) => return Err(e),
-        }
+    while records.try_next().await?.is_some() {
+        n += 1;
     }
 
     println!("{}", n);

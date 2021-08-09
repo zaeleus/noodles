@@ -4,6 +4,7 @@ pub use self::builder::Builder;
 
 use std::convert::TryFrom;
 
+use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
@@ -131,6 +132,47 @@ where
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// The (input) stream is expected to be directly after the header or at the start of another
+    /// record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bcf as bcf;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// reader.read_file_format().await?;
+    /// reader.read_header().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::unfold(
+            (&mut self.inner, Record::default()),
+            |(mut reader, mut record)| async {
+                match read_record(&mut reader, &mut record).await {
+                    Ok(0) => None,
+                    Ok(_) => Some((Ok(record.clone()), (reader, record))),
+                    Err(e) => Some((Err(e), (reader, record))),
+                }
+            },
+        ))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
