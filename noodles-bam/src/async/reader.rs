@@ -408,14 +408,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_magic() {
-        let data = [];
+        let data = b"BAM\x01";
         let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader).await,
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
+        assert!(read_magic(&mut reader).await.is_ok());
 
-        let data = b"BAM";
+        let data = [];
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader).await,
