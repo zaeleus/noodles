@@ -425,7 +425,7 @@ mod tests {
         let data = b"MThd";
         let mut reader = &data[..];
         assert!(matches!(
-            dbg!(read_magic(&mut reader).await),
+            read_magic(&mut reader).await,
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
