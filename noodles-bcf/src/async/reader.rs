@@ -35,7 +35,7 @@ where
         Builder::new(inner)
     }
 
-    /// Creates a BCF reader.
+    /// Creates an async BCF reader.
     ///
     /// # Examples
     ///
@@ -50,7 +50,7 @@ where
         }
     }
 
-    /// Creates a BCF reader.
+    /// Reads the BCF file format.
     ///
     /// The BCF magic number is also checked.
     ///
