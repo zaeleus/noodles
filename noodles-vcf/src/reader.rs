@@ -251,8 +251,8 @@ where
     ///
     /// ```no_run
     /// # use std::{fs::File, io};
-    /// use noodles_core::Region;
     /// use noodles_bgzf as bgzf;;
+    /// use noodles_core::Region;
     /// use noodles_tabix as tabix;
     /// use noodles_vcf as vcf;
     ///
