@@ -78,8 +78,8 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw VCF header as a [`std::string::String`], and as such, it is not
-    /// necessarily valid. The raw header can subsequently be parsed as a [`crate::Header`].
+    /// This returns the raw VCF header as a [`String`], and as such, it is not necessarily valid.
+    /// The raw header can subsequently be parsed as a [`crate::Header`].
     ///
     /// # Examples
     ///

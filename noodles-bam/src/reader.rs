@@ -84,8 +84,8 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`std::string::String`]. It can subsequently be parsed
-    /// as a [`noodles_sam::Header`].
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`noodles_sam::Header`].
     ///
     /// # Examples
     ///

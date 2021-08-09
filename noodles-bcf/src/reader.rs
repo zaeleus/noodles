@@ -88,8 +88,8 @@ where
     ///
     /// The position of the stream is expected to be directly after the file format.
     ///
-    /// This returns the raw VCF header as a [`std::string::String`]. It can subsequently be parsed
-    /// as a [`noodles_vcf::Header`].
+    /// This returns the raw VCF header as a [`String`]. It can subsequently be parsed as a
+    /// [`noodles_vcf::Header`].
     ///
     /// # Examples
     ///

@@ -68,8 +68,8 @@ where
     ///
     /// The position of the stream is expected to be at the start.
     ///
-    /// This returns the raw SAM header as a [`std::string::String`]. It can subsequently be parsed
-    /// as a [`crate::Header`].
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`crate::Header`].
     ///
     /// The SAM header is optional, and if it is missing, an empty string is returned.
     ///
