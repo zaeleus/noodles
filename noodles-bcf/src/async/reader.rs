@@ -1,3 +1,7 @@
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::convert::TryFrom;
 
 use noodles_bgzf as bgzf;
@@ -17,6 +21,20 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
+    /// Creates an async BCF reader builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let builder = bcf::AsyncReader::builder(&data[..]);
+    /// let reader = builder.build();
+    /// ```
+    pub fn builder(inner: R) -> Builder<R> {
+        Builder::new(inner)
+    }
+
     /// Creates a BCF reader.
     ///
     /// # Examples
