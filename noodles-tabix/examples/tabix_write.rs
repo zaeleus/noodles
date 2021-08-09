@@ -17,7 +17,7 @@ sq0\t121393\t196418
 
 fn compress_data(data: &[u8]) -> io::Result<Vec<u8>> {
     let mut writer = bgzf::Writer::new(Vec::new());
-    writer.write_all(&data)?;
+    writer.write_all(data)?;
     writer.finish()
 }
 
