@@ -11,6 +11,30 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 use crate::Record;
 
 /// An async BCF reader.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// #
+/// # #[tokio::main]
+/// # async fn main() -> io::Result<()> {
+/// use futures::TryStreamExt;
+/// use noodles_bcf as bcf;
+/// use tokio::fs::File;
+///
+/// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+/// reader.read_file_format().await?;
+/// reader.read_header().await?;
+///
+/// let mut records = reader.records();
+///
+/// while let Some(record) = records.try_next().await? {
+///     // ...
+/// }
+/// # Ok(())
+/// # }
+/// ```
 pub struct Reader<R>
 where
     R: AsyncRead,
