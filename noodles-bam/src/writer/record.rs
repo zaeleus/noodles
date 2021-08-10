@@ -181,7 +181,7 @@ where
     Ok(())
 }
 
-fn calculate_data_len(data: &Data) -> io::Result<usize> {
+pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
     use noodles_sam::record::data::field::Value;
 
     let mut len = 0;
@@ -419,7 +419,7 @@ fn find_reference_sequence_id(
 // § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
-fn region_to_bin(start: i32, mut end: i32) -> i32 {
+pub(crate) fn region_to_bin(start: i32, mut end: i32) -> i32 {
     end -= 1;
 
     if start >> 14 == end >> 14 {

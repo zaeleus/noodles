@@ -1,4 +1,5 @@
 mod builder;
+mod record;
 
 pub use self::builder::Builder;
 
@@ -8,6 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
+use self::record::write_sam_record;
 use crate::{Record, MAGIC_NUMBER};
 
 /// An async BAM writer.
@@ -161,6 +163,34 @@ where
         self.inner.write_all(record).await?;
 
         Ok(())
+    }
+
+    /// Writes a SAM record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    ///
+    /// let reference_sequences = sam::header::ReferenceSequences::default();
+    /// let record = sam::Record::default();
+    /// writer.write_sam_record(&reference_sequences, &record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_sam_record(
+        &mut self,
+        reference_sequences: &sam::header::ReferenceSequences,
+        record: &sam::Record,
+    ) -> io::Result<()> {
+        write_sam_record(&mut self.inner, reference_sequences, record).await
     }
 }
 
