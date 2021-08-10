@@ -35,6 +35,25 @@ where
         self.inner.into_inner()
     }
 
+    /// Shuts down the output stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_tabix as tabix;
+    /// let mut writer = tabix::AsyncWriter::new(Vec::new());
+    /// writer.shutdown().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn shutdown(&mut self) -> io::Result<()> {
+        self.inner.shutdown().await
+    }
+
     /// Writes a tabix index.
     pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_magic(&mut self.inner).await?;
