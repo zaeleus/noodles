@@ -134,6 +134,9 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
+    /// It is more ergonomic to read records using a stream (see [`Self::records`]), but using this
+    /// method directly allows the reuse of a single [`Record`] buffer.
+    ///
     /// If successful, the record size is returned. If a record size of 0 is returned, the stream
     /// reached EOF.
     ///
