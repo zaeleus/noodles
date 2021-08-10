@@ -10,7 +10,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-vcf"
 
 [features]
-async = ["futures", "noodles-bgzf/async", "tokio"]
+async = ["futures", "noodles-bgzf/async", "pin-project-lite", "tokio"]
 
 [dependencies]
 indexmap = "1.4.0"
@@ -22,6 +22,7 @@ noodles-tabix = { path = "../noodles-tabix", version = "0.4.0" }
 percent-encoding = "2.1.0"
 
 futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
+pin-project-lite = { version = "0.2.6", optional = true }
 tokio = { version = "1.8.0", optional = true, features = ["io-util"] }
 
 [dev-dependencies]
