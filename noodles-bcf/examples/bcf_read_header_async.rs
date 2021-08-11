@@ -1,4 +1,6 @@
 //! Prints the header of a BCF file.
+//!
+//! The result matches the output of `bcftools view --header-only <src>`.
 
 use std::env;
 
