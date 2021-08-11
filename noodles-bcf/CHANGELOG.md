@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * async: Add async reader (`bcf::AsyncReader`).
+
+    This can be enabled with the `async` feature.
+
 ## 0.3.1 - 2021-08-04
 
 ### Fixed

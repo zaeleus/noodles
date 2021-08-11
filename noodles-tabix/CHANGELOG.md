@@ -2,9 +2,15 @@
 
 ## Unreleased
 
-## Added
+### Added
 
   * Add convenience write function to write an index to a file: `tabix::write`.
+
+  * async: Add async reader (`tabix::AsyncReader`).
+
+  * async: Add async writer (`tabix::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
 
 ## 0.4.0 - 2021-08-04
 

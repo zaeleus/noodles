@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * async: Add async reader (`bam::AsyncReader`).
+
+  * async: Add async writer (`bam::AsyncWriter`).
+
+  * bai/async: Add async reader (`bai::AsyncReader`).
+
+  * bai/async: Add async writer (`bai::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
+
 ## 0.2.1 - 2021-07-30
 
 ### Fixed

@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * async: Add async reader (`bgzf::AsyncReader`).
+
+  * async: Add async writer (`bgzf::AsyncWriter`) ([#17]).
+
+    Async I/O can be enabled with the `async` feature. 
+
+    Async BGZF I/O is implemented using a queue of block buffers, which are
+    encoded/decoded in parallel (depending on the async executor). This can
+    signficantly improve read/write performance.
+
+[#17]: https://github.com/zaeleus/noodles/issues/17
+
 ## 0.2.0 - 2021-07-21
 
 ### Fixed

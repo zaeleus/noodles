@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * async: Add async reader (`vcf::AsyncReader`).
+
+  * async: Add async writer (`vcf::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
+
 ## 0.3.0 - 2021-08-04
 
 ### Added
