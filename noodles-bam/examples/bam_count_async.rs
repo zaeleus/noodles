@@ -1,6 +1,6 @@
 //! Counts the number of records in a BAM file.
 //!
-//! The result matches the output of `samtools view -c <src>`.
+//! The result matches the output of `samtools view --count <src>`.
 
 use std::env;
 

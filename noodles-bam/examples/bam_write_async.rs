@@ -2,7 +2,7 @@
 //!
 //! This writes a SAM header, reference sequences, and one unmapped record to stdout.
 //!
-//! Verify the output by piping to `samtools view -h --no-PG`.
+//! Verify the output by piping to `samtools view --no-PG --with-header`.
 
 use noodles_bam as bam;
 use noodles_sam::{

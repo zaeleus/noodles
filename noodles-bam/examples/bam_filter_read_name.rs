@@ -12,9 +12,9 @@
 //!
 //! or
 //!
-//! `samtools view -N <read-names-src> <src>`.
+//! `samtools view --qname-file <read-names-src> <src>`.
 //!
-//! Verify the output by piping to `samtools view -h --no-PG`.
+//! Verify the output by piping to `samtools view --no-PG --with-header`.
 
 use std::{
     collections::HashSet,
