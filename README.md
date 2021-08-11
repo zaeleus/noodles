@@ -31,6 +31,16 @@ use noodles::bam;
 [crates.io]: https://crates.io/
 [features]: https://doc.rust-lang.org/cargo/reference/features.html
 
+### Feature flags
+
+Individual crates may have optional features that can be enabled using feature
+flags.
+
+  * `async`: Enables asynchronous I/O with [Tokio]. Supported in BAM, BCF,
+    BGZF, tabix, and VCF.
+
+[Tokio]: https://tokio.rs/
+
 ## Examples
 
 Each crate may have its own examples directory, and all examples are runnable
