@@ -2,7 +2,7 @@
 //!
 //! This writes a SAM header and three unmapped records to stdout.
 //!
-//! Verify the output by piping to `samtools view -h --no-PG`.
+//! Verify the output by piping to `samtools view --no-PG --with-header`.
 
 use std::io;
 

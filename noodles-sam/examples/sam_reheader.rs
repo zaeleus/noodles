@@ -2,7 +2,7 @@
 //!
 //! This is similar to the functionality of `samtools reheader`.
 //!
-//! Verify the output by piping to `samtools view -h --no-PG`.
+//! Verify the output by piping to `samtools view --no-PG --with-header`.
 
 use std::{
     env,
