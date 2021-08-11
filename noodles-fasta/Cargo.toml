@@ -1,6 +1,6 @@
 [package]
 name = "noodles-fasta"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -11,5 +11,5 @@ documentation = "https://docs.rs/noodles-fasta"
 
 [dependencies]
 memchr = "2.3.3"
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.3.0" }
 noodles-core = { path = "../noodles-core", version = "0.1.2" }

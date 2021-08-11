@@ -1,6 +1,6 @@
 [package]
 name = "noodles-sam"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -12,4 +12,4 @@ documentation = "https://docs.rs/noodles-sam"
 [dependencies]
 bitflags = "1.2.1"
 indexmap = "1.4.0"
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.2.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.3.0" }
