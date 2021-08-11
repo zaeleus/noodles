@@ -3,7 +3,7 @@
 //! This writes a file definition, a header container built from a SAM header, one mapped record,
 //! and one unmapped record to stdout.
 //!
-//! Verify the output by piping to `samtools view -h --no-PG`.
+//! Verify the output by piping to `samtools view --no-PG --with-header`.
 
 use std::{convert::TryFrom, io};
 

@@ -3,7 +3,7 @@
 //! Note that this example counts each successfully read record and not by summing the number of
 //! records field in each container or slice header.
 //!
-//! The result matches the output of `samtools view -c <src>`.
+//! The result matches the output of `samtools view --count <src>`.
 
 use std::{env, fs::File, io};
 

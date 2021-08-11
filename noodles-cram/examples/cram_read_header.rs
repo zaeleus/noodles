@@ -2,7 +2,7 @@
 //!
 //! A CRAM file header is a SAM header.
 //!
-//! The result matches the output of `samtools view --no-PG -H <src>`.
+//! The result matches the output of `samtools view --no-PG --header-only <src>`.
 
 use std::{env, fs::File, io};
 
