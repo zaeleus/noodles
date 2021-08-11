@@ -10,26 +10,27 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_vcf::{
-    self as vcf,
-    header::{
+use noodles_vcf as vcf;
+
+fn add_comment(header: &mut vcf::Header) {
+    use vcf::header::{
         record::{Key, Value},
         Record,
-    },
-};
+    };
+
+    header.insert(Record::new(
+        Key::Other(String::from("comment")),
+        Value::String(String::from("a comment added by noodles-vcf")),
+    ));
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
+
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
 
     let mut header: vcf::Header = reader.read_header()?.parse()?;
-
-    let record = Record::new(
-        Key::Other(String::from("comment")),
-        Value::String(String::from("a comment added by noodles-vcf")),
-    );
-
-    header.insert(record);
+    add_comment(&mut header);
 
     let stdout = io::stdout();
     let handle = stdout.lock();
