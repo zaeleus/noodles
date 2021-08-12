@@ -2,6 +2,9 @@
 
 //! **noodles-csi** handles the reading and writing of the coordinate-sorted index (CSI) format.
 
+#[cfg(feature = "async")]
+mod r#async;
+
 pub mod binning_index;
 pub mod index;
 mod reader;
@@ -13,6 +16,9 @@ pub use self::{
     reader::Reader,
     writer::Writer,
 };
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{fs::File, io, path::Path};
 
