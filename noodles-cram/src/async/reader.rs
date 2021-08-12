@@ -2,9 +2,12 @@ mod block;
 mod container;
 mod num;
 
+use std::convert::TryFrom;
+
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::{file_definition::Version, FileDefinition};
+use self::block::read_block;
+use crate::{file_definition::Version, Container, FileDefinition};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -56,6 +59,47 @@ where
 
         Ok(FileDefinition::new(format, file_id))
     }
+
+    /// Reads the raw SAM header.
+    ///
+    /// The position of the stream is expected to be at the CRAM header container, i.e., directly
+    /// after the file definition.
+    ///
+    /// This returns the raw SAM header as a [`String`]. It can subsequently be parsed as a
+    /// [`noodles_sam::Header`].
+    ///
+    /// # Examples
+    ///
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// reader.read_file_definition().await?;
+    ///
+    /// let header = reader.read_file_header().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_file_header(&mut self) -> io::Result<String> {
+        use crate::reader::read_file_header_block;
+
+        let container = read_container(&mut self.inner).await?;
+
+        if let Some(block) = container.blocks().first() {
+            read_file_header_block(block)
+        } else {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid header container: missing block for SAM header",
+            ))
+        }
+    }
 }
 
 async fn read_magic_number<R>(reader: &mut R) -> io::Result<()>
@@ -93,6 +137,24 @@ where
     let mut file_id = [0; 20];
     reader.read_exact(&mut file_id).await?;
     Ok(file_id)
+}
+
+async fn read_container<R>(reader: &mut R) -> io::Result<Container>
+where
+    R: AsyncRead + Unpin,
+{
+    let header = container::read_header(reader).await?;
+
+    let blocks_len = usize::try_from(header.block_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let mut blocks = Vec::with_capacity(blocks_len);
+
+    for _ in 0..blocks_len {
+        let block = read_block(reader).await?;
+        blocks.push(block);
+    }
+
+    Ok(Container::new(header, blocks))
 }
 
 #[cfg(test)]

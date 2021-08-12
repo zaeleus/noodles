@@ -238,7 +238,7 @@ where
     Ok(buf)
 }
 
-fn read_file_header_block(block: &Block) -> io::Result<String> {
+pub(crate) fn read_file_header_block(block: &Block) -> io::Result<String> {
     use crate::container::block::ContentType;
 
     if block.content_type() != ContentType::FileHeader {
