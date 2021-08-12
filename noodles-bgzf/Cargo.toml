@@ -25,3 +25,6 @@ tokio-util = { version = "0.6.7", optional = true, features = ["codec"] }
 
 [dev-dependencies]
 tokio = { version = "1.8.0", features = ["fs", "io-std", "macros", "rt-multi-thread"] }
+
+[package.metadata.docs.rs]
+features = ["async"]

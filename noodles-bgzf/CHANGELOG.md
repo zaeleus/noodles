@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * Define features to enable for Docs.rs.
+
 ## 0.3.0 - 2021-08-11
 
 ### Added
