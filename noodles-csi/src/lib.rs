@@ -3,7 +3,7 @@
 //! **noodles-csi** handles the reading and writing of the coordinate-sorted index (CSI) format.
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 pub mod binning_index;
 pub mod index;
