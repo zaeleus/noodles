@@ -86,7 +86,7 @@ impl Header {
 
     /// Returns the end position field index.
     ///
-    /// This index is 1-based. It is not set if the format does not have an column for the end
+    /// This index is 1-based. It is not set if the format does not have a column for the end
     /// position.
     ///
     /// # Examples
