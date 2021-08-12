@@ -24,7 +24,7 @@ use std::{fs::File, io, path::Path};
 
 static MAGIC_NUMBER: &[u8] = b"CSI\x01";
 
-/// Reads the entire contents of an coordinate-sorted index (CSI).
+/// Reads the entire contents of a coordinate-sorted index (CSI).
 ///
 /// This is a convenience function and is equivalent to opening the file at the given path and
 /// reading the index.
