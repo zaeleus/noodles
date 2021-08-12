@@ -21,6 +21,9 @@ pub(crate) mod writer;
 
 pub use self::{file_definition::FileDefinition, reader::Reader, record::Record, writer::Writer};
 
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
+
 pub(crate) use self::{
     bit_reader::BitReader, bit_writer::BitWriter, container::Container,
     data_container::DataContainer,
