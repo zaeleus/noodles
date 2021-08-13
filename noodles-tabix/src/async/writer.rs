@@ -24,6 +24,13 @@ where
     W: AsyncWrite + Unpin,
 {
     /// Creates an async tabix writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let writer = tabix::AsyncWriter::new(Vec::new());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self {
             inner: bgzf::AsyncWriter::new(inner),
@@ -31,6 +38,14 @@ where
     }
 
     /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix as tabix;
+    /// let writer = tabix::AsyncWriter::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
     pub fn into_inner(self) -> W {
         self.inner.into_inner()
     }
@@ -55,6 +70,23 @@ where
     }
 
     /// Writes a tabix index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_tabix as tabix;
+    ///
+    /// let index = tabix::Index::default();
+    ///
+    /// let mut writer = tabix::AsyncWriter::new(Vec::new());
+    /// writer.write_index(&index).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_magic(&mut self.inner).await?;
 
