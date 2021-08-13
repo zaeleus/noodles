@@ -1,10 +1,16 @@
 //! CRAM index.
 
+#[cfg(feature = "async")]
+mod r#async;
+
 mod reader;
 pub mod record;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{fs::File, io, path::Path};
 

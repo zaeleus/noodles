@@ -10,7 +10,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-cram"
 
 [features]
-async = ["tokio"]
+async = ["async-compression", "tokio"]
 
 [dependencies]
 bitflags = "1.2.1"
@@ -23,6 +23,7 @@ noodles-fasta = { path = "../noodles-fasta", version = "0.2.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.2.0" }
 xz2 = "0.1.6"
 
+async-compression = { version = "0.3.8", optional = true, features = ["gzip", "tokio"] }
 tokio = { version = "1.10.0", optional = true, features = ["io-util"] }
 
 [dev-dependencies]
