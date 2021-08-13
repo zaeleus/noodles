@@ -1,7 +1,7 @@
 //! CRAM index.
 
 #[cfg(feature = "async")]
-mod r#async;
+pub mod r#async;
 
 mod reader;
 pub mod record;
