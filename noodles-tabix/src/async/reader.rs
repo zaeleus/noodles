@@ -59,31 +59,37 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        read_magic(&mut self.inner).await?;
-
-        let n_ref = self.inner.read_i32_le().await.and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let header = read_header(&mut self.inner).await?;
-
-        let reference_sequence_names = read_reference_sequence_names(&mut self.inner).await?;
-        let reference_sequences = read_reference_sequences(&mut self.inner, n_ref).await?;
-
-        let unplaced_unmapped_record_count =
-            read_unplaced_unmapped_record_count(&mut self.inner).await?;
-
-        let mut builder = Index::builder()
-            .set_header(header)
-            .set_reference_sequence_names(reference_sequence_names)
-            .set_reference_sequences(reference_sequences);
-
-        if let Some(count) = unplaced_unmapped_record_count {
-            builder = builder.set_unplaced_unmapped_record_count(count);
-        }
-
-        Ok(builder.build())
+        read_index(&mut self.inner).await
     }
+}
+
+async fn read_index<R>(reader: &mut R) -> io::Result<Index>
+where
+    R: AsyncRead + Unpin,
+{
+    read_magic(reader).await?;
+
+    let n_ref = reader.read_i32_le().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let header = read_header(reader).await?;
+
+    let reference_sequence_names = read_reference_sequence_names(reader).await?;
+    let reference_sequences = read_reference_sequences(reader, n_ref).await?;
+
+    let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader).await?;
+
+    let mut builder = Index::builder()
+        .set_header(header)
+        .set_reference_sequence_names(reference_sequence_names)
+        .set_reference_sequences(reference_sequences);
+
+    if let Some(count) = unplaced_unmapped_record_count {
+        builder = builder.set_unplaced_unmapped_record_count(count);
+    }
+
+    Ok(builder.build())
 }
 
 async fn read_magic<R>(reader: &mut R) -> io::Result<()>
