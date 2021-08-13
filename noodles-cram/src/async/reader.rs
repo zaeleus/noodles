@@ -70,7 +70,6 @@ where
     ///
     /// # Examples
     ///
-    ///
     /// ```no_run
     /// # use std::io;
     /// #
