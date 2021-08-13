@@ -1,6 +1,7 @@
 mod query;
 
 use futures::{stream, Stream};
+use memchr::memchr;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -317,7 +318,7 @@ where
             break;
         }
 
-        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
+        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED as u8, buf) {
             header_buf.extend(&buf[..=i]);
             (true, i + 1)
         } else {
