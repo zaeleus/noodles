@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * Update to tokio 1.10.0.
+
 ### Fixed
 
   * Define features to enable for Docs.rs.
