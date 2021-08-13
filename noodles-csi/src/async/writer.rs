@@ -68,6 +68,8 @@ where
 
     /// Writes a CSI index.
     ///
+    /// # Examples
+    ///
     /// ```
     /// # use std::io;
     /// #
