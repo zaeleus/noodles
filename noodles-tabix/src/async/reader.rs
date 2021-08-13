@@ -339,18 +339,8 @@ mod tests {
         let data = b"TBI\x01";
         let mut reader = &data[..];
         assert!(read_magic(&mut reader).await.is_ok());
-    }
 
-    #[tokio::test]
-    async fn test_read_magic_with_invalid_magic_number() {
         let data = [];
-        let mut reader = &data[..];
-        assert!(matches!(
-            read_magic(&mut reader).await,
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
-        ));
-
-        let data = b"TBI";
         let mut reader = &data[..];
         assert!(matches!(
             read_magic(&mut reader).await,
