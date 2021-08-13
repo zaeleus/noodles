@@ -1,4 +1,3 @@
-mod header;
 mod query;
 
 use futures::{stream, Stream};
@@ -8,11 +7,13 @@ use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
-use self::{header::ReadHeader, query::query};
+use self::query::query;
 use crate::{reader::resolve_region, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
+
+const HEADER_PREFIX: u8 = b'#';
 
 /// An async VCF reader.
 ///
@@ -101,8 +102,8 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn read_header(&mut self) -> ReadHeader<'_, R> {
-        ReadHeader::new(&mut self.inner)
+    pub async fn read_header(&mut self) -> io::Result<String> {
+        read_header(&mut self.inner).await
     }
 
     /// Reads a single raw VCF record.
@@ -300,6 +301,36 @@ where
         let chunks = index.query(reference_sequence_id, interval)?;
         Ok(query(self, chunks, reference_sequence_name, interval))
     }
+}
+
+async fn read_header<R>(reader: &mut R) -> io::Result<String>
+where
+    R: AsyncBufRead + Unpin,
+{
+    let mut header_buf = Vec::new();
+    let mut is_eol = false;
+
+    for i in 0.. {
+        let buf = reader.fill_buf().await?;
+
+        if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+            break;
+        }
+
+        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
+            header_buf.extend(&buf[..=i]);
+            (true, i + 1)
+        } else {
+            header_buf.extend(buf);
+            (false, buf.len())
+        };
+
+        is_eol = read_eol;
+
+        reader.consume(len);
+    }
+
+    String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 async fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
