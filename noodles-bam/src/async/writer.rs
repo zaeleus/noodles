@@ -10,7 +10,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use self::record::write_sam_record;
-use crate::{Record, MAGIC_NUMBER};
+use crate::Record;
 
 /// An async BAM writer.
 pub struct Writer<W>
@@ -90,16 +90,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.inner.write_all(MAGIC_NUMBER).await?;
-
-        let text = header.to_string();
-        let l_text = u32::try_from(text.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32_le(l_text).await?;
-
-        self.inner.write_all(text.as_bytes()).await?;
-
-        Ok(())
+        write_header(&mut self.inner, header).await
     }
 
     /// Writes the binary reference sequences after the SAM header.
@@ -128,15 +119,7 @@ where
         &mut self,
         reference_sequences: &sam::header::ReferenceSequences,
     ) -> io::Result<()> {
-        let n_ref = u32::try_from(reference_sequences.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32_le(n_ref).await?;
-
-        for reference_sequence in reference_sequences.values() {
-            write_reference_sequence(&mut self.inner, reference_sequence).await?;
-        }
-
-        Ok(())
+        write_reference_sequences(&mut self.inner, reference_sequences).await
     }
 
     /// Writes a BAM record.
@@ -156,13 +139,7 @@ where
     /// # }
     /// ```
     pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let block_size = u32::try_from(record.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32_le(block_size).await?;
-
-        self.inner.write_all(record).await?;
-
-        Ok(())
+        write_record(&mut self.inner, record).await
     }
 
     /// Writes a SAM record.
@@ -194,6 +171,42 @@ where
     }
 }
 
+async fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::MAGIC_NUMBER;
+
+    writer.write_all(MAGIC_NUMBER).await?;
+
+    let text = header.to_string();
+    let l_text =
+        u32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(l_text).await?;
+
+    writer.write_all(text.as_bytes()).await?;
+
+    Ok(())
+}
+
+async fn write_reference_sequences<W>(
+    writer: &mut W,
+    reference_sequences: &sam::header::ReferenceSequences,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let n_ref = u32::try_from(reference_sequences.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(n_ref).await?;
+
+    for reference_sequence in reference_sequences.values() {
+        write_reference_sequence(writer, reference_sequence).await?;
+    }
+
+    Ok(())
+}
+
 async fn write_reference_sequence<W>(
     writer: &mut W,
     reference_sequence: &sam::header::ReferenceSequence,
@@ -213,6 +226,19 @@ where
     let l_ref = u32::try_from(reference_sequence.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_ref).await?;
+
+    Ok(())
+}
+
+async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let block_size =
+        u32::try_from(record.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(block_size).await?;
+
+    writer.write_all(record).await?;
 
     Ok(())
 }
