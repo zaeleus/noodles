@@ -6,7 +6,9 @@
 
   * async: Add async reader (`csi::AsyncReader`).
 
-    This can be enabled with the `async` feature.
+  * async: Add async writer (`csi::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
 
 ## 0.2.2 - 2021-08-11
 
