@@ -28,7 +28,7 @@ where
         }
     }
 
-    /// Reads an CRAM index.
+    /// Reads a CRAM index.
     ///
     /// The position of the stream is expected to be at the start.
     ///
