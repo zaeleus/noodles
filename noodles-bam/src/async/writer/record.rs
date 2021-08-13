@@ -379,7 +379,7 @@ where
             // Integers are handled by `write_data_field_int_value`.
             unreachable!();
         }
-        Value::Float(n) => write_f32_le(writer, *n).await?,
+        Value::Float(n) => writer.write_f32_le(*n).await?,
         Value::String(s) | Value::Hex(s) => {
             let c_str = CString::new(s.as_bytes())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -438,20 +438,12 @@ where
             writer.write_u32_le(len).await?;
 
             for &n in values {
-                write_f32_le(writer, n).await?;
+                writer.write_f32_le(n).await?;
             }
         }
     }
 
     Ok(())
-}
-
-async fn write_f32_le<W>(writer: &mut W, n: f32) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    let buf = n.to_le_bytes();
-    writer.write_all(&buf).await
 }
 
 #[cfg(test)]
