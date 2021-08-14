@@ -4,7 +4,7 @@ mod num;
 
 use std::convert::TryFrom;
 
-use tokio::io::{self, AsyncRead, AsyncReadExt};
+use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 use self::block::read_block;
 use crate::{file_definition::Version, Container, FileDefinition};
@@ -98,6 +98,33 @@ where
                 "invalid header container: missing block for SAM header",
             ))
         }
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Seeks the underlying reader to the given position.
+    ///
+    /// Positions typically come from an associated CRAM index file.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use std::io::{Cursor, SeekFrom};
+    /// use noodles_cram as cram;
+    /// let mut reader = cram::AsyncReader::new(Cursor::new(Vec::new()));
+    /// reader.seek(SeekFrom::Start(0)).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+        self.inner.seek(pos).await
     }
 }
 
