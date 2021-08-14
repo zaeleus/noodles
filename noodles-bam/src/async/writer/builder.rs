@@ -68,11 +68,11 @@ where
         let mut builder = bgzf::AsyncWriter::builder(self.inner);
 
         if let Some(compression_level) = self.compression_level {
-            builder.set_compression_level(compression_level);
+            builder = builder.set_compression_level(compression_level);
         }
 
         if let Some(worker_count) = self.worker_count {
-            builder.set_worker_count(worker_count);
+            builder = builder.set_worker_count(worker_count);
         }
 
         Writer {

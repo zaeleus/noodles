@@ -32,7 +32,7 @@ where
     /// let data = [];
     /// let builder = bgzf::AsyncReader::builder(&data[..]).set_worker_count(8);
     /// ```
-    pub fn set_worker_count(&mut self, worker_count: usize) -> &mut Self {
+    pub fn set_worker_count(mut self, worker_count: usize) -> Self {
         self.worker_count = Some(worker_count);
         self
     }

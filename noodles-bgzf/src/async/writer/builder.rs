@@ -40,7 +40,7 @@ where
     /// let builder = bgzf::AsyncWriter::builder(Vec::new())
     ///     .set_compression_level(Compression::best());
     /// ```
-    pub fn set_compression_level(&mut self, compression_level: Compression) -> &mut Self {
+    pub fn set_compression_level(mut self, compression_level: Compression) -> Self {
         self.compression_level = Some(compression_level);
         self
     }
@@ -55,7 +55,7 @@ where
     /// use noodles_bgzf as bgzf;
     /// let builder = bgzf::AsyncWriter::builder(Vec::new()).set_worker_count(8);
     /// ```
-    pub fn set_worker_count(&mut self, worker_count: usize) -> &mut Self {
+    pub fn set_worker_count(mut self, worker_count: usize) -> Self {
         self.worker_count = Some(worker_count);
         self
     }

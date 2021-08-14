@@ -49,7 +49,7 @@ where
         let mut builder = bgzf::AsyncReader::builder(self.inner);
 
         if let Some(worker_count) = self.worker_count {
-            builder.set_worker_count(worker_count);
+            builder = builder.set_worker_count(worker_count);
         }
 
         Reader {

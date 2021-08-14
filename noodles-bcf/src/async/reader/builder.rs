@@ -31,7 +31,7 @@ where
     /// let data = [];
     /// let builder = bcf::AsyncReader::builder(&data[..]).set_worker_count(8);
     /// ```
-    pub fn set_worker_count(&mut self, worker_count: usize) -> &mut Self {
+    pub fn set_worker_count(mut self, worker_count: usize) -> Self {
         self.worker_count = Some(worker_count);
         self
     }
@@ -49,7 +49,7 @@ where
         let mut builder = bgzf::AsyncReader::builder(self.inner);
 
         if let Some(worker_count) = self.worker_count {
-            builder.set_worker_count(worker_count);
+            builder = builder.set_worker_count(worker_count);
         }
 
         Reader {

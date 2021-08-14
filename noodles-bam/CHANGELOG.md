@@ -6,6 +6,13 @@
 
   * Update to tokio 1.10.0.
 
+  * async: I/O builders are now owned/consuming builders ([#36]).
+
+    This fixes the terminal method not being able to move out of a mutable
+    reference.
+
+[#36]: https://github.com/zaeleus/noodles/pull/36
+
 ### Fixed
 
   * Define features to enable for Docs.rs.
