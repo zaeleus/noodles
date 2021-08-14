@@ -126,6 +126,26 @@ where
     pub async fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
         self.inner.seek(pos).await
     }
+
+    /// Returns the current position of the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use std::io::{Cursor, SeekFrom};
+    /// use noodles_cram as cram;
+    /// let mut reader = cram::AsyncReader::new(Cursor::new(Vec::new()));
+    /// assert_eq!(reader.position().await?, 0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn position(&mut self) -> io::Result<u64> {
+        self.inner.seek(SeekFrom::Current(0)).await
+    }
 }
 
 async fn read_magic_number<R>(reader: &mut R) -> io::Result<()>
