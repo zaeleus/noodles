@@ -38,11 +38,6 @@ where
     let c_read_name =
         CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let reference_sequence_id =
-        find_reference_sequence_id(reference_sequences, record.reference_sequence_name())?;
-    let mate_reference_sequence_id =
-        find_reference_sequence_id(reference_sequences, record.mate_reference_sequence_name())?;
-
     let read_name = c_read_name.as_bytes_with_nul();
     let l_read_name = u8::try_from(read_name.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -61,8 +56,12 @@ where
 
     writer.write_i32::<LittleEndian>(block_size)?;
 
-    let ref_id = reference_sequence_id;
-    writer.write_i32::<LittleEndian>(ref_id)?;
+    // ref_id
+    write_reference_sequence_id(
+        writer,
+        reference_sequences,
+        record.reference_sequence_name(),
+    )?;
 
     let pos = record
         .position()
@@ -95,8 +94,12 @@ where
 
     writer.write_i32::<LittleEndian>(l_seq)?;
 
-    let next_ref_id = mate_reference_sequence_id;
-    writer.write_i32::<LittleEndian>(next_ref_id)?;
+    // next_ref_id
+    write_reference_sequence_id(
+        writer,
+        reference_sequences,
+        record.mate_reference_sequence_name(),
+    )?;
 
     let next_pos = record
         .mate_position()
@@ -139,6 +142,34 @@ where
     write_data(writer, record.data())?;
 
     Ok(())
+}
+
+fn write_reference_sequence_id<W>(
+    writer: &mut W,
+    reference_sequences: &ReferenceSequences,
+    reference_sequence_name: Option<&sam::record::ReferenceSequenceName>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::reference_sequence_id;
+
+    let id = match reference_sequence_name {
+        Some(name) => reference_sequences
+            .get_index_of(name.as_str())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid reference sequence name: {}", name),
+                )
+            })
+            .and_then(|i| {
+                i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        None => reference_sequence_id::UNMAPPED,
+    };
+
+    writer.write_i32::<LittleEndian>(id)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
@@ -394,28 +425,6 @@ where
     }
 }
 
-fn find_reference_sequence_id(
-    reference_sequences: &ReferenceSequences,
-    reference_sequence_name: Option<&sam::record::ReferenceSequenceName>,
-) -> io::Result<i32> {
-    use crate::record::reference_sequence_id;
-
-    match reference_sequence_name {
-        Some(name) => reference_sequences
-            .get_index_of(name.as_str())
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("invalid reference sequence name: {}", name),
-                )
-            })
-            .and_then(|i| {
-                i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            }),
-        None => Ok(reference_sequence_id::UNMAPPED),
-    }
-}
-
 // § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
@@ -532,28 +541,33 @@ mod tests {
     }
 
     #[test]
-    fn test_find_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::ReferenceSequence;
 
-        let reference_sequences = vec![("sq0", 8), ("sq1", 13), ("sq2", 21)]
+        let reference_sequences = vec![("sq0", 8), ("sq1", 13)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;
 
-        assert!(matches!(
-            find_reference_sequence_id(&reference_sequences, None),
-            Ok(-1)
-        ));
+        let mut buf = Vec::new();
 
-        let name = "sq1".parse().map(Some)?;
-        assert!(matches!(
-            find_reference_sequence_id(&reference_sequences, name.as_ref()),
-            Ok(1)
-        ));
+        buf.clear();
+        let reference_sequence_name = "sq0".parse()?;
+        write_reference_sequence_id(
+            &mut buf,
+            &reference_sequences,
+            Some(&reference_sequence_name),
+        )?;
+        assert_eq!(buf, [0x00, 0x00, 0x00, 0x00]);
 
-        let name = "sq3".parse().map(Some)?;
+        buf.clear();
+        write_reference_sequence_id(&mut buf, &reference_sequences, None)?;
+        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff]);
+
+        buf.clear();
+        let reference_sequence_name = "sq2".parse()?;
         assert!(matches!(
-            find_reference_sequence_id(&reference_sequences, name.as_ref()),
+            write_reference_sequence_id(&mut buf, &reference_sequences, Some(&reference_sequence_name)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 
