@@ -63,11 +63,8 @@ where
         record.reference_sequence_name(),
     )?;
 
-    let pos = record
-        .position()
-        .map(|v| i32::from(v) - 1)
-        .unwrap_or(crate::record::UNMAPPED_POSITION);
-    writer.write_i32::<LittleEndian>(pos)?;
+    // pos
+    write_position(writer, record.position())?;
 
     writer.write_u8(l_read_name)?;
 
@@ -101,11 +98,8 @@ where
         record.mate_reference_sequence_name(),
     )?;
 
-    let next_pos = record
-        .mate_position()
-        .map(|v| i32::from(v) - 1)
-        .unwrap_or(crate::record::UNMAPPED_POSITION);
-    writer.write_i32::<LittleEndian>(next_pos)?;
+    // next_pos
+    write_position(writer, record.mate_position())?;
 
     let tlen = record.template_length();
     writer.write_i32::<LittleEndian>(tlen)?;
@@ -170,6 +164,19 @@ where
     };
 
     writer.write_i32::<LittleEndian>(id)
+}
+
+fn write_position<W>(writer: &mut W, position: Option<sam::record::Position>) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::UNMAPPED_POSITION;
+
+    let pos = position
+        .map(|p| i32::from(p) - 1)
+        .unwrap_or(UNMAPPED_POSITION);
+
+    writer.write_i32::<LittleEndian>(pos)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
@@ -570,6 +577,22 @@ mod tests {
             write_reference_sequence_id(&mut buf, &reference_sequences, Some(&reference_sequence_name)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_position() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        let position = sam::record::Position::try_from(8)?;
+        write_position(&mut buf, Some(position))?;
+        assert_eq!(buf, [0x07, 0x00, 0x00, 0x00]); // pos = 7
+
+        buf.clear();
+        write_position(&mut buf, None)?;
+        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff]); // pos = -1
 
         Ok(())
     }
