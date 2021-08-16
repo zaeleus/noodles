@@ -8,7 +8,6 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::record::value::{Float, Int16, Int32, Int8, Type, Value};
 
-#[allow(dead_code)]
 pub fn write_value<W>(writer: &mut W, value: Option<Value>) -> io::Result<()>
 where
     W: Write,
