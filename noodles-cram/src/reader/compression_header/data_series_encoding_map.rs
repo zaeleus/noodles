@@ -86,7 +86,7 @@ mod tests {
 
     fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Vec<u8>> {
         let mut buf = Vec::new();
-        write_data_series_encoding_map(&mut buf, &data_series_encoding_map)?;
+        write_data_series_encoding_map(&mut buf, data_series_encoding_map)?;
         Ok(buf)
     }
 
