@@ -6,7 +6,7 @@ pub use self::{builder::Builder, data_series::DataSeries};
 use super::Encoding;
 
 /// A container compression header data series encoding map.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DataSeriesEncodingMap {
     bam_bit_flags_encoding: Encoding,
     cram_bit_flags_encoding: Encoding,
