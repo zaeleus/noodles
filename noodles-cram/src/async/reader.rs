@@ -2,6 +2,7 @@ mod block;
 mod compression_header;
 mod container;
 mod num;
+mod slice;
 
 use std::convert::TryFrom;
 
