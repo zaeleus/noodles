@@ -18,7 +18,7 @@ use noodles_core::{region::Interval, Region};
 use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
 use noodles_vcf::header::Contigs;
 
-use super::{Record, MAGIC_NUMBER};
+use super::Record;
 
 /// A BCF reader.
 ///
@@ -65,23 +65,12 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_format(&mut self) -> io::Result<(u8, u8)> {
-        let mut buf = [0; 5];
+        read_magic(&mut self.inner)?;
 
-        self.inner.read_exact(&mut buf)?;
+        let major_version = self.inner.read_u8()?;
+        let minor_version = self.inner.read_u8()?;
 
-        let magic = &buf[..3];
-
-        if magic != MAGIC_NUMBER {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid file format",
-            ));
-        }
-
-        let major = buf[3];
-        let minor = buf[4];
-
-        Ok((major, minor))
+        Ok((major_version, minor_version))
     }
 
     /// Reads the raw VCF header.
@@ -285,6 +274,25 @@ where
     }
 }
 
+fn read_magic<R>(reader: &mut R) -> io::Result<()>
+where
+    R: Read,
+{
+    use crate::MAGIC_NUMBER;
+
+    let mut buf = [0; 3];
+    reader.read_exact(&mut buf)?;
+
+    if buf == MAGIC_NUMBER {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BCF header",
+        ))
+    }
+}
+
 fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Interval)> {
     if let Some(r) = region.as_mapped() {
         let i = contigs.get_index_of(r.name()).ok_or_else(|| {
@@ -313,6 +321,27 @@ mod tests {
         let mut writer = bgzf::Writer::new(Vec::new());
         writer.write_all(data)?;
         writer.finish()
+    }
+
+    #[test]
+    fn test_read_magic() {
+        let data = b"BCF";
+        let mut reader = &data[..];
+        assert!(read_magic(&mut reader).is_ok());
+
+        let data = [];
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let data = b"BAM";
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
