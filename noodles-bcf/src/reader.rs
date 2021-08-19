@@ -66,11 +66,7 @@ where
     /// ```
     pub fn read_file_format(&mut self) -> io::Result<(u8, u8)> {
         read_magic(&mut self.inner)?;
-
-        let major_version = self.inner.read_u8()?;
-        let minor_version = self.inner.read_u8()?;
-
-        Ok((major_version, minor_version))
+        read_format_version(&mut self.inner)
     }
 
     /// Reads the raw VCF header.
@@ -293,6 +289,16 @@ where
     }
 }
 
+fn read_format_version<R>(reader: &mut R) -> io::Result<(u8, u8)>
+where
+    R: Read,
+{
+    let major_version = reader.read_u8()?;
+    let minor_version = reader.read_u8()?;
+
+    Ok((major_version, minor_version))
+}
+
 fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Interval)> {
     if let Some(r) = region.as_mapped() {
         let i = contigs.get_index_of(r.name()).ok_or_else(|| {
@@ -313,15 +319,7 @@ fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Inte
 
 #[cfg(test)]
 mod tests {
-    use std::io::Write;
-
     use super::*;
-
-    fn compress(data: &[u8]) -> io::Result<Vec<u8>> {
-        let mut writer = bgzf::Writer::new(Vec::new());
-        writer.write_all(data)?;
-        writer.finish()
-    }
 
     #[test]
     fn test_read_magic() {
@@ -345,23 +343,10 @@ mod tests {
     }
 
     #[test]
-    fn test_read_file_format() -> io::Result<()> {
-        let data = compress(b"BCF\x02\x01")?;
-        let mut reader = Reader::new(&data[..]);
-
-        let (major, minor) = reader.read_file_format()?;
-
-        assert_eq!(major, 2);
-        assert_eq!(minor, 1);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_file_format_with_an_invalid_magic_number() -> io::Result<()> {
-        let data = compress(b"BAM\x02\x01")?;
-        let mut reader = Reader::new(&data[..]);
-        assert!(reader.read_file_format().is_err());
+    fn test_read_format_version() -> io::Result<()> {
+        let data = [0x02, 0x01];
+        let mut reader = &data[..];
+        assert_eq!(read_format_version(&mut reader)?, (2, 1));
         Ok(())
     }
 }
