@@ -14,16 +14,16 @@ use noodles_sam::{
 
 use crate::record::sequence::Base;
 
-// § 4.2 The BAM format (2020-04-30)
+// § 4.2 The BAM format (2021-06-03)
 //
 // ref_id (4) + pos (4) + l_read_name (1) + mapq (1) + bin (2) + n_cigar_op (2) + flag (2) + l_seq
 // (4) + next_ref_id (4) + next_pos (4) + tlen (4)
-const BLOCK_HEADER_SIZE: usize = 32;
+const BLOCK_HEADER_SIZE: u32 = 32;
 
-// § 4.2.1 BIN field calculation (2020-04-30)
+// § 4.2.1 BIN field calculation (2021-06-03)
 const UNMAPPED_BIN: u16 = 4680;
 
-// § 4.2.3 SEQ and QUAL encoding (2020-04-30)
+// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 const NULL_QUALITY_SCORE: u8 = 255;
 
 pub fn write_sam_record<W>(
@@ -41,20 +41,24 @@ where
     let read_name = c_read_name.as_bytes_with_nul();
     let l_read_name = u8::try_from(read_name.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    let l_seq = i32::try_from(record.sequence().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    let data_len = calculate_data_len(record.data())? as i32;
 
-    let block_size = BLOCK_HEADER_SIZE as i32
-        + i32::from(l_read_name)
-        + (4 * i32::from(n_cigar_op))
+    let l_seq = u32::try_from(record.sequence().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let data_len = calculate_data_len(record.data()).and_then(|len| {
+        u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
+
+    let block_size = BLOCK_HEADER_SIZE
+        + u32::from(l_read_name)
+        + (4 * u32::from(n_cigar_op))
         + ((l_seq + 1) / 2)
         + l_seq
         + data_len;
-
-    writer.write_i32::<LittleEndian>(block_size)?;
+    writer.write_u32::<LittleEndian>(block_size)?;
 
     // ref_id
     write_reference_sequence_id(
@@ -81,7 +85,6 @@ where
             region_to_bin(start, end) as u16
         })
         .unwrap_or(UNMAPPED_BIN);
-
     writer.write_u16::<LittleEndian>(bin)?;
 
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
@@ -89,7 +92,7 @@ where
     let flag = u16::from(record.flags());
     writer.write_u16::<LittleEndian>(flag)?;
 
-    writer.write_i32::<LittleEndian>(l_seq)?;
+    writer.write_u32::<LittleEndian>(l_seq)?;
 
     // next_ref_id
     write_reference_sequence_id(
@@ -108,7 +111,7 @@ where
 
     write_cigar(writer, record.cigar())?;
 
-    // § 4.2.3 SEQ and QUAL encoding (2020-04-30)
+    // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
@@ -432,7 +435,7 @@ where
     }
 }
 
-// § 5.3 C source code for computing bin number and overlapping bins (2020-04-30)
+// § 5.3 C source code for computing bin number and overlapping bins (2021-06-03)
 // 0-based, [start, end)
 #[allow(clippy::eq_op)]
 pub(crate) fn region_to_bin(start: i32, mut end: i32) -> i32 {

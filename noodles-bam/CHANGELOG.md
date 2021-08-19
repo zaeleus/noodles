@@ -11,7 +11,13 @@
     This fixes the terminal method not being able to move out of a mutable
     reference.
 
+  * writer/record: Write lengths as `u32`.
+
+    `block_size` and `l_seq` were changed to unsigned integers in
+    [samtools/hts-specs@31d6e44887ae3892472c20d06c15e9a763f3c7c0].
+
 [#36]: https://github.com/zaeleus/noodles/pull/36
+[samtools/hts-specs@31d6e44887ae3892472c20d06c15e9a763f3c7c0]: https://github.com/samtools/hts-specs/commit/31d6e44887ae3892472c20d06c15e9a763f3c7c0
 
 ### Fixed
 
