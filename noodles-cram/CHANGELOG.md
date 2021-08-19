@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * async: Add async header reader (`cram::AsyncReader`).
+
+    This is a partial async CRAM reader that can only read the file definition
+    and file header.
+
+  * crai/async: Add async reader (`crai::AsyncReader`).
+
+  * crai/async: Add async writer (`crai::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
+
 ## 0.2.2 - 2021-08-11
 
 ### Fixed
