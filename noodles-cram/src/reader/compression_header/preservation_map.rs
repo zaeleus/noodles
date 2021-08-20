@@ -10,7 +10,7 @@ use crate::{
     container::compression_header::{
         preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
-    num::read_itf8,
+    reader::num::read_itf8,
     record,
 };
 

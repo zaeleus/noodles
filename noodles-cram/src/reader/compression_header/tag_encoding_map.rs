@@ -4,7 +4,8 @@ use std::{
 };
 
 use crate::{
-    container::compression_header::TagEncodingMap, num::read_itf8, reader::encoding::read_encoding,
+    container::compression_header::TagEncodingMap,
+    reader::{encoding::read_encoding, num::read_itf8},
 };
 
 pub fn read_tag_encoding_map<R>(reader: &mut R) -> io::Result<TagEncodingMap>

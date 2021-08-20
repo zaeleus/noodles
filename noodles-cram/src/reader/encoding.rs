@@ -2,7 +2,8 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::{container::compression_header::Encoding, num::read_itf8};
+use super::num::read_itf8;
+use crate::container::compression_header::Encoding;
 
 pub fn read_encoding<R>(reader: &mut R) -> io::Result<Encoding>
 where

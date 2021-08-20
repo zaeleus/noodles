@@ -5,12 +5,10 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::{
-    container::{
-        block::{CompressionMethod, ContentType},
-        Block,
-    },
-    num::read_itf8,
+use super::num::read_itf8;
+use crate::container::{
+    block::{CompressionMethod, ContentType},
+    Block,
 };
 
 pub fn read_block<R>(reader: &mut R) -> io::Result<Block>

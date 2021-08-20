@@ -4,6 +4,7 @@ pub(crate) mod block;
 pub(crate) mod compression_header;
 mod container;
 mod encoding;
+pub(crate) mod num;
 pub(crate) mod record;
 mod records;
 pub(crate) mod slice;

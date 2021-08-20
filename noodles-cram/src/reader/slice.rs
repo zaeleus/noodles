@@ -3,12 +3,13 @@ use std::{
     io::{self, Read},
 };
 
+use super::num::read_itf8;
 use crate::{
     container::{
         slice::{self, header::EmbeddedReferenceBasesBlockContentId},
         ReferenceSequenceId,
     },
-    num::{read_itf8, read_ltf8, Itf8},
+    num::{read_ltf8, Itf8},
 };
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>

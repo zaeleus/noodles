@@ -5,9 +5,10 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use super::num::read_itf8;
 use crate::{
     container::{Header, ReferenceSequenceId},
-    num::{read_itf8, read_ltf8, Itf8},
+    num::{read_ltf8, Itf8},
 };
 
 pub fn read_header<R>(reader: &mut R) -> io::Result<Header>

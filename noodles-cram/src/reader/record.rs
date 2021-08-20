@@ -9,13 +9,14 @@ use byteorder::ReadBytesExt;
 use noodles_bam as bam;
 use noodles_sam as sam;
 
+use super::num::read_itf8;
 use crate::{
     container::{
         compression_header::{data_series_encoding_map::DataSeries, encoding::Encoding},
         CompressionHeader, ReferenceSequenceId,
     },
     huffman::CanonicalHuffmanDecoder,
-    num::{read_itf8, Itf8},
+    num::Itf8,
     record::{self, feature, tag, Feature, ReadGroupId, Tag},
     BitReader, Record,
 };
