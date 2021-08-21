@@ -1,8 +1,9 @@
 use std::io::{self, Write};
 
+use super::num::write_itf8;
 use crate::{
     container::slice,
-    num::{write_itf8, write_ltf8, Itf8},
+    num::{write_ltf8, Itf8},
 };
 
 pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>

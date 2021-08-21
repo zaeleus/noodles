@@ -5,7 +5,7 @@ use std::{
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::num::write_itf8;
+use crate::writer::num::write_itf8;
 
 use super::{
     build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,

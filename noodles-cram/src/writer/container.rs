@@ -3,10 +3,8 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
-use crate::{
-    container,
-    num::{write_itf8, write_ltf8},
-};
+use super::num::write_itf8;
+use crate::{container, num::write_ltf8};
 
 pub fn write_header<W>(writer: &mut W, header: &container::Header) -> io::Result<()>
 where

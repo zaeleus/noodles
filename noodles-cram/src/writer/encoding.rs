@@ -2,9 +2,10 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
+use super::num::write_itf8;
 use crate::{
     container::compression_header::{encoding, Encoding},
-    num::{write_itf8, Itf8},
+    num::Itf8,
 };
 
 pub fn write_encoding<W>(writer: &mut W, encoding: &Encoding) -> io::Result<()>

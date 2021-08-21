@@ -11,12 +11,13 @@ use byteorder::WriteBytesExt;
 use noodles_bam as bam;
 use noodles_sam as sam;
 
+use super::num::write_itf8;
 use crate::{
     container::{
         compression_header::{data_series_encoding_map::DataSeries, Encoding},
         CompressionHeader, ReferenceSequenceId,
     },
-    num::{write_itf8, Itf8},
+    num::Itf8,
     record::{self, feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
 };

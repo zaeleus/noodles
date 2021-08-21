@@ -7,7 +7,8 @@ use crate::{
         preservation_map::{Key, SubstitutionMatrix, TagIdsDictionary},
         PreservationMap,
     },
-    num::{write_itf8, Itf8},
+    num::Itf8,
+    writer::num::write_itf8,
 };
 
 const MAP_LENGTH: Itf8 = 5;

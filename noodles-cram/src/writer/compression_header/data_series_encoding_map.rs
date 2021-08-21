@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use crate::{
     container::compression_header::{data_series_encoding_map::DataSeries, DataSeriesEncodingMap},
-    num::{write_itf8, Itf8},
-    writer::encoding::write_encoding,
+    num::Itf8,
+    writer::{encoding::write_encoding, num::write_itf8},
 };
 
 pub fn write_data_series_encoding_map<W>(
