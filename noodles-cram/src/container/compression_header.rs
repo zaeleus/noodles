@@ -18,7 +18,7 @@ use crate::reader::compression_header::read_compression_header;
 
 use super::Block;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CompressionHeader {
     preservation_map: PreservationMap,
     data_series_encoding_map: DataSeriesEncodingMap,
