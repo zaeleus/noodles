@@ -15,6 +15,10 @@ use crate::{reader, BitReader, Record};
 
 use super::{Block, CompressionHeader};
 
+/// A CRAM data container slice.
+///
+/// A slice contains a header, a core data block, and one or more external blocks. This is where
+/// the CRAM records are stored.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Slice {
     header: Header,
