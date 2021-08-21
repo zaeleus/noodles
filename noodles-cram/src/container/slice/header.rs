@@ -18,7 +18,7 @@ pub struct Header {
     alignment_span: Itf8,
     record_count: Itf8,
     record_counter: Ltf8,
-    block_count: Itf8,
+    block_count: usize,
     block_content_ids: Vec<Itf8>,
     embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
     reference_md5: [u8; 16],
@@ -50,7 +50,7 @@ impl Header {
         self.record_counter
     }
 
-    pub fn block_count(&self) -> Itf8 {
+    pub fn block_count(&self) -> usize {
         self.block_count
     }
 

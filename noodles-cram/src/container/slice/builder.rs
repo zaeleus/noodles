@@ -172,7 +172,7 @@ impl Builder {
             .set_record_count(self.records.len() as i32)
             .set_record_counter(record_counter)
             // external blocks + core data block
-            .set_block_count((external_blocks.len() + 1) as i32)
+            .set_block_count(external_blocks.len() + 1)
             .set_block_content_ids(block_content_ids)
             .set_reference_md5(reference_md5)
             .build();

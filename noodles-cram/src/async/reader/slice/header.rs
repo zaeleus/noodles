@@ -23,7 +23,11 @@ where
     let alignment_span = read_itf8(reader).await?;
     let record_count = read_itf8(reader).await?;
     let record_counter = read_ltf8(reader).await?;
-    let block_count = read_itf8(reader).await?;
+
+    let block_count = read_itf8(reader).await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let block_content_ids = read_block_content_ids(reader).await?;
 
     let embedded_reference_bases_block_content_id = read_itf8(reader)

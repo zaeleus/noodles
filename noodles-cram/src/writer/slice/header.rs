@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use crate::{
     container::slice,
@@ -17,7 +20,11 @@ where
     write_itf8(writer, header.alignment_span())?;
     write_itf8(writer, header.record_count())?;
     write_ltf8(writer, header.record_counter())?;
-    write_itf8(writer, header.block_count())?;
+
+    let block_count = Itf8::try_from(header.block_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, block_count)?;
+
     write_block_content_ids(writer, header.block_content_ids())?;
 
     let embedded_reference_bases_block_content_id =

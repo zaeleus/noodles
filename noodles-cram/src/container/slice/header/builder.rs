@@ -12,7 +12,7 @@ pub struct Builder {
     alignment_span: Itf8,
     record_count: Itf8,
     record_counter: Ltf8,
-    block_count: Itf8,
+    block_count: usize,
     block_content_ids: Vec<Itf8>,
     embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
     reference_md5: [u8; 16],
@@ -45,7 +45,7 @@ impl Builder {
         self
     }
 
-    pub fn set_block_count(mut self, block_count: Itf8) -> Self {
+    pub fn set_block_count(mut self, block_count: usize) -> Self {
         self.block_count = block_count;
         self
     }
