@@ -15,7 +15,7 @@ use crate::{reader, BitReader, Record};
 
 use super::{Block, CompressionHeader};
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Slice {
     header: Header,
     core_data_block: Block,
