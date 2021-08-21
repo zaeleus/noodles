@@ -1,10 +1,7 @@
 use std::io::{self, Write};
 
-use super::num::write_itf8;
-use crate::{
-    container::slice,
-    num::{write_ltf8, Itf8},
-};
+use super::num::{write_itf8, write_ltf8};
+use crate::{container::slice, num::Itf8};
 
 pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>
 where
