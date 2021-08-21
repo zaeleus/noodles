@@ -1,10 +1,13 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use super::num::{write_itf8, write_ltf8};
-use crate::container;
+use crate::{container, num::Itf8};
 
 pub fn write_header<W>(writer: &mut W, header: &container::Header) -> io::Result<()>
 where
@@ -33,7 +36,8 @@ where
     let bases = header.base_count();
     write_ltf8(&mut crc_writer, bases)?;
 
-    let number_of_blocks = header.block_count();
+    let number_of_blocks = Itf8::try_from(header.block_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, number_of_blocks)?;
 
     let landmarks_len = header.landmarks().len() as i32;

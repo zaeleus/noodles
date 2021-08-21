@@ -120,7 +120,7 @@ impl Container {
             .set_record_count(container_record_count)
             .set_record_counter(container_record_counter)
             .set_base_count(base_count)
-            .set_block_count(blocks.len() as Itf8)
+            .set_block_count(blocks.len())
             .set_landmarks(landmarks)
             .build();
 
@@ -189,7 +189,7 @@ impl TryFrom<&sam::Header> for Container {
         let container_header = Header::builder()
             .set_length(len)
             .set_reference_sequence_id(ReferenceSequenceId::None)
-            .set_block_count(blocks.len() as Itf8)
+            .set_block_count(blocks.len())
             .set_landmarks(landmarks)
             .build();
 

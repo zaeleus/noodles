@@ -9,7 +9,7 @@ use super::ReferenceSequenceId;
 // § 9 End of file container (2020-06-22)
 const EOF_LEN: i32 = 15;
 const EOF_START_POSITION: Itf8 = 4_542_278;
-const EOF_BLOCK_COUNT: Itf8 = 1;
+const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -21,7 +21,7 @@ pub struct Header {
     record_count: Itf8,
     record_counter: Ltf8,
     base_count: Ltf8,
-    block_count: Itf8,
+    block_count: usize,
     landmarks: Vec<Itf8>,
     crc32: u32,
 }
@@ -71,7 +71,7 @@ impl Header {
         self.base_count
     }
 
-    pub fn block_count(&self) -> Itf8 {
+    pub fn block_count(&self) -> usize {
         self.block_count
     }
 

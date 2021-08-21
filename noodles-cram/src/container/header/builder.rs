@@ -14,7 +14,7 @@ pub struct Builder {
     record_count: Itf8,
     record_counter: Ltf8,
     base_count: Ltf8,
-    block_count: Itf8,
+    block_count: usize,
     landmarks: Vec<Itf8>,
     crc32: u32,
 }
@@ -55,7 +55,7 @@ impl Builder {
         self
     }
 
-    pub fn set_block_count(mut self, block_count: Itf8) -> Self {
+    pub fn set_block_count(mut self, block_count: usize) -> Self {
         self.block_count = block_count;
         self
     }
