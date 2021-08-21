@@ -10,7 +10,6 @@ use std::{
 use super::block::read_block;
 use crate::container::{slice, Block, Slice};
 
-#[allow(dead_code)]
 pub fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
 where
     R: Read,

@@ -19,6 +19,13 @@ impl DataContainer {
         Builder::new(record_counter)
     }
 
+    pub fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
+        Self {
+            compression_header,
+            slices,
+        }
+    }
+
     pub fn compression_header(&self) -> &CompressionHeader {
         &self.compression_header
     }

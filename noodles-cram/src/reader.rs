@@ -9,6 +9,8 @@ pub(crate) mod record;
 mod records;
 pub(crate) mod slice;
 
+use crate::{container::CompressionHeader, data_container::DataContainer};
+
 pub use self::records::Records;
 
 use std::{
@@ -18,6 +20,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use self::{block::read_block, compression_header::read_compression_header, slice::read_slice};
 use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
 /// A CRAM reader.
@@ -136,6 +139,22 @@ where
         }
 
         Ok(Container::new(header, blocks))
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn read_data_container(&mut self) -> io::Result<DataContainer> {
+        let header = container::read_header(&mut self.inner)?;
+        let compression_header = read_compression_header_from_block(&mut self.inner)?;
+
+        let slice_count = header.landmarks().len();
+        let mut slices = Vec::with_capacity(slice_count);
+
+        for _ in 0..slice_count {
+            let slice = read_slice(&mut self.inner)?;
+            slices.push(slice);
+        }
+
+        Ok(DataContainer::new(compression_header, slices))
     }
 
     /// Returns a iterator over records starting from the current stream position.
@@ -261,6 +280,16 @@ pub(crate) fn read_file_header_block(block: &Block) -> io::Result<String> {
     str::from_utf8(reader)
         .map(|s| s.into())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
+where
+    R: Read,
+{
+    let block = read_block(reader)?;
+    let data = block.decompressed_data()?;
+    let mut data_reader = &data[..];
+    read_compression_header(&mut data_reader)
 }
 
 #[cfg(test)]
