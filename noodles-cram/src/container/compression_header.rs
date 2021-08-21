@@ -18,6 +18,10 @@ use crate::reader::compression_header::read_compression_header;
 
 use super::Block;
 
+/// A CRAM data container compression header.
+///
+/// The compression header has three maps with information about how the data is compressed: a
+/// preservation map, a data series encoding map, and a tag encoding map.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CompressionHeader {
     preservation_map: PreservationMap,
