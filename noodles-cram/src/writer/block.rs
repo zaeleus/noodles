@@ -1,10 +1,13 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use super::num::write_itf8;
-use crate::container::Block;
+use crate::{container::Block, num::Itf8};
 
 pub fn write_block<W>(writer: &mut W, block: &Block) -> io::Result<()>
 where
@@ -24,7 +27,8 @@ where
     let size_in_bytes = block.data().len() as i32;
     write_itf8(&mut crc_writer, size_in_bytes)?;
 
-    let uncompressed_data_len = block.uncompressed_len();
+    let uncompressed_data_len = Itf8::try_from(block.uncompressed_len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, uncompressed_data_len)?;
 
     crc_writer.write_all(block.data())?;

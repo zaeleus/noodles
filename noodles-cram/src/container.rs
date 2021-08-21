@@ -38,7 +38,7 @@ impl Container {
 
         let block = Block::builder()
             .set_content_type(block::ContentType::CompressionHeader)
-            .set_uncompressed_len(buf.len() as Itf8)
+            .set_uncompressed_len(buf.len())
             .set_data(buf)
             .build();
 
@@ -86,7 +86,7 @@ impl Container {
 
             let slice_header_block = Block::builder()
                 .set_content_type(block::ContentType::SliceHeader)
-                .set_uncompressed_len(slice_header_buf.len() as Itf8)
+                .set_uncompressed_len(slice_header_buf.len())
                 .set_data(slice_header_buf)
                 .build();
 
@@ -177,7 +177,7 @@ impl TryFrom<&sam::Header> for Container {
 
         let block = Block::builder()
             .set_content_type(ContentType::FileHeader)
-            .set_uncompressed_len(data.len() as Itf8)
+            .set_uncompressed_len(data.len())
             .set_data(data)
             .build();
 

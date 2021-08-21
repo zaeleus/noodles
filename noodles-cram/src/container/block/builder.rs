@@ -15,7 +15,7 @@ pub struct Builder {
     compression_method: CompressionMethod,
     content_type: Option<ContentType>,
     content_id: Itf8,
-    uncompressed_len: Itf8,
+    uncompressed_len: usize,
     data: Vec<u8>,
     crc32: u32,
 }
@@ -36,7 +36,7 @@ impl Builder {
         self
     }
 
-    pub fn set_uncompressed_len(mut self, uncompressed_len: Itf8) -> Self {
+    pub fn set_uncompressed_len(mut self, uncompressed_len: usize) -> Self {
         self.uncompressed_len = uncompressed_len;
         self
     }
@@ -61,7 +61,7 @@ impl Builder {
         compression_method: CompressionMethod,
     ) -> io::Result<Self> {
         self.compression_method = compression_method;
-        self.uncompressed_len = data.len() as Itf8;
+        self.uncompressed_len = data.len();
 
         self.data = match compression_method {
             CompressionMethod::None => data,

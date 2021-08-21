@@ -30,7 +30,7 @@ pub struct Block {
     compression_method: CompressionMethod,
     content_type: ContentType,
     content_id: Itf8,
-    uncompressed_len: Itf8,
+    uncompressed_len: usize,
     data: Vec<u8>,
     crc32: u32,
 }
@@ -45,7 +45,7 @@ impl Block {
     pub fn eof() -> Self {
         Self::builder()
             .set_content_type(ContentType::CompressionHeader)
-            .set_uncompressed_len(EOF_DATA.len() as Itf8)
+            .set_uncompressed_len(EOF_DATA.len())
             .set_data(EOF_DATA.to_vec())
             .set_crc32(EOF_CRC32)
             .build()
@@ -63,7 +63,7 @@ impl Block {
         self.content_id
     }
 
-    pub fn uncompressed_len(&self) -> Itf8 {
+    pub fn uncompressed_len(&self) -> usize {
         self.uncompressed_len
     }
 
@@ -106,7 +106,7 @@ impl Block {
             + mem::size_of::<u8>()
             + itf8::size_of(self.content_id())
             + itf8::size_of(self.data.len() as Itf8)
-            + itf8::size_of(self.uncompressed_len())
+            + itf8::size_of(self.uncompressed_len() as Itf8)
             + self.data.len()
             // crc32
             + mem::size_of::<u32>()
@@ -123,7 +123,7 @@ mod tests {
 
         let block = Block::builder()
             .set_content_type(ContentType::ExternalData)
-            .set_uncompressed_len(data.len() as Itf8)
+            .set_uncompressed_len(data.len())
             .set_data(data)
             .build();
 

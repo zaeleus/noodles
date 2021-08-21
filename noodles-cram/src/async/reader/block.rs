@@ -22,7 +22,10 @@ where
 
     let block_content_id = read_itf8(reader).await?;
     let size_in_bytes = read_itf8(reader).await?;
-    let raw_size_in_bytes = read_itf8(reader).await?;
+
+    let raw_size_in_bytes = read_itf8(reader).await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let len = usize::try_from(size_in_bytes)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

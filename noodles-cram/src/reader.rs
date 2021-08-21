@@ -300,7 +300,7 @@ where
 mod tests {
     use std::convert::TryFrom;
 
-    use crate::{container::block::ContentType, num::Itf8};
+    use crate::container::block::ContentType;
 
     use super::*;
 
@@ -336,7 +336,7 @@ mod tests {
 
         let block = Block::builder()
             .set_content_type(ContentType::FileHeader)
-            .set_uncompressed_len(data.len() as Itf8)
+            .set_uncompressed_len(data.len())
             .set_data(data.to_vec())
             .build();
 
