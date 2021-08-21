@@ -141,9 +141,13 @@ where
         Ok(Container::new(header, blocks))
     }
 
-    #[allow(dead_code)]
-    pub(crate) fn read_data_container(&mut self) -> io::Result<DataContainer> {
+    pub(crate) fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
         let header = container::read_header(&mut self.inner)?;
+
+        if header.is_eof() {
+            return Ok(None);
+        }
+
         let compression_header = read_compression_header_from_block(&mut self.inner)?;
 
         let slice_count = header.landmarks().len();
@@ -154,7 +158,7 @@ where
             slices.push(slice);
         }
 
-        Ok(DataContainer::new(compression_header, slices))
+        Ok(Some(DataContainer::new(compression_header, slices)))
     }
 
     /// Returns a iterator over records starting from the current stream position.

@@ -1,10 +1,9 @@
 use std::{
-    convert::TryFrom,
     io::{self, Read},
     vec,
 };
 
-use crate::{DataContainer, Record};
+use crate::Record;
 
 use super::Reader;
 
@@ -31,20 +30,17 @@ where
     }
 
     fn read_container_records(&mut self) -> io::Result<bool> {
-        let container = self.reader.read_container()?;
+        let container = match self.reader.read_data_container()? {
+            Some(c) => c,
+            None => return Ok(true),
+        };
 
-        if container.is_eof() {
-            return Ok(true);
-        }
-
-        let data_container = DataContainer::try_from(container)?;
-
-        self.records = data_container
+        self.records = container
             .slices()
             .iter()
             .map(|slice| {
                 slice
-                    .records(data_container.compression_header())
+                    .records(container.compression_header())
                     .map(|r| slice.resolve_mates(r))
             })
             .collect::<Result<Vec<_>, _>>()?
