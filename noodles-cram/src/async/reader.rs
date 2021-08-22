@@ -4,8 +4,6 @@ mod container;
 mod num;
 mod slice;
 
-use std::convert::TryFrom;
-
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 use self::block::read_block;
@@ -193,8 +191,7 @@ where
 {
     let header = container::read_header(reader).await?;
 
-    let blocks_len = usize::try_from(header.block_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let blocks_len = header.block_count();
     let mut blocks = Vec::with_capacity(blocks_len);
 
     for _ in 0..blocks_len {

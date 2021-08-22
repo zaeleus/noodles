@@ -2,8 +2,6 @@ mod header;
 
 pub use self::header::read_header;
 
-use std::convert::TryFrom;
-
 use tokio::io::{self, AsyncRead};
 
 use super::block::read_block;
@@ -16,8 +14,7 @@ where
     let header = read_header_from_block(reader).await?;
     let core_data_block = read_block(reader).await?;
 
-    let external_block_count = usize::try_from(header.block_count() - 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let external_block_count = header.block_count() - 1;
     let external_blocks = read_external_blocks(reader, external_block_count).await?;
 
     Ok(Slice::new(header, core_data_block, external_blocks))
