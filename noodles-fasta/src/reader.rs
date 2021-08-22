@@ -356,7 +356,7 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
     }
 }
 
-// Shifts an 1-based interval to a 0-based range for slicing.
+// Shifts a 1-based interval to a 0-based range for slicing.
 fn interval_to_slice_range(interval: Interval, len: usize) -> io::Result<Range<usize>> {
     let start = match interval.start_bound() {
         Bound::Included(&s) => usize::try_from(s)
