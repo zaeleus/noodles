@@ -158,7 +158,38 @@ impl DataSeriesEncodingMap {
 
 impl Default for DataSeriesEncodingMap {
     fn default() -> Self {
-        // FIXME
-        Self::builder().build().unwrap()
+        Self {
+            bam_bit_flags_encoding: Encoding::External(1),
+            cram_bit_flags_encoding: Encoding::External(2),
+            reference_id_encoding: Some(Encoding::External(3)),
+            read_lengths_encoding: Encoding::External(4),
+            in_seq_positions_encoding: Encoding::External(5),
+            read_groups_encoding: Encoding::External(6),
+            read_names_encoding: Some(Encoding::ByteArrayStop(0x00, 7)),
+            next_mate_bit_flags_encoding: Some(Encoding::External(8)),
+            next_fragment_reference_sequence_id_encoding: Some(Encoding::External(9)),
+            next_mate_alignment_start_encoding: Some(Encoding::External(10)),
+            template_size_encoding: Some(Encoding::External(11)),
+            distance_to_next_fragment_encoding: Some(Encoding::External(12)),
+            tag_ids_encoding: Encoding::External(13),
+            number_of_read_features_encoding: Some(Encoding::External(14)),
+            read_features_codes_encoding: Some(Encoding::External(15)),
+            in_read_positions_encoding: Some(Encoding::External(16)),
+            deletion_lengths_encoding: Some(Encoding::External(17)),
+            stretches_of_bases_encoding: Some(Encoding::ByteArrayStop(0x00, 18)),
+            stretches_of_quality_scores_encoding: Some(Encoding::ByteArrayLen(
+                Box::new(Encoding::External(19)),
+                Box::new(Encoding::External(19)),
+            )),
+            base_substitution_codes_encoding: Some(Encoding::External(20)),
+            insertion_encoding: Some(Encoding::ByteArrayStop(0x00, 21)),
+            reference_skip_length_encoding: Some(Encoding::External(22)),
+            padding_encoding: Some(Encoding::External(23)),
+            hard_clip_encoding: Some(Encoding::External(24)),
+            soft_clip_encoding: Some(Encoding::ByteArrayStop(0x00, 25)),
+            mapping_qualities_encoding: Some(Encoding::External(26)),
+            bases_encoding: Some(Encoding::External(27)),
+            quality_scores_encoding: Some(Encoding::External(28)),
+        }
     }
 }
