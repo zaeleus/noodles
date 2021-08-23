@@ -2,10 +2,12 @@ use std::convert::TryFrom;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use super::num::read_itf8;
-use crate::container::{
-    block::{CompressionMethod, ContentType},
-    Block,
+use crate::{
+    container::{
+        block::{CompressionMethod, ContentType},
+        Block,
+    },
+    r#async::reader::num::read_itf8,
 };
 
 pub async fn read_block<R>(reader: &mut R) -> io::Result<Block>

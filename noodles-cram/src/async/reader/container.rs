@@ -1,10 +1,10 @@
+mod block;
 mod header;
 
-pub use self::header::read_header;
+pub use self::{block::read_block, header::read_header};
 
 use tokio::io::{self, AsyncRead};
 
-use super::block::read_block;
 use crate::Container;
 
 pub async fn read_container<R>(reader: &mut R) -> io::Result<Container>

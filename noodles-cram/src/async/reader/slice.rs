@@ -4,7 +4,7 @@ pub use self::header::read_header;
 
 use tokio::io::{self, AsyncRead};
 
-use super::block::read_block;
+use super::container::read_block;
 use crate::{
     container::Block,
     data_container::{slice, Slice},
