@@ -6,8 +6,7 @@ mod slice;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
-use self::block::read_block;
-use crate::{file_definition::Version, Container, FileDefinition};
+use crate::{file_definition::Version, FileDefinition};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -86,6 +85,7 @@ where
     /// # }
     /// ```
     pub async fn read_file_header(&mut self) -> io::Result<String> {
+        use self::container::read_container;
         use crate::reader::read_file_header_block;
 
         let container = read_container(&mut self.inner).await?;
@@ -183,23 +183,6 @@ where
     let mut file_id = [0; 20];
     reader.read_exact(&mut file_id).await?;
     Ok(file_id)
-}
-
-async fn read_container<R>(reader: &mut R) -> io::Result<Container>
-where
-    R: AsyncRead + Unpin,
-{
-    let header = container::read_header(reader).await?;
-
-    let blocks_len = header.block_count();
-    let mut blocks = Vec::with_capacity(blocks_len);
-
-    for _ in 0..blocks_len {
-        let block = read_block(reader).await?;
-        blocks.push(block);
-    }
-
-    Ok(Container::new(header, blocks))
 }
 
 #[cfg(test)]
