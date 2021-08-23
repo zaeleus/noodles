@@ -4,7 +4,7 @@ use byteorder::WriteBytesExt;
 
 use super::num::write_itf8;
 use crate::{
-    container::compression_header::{encoding, Encoding},
+    data_container::compression_header::{encoding, Encoding},
     num::Itf8,
 };
 

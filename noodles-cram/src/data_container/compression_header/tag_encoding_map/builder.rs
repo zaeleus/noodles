@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::TagEncodingMap;
 
-use crate::{container::compression_header::Encoding, record, Record};
+use crate::{data_container::compression_header::Encoding, record, Record};
 
 #[derive(Debug, Default)]
 pub struct Builder {

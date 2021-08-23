@@ -4,7 +4,9 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use super::read_encoding;
 use crate::{
-    container::compression_header::{data_series_encoding_map::DataSeries, DataSeriesEncodingMap},
+    data_container::compression_header::{
+        data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
+    },
     r#async::reader::num::read_itf8,
 };
 
@@ -96,10 +98,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::container::compression_header::Encoding;
 
     #[tokio::test]
     async fn test_read_data_series_encoding_map() -> io::Result<()> {
+        use crate::data_container::compression_header::Encoding;
+
         let data = [
             0x1f, // data.len = 31
             0x06, // map.len = 6

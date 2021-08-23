@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use crate::{
-    container::compression_header::{
+    data_container::compression_header::{
         preservation_map::{Key, SubstitutionMatrix, TagIdsDictionary},
         PreservationMap,
     },

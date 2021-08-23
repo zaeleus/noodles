@@ -1,7 +1,9 @@
 use std::io::{self, Write};
 
 use crate::{
-    container::compression_header::{data_series_encoding_map::DataSeries, DataSeriesEncodingMap},
+    data_container::compression_header::{
+        data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
+    },
     num::Itf8,
     writer::{encoding::write_encoding, num::write_itf8},
 };

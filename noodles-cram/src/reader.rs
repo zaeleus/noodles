@@ -9,7 +9,7 @@ pub(crate) mod record;
 mod records;
 pub(crate) mod slice;
 
-use crate::{container::CompressionHeader, data_container::DataContainer};
+use crate::data_container::{CompressionHeader, DataContainer};
 
 pub use self::records::Records;
 

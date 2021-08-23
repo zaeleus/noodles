@@ -3,7 +3,7 @@ use std::{collections::HashMap, convert::TryFrom};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::compression_header::{Encoding, TagEncodingMap},
+    data_container::compression_header::{Encoding, TagEncodingMap},
     num::Itf8,
     r#async::reader::num::read_itf8,
 };

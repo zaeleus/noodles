@@ -4,7 +4,9 @@ use std::{
 };
 
 use crate::{
-    container::compression_header::{data_series_encoding_map::DataSeries, DataSeriesEncodingMap},
+    data_container::compression_header::{
+        data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
+    },
     reader::{encoding::read_encoding, num::read_itf8},
 };
 

@@ -1,12 +1,10 @@
 pub mod block;
-pub mod compression_header;
 mod header;
 pub mod reference_sequence_id;
 pub mod slice;
 
 pub use self::{
-    block::Block, compression_header::CompressionHeader, header::Header,
-    reference_sequence_id::ReferenceSequenceId, slice::Slice,
+    block::Block, header::Header, reference_sequence_id::ReferenceSequenceId, slice::Slice,
 };
 
 use std::{cmp, convert::TryFrom, error, fmt, io};

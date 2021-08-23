@@ -9,7 +9,7 @@ use self::{
     data_series_encoding_map::read_data_series_encoding_map, encoding::read_encoding,
     preservation_map::read_preservation_map, tag_encoding_map::read_tag_encoding_map,
 };
-use crate::container::CompressionHeader;
+use crate::data_container::CompressionHeader;
 
 pub async fn read_compression_header<R>(reader: &mut R) -> io::Result<CompressionHeader>
 where

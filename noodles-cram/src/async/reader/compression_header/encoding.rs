@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::{container::compression_header::Encoding, r#async::reader::num::read_itf8};
+use crate::{data_container::compression_header::Encoding, r#async::reader::num::read_itf8};
 
 pub async fn read_encoding<R>(reader: &mut R) -> io::Result<Encoding>
 where

@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::container::compression_header::Encoding;
+use crate::data_container::compression_header::Encoding;
 
 use super::DataSeriesEncodingMap;
 

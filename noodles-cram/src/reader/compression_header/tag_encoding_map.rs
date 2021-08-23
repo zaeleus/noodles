@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    container::compression_header::TagEncodingMap,
+    data_container::compression_header::TagEncodingMap,
     reader::{encoding::read_encoding, num::read_itf8},
 };
 

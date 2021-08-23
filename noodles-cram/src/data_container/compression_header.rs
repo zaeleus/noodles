@@ -14,9 +14,7 @@ pub use self::{
 
 use std::{convert::TryFrom, io};
 
-use crate::reader::compression_header::read_compression_header;
-
-use super::Block;
+use crate::{container::Block, reader::compression_header::read_compression_header};
 
 /// A CRAM data container compression header.
 ///

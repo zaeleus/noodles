@@ -7,7 +7,7 @@ use byteorder::ReadBytesExt;
 use noodles_bam as bam;
 
 use crate::{
-    container::compression_header::{
+    data_container::compression_header::{
         preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
     reader::num::read_itf8,

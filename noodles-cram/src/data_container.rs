@@ -1,13 +1,11 @@
 pub mod builder;
+pub mod compression_header;
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, compression_header::CompressionHeader};
 
 use std::{convert::TryFrom, io};
 
-use super::{
-    container::{CompressionHeader, Slice},
-    Container,
-};
+use super::{container::Slice, Container};
 
 pub struct DataContainer {
     compression_header: CompressionHeader,

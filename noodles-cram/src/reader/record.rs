@@ -11,9 +11,10 @@ use noodles_sam as sam;
 
 use super::num::read_itf8;
 use crate::{
-    container::{
+    container::ReferenceSequenceId,
+    data_container::{
         compression_header::{data_series_encoding_map::DataSeries, encoding::Encoding},
-        CompressionHeader, ReferenceSequenceId,
+        CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
     num::Itf8,

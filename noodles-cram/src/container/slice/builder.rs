@@ -6,9 +6,9 @@ use noodles_fasta as fasta;
 use crate::{
     container::{
         block::{self, CompressionMethod},
-        compression_header::data_series_encoding_map::DataSeries,
-        Block, CompressionHeader, ReferenceSequenceId,
+        Block, ReferenceSequenceId,
     },
+    data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
     writer, BitWriter, Record,
 };
 

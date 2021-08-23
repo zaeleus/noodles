@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use crate::{
-    container::compression_header::TagEncodingMap,
+    data_container::compression_header::TagEncodingMap,
     num::Itf8,
     writer::{encoding::write_encoding, num::write_itf8},
 };

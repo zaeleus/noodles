@@ -4,7 +4,7 @@ use noodles_bam as bam;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::compression_header::{
+    data_container::compression_header::{
         preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
     r#async::reader::num::read_itf8,

@@ -13,9 +13,10 @@ use noodles_sam as sam;
 
 use super::num::write_itf8;
 use crate::{
-    container::{
+    container::ReferenceSequenceId,
+    data_container::{
         compression_header::{data_series_encoding_map::DataSeries, Encoding},
-        CompressionHeader, ReferenceSequenceId,
+        CompressionHeader,
     },
     num::Itf8,
     record::{self, feature, Feature, Flags, NextMateFlags},

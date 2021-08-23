@@ -9,7 +9,7 @@ use self::{
     preservation_map::write_preservation_map, tag_encoding_map::write_tag_encoding_map,
 };
 
-use crate::container::CompressionHeader;
+use crate::data_container::CompressionHeader;
 
 pub fn write_compression_header<W>(
     writer: &mut W,

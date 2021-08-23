@@ -5,9 +5,8 @@ use std::convert::TryFrom;
 use noodles_fasta as fasta;
 use noodles_sam::record::Cigar;
 
-use crate::{
-    container::compression_header::preservation_map::substitution_matrix::Base,
-    container::compression_header::SubstitutionMatrix,
+use crate::data_container::compression_header::{
+    preservation_map::substitution_matrix::Base, SubstitutionMatrix,
 };
 
 use super::Feature;
