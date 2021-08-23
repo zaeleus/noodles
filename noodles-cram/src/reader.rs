@@ -1,6 +1,5 @@
 //! CRAM reader and record iterator.
 
-pub(crate) mod block;
 pub(crate) mod compression_header;
 mod container;
 mod encoding;
@@ -21,8 +20,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::{
-    block::read_block, compression_header::read_compression_header, container::read_container,
-    slice::read_slice,
+    compression_header::read_compression_header, container::read_container, slice::read_slice,
 };
 use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
@@ -283,6 +281,8 @@ fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<Compressi
 where
     R: Read,
 {
+    use self::container::read_block;
+
     let block = read_block(reader)?;
     let data = block.decompressed_data()?;
     let mut data_reader = &data[..];

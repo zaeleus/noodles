@@ -1,6 +1,7 @@
+mod block;
 mod header;
 
-pub use self::header::read_header;
+pub use self::{block::read_block, header::read_header};
 
 use std::io::{self, Read};
 
@@ -10,8 +11,6 @@ pub fn read_container<R>(reader: &mut R) -> io::Result<Container>
 where
     R: Read,
 {
-    use super::block::read_block;
-
     let header = read_header(reader)?;
 
     let blocks_len = header.block_count();
