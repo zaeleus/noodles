@@ -158,6 +158,7 @@ impl DataSeriesEncodingMap {
 
 impl Default for DataSeriesEncodingMap {
     fn default() -> Self {
-        Self::builder().build()
+        // FIXME
+        Self::builder().build().unwrap()
     }
 }

@@ -88,7 +88,9 @@ where
         }
     }
 
-    Ok(builder.build())
+    builder
+        .build()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
@@ -110,7 +112,9 @@ mod tests {
 
         let mut builder = DataSeriesEncodingMap::builder();
         builder = builder.set_bam_bit_flags_encoding(Encoding::External(15));
-        let expected = builder.build();
+        let expected = builder
+            .build()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         assert_eq!(actual, expected);
 

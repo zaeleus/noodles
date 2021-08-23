@@ -74,7 +74,9 @@ where
         }
     }
 
-    Ok(builder.build())
+    builder
+        .build()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]

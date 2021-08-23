@@ -1,3 +1,5 @@
+use std::{error, fmt};
+
 use crate::container::compression_header::Encoding;
 
 use super::DataSeriesEncodingMap;
@@ -174,24 +176,24 @@ impl Builder {
         self
     }
 
-    pub fn build(self) -> DataSeriesEncodingMap {
-        DataSeriesEncodingMap {
+    pub fn build(self) -> Result<DataSeriesEncodingMap, BuildError> {
+        Ok(DataSeriesEncodingMap {
             bam_bit_flags_encoding: self
                 .bam_bit_flags_encoding
-                .expect("missing BAM bit flags encoding"),
+                .ok_or(BuildError::MissingBamBitFlagsEncoding)?,
             cram_bit_flags_encoding: self
                 .cram_bit_flags_encoding
-                .expect("missing CRAM bit flags encoding"),
+                .ok_or(BuildError::MissingCramBitFlagsEncoding)?,
             reference_id_encoding: self.reference_id_encoding,
             read_lengths_encoding: self
                 .read_lengths_encoding
-                .expect("missing read lengths encoding"),
+                .ok_or(BuildError::MissingReadLengthsEncoding)?,
             in_seq_positions_encoding: self
                 .in_seq_positions_encoding
-                .expect("missing in-seq positions encoding"),
+                .ok_or(BuildError::MissingInSeqPositionsEncoding)?,
             read_groups_encoding: self
                 .read_groups_encoding
-                .expect("missing read groups encoding"),
+                .ok_or(BuildError::MissingReadGroupsEncoding)?,
             read_names_encoding: self.read_names_encoding,
             next_mate_bit_flags_encoding: self.next_mate_bit_flags_encoding,
             next_fragment_reference_sequence_id_encoding: self
@@ -199,7 +201,9 @@ impl Builder {
             next_mate_alignment_start_encoding: self.next_mate_alignment_start_encoding,
             template_size_encoding: self.template_size_encoding,
             distance_to_next_fragment_encoding: self.distance_to_next_fragment_encoding,
-            tag_ids_encoding: self.tag_ids_encoding.expect("missing tag IDs encoding"),
+            tag_ids_encoding: self
+                .tag_ids_encoding
+                .ok_or(BuildError::MissingTagIdsEncoding)?,
             number_of_read_features_encoding: self.number_of_read_features_encoding,
             read_features_codes_encoding: self.read_features_codes_encoding,
             in_read_positions_encoding: self.in_read_positions_encoding,
@@ -215,7 +219,7 @@ impl Builder {
             mapping_qualities_encoding: self.mapping_qualities_encoding,
             bases_encoding: self.bases_encoding,
             quality_scores_encoding: self.quality_scores_encoding,
-        }
+        })
     }
 }
 
@@ -253,6 +257,32 @@ impl Default for Builder {
             mapping_qualities_encoding: Some(Encoding::External(26)),
             bases_encoding: Some(Encoding::External(27)),
             quality_scores_encoding: Some(Encoding::External(28)),
+        }
+    }
+}
+
+#[allow(clippy::enum_variant_names)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BuildError {
+    MissingBamBitFlagsEncoding,
+    MissingCramBitFlagsEncoding,
+    MissingReadLengthsEncoding,
+    MissingInSeqPositionsEncoding,
+    MissingReadGroupsEncoding,
+    MissingTagIdsEncoding,
+}
+
+impl error::Error for BuildError {}
+
+impl fmt::Display for BuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingBamBitFlagsEncoding => f.write_str("missing BAM bit flags encoding"),
+            Self::MissingCramBitFlagsEncoding => f.write_str("missing CRAM bit flags encoding"),
+            Self::MissingReadLengthsEncoding => f.write_str("missing read lengths encoding"),
+            Self::MissingInSeqPositionsEncoding => f.write_str("missing in-seq positions encoding"),
+            Self::MissingReadGroupsEncoding => f.write_str("missing read groups encoding"),
+            Self::MissingTagIdsEncoding => f.write_str("missing tag IDs encoding"),
         }
     }
 }
