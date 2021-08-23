@@ -101,18 +101,26 @@ mod tests {
     #[tokio::test]
     async fn test_read_data_series_encoding_map() -> io::Result<()> {
         let data = [
-            0x06, // data.len = 6
-            0x01, // map.len = 1
-            b'B', b'F', // key[0] = BamBitFlags
-            0x01, 0x01, 0x0f, // value[0] = External(15)
+            0x1f, // data.len = 31
+            0x06, // map.len = 6
+            b'B', b'F', 0x01, 0x01, 0x01, // (BamBitFlags, External(1))
+            b'C', b'F', 0x01, 0x01, 0x02, // (CramBitFlags, External(2))
+            b'R', b'L', 0x01, 0x01, 0x03, // (ReadLengths, External(3))
+            b'A', b'P', 0x01, 0x01, 0x04, // (InSeqPositions, External(4))
+            b'R', b'G', 0x01, 0x01, 0x05, // (ReadGroups, External(5))
+            b'T', b'L', 0x01, 0x01, 0x06, // (TagIds, External(6))
         ];
 
         let mut reader = &data[..];
         let actual = read_data_series_encoding_map(&mut reader).await?;
 
-        let mut builder = DataSeriesEncodingMap::builder();
-        builder = builder.set_bam_bit_flags_encoding(Encoding::External(15));
-        let expected = builder
+        let expected = DataSeriesEncodingMap::builder()
+            .set_bam_bit_flags_encoding(Encoding::External(1))
+            .set_cram_bit_flags_encoding(Encoding::External(2))
+            .set_read_lengths_encoding(Encoding::External(3))
+            .set_in_seq_positions_encoding(Encoding::External(4))
+            .set_read_groups_encoding(Encoding::External(5))
+            .set_tag_ids_encoding(Encoding::External(6))
             .build()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 

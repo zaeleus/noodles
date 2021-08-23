@@ -4,6 +4,7 @@ use crate::container::compression_header::Encoding;
 
 use super::DataSeriesEncodingMap;
 
+#[derive(Default)]
 pub struct Builder {
     bam_bit_flags_encoding: Option<Encoding>,
     cram_bit_flags_encoding: Option<Encoding>,
@@ -223,44 +224,6 @@ impl Builder {
     }
 }
 
-impl Default for Builder {
-    fn default() -> Self {
-        Self {
-            bam_bit_flags_encoding: Some(Encoding::External(1)),
-            cram_bit_flags_encoding: Some(Encoding::External(2)),
-            reference_id_encoding: Some(Encoding::External(3)),
-            read_lengths_encoding: Some(Encoding::External(4)),
-            in_seq_positions_encoding: Some(Encoding::External(5)),
-            read_groups_encoding: Some(Encoding::External(6)),
-            read_names_encoding: Some(Encoding::ByteArrayStop(0x00, 7)),
-            next_mate_bit_flags_encoding: Some(Encoding::External(8)),
-            next_fragment_reference_sequence_id_encoding: Some(Encoding::External(9)),
-            next_mate_alignment_start_encoding: Some(Encoding::External(10)),
-            template_size_encoding: Some(Encoding::External(11)),
-            distance_to_next_fragment_encoding: Some(Encoding::External(12)),
-            tag_ids_encoding: Some(Encoding::External(13)),
-            number_of_read_features_encoding: Some(Encoding::External(14)),
-            read_features_codes_encoding: Some(Encoding::External(15)),
-            in_read_positions_encoding: Some(Encoding::External(16)),
-            deletion_lengths_encoding: Some(Encoding::External(17)),
-            stretches_of_bases_encoding: Some(Encoding::ByteArrayStop(0x00, 18)),
-            stretches_of_quality_scores_encoding: Some(Encoding::ByteArrayLen(
-                Box::new(Encoding::External(19)),
-                Box::new(Encoding::External(19)),
-            )),
-            base_substitution_codes_encoding: Some(Encoding::External(20)),
-            insertion_encoding: Some(Encoding::ByteArrayStop(0x00, 21)),
-            reference_skip_length_encoding: Some(Encoding::External(22)),
-            padding_encoding: Some(Encoding::External(23)),
-            hard_clip_encoding: Some(Encoding::External(24)),
-            soft_clip_encoding: Some(Encoding::ByteArrayStop(0x00, 25)),
-            mapping_qualities_encoding: Some(Encoding::External(26)),
-            bases_encoding: Some(Encoding::External(27)),
-            quality_scores_encoding: Some(Encoding::External(28)),
-        }
-    }
-}
-
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildError {
@@ -284,5 +247,46 @@ impl fmt::Display for BuildError {
             Self::MissingReadGroupsEncoding => f.write_str("missing read groups encoding"),
             Self::MissingTagIdsEncoding => f.write_str("missing tag IDs encoding"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.bam_bit_flags_encoding.is_none());
+        assert!(builder.cram_bit_flags_encoding.is_none());
+        assert!(builder.reference_id_encoding.is_none());
+        assert!(builder.read_lengths_encoding.is_none());
+        assert!(builder.in_seq_positions_encoding.is_none());
+        assert!(builder.read_groups_encoding.is_none());
+        assert!(builder.read_names_encoding.is_none());
+        assert!(builder.next_mate_bit_flags_encoding.is_none());
+        assert!(builder
+            .next_fragment_reference_sequence_id_encoding
+            .is_none());
+        assert!(builder.next_mate_alignment_start_encoding.is_none());
+        assert!(builder.template_size_encoding.is_none());
+        assert!(builder.distance_to_next_fragment_encoding.is_none());
+        assert!(builder.tag_ids_encoding.is_none());
+        assert!(builder.number_of_read_features_encoding.is_none());
+        assert!(builder.read_features_codes_encoding.is_none());
+        assert!(builder.in_read_positions_encoding.is_none());
+        assert!(builder.deletion_lengths_encoding.is_none());
+        assert!(builder.stretches_of_bases_encoding.is_none());
+        assert!(builder.stretches_of_quality_scores_encoding.is_none());
+        assert!(builder.base_substitution_codes_encoding.is_none());
+        assert!(builder.insertion_encoding.is_none());
+        assert!(builder.reference_skip_length_encoding.is_none());
+        assert!(builder.padding_encoding.is_none());
+        assert!(builder.hard_clip_encoding.is_none());
+        assert!(builder.soft_clip_encoding.is_none());
+        assert!(builder.mapping_qualities_encoding.is_none());
+        assert!(builder.bases_encoding.is_none());
+        assert!(builder.quality_scores_encoding.is_none());
     }
 }
