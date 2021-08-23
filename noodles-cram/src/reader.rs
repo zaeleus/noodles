@@ -20,7 +20,10 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use self::{block::read_block, compression_header::read_compression_header, slice::read_slice};
+use self::{
+    block::read_block, compression_header::read_compression_header, container::read_container,
+    slice::read_slice,
+};
 use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
 /// A CRAM reader.
@@ -115,7 +118,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let container = self.read_container()?;
+        let container = read_container(&mut self.inner)?;
 
         if let Some(block) = container.blocks().first() {
             read_file_header_block(block)
@@ -128,17 +131,7 @@ where
     }
 
     pub(crate) fn read_container(&mut self) -> io::Result<Container> {
-        let header = container::read_header(&mut self.inner)?;
-
-        let blocks_len = header.block_count();
-        let mut blocks = Vec::with_capacity(blocks_len);
-
-        for _ in 0..blocks_len {
-            let block = block::read_block(&mut self.inner)?;
-            blocks.push(block);
-        }
-
-        Ok(Container::new(header, blocks))
+        read_container(&mut self.inner)
     }
 
     pub(crate) fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
