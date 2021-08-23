@@ -3,10 +3,8 @@ use std::convert::TryFrom;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::{
-        slice::{self, header::EmbeddedReferenceBasesBlockContentId},
-        ReferenceSequenceId,
-    },
+    container::ReferenceSequenceId,
+    data_container::slice::{self, header::EmbeddedReferenceBasesBlockContentId},
     num::Itf8,
     r#async::reader::num::{read_itf8, read_ltf8},
 };

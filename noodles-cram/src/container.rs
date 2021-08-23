@@ -1,11 +1,8 @@
 pub mod block;
 mod header;
 pub mod reference_sequence_id;
-pub mod slice;
 
-pub use self::{
-    block::Block, header::Header, reference_sequence_id::ReferenceSequenceId, slice::Slice,
-};
+pub use self::{block::Block, header::Header, reference_sequence_id::ReferenceSequenceId};
 
 use std::{cmp, convert::TryFrom, error, fmt, io};
 

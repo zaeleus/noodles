@@ -99,7 +99,7 @@ where
 fn push_index_records(
     index: &mut crai::Index,
     compression_header: &data_container::CompressionHeader,
-    slice: &container::Slice,
+    slice: &data_container::Slice,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
@@ -142,7 +142,7 @@ impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
 fn push_index_records_for_multi_reference_slice(
     index: &mut crai::Index,
     compression_header: &data_container::CompressionHeader,
-    slice: &container::Slice,
+    slice: &data_container::Slice,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
@@ -209,7 +209,7 @@ fn push_index_records_for_multi_reference_slice(
 
 fn push_index_record_for_single_reference_slice(
     index: &mut crai::Index,
-    slice_header: &container::slice::Header,
+    slice_header: &data_container::slice::Header,
     container_position: u64,
     landmark: u64,
     slice_length: u64,

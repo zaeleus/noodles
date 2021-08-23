@@ -2,12 +2,8 @@ use std::{io, mem};
 
 use noodles_fasta as fasta;
 
-use crate::{
-    container::slice::{self, Slice},
-    Record,
-};
-
-use super::{compression_header, CompressionHeader, DataContainer};
+use super::{compression_header, slice, CompressionHeader, DataContainer, Slice};
+use crate::Record;
 
 const MAX_SLICE_COUNT: usize = 4;
 

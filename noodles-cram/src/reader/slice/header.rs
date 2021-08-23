@@ -4,10 +4,8 @@ use std::{
 };
 
 use crate::{
-    container::{
-        slice::{self, header::EmbeddedReferenceBasesBlockContentId},
-        ReferenceSequenceId,
-    },
+    container::ReferenceSequenceId,
+    data_container::slice::{self, header::EmbeddedReferenceBasesBlockContentId},
     num::Itf8,
     reader::num::{read_itf8, read_ltf8},
 };

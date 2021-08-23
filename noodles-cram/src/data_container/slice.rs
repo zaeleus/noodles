@@ -11,9 +11,8 @@ use std::{
 
 use noodles_sam as sam;
 
-use crate::{data_container::CompressionHeader, reader, BitReader, Record};
-
-use super::Block;
+use super::CompressionHeader;
+use crate::{container::Block, reader, BitReader, Record};
 
 /// A CRAM data container slice.
 ///

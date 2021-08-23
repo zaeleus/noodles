@@ -5,7 +5,10 @@ pub use self::header::read_header;
 use std::io::{self, Read};
 
 use super::block::read_block;
-use crate::container::{slice, Block, Slice};
+use crate::{
+    container::Block,
+    data_container::{slice, Slice},
+};
 
 pub fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
 where

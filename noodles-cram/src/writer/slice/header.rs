@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    container::slice,
+    data_container::slice,
     num::Itf8,
     writer::num::{write_itf8, write_ltf8},
 };
