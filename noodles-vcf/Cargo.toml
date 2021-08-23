@@ -15,7 +15,7 @@ async = ["futures", "noodles-bgzf/async", "pin-project-lite", "tokio"]
 [dependencies]
 indexmap = "1.4.0"
 memchr = "2.3.3"
-nom = "6.1.2"
+nom = "7.0.0"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.4.0" }
 noodles-core = { path = "../noodles-core", version = "0.1.2" }
 noodles-csi = { path = "../noodles-csi", version = "0.3.0" }

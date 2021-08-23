@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * Update to nom 7.0.0.
+
 ## 0.5.0 - 2021-08-19
 
 ### Changed
