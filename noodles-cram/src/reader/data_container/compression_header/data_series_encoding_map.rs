@@ -3,11 +3,12 @@ use std::{
     io::{self, Read},
 };
 
+use super::read_encoding;
 use crate::{
     data_container::compression_header::{
         data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
     },
-    reader::{encoding::read_encoding, num::read_itf8},
+    reader::num::read_itf8,
 };
 
 pub fn read_data_series_encoding_map<R>(reader: &mut R) -> io::Result<DataSeriesEncodingMap>

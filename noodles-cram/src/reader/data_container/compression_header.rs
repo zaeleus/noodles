@@ -1,11 +1,12 @@
 mod data_series_encoding_map;
+mod encoding;
 mod preservation_map;
 mod tag_encoding_map;
 
 use std::io::{self, Read};
 
 use self::{
-    data_series_encoding_map::read_data_series_encoding_map,
+    data_series_encoding_map::read_data_series_encoding_map, encoding::read_encoding,
     preservation_map::read_preservation_map, tag_encoding_map::read_tag_encoding_map,
 };
 
