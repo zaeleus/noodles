@@ -6,7 +6,6 @@ mod encoding;
 pub(crate) mod num;
 pub(crate) mod record;
 mod records;
-pub(crate) mod slice;
 
 use crate::data_container::{CompressionHeader, DataContainer};
 
@@ -19,7 +18,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use self::{container::read_container, slice::read_slice};
+use self::container::read_container;
 use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
 
 /// A CRAM reader.
@@ -131,6 +130,8 @@ where
     }
 
     pub(crate) fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
+        use self::data_container::read_slice;
+
         let header = container::read_header(&mut self.inner)?;
 
         if header.is_eof() {

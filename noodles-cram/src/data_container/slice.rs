@@ -12,7 +12,7 @@ use std::{
 use noodles_sam as sam;
 
 use super::CompressionHeader;
-use crate::{container::Block, reader, BitReader, Record};
+use crate::{container::Block, BitReader, Record};
 
 /// A CRAM data container slice.
 ///
@@ -64,7 +64,7 @@ impl Slice {
             external_data_readers.insert(block.content_id(), reader);
         }
 
-        let mut record_reader = reader::record::Reader::new(
+        let mut record_reader = crate::reader::record::Reader::new(
             compression_header,
             core_data_reader,
             external_data_readers,
@@ -176,7 +176,7 @@ impl TryFrom<&[Block]> for Slice {
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing header block"))?;
         let data = header_block.decompressed_data()?;
         let mut reader = &data[..];
-        let header = reader::slice::read_header(&mut reader)?;
+        let header = crate::reader::data_container::slice::read_header(&mut reader)?;
 
         let core_data_block = it
             .next()

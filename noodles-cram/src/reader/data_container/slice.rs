@@ -4,10 +4,10 @@ pub use self::header::read_header;
 
 use std::io::{self, Read};
 
-use super::container::read_block;
 use crate::{
     container::Block,
     data_container::{slice, Slice},
+    reader::container::read_block,
 };
 
 pub fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
