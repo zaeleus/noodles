@@ -5,7 +5,7 @@ pub use self::{compression_header::read_compression_header, slice::read_slice};
 
 use tokio::io::{self, AsyncRead};
 
-use crate::data_container::DataContainer;
+use crate::data_container::{CompressionHeader, DataContainer};
 
 pub async fn read_data_container<R>(reader: &mut R) -> io::Result<Option<DataContainer>>
 where
@@ -17,7 +17,7 @@ where
         return Ok(None);
     }
 
-    let compression_header = read_compression_header(reader).await?;
+    let compression_header = read_compression_header_from_block(reader).await?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
@@ -28,4 +28,16 @@ where
     }
 
     Ok(Some(DataContainer::new(compression_header, slices)))
+}
+
+async fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
+where
+    R: AsyncRead + Unpin,
+{
+    use super::container::read_block;
+
+    let block = read_block(reader).await?;
+    let data = block.decompressed_data()?;
+    let mut data_reader = &data[..];
+    read_compression_header(&mut data_reader).await
 }
