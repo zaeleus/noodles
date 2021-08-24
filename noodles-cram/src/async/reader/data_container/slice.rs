@@ -4,10 +4,10 @@ pub use self::header::read_header;
 
 use tokio::io::{self, AsyncRead};
 
-use super::container::read_block;
 use crate::{
     container::Block,
     data_container::{slice, Slice},
+    r#async::reader::container::read_block,
 };
 
 pub async fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
