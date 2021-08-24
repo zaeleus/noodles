@@ -13,7 +13,7 @@ where
         1 => read_external_encoding(reader).await,
         2 => unimplemented!("GOLOMB"),
         3 => read_huffman_encoding(reader).await,
-        4 => todo!("BYTE_ARRAY_LEN"),
+        4 => read_byte_array_len_encoding(reader).await,
         5 => read_byte_array_stop_encoding(reader).await,
         6 => read_beta_encoding(reader).await,
         7 => read_subexp_encoding(reader).await,
@@ -66,6 +66,44 @@ where
     }
 
     Ok(Encoding::Huffman(alphabet, bit_lens))
+}
+
+async fn read_byte_array_len_encoding<R>(reader: &mut R) -> io::Result<Encoding>
+where
+    R: AsyncRead + Unpin,
+{
+    // To avoid recursion, this is the same as `read_encoding` sans the `BYTE_ARRAY_LEN` reader.
+    pub async fn read_encoding_arg<R>(reader: &mut R) -> io::Result<Encoding>
+    where
+        R: AsyncRead + Unpin,
+    {
+        match read_itf8(reader).await? {
+            0 => Ok(Encoding::Null),
+            1 => read_external_encoding(reader).await,
+            2 => unimplemented!("GOLOMB"),
+            3 => read_huffman_encoding(reader).await,
+            5 => read_byte_array_stop_encoding(reader).await,
+            6 => read_beta_encoding(reader).await,
+            7 => read_subexp_encoding(reader).await,
+            8 => unimplemented!("GOLOMB_RICE"),
+            9 => read_gamma_encoding(reader).await,
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid encoding kind",
+            )),
+        }
+    }
+
+    let args = read_args(reader).await?;
+    let mut args_reader = &args[..];
+
+    let len_encoding = read_encoding_arg(&mut args_reader).await?;
+    let value_encoding = read_encoding_arg(&mut args_reader).await?;
+
+    Ok(Encoding::ByteArrayLen(
+        Box::new(len_encoding),
+        Box::new(value_encoding),
+    ))
 }
 
 async fn read_byte_array_stop_encoding<R>(reader: &mut R) -> io::Result<Encoding>
@@ -181,7 +219,7 @@ mod tests {
         Ok(())
     }
 
-    /* #[tokio::test]
+    #[tokio::test]
     async fn test_read_byte_array_len_encoding() -> io::Result<()> {
         let data = [
             0x04, // codec ID = BYTE_ARRAY_LEN
@@ -206,7 +244,7 @@ mod tests {
         );
 
         Ok(())
-    } */
+    }
 
     #[tokio::test]
     async fn test_read_byte_array_stop_encoding() -> io::Result<()> {
