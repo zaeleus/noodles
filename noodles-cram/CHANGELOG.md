@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * reader: Add data container reader.
+
+    This can be used to manually read records from slices.
+
 ## 0.3.0 - 2021-08-19
 
 ### Added

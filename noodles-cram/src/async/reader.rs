@@ -4,7 +4,7 @@ mod num;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
-use crate::{file_definition::Version, FileDefinition};
+use crate::{file_definition::Version, DataContainer, FileDefinition};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -96,6 +96,37 @@ where
                 "invalid header container: missing block for SAM header",
             ))
         }
+    }
+
+    /// Reads a data container.
+    ///
+    /// This returns `None` if the container header is the EOF container header, which signals the
+    /// end of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// reader.read_file_definition().await?;
+    /// reader.read_file_header().await?;
+    ///
+    /// while let Some(container) = reader.read_data_container().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
+        use self::data_container::read_data_container;
+
+        read_data_container(&mut self.inner).await
     }
 }
 
