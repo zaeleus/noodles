@@ -7,7 +7,7 @@ pub(crate) mod num;
 pub(crate) mod record;
 mod records;
 
-use crate::data_container::{CompressionHeader, DataContainer};
+use crate::data_container::DataContainer;
 
 pub use self::records::Records;
 
@@ -130,25 +130,9 @@ where
     }
 
     pub(crate) fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
-        use self::data_container::read_slice;
+        use self::data_container::read_data_container;
 
-        let header = container::read_header(&mut self.inner)?;
-
-        if header.is_eof() {
-            return Ok(None);
-        }
-
-        let compression_header = read_compression_header_from_block(&mut self.inner)?;
-
-        let slice_count = header.landmarks().len();
-        let mut slices = Vec::with_capacity(slice_count);
-
-        for _ in 0..slice_count {
-            let slice = read_slice(&mut self.inner)?;
-            slices.push(slice);
-        }
-
-        Ok(Some(DataContainer::new(compression_header, slices)))
+        read_data_container(&mut self.inner)
     }
 
     /// Returns a iterator over records starting from the current stream position.
@@ -274,18 +258,6 @@ pub(crate) fn read_file_header_block(block: &Block) -> io::Result<String> {
     str::from_utf8(reader)
         .map(|s| s.into())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
-where
-    R: Read,
-{
-    use self::{container::read_block, data_container::read_compression_header};
-
-    let block = read_block(reader)?;
-    let data = block.decompressed_data()?;
-    let mut data_reader = &data[..];
-    read_compression_header(&mut data_reader)
 }
 
 #[cfg(test)]
