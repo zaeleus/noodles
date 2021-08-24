@@ -1,10 +1,10 @@
 mod builder;
-pub mod data_series_encoding_map;
-pub mod encoding;
-pub mod preservation_map;
+pub(crate) mod data_series_encoding_map;
+pub(crate) mod encoding;
+pub(crate) mod preservation_map;
 mod tag_encoding_map;
 
-pub use self::{
+pub(crate) use self::{
     builder::Builder,
     data_series_encoding_map::DataSeriesEncodingMap,
     encoding::Encoding,
@@ -28,11 +28,11 @@ pub struct CompressionHeader {
 }
 
 impl CompressionHeader {
-    pub fn builder() -> Builder {
+    pub(crate) fn builder() -> Builder {
         Builder::default()
     }
 
-    pub fn new(
+    pub(crate) fn new(
         preservation_map: PreservationMap,
         data_series_encoding_map: DataSeriesEncodingMap,
         tag_encoding_map: TagEncodingMap,
@@ -44,15 +44,15 @@ impl CompressionHeader {
         }
     }
 
-    pub fn preservation_map(&self) -> &PreservationMap {
+    pub(crate) fn preservation_map(&self) -> &PreservationMap {
         &self.preservation_map
     }
 
-    pub fn data_series_encoding_map(&self) -> &DataSeriesEncodingMap {
+    pub(crate) fn data_series_encoding_map(&self) -> &DataSeriesEncodingMap {
         &self.data_series_encoding_map
     }
 
-    pub fn tag_encoding_map(&self) -> &TagEncodingMap {
+    pub(crate) fn tag_encoding_map(&self) -> &TagEncodingMap {
         &self.tag_encoding_map
     }
 }

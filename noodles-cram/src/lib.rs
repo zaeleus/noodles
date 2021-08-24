@@ -19,15 +19,15 @@ pub mod reader;
 pub mod record;
 pub(crate) mod writer;
 
-pub use self::{file_definition::FileDefinition, reader::Reader, record::Record, writer::Writer};
+pub use self::{
+    data_container::DataContainer, file_definition::FileDefinition, reader::Reader, record::Record,
+    writer::Writer,
+};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-pub(crate) use self::{
-    bit_reader::BitReader, bit_writer::BitWriter, container::Container,
-    data_container::DataContainer,
-};
+pub(crate) use self::{bit_reader::BitReader, bit_writer::BitWriter, container::Container};
 
 use std::{cmp, collections::HashMap, convert::TryFrom, fs::File, io, path::Path};
 

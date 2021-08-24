@@ -1,5 +1,5 @@
-pub mod builder;
-pub mod header;
+pub(crate) mod builder;
+pub(crate) mod header;
 
 pub use self::{builder::Builder, header::Header};
 
@@ -26,11 +26,11 @@ pub struct Slice {
 }
 
 impl Slice {
-    pub fn builder() -> Builder {
+    pub(crate) fn builder() -> Builder {
         Builder::default()
     }
 
-    pub fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {
+    pub(crate) fn new(header: Header, core_data_block: Block, external_blocks: Vec<Block>) -> Self {
         Self {
             header,
             core_data_block,
@@ -38,15 +38,15 @@ impl Slice {
         }
     }
 
-    pub fn header(&self) -> &Header {
+    pub(crate) fn header(&self) -> &Header {
         &self.header
     }
 
-    pub fn core_data_block(&self) -> &Block {
+    pub(crate) fn core_data_block(&self) -> &Block {
         &self.core_data_block
     }
 
-    pub fn external_blocks(&self) -> &[Block] {
+    pub(crate) fn external_blocks(&self) -> &[Block] {
         &self.external_blocks
     }
 
