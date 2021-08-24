@@ -14,7 +14,7 @@ pub use self::{
 
 use std::{convert::TryFrom, io};
 
-use crate::{container::Block, reader::compression_header::read_compression_header};
+use crate::container::Block;
 
 /// A CRAM data container compression header.
 ///
@@ -61,6 +61,8 @@ impl TryFrom<&Block> for CompressionHeader {
     type Error = io::Error;
 
     fn try_from(block: &Block) -> Result<Self, Self::Error> {
+        use crate::reader::data_container::compression_header::read_compression_header;
+
         let data = block.decompressed_data()?;
         let mut reader = &data[..];
         read_compression_header(&mut reader)
