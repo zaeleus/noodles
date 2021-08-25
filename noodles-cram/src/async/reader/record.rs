@@ -12,6 +12,7 @@ use crate::{
     data_container::{compression_header::Encoding, CompressionHeader},
     num::Itf8,
     r#async::reader::num::read_itf8,
+    record::Flags,
     BitReader, Record,
 };
 
@@ -54,6 +55,9 @@ where
         let bam_bit_flags = self.read_bam_bit_flags().await?;
         builder = builder.set_bam_flags(bam_bit_flags);
 
+        let cram_bit_flags = self.read_cram_bit_flags().await?;
+        builder = builder.set_flags(cram_bit_flags);
+
         Ok(builder.build())
     }
 
@@ -71,6 +75,22 @@ where
         .await
         .and_then(|n| u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
         .map(sam::record::Flags::from)
+    }
+
+    async fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .cram_bit_flags_encoding();
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(Flags::from)
     }
 }
 
