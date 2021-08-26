@@ -14,6 +14,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
+use self::container::write_container;
 use super::{
     container::Container, data_container, file_definition::Version, DataContainer, FileDefinition,
     Record, MAGIC_NUMBER,
@@ -103,7 +104,7 @@ where
     pub fn try_finish(&mut self) -> io::Result<()> {
         self.flush()?;
         let eof_container = Container::eof();
-        self.write_container(&eof_container)
+        write_container(&mut self.inner, &eof_container)
     }
 
     /// Writes a CRAM file definition.
@@ -166,7 +167,7 @@ where
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
         Container::try_from(header)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|container| self.write_container(&container))
+            .and_then(|container| write_container(&mut self.inner, &container))
     }
 
     /// Writes a CRAM record.
@@ -205,18 +206,6 @@ where
         }
     }
 
-    fn write_container(&mut self, container: &Container) -> io::Result<()> {
-        use self::container::write_block;
-
-        self::container::write_header(&mut self.inner, container.header())?;
-
-        for block in container.blocks() {
-            write_block(&mut self.inner, block)?;
-        }
-
-        Ok(())
-    }
-
     fn flush(&mut self) -> io::Result<()> {
         if self.data_container_builder.is_empty() {
             return Ok(());
@@ -234,7 +223,7 @@ where
             .and_then(|data_container| {
                 Container::try_from_data_container(&data_container, base_count)
             })
-            .and_then(|container| self.write_container(&container))
+            .and_then(|container| write_container(&mut self.inner, &container))
     }
 }
 
