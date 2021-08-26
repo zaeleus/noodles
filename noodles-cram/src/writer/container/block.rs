@@ -6,8 +6,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
-use super::num::write_itf8;
-use crate::{container::Block, num::Itf8};
+use crate::{container::Block, num::Itf8, writer::num::write_itf8};
 
 pub fn write_block<W>(writer: &mut W, block: &Block) -> io::Result<()>
 where

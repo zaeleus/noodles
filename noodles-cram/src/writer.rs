@@ -1,4 +1,3 @@
-mod block;
 pub(crate) mod compression_header;
 mod container;
 mod encoding;
@@ -19,8 +18,6 @@ use super::{
     container::Container, data_container, file_definition::Version, DataContainer, FileDefinition,
     Record, MAGIC_NUMBER,
 };
-
-use self::block::write_block;
 
 const RECORD_COUNTER_START: i64 = 0;
 
@@ -209,6 +206,8 @@ where
     }
 
     fn write_container(&mut self, container: &Container) -> io::Result<()> {
+        use self::container::write_block;
+
         self::container::write_header(&mut self.inner, container.header())?;
 
         for block in container.blocks() {
