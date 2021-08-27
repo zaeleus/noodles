@@ -8,9 +8,7 @@ use std::{cmp, convert::TryFrom, error, fmt, io};
 
 use noodles_sam as sam;
 
-use super::{
-    num::Itf8, writer, writer::compression_header::write_compression_header, DataContainer,
-};
+use super::{num::Itf8, writer, DataContainer};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Container {
@@ -28,6 +26,8 @@ impl Container {
         data_container: &DataContainer,
         base_count: i64,
     ) -> io::Result<Self> {
+        use super::writer::data_container::write_compression_header;
+
         let mut buf = Vec::new();
         write_compression_header(&mut buf, data_container.compression_header())?;
 

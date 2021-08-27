@@ -1,5 +1,5 @@
-pub(crate) mod compression_header;
 mod container;
+pub(crate) mod data_container;
 mod encoding;
 pub(crate) mod num;
 pub(crate) mod record;
@@ -16,8 +16,8 @@ use noodles_sam as sam;
 
 use self::container::write_container;
 use super::{
-    container::Container, data_container, file_definition::Version, DataContainer, FileDefinition,
-    Record, MAGIC_NUMBER,
+    container::Container, file_definition::Version, DataContainer, FileDefinition, Record,
+    MAGIC_NUMBER,
 };
 
 const RECORD_COUNTER_START: i64 = 0;
@@ -48,7 +48,7 @@ where
 {
     inner: W,
     reference_sequences: Vec<fasta::Record>,
-    data_container_builder: data_container::Builder,
+    data_container_builder: crate::data_container::Builder,
     record_counter: i64,
 }
 
@@ -183,6 +183,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, mut record: Record) -> io::Result<()> {
+        use super::data_container::builder::AddRecordError;
+
         loop {
             match add_record(
                 &mut self.data_container_builder,
@@ -194,11 +196,11 @@ where
                     return Ok(());
                 }
                 Err(e) => match e {
-                    data_container::builder::AddRecordError::ContainerFull(r) => {
+                    AddRecordError::ContainerFull(r) => {
                         record = r;
                         self.flush()?;
                     }
-                    data_container::builder::AddRecordError::SliceFull(r) => {
+                    AddRecordError::SliceFull(r) => {
                         record = r;
                     }
                 },
@@ -237,10 +239,10 @@ where
 }
 
 fn add_record(
-    data_container_builder: &mut data_container::Builder,
+    data_container_builder: &mut crate::data_container::Builder,
     reference_sequences: &[fasta::Record],
     record: Record,
-) -> Result<(), data_container::builder::AddRecordError> {
+) -> Result<(), crate::data_container::builder::AddRecordError> {
     let reference_sequence = record
         .reference_sequence_id()
         .map(i32::from)

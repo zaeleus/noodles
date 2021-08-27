@@ -84,11 +84,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::writer::compression_header::data_series_encoding_map::write_data_series_encoding_map;
-
     use super::*;
 
     fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Vec<u8>> {
+        use crate::writer::data_container::compression_header::data_series_encoding_map::write_data_series_encoding_map;
+
         let mut buf = Vec::new();
         write_data_series_encoding_map(&mut buf, data_series_encoding_map)?;
         Ok(buf)
