@@ -3,7 +3,6 @@ pub(crate) mod data_container;
 mod encoding;
 pub(crate) mod num;
 pub(crate) mod record;
-pub(crate) mod slice;
 
 use std::{
     convert::TryFrom,

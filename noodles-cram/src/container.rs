@@ -77,7 +77,7 @@ impl Container {
             let mut slice_len = 0;
 
             let mut slice_header_buf = Vec::new();
-            writer::slice::write_header(&mut slice_header_buf, slice.header())?;
+            writer::data_container::slice::write_header(&mut slice_header_buf, slice.header())?;
 
             let slice_header_block = Block::builder()
                 .set_content_type(block::ContentType::SliceHeader)
