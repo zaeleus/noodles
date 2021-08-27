@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 
+use super::write_encoding;
 use crate::{
-    data_container::compression_header::TagEncodingMap,
-    num::Itf8,
-    writer::{encoding::write_encoding, num::write_itf8},
+    data_container::compression_header::TagEncodingMap, num::Itf8, writer::num::write_itf8,
 };
 
 pub fn write_tag_encoding_map<W>(

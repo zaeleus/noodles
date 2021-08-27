@@ -1,11 +1,12 @@
 pub(crate) mod data_series_encoding_map;
+mod encoding;
 mod preservation_map;
 mod tag_encoding_map;
 
 use std::io::{self, Write};
 
 use self::{
-    data_series_encoding_map::write_data_series_encoding_map,
+    data_series_encoding_map::write_data_series_encoding_map, encoding::write_encoding,
     preservation_map::write_preservation_map, tag_encoding_map::write_tag_encoding_map,
 };
 
