@@ -17,7 +17,7 @@ use crate::{
     num::Itf8,
     r#async::reader::num::read_itf8,
     reader::record::ReadRecordError,
-    record::{Builder, Flags, ReadGroupId},
+    record::{Builder, Flags, NextMateFlags, ReadGroupId},
     BitReader, Record,
 };
 
@@ -65,6 +65,9 @@ where
 
         builder = self.read_positional_data(builder).await?;
         builder = self.read_read_names(builder).await?;
+        builder = self
+            .read_mate_data(builder, bam_bit_flags, cram_bit_flags)
+            .await?;
 
         let record = builder.build();
 
@@ -228,6 +231,165 @@ where
             })?;
 
         decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_mate_data(
+        &mut self,
+        mut builder: Builder,
+        mut bam_flags: sam::record::Flags,
+        flags: Flags,
+    ) -> io::Result<Builder> {
+        if flags.is_detached() {
+            let next_mate_bit_flags = self.read_next_mate_bit_flags().await?;
+            builder = builder.set_next_mate_flags(next_mate_bit_flags);
+
+            if next_mate_bit_flags.is_on_negative_strand() {
+                bam_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+            }
+
+            if next_mate_bit_flags.is_unmapped() {
+                bam_flags |= sam::record::Flags::MATE_UNMAPPED;
+            }
+
+            builder = builder.set_bam_flags(bam_flags);
+
+            let preservation_map = self.compression_header.preservation_map();
+
+            if !preservation_map.read_names_included() {
+                let read_name = self.read_read_name().await?;
+                builder = builder.set_read_name(read_name);
+            }
+
+            if let Some(id) = self.read_next_fragment_reference_sequence_id().await? {
+                builder = builder.set_next_fragment_reference_sequence_id(id);
+            }
+
+            let next_mate_alignment_start = self.read_next_mate_alignment_start().await?;
+            builder = builder.set_next_mate_alignment_start(next_mate_alignment_start);
+
+            let template_size = self.read_template_size().await?;
+            builder = builder.set_template_size(template_size);
+        } else if flags.has_mate_downstream() {
+            let distance_to_next_fragment = self.read_distance_to_next_fragment().await?;
+            builder = builder.set_distance_to_next_fragment(distance_to_next_fragment);
+        }
+
+        Ok(builder)
+    }
+
+    async fn read_next_mate_bit_flags(&mut self) -> io::Result<NextMateFlags> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .next_mate_bit_flags_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(NextMateFlags::from)
+    }
+
+    async fn read_next_fragment_reference_sequence_id(
+        &mut self,
+    ) -> io::Result<Option<bam::record::ReferenceSequenceId>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .next_fragment_reference_sequence_id_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(
+                        DataSeries::NextFragmentReferenceSequenceId,
+                    ),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+        .and_then(|id| {
+            if id == bam::record::reference_sequence_id::UNMAPPED {
+                Ok(None)
+            } else {
+                bam::record::ReferenceSequenceId::try_from(id)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
+    }
+
+    async fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .next_mate_alignment_start_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_template_size(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .template_size_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::TemplateSize),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .distance_to_next_fragment_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
+                )
+            })?;
+
+        decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
