@@ -17,7 +17,7 @@ use crate::{
     num::Itf8,
     r#async::reader::num::read_itf8,
     reader::record::ReadRecordError,
-    record::{Builder, Flags, NextMateFlags, ReadGroupId},
+    record::{Builder, Flags, NextMateFlags, ReadGroupId, Tag},
     BitReader, Record,
 };
 
@@ -68,6 +68,9 @@ where
         builder = self
             .read_mate_data(builder, bam_bit_flags, cram_bit_flags)
             .await?;
+
+        let tags = self.read_tag_data().await?;
+        builder = builder.set_tags(tags);
 
         let record = builder.build();
 
@@ -388,6 +391,62 @@ where
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
                 )
             })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_tag_data(&mut self) -> io::Result<Vec<Tag>> {
+        let tag_line = self.read_tag_line().await.and_then(|i| {
+            usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        let tag_keys = self
+            .compression_header
+            .preservation_map()
+            .tag_ids_dictionary()
+            .get(tag_line)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
+
+        let tag_encoding_map = self.compression_header.tag_encoding_map();
+
+        let mut tags = Vec::with_capacity(tag_keys.len());
+
+        for key in tag_keys {
+            let id = key.id();
+            let encoding = tag_encoding_map.get(&id).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingTagEncoding(*key),
+                )
+            })?;
+
+            let data = decode_byte_array(
+                encoding,
+                &mut self.core_data_reader,
+                &mut self.external_data_readers,
+            )
+            .await?;
+
+            let mut data_reader = bam::record::data::Reader::new(&data[..]);
+            let value = data_reader.read_value_type(key.ty())?;
+
+            let tag = Tag::new(*key, value);
+            tags.push(tag);
+        }
+
+        Ok(tags)
+    }
+
+    async fn read_tag_line(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .tag_ids_encoding();
 
         decode_itf8(
             encoding,
