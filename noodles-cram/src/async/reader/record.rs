@@ -6,7 +6,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_sam as sam;
-use tokio::io::{AsyncBufRead, AsyncRead};
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncRead};
 
 use crate::{
     container::ReferenceSequenceId,
@@ -64,6 +64,7 @@ where
         builder = builder.set_flags(cram_bit_flags);
 
         builder = self.read_positional_data(builder).await?;
+        builder = self.read_read_names(builder).await?;
 
         let record = builder.build();
 
@@ -202,6 +203,37 @@ where
         .await
         .map(ReadGroupId::from)
     }
+
+    async fn read_read_names(&mut self, mut builder: Builder) -> io::Result<Builder> {
+        let preservation_map = self.compression_header.preservation_map();
+
+        if preservation_map.read_names_included() {
+            let read_name = self.read_read_name().await?;
+            builder = builder.set_read_name(read_name);
+        }
+
+        Ok(builder)
+    }
+
+    async fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .read_names_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
+                )
+            })?;
+
+        decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
 }
 
 async fn decode_itf8<CDR, EDR>(
@@ -224,5 +256,37 @@ where
             read_itf8(reader).await
         }
         _ => todo!("decode_itf8: {:?}", encoding),
+    }
+}
+
+async fn decode_byte_array<CDR, EDR>(
+    encoding: &Encoding,
+    _core_data_reader: &mut BitReader<CDR>,
+    external_data_readers: &mut HashMap<Itf8, EDR>,
+) -> io::Result<Vec<u8>>
+where
+    CDR: Read,
+    EDR: AsyncBufRead + Unpin,
+{
+    match encoding {
+        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
+            let reader = external_data_readers
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
+
+            let mut buf = Vec::new();
+            reader.read_until(*stop_byte, &mut buf).await?;
+
+            // Remove stop byte.
+            buf.pop();
+
+            Ok(buf)
+        }
+        _ => todo!("decode_byte_array: {:?}", encoding),
     }
 }
