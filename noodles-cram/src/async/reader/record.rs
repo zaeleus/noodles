@@ -17,7 +17,7 @@ use crate::{
     num::Itf8,
     r#async::reader::num::read_itf8,
     reader::record::ReadRecordError,
-    record::{Builder, Flags, NextMateFlags, ReadGroupId, Tag},
+    record::{feature, Builder, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
     BitReader, Record,
 };
 
@@ -76,7 +76,8 @@ where
             self.read_unmapped_read(builder, cram_bit_flags, read_length)
                 .await?
         } else {
-            todo!("read_mapped_read");
+            self.read_mapped_read(builder, cram_bit_flags, read_length)
+                .await?
         };
 
         let record = builder.build();
@@ -464,6 +465,202 @@ where
         .await
     }
 
+    async fn read_mapped_read(
+        &mut self,
+        mut builder: Builder,
+        flags: Flags,
+        read_length: usize,
+    ) -> io::Result<Builder> {
+        let feature_count = self.read_number_of_read_features().await?;
+
+        let mut prev_position = 0;
+
+        for _ in 0..feature_count {
+            let feature = self.read_feature(prev_position).await?;
+            prev_position = feature.position();
+            builder = builder.add_feature(feature);
+        }
+
+        let mapping_quality = self.read_mapping_quality().await?;
+        builder = builder.set_mapping_quality(mapping_quality);
+
+        if flags.are_quality_scores_stored_as_array() {
+            for _ in 0..read_length {
+                let quality_score = self.read_quality_score().await?;
+                builder = builder.add_quality_score(quality_score);
+            }
+        }
+
+        Ok(builder)
+    }
+
+    async fn read_number_of_read_features(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .number_of_read_features_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_feature(&mut self, prev_position: i32) -> io::Result<Feature> {
+        use feature::Code;
+
+        let code = self.read_feature_code().await?;
+
+        let delta = self.read_feature_position().await?;
+        let position = prev_position + delta;
+
+        match code {
+            Code::Bases => {
+                let bases = self.read_stretches_of_bases().await?;
+                Ok(Feature::Bases(position, bases))
+            }
+            Code::Scores => {
+                let quality_scores = self.read_stretches_of_quality_scores().await?;
+                Ok(Feature::Scores(position, quality_scores))
+            }
+            Code::ReadBase => {
+                let base = self.read_base().await?;
+                let quality_score = self.read_quality_score().await?;
+                Ok(Feature::ReadBase(position, base, quality_score))
+            }
+            Code::Substitution => {
+                let code = self.read_base_substitution_code().await?;
+                Ok(Feature::Substitution(position, code))
+            }
+            Code::Insertion => {
+                let bases = self.read_insertion().await?;
+                Ok(Feature::Insertion(position, bases))
+            }
+            Code::Deletion => {
+                let len = self.read_deletion_length().await?;
+                Ok(Feature::Deletion(position, len))
+            }
+            Code::InsertBase => {
+                let base = self.read_base().await?;
+                Ok(Feature::InsertBase(position, base))
+            }
+            Code::QualityScore => {
+                let quality_score = self.read_quality_score().await?;
+                Ok(Feature::QualityScore(position, quality_score))
+            }
+            Code::ReferenceSkip => {
+                let len = self.read_reference_skip_length().await?;
+                Ok(Feature::ReferenceSkip(position, len))
+            }
+            Code::SoftClip => {
+                let bases = self.read_soft_clip().await?;
+                Ok(Feature::SoftClip(position, bases))
+            }
+            Code::Padding => {
+                let len = self.read_padding().await?;
+                Ok(Feature::Padding(position, len))
+            }
+            Code::HardClip => {
+                let len = self.read_hard_clip().await?;
+                Ok(Feature::HardClip(position, len))
+            }
+        }
+    }
+
+    async fn read_feature_code(&mut self) -> io::Result<feature::Code> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .read_features_codes_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+        .map(|id| id as u8 as char)
+        .and_then(|id| {
+            feature::Code::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
+    async fn read_feature_position(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .in_read_positions_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .stretches_of_bases_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
+                )
+            })?;
+
+        decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .stretches_of_quality_scores_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(
+                        DataSeries::StretchesOfQualityScores,
+                    ),
+                )
+            })?;
+
+        decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
     async fn read_base(&mut self) -> io::Result<u8> {
         let encoding = self
             .compression_header
@@ -502,6 +699,168 @@ where
             &mut self.external_data_readers,
         )
         .await
+    }
+
+    async fn read_base_substitution_code(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .base_substitution_codes_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
+                )
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_insertion(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .insertion_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
+                )
+            })?;
+
+        decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_deletion_length(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .deletion_lengths_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_reference_skip_length(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .reference_skip_length_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .soft_clip_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
+                )
+            })?;
+
+        decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_padding(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .padding_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_hard_clip(&mut self) -> io::Result<Itf8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .hard_clip_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_mapping_quality(&mut self) -> io::Result<sam::record::MappingQuality> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .mapping_qualities_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
+                )
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(sam::record::MappingQuality::from)
     }
 
     async fn read_unmapped_read(
