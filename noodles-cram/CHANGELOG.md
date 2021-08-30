@@ -8,6 +8,10 @@
 
     This can be used to manually read records from slices.
 
+### Changed
+
+  * record: `Record::read_length` is now stored as a `usize`.
+
 ## 0.3.0 - 2021-08-19
 
 ### Added

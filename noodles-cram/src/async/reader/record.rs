@@ -118,7 +118,7 @@ where
         .map(Flags::from)
     }
 
-    async fn read_positional_data(&mut self, mut builder: Builder) -> io::Result<(Builder, i32)> {
+    async fn read_positional_data(&mut self, mut builder: Builder) -> io::Result<(Builder, usize)> {
         let reference_id = if self.reference_sequence_id.is_many() {
             self.read_reference_id().await?
         } else {
@@ -163,7 +163,7 @@ where
         .await
     }
 
-    async fn read_read_length(&mut self) -> io::Result<Itf8> {
+    async fn read_read_length(&mut self) -> io::Result<usize> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -175,6 +175,7 @@ where
             &mut self.external_data_readers,
         )
         .await
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     async fn read_alignment_start(&mut self) -> io::Result<Itf8> {
@@ -507,7 +508,7 @@ where
         &mut self,
         mut builder: Builder,
         flags: Flags,
-        read_length: i32,
+        read_length: usize,
     ) -> io::Result<Builder> {
         for _ in 0..read_length {
             let base = self.read_base().await?;

@@ -25,7 +25,7 @@ pub struct Record {
     pub(crate) bam_bit_flags: sam::record::Flags,
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    pub(crate) read_length: i32,
+    pub(crate) read_length: usize,
     pub(crate) alignment_start: i32,
     pub(crate) read_group: ReadGroupId,
     pub(crate) read_name: Vec<u8>,
@@ -74,7 +74,7 @@ impl Record {
     }
 
     /// Returns the read length.
-    pub fn read_length(&self) -> i32 {
+    pub fn read_length(&self) -> usize {
         self.read_length
     }
 
@@ -85,7 +85,7 @@ impl Record {
 
     /// Returns the alignment end position.
     pub fn alignment_end(&self) -> i32 {
-        let mut alignment_span = self.read_length();
+        let mut alignment_span = self.read_length() as i32;
 
         // - if does not consume reference; + if does not consume read
         for feature in self.features() {

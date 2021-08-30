@@ -9,7 +9,7 @@ pub struct Builder {
     bam_flags: sam::record::Flags,
     flags: Flags,
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    read_length: i32,
+    read_length: usize,
     alignment_start: i32,
     read_group_id: ReadGroupId,
     read_name: Vec<u8>,
@@ -54,7 +54,7 @@ impl Builder {
     }
 
     /// Sets the read length.
-    pub fn set_read_length(mut self, read_length: i32) -> Self {
+    pub fn set_read_length(mut self, read_length: usize) -> Self {
         self.read_length = read_length;
         self
     }

@@ -55,7 +55,7 @@ impl Builder {
                 self.compression_header_builder
                     .update(reference_sequence, r);
 
-                self.base_count += i64::from(r.read_length());
+                self.base_count += r.read_length() as i64;
 
                 Ok(())
             }

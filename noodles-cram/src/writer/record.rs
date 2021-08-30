@@ -2,6 +2,7 @@ mod tag;
 
 use std::{
     collections::HashMap,
+    convert::TryFrom,
     error, fmt,
     io::{self, Write},
 };
@@ -184,17 +185,20 @@ where
             })
     }
 
-    fn write_read_length(&mut self, read_length: Itf8) -> io::Result<()> {
+    fn write_read_length(&mut self, read_length: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .read_lengths_encoding();
 
+        let len = Itf8::try_from(read_length)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
         encode_itf8(
             encoding,
             &mut self.core_data_writer,
             &mut self.external_data_writers,
-            read_length,
+            len,
         )
     }
 

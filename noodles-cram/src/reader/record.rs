@@ -159,7 +159,9 @@ where
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
             };
 
-        record.read_length = self.read_read_length()?;
+        record.read_length = self.read_read_length().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         let ap_data_series_delta = self
             .compression_header
@@ -471,10 +473,10 @@ where
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            let read_len = record.read_length();
-            let mut scores = Vec::with_capacity(read_len as usize);
+            let read_length = record.read_length();
+            let mut scores = Vec::with_capacity(read_length);
 
-            for _ in 0..read_len {
+            for _ in 0..read_length {
                 let score = self.read_quality_score()?;
                 scores.push(score);
             }
@@ -843,7 +845,9 @@ where
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
         record.bases.clear();
 
-        for _ in 0..record.read_length() {
+        let read_length = record.read_length();
+
+        for _ in 0..read_length {
             let base = self.read_base()?;
             record.bases.push(base);
         }
@@ -851,10 +855,9 @@ where
         let flags = record.flags();
 
         if flags.are_quality_scores_stored_as_array() {
-            let read_len = record.read_length();
-            let mut scores = Vec::with_capacity(read_len as usize);
+            let mut scores = Vec::with_capacity(read_length);
 
-            for _ in 0..read_len {
+            for _ in 0..read_length {
                 let score = self.read_quality_score()?;
                 scores.push(score);
             }
