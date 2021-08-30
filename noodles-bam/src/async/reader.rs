@@ -1,4 +1,6 @@
 mod builder;
+#[allow(dead_code)]
+mod data;
 mod query;
 
 pub use self::builder::Builder;
