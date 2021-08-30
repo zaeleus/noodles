@@ -4,6 +4,8 @@
 
 ### Added
 
+  * async/reader: Add data container reader.
+
   * reader: Add data container reader.
 
     This can be used to manually read records from slices.
