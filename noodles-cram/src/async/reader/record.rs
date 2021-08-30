@@ -6,7 +6,7 @@ use std::{
 
 use noodles_bam as bam;
 use noodles_sam as sam;
-use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncRead};
+use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use crate::{
     container::ReferenceSequenceId,
@@ -63,7 +63,7 @@ where
         let cram_bit_flags = self.read_cram_bit_flags().await?;
         builder = builder.set_flags(cram_bit_flags);
 
-        builder = self.read_positional_data(builder).await?;
+        let (mut builder, read_length) = self.read_positional_data(builder).await?;
         builder = self.read_read_names(builder).await?;
         builder = self
             .read_mate_data(builder, bam_bit_flags, cram_bit_flags)
@@ -71,6 +71,13 @@ where
 
         let tags = self.read_tag_data().await?;
         builder = builder.set_tags(tags);
+
+        builder = if bam_bit_flags.is_unmapped() {
+            self.read_unmapped_read(builder, cram_bit_flags, read_length)
+                .await?
+        } else {
+            todo!("read_mapped_read");
+        };
 
         let record = builder.build();
 
@@ -111,7 +118,7 @@ where
         .map(Flags::from)
     }
 
-    async fn read_positional_data(&mut self, mut builder: Builder) -> io::Result<Builder> {
+    async fn read_positional_data(&mut self, mut builder: Builder) -> io::Result<(Builder, i32)> {
         let reference_id = if self.reference_sequence_id.is_many() {
             self.read_reference_id().await?
         } else {
@@ -133,7 +140,7 @@ where
         let read_group = self.read_read_group().await?;
         builder = builder.set_read_group_id(read_group);
 
-        Ok(builder)
+        Ok((builder, read_length))
     }
 
     async fn read_reference_id(&mut self) -> io::Result<Itf8> {
@@ -454,6 +461,93 @@ where
             &mut self.external_data_readers,
         )
         .await
+    }
+
+    async fn read_base(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .bases_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
+                )
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_quality_score(&mut self) -> io::Result<u8> {
+        let encoding = self
+            .compression_header
+            .data_series_encoding_map()
+            .quality_scores_encoding()
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
+                )
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .await
+    }
+
+    async fn read_unmapped_read(
+        &mut self,
+        mut builder: Builder,
+        flags: Flags,
+        read_length: i32,
+    ) -> io::Result<Builder> {
+        for _ in 0..read_length {
+            let base = self.read_base().await?;
+            builder = builder.add_base(base);
+        }
+
+        if flags.are_quality_scores_stored_as_array() {
+            for _ in 0..read_length {
+                let quality_score = self.read_quality_score().await?;
+                builder = builder.add_quality_score(quality_score);
+            }
+        }
+
+        Ok(builder)
+    }
+}
+
+async fn decode_byte<CDR, EDR>(
+    encoding: &Encoding,
+    _core_data_reader: &mut BitReader<CDR>,
+    external_data_readers: &mut HashMap<Itf8, EDR>,
+) -> io::Result<u8>
+where
+    CDR: Read,
+    EDR: AsyncRead + Unpin,
+{
+    match encoding {
+        Encoding::External(block_content_id) => {
+            let reader = external_data_readers
+                .get_mut(block_content_id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
+                })?;
+
+            reader.read_u8().await
+        }
+        _ => todo!("decode_byte: {:?}", encoding),
     }
 }
 
