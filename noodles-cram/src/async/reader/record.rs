@@ -565,7 +565,10 @@ where
             let reader = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "missing external block")
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingExternalBlock(*block_content_id),
+                    )
                 })?;
 
             read_itf8(reader).await
