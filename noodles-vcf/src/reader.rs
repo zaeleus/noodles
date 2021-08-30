@@ -100,30 +100,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
-        let mut header_buf = Vec::new();
-        let mut is_eol = false;
-
-        for i in 0.. {
-            let buf = self.inner.fill_buf()?;
-
-            if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
-                break;
-            }
-
-            let (read_eol, len) = if let Some(i) = memchr(LINE_FEED as u8, buf) {
-                header_buf.extend(&buf[..=i]);
-                (true, i + 1)
-            } else {
-                header_buf.extend(buf);
-                (false, buf.len())
-            };
-
-            is_eol = read_eol;
-
-            self.inner.consume(len);
-        }
-
-        String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        read_header(&mut self.inner)
     }
 
     /// Reads a single raw VCF record.
@@ -279,6 +256,36 @@ where
     }
 }
 
+fn read_header<R>(reader: &mut R) -> io::Result<String>
+where
+    R: BufRead,
+{
+    let mut header_buf = Vec::new();
+    let mut is_eol = false;
+
+    for i in 0.. {
+        let buf = reader.fill_buf()?;
+
+        if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+            break;
+        }
+
+        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED as u8, buf) {
+            header_buf.extend(&buf[..=i]);
+            (true, i + 1)
+        } else {
+            header_buf.extend(buf);
+            (false, buf.len())
+        };
+
+        is_eol = read_eol;
+
+        reader.consume(len);
+    }
+
+    String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
 // Reads all bytes until a line feed ('\n') or EOF is reached.
 //
 // The buffer will not include the trailing newline ('\n' or '\r\n').
@@ -346,9 +353,9 @@ sq0\t13
 
     #[test]
     fn test_read_header() -> io::Result<()> {
-        let mut reader = Reader::new(DATA);
+        let mut reader = DATA;
 
-        let actual = reader.read_header()?;
+        let actual = read_header(&mut reader)?;
         let expected = "\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
@@ -362,36 +369,39 @@ sq0\t13
 
     #[test]
     fn test_read_header_with_no_records() -> io::Result<()> {
-        let data = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-        let mut reader = Reader::new(data.as_bytes());
-        let header = reader.read_header()?;
-        assert_eq!(header, data);
+        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+
+        let mut reader = expected.as_bytes();
+        let actual = read_header(&mut reader)?;
+
+        assert_eq!(actual, expected);
+
         Ok(())
     }
 
     #[test]
     fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
-        let data = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-        let buf = BufReader::with_capacity(16, data.as_bytes());
-        let mut reader = Reader::new(buf);
+        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
 
-        let header = reader.read_header()?;
-        assert_eq!(header, data);
+        let mut reader = BufReader::with_capacity(16, expected.as_bytes());
+        let actual = read_header(&mut reader)?;
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
 
     #[test]
     fn test_read_header_with_no_header() -> io::Result<()> {
-        let data = b"";
-        let mut reader = Reader::new(&data[..]);
-        let header = reader.read_header()?;
-        assert!(header.is_empty());
+        let data = [];
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+        assert!(actual.is_empty());
 
         let data = b"sq0\t1\t.\tA\t.\t.\tPASS\t.\n";
-        let mut reader = Reader::new(&data[..]);
-        let header = reader.read_header()?;
-        assert!(header.is_empty());
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+        assert!(actual.is_empty());
 
         Ok(())
     }
