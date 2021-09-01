@@ -36,7 +36,7 @@ use noodles::bam;
 Individual crates may have optional features that can be enabled using feature
 flags.
 
-  * `async`: Enables asynchronous I/O with [Tokio]. (BAM, BCF, BGZF, CSI,
+  * `async`: Enables asynchronous I/O with [Tokio]. (BAM, BCF, BGZF, CRAM, CSI,
     tabix, and VCF)
 
 [Tokio]: https://tokio.rs/
