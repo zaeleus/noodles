@@ -14,6 +14,13 @@
 
   * record: `Record::read_length` is now stored as a `usize`.
 
+### Fixed
+
+  * reader/data_container/compression_header: Avoid casts that may truncate.
+
+    Buffer sizes that convert from `Itf8` to `usize` now check whether they are
+    in range.
+
 ## 0.3.0 - 2021-08-19
 
 ### Added

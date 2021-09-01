@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    convert::TryFrom,
     io::{self, Read},
 };
 
@@ -10,8 +11,11 @@ pub fn read_tag_encoding_map<R>(reader: &mut R) -> io::Result<TagEncodingMap>
 where
     R: Read,
 {
-    let data_len = read_itf8(reader)?;
-    let mut buf = vec![0; data_len as usize];
+    let data_len = read_itf8(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut buf = vec![0; data_len];
     reader.read_exact(&mut buf)?;
 
     let mut buf_reader = &buf[..];
