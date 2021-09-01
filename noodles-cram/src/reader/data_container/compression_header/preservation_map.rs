@@ -206,4 +206,24 @@ mod tests {
         let mut reader = &data[..];
         assert!(read_preservation_map(&mut reader).is_err());
     }
+
+    #[test]
+    fn test_read_bool() -> io::Result<()> {
+        let data = [0x00];
+        let mut reader = &data[..];
+        assert!(!read_bool(&mut reader)?);
+
+        let data = [0x01];
+        let mut reader = &data[..];
+        assert!(read_bool(&mut reader)?);
+
+        let data = [0x02];
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_bool(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
