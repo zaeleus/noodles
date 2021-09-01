@@ -968,3 +968,30 @@ where
         _ => todo!("decode_byte_array: {:?}", encoding),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_decode_byte() -> io::Result<()> {
+        async fn t(encoding: &Encoding, expected: u8) -> io::Result<()> {
+            let core_data = [0b10000000];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
+
+            let external_data = [0x0d];
+            let mut external_data_readers = vec![(1, &external_data[..])].into_iter().collect();
+
+            let actual =
+                decode_byte(encoding, &mut core_data_reader, &mut external_data_readers).await?;
+
+            assert_eq!(expected, actual);
+
+            Ok(())
+        }
+
+        t(&Encoding::External(1), 0x0d).await?;
+
+        Ok(())
+    }
+}
