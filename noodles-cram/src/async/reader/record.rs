@@ -1016,4 +1016,27 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_decode_byte_array() -> io::Result<()> {
+        async fn t(encoding: &Encoding, expected: &[u8]) -> io::Result<()> {
+            let core_data = [0b10000000];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
+
+            let external_data = [0x6e, 0x64, 0x6c, 0x73, 0x00];
+            let mut external_data_readers = vec![(1, &external_data[..])].into_iter().collect();
+
+            let actual =
+                decode_byte_array(encoding, &mut core_data_reader, &mut external_data_readers)
+                    .await?;
+
+            assert_eq!(expected, actual);
+
+            Ok(())
+        }
+
+        t(&Encoding::ByteArrayStop(0x00, 1), b"ndls").await?;
+
+        Ok(())
+    }
 }
