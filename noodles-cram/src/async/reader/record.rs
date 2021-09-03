@@ -939,7 +939,7 @@ where
 
 async fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding,
-    _core_data_reader: &mut BitReader<CDR>,
+    core_data_reader: &mut BitReader<CDR>,
     external_data_readers: &mut HashMap<Itf8, EDR>,
 ) -> io::Result<Vec<u8>>
 where
@@ -947,6 +947,32 @@ where
     EDR: AsyncBufRead + Unpin,
 {
     match encoding {
+        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
+            let len = decode_itf8(len_encoding, core_data_reader, external_data_readers)
+                .await
+                .and_then(|n| {
+                    usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                })?;
+
+            let mut buf = vec![0; len];
+
+            if let Encoding::External(block_content_id) = **value_encoding {
+                let reader = external_data_readers
+                    .get_mut(&block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            ReadRecordError::MissingExternalBlock(block_content_id),
+                        )
+                    })?;
+
+                reader.read_exact(&mut buf).await?;
+
+                Ok(buf)
+            } else {
+                unimplemented!("unsupported [u8] encoding: {:?}", encoding);
+            }
+        }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
             let reader = external_data_readers
                 .get_mut(block_content_id)
@@ -1019,12 +1045,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_decode_byte_array() -> io::Result<()> {
-        async fn t(encoding: &Encoding, expected: &[u8]) -> io::Result<()> {
-            let core_data = [0b10000000];
+        async fn t(external_data: &[u8], encoding: &Encoding, expected: &[u8]) -> io::Result<()> {
+            let core_data = [];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
-            let external_data = [0x6e, 0x64, 0x6c, 0x73, 0x00];
-            let mut external_data_readers = vec![(1, &external_data[..])].into_iter().collect();
+            let mut external_data_readers = vec![(1, external_data)].into_iter().collect();
 
             let actual =
                 decode_byte_array(encoding, &mut core_data_reader, &mut external_data_readers)
@@ -1035,7 +1060,21 @@ mod tests {
             Ok(())
         }
 
-        t(&Encoding::ByteArrayStop(0x00, 1), b"ndls").await?;
+        let len_encoding = Encoding::External(1);
+        let value_encoding = Encoding::External(1);
+        t(
+            &[0x04, 0x6e, 0x64, 0x6c, 0x73],
+            &Encoding::ByteArrayLen(Box::new(len_encoding), Box::new(value_encoding)),
+            b"ndls",
+        )
+        .await?;
+
+        t(
+            &[0x6e, 0x64, 0x6c, 0x73, 0x00],
+            &Encoding::ByteArrayStop(0x00, 1),
+            b"ndls",
+        )
+        .await?;
 
         Ok(())
     }
