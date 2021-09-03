@@ -907,7 +907,7 @@ where
 
             reader.read_u8().await
         }
-        _ => todo!("decode_byte: {:?}", encoding),
+        _ => unimplemented!("unsupported u8 encoding: {:?}", encoding),
     }
 }
 
@@ -933,7 +933,7 @@ where
 
             read_itf8(reader).await
         }
-        _ => todo!("decode_itf8: {:?}", encoding),
+        _ => unimplemented!("unsupported ITF8 encoding: {:?}", encoding),
     }
 }
 
@@ -991,7 +991,7 @@ where
 
             Ok(buf)
         }
-        _ => todo!("decode_byte_array: {:?}", encoding),
+        _ => unimplemented!("unsupported [u8] encoding: {:?}", encoding),
     }
 }
 
