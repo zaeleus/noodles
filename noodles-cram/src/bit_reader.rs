@@ -24,13 +24,14 @@ where
     }
 
     pub fn read_u32(&mut self, n: usize) -> io::Result<u32> {
-        let mut result = 0;
+        let mut value = 0;
 
-        for i in (0..n).rev() {
-            result |= self.read_bit().map(u32::from)? << i;
+        for _ in 0..n {
+            let bit = self.read_bit().map(u32::from)?;
+            value = (value << 1) | bit;
         }
 
-        Ok(result)
+        Ok(value)
     }
 
     fn read_bit(&mut self) -> io::Result<u8> {
