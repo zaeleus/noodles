@@ -994,4 +994,26 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_decode_itf8() -> io::Result<()> {
+        async fn t(encoding: &Encoding, expected: Itf8) -> io::Result<()> {
+            let core_data = [0b10000000];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
+
+            let external_data = [0x0d];
+            let mut external_data_readers = vec![(1, &external_data[..])].into_iter().collect();
+
+            let actual =
+                decode_itf8(encoding, &mut core_data_reader, &mut external_data_readers).await?;
+
+            assert_eq!(expected, actual);
+
+            Ok(())
+        }
+
+        t(&Encoding::External(1), 13).await?;
+
+        Ok(())
+    }
 }
