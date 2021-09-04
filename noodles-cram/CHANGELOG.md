@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * reader/container/block: Avoid casts that may truncate.
+
+    Buffer sizes that convert from `Itf8` to `usize` now check whether they are
+    in range.
+
 ## 0.4.0 - 2021-09-01
 
 ### Added

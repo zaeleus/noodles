@@ -26,13 +26,16 @@ where
     })?;
 
     let block_content_id = read_itf8(reader)?;
-    let size_in_bytes = read_itf8(reader)?;
+
+    let size_in_bytes = read_itf8(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let raw_size_in_bytes = read_itf8(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut data = vec![0; size_in_bytes as usize];
+    let mut data = vec![0; size_in_bytes];
     reader.read_exact(&mut data)?;
 
     let crc32 = reader.read_u32::<LittleEndian>()?;
