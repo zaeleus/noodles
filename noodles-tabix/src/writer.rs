@@ -87,39 +87,45 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
-        write_magic(&mut self.inner)?;
-
-        let n_ref = i32::try_from(index.reference_sequences().len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_i32::<LittleEndian>(n_ref)?;
-
-        write_header(&mut self.inner, index.header())?;
-
-        // Add 1 for each trailing nul.
-        let len = index
-            .reference_sequence_names()
-            .iter()
-            .map(|n| n.len() + 1)
-            .sum::<usize>();
-        let l_nm =
-            i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_i32::<LittleEndian>(l_nm)?;
-
-        for reference_sequence_name in index.reference_sequence_names() {
-            self.inner.write_all(reference_sequence_name.as_bytes())?;
-            self.inner.write_u8(NUL)?;
-        }
-
-        for reference_sequence in index.reference_sequences() {
-            write_reference_sequence(&mut self.inner, reference_sequence)?;
-        }
-
-        if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
-            self.inner.write_u64::<LittleEndian>(n_no_coor)?;
-        }
-
-        Ok(())
+        write_index(&mut self.inner, index)
     }
+}
+
+fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
+where
+    W: Write,
+{
+    write_magic(writer)?;
+
+    let n_ref = i32::try_from(index.reference_sequences().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32::<LittleEndian>(n_ref)?;
+
+    write_header(writer, index.header())?;
+
+    // Add 1 for each trailing nul.
+    let len = index
+        .reference_sequence_names()
+        .iter()
+        .map(|n| n.len() + 1)
+        .sum::<usize>();
+    let l_nm = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32::<LittleEndian>(l_nm)?;
+
+    for reference_sequence_name in index.reference_sequence_names() {
+        writer.write_all(reference_sequence_name.as_bytes())?;
+        writer.write_u8(NUL)?;
+    }
+
+    for reference_sequence in index.reference_sequences() {
+        write_reference_sequence(writer, reference_sequence)?;
+    }
+
+    if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
+        writer.write_u64::<LittleEndian>(n_no_coor)?;
+    }
+
+    Ok(())
 }
 
 fn write_magic<W>(writer: &mut W) -> io::Result<()>
@@ -253,8 +259,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::{BufWriter, Read};
-
     use noodles_bgzf as bgzf;
 
     use super::*;
@@ -278,55 +282,46 @@ mod tests {
             .set_reference_sequences(references)
             .build();
 
-        let mut actual_writer = Writer::new(Vec::new());
-        actual_writer.write_index(&index)?;
+        let mut buf = Vec::new();
+        write_index(&mut buf, &index)?;
 
-        actual_writer.try_finish()?;
-
-        let mut expected_writer = BufWriter::new(Vec::new());
+        let mut expected = Vec::new();
         // magic
-        expected_writer.write_all(MAGIC_NUMBER)?;
+        expected.write_all(MAGIC_NUMBER)?;
         // n_ref
-        expected_writer.write_i32::<LittleEndian>(1)?;
+        expected.write_i32::<LittleEndian>(1)?;
         // format
-        expected_writer.write_i32::<LittleEndian>(0)?;
+        expected.write_i32::<LittleEndian>(0)?;
         // col_seq
-        expected_writer.write_i32::<LittleEndian>(1)?;
+        expected.write_i32::<LittleEndian>(1)?;
         // col_beg
-        expected_writer.write_i32::<LittleEndian>(4)?;
+        expected.write_i32::<LittleEndian>(4)?;
         // col_end
-        expected_writer.write_i32::<LittleEndian>(5)?;
+        expected.write_i32::<LittleEndian>(5)?;
         // meta
-        expected_writer.write_i32::<LittleEndian>(i32::from(b'#'))?;
+        expected.write_i32::<LittleEndian>(i32::from(b'#'))?;
         // skip
-        expected_writer.write_i32::<LittleEndian>(0)?;
+        expected.write_i32::<LittleEndian>(0)?;
         // l_nm
-        expected_writer.write_i32::<LittleEndian>(8)?;
+        expected.write_i32::<LittleEndian>(8)?;
         // names
-        expected_writer.write_all(b"sq0\x00sq1\x00")?;
+        expected.write_all(b"sq0\x00sq1\x00")?;
         // n_bin
-        expected_writer.write_u32::<LittleEndian>(1)?;
+        expected.write_u32::<LittleEndian>(1)?;
         // bin
-        expected_writer.write_u32::<LittleEndian>(16385)?;
+        expected.write_u32::<LittleEndian>(16385)?;
         // n_chunk
-        expected_writer.write_u32::<LittleEndian>(1)?;
+        expected.write_u32::<LittleEndian>(1)?;
         // chunk_beg
-        expected_writer.write_u64::<LittleEndian>(509268599425)?;
+        expected.write_u64::<LittleEndian>(509268599425)?;
         // chunk_end
-        expected_writer.write_u64::<LittleEndian>(509268599570)?;
+        expected.write_u64::<LittleEndian>(509268599570)?;
         // n_intv
-        expected_writer.write_u32::<LittleEndian>(1)?;
+        expected.write_u32::<LittleEndian>(1)?;
         // ioffset
-        expected_writer.write_u64::<LittleEndian>(337)?;
-        expected_writer.flush()?;
+        expected.write_u64::<LittleEndian>(337)?;
 
-        let mut reader = bgzf::Reader::new(actual_writer.get_ref().as_slice());
-        let mut actual = Vec::new();
-        reader.read_to_end(&mut actual)?;
-
-        let expected = expected_writer.get_ref();
-
-        assert_eq!(&actual, expected);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
