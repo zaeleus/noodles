@@ -76,19 +76,19 @@ impl Block {
             CompressionMethod::None => Ok(Cow::from(self.data())),
             CompressionMethod::Gzip => {
                 let mut reader = GzDecoder::new(self.data());
-                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
+                let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
                 Ok(Cow::from(buf))
             }
             CompressionMethod::Bzip2 => {
                 let mut reader = BzDecoder::new(self.data());
-                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
+                let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
                 Ok(Cow::from(buf))
             }
             CompressionMethod::Lzma => {
                 let mut reader = XzDecoder::new(self.data());
-                let mut buf = Vec::with_capacity(self.uncompressed_len as usize);
+                let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
                 Ok(Cow::from(buf))
             }
