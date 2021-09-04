@@ -23,15 +23,16 @@ where
     })?;
 
     let block_content_id = read_itf8(reader).await?;
-    let size_in_bytes = read_itf8(reader).await?;
+
+    let size_in_bytes = read_itf8(reader).await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let raw_size_in_bytes = read_itf8(reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let len = usize::try_from(size_in_bytes)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let mut block_data = vec![0; len];
+    let mut block_data = vec![0; size_in_bytes];
     reader.read_exact(&mut block_data).await?;
 
     let crc32 = reader.read_u32_le().await?;
