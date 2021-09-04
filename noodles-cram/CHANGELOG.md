@@ -4,7 +4,7 @@
 
 ### Fixed
 
-  * reader/container/block: Avoid casts that may truncate.
+  * reader/container: Avoid casts that may truncate.
 
     Buffer sizes that convert from `Itf8` to `usize` now check whether they are
     in range.

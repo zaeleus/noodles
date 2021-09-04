@@ -52,7 +52,9 @@ fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
 where
     R: Read,
 {
-    let len = read_itf8(reader).map(|l| l as usize)?;
+    let len = read_itf8(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
     let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
