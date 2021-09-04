@@ -19,7 +19,11 @@ where
 
     let alignment_start = read_itf8(reader).await?;
     let alignment_span = read_itf8(reader).await?;
-    let record_count = read_itf8(reader).await?;
+
+    let record_count = read_itf8(reader).await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let record_counter = read_ltf8(reader).await?;
 
     let block_count = read_itf8(reader).await.and_then(|n| {

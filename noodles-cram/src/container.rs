@@ -72,7 +72,7 @@ impl Container {
                 slice_header.alignment_start() + slice_header.alignment_span() - 1;
             container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
 
-            container_record_count += slice_header.record_count();
+            container_record_count += slice_header.record_count() as Itf8;
 
             let mut slice_len = 0;
 

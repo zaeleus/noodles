@@ -20,7 +20,11 @@ where
 
     let alignment_start = read_itf8(reader)?;
     let alignment_span = read_itf8(reader)?;
-    let record_count = read_itf8(reader)?;
+
+    let record_count = read_itf8(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let record_counter = read_ltf8(reader)?;
 
     let block_count = read_itf8(reader).and_then(|n| {

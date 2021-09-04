@@ -10,7 +10,7 @@ pub struct Builder {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Itf8,
     alignment_span: Itf8,
-    record_count: Itf8,
+    record_count: usize,
     record_counter: Ltf8,
     block_count: usize,
     block_content_ids: Vec<Itf8>,
@@ -35,7 +35,7 @@ impl Builder {
         self
     }
 
-    pub fn set_record_count(mut self, record_count: Itf8) -> Self {
+    pub fn set_record_count(mut self, record_count: usize) -> Self {
         self.record_count = record_count;
         self
     }

@@ -169,7 +169,7 @@ impl Builder {
             .set_reference_sequence_id(reference_sequence_id)
             .set_alignment_start(slice_alignment_start)
             .set_alignment_span(slice_alignment_span)
-            .set_record_count(self.records.len() as i32)
+            .set_record_count(self.records.len())
             .set_record_counter(record_counter)
             // external blocks + core data block
             .set_block_count(external_blocks.len() + 1)

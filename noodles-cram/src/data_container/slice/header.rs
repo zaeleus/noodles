@@ -16,7 +16,7 @@ pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Itf8,
     alignment_span: Itf8,
-    record_count: Itf8,
+    record_count: usize,
     record_counter: Ltf8,
     block_count: usize,
     block_content_ids: Vec<Itf8>,
@@ -42,7 +42,7 @@ impl Header {
         self.alignment_span
     }
 
-    pub fn record_count(&self) -> Itf8 {
+    pub fn record_count(&self) -> usize {
         self.record_count
     }
 

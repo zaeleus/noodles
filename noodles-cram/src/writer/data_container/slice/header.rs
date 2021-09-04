@@ -18,7 +18,11 @@ where
 
     write_itf8(writer, header.alignment_start())?;
     write_itf8(writer, header.alignment_span())?;
-    write_itf8(writer, header.record_count())?;
+
+    let record_count = Itf8::try_from(header.record_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, record_count)?;
+
     write_ltf8(writer, header.record_counter())?;
 
     let block_count = Itf8::try_from(header.block_count())

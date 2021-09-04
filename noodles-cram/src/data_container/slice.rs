@@ -73,10 +73,10 @@ impl Slice {
         );
 
         let record_counter = self.header().record_counter();
-        let records_len = self.header().record_count() as usize;
-        let mut records = Vec::with_capacity(records_len);
+        let record_count = self.header().record_count();
+        let mut records = Vec::with_capacity(record_count);
 
-        for i in 0..records_len {
+        for i in 0..record_count {
             let mut record = Record {
                 id: record_counter + (i as i64),
                 ..Default::default()
