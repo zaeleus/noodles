@@ -896,7 +896,7 @@ where
             decoder.read(core_data_reader).map(|i| i as u8)
         }
         Encoding::Beta(offset, len) => core_data_reader
-            .read_u32(*len as usize)
+            .read_u32(*len)
             .map(|i| (i as i32 - offset) as u8),
         _ => todo!("decode_byte: {:?}", encoding),
     }
@@ -928,9 +928,7 @@ where
             let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
             decoder.read(core_data_reader)
         }
-        Encoding::Beta(offset, len) => core_data_reader
-            .read_u32(*len as usize)
-            .map(|i| (i as i32 - offset)),
+        Encoding::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
         _ => todo!("decode_itf8: {:?}", encoding),
     }
 }

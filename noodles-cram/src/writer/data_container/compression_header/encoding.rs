@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    convert::TryFrom,
+    io::{self, Write},
+};
 
 use byteorder::WriteBytesExt;
 
@@ -59,7 +62,7 @@ where
     Ok(())
 }
 
-fn write_huffman_encoding<W>(writer: &mut W, alphabet: &[i32], bit_lens: &[i32]) -> io::Result<()>
+fn write_huffman_encoding<W>(writer: &mut W, alphabet: &[i32], bit_lens: &[u32]) -> io::Result<()>
 where
     W: Write,
 {
@@ -76,6 +79,8 @@ where
     write_itf8(&mut args, bit_lens_len)?;
 
     for &len in bit_lens {
+        let len =
+            Itf8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         write_itf8(&mut args, len)?;
     }
 
@@ -122,12 +127,14 @@ where
     Ok(())
 }
 
-fn write_beta_encoding<W>(writer: &mut W, offset: Itf8, len: Itf8) -> io::Result<()>
+fn write_beta_encoding<W>(writer: &mut W, offset: Itf8, len: u32) -> io::Result<()>
 where
     W: Write,
 {
     let mut args = Vec::new();
     write_itf8(&mut args, offset)?;
+
+    let len = Itf8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut args, len)?;
 
     write_itf8(writer, i32::from(encoding::Kind::Beta))?;

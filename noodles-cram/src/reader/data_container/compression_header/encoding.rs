@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use byteorder::ReadBytesExt;
 
@@ -98,7 +101,10 @@ where
     let mut bit_lens = Vec::with_capacity(bit_lens_len);
 
     for _ in 0..bit_lens_len {
-        let len = read_itf8(&mut args_reader)?;
+        let len = read_itf8(&mut args_reader).and_then(|n| {
+            u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         bit_lens.push(len);
     }
 
@@ -113,7 +119,9 @@ where
     let mut args_reader = &args[..];
 
     let offset = read_itf8(&mut args_reader)?;
-    let len = read_itf8(&mut args_reader)?;
+    let len = read_itf8(&mut args_reader).and_then(|n| {
+        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     Ok(Encoding::Beta(offset, len))
 }

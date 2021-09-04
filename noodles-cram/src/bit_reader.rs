@@ -23,7 +23,7 @@ where
         }
     }
 
-    pub fn read_u32(&mut self, n: usize) -> io::Result<u32> {
+    pub fn read_u32(&mut self, n: u32) -> io::Result<u32> {
         let mut value = 0;
 
         for _ in 0..n {

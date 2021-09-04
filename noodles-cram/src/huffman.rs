@@ -5,14 +5,14 @@ use std::{
 
 use crate::{num::Itf8, BitReader};
 
-type CodeBook = HashMap<Itf8, (Itf8, usize)>;
+type CodeBook = HashMap<Itf8, (Itf8, u32)>;
 
 pub struct CanonicalHuffmanDecoder {
     code_book: CodeBook,
 }
 
 impl CanonicalHuffmanDecoder {
-    pub fn new(alphabet: &[Itf8], bit_lens: &[Itf8]) -> Self {
+    pub fn new(alphabet: &[Itf8], bit_lens: &[u32]) -> Self {
         let code_book = build_canonical_code_book(alphabet, bit_lens);
         Self { code_book }
     }
@@ -61,7 +61,7 @@ impl CanonicalHuffmanDecoder {
     }
 }
 
-fn build_canonical_code_book(alphabet: &[Itf8], bit_lens: &[Itf8]) -> CodeBook {
+fn build_canonical_code_book(alphabet: &[Itf8], bit_lens: &[u32]) -> CodeBook {
     let sorted_alphabet = {
         let mut pairs: Vec<_> = alphabet.iter().zip(bit_lens.iter()).collect();
         pairs.sort_by_key(|&(symbol, bit_len)| (bit_len, symbol));
@@ -78,7 +78,7 @@ fn build_canonical_code_book(alphabet: &[Itf8], bit_lens: &[Itf8]) -> CodeBook {
             code <<= bit_len - prev_bit_len;
         }
 
-        code_book.insert(symbol, (code, bit_len as usize));
+        code_book.insert(symbol, (code, bit_len));
 
         code += 1;
         prev_bit_len = bit_len;
