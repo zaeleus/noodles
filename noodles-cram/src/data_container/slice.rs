@@ -72,13 +72,15 @@ impl Slice {
             self.header.alignment_start(),
         );
 
-        let record_counter = self.header().record_counter();
         let record_count = self.header().record_count();
         let mut records = Vec::with_capacity(record_count);
 
-        for i in 0..record_count {
+        let start_id = self.header().record_counter();
+        let end_id = start_id + (record_count as i64);
+
+        for id in start_id..end_id {
             let mut record = Record {
-                id: record_counter + (i as i64),
+                id,
                 ..Default::default()
             };
 
