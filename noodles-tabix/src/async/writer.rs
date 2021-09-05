@@ -88,23 +88,30 @@ where
     /// # }
     /// ```
     pub async fn write_index(&mut self, index: &Index) -> io::Result<()> {
-        write_magic(&mut self.inner).await?;
-
-        let n_ref = i32::try_from(index.reference_sequences().len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_i32_le(n_ref).await?;
-
-        write_header(&mut self.inner, index.header()).await?;
-
-        write_reference_sequence_names(&mut self.inner, index.reference_sequence_names()).await?;
-        write_reference_sequences(&mut self.inner, index.reference_sequences()).await?;
-
-        if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
-            self.inner.write_u64_le(n_no_coor).await?;
-        }
-
-        Ok(())
+        write_index(&mut self.inner, index).await
     }
+}
+
+async fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    write_magic(writer).await?;
+
+    let n_ref = i32::try_from(index.reference_sequences().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32_le(n_ref).await?;
+
+    write_header(writer, index.header()).await?;
+
+    write_reference_sequence_names(writer, index.reference_sequence_names()).await?;
+    write_reference_sequences(writer, index.reference_sequences()).await?;
+
+    if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
+        writer.write_u64_le(n_no_coor).await?;
+    }
+
+    Ok(())
 }
 
 async fn write_magic<W>(writer: &mut W) -> io::Result<()>
