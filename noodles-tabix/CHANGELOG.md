@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * async: Fix writer not finalizing.
+
 ## 0.6.0 - 2021-08-19
 
 ### Changed
