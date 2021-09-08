@@ -31,9 +31,15 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+mod r#async;
+
 pub mod header;
 pub mod reader;
 pub mod record;
 mod writer;
 
 pub use self::{header::Header, reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
