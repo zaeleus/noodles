@@ -1,4 +1,7 @@
+use futures::{stream, Stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
+
+use crate::Record;
 
 /// An async SAM reader.
 pub struct Reader<R> {
@@ -74,6 +77,59 @@ where
     /// ```
     pub async fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// The (input) stream is expected to be directly after the header or at the start of another
+    /// record.
+    ///
+    /// Unlike [`Self::read_record`], each record is parsed as a [`Record`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::AsyncReader::new(&data[..]);
+    /// reader.read_header().await?;
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::unfold(
+            (&mut self.inner, String::new()),
+            |(mut reader, mut buf)| async {
+                buf.clear();
+
+                match read_line(&mut reader, &mut buf).await {
+                    Ok(0) => None,
+                    Ok(_) => {
+                        let result = buf
+                            .parse()
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
+
+                        Some((result, (reader, buf)))
+                    }
+                    Err(e) => Some((Err(e), (reader, buf))),
+                }
+            },
+        ))
     }
 }
 
