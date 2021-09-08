@@ -86,12 +86,19 @@ where
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_index(&mut self, index: &[Record]) -> io::Result<()> {
-        for record in index {
-            write_record(&mut self.inner, record)?;
-        }
-
-        Ok(())
+        write_index(&mut self.inner, index)
     }
+}
+
+fn write_index<W>(writer: &mut W, index: &[Record]) -> io::Result<()>
+where
+    W: Write,
+{
+    for record in index {
+        write_record(writer, record)?;
+    }
+
+    Ok(())
 }
 
 fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
@@ -103,19 +110,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, io::Read};
-
-    use noodles_bam as bam;
-
-    use crate::crai;
+    use std::convert::TryFrom;
 
     use super::*;
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        let mut writer = Writer::new(Vec::new());
+        use noodles_bam as bam;
 
-        let index = vec![crai::Record::new(
+        let index = vec![Record::new(
             bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
             10946,
             6765,
@@ -124,17 +127,12 @@ mod tests {
             317811,
         )];
 
-        writer.write_index(&index)?;
+        let mut buf = Vec::new();
+        write_index(&mut buf, &index)?;
 
-        let data = writer.finish()?;
-        let mut decoder = flate2::read::GzDecoder::new(&data[..]);
+        let expected = b"0\t10946\t6765\t17711\t233\t317811\n";
 
-        let mut uncompressed_data = String::new();
-        decoder.read_to_string(&mut uncompressed_data)?;
-
-        let expected = "0\t10946\t6765\t17711\t233\t317811\n";
-
-        assert_eq!(uncompressed_data, expected);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
