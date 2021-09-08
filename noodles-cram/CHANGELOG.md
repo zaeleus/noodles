@@ -6,6 +6,9 @@
 
   * reader/container: Avoid casts that may truncate.
 
+  * reader/data_container/compression_header/encoding: Avoid casts that may
+    truncate.
+
     Buffer sizes that convert from `Itf8` to `usize` now check whether they are
     in range.
 

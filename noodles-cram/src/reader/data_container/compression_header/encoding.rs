@@ -35,8 +35,10 @@ fn read_args<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let len = read_itf8(reader)?;
-    let mut buf = vec![0; len as usize];
+    let len = read_itf8(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+    let mut buf = vec![0; len];
     reader.read_exact(&mut buf)?;
     Ok(buf)
 }
@@ -89,7 +91,9 @@ where
     let args = read_args(reader)?;
     let mut args_reader = &args[..];
 
-    let alphabet_len = read_itf8(&mut args_reader)? as usize;
+    let alphabet_len = read_itf8(&mut args_reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
     let mut alphabet = Vec::with_capacity(alphabet_len);
 
     for _ in 0..alphabet_len {
@@ -97,7 +101,9 @@ where
         alphabet.push(symbol);
     }
 
-    let bit_lens_len = read_itf8(&mut args_reader)? as usize;
+    let bit_lens_len = read_itf8(&mut args_reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
     let mut bit_lens = Vec::with_capacity(bit_lens_len);
 
     for _ in 0..bit_lens_len {
