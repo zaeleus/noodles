@@ -211,6 +211,26 @@ impl Record {
     }
 }
 
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let reference_sequence_id = self
+            .reference_sequence_id()
+            .map(i32::from)
+            .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+
+        write!(
+            f,
+            "{}\t{}\t{}\t{}\t{}\t{}",
+            reference_sequence_id,
+            self.alignment_start,
+            self.alignment_span,
+            self.offset,
+            self.landmark,
+            self.slice_length
+        )
+    }
+}
+
 /// An error returned when a raw CRAM index record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -293,6 +313,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let record = Record::new(None, 10946, 6765, 17711, 233, 317811);
+        let actual = record.to_string();
+        let expected = "-1\t10946\t6765\t17711\t233\t317811";
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {

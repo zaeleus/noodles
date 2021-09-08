@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * crai/record: Implement `Display`.
+
 ### Fixed
 
   * reader/container: Avoid casts that may truncate.

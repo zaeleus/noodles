@@ -1,7 +1,6 @@
 use std::io::{self, Write};
 
 use flate2::write::GzEncoder;
-use noodles_bam as bam;
 
 use super::Record;
 
@@ -99,26 +98,14 @@ fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
-    let reference_sequence_id = record
-        .reference_sequence_id()
-        .map(i32::from)
-        .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
-
-    writeln!(
-        writer,
-        "{}\t{}\t{}\t{}\t{}\t{}",
-        reference_sequence_id,
-        record.alignment_start(),
-        record.alignment_span(),
-        record.offset(),
-        record.landmark(),
-        record.slice_length()
-    )
+    writeln!(writer, "{}", record)
 }
 
 #[cfg(test)]
 mod tests {
     use std::{convert::TryFrom, io::Read};
+
+    use noodles_bam as bam;
 
     use crate::crai;
 
