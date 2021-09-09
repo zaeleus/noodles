@@ -46,27 +46,27 @@ impl fmt::Display for ReadRecordError {
     }
 }
 
-pub struct Reader<'a, R, S>
+pub struct Reader<'a, CDR, EDR>
 where
-    R: Read,
-    S: BufRead,
+    CDR: Read,
+    EDR: BufRead,
 {
     compression_header: &'a CompressionHeader,
-    core_data_reader: BitReader<R>,
-    external_data_readers: HashMap<Itf8, S>,
+    core_data_reader: BitReader<CDR>,
+    external_data_readers: HashMap<Itf8, EDR>,
     reference_sequence_id: ReferenceSequenceId,
     prev_alignment_start: Itf8,
 }
 
-impl<'a, R, S> Reader<'a, R, S>
+impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
 where
-    R: Read,
-    S: BufRead,
+    CDR: Read,
+    EDR: BufRead,
 {
     pub fn new(
         compression_header: &'a CompressionHeader,
-        core_data_reader: BitReader<R>,
-        external_data_readers: HashMap<Itf8, S>,
+        core_data_reader: BitReader<CDR>,
+        external_data_readers: HashMap<Itf8, EDR>,
         reference_sequence_id: ReferenceSequenceId,
         initial_alignment_start: Itf8,
     ) -> Self {
@@ -871,14 +871,14 @@ where
     }
 }
 
-fn decode_byte<R, S>(
+fn decode_byte<CDR, EDR>(
     encoding: &Encoding,
-    core_data_reader: &mut BitReader<R>,
-    external_data_readers: &mut HashMap<Itf8, S>,
+    core_data_reader: &mut BitReader<CDR>,
+    external_data_readers: &mut HashMap<Itf8, EDR>,
 ) -> io::Result<u8>
 where
-    R: Read,
-    S: Read,
+    CDR: Read,
+    EDR: Read,
 {
     match encoding {
         Encoding::External(block_content_id) => {
@@ -904,14 +904,14 @@ where
     }
 }
 
-fn decode_itf8<R, S>(
+fn decode_itf8<CDR, EDR>(
     encoding: &Encoding,
-    core_data_reader: &mut BitReader<R>,
-    external_data_readers: &mut HashMap<Itf8, S>,
+    core_data_reader: &mut BitReader<CDR>,
+    external_data_readers: &mut HashMap<Itf8, EDR>,
 ) -> io::Result<Itf8>
 where
-    R: Read,
-    S: Read,
+    CDR: Read,
+    EDR: Read,
 {
     match encoding {
         Encoding::External(block_content_id) => {
@@ -935,15 +935,15 @@ where
     }
 }
 
-fn decode_byte_array<R, S>(
+fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding,
-    core_data_reader: &mut BitReader<R>,
-    external_data_readers: &mut HashMap<Itf8, S>,
+    core_data_reader: &mut BitReader<CDR>,
+    external_data_readers: &mut HashMap<Itf8, EDR>,
     buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
 where
-    R: Read,
-    S: BufRead,
+    CDR: Read,
+    EDR: BufRead,
 {
     match encoding {
         Encoding::External(block_content_id) => {
