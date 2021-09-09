@@ -95,8 +95,7 @@ where
 {
     let mut buf = [0; 5];
     reader.read_exact(&mut buf[..])?;
-    SubstitutionMatrix::try_from(&buf[..])
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>

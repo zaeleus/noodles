@@ -63,69 +63,54 @@ impl From<Histogram> for SubstitutionMatrix {
     }
 }
 
-#[derive(Debug)]
-pub struct TryFromByteSliceError(Vec<u8>);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TryFromByteArrayError([u8; 5]);
 
-impl fmt::Display for TryFromByteSliceError {
+impl fmt::Display for TryFromByteArrayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid substitution matrix: {:#x?}", self.0)
     }
 }
 
-impl error::Error for TryFromByteSliceError {}
+impl error::Error for TryFromByteArrayError {}
 
-impl TryFrom<&[u8]> for SubstitutionMatrix {
-    type Error = TryFromByteSliceError;
+impl TryFrom<[u8; 5]> for SubstitutionMatrix {
+    type Error = TryFromByteArrayError;
 
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(b: [u8; 5]) -> Result<Self, Self::Error> {
         let mut matrix = Self::default();
 
         set_substitutions(
             Base::A,
-            bytes
-                .get(0)
-                .copied()
-                .ok_or_else(|| TryFromByteSliceError(bytes.to_vec()))?,
+            b[0],
             [Base::C, Base::G, Base::T, Base::N],
             &mut matrix.substitutions,
         );
 
         set_substitutions(
             Base::C,
-            bytes
-                .get(1)
-                .copied()
-                .ok_or_else(|| TryFromByteSliceError(bytes.to_vec()))?,
+            b[1],
             [Base::A, Base::G, Base::T, Base::N],
             &mut matrix.substitutions,
         );
 
         set_substitutions(
             Base::G,
-            bytes
-                .get(2)
-                .copied()
-                .ok_or_else(|| TryFromByteSliceError(bytes.to_vec()))?,
+            b[2],
             [Base::A, Base::C, Base::T, Base::N],
             &mut matrix.substitutions,
         );
 
         set_substitutions(
             Base::T,
-            bytes
-                .get(3)
-                .copied()
-                .ok_or_else(|| TryFromByteSliceError(bytes.to_vec()))?,
+            b[3],
             [Base::A, Base::C, Base::G, Base::N],
             &mut matrix.substitutions,
         );
 
         set_substitutions(
             Base::N,
-            bytes
-                .get(4)
-                .copied()
-                .ok_or_else(|| TryFromByteSliceError(bytes.to_vec()))?,
+            b[4],
             [Base::A, Base::C, Base::G, Base::T],
             &mut matrix.substitutions,
         );
@@ -180,9 +165,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_u8_slice() -> Result<(), TryFromByteSliceError> {
+    fn test_try_from_u8_slice() -> Result<(), TryFromByteArrayError> {
         let codes = [0x93, 0x1b, 0x6c, 0xb1, 0xc6];
-        let matrix = SubstitutionMatrix::try_from(&codes[..])?;
+        let matrix = SubstitutionMatrix::try_from(codes)?;
 
         let actual = &matrix.substitutions;
         let expected = &[

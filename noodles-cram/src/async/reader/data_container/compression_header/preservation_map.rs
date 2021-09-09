@@ -100,8 +100,7 @@ where
 {
     let mut buf = [0; 5];
     reader.read_exact(&mut buf[..]).await?;
-    SubstitutionMatrix::try_from(&buf[..])
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 async fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>
