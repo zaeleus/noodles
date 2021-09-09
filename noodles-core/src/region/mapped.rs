@@ -30,8 +30,8 @@ impl Mapped {
     {
         Self {
             name: name.into(),
-            start: bound_cloned(interval.start_bound()),
-            end: bound_cloned(interval.end_bound()),
+            start: interval.start_bound().cloned(),
+            end: interval.end_bound().cloned(),
         }
     }
 
@@ -111,17 +111,5 @@ impl fmt::Display for Mapped {
             (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", self.name(), s, e),
             _ => todo!(),
         }
-    }
-}
-
-// TODO: https://github.com/rust-lang/rust/issues/61356
-fn bound_cloned<T>(bound: Bound<&T>) -> Bound<T>
-where
-    T: Clone,
-{
-    match bound {
-        Bound::Included(v) => Bound::Included(v.clone()),
-        Bound::Excluded(v) => Bound::Excluded(v.clone()),
-        Bound::Unbounded => Bound::Unbounded,
     }
 }

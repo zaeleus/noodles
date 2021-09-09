@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * region/mapped: Use `std::ops::Bound::cloned` to clone interval bounds.
+
+    This was stabilized in Rust 1.55.0.
+
 ## 0.1.2 - 2021-07-30
 
 ### Fixed
