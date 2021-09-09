@@ -76,7 +76,7 @@ where
 {
     let mut buf = [0; 2];
     reader.read_exact(&mut buf).await?;
-    Key::try_from(&buf[..]).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Key::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 async fn read_bool<R>(reader: &mut R) -> io::Result<bool>

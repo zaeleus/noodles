@@ -18,27 +18,27 @@ pub enum Key {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromByteSliceError(Vec<u8>);
+pub struct TryFromByteArrayError([u8; 2]);
 
-impl error::Error for TryFromByteSliceError {}
+impl error::Error for TryFromByteArrayError {}
 
-impl fmt::Display for TryFromByteSliceError {
+impl fmt::Display for TryFromByteArrayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid preservation map key: {:#x?}", self.0)
     }
 }
 
-impl TryFrom<&[u8]> for Key {
-    type Error = TryFromByteSliceError;
+impl TryFrom<[u8; 2]> for Key {
+    type Error = TryFromByteArrayError;
 
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        match bytes {
-            b"RN" => Ok(Self::ReadNamesIncluded),
-            b"AP" => Ok(Self::ApDataSeriesDelta),
-            b"RR" => Ok(Self::ReferenceRequired),
-            b"SM" => Ok(Self::SubstitutionMatrix),
-            b"TD" => Ok(Self::TagIdsDictionary),
-            _ => Err(TryFromByteSliceError(bytes.to_vec())),
+    fn try_from(b: [u8; 2]) -> Result<Self, Self::Error> {
+        match b {
+            [b'R', b'N'] => Ok(Self::ReadNamesIncluded),
+            [b'A', b'P'] => Ok(Self::ApDataSeriesDelta),
+            [b'R', b'R'] => Ok(Self::ReferenceRequired),
+            [b'S', b'M'] => Ok(Self::SubstitutionMatrix),
+            [b'T', b'D'] => Ok(Self::TagIdsDictionary),
+            _ => Err(TryFromByteArrayError(b)),
         }
     }
 }
@@ -61,15 +61,15 @@ mod tests {
 
     #[test]
     fn test_try_from_byte_slice_for_key() {
-        assert_eq!(Key::try_from(&b"RN"[..]), Ok(Key::ReadNamesIncluded));
-        assert_eq!(Key::try_from(&b"AP"[..]), Ok(Key::ApDataSeriesDelta));
-        assert_eq!(Key::try_from(&b"RR"[..]), Ok(Key::ReferenceRequired));
-        assert_eq!(Key::try_from(&b"SM"[..]), Ok(Key::SubstitutionMatrix));
-        assert_eq!(Key::try_from(&b"TD"[..]), Ok(Key::TagIdsDictionary));
+        assert_eq!(Key::try_from([b'R', b'N']), Ok(Key::ReadNamesIncluded));
+        assert_eq!(Key::try_from([b'A', b'P']), Ok(Key::ApDataSeriesDelta));
+        assert_eq!(Key::try_from([b'R', b'R']), Ok(Key::ReferenceRequired));
+        assert_eq!(Key::try_from([b'S', b'M']), Ok(Key::SubstitutionMatrix));
+        assert_eq!(Key::try_from([b'T', b'D']), Ok(Key::TagIdsDictionary));
 
         assert_eq!(
-            Key::try_from(&b"ZZ"[..]),
-            Err(TryFromByteSliceError(vec![b'Z', b'Z']))
+            Key::try_from([b'Z', b'Z']),
+            Err(TryFromByteArrayError([b'Z', b'Z']))
         );
     }
 

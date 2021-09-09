@@ -39,8 +39,8 @@ where
     for _ in 0..map_len {
         buf_reader.read_exact(&mut key_buf)?;
 
-        let key = Key::try_from(&key_buf[..])
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let key =
+            Key::try_from(key_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         match key {
             Key::ReadNamesIncluded => {
