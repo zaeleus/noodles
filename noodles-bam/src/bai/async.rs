@@ -62,5 +62,6 @@ where
     let mut writer = File::create(dst).await.map(Writer::new)?;
     writer.write_header().await?;
     writer.write_index(index).await?;
+    writer.shutdown().await?;
     Ok(())
 }

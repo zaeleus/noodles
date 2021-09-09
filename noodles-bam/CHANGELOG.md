@@ -6,6 +6,10 @@
 
   * bai/async/writer: Add shutdown delegate.
 
+### Fixed
+
+  * bai/async: Fix writer not finalizing.
+
 ## 0.4.0 - 2021-08-19
 
 ### Changed
