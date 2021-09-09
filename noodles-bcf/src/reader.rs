@@ -35,11 +35,10 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
+    /// ```
     /// use noodles_bcf as bcf;
-    /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    /// # Ok::<(), io::Error>(())
+    /// let data = [];
+    /// let reader = bcf::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
         Self {
