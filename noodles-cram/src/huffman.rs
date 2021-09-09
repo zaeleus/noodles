@@ -17,7 +17,7 @@ impl CanonicalHuffmanDecoder {
         Self { code_book }
     }
 
-    pub fn read<R>(&self, reader: &mut BitReader<R>) -> io::Result<Itf8>
+    pub fn decode<R>(&self, reader: &mut BitReader<R>) -> io::Result<Itf8>
     where
         R: Read,
     {
