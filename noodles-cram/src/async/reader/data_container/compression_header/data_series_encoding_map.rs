@@ -41,7 +41,7 @@ where
     for _ in 0..map_len {
         reader.read_exact(&mut key_buf).await?;
 
-        let key = DataSeries::try_from(&key_buf[..])
+        let key = DataSeries::try_from(key_buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let encoding = read_encoding(reader).await?;

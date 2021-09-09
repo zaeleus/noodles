@@ -66,50 +66,50 @@ impl DataSeries {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromByteSliceError(Vec<u8>);
+pub struct TryFromByteArrayError([u8; 2]);
 
-impl error::Error for TryFromByteSliceError {}
+impl error::Error for TryFromByteArrayError {}
 
-impl fmt::Display for TryFromByteSliceError {
+impl fmt::Display for TryFromByteArrayError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid data series: {:#x?}", self.0)
     }
 }
 
-impl TryFrom<&[u8]> for DataSeries {
-    type Error = TryFromByteSliceError;
+impl TryFrom<[u8; 2]> for DataSeries {
+    type Error = TryFromByteArrayError;
 
-    fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(b: [u8; 2]) -> Result<Self, Self::Error> {
         match b {
-            b"BF" => Ok(Self::BamBitFlags),
-            b"CF" => Ok(Self::CramBitFlags),
-            b"RI" => Ok(Self::ReferenceId),
-            b"RL" => Ok(Self::ReadLengths),
-            b"AP" => Ok(Self::InSeqPositions),
-            b"RG" => Ok(Self::ReadGroups),
-            b"RN" => Ok(Self::ReadNames),
-            b"MF" => Ok(Self::NextMateBitFlags),
-            b"NS" => Ok(Self::NextFragmentReferenceSequenceId),
-            b"NP" => Ok(Self::NextMateAlignmentStart),
-            b"TS" => Ok(Self::TemplateSize),
-            b"NF" => Ok(Self::DistanceToNextFragment),
-            b"TL" => Ok(Self::TagIds),
-            b"FN" => Ok(Self::NumberOfReadFeatures),
-            b"FC" => Ok(Self::ReadFeaturesCodes),
-            b"FP" => Ok(Self::InReadPositions),
-            b"DL" => Ok(Self::DeletionLengths),
-            b"BB" => Ok(Self::StretchesOfBases),
-            b"QQ" => Ok(Self::StretchesOfQualityScores),
-            b"BS" => Ok(Self::BaseSubstitutionCodes),
-            b"IN" => Ok(Self::Insertion),
-            b"RS" => Ok(Self::ReferenceSkipLength),
-            b"PD" => Ok(Self::Padding),
-            b"HC" => Ok(Self::HardClip),
-            b"SC" => Ok(Self::SoftClip),
-            b"MQ" => Ok(Self::MappingQualities),
-            b"BA" => Ok(Self::Bases),
-            b"QS" => Ok(Self::QualityScores),
-            _ => Err(TryFromByteSliceError(b.to_vec())),
+            [b'B', b'F'] => Ok(Self::BamBitFlags),
+            [b'C', b'F'] => Ok(Self::CramBitFlags),
+            [b'R', b'I'] => Ok(Self::ReferenceId),
+            [b'R', b'L'] => Ok(Self::ReadLengths),
+            [b'A', b'P'] => Ok(Self::InSeqPositions),
+            [b'R', b'G'] => Ok(Self::ReadGroups),
+            [b'R', b'N'] => Ok(Self::ReadNames),
+            [b'M', b'F'] => Ok(Self::NextMateBitFlags),
+            [b'N', b'S'] => Ok(Self::NextFragmentReferenceSequenceId),
+            [b'N', b'P'] => Ok(Self::NextMateAlignmentStart),
+            [b'T', b'S'] => Ok(Self::TemplateSize),
+            [b'N', b'F'] => Ok(Self::DistanceToNextFragment),
+            [b'T', b'L'] => Ok(Self::TagIds),
+            [b'F', b'N'] => Ok(Self::NumberOfReadFeatures),
+            [b'F', b'C'] => Ok(Self::ReadFeaturesCodes),
+            [b'F', b'P'] => Ok(Self::InReadPositions),
+            [b'D', b'L'] => Ok(Self::DeletionLengths),
+            [b'B', b'B'] => Ok(Self::StretchesOfBases),
+            [b'Q', b'Q'] => Ok(Self::StretchesOfQualityScores),
+            [b'B', b'S'] => Ok(Self::BaseSubstitutionCodes),
+            [b'I', b'N'] => Ok(Self::Insertion),
+            [b'R', b'S'] => Ok(Self::ReferenceSkipLength),
+            [b'P', b'D'] => Ok(Self::Padding),
+            [b'H', b'C'] => Ok(Self::HardClip),
+            [b'S', b'C'] => Ok(Self::SoftClip),
+            [b'M', b'Q'] => Ok(Self::MappingQualities),
+            [b'B', b'A'] => Ok(Self::Bases),
+            [b'Q', b'S'] => Ok(Self::QualityScores),
+            _ => Err(TryFromByteArrayError(b)),
         }
     }
 }
@@ -154,100 +154,109 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_byte_slice_for_data_series() {
+    fn test_try_from_byte_array_for_data_series() {
         assert_eq!(
-            DataSeries::try_from(&b"BF"[..]),
+            DataSeries::try_from([b'B', b'F']),
             Ok(DataSeries::BamBitFlags)
         );
         assert_eq!(
-            DataSeries::try_from(&b"CF"[..]),
+            DataSeries::try_from([b'C', b'F']),
             Ok(DataSeries::CramBitFlags)
         );
 
         assert_eq!(
-            DataSeries::try_from(&b"RI"[..]),
+            DataSeries::try_from([b'R', b'I']),
             Ok(DataSeries::ReferenceId)
         );
         assert_eq!(
-            DataSeries::try_from(&b"RL"[..]),
+            DataSeries::try_from([b'R', b'L']),
             Ok(DataSeries::ReadLengths)
         );
         assert_eq!(
-            DataSeries::try_from(&b"AP"[..]),
+            DataSeries::try_from([b'A', b'P']),
             Ok(DataSeries::InSeqPositions)
         );
-        assert_eq!(DataSeries::try_from(&b"RG"[..]), Ok(DataSeries::ReadGroups));
-        assert_eq!(DataSeries::try_from(&b"RN"[..]), Ok(DataSeries::ReadNames));
         assert_eq!(
-            DataSeries::try_from(&b"MF"[..]),
+            DataSeries::try_from([b'R', b'G']),
+            Ok(DataSeries::ReadGroups)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'R', b'N']),
+            Ok(DataSeries::ReadNames)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'M', b'F']),
             Ok(DataSeries::NextMateBitFlags)
         );
         assert_eq!(
-            DataSeries::try_from(&b"NS"[..]),
+            DataSeries::try_from([b'N', b'S']),
             Ok(DataSeries::NextFragmentReferenceSequenceId)
         );
         assert_eq!(
-            DataSeries::try_from(&b"NP"[..]),
+            DataSeries::try_from([b'N', b'P']),
             Ok(DataSeries::NextMateAlignmentStart)
         );
         assert_eq!(
-            DataSeries::try_from(&b"TS"[..]),
+            DataSeries::try_from([b'T', b'S']),
             Ok(DataSeries::TemplateSize)
         );
         assert_eq!(
-            DataSeries::try_from(&b"NF"[..]),
+            DataSeries::try_from([b'N', b'F']),
             Ok(DataSeries::DistanceToNextFragment)
         );
-        assert_eq!(DataSeries::try_from(&b"TL"[..]), Ok(DataSeries::TagIds));
+        assert_eq!(DataSeries::try_from([b'T', b'L']), Ok(DataSeries::TagIds));
         assert_eq!(
-            DataSeries::try_from(&b"FN"[..]),
+            DataSeries::try_from([b'F', b'N']),
             Ok(DataSeries::NumberOfReadFeatures)
         );
         assert_eq!(
-            DataSeries::try_from(&b"FC"[..]),
+            DataSeries::try_from([b'F', b'C']),
             Ok(DataSeries::ReadFeaturesCodes)
         );
         assert_eq!(
-            DataSeries::try_from(&b"FP"[..]),
+            DataSeries::try_from([b'F', b'P']),
             Ok(DataSeries::InReadPositions)
         );
         assert_eq!(
-            DataSeries::try_from(&b"DL"[..]),
+            DataSeries::try_from([b'D', b'L']),
             Ok(DataSeries::DeletionLengths)
         );
         assert_eq!(
-            DataSeries::try_from(&b"BB"[..]),
+            DataSeries::try_from([b'B', b'B']),
             Ok(DataSeries::StretchesOfBases)
         );
         assert_eq!(
-            DataSeries::try_from(&b"QQ"[..]),
+            DataSeries::try_from([b'Q', b'Q']),
             Ok(DataSeries::StretchesOfQualityScores)
         );
         assert_eq!(
-            DataSeries::try_from(&b"BS"[..]),
+            DataSeries::try_from([b'B', b'S']),
             Ok(DataSeries::BaseSubstitutionCodes)
         );
-        assert_eq!(DataSeries::try_from(&b"IN"[..]), Ok(DataSeries::Insertion));
         assert_eq!(
-            DataSeries::try_from(&b"RS"[..]),
+            DataSeries::try_from([b'I', b'N']),
+            Ok(DataSeries::Insertion)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'R', b'S']),
             Ok(DataSeries::ReferenceSkipLength)
         );
-        assert_eq!(DataSeries::try_from(&b"PD"[..]), Ok(DataSeries::Padding));
-        assert_eq!(DataSeries::try_from(&b"HC"[..]), Ok(DataSeries::HardClip));
-        assert_eq!(DataSeries::try_from(&b"SC"[..]), Ok(DataSeries::SoftClip));
+        assert_eq!(DataSeries::try_from([b'P', b'D']), Ok(DataSeries::Padding));
+        assert_eq!(DataSeries::try_from([b'H', b'C']), Ok(DataSeries::HardClip));
+        assert_eq!(DataSeries::try_from([b'S', b'C']), Ok(DataSeries::SoftClip));
         assert_eq!(
-            DataSeries::try_from(&b"MQ"[..]),
+            DataSeries::try_from([b'M', b'Q']),
             Ok(DataSeries::MappingQualities)
         );
-        assert_eq!(DataSeries::try_from(&b"BA"[..]), Ok(DataSeries::Bases));
+        assert_eq!(DataSeries::try_from([b'B', b'A']), Ok(DataSeries::Bases));
         assert_eq!(
-            DataSeries::try_from(&b"QS"[..]),
+            DataSeries::try_from([b'Q', b'S']),
             Ok(DataSeries::QualityScores)
         );
 
         assert_eq!(
-            DataSeries::try_from(&b"XY"[..]),
-            Err(TryFromByteSliceError(vec![0x58, 0x59]))
+            DataSeries::try_from([b'X', b'Y']),
+            Err(TryFromByteArrayError([b'X', b'Y']))
         );
     }
 
