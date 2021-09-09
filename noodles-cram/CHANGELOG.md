@@ -6,6 +6,10 @@
 
   * crai/record: Implement `Display`.
 
+  * reader: Add data container reader.
+
+    This can be used to manually read records from slices.
+
 ### Fixed
 
   * reader/container: Avoid casts that may truncate.

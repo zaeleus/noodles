@@ -128,7 +128,27 @@ where
         read_container(&mut self.inner)
     }
 
-    pub(crate) fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
+    /// Reads a data container.
+    ///
+    /// This returns `None` if the container header is the EOF container header, which signals the
+    /// end of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// reader.read_file_definition()?;
+    /// reader.read_file_header()?;
+    ///
+    /// while let Some(container) = reader.read_data_container()? {
+    ///     // ...
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
         use self::data_container::read_data_container;
 
         read_data_container(&mut self.inner)
