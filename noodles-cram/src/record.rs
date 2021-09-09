@@ -163,10 +163,6 @@ impl Record {
         &self.tags
     }
 
-    pub(crate) fn add_tag(&mut self, tag: Tag) {
-        self.tags.push(tag);
-    }
-
     /// Returns the read bases.
     pub fn bases(&self) -> &[u8] {
         &self.bases

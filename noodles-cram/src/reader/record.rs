@@ -18,7 +18,7 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     num::Itf8,
-    record::{self, feature, tag, Feature, ReadGroupId, Tag},
+    record::{feature, tag, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
     BitReader, Record,
 };
 
@@ -80,31 +80,14 @@ where
     }
 
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        record.bam_bit_flags = self
-            .read_bam_bit_flags()
-            .and_then(|n| {
-                u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
-            .map(sam::record::Flags::from)?;
-
-        record.cram_bit_flags = self
-            .read_cram_bit_flags()
-            .and_then(|n| {
-                u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
-            .map(record::Flags::from)?;
+        record.bam_bit_flags = self.read_bam_bit_flags()?;
+        record.cram_bit_flags = self.read_cram_bit_flags()?;
 
         self.read_positional_data(record)?;
-
-        let preservation_map = self.compression_header.preservation_map();
-
-        // Missing read names are generated when resolving mates.
-        if preservation_map.read_names_included() {
-            record.read_name = self.read_read_name()?;
-        }
-
+        self.read_read_names(record)?;
         self.read_mate_data(record)?;
-        self.read_tag_data(record)?;
+
+        record.tags = self.read_tag_data()?;
 
         if record.bam_flags().is_unmapped() {
             self.read_unmapped_read(record)?;
@@ -117,7 +100,7 @@ where
         Ok(())
     }
 
-    fn read_bam_bit_flags(&mut self) -> io::Result<Itf8> {
+    fn read_bam_bit_flags(&mut self) -> io::Result<sam::record::Flags> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -128,9 +111,11 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+        .and_then(|n| u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(sam::record::Flags::from)
     }
 
-    fn read_cram_bit_flags(&mut self) -> io::Result<Itf8> {
+    fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -141,6 +126,8 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(Flags::from)
     }
 
     fn read_positional_data(&mut self, record: &mut Record) -> io::Result<()> {
@@ -159,24 +146,9 @@ where
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
             };
 
-        record.read_length = self.read_read_length().and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let ap_data_series_delta = self
-            .compression_header
-            .preservation_map()
-            .ap_data_series_delta();
-
-        let alignment_start = self.read_alignment_start()?;
-
-        record.alignment_start = if ap_data_series_delta {
-            self.prev_alignment_start + alignment_start
-        } else {
-            alignment_start
-        };
-
-        record.read_group = self.read_read_group().map(ReadGroupId::from)?;
+        record.read_length = self.read_read_length()?;
+        record.alignment_start = self.read_alignment_start()?;
+        record.read_group = self.read_read_group()?;
 
         Ok(())
     }
@@ -200,7 +172,7 @@ where
             })
     }
 
-    fn read_read_length(&mut self) -> io::Result<Itf8> {
+    fn read_read_length(&mut self) -> io::Result<usize> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -211,22 +183,34 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_alignment_start(&mut self) -> io::Result<Itf8> {
+        let ap_data_series_delta = self
+            .compression_header
+            .preservation_map()
+            .ap_data_series_delta();
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .in_seq_positions_encoding();
 
-        decode_itf8(
+        let alignment_start = decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-        )
+        )?;
+
+        if ap_data_series_delta {
+            Ok(self.prev_alignment_start + alignment_start)
+        } else {
+            Ok(alignment_start)
+        }
     }
 
-    fn read_read_group(&mut self) -> io::Result<Itf8> {
+    fn read_read_group(&mut self) -> io::Result<ReadGroupId> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -237,6 +221,18 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+        .map(ReadGroupId::from)
+    }
+
+    fn read_read_names(&mut self, record: &mut Record) -> io::Result<()> {
+        let preservation_map = self.compression_header.preservation_map();
+
+        // Missing read names are generated when resolving mates.
+        if preservation_map.read_names_included() {
+            record.read_name = self.read_read_name()?;
+        }
+
+        Ok(())
     }
 
     fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
@@ -263,12 +259,8 @@ where
         let flags = record.flags();
 
         if flags.is_detached() {
-            record.next_mate_bit_flags = self
-                .read_next_mate_bit_flags()
-                .and_then(|n| {
-                    u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })
-                .map(record::NextMateFlags::from)?;
+            record.next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+
             let next_mate_flags = record.next_mate_flags();
 
             if next_mate_flags.is_on_negative_strand() {
@@ -285,17 +277,8 @@ where
                 record.read_name = self.read_read_name()?;
             }
 
-            record.next_fragment_reference_sequence_id = self
-                .read_next_fragment_reference_sequence_id()
-                .and_then(|id| {
-                    if id == bam::record::reference_sequence_id::UNMAPPED {
-                        Ok(None)
-                    } else {
-                        bam::record::ReferenceSequenceId::try_from(id)
-                            .map(Some)
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                    }
-                })?;
+            record.next_fragment_reference_sequence_id =
+                self.read_next_fragment_reference_sequence_id()?;
 
             record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
             record.template_size = self.read_template_size()?;
@@ -306,8 +289,9 @@ where
         Ok(())
     }
 
-    fn read_next_mate_bit_flags(&mut self) -> io::Result<Itf8> {
-        self.compression_header
+    fn read_next_mate_bit_flags(&mut self) -> io::Result<NextMateFlags> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .next_mate_bit_flags_encoding()
             .ok_or_else(|| {
@@ -315,18 +299,22 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateBitFlags),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(NextMateFlags::from)
     }
 
-    fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Itf8> {
-        self.compression_header
+    fn read_next_fragment_reference_sequence_id(
+        &mut self,
+    ) -> io::Result<Option<bam::record::ReferenceSequenceId>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .next_fragment_reference_sequence_id_encoding()
             .ok_or_else(|| {
@@ -336,14 +324,22 @@ where
                         DataSeries::NextFragmentReferenceSequenceId,
                     ),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|id| {
+            if id == bam::record::reference_sequence_id::UNMAPPED {
+                Ok(None)
+            } else {
+                bam::record::ReferenceSequenceId::try_from(id)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
     }
 
     fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
@@ -403,16 +399,21 @@ where
             })
     }
 
-    fn read_tag_data(&mut self, record: &mut Record) -> io::Result<()> {
-        let tag_line = self.read_tag_line()?;
+    fn read_tag_data(&mut self) -> io::Result<Vec<Tag>> {
+        let tag_line = self.read_tag_line().and_then(|i| {
+            usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
-        let preservation_map = self.compression_header.preservation_map();
-        let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
-        let tag_keys = &tag_ids_dictionary[tag_line as usize];
+        let tag_keys = self
+            .compression_header
+            .preservation_map()
+            .tag_ids_dictionary()
+            .get(tag_line)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
 
-        record.tags.clear();
+        let mut tags = Vec::with_capacity(tag_keys.len());
 
         for key in tag_keys {
             let id = key.id();
@@ -434,10 +435,10 @@ where
             let value = data_reader.read_value_type(key.ty())?;
 
             let tag = Tag::new(*key, value);
-            record.add_tag(tag);
+            tags.push(tag);
         }
 
-        Ok(())
+        Ok(tags)
     }
 
     fn read_tag_line(&mut self) -> io::Result<Itf8> {
@@ -507,71 +508,69 @@ where
     }
 
     fn read_feature(&mut self, prev_position: i32) -> io::Result<Feature> {
-        let code = self
-            .read_feature_code()
-            .map(|id| id as u8 as char)
-            .and_then(|id| {
-                feature::Code::try_from(id)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
+        use feature::Code;
 
-        let position = prev_position + self.read_feature_position()?;
+        let code = self.read_feature_code()?;
+
+        let delta = self.read_feature_position()?;
+        let position = prev_position + delta;
 
         match code {
-            feature::Code::Bases => {
+            Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
                 Ok(Feature::Bases(position, bases))
             }
-            feature::Code::Scores => {
+            Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
                 Ok(Feature::Scores(position, quality_scores))
             }
-            feature::Code::ReadBase => {
+            Code::ReadBase => {
                 let base = self.read_base()?;
                 let quality_score = self.read_quality_score()?;
                 Ok(Feature::ReadBase(position, base, quality_score))
             }
-            feature::Code::Substitution => {
+            Code::Substitution => {
                 let code = self.read_base_substitution_code()?;
                 Ok(Feature::Substitution(position, code))
             }
-            feature::Code::Insertion => {
+            Code::Insertion => {
                 let bases = self.read_insertion()?;
                 Ok(Feature::Insertion(position, bases))
             }
-            feature::Code::Deletion => {
+            Code::Deletion => {
                 let len = self.read_deletion_length()?;
                 Ok(Feature::Deletion(position, len))
             }
-            feature::Code::InsertBase => {
+            Code::InsertBase => {
                 let base = self.read_base()?;
                 Ok(Feature::InsertBase(position, base))
             }
-            feature::Code::QualityScore => {
+            Code::QualityScore => {
                 let score = self.read_quality_score()?;
                 Ok(Feature::QualityScore(position, score))
             }
-            feature::Code::ReferenceSkip => {
+            Code::ReferenceSkip => {
                 let len = self.read_reference_skip_length()?;
                 Ok(Feature::ReferenceSkip(position, len))
             }
-            feature::Code::SoftClip => {
+            Code::SoftClip => {
                 let bases = self.read_soft_clip()?;
                 Ok(Feature::SoftClip(position, bases))
             }
-            feature::Code::Padding => {
+            Code::Padding => {
                 let len = self.read_padding()?;
                 Ok(Feature::Padding(position, len))
             }
-            feature::Code::HardClip => {
+            Code::HardClip => {
                 let len = self.read_hard_clip()?;
                 Ok(Feature::HardClip(position, len))
             }
         }
     }
 
-    fn read_feature_code(&mut self) -> io::Result<Itf8> {
-        self.compression_header
+    fn read_feature_code(&mut self) -> io::Result<feature::Code> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .read_features_codes_encoding()
             .ok_or_else(|| {
@@ -579,14 +578,17 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .map(|id| id as u8 as char)
+        .and_then(|id| {
+            feature::Code::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
     }
 
     fn read_feature_position(&mut self) -> io::Result<Itf8> {

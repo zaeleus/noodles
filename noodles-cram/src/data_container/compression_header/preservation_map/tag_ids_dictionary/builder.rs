@@ -37,16 +37,22 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
+        record
+            .tags
+            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(2)));
+        record
+            .tags
+            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(2)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
-        record.add_tag(Tag::new(
+        record
+            .tags
+            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
+        record.tags.push(Tag::new(
             Key::new([b'C', b'O'], Type::String),
             Value::String(String::from("noodles")),
         ));

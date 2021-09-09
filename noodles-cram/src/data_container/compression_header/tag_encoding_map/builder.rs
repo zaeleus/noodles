@@ -49,15 +49,17 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(nh, Value::Int8(1)));
+        record.tags.push(Tag::new(nh, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(nh, Value::Int8(1)));
+        record.tags.push(Tag::new(nh, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.add_tag(Tag::new(co, Value::String(String::from("noodles"))));
+        record
+            .tags
+            .push(Tag::new(co, Value::String(String::from("noodles"))));
         builder.update(&record);
 
         let actual = builder.build();
