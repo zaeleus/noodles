@@ -18,13 +18,13 @@ pub enum Key {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromByteSliceError;
+pub struct TryFromByteSliceError(Vec<u8>);
 
 impl error::Error for TryFromByteSliceError {}
 
 impl fmt::Display for TryFromByteSliceError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("invalid key")
+        write!(f, "invalid preservation map key: {:#x?}", self.0)
     }
 }
 
@@ -38,7 +38,7 @@ impl TryFrom<&[u8]> for Key {
             b"RR" => Ok(Self::ReferenceRequired),
             b"SM" => Ok(Self::SubstitutionMatrix),
             b"TD" => Ok(Self::TagIdsDictionary),
-            _ => Err(TryFromByteSliceError),
+            _ => Err(TryFromByteSliceError(bytes.to_vec())),
         }
     }
 }
@@ -67,7 +67,10 @@ mod tests {
         assert_eq!(Key::try_from(&b"SM"[..]), Ok(Key::SubstitutionMatrix));
         assert_eq!(Key::try_from(&b"TD"[..]), Ok(Key::TagIdsDictionary));
 
-        assert_eq!(Key::try_from(&b"ZZ"[..]), Err(TryFromByteSliceError));
+        assert_eq!(
+            Key::try_from(&b"ZZ"[..]),
+            Err(TryFromByteSliceError(vec![b'Z', b'Z']))
+        );
     }
 
     #[test]
