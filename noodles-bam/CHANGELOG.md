@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bai/async/writer: Add shutdown delegate.
+
 ## 0.4.0 - 2021-08-19
 
 ### Changed
