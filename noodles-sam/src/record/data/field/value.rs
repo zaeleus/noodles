@@ -456,7 +456,7 @@ impl fmt::Display for Value {
                 f.write_str("c")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -465,7 +465,7 @@ impl fmt::Display for Value {
                 f.write_str("C")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -474,7 +474,7 @@ impl fmt::Display for Value {
                 f.write_str("s")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -483,7 +483,7 @@ impl fmt::Display for Value {
                 f.write_str("S")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -492,7 +492,7 @@ impl fmt::Display for Value {
                 f.write_str("i")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -501,7 +501,7 @@ impl fmt::Display for Value {
                 f.write_str("I")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())
@@ -510,7 +510,7 @@ impl fmt::Display for Value {
                 f.write_str("f")?;
 
                 for value in values {
-                    write!(f, ",{}", value)?
+                    write!(f, ",{}", value)?;
                 }
 
                 Ok(())

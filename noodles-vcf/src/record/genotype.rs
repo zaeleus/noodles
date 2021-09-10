@@ -92,7 +92,7 @@ impl fmt::Display for Genotype {
         } else {
             for (i, field) in self.values().enumerate() {
                 if i > 0 {
-                    write!(f, "{}", DELIMITER)?
+                    write!(f, "{}", DELIMITER)?;
                 }
 
                 write!(f, "{}", field)?;

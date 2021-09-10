@@ -24,7 +24,7 @@ impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, key) in self.iter().enumerate() {
             if i > 0 {
-                write!(f, "{}", DELIMITER)?
+                write!(f, "{}", DELIMITER)?;
             }
 
             f.write_str(key.as_ref())?;

@@ -143,7 +143,7 @@ where
     fn consume(&mut self, mut amt: usize) {
         amt = cmp::min(amt, crate::block::MAX_UNCOMPRESSED_DATA_LENGTH);
         let upos = cmp::min(self.block.ulen(), self.block.upos() + amt as u32);
-        self.block.set_upos(upos)
+        self.block.set_upos(upos);
     }
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
