@@ -10,6 +10,13 @@
 
     This can be used to manually read records from slices.
 
+### Changed
+
+  * record/resolve: Pass compression header rather than substitution matrix.
+
+    The compression header includes the substitution matrix in the preservation
+    map.
+
 ### Fixed
 
   * reader/container: Avoid casts that may truncate.

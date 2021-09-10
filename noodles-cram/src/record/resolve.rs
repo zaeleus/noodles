@@ -5,8 +5,8 @@ use std::convert::TryFrom;
 use noodles_fasta as fasta;
 use noodles_sam::record::Cigar;
 
-use crate::data_container::compression_header::{
-    preservation_map::substitution_matrix::Base, SubstitutionMatrix,
+use crate::data_container::{
+    compression_header::preservation_map::substitution_matrix::Base, CompressionHeader,
 };
 
 use super::Feature;
@@ -14,7 +14,7 @@ use super::Feature;
 /// Resolves the read bases.
 pub fn resolve_bases(
     reference_sequence_record: &fasta::Record,
-    substitution_matrix: &SubstitutionMatrix,
+    compression_header: &CompressionHeader,
     features: &[Feature],
     alignment_start: i32,
     read_len: usize,
@@ -25,6 +25,7 @@ pub fn resolve_bases(
     let mut read_pos = 0;
 
     let reference_sequence = reference_sequence_record.sequence();
+    let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
     for feature in features {
         let feature_pos = feature.position() as usize;
