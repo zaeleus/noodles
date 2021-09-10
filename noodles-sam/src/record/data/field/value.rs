@@ -741,7 +741,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Value::Char('n').to_string(), "n");
         assert_eq!(Value::Int(13).to_string(), "13");
-        assert_eq!(Value::Float(3.14).to_string(), "3.14");
+        assert_eq!(Value::Float(0.0).to_string(), "0");
 
         assert_eq!(
             Value::String(String::from("noodles")).to_string(),
@@ -755,11 +755,7 @@ mod tests {
         assert_eq!(Value::UInt16Array(vec![21, 34]).to_string(), "S,21,34");
         assert_eq!(Value::Int32Array(vec![55, -89]).to_string(), "i,55,-89");
         assert_eq!(Value::UInt32Array(vec![144, 233]).to_string(), "I,144,233");
-
-        assert_eq!(
-            Value::FloatArray(vec![2.71, 3.14]).to_string(),
-            "f,2.71,3.14"
-        );
+        assert_eq!(Value::FloatArray(vec![0.0, 1.0]).to_string(), "f,0,1");
     }
 
     #[test]
@@ -778,7 +774,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
-        assert_eq!("f:3.14".parse(), Ok(Value::Float(3.14)));
+        assert_eq!("f:0.0".parse(), Ok(Value::Float(0.0)));
         assert!(matches!(
             "f:".parse::<Value>(),
             Err(ParseError::InvalidFloatValue(_))
@@ -864,10 +860,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
-        assert_eq!(
-            "B:f,2.71,3.14".parse(),
-            Ok(Value::FloatArray(vec![2.71, 3.14]))
-        );
+        assert_eq!("B:f,0,1".parse(), Ok(Value::FloatArray(vec![0.0, 1.0])));
         assert!(matches!(
             "B:f,".parse::<Value>(),
             Err(ParseError::InvalidFloatValue(_))
