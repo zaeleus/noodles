@@ -202,7 +202,7 @@ mod tests {
 
     #[test]
     fn test_try_from_u32() -> Result<(), LengthError> {
-        assert_eq!(Op::try_from(1 << 4 | 0), Ok(Op::new(Kind::Match, 1)?));
+        assert_eq!(Op::try_from(1 << 4), Ok(Op::new(Kind::Match, 1)?));
         assert_eq!(Op::try_from(2 << 4 | 1), Ok(Op::new(Kind::Insertion, 2)?));
         assert_eq!(Op::try_from(3 << 4 | 2), Ok(Op::new(Kind::Deletion, 3)?));
         assert_eq!(Op::try_from(4 << 4 | 3), Ok(Op::new(Kind::Skip, 4)?));
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_from_op_for_u32() -> Result<(), LengthError> {
-        assert_eq!(u32::from(Op::new(Kind::Match, 1)?), 1 << 4 | 0);
+        assert_eq!(u32::from(Op::new(Kind::Match, 1)?), 1 << 4);
         assert_eq!(u32::from(Op::new(Kind::Insertion, 2)?), 2 << 4 | 1);
         assert_eq!(u32::from(Op::new(Kind::Deletion, 3)?), 3 << 4 | 2);
         assert_eq!(u32::from(Op::new(Kind::Skip, 4)?), 4 << 4 | 3);
