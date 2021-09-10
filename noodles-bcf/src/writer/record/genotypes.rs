@@ -689,7 +689,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, &key, &values)?;
+            write_genotype_field_values(buf, key, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -863,7 +863,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, &key, &values)?;
+            write_genotype_field_values(buf, key, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }

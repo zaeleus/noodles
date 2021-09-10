@@ -178,7 +178,7 @@ mod tests {
         fn t(data: &[u8], info: &vcf::header::Info, expected_value: i32) -> io::Result<()> {
             let mut reader = data;
 
-            let actual = read_info_field_value(&mut reader, &info)?;
+            let actual = read_info_field_value(&mut reader, info)?;
             let expected = vcf::record::info::field::Value::Integer(expected_value);
 
             assert_eq!(actual, expected);
@@ -209,7 +209,7 @@ mod tests {
 
         fn t(data: &[u8], info: &vcf::header::Info, expected: &Value) -> io::Result<()> {
             let mut reader = data;
-            let actual = read_info_field_value(&mut reader, &info)?;
+            let actual = read_info_field_value(&mut reader, info)?;
             assert_eq!(&actual, expected);
             Ok(())
         }
@@ -242,7 +242,7 @@ mod tests {
         fn t(data: &[u8], info: &vcf::header::Info) -> io::Result<()> {
             let mut reader = data;
 
-            let actual = read_info_field_value(&mut reader, &info)?;
+            let actual = read_info_field_value(&mut reader, info)?;
             let expected = vcf::record::info::field::Value::Flag;
 
             assert_eq!(actual, expected);
