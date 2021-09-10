@@ -453,7 +453,7 @@ impl fmt::Display for Value {
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => f.write_str(s),
             Self::Int8Array(values) => {
-                f.write_str("c")?;
+                write!(f, "{}", char::from(Subtype::Int8))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -462,7 +462,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt8Array(values) => {
-                f.write_str("C")?;
+                write!(f, "{}", char::from(Subtype::UInt8))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -471,7 +471,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::Int16Array(values) => {
-                f.write_str("s")?;
+                write!(f, "{}", char::from(Subtype::Int16))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -480,7 +480,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt16Array(values) => {
-                f.write_str("S")?;
+                write!(f, "{}", char::from(Subtype::UInt16))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -489,7 +489,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::Int32Array(values) => {
-                f.write_str("i")?;
+                write!(f, "{}", char::from(Subtype::Int32))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -498,7 +498,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt32Array(values) => {
-                f.write_str("I")?;
+                write!(f, "{}", char::from(Subtype::UInt32))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -507,7 +507,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::FloatArray(values) => {
-                f.write_str("f")?;
+                write!(f, "{}", char::from(Subtype::Float))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
