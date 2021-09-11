@@ -1,6 +1,7 @@
 //! CRAM record and fields.
 
 mod builder;
+mod convert;
 pub mod feature;
 mod flags;
 mod next_mate_flags;

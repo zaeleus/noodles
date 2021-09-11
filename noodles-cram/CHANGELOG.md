@@ -10,6 +10,8 @@
 
     This can be used to manually read records from slices.
 
+  * record: Add conversion to SAM record (`cram::Record::try_into_sam_record`).
+
 ### Changed
 
   * record/resolve: Pass compression header rather than substitution matrix.
