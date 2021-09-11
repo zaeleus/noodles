@@ -32,6 +32,8 @@
   * record/resolve: Increment feature position with operations that consume the
     read.
 
+  * record/resolve: Include last feature position.
+
 ## 0.4.0 - 2021-09-01
 
 ### Added
