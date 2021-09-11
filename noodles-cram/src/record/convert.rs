@@ -71,31 +71,29 @@ impl Record {
 
         builder = builder.set_template_length(self.template_size());
 
-        if self.reference_sequence_id().is_some() && self.read_length() > 0 {
-            let reference_sequence_record = self
-                .reference_sequence_id()
-                .map(i32::from)
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidData, "missing reference sequence ID")
-                })
-                .and_then(|id| {
-                    usize::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })
-                .and_then(|id| {
-                    reference_assembly.get(id).ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidData, "missing reference sequence")
-                    })
-                })?;
+        if self.read_length() > 0 {
+            let sequence = if let Some(reference_sequence_id) = self.reference_sequence_id() {
+                let reference_sequence_record = usize::try_from(i32::from(reference_sequence_id))
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    .and_then(|id| {
+                        reference_assembly.get(id).ok_or_else(|| {
+                            io::Error::new(io::ErrorKind::InvalidData, "missing reference sequence")
+                        })
+                    })?;
 
-            let raw_bases = resolve_bases(
-                reference_sequence_record,
-                compression_header,
-                self.features(),
-                self.alignment_start(),
-                self.read_length() as usize,
-            );
+                let raw_bases = resolve_bases(
+                    reference_sequence_record,
+                    compression_header,
+                    self.features(),
+                    self.alignment_start(),
+                    self.read_length() as usize,
+                );
 
-            let sequence = bytes_to_sequence(&raw_bases)?;
+                bytes_to_sequence(&raw_bases)?
+            } else {
+                bytes_to_sequence(self.bases())?
+            };
+
             builder = builder.set_sequence(sequence);
         }
 
