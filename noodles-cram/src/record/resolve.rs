@@ -110,7 +110,12 @@ pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
         let op = Op::new(kind, len as u32);
         ops.push(op);
 
-        i += len;
+        if matches!(
+            kind,
+            Kind::Match | Kind::Insertion | Kind::SoftClip | Kind::SeqMatch | Kind::SeqMismatch
+        ) {
+            i += len;
+        }
     }
 
     if i < read_len {
@@ -146,6 +151,12 @@ mod tests {
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
+        );
+
+        let features = [Feature::HardClip(1, 2)];
+        assert_eq!(
+            resolve_features(&features, 4),
+            Cigar::from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]),
         );
 
         // FIXME

@@ -29,6 +29,9 @@
     Buffer sizes that convert from `Itf8` to `usize` now check whether they are
     in range.
 
+  * record/resolve: Increment feature position with operations that consume the
+    read.
+
 ## 0.4.0 - 2021-09-01
 
 ### Added
