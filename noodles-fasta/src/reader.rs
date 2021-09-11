@@ -102,40 +102,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_sequence(&mut self, buf: &mut Vec<u8>) -> io::Result<usize> {
-        let mut bytes_read = 0;
-
-        loop {
-            let reader_buf = self.inner.fill_buf()?;
-
-            if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
-                break;
-            }
-
-            let len = match memchr(NEWLINE, reader_buf) {
-                Some(i) => {
-                    let line = &reader_buf[..i];
-
-                    if line.ends_with(&[CARRIAGE_RETURN as u8]) {
-                        let end = line.len() - 1;
-                        buf.extend(&line[..end]);
-                    } else {
-                        buf.extend(line);
-                    }
-
-                    i + 1
-                }
-                None => {
-                    buf.extend(reader_buf);
-                    reader_buf.len()
-                }
-            };
-
-            self.inner.consume(len);
-
-            bytes_read += len;
-        }
-
-        Ok(bytes_read)
+        read_sequence(&mut self.inner, buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -335,6 +302,46 @@ where
     }
 }
 
+fn read_sequence<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let mut bytes_read = 0;
+
+    loop {
+        let reader_buf = reader.fill_buf()?;
+
+        if reader_buf.is_empty() || reader_buf[0] == DEFINITION_PREFIX {
+            break;
+        }
+
+        let len = match memchr(NEWLINE, reader_buf) {
+            Some(i) => {
+                let line = &reader_buf[..i];
+
+                if line.ends_with(&[CARRIAGE_RETURN as u8]) {
+                    let end = line.len() - 1;
+                    buf.extend(&line[..end]);
+                } else {
+                    buf.extend(line);
+                }
+
+                i + 1
+            }
+            None => {
+                buf.extend(reader_buf);
+                reader_buf.len()
+            }
+        };
+
+        reader.consume(len);
+
+        bytes_read += len;
+    }
+
+    Ok(bytes_read)
+}
+
 fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, Interval)> {
     if let Some(r) = region.as_mapped() {
         let i = index
@@ -410,24 +417,18 @@ mod tests {
 
     #[test]
     fn test_read_sequence() -> io::Result<()> {
-        let mut sequence_buf = Vec::new();
+        fn t(buf: &mut Vec<u8>, mut reader: &[u8], expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            read_sequence(&mut reader, buf)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
 
-        let data = b"ACGT\n";
-        let mut reader = Reader::new(&data[..]);
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"ACGT");
+        let mut buf = Vec::new();
 
-        let data = b"ACGT\n>sq1\n";
-        let mut reader = Reader::new(&data[..]);
-        sequence_buf.clear();
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"ACGT");
-
-        let data = b"NNNN\nNNNN\nNN\n";
-        let mut reader = Reader::new(&data[..]);
-        sequence_buf.clear();
-        reader.read_sequence(&mut sequence_buf)?;
-        assert_eq!(sequence_buf, b"NNNNNNNNNN");
+        t(&mut buf, b"ACGT\n", b"ACGT")?;
+        t(&mut buf, b"ACGT\n>sq1\n", b"ACGT")?;
+        t(&mut buf, b"NNNN\nNNNN\nNN\n", b"NNNNNNNNNN")?;
 
         Ok(())
     }
