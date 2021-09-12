@@ -1,6 +1,6 @@
 //! SAM header read group and fields.
 
-mod builder;
+pub mod builder;
 pub mod platform;
 pub mod tag;
 
@@ -288,12 +288,13 @@ impl ReadGroup {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
-    ///     .build();
+    ///     .build()?;
     ///
     /// let fields = read_group.fields();
     /// assert_eq!(fields.len(), 1);
@@ -304,6 +305,7 @@ impl ReadGroup {
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(read_group.id(), "rg0");
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
@@ -423,17 +425,15 @@ impl TryFrom<Record> for ReadGroup {
 }
 
 fn parse_map(raw_fields: Fields) -> Result<ReadGroup, TryFromRecordError> {
+    use builder::BuildError;
+
     let mut builder = ReadGroup::builder();
-    let mut id = None;
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         builder = match tag {
-            Tag::Id => {
-                id = Some(value);
-                builder
-            }
+            Tag::Id => builder.set_id(value),
             Tag::Barcode => builder.set_barcode(value),
             Tag::SequencingCenter => builder.set_sequencing_center(value),
             Tag::Description => builder.set_description(value),
@@ -460,13 +460,10 @@ fn parse_map(raw_fields: Fields) -> Result<ReadGroup, TryFromRecordError> {
         }
     }
 
-    if let Some(i) = id {
-        builder = builder.set_id(i);
-    } else {
-        return Err(TryFromRecordError::MissingRequiredTag(Tag::Id));
+    match builder.build() {
+        Ok(rg) => Ok(rg),
+        Err(BuildError::MissingId) => Err(TryFromRecordError::MissingRequiredTag(Tag::Id)),
     }
-
-    Ok(builder.build())
 }
 
 #[cfg(test)]
@@ -474,13 +471,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), builder::BuildError> {
         let read_group = ReadGroup::builder()
             .set_id("rg0")
             .set_program("noodles")
-            .build();
+            .build()?;
 
         assert_eq!(read_group.to_string(), "@RG\tID:rg0\tPG:noodles");
+
+        Ok(())
     }
 
     #[test]

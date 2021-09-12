@@ -8,6 +8,12 @@
 
     The async reader can be enabled with the `async` feature.
 
+### Changed
+
+  * sam/header/read_group/builder: Return error from `build`.
+
+    This previously panicked if the ID was not set.
+
 ## 0.2.2 - 2021-08-19
 
 ### Fixed

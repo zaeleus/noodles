@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+//! SAM header read group builder.
+
+use std::{collections::HashMap, error, fmt};
 
 use super::{Platform, ReadGroup, Tag};
 
@@ -22,15 +24,34 @@ pub struct Builder {
     fields: HashMap<Tag, String>,
 }
 
+/// An error returned when a SAM header read group fails to build.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BuildError {
+    /// The ID is missing.
+    MissingId,
+}
+
+impl error::Error for BuildError {}
+
+impl fmt::Display for BuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingId => f.write_str("missing ID"),
+        }
+    }
+}
+
 impl Builder {
     /// Sets a read group ID.
     ///
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::builder().set_id("rg0").build();
+    /// let read_group = ReadGroup::builder().set_id("rg0").build()?;
     /// assert_eq!(read_group.id(), "rg0");
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_id<I>(mut self, id: I) -> Self
     where
@@ -45,14 +66,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_barcode("ACGT")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.barcode(), Some("ACGT"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_barcode<I>(mut self, barcode: I) -> Self
     where
@@ -67,14 +90,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_sequencing_center("sc0")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.sequencing_center(), Some("sc0"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_sequencing_center<I>(mut self, sequencing_center: I) -> Self
     where
@@ -89,14 +114,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_description("noodles")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.description(), Some("noodles"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
@@ -111,14 +138,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_produced_at("2020-08-19T20:00:00Z")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.produced_at(), Some("2020-08-19T20:00:00Z"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_produced_at<I>(mut self, produced_at: I) -> Self
     where
@@ -133,14 +162,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_flow_order("*")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.flow_order(), Some("*"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_flow_order<I>(mut self, flow_order: I) -> Self
     where
@@ -155,14 +186,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_key_sequence("ACGT")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.key_sequence(), Some("ACGT"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_key_sequence<I>(mut self, key_sequence: I) -> Self
     where
@@ -177,14 +210,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_library("sample0")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.library(), Some("sample0"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_library<I>(mut self, library: I) -> Self
     where
@@ -199,14 +234,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_program("noodles")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.program(), Some("noodles"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_program<I>(mut self, program: I) -> Self
     where
@@ -221,14 +258,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_predicted_median_insert_size(101)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.predicted_median_insert_size(), Some(101));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_predicted_median_insert_size(mut self, predicted_median_insert_size: i32) -> Self {
         self.predicted_median_insert_size = Some(predicted_median_insert_size);
@@ -240,14 +279,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::{read_group::Platform, ReadGroup};
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_platform(Platform::Illumina)
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.platform(), Some(Platform::Illumina));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_platform(mut self, platform: Platform) -> Self {
         self.platform = Some(platform);
@@ -259,14 +300,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_platform_model("noodles")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.platform_model(), Some("noodles"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_platform_model<I>(mut self, platform_model: I) -> Self
     where
@@ -281,14 +324,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_platform_unit("NDLS000.1")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.platform_unit(), Some("NDLS000.1"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_platform_unit<I>(mut self, platform_unit: I) -> Self
     where
@@ -303,14 +348,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .set_sample("sample0")
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(read_group.sample(), Some("sample0"));
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn set_sample<I>(mut self, sample: I) -> Self
     where
@@ -325,6 +372,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
     /// let zn = Tag::Other(String::from("zn"));
@@ -332,12 +380,13 @@ impl Builder {
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
     ///     .insert(zn.clone(), String::from("noodles"))
-    ///     .build();
+    ///     .build()?;
     ///
     /// assert_eq!(
     ///     read_group.fields().get(&zn),
     ///     Some(&String::from("noodles"))
     /// );
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where
@@ -352,12 +401,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::ReadGroup;
-    /// let read_group = ReadGroup::builder().set_id("rg0").build();
+    /// let read_group = ReadGroup::builder().set_id("rg0").build()?;
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
-    pub fn build(self) -> ReadGroup {
-        ReadGroup {
-            id: self.id.expect("missing id"),
+    pub fn build(self) -> Result<ReadGroup, BuildError> {
+        let id = self.id.ok_or(BuildError::MissingId)?;
+
+        Ok(ReadGroup {
+            id,
             barcode: self.barcode,
             sequencing_center: self.sequencing_center,
             description: self.description,
@@ -372,6 +425,16 @@ impl Builder {
             platform_unit: self.platform_unit,
             sample: self.sample,
             fields: self.fields,
-        }
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build() {
+        assert_eq!(Builder::default().build(), Err(BuildError::MissingId));
     }
 }
