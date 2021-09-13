@@ -84,14 +84,8 @@ async fn read_optional_tags<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: AsyncRead + Unpin,
 {
-    let len = match read_itf8(reader).await {
-        Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(Vec::new()),
-        Err(e) => return Err(e),
-    };
-
-    let mut buf = vec![0; len];
-    reader.read_exact(&mut buf).await?;
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf).await?;
     Ok(buf)
 }
 

@@ -21,6 +21,9 @@
 
 ### Fixed
 
+  * async/reader/data_container/slice/header: Read remainder of stream as
+    optional tags.
+
   * reader/container: Avoid casts that may truncate.
 
   * reader/data_container/compression_header/encoding: Avoid casts that may
