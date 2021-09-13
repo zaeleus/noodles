@@ -10,6 +10,10 @@
 
 ### Changed
 
+  * header/program/builder: Return error from `build`.
+
+    This previously panicked if the ID was not set.
+
   * sam/header/read_group/builder: Return error from `build`.
 
     This previously panicked if the ID was not set.

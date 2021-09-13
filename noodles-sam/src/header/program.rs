@@ -1,6 +1,6 @@
 //! SAM header program and fields.
 
-mod builder;
+pub mod builder;
 pub mod tag;
 
 use std::{collections::HashMap, convert::TryFrom, error, fmt};
@@ -167,12 +167,13 @@ impl Program {
     /// # Examples
     ///
     /// ```
+    /// # use noodles_sam::header::program::builder;
     /// use noodles_sam::header::{program::Tag, Program};
     ///
     /// let program = Program::builder()
     ///     .set_id("pg0")
     ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
-    ///     .build();
+    ///     .build()?;
     ///
     /// let fields = program.fields();
     /// assert_eq!(fields.len(), 1);
@@ -183,6 +184,7 @@ impl Program {
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(program.id(), "pg0");
+    /// # Ok::<(), builder::BuildError>(())
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {
         &self.fields
@@ -257,17 +259,15 @@ impl TryFrom<Record> for Program {
 }
 
 fn parse_map(raw_fields: Fields) -> Result<Program, TryFromRecordError> {
+    use builder::BuildError;
+
     let mut builder = Program::builder();
-    let mut id = None;
 
     for (raw_tag, value) in raw_fields {
         let tag = raw_tag.parse().map_err(TryFromRecordError::InvalidTag)?;
 
         builder = match tag {
-            Tag::Id => {
-                id = Some(value);
-                builder
-            }
+            Tag::Id => builder.set_id(value),
             Tag::Name => builder.set_name(value),
             Tag::CommandLine => builder.set_command_line(value),
             Tag::PreviousId => builder.set_previous_id(value),
@@ -277,13 +277,10 @@ fn parse_map(raw_fields: Fields) -> Result<Program, TryFromRecordError> {
         }
     }
 
-    if let Some(i) = id {
-        builder = builder.set_id(i);
-    } else {
-        return Err(TryFromRecordError::MissingRequiredTag(Tag::Id));
+    match builder.build() {
+        Ok(pg) => Ok(pg),
+        Err(BuildError::MissingId) => Err(TryFromRecordError::MissingRequiredTag(Tag::Id)),
     }
-
-    Ok(builder.build())
 }
 
 #[cfg(test)]
@@ -291,9 +288,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
-        let program = Program::builder().set_id("pg0").set_name("noodles").build();
+    fn test_fmt() -> Result<(), builder::BuildError> {
+        let program = Program::builder()
+            .set_id("pg0")
+            .set_name("noodles")
+            .build()?;
+
         assert_eq!(program.to_string(), "@PG\tID:pg0\tPN:noodles");
+
+        Ok(())
     }
 
     #[test]
