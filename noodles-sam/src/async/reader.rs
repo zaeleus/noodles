@@ -27,6 +27,15 @@ where
 
     /// Reads the raw SAM header.
     ///
+    /// This reads all header lines prefixed with a `@` (at sign).
+    ///
+    /// The position of the stream is expected to be at the start.
+    ///
+    /// This returns the raw SAM header as a [`String`], and as such, it is no necessarily valid.
+    /// The raw header can subsequently be parsed as a [`crate::Header`].
+    ///
+    /// The SAM header is optional, and if it is missing, an empty string is returned.
+    ///
     /// # Examples
     ///
     /// ```
@@ -52,6 +61,18 @@ where
     }
 
     /// Reads a raw SAM record.
+    ///
+    /// This reads from the underlying stream until a newline is reached and appends it to the
+    /// given buffer, sans the final newline. The buffer does not necessarily represent a valid
+    /// record but can subsequently be parsed as a [`crate::Record`].
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// It is more ergonomic to read records using a stream (see [`Self::records`]), but using this
+    /// method allows control of the line buffer and whether the raw record should be parsed.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
     ///
     /// # Examples
     ///
