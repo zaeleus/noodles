@@ -199,7 +199,7 @@ impl Builder {
         self
     }
 
-    /// Builds a reference sequence.
+    /// Builds a SAM header program.
     ///
     /// # Examples
     ///
