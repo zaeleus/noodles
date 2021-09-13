@@ -29,6 +29,9 @@
     Buffer sizes that convert from `Itf8` to `usize` now check whether they are
     in range.
 
+  * reader/data_container/slice/header: Read remainder of stream as optional
+    tags.
+
   * record/resolve: Increment feature position with operations that consume the
     read.
 

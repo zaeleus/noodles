@@ -79,14 +79,8 @@ fn read_optional_tags<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let len = match read_itf8(reader) {
-        Ok(len) => len as usize,
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(Vec::new()),
-        Err(e) => return Err(e),
-    };
-
-    let mut buf = vec![0; len];
-    reader.read_exact(&mut buf)?;
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf)?;
     Ok(buf)
 }
 
