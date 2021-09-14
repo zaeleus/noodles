@@ -8,6 +8,8 @@
 
     The async reader can be enabled with the `async` feature.
 
+  * reader: Add method to return the underlying reader (`Reader::into_inner`).
+
   * writer: Add method to return the underlying writer (`Writer::into_inner`).
 
 ### Changed

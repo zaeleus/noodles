@@ -64,6 +64,20 @@ where
         Self { inner }
     }
 
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let data = [];
+    /// let reader = sam::Reader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the raw SAM header.
     ///
     /// The position of the stream is expected to be at the start.
