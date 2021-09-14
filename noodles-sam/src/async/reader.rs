@@ -25,6 +25,20 @@ where
         Self { inner }
     }
 
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let data = [];
+    /// let reader = sam::AsyncReader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the raw SAM header.
     ///
     /// This reads all header lines prefixed with a `@` (at sign).
