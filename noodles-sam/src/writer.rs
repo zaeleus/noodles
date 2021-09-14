@@ -68,6 +68,19 @@ where
         &self.inner
     }
 
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let writer = sam::Writer::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Writes a SAM header.
     ///
     /// The SAM header is optional, though recommended to include. A call to this method can be
