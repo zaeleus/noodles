@@ -68,7 +68,7 @@ impl TryFrom<Container> for DataContainer {
 
             slices.push(slice);
 
-            start += block_count as usize;
+            start += block_count;
         }
 
         Ok(DataContainer {
