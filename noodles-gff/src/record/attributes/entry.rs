@@ -84,6 +84,8 @@ impl fmt::Display for Entry {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
     /// The entry key is missing.
     MissingKey,
     /// The entry key is invalid.
@@ -100,6 +102,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::MissingKey => f.write_str("missing key"),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::MissingValue => f.write_str("missing value"),
@@ -116,22 +119,24 @@ impl FromStr for Entry {
             return Err(ParseError::Empty);
         }
 
-        let mut components = s.splitn(2, SEPARATOR);
+        match s.split_once(SEPARATOR) {
+            Some((k, v)) => {
+                let key = if k.is_empty() {
+                    return Err(ParseError::MissingKey);
+                } else {
+                    percent_decode(k).map_err(ParseError::InvalidKey)?
+                };
 
-        let key = components
-            .next()
-            .and_then(|t| if t.is_empty() { None } else { Some(t) })
-            .ok_or(ParseError::MissingKey)
-            .and_then(|t| percent_decode(t).map_err(ParseError::InvalidKey))
-            .map(|t| t.into_owned())?;
+                let value = if v.is_empty() {
+                    return Err(ParseError::MissingValue);
+                } else {
+                    percent_decode(v).map_err(ParseError::InvalidValue)?
+                };
 
-        let value = components
-            .next()
-            .ok_or(ParseError::MissingValue)
-            .and_then(|t| percent_decode(t).map_err(ParseError::InvalidValue))
-            .map(|t| t.into_owned())?;
-
-        Ok(Self::new(key, value))
+                Ok(Self::new(key.into_owned(), value.into_owned()))
+            }
+            None => Err(ParseError::Invalid),
+        }
     }
 }
 
@@ -168,8 +173,9 @@ mod tests {
         );
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
+        assert_eq!("gene_name".parse::<Entry>(), Err(ParseError::Invalid));
         assert_eq!("=gene0".parse::<Entry>(), Err(ParseError::MissingKey));
-        assert_eq!("gene_name".parse::<Entry>(), Err(ParseError::MissingValue));
+        assert_eq!("gene_name=".parse::<Entry>(), Err(ParseError::MissingValue));
 
         Ok(())
     }

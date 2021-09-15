@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/record/attributes/entry: Return `ParseError::Invalid` when no `=`
+    separator is present.
+
+    This previously would return `ParseError::MissingValue`.
+
 ## 0.1.1 - 2021-07-21
 
 ### Fixed
