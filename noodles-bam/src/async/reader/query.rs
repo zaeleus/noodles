@@ -55,37 +55,31 @@ where
         state: State::Seek,
     };
 
-    Box::pin(stream::unfold(ctx, |mut ctx| async {
+    Box::pin(stream::try_unfold(ctx, |mut ctx| async {
         loop {
             match ctx.state {
                 State::Seek => {
                     ctx.state = match next_chunk(&ctx.chunks, &mut ctx.i) {
                         Some(chunk) => {
-                            if let Err(e) = ctx.reader.seek(chunk.start()).await {
-                                return Some((Err(e), ctx));
-                            }
-
+                            ctx.reader.seek(chunk.start()).await?;
                             State::Read(chunk.end())
                         }
                         None => State::Done,
                     };
                 }
-                State::Read(chunk_end) => match next_record(&mut ctx.reader).await {
-                    Some(Ok(record)) => {
+                State::Read(chunk_end) => match next_record(&mut ctx.reader).await? {
+                    Some(record) => {
                         if ctx.reader.virtual_position() >= chunk_end {
                             ctx.state = State::Seek;
                         }
 
-                        match intersects(&record, ctx.reference_sequence_id, ctx.start, ctx.end) {
-                            Ok(true) => return Some((Ok(record), ctx)),
-                            Ok(false) => {}
-                            Err(e) => return Some((Err(e), ctx)),
+                        if intersects(&record, ctx.reference_sequence_id, ctx.start, ctx.end)? {
+                            return Ok(Some((record, ctx)));
                         }
                     }
-                    Some(Err(e)) => return Some((Err(e), ctx)),
                     None => ctx.state = State::Seek,
                 },
-                State::Done => return None,
+                State::Done => return Ok(None),
             }
         }
     }))
@@ -109,17 +103,16 @@ fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     chunk
 }
 
-async fn next_record<R>(reader: &mut Reader<R>) -> Option<io::Result<Record>>
+async fn next_record<R>(reader: &mut Reader<R>) -> io::Result<Option<Record>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
     let mut record = Record::default();
 
-    match reader.read_record(&mut record).await {
-        Ok(0) => None,
-        Ok(_) => Some(Ok(record)),
-        Err(e) => Some(Err(e)),
-    }
+    reader.read_record(&mut record).await.map(|n| match n {
+        0 => None,
+        _ => Some(record),
+    })
 }
 
 fn intersects(

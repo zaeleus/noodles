@@ -147,21 +147,17 @@ where
     /// # }
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
-        Box::pin(stream::unfold(
+        Box::pin(stream::try_unfold(
             (&mut self.inner, String::new()),
             |(mut reader, mut buf)| async {
                 buf.clear();
 
-                match read_line(&mut reader, &mut buf).await {
-                    Ok(0) => None,
-                    Ok(_) => {
-                        let result = buf
-                            .parse()
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
-
-                        Some((result, (reader, buf)))
-                    }
-                    Err(e) => Some((Err(e), (reader, buf))),
+                match read_line(&mut reader, &mut buf).await? {
+                    0 => Ok(None),
+                    _ => buf
+                        .parse()
+                        .map(|record| Some((record, (reader, buf))))
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
                 }
             },
         ))

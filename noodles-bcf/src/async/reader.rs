@@ -190,14 +190,15 @@ where
     /// # }
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
-        Box::pin(stream::unfold(
+        Box::pin(stream::try_unfold(
             (&mut self.inner, Record::default()),
             |(mut reader, mut record)| async {
-                match read_record(&mut reader, &mut record).await {
-                    Ok(0) => None,
-                    Ok(_) => Some((Ok(record.clone()), (reader, record))),
-                    Err(e) => Some((Err(e), (reader, record))),
-                }
+                read_record(&mut reader, &mut record)
+                    .await
+                    .map(|n| match n {
+                        0 => None,
+                        _ => Some((record.clone(), (reader, record))),
+                    })
             },
         ))
     }
