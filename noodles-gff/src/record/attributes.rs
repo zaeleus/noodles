@@ -82,16 +82,13 @@ mod tests {
         let attributes = Attributes::default();
         assert!(attributes.to_string().is_empty());
 
-        let attributes = Attributes::from(vec![Entry::new(
-            String::from("gene_id"),
-            String::from("ndls0"),
-        )]);
+        let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
 
         assert_eq!(attributes.to_string(), "gene_id=ndls0");
 
         let attributes = Attributes::from(vec![
-            Entry::new(String::from("gene_id"), String::from("ndls0")),
-            Entry::new(String::from("gene_name"), String::from("gene0")),
+            Entry::new("gene_id", "ndls0"),
+            Entry::new("gene_name", "gene0"),
         ]);
 
         assert_eq!(attributes.to_string(), "gene_id=ndls0;gene_name=gene0")
@@ -102,8 +99,8 @@ mod tests {
         let s = "gene_id=ndls0;gene_name=gene0";
         let actual = s.parse::<Attributes>()?;
         let expected = Attributes::from(vec![
-            Entry::new(String::from("gene_id"), String::from("ndls0")),
-            Entry::new(String::from("gene_name"), String::from("gene0")),
+            Entry::new("gene_id", "ndls0"),
+            Entry::new("gene_name", "gene0"),
         ]);
         assert_eq!(actual, expected);
 

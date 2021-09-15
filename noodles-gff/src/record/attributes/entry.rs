@@ -34,10 +34,17 @@ impl Entry {
     ///
     /// ```
     /// use noodles_gff::record::attributes::Entry;
-    /// let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
+    /// let entry = Entry::new("gene_name", "gene0");
     /// ```
-    pub fn new(key: String, value: String) -> Self {
-        Self { key, value }
+    pub fn new<K, V>(key: K, value: V) -> Self
+    where
+        K: Into<String>,
+        V: Into<String>,
+    {
+        Self {
+            key: key.into(),
+            value: value.into(),
+        }
     }
 
     /// Returns the key of the entry.
@@ -46,7 +53,7 @@ impl Entry {
     ///
     /// ```
     /// use noodles_gff::record::attributes::Entry;
-    /// let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
+    /// let entry = Entry::new("gene_name", "gene0");
     /// assert_eq!(entry.key(), "gene_name");
     /// ```
     pub fn key(&self) -> &str {
@@ -59,7 +66,7 @@ impl Entry {
     ///
     /// ```
     /// use noodles_gff::record::attributes::Entry;
-    /// let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
+    /// let entry = Entry::new("gene_name", "gene0");
     /// assert_eq!(entry.value(), "gene0");
     /// ```
     pub fn value(&self) -> &str {
@@ -133,7 +140,7 @@ impl FromStr for Entry {
                     percent_decode(v).map_err(ParseError::InvalidValue)?
                 };
 
-                Ok(Self::new(key.into_owned(), value.into_owned()))
+                Ok(Self::new(key, value))
             }
             None => Err(ParseError::Invalid),
         }
@@ -154,29 +161,24 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let entry = Entry::new(String::from("gene_name"), String::from("gene0"));
+        let entry = Entry::new("gene_name", "gene0");
         assert_eq!(entry.to_string(), "gene_name=gene0");
 
-        let entry = Entry::new(String::from("%s"), String::from("13,21"));
+        let entry = Entry::new("%s", "13,21");
         assert_eq!(entry.to_string(), "%25s=13%2C21");
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         assert_eq!(
-            "gene_name=gene0".parse::<Entry>()?,
-            Entry::new(String::from("gene_name"), String::from("gene0"))
+            "gene_name=gene0".parse(),
+            Ok(Entry::new("gene_name", "gene0"))
         );
-        assert_eq!(
-            "%25s=13%2C21".parse::<Entry>()?,
-            Entry::new(String::from("%s"), String::from("13,21"))
-        );
+        assert_eq!("%25s=13%2C21".parse(), Ok(Entry::new("%s", "13,21")));
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
         assert_eq!("gene_name".parse::<Entry>(), Err(ParseError::Invalid));
         assert_eq!("=gene0".parse::<Entry>(), Err(ParseError::MissingKey));
         assert_eq!("gene_name=".parse::<Entry>(), Err(ParseError::MissingValue));
-
-        Ok(())
     }
 }

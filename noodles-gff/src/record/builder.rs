@@ -167,9 +167,7 @@ impl Builder {
     ///     record::{attributes::Entry, Attributes},
     /// };
     ///
-    /// let attributes = Attributes::from(vec![
-    ///     Entry::new(String::from("gene_id"), String::from("ndls0")),
-    /// ]);
+    /// let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
     ///
     /// let record = gff::Record::builder()
     ///     .set_attributes(attributes.clone())
@@ -244,10 +242,7 @@ mod tests {
 
     #[test]
     fn test_build() {
-        let attributes = Attributes::from(vec![Entry::new(
-            String::from("gene_id"),
-            String::from("ndls0"),
-        )]);
+        let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
 
         let record = Builder::new()
             .set_reference_sequence_name(String::from("sq0"))

@@ -309,8 +309,8 @@ mod tests {
         assert_eq!(
             record.attributes(),
             &Attributes::from(vec![
-                attributes::Entry::new(String::from("gene_id"), String::from("ndls0")),
-                attributes::Entry::new(String::from("gene_name"), String::from("gene0")),
+                attributes::Entry::new("gene_id", "ndls0"),
+                attributes::Entry::new("gene_name", "gene0"),
             ])
         );
 

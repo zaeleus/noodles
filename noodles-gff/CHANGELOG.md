@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * gff/record/attributes/entry: Accept `Into<String>` for key and value.
+
 ### Changed
 
   * gff/record/attributes/entry: Return `ParseError::Invalid` when no `=`
