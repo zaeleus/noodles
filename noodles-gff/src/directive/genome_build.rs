@@ -119,8 +119,8 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!(
-            "NDLS r1".parse::<GenomeBuild>()?,
-            GenomeBuild::new(String::from("NDLS"), String::from("r1"))
+            "NDLS r1".parse(),
+            Ok(GenomeBuild::new(String::from("NDLS"), String::from("r1")))
         );
 
         assert_eq!("".parse::<GenomeBuild>(), Err(ParseError::Empty));
