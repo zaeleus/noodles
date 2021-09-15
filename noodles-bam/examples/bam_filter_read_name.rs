@@ -55,8 +55,8 @@ fn read_read_name(record: &bam::Record) -> io::Result<&str> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
-    let src = args.next().expect("missing src");
     let read_names_src = args.next().expect("missing read_names_src");
+    let src = args.next().expect("missing src");
 
     let read_names = read_read_names(read_names_src)?;
 
