@@ -86,31 +86,11 @@ impl Record {
 
     /// Returns the alignment end position.
     pub fn alignment_end(&self) -> i32 {
-        let mut alignment_span = self.read_length() as i32;
-
-        // - if does not consume reference; + if does not consume read
-        for feature in self.features() {
-            match feature {
-                Feature::Insertion(_, bases) => {
-                    alignment_span -= bases.len() as i32;
-                }
-                Feature::InsertBase(_, _) => {
-                    alignment_span -= 1;
-                }
-                Feature::Deletion(_, len) => {
-                    alignment_span += len;
-                }
-                Feature::ReferenceSkip(_, len) => {
-                    alignment_span += len;
-                }
-                Feature::SoftClip(_, bases) => {
-                    alignment_span -= bases.len() as i32;
-                }
-                _ => {}
-            }
-        }
-
-        self.alignment_start() + alignment_span - 1
+        calculate_alignment_end(
+            self.alignment_start(),
+            self.read_length() as i32,
+            self.features(),
+        )
     }
 
     /// Returns the read group ID.
@@ -222,5 +202,52 @@ impl fmt::Debug for Record {
             .field("mapping_quality", &self.mapping_quality)
             .field("quality_scores", &self.quality_scores)
             .finish()
+    }
+}
+
+fn calculate_alignment_span(read_length: i32, features: &[Feature]) -> i32 {
+    features
+        .iter()
+        .fold(read_length, |alignment_span, feature| match feature {
+            Feature::Insertion(_, bases) => alignment_span - bases.len() as i32,
+            Feature::InsertBase(_, _) => alignment_span - 1,
+            Feature::Deletion(_, len) => alignment_span + len,
+            Feature::ReferenceSkip(_, len) => alignment_span + len,
+            Feature::SoftClip(_, bases) => alignment_span - bases.len() as i32,
+            _ => alignment_span,
+        })
+}
+
+fn calculate_alignment_end(alignment_start: i32, read_length: i32, features: &[Feature]) -> i32 {
+    let alignment_span = calculate_alignment_span(read_length, features);
+    alignment_start + alignment_span - 1
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_alignment_span() {
+        let features = [];
+        assert_eq!(calculate_alignment_span(4, &features), 4);
+
+        let features = [Feature::HardClip(1, 4)];
+        assert_eq!(calculate_alignment_span(4, &features), 4);
+
+        let features = [
+            Feature::Insertion(1, vec![b'A', b'C']),
+            Feature::InsertBase(4, b'G'),
+            Feature::Deletion(6, 3),
+            Feature::ReferenceSkip(10, 5),
+            Feature::SoftClip(16, vec![b'A', b'C', b'G', b'T']),
+        ];
+        assert_eq!(calculate_alignment_span(20, &features), 21);
+    }
+
+    #[test]
+    fn test_calculate_alignment_end() {
+        let features = [];
+        assert_eq!(calculate_alignment_end(1, 4, &features), 4);
     }
 }
