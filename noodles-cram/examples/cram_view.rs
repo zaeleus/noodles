@@ -25,8 +25,8 @@ where
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
-    let fasta_src = args.nth(1).expect("missing fasta_src");
+    let mut args = env::args().skip(1);
+    let fasta_src = args.next().expect("missing fasta_src");
     let src = args.next().expect("missing src");
 
     let reference_assembly = read_reference_assembly(fasta_src)?;
