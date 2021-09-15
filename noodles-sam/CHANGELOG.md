@@ -6,7 +6,9 @@
 
   * async: Add async reader (`sam::AsyncReader`).
 
-    The async reader can be enabled with the `async` feature.
+  * async: Add async writer (`sam::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
 
   * reader: Add method to return the underlying reader (`Reader::into_inner`).
 
