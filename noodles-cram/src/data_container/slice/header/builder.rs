@@ -1,3 +1,5 @@
+use noodles_sam as sam;
+
 use crate::{
     container::ReferenceSequenceId,
     num::{Itf8, Ltf8},
@@ -8,7 +10,7 @@ use super::{EmbeddedReferenceBasesBlockContentId, Header};
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Itf8,
+    alignment_start: Option<sam::record::Position>,
     alignment_span: Itf8,
     record_count: usize,
     record_counter: Ltf8,
@@ -25,8 +27,8 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_start(mut self, alignment_start: Itf8) -> Self {
-        self.alignment_start = alignment_start;
+    pub fn set_alignment_start(mut self, alignment_start: sam::record::Position) -> Self {
+        self.alignment_start = Some(alignment_start);
         self
     }
 

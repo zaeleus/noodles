@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 
+use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
@@ -17,7 +18,11 @@ where
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let alignment_start = read_itf8(reader).await?;
+    let alignment_start = read_itf8(reader).await.and_then(|n| {
+        sam::record::Position::try_from(n)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let alignment_span = read_itf8(reader).await?;
 
     let record_count = read_itf8(reader).await.and_then(|n| {
@@ -114,7 +119,7 @@ mod tests {
 
         let expected = slice::Header::builder()
             .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_alignment_start(3)
+            .set_alignment_start(sam::record::Position::try_from(3)?)
             .set_alignment_span(5)
             .set_record_count(8)
             .set_record_counter(13)

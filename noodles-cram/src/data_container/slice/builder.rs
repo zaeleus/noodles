@@ -1,7 +1,8 @@
-use std::{cmp, collections::HashMap, io};
+use std::{cmp, collections::HashMap, convert::TryFrom, io};
 
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
+use noodles_sam as sam;
 
 use crate::{
     container::{
@@ -164,6 +165,8 @@ impl Builder {
         };
 
         let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
+        let slice_alignment_start = sam::record::Position::try_from(slice_alignment_start)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let header = Header::builder()
             .set_reference_sequence_id(reference_sequence_id)

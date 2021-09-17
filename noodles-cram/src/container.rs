@@ -65,11 +65,14 @@ impl Container {
                 container_reference_sequence_id = Some(slice.header().reference_sequence_id());
             }
 
-            container_alignment_start =
-                cmp::min(container_alignment_start, slice_header.alignment_start());
+            let slice_alignment_start = slice_header
+                .alignment_start()
+                .map(i32::from)
+                .unwrap_or_default();
 
-            let slice_alignment_end =
-                slice_header.alignment_start() + slice_header.alignment_span() - 1;
+            container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
+
+            let slice_alignment_end = slice_alignment_start + slice_header.alignment_span() - 1;
             container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
 
             container_record_count += slice_header.record_count() as Itf8;

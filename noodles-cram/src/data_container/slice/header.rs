@@ -6,6 +6,8 @@ pub use {
     embedded_reference_bases_block_content_id::EmbeddedReferenceBasesBlockContentId,
 };
 
+use noodles_sam as sam;
+
 use crate::{
     container::ReferenceSequenceId,
     num::{Itf8, Ltf8},
@@ -14,7 +16,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Itf8,
+    alignment_start: Option<sam::record::Position>,
     alignment_span: Itf8,
     record_count: usize,
     record_counter: Ltf8,
@@ -34,7 +36,7 @@ impl Header {
         self.reference_sequence_id
     }
 
-    pub fn alignment_start(&self) -> Itf8 {
+    pub fn alignment_start(&self) -> Option<sam::record::Position> {
         self.alignment_start
     }
 

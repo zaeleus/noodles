@@ -16,7 +16,9 @@ where
     let reference_sequence_id = i32::from(header.reference_sequence_id());
     write_itf8(writer, reference_sequence_id)?;
 
-    write_itf8(writer, header.alignment_start())?;
+    let alignment_start = header.alignment_start().map(Itf8::from).unwrap_or_default();
+    write_itf8(writer, alignment_start)?;
+
     write_itf8(writer, header.alignment_span())?;
 
     let record_count = Itf8::try_from(header.record_count())

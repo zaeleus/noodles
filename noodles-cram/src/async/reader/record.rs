@@ -30,7 +30,7 @@ where
     core_data_reader: BitReader<CDR>,
     external_data_readers: HashMap<Itf8, EDR>,
     reference_sequence_id: ReferenceSequenceId,
-    prev_alignment_start: Itf8,
+    prev_alignment_start: Option<sam::record::Position>,
 }
 
 impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
@@ -43,7 +43,7 @@ where
         core_data_reader: BitReader<CDR>,
         external_data_readers: HashMap<Itf8, EDR>,
         reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Itf8,
+        initial_alignment_start: Option<sam::record::Position>,
     ) -> Self {
         Self {
             compression_header,
@@ -82,7 +82,13 @@ where
 
         let record = builder.build();
 
-        self.prev_alignment_start = record.alignment_start();
+        self.prev_alignment_start = if record.alignment_start() == 0 {
+            None
+        } else {
+            sam::record::Position::try_from(record.alignment_start())
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+        };
 
         Ok(record)
     }
@@ -198,7 +204,14 @@ where
         .await?;
 
         if ap_data_series_delta {
-            Ok(self.prev_alignment_start + alignment_start)
+            self.prev_alignment_start
+                .map(|pos| Itf8::from(pos) + alignment_start)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "cannot calculate alignment start when slice is unmapped",
+                    )
+                })
         } else {
             Ok(alignment_start)
         }

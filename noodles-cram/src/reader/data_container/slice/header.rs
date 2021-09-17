@@ -3,6 +3,8 @@ use std::{
     io::{self, Read},
 };
 
+use noodles_sam as sam;
+
 use crate::{
     container::ReferenceSequenceId,
     data_container::slice::{self, header::EmbeddedReferenceBasesBlockContentId},
@@ -18,7 +20,16 @@ where
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let alignment_start = read_itf8(reader)?;
+    let alignment_start = read_itf8(reader).and_then(|n| {
+        if n == 0 {
+            Ok(None)
+        } else {
+            sam::record::Position::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
+    })?;
+
     let alignment_span = read_itf8(reader)?;
 
     let record_count = read_itf8(reader).and_then(|n| {
@@ -37,9 +48,8 @@ where
     let reference_md5 = read_reference_md5(reader)?;
     let optional_tags = read_optional_tags(reader)?;
 
-    Ok(slice::Header::builder()
+    let mut builder = slice::Header::builder()
         .set_reference_sequence_id(reference_sequence_id)
-        .set_alignment_start(alignment_start)
         .set_alignment_span(alignment_span)
         .set_record_count(record_count)
         .set_record_counter(record_counter)
@@ -47,8 +57,13 @@ where
         .set_block_content_ids(block_content_ids)
         .set_embedded_reference_bases_block_content_id(embedded_reference_bases_block_content_id)
         .set_reference_md5(reference_md5)
-        .set_optional_tags(optional_tags)
-        .build())
+        .set_optional_tags(optional_tags);
+
+    if let Some(position) = alignment_start {
+        builder = builder.set_alignment_start(position);
+    }
+
+    Ok(builder.build())
 }
 
 fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
@@ -108,7 +123,7 @@ mod tests {
 
         let expected = slice::Header::builder()
             .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_alignment_start(3)
+            .set_alignment_start(sam::record::Position::try_from(3)?)
             .set_alignment_span(5)
             .set_record_count(8)
             .set_record_counter(13)
