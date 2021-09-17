@@ -50,7 +50,7 @@ impl Container {
             .slices()
             .first()
             .map(|s| s.header().record_counter())
-            .expect("no slices is in bulder");
+            .expect("no slices in builder");
 
         for slice in data_container.slices() {
             let slice_header = slice.header();
