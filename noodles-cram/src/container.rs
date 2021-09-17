@@ -104,6 +104,8 @@ impl Container {
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
         let container_alignment_span = container_alignment_end - container_alignment_start + 1;
+        let container_alignment_start = sam::record::Position::try_from(container_alignment_start)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let header = Header::builder()
             .set_length(len)
@@ -231,7 +233,6 @@ mod tests {
         let expected_header = Header::builder()
             .set_length(65)
             .set_reference_sequence_id(ReferenceSequenceId::None)
-            .set_start_position(0)
             .set_alignment_span(0)
             .set_record_count(0)
             .set_record_counter(0)

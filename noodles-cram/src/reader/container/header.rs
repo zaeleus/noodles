@@ -1,3 +1,5 @@
+use noodles_sam as sam;
+
 use std::{
     convert::TryFrom,
     io::{self, Read},
@@ -21,7 +23,16 @@ where
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let starting_position_on_the_reference = read_itf8(reader)?;
+    let starting_position_on_the_reference = read_itf8(reader).and_then(|n| {
+        if n == 0 {
+            Ok(None)
+        } else {
+            sam::record::Position::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
+    })?;
+
     let alignment_span = read_itf8(reader)?;
     let number_of_records = read_itf8(reader)?;
     let record_counter = read_ltf8(reader)?;
@@ -34,18 +45,22 @@ where
     let landmarks = read_landmarks(reader)?;
     let crc32 = reader.read_u32::<LittleEndian>()?;
 
-    Ok(Header::builder()
+    let mut builder = Header::builder()
         .set_length(length)
         .set_reference_sequence_id(reference_sequence_id)
-        .set_start_position(starting_position_on_the_reference)
         .set_alignment_span(alignment_span)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
         .set_base_count(bases)
         .set_block_count(number_of_blocks)
         .set_landmarks(landmarks)
-        .set_crc32(crc32)
-        .build())
+        .set_crc32(crc32);
+
+    if let Some(position) = starting_position_on_the_reference {
+        builder = builder.set_start_position(position);
+    }
+
+    Ok(builder.build())
 }
 
 fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
@@ -91,7 +106,7 @@ mod tests {
         let expected = Header::builder()
             .set_length(144)
             .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_start_position(3)
+            .set_start_position(sam::record::Position::try_from(3)?)
             .set_alignment_span(5)
             .set_record_count(8)
             .set_record_counter(13)

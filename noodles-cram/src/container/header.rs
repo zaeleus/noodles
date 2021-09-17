@@ -2,6 +2,10 @@ mod builder;
 
 pub use self::builder::Builder;
 
+use std::convert::TryFrom;
+
+use noodles_sam as sam;
+
 use crate::num::{Itf8, Ltf8};
 
 use super::ReferenceSequenceId;
@@ -16,7 +20,7 @@ const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 pub struct Header {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
-    start_position: Itf8,
+    start_position: Option<sam::record::Position>,
     alignment_span: Itf8,
     record_count: Itf8,
     record_counter: Ltf8,
@@ -36,7 +40,7 @@ impl Header {
     pub fn eof() -> Self {
         Self {
             length: EOF_LEN,
-            start_position: EOF_START_POSITION,
+            start_position: Some(sam::record::Position::try_from(EOF_START_POSITION).unwrap()),
             block_count: EOF_BLOCK_COUNT,
             crc32: EOF_CRC32,
             ..Default::default()
@@ -51,7 +55,7 @@ impl Header {
         self.reference_sequence_id
     }
 
-    pub fn start_position(&self) -> Itf8 {
+    pub fn start_position(&self) -> Option<sam::record::Position> {
         self.start_position
     }
 
@@ -82,7 +86,10 @@ impl Header {
     pub fn is_eof(&self) -> bool {
         self.length == EOF_LEN
             && self.reference_sequence_id.is_none()
-            && self.start_position == EOF_START_POSITION
+            && self
+                .start_position
+                .map(|position| i32::from(position) == EOF_START_POSITION)
+                .unwrap_or(false)
             && self.alignment_span == 0
             && self.record_count == 0
             && self.record_counter == 0

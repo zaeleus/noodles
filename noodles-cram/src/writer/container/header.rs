@@ -24,7 +24,8 @@ where
     let reference_sequence_id = i32::from(header.reference_sequence_id());
     write_itf8(&mut crc_writer, reference_sequence_id)?;
 
-    let starting_position_on_the_reference = header.start_position();
+    let starting_position_on_the_reference =
+        header.start_position().map(Itf8::from).unwrap_or_default();
     write_itf8(&mut crc_writer, starting_position_on_the_reference)?;
 
     let alignment_span = header.alignment_span();
