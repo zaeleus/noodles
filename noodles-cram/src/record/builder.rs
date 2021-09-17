@@ -10,7 +10,7 @@ pub struct Builder {
     flags: Flags,
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     read_length: usize,
-    alignment_start: i32,
+    alignment_start: Option<sam::record::Position>,
     read_group_id: ReadGroupId,
     read_name: Vec<u8>,
     next_mate_flags: NextMateFlags,
@@ -60,8 +60,8 @@ impl Builder {
     }
 
     /// Sets the alignment start position.
-    pub fn set_alignment_start(mut self, alignment_start: i32) -> Self {
-        self.alignment_start = alignment_start;
+    pub fn set_alignment_start(mut self, alignment_start: sam::record::Position) -> Self {
+        self.alignment_start = Some(alignment_start);
         self
     }
 
@@ -197,7 +197,7 @@ impl Default for Builder {
             flags: Flags::default(),
             reference_sequence_id: None,
             read_length: 0,
-            alignment_start: 0,
+            alignment_start: None,
             read_group_id: ReadGroupId::default(),
             read_name: Vec::new(),
             next_mate_flags: NextMateFlags::default(),
@@ -227,7 +227,7 @@ mod tests {
         assert_eq!(builder.flags, Flags::default());
         assert!(builder.reference_sequence_id.is_none());
         assert_eq!(builder.read_length, 0);
-        assert_eq!(builder.alignment_start, 0);
+        assert!(builder.alignment_start.is_none());
         assert_eq!(builder.read_group_id, ReadGroupId::default());
         assert!(builder.read_name.is_empty());
         assert_eq!(builder.next_mate_flags, NextMateFlags::default());

@@ -14,6 +14,8 @@
 
 ### Changed
 
+  * record: Change alignment start to a `sam::record::Position`.
+
   * record/resolve: Pass compression header rather than substitution matrix.
 
     The compression header includes the substitution matrix in the preservation

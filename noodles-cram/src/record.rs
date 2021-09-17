@@ -27,7 +27,7 @@ pub struct Record {
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub(crate) read_length: usize,
-    pub(crate) alignment_start: i32,
+    pub(crate) alignment_start: Option<sam::record::Position>,
     pub(crate) read_group: ReadGroupId,
     pub(crate) read_name: Vec<u8>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
@@ -80,14 +80,14 @@ impl Record {
     }
 
     /// Returns the alignment start position.
-    pub fn alignment_start(&self) -> i32 {
+    pub fn alignment_start(&self) -> Option<sam::record::Position> {
         self.alignment_start
     }
 
     /// Returns the alignment end position.
     pub fn alignment_end(&self) -> i32 {
         calculate_alignment_end(
-            self.alignment_start(),
+            self.alignment_start().map(i32::from).unwrap_or_default(),
             self.read_length() as i32,
             self.features(),
         )

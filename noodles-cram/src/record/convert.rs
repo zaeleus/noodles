@@ -43,11 +43,8 @@ impl Record {
             builder = builder.set_reference_sequence_name(reference_sequence_name);
         }
 
-        if self.alignment_start() > 0 {
-            let position = Position::try_from(self.alignment_start())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            builder = builder.set_position(position);
+        if let Some(alignment_start) = self.alignment_start() {
+            builder = builder.set_position(alignment_start);
         }
 
         builder = builder.set_mapping_quality(self.mapping_quality());
@@ -85,7 +82,7 @@ impl Record {
                     reference_sequence_record,
                     compression_header,
                     self.features(),
-                    self.alignment_start(),
+                    self.alignment_start().map(i32::from).unwrap_or_default(),
                     self.read_length() as usize,
                 );
 

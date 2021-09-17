@@ -82,13 +82,7 @@ where
 
         let record = builder.build();
 
-        self.prev_alignment_start = if record.alignment_start() == 0 {
-            None
-        } else {
-            sam::record::Position::try_from(record.alignment_start())
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-        };
+        self.prev_alignment_start = record.alignment_start();
 
         Ok(record)
     }
@@ -141,8 +135,9 @@ where
         let read_length = self.read_read_length().await?;
         builder = builder.set_read_length(read_length);
 
-        let alignment_start = self.read_alignment_start().await?;
-        builder = builder.set_alignment_start(alignment_start);
+        if let Some(alignment_start) = self.read_alignment_start().await? {
+            builder = builder.set_alignment_start(alignment_start);
+        }
 
         let read_group = self.read_read_group().await?;
         builder = builder.set_read_group_id(read_group);
@@ -185,7 +180,7 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    async fn read_alignment_start(&mut self) -> io::Result<Itf8> {
+    async fn read_alignment_start(&mut self) -> io::Result<Option<sam::record::Position>> {
         let ap_data_series_delta = self
             .compression_header
             .preservation_map()
@@ -196,7 +191,7 @@ where
             .data_series_encoding_map()
             .in_seq_positions_encoding();
 
-        let alignment_start = decode_itf8(
+        let mut alignment_start = decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
@@ -204,17 +199,27 @@ where
         .await?;
 
         if ap_data_series_delta {
-            self.prev_alignment_start
-                .map(|pos| Itf8::from(pos) + alignment_start)
+            let delta = alignment_start;
+
+            alignment_start = self
+                .prev_alignment_start
+                .map(|prev_alignment_start| i32::from(prev_alignment_start) + delta)
                 .ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidData,
-                        "cannot calculate alignment start when slice is unmapped",
+                        format!(
+                            "invalid previous alignment start ({:?})",
+                            self.prev_alignment_start,
+                        ),
                     )
-                })
-        } else {
-            Ok(alignment_start)
+                })?;
+        } else if alignment_start == 0 {
+            return Ok(None);
         }
+
+        sam::record::Position::try_from(alignment_start)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     async fn read_read_group(&mut self) -> io::Result<ReadGroupId> {

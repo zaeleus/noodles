@@ -114,7 +114,9 @@ impl Builder {
         let mut slice_alignment_end = 1;
 
         for record in &self.records {
-            slice_alignment_start = cmp::min(slice_alignment_start, record.alignment_start());
+            let record_alignment_start =
+                record.alignment_start().map(i32::from).unwrap_or_default();
+            slice_alignment_start = cmp::min(slice_alignment_start, record_alignment_start);
             slice_alignment_end = cmp::max(slice_alignment_end, record.alignment_end());
 
             record_writer.write_record(record)?;

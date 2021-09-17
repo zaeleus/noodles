@@ -162,7 +162,8 @@ fn push_index_records_for_multi_reference_slice(
             .entry(raw_reference_sequence_id)
             .or_default();
 
-        range.start = cmp::min(range.start, record.alignment_start());
+        let alignment_start = record.alignment_start().map(i32::from).unwrap_or_default();
+        range.start = cmp::min(range.start, alignment_start);
         range.end = cmp::max(range.end, record.alignment_end());
     }
 

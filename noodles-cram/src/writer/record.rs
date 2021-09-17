@@ -53,7 +53,7 @@ pub struct Writer<'a, W, X> {
     core_data_writer: &'a mut BitWriter<W>,
     external_data_writers: &'a mut HashMap<Itf8, X>,
     reference_sequence_id: ReferenceSequenceId,
-    prev_alignment_start: Itf8,
+    prev_alignment_start: Option<sam::record::Position>,
 }
 
 impl<'a, W, X> Writer<'a, W, X>
@@ -66,7 +66,7 @@ where
         core_data_writer: &'a mut BitWriter<W>,
         external_data_writers: &'a mut HashMap<Itf8, X>,
         reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Itf8,
+        initial_alignment_start: Option<sam::record::Position>,
     ) -> Self {
         Self {
             compression_header,
@@ -152,9 +152,24 @@ where
             .ap_data_series_delta();
 
         let alignment_start = if ap_data_series_delta {
-            record.alignment_start() - self.prev_alignment_start
+            match (record.alignment_start(), self.prev_alignment_start) {
+                (None, None) => 0,
+                (Some(alignment_start), Some(prev_alignment_start)) => {
+                    i32::from(alignment_start) - i32::from(prev_alignment_start)
+                }
+                _ => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!(
+                            "invalid alignment start ({:?}) or previous alignment start ({:?})",
+                            record.alignment_start(),
+                            self.prev_alignment_start
+                        ),
+                    ));
+                }
+            }
         } else {
-            record.alignment_start()
+            record.alignment_start().map(i32::from).unwrap_or_default()
         };
 
         self.write_alignment_start(alignment_start)?;
