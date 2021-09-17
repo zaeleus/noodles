@@ -359,8 +359,9 @@ where
         })
     }
 
-    fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
-        self.compression_header
+    fn read_next_mate_alignment_start(&mut self) -> io::Result<Option<sam::record::Position>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .next_mate_alignment_start_encoding()
             .ok_or_else(|| {
@@ -368,14 +369,22 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| {
+            if n == 0 {
+                Ok(None)
+            } else {
+                sam::record::Position::try_from(n)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
     }
 
     fn read_template_size(&mut self) -> io::Result<Itf8> {

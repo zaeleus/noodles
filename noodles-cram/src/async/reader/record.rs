@@ -299,8 +299,9 @@ where
                 builder = builder.set_next_fragment_reference_sequence_id(id);
             }
 
-            let next_mate_alignment_start = self.read_next_mate_alignment_start().await?;
-            builder = builder.set_next_mate_alignment_start(next_mate_alignment_start);
+            if let Some(next_mate_alignment_start) = self.read_next_mate_alignment_start().await? {
+                builder = builder.set_next_mate_alignment_start(next_mate_alignment_start);
+            }
 
             let template_size = self.read_template_size().await?;
             builder = builder.set_template_size(template_size);
@@ -367,7 +368,9 @@ where
         })
     }
 
-    async fn read_next_mate_alignment_start(&mut self) -> io::Result<Itf8> {
+    async fn read_next_mate_alignment_start(
+        &mut self,
+    ) -> io::Result<Option<sam::record::Position>> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -385,6 +388,15 @@ where
             &mut self.external_data_readers,
         )
         .await
+        .and_then(|n| {
+            if n == 0 {
+                Ok(None)
+            } else {
+                sam::record::Position::try_from(n)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
     }
 
     async fn read_template_size(&mut self) -> io::Result<Itf8> {

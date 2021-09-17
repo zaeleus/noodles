@@ -341,9 +341,10 @@ where
 
     fn write_next_mate_alignment_start(
         &mut self,
-        next_mate_alignment_start: Itf8,
+        next_mate_alignment_start: Option<sam::record::Position>,
     ) -> io::Result<()> {
-        self.compression_header
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .next_mate_alignment_start_encoding()
             .ok_or_else(|| {
@@ -351,15 +352,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::NextMateAlignmentStart),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
-                    next_mate_alignment_start,
-                )
-            })
+            })?;
+
+        let position = next_mate_alignment_start.map(i32::from).unwrap_or_default();
+
+        encode_itf8(
+            encoding,
+            &mut self.core_data_writer,
+            &mut self.external_data_writers,
+            position,
+        )
     }
 
     fn write_template_size(&mut self, template_size: Itf8) -> io::Result<()> {

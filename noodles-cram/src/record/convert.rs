@@ -4,7 +4,7 @@ use noodles_bam::record::ReferenceSequenceId;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    record::{Data, Position, QualityScores, Sequence},
+    record::{Data, QualityScores, Sequence},
 };
 
 use crate::data_container::CompressionHeader;
@@ -59,11 +59,8 @@ impl Record {
             builder = builder.set_mate_reference_sequence_name(mate_reference_sequence_name);
         }
 
-        if self.next_mate_alignment_start() > 0 {
-            let mate_position = Position::try_from(self.next_mate_alignment_start())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            builder = builder.set_mate_position(mate_position);
+        if let Some(next_mate_alignment_start) = self.next_mate_alignment_start() {
+            builder = builder.set_mate_position(next_mate_alignment_start);
         }
 
         builder = builder.set_template_length(self.template_size());

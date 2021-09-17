@@ -32,7 +32,7 @@ pub struct Record {
     pub(crate) read_name: Vec<u8>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    pub(crate) next_mate_alignment_start: i32,
+    pub(crate) next_mate_alignment_start: Option<sam::record::Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: i32,
     pub(crate) tags: Vec<Tag>,
@@ -123,7 +123,7 @@ impl Record {
     }
 
     /// Returns the alignment start position of the next mate.
-    pub fn next_mate_alignment_start(&self) -> i32 {
+    pub fn next_mate_alignment_start(&self) -> Option<sam::record::Position> {
         self.next_mate_alignment_start
     }
 

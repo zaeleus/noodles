@@ -15,7 +15,7 @@ pub struct Builder {
     read_name: Vec<u8>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    next_mate_alignment_start: i32,
+    next_mate_alignment_start: Option<sam::record::Position>,
     template_size: i32,
     distance_to_next_fragment: i32,
     tags: Vec<Tag>,
@@ -93,8 +93,11 @@ impl Builder {
     }
 
     /// Sets the alignment start position of the next mate.
-    pub fn set_next_mate_alignment_start(mut self, next_mate_alignment_start: i32) -> Self {
-        self.next_mate_alignment_start = next_mate_alignment_start;
+    pub fn set_next_mate_alignment_start(
+        mut self,
+        next_mate_alignment_start: sam::record::Position,
+    ) -> Self {
+        self.next_mate_alignment_start = Some(next_mate_alignment_start);
         self
     }
 
@@ -202,7 +205,7 @@ impl Default for Builder {
             read_name: Vec::new(),
             next_mate_flags: NextMateFlags::default(),
             next_fragment_reference_sequence_id: None,
-            next_mate_alignment_start: 0,
+            next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: 0,
             tags: Vec::new(),
@@ -232,7 +235,7 @@ mod tests {
         assert!(builder.read_name.is_empty());
         assert_eq!(builder.next_mate_flags, NextMateFlags::default());
         assert!(builder.next_fragment_reference_sequence_id.is_none());
-        assert_eq!(builder.next_mate_alignment_start, 0);
+        assert!(builder.next_mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
         assert_eq!(builder.distance_to_next_fragment, 0);
         assert!(builder.tags.is_empty());

@@ -158,7 +158,7 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
     }
 
     record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
-    record.next_mate_alignment_start = mate.alignment_start().map(i32::from).unwrap_or_default();
+    record.next_mate_alignment_start = mate.alignment_start();
 }
 
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
