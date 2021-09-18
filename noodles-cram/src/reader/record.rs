@@ -493,9 +493,7 @@ where
             record.add_feature(feature);
         }
 
-        record.mapping_quality = self
-            .read_mapping_quality()
-            .map(|n| sam::record::MappingQuality::from(n as u8))?;
+        record.mapping_quality = self.read_mapping_quality()?;
 
         let flags = record.flags();
 
@@ -851,8 +849,9 @@ where
             })
     }
 
-    fn read_mapping_quality(&mut self) -> io::Result<Itf8> {
-        self.compression_header
+    fn read_mapping_quality(&mut self) -> io::Result<sam::record::MappingQuality> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
             .ok_or_else(|| {
@@ -860,14 +859,15 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(sam::record::MappingQuality::from)
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
