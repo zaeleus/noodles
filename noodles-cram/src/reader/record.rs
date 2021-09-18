@@ -79,25 +79,31 @@ where
         }
     }
 
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<()> {
-        record.bam_bit_flags = self.read_bam_bit_flags()?;
-        record.cram_bit_flags = self.read_cram_bit_flags()?;
+    pub fn read_record(&mut self) -> io::Result<Record> {
+        let bam_bit_flags = self.read_bam_bit_flags()?;
+        let cram_bit_flags = self.read_cram_bit_flags()?;
 
-        self.read_positional_data(record)?;
-        self.read_read_names(record)?;
-        self.read_mate_data(record)?;
+        let mut record = Record {
+            bam_bit_flags,
+            cram_bit_flags,
+            ..Default::default()
+        };
+
+        self.read_positional_data(&mut record)?;
+        self.read_read_names(&mut record)?;
+        self.read_mate_data(&mut record)?;
 
         record.tags = self.read_tag_data()?;
 
         if record.bam_flags().is_unmapped() {
-            self.read_unmapped_read(record)?;
+            self.read_unmapped_read(&mut record)?;
         } else {
-            self.read_mapped_read(record)?;
+            self.read_mapped_read(&mut record)?;
         }
 
         self.prev_alignment_start = record.alignment_start();
 
-        Ok(())
+        Ok(record)
     }
 
     fn read_bam_bit_flags(&mut self) -> io::Result<sam::record::Flags> {

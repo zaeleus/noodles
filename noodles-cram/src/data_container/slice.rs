@@ -79,13 +79,8 @@ impl Slice {
         let end_id = start_id + (record_count as i64);
 
         for id in start_id..end_id {
-            let mut record = Record {
-                id,
-                ..Default::default()
-            };
-
-            record_reader.read_record(&mut record)?;
-
+            let mut record = record_reader.read_record()?;
+            record.id = id;
             records.push(record);
         }
 
