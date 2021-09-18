@@ -210,27 +210,18 @@ where
         )?;
 
         if ap_data_series_delta {
+            let prev_alignment_start = self.prev_alignment_start.map(i32::from).unwrap_or_default();
             let delta = alignment_start;
-
-            alignment_start = self
-                .prev_alignment_start
-                .map(|prev_alignment_start| i32::from(prev_alignment_start) + delta)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!(
-                            "invalid previous alignment start ({:?})",
-                            self.prev_alignment_start,
-                        ),
-                    )
-                })?;
-        } else if alignment_start == 0 {
-            return Ok(None);
+            alignment_start = prev_alignment_start + delta;
         }
 
-        sam::record::Position::try_from(alignment_start)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        if alignment_start == 0 {
+            Ok(None)
+        } else {
+            sam::record::Position::try_from(alignment_start)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
     }
 
     fn read_read_group(&mut self) -> io::Result<ReadGroupId> {
