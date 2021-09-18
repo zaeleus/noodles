@@ -279,14 +279,14 @@ impl FromStr for Record {
         let landmark = parse_u64(&mut fields, Field::Landmark)?;
         let slice_length = parse_u64(&mut fields, Field::SliceLength)?;
 
-        Ok(Record {
+        Ok(Record::new(
             reference_sequence_id,
             alignment_start,
             alignment_span,
             offset,
             landmark,
             slice_length,
-        })
+        ))
     }
 }
 
