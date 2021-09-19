@@ -1,7 +1,7 @@
 mod builder;
-#[allow(dead_code)]
-mod data;
 mod query;
+#[allow(dead_code)]
+mod record;
 
 pub use self::builder::Builder;
 
