@@ -4,10 +4,7 @@ mod fields;
 
 pub use self::fields::Fields;
 
-use std::{
-    convert::TryFrom,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -150,10 +147,9 @@ fn read_array<R>(reader: &mut R) -> io::Result<Value>
 where
     R: BufRead,
 {
-    let subtype = reader.read_u8().and_then(|b| {
-        Subtype::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    use crate::reader::data::field::value::subtype::read_subtype;
 
+    let subtype = read_subtype(reader)?;
     let len = reader.read_i32::<LittleEndian>()? as usize;
 
     match subtype {
