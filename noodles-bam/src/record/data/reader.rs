@@ -104,6 +104,8 @@ where
     }
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
+        use crate::reader::data::field::value::ty::read_type;
+
         let tag = match read_tag(&mut self.inner) {
             Ok(ref data) => str::from_utf8(data)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -114,10 +116,7 @@ where
             Err(_) => return Ok(None),
         };
 
-        let ty = self.inner.read_u8().and_then(|b| {
-            Type::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
+        let ty = read_type(&mut self.inner)?;
         let value = read_value_type(&mut self.inner, ty)?;
 
         Ok(Some(Field::new(tag, value)))
