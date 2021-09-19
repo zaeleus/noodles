@@ -1,6 +1,6 @@
 [package]
 name = "noodles-vcf"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -17,9 +17,9 @@ indexmap = "1.4.0"
 memchr = "2.3.3"
 nom = "7.0.0"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.4.0" }
-noodles-core = { path = "../noodles-core", version = "0.1.2" }
+noodles-core = { path = "../noodles-core", version = "0.2.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.3.0" }
-noodles-tabix = { path = "../noodles-tabix", version = "0.6.0" }
+noodles-tabix = { path = "../noodles-tabix", version = "0.6.1" }
 percent-encoding = "2.1.0"
 
 futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }

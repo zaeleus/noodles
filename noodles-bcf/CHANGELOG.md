@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2 - 2021-09-19
+
+### Fixed
+
+  * Sync dependencies.
+
 ## 0.5.1 - 2021-09-01
 
 ### Fixed

@@ -1,6 +1,6 @@
 [package]
 name = "noodles-sam"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"

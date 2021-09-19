@@ -1,6 +1,6 @@
 [package]
 name = "noodles-cram"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -18,9 +18,9 @@ byteorder = "1.2.3"
 bzip2 = "0.4.1"
 flate2 = "1.0.1"
 md-5 = "0.9.1"
-noodles-bam = { path = "../noodles-bam", version = "0.4.0" }
+noodles-bam = { path = "../noodles-bam", version = "0.5.0" }
 noodles-fasta = { path = "../noodles-fasta", version = "0.2.0" }
-noodles-sam = { path = "../noodles-sam", version = "0.2.0" }
+noodles-sam = { path = "../noodles-sam", version = "0.3.0" }
 xz2 = "0.1.6"
 
 async-compression = { version = "0.3.8", optional = true, features = ["gzip", "tokio"] }
