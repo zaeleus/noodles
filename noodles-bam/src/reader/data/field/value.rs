@@ -1,7 +1,7 @@
 mod subtype;
 pub mod ty;
 
-pub use self::subtype::read_subtype;
+pub use self::{subtype::read_subtype, ty::read_type};
 
 use std::io::{self, BufRead};
 
