@@ -6,8 +6,7 @@ pub use self::fields::Fields;
 
 use std::{
     convert::TryFrom,
-    io::{self, BufRead, Read},
-    str,
+    io::{self, BufRead},
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -104,15 +103,10 @@ where
     }
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
-        use crate::reader::data::field::value::ty::read_type;
+        use crate::reader::data::field::{tag::read_tag, value::ty::read_type};
 
         let tag = match read_tag(&mut self.inner) {
-            Ok(ref data) => str::from_utf8(data)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|s| {
-                    s.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                })?,
+            Ok(t) => t,
             Err(_) => return Ok(None),
         };
 
@@ -121,15 +115,6 @@ where
 
         Ok(Some(Field::new(tag, value)))
     }
-}
-
-fn read_tag<R>(reader: &mut R) -> io::Result<[u8; 2]>
-where
-    R: Read,
-{
-    let mut buf = [0; 2];
-    reader.read_exact(&mut buf)?;
-    Ok(buf)
 }
 
 fn read_value_type<R>(reader: &mut R, ty: Type) -> io::Result<Value>
