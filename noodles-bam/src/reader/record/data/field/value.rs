@@ -3,7 +3,10 @@ mod ty;
 
 pub use self::{subtype::read_subtype, ty::read_type};
 
-use std::io::{self, BufRead};
+use std::{
+    convert::TryFrom,
+    io::{self, BufRead},
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -46,7 +49,10 @@ where
     R: BufRead,
 {
     let subtype = read_subtype(reader)?;
-    let len = reader.read_i32::<LittleEndian>()? as usize;
+
+    let len = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     match subtype {
         Subtype::Int8 => {

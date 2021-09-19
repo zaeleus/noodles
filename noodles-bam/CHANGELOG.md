@@ -10,6 +10,10 @@
 
   * bai/async: Fix writer not finalizing.
 
+  * bam/reader/record/data/field/value: Avoid casting array length.
+
+    Converting from `i32` to `usize` now checks whether they it is in range.
+
 ## 0.4.0 - 2021-08-19
 
 ### Changed
