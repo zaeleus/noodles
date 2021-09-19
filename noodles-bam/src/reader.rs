@@ -1,7 +1,7 @@
 //! BAM reader and iterators.
 
-pub(crate) mod data;
 mod query;
+pub(crate) mod record;
 mod records;
 mod unmapped_records;
 

@@ -60,7 +60,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_value_type(&mut self, ty: Type) -> io::Result<Value> {
-        use crate::reader::data::field::read_value;
+        use crate::reader::record::data::field::read_value;
 
         read_value(&mut self.inner, ty)
     }
@@ -97,7 +97,7 @@ where
     }
 
     fn read_field(&mut self) -> io::Result<Option<Field>> {
-        use crate::reader::data::read_field;
+        use crate::reader::record::data::read_field;
 
         match read_field(&mut self.inner) {
             Ok(field) => Ok(Some(field)),
