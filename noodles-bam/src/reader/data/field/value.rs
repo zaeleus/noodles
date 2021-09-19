@@ -1,5 +1,5 @@
 mod subtype;
-pub mod ty;
+mod ty;
 
 pub use self::{subtype::read_subtype, ty::read_type};
 

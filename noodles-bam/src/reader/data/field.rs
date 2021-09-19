@@ -1,5 +1,5 @@
-pub mod tag;
-pub mod value;
+mod tag;
+mod value;
 
 pub use self::{tag::read_tag, value::read_value};
 
