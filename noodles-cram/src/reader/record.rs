@@ -423,6 +423,8 @@ where
     }
 
     fn read_tag_data(&mut self) -> io::Result<Vec<Tag>> {
+        use bam::reader::record::data::field::read_value;
+
         let tag_line = self.read_tag_line().and_then(|i| {
             usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
@@ -454,8 +456,8 @@ where
                 None,
             )?;
 
-            let mut data_reader = bam::record::data::Reader::new(&data[..]);
-            let value = data_reader.read_value_type(key.ty())?;
+            let mut data_reader = &data[..];
+            let value = read_value(&mut data_reader, key.ty())?;
 
             let tag = Tag::new(*key, value);
             tags.push(tag);

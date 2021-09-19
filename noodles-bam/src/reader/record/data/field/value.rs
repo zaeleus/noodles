@@ -15,6 +15,28 @@ use crate::record::data::field::{
     Value,
 };
 
+/// Reads a BAM record data field value.
+///
+/// The stream is expected to be at the start of the value, i.e., after the tag and data type.
+///
+/// # Examples
+///
+/// ```
+/// # use std::io;
+/// use noodles_bam::{
+///     reader::record::data::field::read_value,
+///     record::data::field::{value::Type, Value}
+/// };
+///
+/// let data = [0x01, 0x00, 0x00, 0x00];
+/// let mut reader = &data[..];
+///
+/// assert_eq!(
+///     read_value(&mut reader, Type::Int32)?,
+///     Value::Int32(1)
+/// );
+/// # Ok::<(), io::Error>(())
+/// ```
 pub fn read_value<R>(reader: &mut R, ty: Type) -> io::Result<Value>
 where
     R: BufRead,

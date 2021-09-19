@@ -6,6 +6,12 @@
 
   * bai/async/writer: Add shutdown delegate.
 
+### Deprecated
+
+  * record/data/reader: Deprecate `Reader::read_value_type`.
+
+    Use `noodles_bam::reader::record::data::field::read_value` instead.
+
 ### Fixed
 
   * bai/async: Fix writer not finalizing.

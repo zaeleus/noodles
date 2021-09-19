@@ -59,6 +59,10 @@ where
     /// assert_eq!(value, Value::Int32(1));
     /// # Ok::<(), io::Error>(())
     /// ```
+    #[deprecated(
+        since = "0.5.0",
+        note = "Use `noodles_bam::reader::record::data::field::read_value` instead."
+    )]
     pub fn read_value_type(&mut self, ty: Type) -> io::Result<Value> {
         use crate::reader::record::data::field::read_value;
 
