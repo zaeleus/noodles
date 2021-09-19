@@ -80,11 +80,15 @@ impl Record {
     }
 
     /// Returns the alignment start position.
+    ///
+    /// This value is 1-based.
     pub fn alignment_start(&self) -> Option<sam::record::Position> {
         self.alignment_start
     }
 
     /// Returns the alignment end position.
+    ///
+    /// This value is 1-based.
     pub fn alignment_end(&self) -> i32 {
         calculate_alignment_end(
             self.alignment_start().map(i32::from).unwrap_or_default(),
@@ -123,6 +127,8 @@ impl Record {
     }
 
     /// Returns the alignment start position of the next mate.
+    ///
+    /// This value is 1-based.
     pub fn next_mate_alignment_start(&self) -> Option<sam::record::Position> {
         self.next_mate_alignment_start
     }
