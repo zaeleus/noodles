@@ -141,9 +141,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        let result = self.inner.read_line(buf);
-        buf.pop();
-        result
+        read_line(&mut self.inner, buf)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -235,6 +233,15 @@ where
     String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let result = reader.read_line(buf);
+    buf.pop();
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::BufReader;
@@ -264,6 +271,19 @@ mod tests {
         let mut reader = BufReader::with_capacity(16, data.as_bytes());
         let header = read_header(&mut reader)?;
         assert_eq!(header, data);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line() -> io::Result<()> {
+        let mut buf = String::new();
+
+        let data = b"noodles\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
         Ok(())
     }
 }
