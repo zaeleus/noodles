@@ -205,3 +205,24 @@ where
     buf.pop();
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_read_line() -> io::Result<()> {
+        async fn t(buf: &mut String, mut data: &[u8], expected: &str) -> io::Result<()> {
+            buf.clear();
+            read_line(&mut data, buf).await?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = String::new();
+
+        t(&mut buf, b"noodles\n", "noodles").await?;
+
+        Ok(())
+    }
+}
