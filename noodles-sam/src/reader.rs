@@ -9,6 +9,7 @@ use std::io::{self, BufRead, Read, Seek};
 use noodles_bgzf as bgzf;
 
 const LINE_FEED: char = '\n';
+const CARRIAGE_RETURN: char = '\r';
 
 const HEADER_PREFIX: u8 = b'@';
 
@@ -243,6 +244,10 @@ where
         Ok(n) => {
             if buf.ends_with(LINE_FEED) {
                 buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
             }
 
             Ok(n)
@@ -288,6 +293,12 @@ mod tests {
         let mut buf = String::new();
 
         let data = b"noodles\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles\r\n";
         let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;

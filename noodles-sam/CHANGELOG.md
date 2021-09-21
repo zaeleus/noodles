@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * reader: Handle CRLF newlines and missing final newline.
+
 ## 0.3.0 - 2021-09-19
 
 ### Added
