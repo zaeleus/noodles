@@ -98,15 +98,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<String> {
-        let magic = read_magic(&mut self.inner)?;
-
-        if magic != MAGIC_NUMBER {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid BAM header",
-            ));
-        }
-
+        read_magic(&mut self.inner)?;
         read_header(&mut self.inner)
     }
 
@@ -337,13 +329,21 @@ where
     }
 }
 
-fn read_magic<R>(reader: &mut R) -> io::Result<[u8; 4]>
+fn read_magic<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read,
 {
     let mut magic = [0; 4];
     reader.read_exact(&mut magic)?;
-    Ok(magic)
+
+    if magic == MAGIC_NUMBER {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BAM header",
+        ))
+    }
 }
 
 fn read_header<R>(reader: &mut R) -> io::Result<String>
@@ -415,5 +415,33 @@ pub(crate) fn resolve_region(
             io::ErrorKind::InvalidData,
             "region is not mapped",
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_magic() -> io::Result<()> {
+        let data = b"BAM\x01";
+        let mut reader = &data[..];
+        assert!(read_magic(&mut reader).is_ok());
+
+        let data = [];
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let data = b"MThd";
+        let mut reader = &data[..];
+        assert!(matches!(
+            read_magic(&mut reader),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
     }
 }
