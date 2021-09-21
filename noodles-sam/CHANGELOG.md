@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * async/reader: Handle CRLF newlines and missing final newline.
+
   * reader: Handle CRLF newlines and missing final newline.
 
 ## 0.3.0 - 2021-09-19

@@ -202,12 +202,17 @@ where
     R: AsyncBufRead + Unpin,
 {
     const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
 
     match reader.read_line(buf).await {
         Ok(0) => Ok(0),
         Ok(n) => {
             if buf.ends_with(LINE_FEED) {
                 buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
             }
 
             Ok(n)
@@ -232,6 +237,7 @@ mod tests {
         let mut buf = String::new();
 
         t(&mut buf, b"noodles\n", "noodles").await?;
+        t(&mut buf, b"noodles\r\n", "noodles").await?;
         t(&mut buf, b"noodles", "noodles").await?;
 
         Ok(())
