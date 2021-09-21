@@ -8,8 +8,9 @@ use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 
+const LINE_FEED: char = '\n';
+
 const HEADER_PREFIX: u8 = b'@';
-const LINE_FEED: u8 = b'\n';
 
 /// A SAM reader.
 ///
@@ -217,7 +218,7 @@ where
             break;
         }
 
-        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED) {
+        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
             header_buf.extend(&buf[..=i]);
             (true, i + 1)
         } else {
@@ -237,9 +238,17 @@ fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let result = reader.read_line(buf);
-    buf.pop();
-    result
+    match reader.read_line(buf) {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            if buf.ends_with(LINE_FEED) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
@@ -279,6 +288,12 @@ mod tests {
         let mut buf = String::new();
 
         let data = b"noodles\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_line(&mut reader, &mut buf)?;
+        assert_eq!(buf, "noodles");
+
+        let data = b"noodles";
         let mut reader = &data[..];
         buf.clear();
         read_line(&mut reader, &mut buf)?;
