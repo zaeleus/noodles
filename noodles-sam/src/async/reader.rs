@@ -201,9 +201,19 @@ async fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
-    let result = reader.read_line(buf).await;
-    buf.pop();
-    result
+    const LINE_FEED: char = '\n';
+
+    match reader.read_line(buf).await {
+        Ok(0) => Ok(0),
+        Ok(n) => {
+            if buf.ends_with(LINE_FEED) {
+                buf.pop();
+            }
+
+            Ok(n)
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[cfg(test)]
@@ -222,6 +232,7 @@ mod tests {
         let mut buf = String::new();
 
         t(&mut buf, b"noodles\n", "noodles").await?;
+        t(&mut buf, b"noodles", "noodles").await?;
 
         Ok(())
     }
