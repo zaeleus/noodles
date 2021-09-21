@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(bgzf::AsyncReader::new)
         .map(vcf::AsyncReader::new)?;
 
-    let index = tabix::read(src.with_extension("gz.tbi"))?;
+    let index = tabix::r#async::read(src.with_extension("gz.tbi")).await?;
     let mut query = reader.query(&index, &region)?;
 
     while let Some(record) = query.try_next().await? {
