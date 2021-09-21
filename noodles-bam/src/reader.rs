@@ -14,7 +14,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_bgzf::{self as bgzf, VirtualPosition};
+use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
 use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
@@ -232,7 +232,7 @@ where
     /// assert_eq!(virtual_position.uncompressed(), 0);
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn virtual_position(&self) -> VirtualPosition {
+    pub fn virtual_position(&self) -> bgzf::VirtualPosition {
         self.inner.virtual_position()
     }
 }
@@ -256,14 +256,14 @@ where
     /// reader.seek(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos)
     }
 
     // Seeks to the first record by setting the cursor to the beginning of the stream and
     // (re)reading the header and binary reference sequences.
-    fn seek_to_first_record(&mut self) -> io::Result<VirtualPosition> {
-        self.seek(VirtualPosition::default())?;
+    fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
+        self.seek(bgzf::VirtualPosition::default())?;
         self.read_header()?;
         self.read_reference_sequences()?;
         Ok(self.virtual_position())
