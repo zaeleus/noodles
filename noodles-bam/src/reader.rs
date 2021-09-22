@@ -158,18 +158,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let block_size = match self.inner.read_u32::<LittleEndian>() {
-            Ok(bs) => {
-                usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-            }
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
-            Err(e) => return Err(e),
-        };
-
-        record.resize(block_size);
-        self.inner.read_exact(record)?;
-
-        Ok(block_size)
+        read_record(&mut self.inner, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -390,6 +379,22 @@ where
     ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
+fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+where
+    R: Read,
+{
+    let block_size = match reader.read_u32::<LittleEndian>() {
+        Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+        Err(e) => return Err(e),
+    };
+
+    record.resize(block_size);
+    reader.read_exact(record)?;
+
+    Ok(block_size)
+}
+
 pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
     CStr::from_bytes_with_nul(buf)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -470,6 +475,23 @@ mod tests {
             .collect::<Result<_, _>>()?;
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_record() -> io::Result<()> {
+        let data = [
+            0x04, 0x00, 0x00, 0x00, // block_size = 4
+            0x6e, 0x64, 0x6c, 0x73, // ...
+        ];
+
+        let mut reader = &data[..];
+        let mut record = Record::default();
+        let block_size = read_record(&mut reader, &mut record)?;
+
+        assert_eq!(block_size, 4);
+        assert_eq!(&record[..], &data[4..]);
 
         Ok(())
     }
