@@ -6,6 +6,12 @@
 
   * async/reader: Handle CRLF newlines and missing final newline.
 
+  * header/record: Require delimiter split when parsing.
+
+    This ensures the delimiter exists when tokenizing. It removes
+    `ParseError::MissingValue` for `ParseError::Invalid` and
+    `ParseError::MissingTag` for `ParseError::InvalidField`.
+
   * reader: Handle CRLF newlines and missing final newline.
 
 ## 0.3.0 - 2021-09-19
