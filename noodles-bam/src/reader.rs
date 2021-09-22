@@ -124,18 +124,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
-        let n_ref = self.inner.read_u32::<LittleEndian>().and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
-
-        for _ in 0..n_ref {
-            let reference_sequence = read_reference_sequence(&mut self.inner)?;
-            reference_sequences.insert(reference_sequence.name().into(), reference_sequence);
-        }
-
-        Ok(reference_sequences)
+        read_reference_sequences(&mut self.inner)
     }
 
     /// Reads a single record.
@@ -364,6 +353,24 @@ where
     })
 }
 
+fn read_reference_sequences<R>(reader: &mut R) -> io::Result<ReferenceSequences>
+where
+    R: Read,
+{
+    let n_ref = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
+
+    for _ in 0..n_ref {
+        let reference_sequence = read_reference_sequence(reader)?;
+        reference_sequences.insert(reference_sequence.name().into(), reference_sequence);
+    }
+
+    Ok(reference_sequences)
+}
+
 fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
 where
     R: Read,
@@ -441,6 +448,28 @@ mod tests {
             read_magic(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+        let data = [
+            0x01, 0x00, 0x00, 0x00, // n_ref = 1
+            0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
+            0x73, 0x71, 0x30, 0x00, // ref[0].name = "sq0\x00"
+            0x08, 0x00, 0x00, 0x00, // ref[0].l_ref = 8
+        ];
+
+        let mut reader = &data[..];
+        let actual = read_reference_sequences(&mut reader)?;
+
+        let expected: ReferenceSequences = vec![("sq0", 8)]
+            .into_iter()
+            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .collect::<Result<_, _>>()?;
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
