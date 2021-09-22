@@ -79,6 +79,8 @@ pub enum ParseError {
     InvalidField,
     /// A tag is invalid.
     InvalidTag,
+    /// A value is invalid.
+    InvalidValue,
     /// A tag is duplicated.
     DuplicateTag(String),
 }
@@ -93,6 +95,7 @@ impl fmt::Display for ParseError {
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidTag => write!(f, "invalid tag"),
+            Self::InvalidValue => write!(f, "invalid value"),
             Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }
@@ -144,6 +147,10 @@ fn parse_field(s: &str) -> Result<(String, String), ParseError> {
                 return Err(ParseError::InvalidTag);
             }
 
+            if !is_valid_value(value) {
+                return Err(ParseError::InvalidValue);
+            }
+
             Ok((tag.into(), value.into()))
         }
         None => Err(ParseError::InvalidField),
@@ -170,6 +177,10 @@ fn is_valid_tag(s: &str) -> bool {
     }
 
     true
+}
+
+fn is_valid_value(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(|c| matches!(c, ' '..='~'))
 }
 
 #[cfg(test)]
@@ -236,6 +247,12 @@ mod tests {
         assert_eq!(
             "@HD\tVER:1.6".parse::<Record>(),
             Err(ParseError::InvalidTag)
+        );
+
+        assert_eq!("@PG\tID:".parse::<Record>(), Err(ParseError::InvalidValue));
+        assert_eq!(
+            "@PG\tID:🍜".parse::<Record>(),
+            Err(ParseError::InvalidValue)
         );
 
         assert_eq!(
