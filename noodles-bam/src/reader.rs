@@ -458,6 +458,22 @@ mod tests {
     }
 
     #[test]
+    fn test_read_header() -> io::Result<()> {
+        let expected = "@HD\tVN:1.6\n";
+
+        let data_len = expected.len() as u32;
+        let mut data = data_len.to_le_bytes().to_vec();
+        data.extend(expected.as_bytes());
+
+        let mut reader = &data[..];
+        let actual = read_header(&mut reader)?;
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
