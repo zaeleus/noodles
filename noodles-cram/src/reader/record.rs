@@ -1,8 +1,10 @@
+mod external_data_readers;
+
+pub use external_data_readers::ExternalDataReaders;
+
 use std::{
-    collections::HashMap,
     convert::TryFrom,
     error, fmt,
-    hash::BuildHasher,
     io::{self, BufRead, Read},
 };
 
@@ -22,8 +24,6 @@ use crate::{
     record::{feature, tag, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
     BitReader, Record,
 };
-
-type ExternalDataReaders<R, S> = HashMap<Itf8, R, S>;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -49,29 +49,27 @@ impl fmt::Display for ReadRecordError {
     }
 }
 
-pub struct Reader<'a, CDR, EDR, S>
+pub struct Reader<'a, CDR, EDR>
 where
     CDR: Read,
     EDR: BufRead,
-    S: BuildHasher,
 {
     compression_header: &'a CompressionHeader,
     core_data_reader: BitReader<CDR>,
-    external_data_readers: ExternalDataReaders<EDR, S>,
+    external_data_readers: ExternalDataReaders<EDR>,
     reference_sequence_id: ReferenceSequenceId,
     prev_alignment_start: Option<sam::record::Position>,
 }
 
-impl<'a, CDR, EDR, S> Reader<'a, CDR, EDR, S>
+impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
 where
     CDR: Read,
     EDR: BufRead,
-    S: BuildHasher,
 {
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_reader: BitReader<CDR>,
-        external_data_readers: ExternalDataReaders<EDR, S>,
+        external_data_readers: ExternalDataReaders<EDR>,
         reference_sequence_id: ReferenceSequenceId,
         initial_alignment_start: Option<sam::record::Position>,
     ) -> Self {
@@ -901,15 +899,14 @@ where
     }
 }
 
-fn decode_byte<CDR, EDR, S>(
+fn decode_byte<CDR, EDR>(
     encoding: &Encoding,
     core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR, S>,
+    external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<u8>
 where
     CDR: Read,
     EDR: Read,
-    S: BuildHasher,
 {
     match encoding {
         Encoding::External(block_content_id) => {
@@ -935,15 +932,14 @@ where
     }
 }
 
-fn decode_itf8<CDR, EDR, S>(
+fn decode_itf8<CDR, EDR>(
     encoding: &Encoding,
     core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR, S>,
+    external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<Itf8>
 where
     CDR: Read,
     EDR: Read,
-    S: BuildHasher,
 {
     match encoding {
         Encoding::External(block_content_id) => {
@@ -967,16 +963,15 @@ where
     }
 }
 
-fn decode_byte_array<CDR, EDR, S>(
+fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding,
     core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut ExternalDataReaders<EDR, S>,
+    external_data_readers: &mut ExternalDataReaders<EDR>,
     buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
 where
     CDR: Read,
     EDR: BufRead,
-    S: BuildHasher,
 {
     match encoding {
         Encoding::External(block_content_id) => {

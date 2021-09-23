@@ -4,7 +4,6 @@ pub(crate) mod header;
 pub use self::{builder::Builder, header::Header};
 
 use std::{
-    collections::HashMap,
     convert::TryFrom,
     io::{self, Cursor},
 };
@@ -51,13 +50,15 @@ impl Slice {
     }
 
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
+        use crate::reader::record::ExternalDataReaders;
+
         let core_data_reader = self
             .core_data_block
             .decompressed_data()
             .map(Cursor::new)
             .map(BitReader::new)?;
 
-        let mut external_data_readers = HashMap::with_capacity(self.external_blocks().len());
+        let mut external_data_readers = ExternalDataReaders::new();
 
         for block in self.external_blocks() {
             let reader = block.decompressed_data().map(Cursor::new)?;
