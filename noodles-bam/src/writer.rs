@@ -140,15 +140,7 @@ where
         &mut self,
         reference_sequences: &ReferenceSequences,
     ) -> io::Result<()> {
-        let n_ref = i32::try_from(reference_sequences.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_i32::<LittleEndian>(n_ref)?;
-
-        for reference_sequence in reference_sequences.values() {
-            write_reference_sequence(&mut self.inner, reference_sequence)?;
-        }
-
-        Ok(())
+        write_reference_sequences(&mut self.inner, reference_sequences)
     }
 
     /// Writes a BAM record.
@@ -213,6 +205,24 @@ where
     Ok(())
 }
 
+fn write_reference_sequences<W>(
+    writer: &mut W,
+    reference_sequences: &ReferenceSequences,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_ref = i32::try_from(reference_sequences.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32::<LittleEndian>(n_ref)?;
+
+    for reference_sequence in reference_sequences.values() {
+        write_reference_sequence(writer, reference_sequence)?;
+    }
+
+    Ok(())
+}
+
 fn write_reference_sequence<W>(
     writer: &mut W,
     reference_sequence: &ReferenceSequence,
@@ -269,25 +279,22 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        let mut writer = Writer::new(Vec::new());
+        let reference_sequences = vec![("sq0", 8)]
+            .into_iter()
+            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .collect::<Result<_, _>>()?;
 
-        let reference_sequence = ReferenceSequence::new("sq0", 8)?;
+        let mut buf = Vec::new();
+        write_reference_sequences(&mut buf, &reference_sequences)?;
 
-        let header = sam::Header::builder()
-            .add_reference_sequence(reference_sequence.clone())
-            .set_header(sam::header::header::Header::default())
-            .build();
+        let expected = [
+            0x01, 0x00, 0x00, 0x00, // n_ref = 1
+            0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
+            b's', b'q', b'0', 0x00, // ref[0].name = b"sq0\x00"
+            0x08, 0x00, 0x00, 0x00, // ref[0].l_ref = 8
+        ];
 
-        writer.write_header(&header)?;
-        writer.write_reference_sequences(header.reference_sequences())?;
-        writer.try_finish()?;
-
-        let mut reader = Reader::new(writer.get_ref().as_slice());
-        reader.read_header()?;
-        let actual = reader.read_reference_sequences()?;
-
-        assert_eq!(actual.len(), 1);
-        assert_eq!(&actual[0], &reference_sequence);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
