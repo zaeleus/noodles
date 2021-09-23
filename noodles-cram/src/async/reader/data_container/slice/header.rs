@@ -19,8 +19,13 @@ where
     })?;
 
     let alignment_start = read_itf8(reader).await.and_then(|n| {
-        sam::record::Position::try_from(n)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        if n == 0 {
+            Ok(None)
+        } else {
+            sam::record::Position::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
     })?;
 
     let alignment_span = read_itf8(reader).await?;
@@ -44,9 +49,8 @@ where
     let reference_md5 = read_reference_md5(reader).await?;
     let optional_tags = read_optional_tags(reader).await?;
 
-    Ok(slice::Header::builder()
+    let mut builder = slice::Header::builder()
         .set_reference_sequence_id(reference_sequence_id)
-        .set_alignment_start(alignment_start)
         .set_alignment_span(alignment_span)
         .set_record_count(record_count)
         .set_record_counter(record_counter)
@@ -54,8 +58,13 @@ where
         .set_block_content_ids(block_content_ids)
         .set_embedded_reference_bases_block_content_id(embedded_reference_bases_block_content_id)
         .set_reference_md5(reference_md5)
-        .set_optional_tags(optional_tags)
-        .build())
+        .set_optional_tags(optional_tags);
+
+    if let Some(position) = alignment_start {
+        builder = builder.set_alignment_start(position);
+    }
+
+    Ok(builder.build())
 }
 
 async fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

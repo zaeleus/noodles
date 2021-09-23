@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * async/reader/data_container/slice/header: Fix reading alignment start.
+
 ## 0.5.0 - 2021-09-19
 
 ### Added
