@@ -20,8 +20,13 @@ where
     })?;
 
     let starting_position_on_the_reference = read_itf8(reader).await.and_then(|n| {
-        sam::record::Position::try_from(n)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        if n == 0 {
+            Ok(None)
+        } else {
+            sam::record::Position::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
     })?;
 
     let alignment_span = read_itf8(reader).await?;
@@ -36,18 +41,22 @@ where
     let landmarks = read_landmarks(reader).await?;
     let crc32 = reader.read_u32_le().await?;
 
-    Ok(container::Header::builder()
+    let mut builder = container::Header::builder()
         .set_length(length)
         .set_reference_sequence_id(reference_sequence_id)
-        .set_start_position(starting_position_on_the_reference)
         .set_alignment_span(alignment_span)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
         .set_base_count(bases)
         .set_block_count(number_of_blocks)
         .set_landmarks(landmarks)
-        .set_crc32(crc32)
-        .build())
+        .set_crc32(crc32);
+
+    if let Some(position) = starting_position_on_the_reference {
+        builder = builder.set_start_position(position);
+    }
+
+    Ok(builder.build())
 }
 
 async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>

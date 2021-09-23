@@ -4,6 +4,9 @@
 
 ### Fixed
 
+  * async/reader/container/header: Fix reading starting position on the
+    reference.
+
   * async/reader/data_container/slice/header: Fix reading alignment start.
 
 ## 0.5.0 - 2021-09-19
