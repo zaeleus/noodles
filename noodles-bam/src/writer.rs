@@ -13,7 +13,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use super::{Record, MAGIC_NUMBER};
+use super::Record;
 
 /// A BAM writer.
 ///
@@ -111,16 +111,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.inner.write_all(MAGIC_NUMBER)?;
-
-        let text = header.to_string();
-        let l_text = i32::try_from(text.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_i32::<LittleEndian>(l_text)?;
-
-        self.inner.write_all(text.as_bytes())?;
-
-        Ok(())
+        write_header(&mut self.inner, header)
     }
 
     /// Writes SAM reference sequences.
@@ -204,6 +195,24 @@ where
     }
 }
 
+fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
+where
+    W: Write,
+{
+    use super::MAGIC_NUMBER;
+
+    writer.write_all(MAGIC_NUMBER)?;
+
+    let text = header.to_string();
+    let l_text =
+        i32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32::<LittleEndian>(l_text)?;
+
+    writer.write_all(text.as_bytes())?;
+
+    Ok(())
+}
+
 fn write_reference_sequence<W>(
     writer: &mut W,
     reference_sequence: &ReferenceSequence,
@@ -240,21 +249,20 @@ mod tests {
     fn test_write_header() -> io::Result<()> {
         use sam::header::header::{Header, Version};
 
-        let mut writer = Writer::new(Vec::new());
-
         let header = sam::Header::builder()
             .set_header(Header::new(Version::new(1, 6)))
             .build();
 
-        writer.write_header(&header)?;
-        writer.try_finish()?;
+        let mut buf = Vec::new();
+        write_header(&mut buf, &header)?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
-        let actual = reader.read_header()?;
+        let mut expected = vec![
+            b'B', b'A', b'M', 0x01, // magic
+            0x0b, 0x00, 0x00, 0x00, // l_text = 11
+        ];
+        expected.extend_from_slice(b"@HD\tVN:1.6\n"); // text
 
-        let expected = "@HD\tVN:1.6\n";
-
-        assert_eq!(actual, expected);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
