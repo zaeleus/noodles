@@ -156,10 +156,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let block_size = u32::try_from(record.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32::<LittleEndian>(block_size)?;
-        self.inner.write_all(record)
+        write_record(&mut self.inner, record)
     }
 
     /// Writes a SAM record.
@@ -245,6 +242,19 @@ where
     Ok(())
 }
 
+fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+where
+    W: Write,
+{
+    let block_size =
+        u32::try_from(record.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(block_size)?;
+
+    writer.write_all(record)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -293,6 +303,22 @@ mod tests {
             b's', b'q', b'0', 0x00, // ref[0].name = b"sq0\x00"
             0x08, 0x00, 0x00, 0x00, // ref[0].l_ref = 8
         ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
+        let record = Record::default();
+
+        let mut buf = Vec::new();
+        write_record(&mut buf, &record)?;
+
+        let block_size = u32::try_from(record.len())?;
+        let mut expected = block_size.to_le_bytes().to_vec();
+        expected.extend_from_slice(&record);
 
         assert_eq!(buf, expected);
 
