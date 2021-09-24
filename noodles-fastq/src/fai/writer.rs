@@ -55,8 +55,8 @@ where
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         writeln!(
             self.inner,
-            "{read_name}\t{len}\t{sequence_offset}\t{line_bases}\t{line_width}\t{quality_scores_offset}",
-            read_name = record.read_name(),
+            "{name}\t{len}\t{sequence_offset}\t{line_bases}\t{line_width}\t{quality_scores_offset}",
+            name = record.name(),
             len = record.len(),
             sequence_offset = record.sequence_offset(),
             line_bases = record.line_bases(),

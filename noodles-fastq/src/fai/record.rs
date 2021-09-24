@@ -10,7 +10,7 @@ const MAX_FIELDS: usize = 6;
 /// A FASTQ index record.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    read_name: String,
+    name: String,
     len: u64,
     sequence_offset: u64,
     line_bases: u64,
@@ -22,7 +22,7 @@ pub struct Record {
 impl Record {
     /// Creates a FASTQ index record.
     pub fn new(
-        read_name: String,
+        name: String,
         len: u64,
         sequence_offset: u64,
         line_bases: u64,
@@ -30,7 +30,7 @@ impl Record {
         quality_scores_offset: u64,
     ) -> Self {
         Self {
-            read_name,
+            name,
             len,
             sequence_offset,
             line_bases,
@@ -39,9 +39,9 @@ impl Record {
         }
     }
 
-    /// Returns the read name.
-    pub fn read_name(&self) -> &str {
-        &self.read_name
+    /// Returns the name.
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Returns the length of the sequence.
@@ -103,7 +103,7 @@ impl FromStr for Record {
 
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let read_name = parse_string(&mut fields, Field::ReadName)?;
+        let name = parse_string(&mut fields, Field::Name)?;
         let len = parse_u64(&mut fields, Field::Length)?;
         let sequence_offset = parse_u64(&mut fields, Field::SequenceOffset)?;
         let line_bases = parse_u64(&mut fields, Field::LineBases)?;
@@ -111,7 +111,7 @@ impl FromStr for Record {
         let quality_scores_offset = parse_u64(&mut fields, Field::QualityScoresOffset)?;
 
         Ok(Self {
-            read_name,
+            name,
             len,
             sequence_offset,
             line_bases,

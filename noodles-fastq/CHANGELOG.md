@@ -4,6 +4,8 @@
 
 ### Deprecated
 
+  * fai/record: `Record::read_name` is now `Record::name`.
+
   * record: `Record::read_name` is now `Record::name`.
 
     FASTQ record names are not necessarily read names.
