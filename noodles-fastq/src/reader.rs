@@ -13,7 +13,6 @@ const CARRIAGE_RETURN: u8 = b'\r';
 /// A FASTQ reader.
 pub struct Reader<R> {
     inner: R,
-    line_buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -30,10 +29,7 @@ where
     /// let reader = fastq::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            line_buf: Vec::new(),
-        }
+        Self { inner }
     }
 
     /// Reads a FASTQ record.
@@ -73,10 +69,7 @@ where
         };
 
         len += read_line(&mut self.inner, record.sequence_mut())?;
-
-        self.line_buf.clear();
-        len += read_line(&mut self.inner, &mut self.line_buf)?;
-
+        len += consume_line(&mut self.inner)?;
         len += read_line(&mut self.inner, record.quality_scores_mut())?;
 
         Ok(len)
@@ -108,6 +101,36 @@ where
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
+}
+
+fn consume_line<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let mut n = 0;
+    let mut is_eol = false;
+
+    while !is_eol {
+        let buf = reader.fill_buf()?;
+
+        if buf.is_empty() {
+            break;
+        }
+
+        let len = match buf.iter().position(|&b| b == LINE_FEED) {
+            Some(i) => {
+                is_eol = true;
+                i + 1
+            }
+            None => buf.len(),
+        };
+
+        reader.consume(len);
+
+        n += len;
+    }
+
+    Ok(n)
 }
 
 fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
@@ -189,6 +212,21 @@ dcba
 
         let len = reader.read_record(&mut record).unwrap();
         assert_eq!(len, 0);
+    }
+
+    #[test]
+    fn test_consume_line() -> io::Result<()> {
+        fn t(mut data: &[u8], expected: &[u8]) -> io::Result<()> {
+            consume_line(&mut data)?;
+            assert_eq!(data, expected);
+            Ok(())
+        }
+
+        t(b"nd\nls\n", b"ls\n")?;
+        t(b"\nls\n", b"ls\n")?;
+        t(b"", b"")?;
+
+        Ok(())
     }
 
     #[test]
