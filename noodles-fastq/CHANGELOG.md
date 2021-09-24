@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * async: Add async reader (`fastq::AsyncReader`).
+
+    The async reader can be enabled with the `async` feature.
+
 ### Deprecated
 
   * fai/record: `Record::read_name` is now `Record::name`.

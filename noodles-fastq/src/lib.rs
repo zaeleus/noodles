@@ -28,6 +28,9 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+mod r#async;
+
 pub mod fai;
 mod indexer;
 mod reader;
@@ -35,6 +38,9 @@ mod record;
 mod writer;
 
 pub use self::{indexer::Indexer, reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{
     fs::File,
