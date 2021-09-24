@@ -6,7 +6,6 @@ use std::io::{self, BufRead, Read};
 
 use super::Record;
 
-const READ_NAME_PREFIX: u8 = b'@';
 const LINE_FEED: u8 = b'\n';
 const CARRIAGE_RETURN: u8 = b'\r';
 
@@ -158,28 +157,26 @@ pub(crate) fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usiz
 where
     R: BufRead,
 {
-    match consume_byte(reader, READ_NAME_PREFIX) {
-        Ok(n) => read_line(reader, buf).map(|m| m + n),
+    const NAME_PREFIX: u8 = b'@';
+
+    match read_u8(reader) {
+        Ok(NAME_PREFIX) => read_line(reader, buf).map(|n| n + 1),
+        Ok(_) => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid name prefix",
+        )),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
         Err(e) => Err(e),
     }
 }
 
-fn consume_byte<R>(reader: &mut R, value: u8) -> io::Result<usize>
+fn read_u8<R>(reader: &mut R) -> io::Result<u8>
 where
     R: Read,
 {
     let mut buf = [0; 1];
     reader.read_exact(&mut buf)?;
-
-    if buf[0] == value {
-        Ok(buf.len())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "read name missing @ prefix",
-        ))
-    }
+    Ok(buf[0])
 }
 
 #[cfg(test)]
