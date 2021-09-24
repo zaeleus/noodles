@@ -59,19 +59,7 @@ where
     /// Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        record.clear();
-
-        let mut len = match read_name(&mut self.inner, record.name_mut()) {
-            Ok(0) => return Ok(0),
-            Ok(n) => n,
-            Err(e) => return Err(e),
-        };
-
-        len += read_line(&mut self.inner, record.sequence_mut())?;
-        len += consume_line(&mut self.inner)?;
-        len += read_line(&mut self.inner, record.quality_scores_mut())?;
-
-        Ok(len)
+        read_record(&mut self.inner, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -100,6 +88,25 @@ where
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
+}
+
+fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    record.clear();
+
+    let mut len = match read_name(reader, record.name_mut()) {
+        Ok(0) => return Ok(0),
+        Ok(n) => n,
+        Err(e) => return Err(e),
+    };
+
+    len += read_line(reader, record.sequence_mut())?;
+    len += consume_line(reader)?;
+    len += read_line(reader, record.quality_scores_mut())?;
+
+    Ok(len)
 }
 
 fn consume_line<R>(reader: &mut R) -> io::Result<usize>
@@ -184,8 +191,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_record() {
-        let data = "\
+    fn test_read_record() -> io::Result<()> {
+        let data = b"\
 @noodles:1/1
 AGCT
 +
@@ -196,19 +203,19 @@ TCGA
 dcba
 ";
 
-        let mut reader = Reader::new(data.as_bytes());
+        let mut reader = &data[..];
         let mut record = Record::default();
 
-        let len = reader.read_record(&mut record).unwrap();
-        assert_eq!(len, 25);
+        read_record(&mut reader, &mut record)?;
         assert_eq!(record, Record::new("noodles:1/1", "AGCT", "abcd"));
 
-        let len = reader.read_record(&mut record).unwrap();
-        assert_eq!(len, 25);
+        read_record(&mut reader, &mut record)?;
         assert_eq!(record, Record::new("noodles:2/1", "TCGA", "dcba"));
 
-        let len = reader.read_record(&mut record).unwrap();
-        assert_eq!(len, 0);
+        let n = read_record(&mut reader, &mut record)?;
+        assert_eq!(n, 0);
+
+        Ok(())
     }
 
     #[test]
