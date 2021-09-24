@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * record: `Record::read_name` is now `Record::name`.
+
+    FASTQ record names are not necessarily read names.
+
 ## 0.1.1 - 2021-07-21
 
 ### Fixed

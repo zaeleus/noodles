@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use super::{fai::Record, reader::read_read_name};
+use super::{fai::Record, reader::read_name};
 
 const LINE_FEED: u8 = b'\n';
 
@@ -53,13 +53,13 @@ where
         self.line_buf.clear();
 
         // read name
-        self.offset += match read_read_name(&mut self.inner, &mut self.line_buf) {
+        self.offset += match read_name(&mut self.inner, &mut self.line_buf) {
             Ok(0) => return Ok(None),
             Ok(n) => n as u64,
             Err(e) => return Err(e),
         };
 
-        let read_name = String::from_utf8(self.line_buf.clone())
+        let name = String::from_utf8(self.line_buf.clone())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         // sequence
@@ -82,7 +82,7 @@ where
         self.offset += read_line(&mut self.inner, &mut self.line_buf)? as u64;
 
         Ok(Some(Record::new(
-            read_name,
+            name,
             line_bases,
             sequence_offset,
             line_bases,

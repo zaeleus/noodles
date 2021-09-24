@@ -58,7 +58,7 @@ where
     /// let mut record = fastq::Record::default();
     /// reader.read_record(&mut record)?;
     ///
-    /// assert_eq!(record.read_name(), b"r0");
+    /// assert_eq!(record.name(), b"r0");
     /// assert_eq!(record.sequence(), b"ATCG");
     /// assert_eq!(record.quality_scores(), b"NDLS");
     /// Ok::<(), io::Error>(())
@@ -66,7 +66,7 @@ where
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         record.clear();
 
-        let mut len = match read_read_name(&mut self.inner, record.read_name_mut()) {
+        let mut len = match read_name(&mut self.inner, record.name_mut()) {
             Ok(0) => return Ok(0),
             Ok(n) => n,
             Err(e) => return Err(e),
@@ -131,7 +131,7 @@ where
     }
 }
 
-pub(crate) fn read_read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+pub(crate) fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -217,20 +217,20 @@ dcba
     }
 
     #[test]
-    fn test_read_read_name() -> io::Result<()> {
+    fn test_read_name() -> io::Result<()> {
         let mut buf = Vec::new();
 
         let data = b"@r0\n";
         let mut reader = &data[..];
         buf.clear();
-        read_read_name(&mut reader, &mut buf)?;
+        read_name(&mut reader, &mut buf)?;
         assert_eq!(buf, b"r0");
 
         let data = b"r0\n";
         let mut reader = &data[..];
         buf.clear();
         assert!(matches!(
-            read_read_name(&mut reader, &mut buf),
+            read_name(&mut reader, &mut buf),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

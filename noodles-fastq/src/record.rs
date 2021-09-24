@@ -3,7 +3,7 @@ use std::fmt;
 /// A FASTQ record.
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Record {
-    read_name: Vec<u8>,
+    name: Vec<u8>,
     sequence: Vec<u8>,
     quality_scores: Vec<u8>,
 }
@@ -17,20 +17,20 @@ impl Record {
     /// use noodles_fastq::Record;
     /// let record = Record::new("r0", "AGCT", "NDLS");
     /// ```
-    pub fn new<S, T, U>(read_name: S, sequence: T, quality_scores: U) -> Self
+    pub fn new<S, T, U>(name: S, sequence: T, quality_scores: U) -> Self
     where
         S: Into<Vec<u8>>,
         T: Into<Vec<u8>>,
         U: Into<Vec<u8>>,
     {
         Self {
-            read_name: read_name.into(),
+            name: name.into(),
             sequence: sequence.into(),
             quality_scores: quality_scores.into(),
         }
     }
 
-    /// Returns the read name of the record.
+    /// Returns the name of the record.
     ///
     /// # Examples
     ///
@@ -39,12 +39,26 @@ impl Record {
     /// let record = Record::new("r0", "AGCT", "NDLS");
     /// assert_eq!(record.read_name(), b"r0");
     /// ```
+    #[deprecated(since = "0.2.0", note = "Use `Record::name` instead.")]
     pub fn read_name(&self) -> &[u8] {
-        &self.read_name
+        self.name()
     }
 
-    pub(crate) fn read_name_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.read_name
+    /// Returns the name of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert_eq!(record.name(), b"r0");
+    /// ```
+    pub fn name(&self) -> &[u8] {
+        &self.name
+    }
+
+    pub(crate) fn name_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.name
     }
 
     /// Returns the sequence of the record.
@@ -83,7 +97,7 @@ impl Record {
 
     // Truncates all field buffers to 0.
     pub(crate) fn clear(&mut self) {
-        self.read_name.clear();
+        self.name.clear();
         self.sequence.clear();
         self.quality_scores.clear();
     }
@@ -93,7 +107,7 @@ impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("@")?;
 
-        for &b in self.read_name() {
+        for &b in self.name() {
             write!(f, "{}", b as char)?;
         }
 
@@ -132,7 +146,7 @@ mod tests {
         let mut record = Record::new("r0", "AGCT", "NDLS");
         record.clear();
 
-        assert!(record.read_name().is_empty());
+        assert!(record.name().is_empty());
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());
     }
