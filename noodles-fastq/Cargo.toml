@@ -10,9 +10,10 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-fastq"
 
 [features]
-async = ["tokio"]
+async = ["futures", "tokio"]
 
 [dependencies]
+futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
 tokio = { version = "1.10.0", optional = true, features = ["io-util"] }
 
 [dev-dependencies]

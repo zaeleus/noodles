@@ -1,3 +1,4 @@
+use futures::{stream, Stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncReadExt};
 
 use crate::Record;
@@ -50,6 +51,39 @@ where
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, record).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_fastq as fastq;
+    ///
+    /// let data = b"@r0\nATCG\n+\nNDLS\n";
+    /// let mut reader = fastq::AsyncReader::new(&data[..]);
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        Box::pin(stream::try_unfold(
+            (&mut self.inner, Record::default()),
+            |(mut reader, mut buf)| async {
+                read_record(&mut reader, &mut buf).await.map(|n| match n {
+                    0 => None,
+                    _ => Some((buf.clone(), (reader, buf))),
+                })
+            },
+        ))
     }
 }
 
