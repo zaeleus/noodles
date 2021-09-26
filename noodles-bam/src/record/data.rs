@@ -22,10 +22,9 @@ impl<'a> Data<'a> {
     /// ```
     /// use noodles_bam::record::Data;
     ///
-    /// // NH:i:1  RG:Z:rg0
     /// let raw_data = [
-    ///     0x4e, 0x48, 0x69, 0x01, 0x00, 0x00, 0x00,
-    ///     0x52, 0x47, 0x5a, 0x72, 0x67, 0x30, 0x00,
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
     /// ];
     /// let data = Data::new(&raw_data);
     /// ```
@@ -42,10 +41,9 @@ impl<'a> Data<'a> {
     /// use noodles_bam::record::{data::{field::Value, Field}, Data};
     /// use noodles_sam::record::data::field::Tag;
     ///
-    /// // NH:i:1  RG:Z:rg0
     /// let raw_data = [
-    ///     0x4e, 0x48, 0x69, 0x01, 0x00, 0x00, 0x00,
-    ///     0x52, 0x47, 0x5a, 0x72, 0x67, 0x30, 0x00,
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
     /// ];
     /// let data = Data::new(&raw_data);
     ///
@@ -126,8 +124,8 @@ mod tests {
         };
 
         let raw_data = [
-            0x4e, 0x48, 0x69, 0x01, 0x00, 0x00, 0x00, // NH:i:1
-            0x52, 0x47, 0x5a, 0x72, 0x67, 0x30, 0x00, // RG:Z:rg0
+            b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+            b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
         ];
         let data = Data::new(&raw_data);
 
