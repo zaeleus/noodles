@@ -59,7 +59,7 @@ impl Record {
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
     /// ```
-    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
+    #[deprecated(since = "0.2.0", note = "Use `name` instead.")]
     pub fn reference_sequence_name(&self) -> &str {
         self.definition.name()
     }
