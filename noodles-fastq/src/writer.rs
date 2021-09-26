@@ -53,13 +53,40 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        self.inner.write_all(b"@")?;
-        self.inner.write_all(record.name())?;
-        self.inner.write_all(b"\n")?;
-        self.inner.write_all(record.sequence())?;
-        self.inner.write_all(b"\n+\n")?;
-        self.inner.write_all(record.quality_scores())?;
-        self.inner.write_all(b"\n")?;
+        write_record(&mut self.inner, record)
+    }
+}
+
+fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(b"@")?;
+    writer.write_all(record.name())?;
+    writer.write_all(b"\n")?;
+
+    writer.write_all(record.sequence())?;
+    writer.write_all(b"\n+\n")?;
+
+    writer.write_all(record.quality_scores())?;
+    writer.write_all(b"\n")?;
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_record() -> io::Result<()> {
+        let record = Record::new("r0", "ACGT", "NDLS");
+
+        let mut buf = Vec::new();
+        write_record(&mut buf, &record)?;
+
+        let expected = b"@r0\nACGT\n+\nNDLS\n";
+        assert_eq!(buf, expected);
 
         Ok(())
     }
