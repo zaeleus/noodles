@@ -1,15 +1,13 @@
 //! BAM record data and fields.
 
 pub mod field;
-pub mod reader;
+mod fields;
 
-pub use self::{field::Field, reader::Reader};
+pub use self::{field::Field, fields::Fields};
 
 use std::{convert::TryFrom, error, fmt, ops::Deref};
 
 use noodles_sam as sam;
-
-use self::reader::Fields;
 
 /// BAM record data.
 ///
@@ -63,8 +61,7 @@ impl<'a> Data<'a> {
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn fields(&self) -> Fields<&[u8]> {
-        let reader = Reader::new(self.0);
-        reader.fields()
+        Fields::new(self.0)
     }
 }
 

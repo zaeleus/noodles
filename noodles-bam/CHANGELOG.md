@@ -1,5 +1,11 @@
 # Changelog
 
+### Removed
+
+  * record/data: Remove `Reader`.
+
+    This moves the fields iterator up a module to `bam::record::data`.
+
 ## 0.5.1 - 2021-09-23
 
 ### Fixed
