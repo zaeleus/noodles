@@ -66,8 +66,8 @@ where
 {
     writeln!(
         writer,
-        "{reference_sequence_name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
-        reference_sequence_name = record.reference_sequence_name(),
+        "{name}\t{len}\t{offset}\t{line_bases}\t{line_width}",
+        name = record.name(),
         len = record.len(),
         offset = record.offset(),
         line_bases = record.line_bases(),

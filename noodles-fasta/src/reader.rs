@@ -346,7 +346,7 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
     if let Some(r) = region.as_mapped() {
         let i = index
             .iter()
-            .position(|r| r.reference_sequence_name() == region.name())
+            .position(|r| r.name() == region.name())
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,

@@ -10,7 +10,7 @@ const MAX_FIELDS: usize = 5;
 /// A FASTA index record.
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    reference_sequence_name: String,
+    name: String,
     len: u64,
     offset: u64,
     line_bases: u64,
@@ -20,15 +20,9 @@ pub struct Record {
 #[allow(clippy::len_without_is_empty)]
 impl Record {
     /// Creates a FASTA index record.
-    pub fn new(
-        reference_sequence_name: String,
-        len: u64,
-        offset: u64,
-        line_bases: u64,
-        line_width: u64,
-    ) -> Self {
+    pub fn new(name: String, len: u64, offset: u64, line_bases: u64, line_width: u64) -> Self {
         Self {
-            reference_sequence_name,
+            name,
             len,
             offset,
             line_bases,
@@ -37,8 +31,14 @@ impl Record {
     }
 
     /// Returns the reference sequence name.
+    #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
     pub fn reference_sequence_name(&self) -> &str {
-        &self.reference_sequence_name
+        self.name()
+    }
+
+    /// Returns the record name.
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Returns the length of the sequence.
@@ -95,14 +95,14 @@ impl FromStr for Record {
 
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let reference_sequence_name = parse_string(&mut fields, Field::ReferenceSequenceName)?;
+        let name = parse_string(&mut fields, Field::Name)?;
         let len = parse_u64(&mut fields, Field::Length)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let line_bases = parse_u64(&mut fields, Field::LineBases)?;
         let line_width = parse_u64(&mut fields, Field::LineWidth)?;
 
         Ok(Self {
-            reference_sequence_name,
+            name,
             len,
             offset,
             line_bases,

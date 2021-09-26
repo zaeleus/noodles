@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * fai/record: `Record::reference_sequence_name` is now `Record::name`.
+
+    FASTA records are not necessarily reference sequences.
+
 ## 0.2.4 - 2021-09-23
 
 ### Fixed
