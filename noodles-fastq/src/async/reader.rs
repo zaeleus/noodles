@@ -109,8 +109,10 @@ async fn read_name<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
+    const NAME_PREFIX: u8 = b'@';
+
     match reader.read_u8().await {
-        Ok(b'@') => read_line(reader, buf).await.map(|n| n + 1),
+        Ok(NAME_PREFIX) => read_line(reader, buf).await.map(|n| n + 1),
         Ok(_) => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid name prefix",
