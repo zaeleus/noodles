@@ -49,11 +49,15 @@ impl<'a> Data<'a> {
     ///
     /// let mut fields = data.fields();
     ///
-    /// let field = fields.next().unwrap()?;
-    /// assert_eq!(field, Field::new(Tag::AlignmentHitCount, Value::Int32(1)));
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some(Field::new(Tag::AlignmentHitCount, Value::Int32(1)))
+    /// );
     ///
-    /// let field = fields.next().unwrap()?;
-    /// assert_eq!(field, Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))));
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some(Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))))
+    /// );
     ///
     /// assert!(fields.next().is_none());
     /// # Ok::<(), io::Error>(())
