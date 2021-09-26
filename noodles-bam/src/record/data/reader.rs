@@ -103,9 +103,6 @@ where
     fn read_field(&mut self) -> io::Result<Option<Field>> {
         use crate::reader::record::data::read_field;
 
-        match read_field(&mut self.inner) {
-            Ok(field) => Ok(Some(field)),
-            Err(_) => Ok(None),
-        }
+        read_field(&mut self.inner)
     }
 }
