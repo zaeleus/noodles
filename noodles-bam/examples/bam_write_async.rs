@@ -13,8 +13,7 @@ use tokio::io;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let stdout = io::stdout();
-    let mut writer = bam::AsyncWriter::new(stdout);
+    let mut writer = bam::AsyncWriter::new(io::stdout());
 
     let header = sam::Header::builder()
         .set_header(Default::default())

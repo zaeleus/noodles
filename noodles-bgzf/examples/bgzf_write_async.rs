@@ -15,9 +15,7 @@ async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).await?;
-
-    let stdout = io::stdout();
-    let mut writer = bgzf::AsyncWriter::new(stdout);
+    let mut writer = bgzf::AsyncWriter::new(io::stdout());
 
     io::copy(&mut reader, &mut writer).await?;
 
