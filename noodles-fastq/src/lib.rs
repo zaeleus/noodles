@@ -40,7 +40,7 @@ mod writer;
 pub use self::{indexer::Indexer, reader::Reader, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
-pub use self::r#async::Reader as AsyncReader;
+pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
 
 use std::{
     fs::File,

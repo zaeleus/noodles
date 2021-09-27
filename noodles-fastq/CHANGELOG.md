@@ -6,7 +6,9 @@
 
   * async: Add async reader (`fastq::AsyncReader`).
 
-    The async reader can be enabled with the `async` feature.
+  * async: Add async writer (`fastq::AsyncWriter`).
+
+    Async I/O can be enabled with the `async` feature.
 
 ### Deprecated
 
