@@ -92,16 +92,16 @@ where
             ..Default::default()
         };
 
-        self.read_positional_data(&mut record)?;
+        let read_length = self.read_positional_data(&mut record)?;
         self.read_read_names(&mut record)?;
-        self.read_mate_data(&mut record)?;
+        self.read_mate_data(&mut record, bam_bit_flags, cram_bit_flags)?;
 
         record.tags = self.read_tag_data()?;
 
-        if record.bam_flags().is_unmapped() {
-            self.read_unmapped_read(&mut record)?;
+        if bam_bit_flags.is_unmapped() {
+            self.read_unmapped_read(&mut record, cram_bit_flags, read_length)?;
         } else {
-            self.read_mapped_read(&mut record)?;
+            self.read_mapped_read(&mut record, cram_bit_flags, read_length)?;
         }
 
         self.prev_alignment_start = record.alignment_start();
@@ -139,7 +139,7 @@ where
         .map(Flags::from)
     }
 
-    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<()> {
+    fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
         let reference_id = if self.reference_sequence_id.is_many() {
             self.read_reference_id()?
         } else {
@@ -155,11 +155,13 @@ where
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
             };
 
-        record.read_length = self.read_read_length()?;
+        let read_length = self.read_read_length()?;
+        record.read_length = read_length;
+
         record.alignment_start = self.read_alignment_start()?;
         record.read_group = self.read_read_group()?;
 
-        Ok(())
+        Ok(read_length)
     }
 
     fn read_reference_id(&mut self) -> io::Result<Itf8> {
@@ -272,21 +274,25 @@ where
             })
     }
 
-    fn read_mate_data(&mut self, record: &mut Record) -> io::Result<()> {
-        let flags = record.flags();
-
+    fn read_mate_data(
+        &mut self,
+        record: &mut Record,
+        mut bam_flags: sam::record::Flags,
+        flags: Flags,
+    ) -> io::Result<()> {
         if flags.is_detached() {
-            record.next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+            let next_mate_bit_flags = self.read_next_mate_bit_flags()?;
+            record.next_mate_bit_flags = next_mate_bit_flags;
 
-            let next_mate_flags = record.next_mate_flags();
-
-            if next_mate_flags.is_on_negative_strand() {
-                record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+            if next_mate_bit_flags.is_on_negative_strand() {
+                bam_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
-            if next_mate_flags.is_unmapped() {
-                record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+            if next_mate_bit_flags.is_unmapped() {
+                bam_flags |= sam::record::Flags::MATE_UNMAPPED;
             }
+
+            record.bam_bit_flags = bam_flags;
 
             let preservation_map = self.compression_header.preservation_map();
 
@@ -482,14 +488,17 @@ where
         )
     }
 
-    fn read_mapped_read(&mut self, record: &mut Record) -> io::Result<()> {
-        let read_features_len = self.read_number_of_read_features()?;
-
-        record.features.clear();
+    fn read_mapped_read(
+        &mut self,
+        record: &mut Record,
+        flags: Flags,
+        read_length: usize,
+    ) -> io::Result<()> {
+        let feature_count = self.read_number_of_read_features()?;
 
         let mut prev_position = 0;
 
-        for _ in 0..read_features_len {
+        for _ in 0..feature_count {
             let feature = self.read_feature(prev_position)?;
             prev_position = feature.position();
             record.add_feature(feature);
@@ -497,18 +506,11 @@ where
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        let flags = record.flags();
-
         if flags.are_quality_scores_stored_as_array() {
-            let read_length = record.read_length();
-            let mut scores = Vec::with_capacity(read_length);
-
             for _ in 0..read_length {
                 let score = self.read_quality_score()?;
-                scores.push(score);
+                record.quality_scores.push(score);
             }
-
-            record.quality_scores = scores;
         }
 
         Ok(())
@@ -872,27 +874,22 @@ where
         .map(sam::record::MappingQuality::from)
     }
 
-    fn read_unmapped_read(&mut self, record: &mut Record) -> io::Result<()> {
-        record.bases.clear();
-
-        let read_length = record.read_length();
-
+    fn read_unmapped_read(
+        &mut self,
+        record: &mut Record,
+        flags: Flags,
+        read_length: usize,
+    ) -> io::Result<()> {
         for _ in 0..read_length {
             let base = self.read_base()?;
             record.bases.push(base);
         }
 
-        let flags = record.flags();
-
         if flags.are_quality_scores_stored_as_array() {
-            let mut scores = Vec::with_capacity(read_length);
-
             for _ in 0..read_length {
                 let score = self.read_quality_score()?;
-                scores.push(score);
+                record.quality_scores.push(score);
             }
-
-            record.quality_scores = scores;
         }
 
         Ok(())
