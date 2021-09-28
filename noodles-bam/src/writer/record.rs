@@ -77,8 +77,8 @@ where
 
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
 
-    let flag = u16::from(record.flags());
-    writer.write_u16::<LittleEndian>(flag)?;
+    // flag
+    write_flags(writer, record.flags())?;
 
     writer.write_u32::<LittleEndian>(l_seq)?;
 
@@ -200,6 +200,14 @@ where
         .unwrap_or(UNMAPPED_BIN);
 
     writer.write_u16::<LittleEndian>(bin)
+}
+
+fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+where
+    W: Write,
+{
+    let flag = u16::from(flags);
+    writer.write_u16::<LittleEndian>(flag)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
