@@ -20,9 +20,6 @@ use crate::record::sequence::Base;
 // (4) + next_ref_id (4) + next_pos (4) + tlen (4)
 const BLOCK_HEADER_SIZE: u32 = 32;
 
-// § 4.2.1 BIN field calculation (2021-06-03)
-const UNMAPPED_BIN: u16 = 4680;
-
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 const NULL_QUALITY_SCORE: u8 = 255;
 
@@ -75,17 +72,8 @@ where
     let mapq = u8::from(record.mapping_quality());
     writer.write_u8(mapq)?;
 
-    let bin = record
-        .position()
-        .map(|v| i32::from(v) - 1)
-        .map(|start| {
-            // 0-based, [start, end)
-            let reference_len = record.cigar().reference_len() as i32;
-            let end = start + reference_len;
-            region_to_bin(start, end) as u16
-        })
-        .unwrap_or(UNMAPPED_BIN);
-    writer.write_u16::<LittleEndian>(bin)?;
+    // bin
+    write_bin(writer, record)?;
 
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
 
@@ -180,6 +168,27 @@ where
         .unwrap_or(UNMAPPED_POSITION);
 
     writer.write_i32::<LittleEndian>(pos)
+}
+
+fn write_bin<W>(writer: &mut W, record: &sam::Record) -> io::Result<()>
+where
+    W: Write,
+{
+    // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
+    // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
+    const UNMAPPED_BIN: u16 = 4680;
+
+    let bin = record
+        .position()
+        .map(|p| i32::from(p) - 1)
+        .map(|start| {
+            let reference_len = record.cigar().reference_len() as i32;
+            let end = start + reference_len;
+            region_to_bin(start, end) as u16
+        })
+        .unwrap_or(UNMAPPED_BIN);
+
+    writer.write_u16::<LittleEndian>(bin)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
