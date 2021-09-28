@@ -469,8 +469,20 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
-        // TODO
-        Builder::new().build().unwrap()
+        Self {
+            read_name: Default::default(),
+            flags: Flags::UNMAPPED,
+            reference_sequence_name: Default::default(),
+            position: Default::default(),
+            mapping_quality: MappingQuality::default(),
+            cigar: Cigar::default(),
+            mate_reference_sequence_name: Default::default(),
+            mate_position: Default::default(),
+            template_length: Default::default(),
+            sequence: Sequence::default(),
+            quality_scores: QualityScores::default(),
+            data: Data::default(),
+        }
     }
 }
 
@@ -768,6 +780,24 @@ mod tests {
     use std::convert::TryFrom;
 
     use super::*;
+
+    #[test]
+    fn test_default() {
+        let record = Record::default();
+
+        assert!(record.read_name.is_none());
+        assert_eq!(record.flags, Flags::UNMAPPED);
+        assert!(record.reference_sequence_name.is_none());
+        assert!(record.position.is_none());
+        assert!(record.mapping_quality.is_none());
+        assert!(record.cigar.is_empty());
+        assert!(record.mate_reference_sequence_name.is_none());
+        assert!(record.mate_position.is_none());
+        assert_eq!(record.template_length, 0);
+        assert!(record.sequence.is_empty());
+        assert!(record.quality_scores.is_empty());
+        assert!(record.data.is_empty());
+    }
 
     #[test]
     fn test_fmt() {
