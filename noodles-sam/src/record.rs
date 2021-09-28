@@ -104,6 +104,27 @@ impl Record {
         self.read_name.as_ref()
     }
 
+    /// Returns a mutable reference to the read name.
+    ///
+    /// This is also called the query name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let mut record = sam::Record::default();
+    /// record.read_name_mut().insert("r0".parse()?);
+    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
+    ///
+    /// *record.read_name_mut() = None;
+    /// assert!(record.read_name().is_none());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
+        &mut self.read_name
+    }
+
     /// Returns the SAM flags of this record.
     ///
     /// # Examples
