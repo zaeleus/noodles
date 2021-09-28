@@ -1,8 +1,8 @@
 mod query;
-pub mod record;
+pub(crate) mod record;
 mod records;
-pub mod string_map;
-pub mod value;
+pub(crate) mod string_map;
+pub(crate) mod value;
 
 pub use self::{query::Query, records::Records};
 
