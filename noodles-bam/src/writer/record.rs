@@ -69,8 +69,8 @@ where
 
     writer.write_u8(l_read_name)?;
 
-    let mapq = u8::from(record.mapping_quality());
-    writer.write_u8(mapq)?;
+    // mapq
+    write_mapping_quality(writer, record.mapping_quality())?;
 
     // bin
     write_bin(writer, record)?;
@@ -168,6 +168,17 @@ where
         .unwrap_or(UNMAPPED_POSITION);
 
     writer.write_i32::<LittleEndian>(pos)
+}
+
+fn write_mapping_quality<W>(
+    writer: &mut W,
+    mapping_quality: sam::record::MappingQuality,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let mapq = u8::from(mapping_quality);
+    writer.write_u8(mapq)
 }
 
 fn write_bin<W>(writer: &mut W, record: &sam::Record) -> io::Result<()>
