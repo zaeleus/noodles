@@ -1,3 +1,5 @@
+//! BCF reader and iterators.
+
 mod query;
 pub(crate) mod record;
 mod records;
