@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * rans/decode/order_1: Fix overflow when reading frequencies.
+
 ## 0.5.1 - 2021-09-23
 
 ### Fixed

@@ -89,7 +89,7 @@ where
         } else {
             sym = reader.read_u8()?;
 
-            if sym < 255 && sym == last_sym + 1 {
+            if last_sym < 255 && sym == last_sym + 1 {
                 rle = reader.read_u8()?;
             }
         }
