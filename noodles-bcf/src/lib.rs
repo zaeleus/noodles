@@ -10,7 +10,11 @@ mod reader;
 mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+pub use self::{
+    reader::{Query, Reader, Records},
+    record::Record,
+    writer::Writer,
+};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
