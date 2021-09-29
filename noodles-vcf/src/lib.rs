@@ -24,16 +24,11 @@
 mod r#async;
 
 pub mod header;
-mod reader;
+pub mod reader;
 pub mod record;
 mod writer;
 
-pub use self::{
-    header::Header,
-    reader::{Query, Reader, Records},
-    record::Record,
-    writer::Writer,
-};
+pub use self::{header::Header, reader::Reader, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};
