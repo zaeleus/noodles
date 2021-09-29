@@ -69,7 +69,7 @@ where
         let landmarks = container_header.landmarks();
         let slice_count = landmarks.len();
 
-        let data_container = DataContainer::try_from(container.clone())?;
+        let data_container = DataContainer::try_from_container(container.clone())?;
 
         for (i, slice) in data_container.slices().iter().enumerate() {
             let landmark = landmarks[i];

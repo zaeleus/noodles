@@ -21,28 +21,7 @@ impl DataContainer {
         Builder::new(record_counter)
     }
 
-    pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
-        Self {
-            compression_header,
-            slices,
-        }
-    }
-
-    /// Returns the compression header.
-    pub fn compression_header(&self) -> &CompressionHeader {
-        &self.compression_header
-    }
-
-    /// Returns a list of slices.
-    pub fn slices(&self) -> &[Slice] {
-        &self.slices
-    }
-}
-
-impl TryFrom<Container> for DataContainer {
-    type Error = io::Error;
-
-    fn try_from(container: Container) -> Result<Self, Self::Error> {
+    pub(crate) fn try_from_container(container: Container) -> io::Result<Self> {
         let blocks = container.blocks();
 
         let compression_header = blocks
@@ -75,5 +54,22 @@ impl TryFrom<Container> for DataContainer {
             compression_header,
             slices,
         })
+    }
+
+    pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
+        Self {
+            compression_header,
+            slices,
+        }
+    }
+
+    /// Returns the compression header.
+    pub fn compression_header(&self) -> &CompressionHeader {
+        &self.compression_header
+    }
+
+    /// Returns a list of slices.
+    pub fn slices(&self) -> &[Slice] {
+        &self.slices
     }
 }
