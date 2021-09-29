@@ -50,10 +50,7 @@ impl DataContainer {
             start += block_count;
         }
 
-        Ok(DataContainer {
-            compression_header,
-            slices,
-        })
+        Ok(Self::new(compression_header, slices))
     }
 
     pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {
