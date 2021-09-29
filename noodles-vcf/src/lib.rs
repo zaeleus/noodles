@@ -24,7 +24,7 @@
 mod r#async;
 
 pub mod header;
-mod reader;
+pub mod reader;
 pub mod record;
 mod writer;
 

@@ -6,7 +6,7 @@
 mod r#async;
 
 pub mod header;
-mod reader;
+pub mod reader;
 mod record;
 mod writer;
 
