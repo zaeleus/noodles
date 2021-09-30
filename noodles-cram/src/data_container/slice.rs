@@ -49,6 +49,27 @@ impl Slice {
         &self.external_blocks
     }
 
+    /// Reads and returns a list of raw records in this slice.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    ///
+    /// let data = [];
+    /// let mut reader = cram::Reader::new(&data[..]);
+    /// reader.read_file_definition()?;
+    /// reader.read_file_header()?;
+    ///
+    /// while let Some(container) = reader.read_data_container()? {
+    ///     for slice in container.slices() {
+    ///         let records = slice.records(container.compression_header())?;
+    ///         // ...
+    ///     }
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn records(&self, compression_header: &CompressionHeader) -> io::Result<Vec<Record>> {
         use crate::reader::record::ExternalDataReaders;
 
@@ -88,6 +109,28 @@ impl Slice {
         Ok(records)
     }
 
+    /// Resolves mate records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    ///
+    /// let data = [];
+    /// let mut reader = cram::Reader::new(&data[..]);
+    /// reader.read_file_definition()?;
+    /// reader.read_file_header()?;
+    ///
+    /// while let Some(container) = reader.read_data_container()? {
+    ///     for slice in container.slices() {
+    ///         let records = slice.records(container.compression_header())?;
+    ///         let records = slice.resolve_mates(records);
+    ///         // ...
+    ///     }
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
         use std::cell::RefCell;
 
