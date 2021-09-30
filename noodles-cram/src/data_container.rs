@@ -1,3 +1,5 @@
+//! CRAM data container and fields.
+
 pub(crate) mod builder;
 pub(crate) mod compression_header;
 pub(crate) mod slice;
