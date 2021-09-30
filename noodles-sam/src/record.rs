@@ -146,6 +146,28 @@ impl Record {
         self.flags
     }
 
+    /// Returns a mutable reference to the SAM flags.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::Flags};
+    ///
+    /// let mut record = sam::Record::builder()
+    ///     .set_flags(Flags::PAIRED | Flags::READ_1)
+    ///     .build()?;
+    /// record.flags_mut().set(Flags::DUPLICATE, true);
+    /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1 | Flags::DUPLICATE);
+    ///
+    /// record.flags_mut().set(Flags::PAIRED | Flags::QC_FAIL, false);
+    /// assert_eq!(record.flags(), Flags::READ_1 | Flags::DUPLICATE);
+    ///
+    /// # Ok::<(), sam::record::builder::BuildError>(())
+    /// ```
+    pub fn flags_mut(&mut self) -> &mut Flags {
+        &mut self.flags
+    }
+
     /// Returns the reference sequence name of this record.
     ///
     /// # Examples
