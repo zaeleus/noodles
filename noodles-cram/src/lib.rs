@@ -10,7 +10,7 @@ mod bit_reader;
 mod bit_writer;
 pub(crate) mod container;
 pub mod crai;
-mod data_container;
+pub mod data_container;
 pub mod file_definition;
 mod huffman;
 mod num;
