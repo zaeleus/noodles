@@ -67,6 +67,54 @@ where
         Self { inner: reader }
     }
 
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let reader = cram::Reader::new(&data[..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let mut reader = cram::Reader::new(&data[..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Unwraps and returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_cram as cram;
+    /// let data = [];
+    /// let reader = cram::Reader::new(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the CRAM file definition.
     ///
     /// The CRAM magic number is also checked.

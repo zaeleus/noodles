@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/reader: Add common methods to access the underlying reader:
+    `get_ref`, `get_mut`, and `into_inner`.
+
 ### Fixed
 
   * rans/decode/order_1: Fix overflow when reading frequencies.
