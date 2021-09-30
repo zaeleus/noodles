@@ -3,10 +3,7 @@ pub(crate) mod header;
 
 pub use self::{builder::Builder, header::Header};
 
-use std::{
-    convert::TryFrom,
-    io::{self, Cursor},
-};
+use std::io::{self, Cursor};
 
 use noodles_sam as sam;
 
@@ -204,31 +201,4 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
     let start = record.alignment_start().map(i32::from).unwrap_or_default();
     let end = mate.alignment_end();
     end - start + 1
-}
-
-impl TryFrom<&[Block]> for Slice {
-    type Error = io::Error;
-
-    fn try_from(blocks: &[Block]) -> Result<Self, Self::Error> {
-        let mut it = blocks.iter();
-
-        let header_block = it
-            .next()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing header block"))?;
-        let data = header_block.decompressed_data()?;
-        let mut reader = &data[..];
-        let header = crate::reader::data_container::slice::read_header(&mut reader)?;
-
-        let core_data_block = it
-            .next()
-            .cloned()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing core data block"))?;
-
-        let external_block_count = (header.block_count() - 1) as usize;
-        let external_blocks: Vec<_> = it.take(external_block_count).cloned().collect();
-
-        assert_eq!(external_block_count, external_blocks.len());
-
-        Ok(Slice::new(header, core_data_block, external_blocks))
-    }
 }

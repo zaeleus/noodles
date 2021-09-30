@@ -56,20 +56,13 @@ where
     let mut index = Vec::new();
     let mut container_position = reader.position()?;
 
-    loop {
-        let container = reader.read_container()?;
-
-        if container.is_eof() {
-            break;
-        }
-
-        let container_header = container.header();
+    while let Some((container_header, data_container)) =
+        reader.read_data_container_with_container_header()?
+    {
         let container_len = container_header.len();
 
         let landmarks = container_header.landmarks();
         let slice_count = landmarks.len();
-
-        let data_container = DataContainer::try_from_container(container.clone())?;
 
         for (i, slice) in data_container.slices().iter().enumerate() {
             let landmark = landmarks[i];

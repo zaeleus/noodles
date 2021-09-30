@@ -8,10 +8,6 @@ pub use self::{compression_header::CompressionHeader, slice::Slice};
 
 pub(crate) use self::builder::Builder;
 
-use std::{convert::TryFrom, io};
-
-use super::Container;
-
 /// A CRAM data container.
 pub struct DataContainer {
     compression_header: CompressionHeader,
@@ -21,38 +17,6 @@ pub struct DataContainer {
 impl DataContainer {
     pub(crate) fn builder(record_counter: i64) -> Builder {
         Builder::new(record_counter)
-    }
-
-    pub(crate) fn try_from_container(container: Container) -> io::Result<Self> {
-        let blocks = container.blocks();
-
-        let compression_header = blocks
-            .first()
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "missing compression header block",
-                )
-            })
-            .and_then(CompressionHeader::try_from)?;
-
-        let mut start = 1;
-
-        let slices_len = container.header().landmarks().len();
-        let mut slices = Vec::with_capacity(slices_len);
-
-        for _ in 0..slices_len {
-            let slice = Slice::try_from(&blocks[start..])?;
-
-            // (core data block + external blocks) + header block
-            let block_count = slice.header().block_count() + 1;
-
-            slices.push(slice);
-
-            start += block_count;
-        }
-
-        Ok(Self::new(compression_header, slices))
     }
 
     pub(crate) fn new(compression_header: CompressionHeader, slices: Vec<Slice>) -> Self {

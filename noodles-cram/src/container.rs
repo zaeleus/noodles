@@ -138,10 +138,6 @@ impl Container {
     pub fn blocks(&self) -> &[Block] {
         &self.blocks
     }
-
-    pub fn is_eof(&self) -> bool {
-        self.header.is_eof()
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

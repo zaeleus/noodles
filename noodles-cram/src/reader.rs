@@ -18,7 +18,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::container::read_container;
-use super::{container::Block, file_definition::Version, Container, FileDefinition, MAGIC_NUMBER};
+use super::{container::Block, file_definition::Version, FileDefinition, MAGIC_NUMBER};
 
 /// A CRAM reader.
 ///
@@ -172,8 +172,11 @@ where
         }
     }
 
-    pub(crate) fn read_container(&mut self) -> io::Result<Container> {
-        read_container(&mut self.inner)
+    pub(crate) fn read_data_container_with_container_header(
+        &mut self,
+    ) -> io::Result<Option<(crate::container::Header, DataContainer)>> {
+        use self::data_container::read_data_container_with_container_header;
+        read_data_container_with_container_header(&mut self.inner)
     }
 
     /// Reads a data container.

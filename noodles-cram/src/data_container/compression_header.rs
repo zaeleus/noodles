@@ -12,10 +12,6 @@ pub(crate) use self::{
     tag_encoding_map::TagEncodingMap,
 };
 
-use std::{convert::TryFrom, io};
-
-use crate::container::Block;
-
 /// A CRAM data container compression header.
 ///
 /// The compression header has three maps with information about how the data is compressed: a
@@ -54,17 +50,5 @@ impl CompressionHeader {
 
     pub(crate) fn tag_encoding_map(&self) -> &TagEncodingMap {
         &self.tag_encoding_map
-    }
-}
-
-impl TryFrom<&Block> for CompressionHeader {
-    type Error = io::Error;
-
-    fn try_from(block: &Block) -> Result<Self, Self::Error> {
-        use crate::reader::data_container::compression_header::read_compression_header;
-
-        let data = block.decompressed_data()?;
-        let mut reader = &data[..];
-        read_compression_header(&mut reader)
     }
 }
