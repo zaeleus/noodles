@@ -362,6 +362,21 @@ impl Record {
         self.template_length
     }
 
+    /// Returns a mutable reference to the template length.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::MappingQuality};
+    ///
+    /// let mut record = sam::Record::default();
+    /// *record.template_length_mut() = 101;
+    /// assert_eq!(record.template_length(), 101);
+    /// ```
+    pub fn template_length_mut(&mut self) -> &mut i32 {
+        &mut self.template_length
+    }
+
     /// Returns the bases in the sequence of this record.
     ///
     /// # Examples
