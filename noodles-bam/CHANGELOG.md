@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2 - 2021-10-01
+
+### Fixed
+
+  * Sync dependencies.
+
 ### Removed
 
   * record/data: Remove `Reader`.
