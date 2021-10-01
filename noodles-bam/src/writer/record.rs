@@ -92,8 +92,8 @@ where
     // next_pos
     write_position(writer, record.mate_position())?;
 
-    let tlen = record.template_length();
-    writer.write_i32::<LittleEndian>(tlen)?;
+    // tlen
+    write_template_length(writer, record.template_length())?;
 
     writer.write_all(read_name)?;
 
@@ -208,6 +208,13 @@ where
 {
     let flag = u16::from(flags);
     writer.write_u16::<LittleEndian>(flag)
+}
+
+fn write_template_length<W>(writer: &mut W, tlen: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_i32::<LittleEndian>(tlen)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
