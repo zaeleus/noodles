@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * Increase visibility of `reader` module ([#37]).
+
+    This allows public access to the reader iterators `Records` and `Query`.
+
+[#37]: https://github.com/zaeleus/noodles/pull/37
+
 ## 0.5.2 - 2021-09-19
 
 ### Fixed
