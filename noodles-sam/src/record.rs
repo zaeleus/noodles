@@ -233,6 +233,24 @@ impl Record {
         self.mapping_quality
     }
 
+    /// Returns a mutable reference to the mapping quality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, record::MappingQuality};
+    ///
+    /// let mut record = sam::Record::default();
+    /// *record.mapping_quality_mut() = MappingQuality::from(8);
+    /// assert_eq!(*record.mapping_quality(), Some(8));
+    ///
+    /// *record.mapping_quality_mut() = MappingQuality::from(255);
+    /// assert!(record.mapping_quality().is_none());
+    /// ```
+    pub fn mapping_quality_mut(&mut self) -> &mut MappingQuality {
+        &mut self.mapping_quality
+    }
+
     /// Returns the CIGAR operations that describe how the read as mapped.
     ///
     /// # Examples

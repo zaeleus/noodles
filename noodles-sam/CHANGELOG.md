@@ -4,9 +4,9 @@
 
 ### Added
 
-  * sam/record: Add mutable getter for read name (`Record::read_name_mut`).
-
-  * sam/record: Add mutable getter for the sam flags (`Record::flags_mut`).
+  * sam/record: Add mutable getters for flags (`Record::flags_mut`), read name
+    (`Record::read_name_mut`), and mapping quality
+    (`Record::mapping_quality_mut`).
 
 ## 0.4.0 - 2021-09-23
 
