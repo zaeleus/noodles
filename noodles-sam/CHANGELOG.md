@@ -4,9 +4,12 @@
 
 ### Added
 
-  * sam/record: Add mutable getters for flags (`Record::flags_mut`), read name
-    (`Record::read_name_mut`), mapping quality (`Record::mapping_quality_mut`),
-    and template length (`Record::template_length_mut`).
+  * sam/record: Add mutable getters for flags (`Record::flags_mut`; [#39]),
+    read name (`Record::read_name_mut`), mapping quality
+    (`Record::mapping_quality_mut`), and template length
+    (`Record::template_length_mut`).
+
+[#39]: https://github.com/zaeleus/noodles/pull/39
 
 ## 0.4.0 - 2021-09-23
 
