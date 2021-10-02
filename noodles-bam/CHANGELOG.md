@@ -1,10 +1,14 @@
 # Changelog
 
-## 0.5.2 - 2021-10-01
+## 0.6.0 - 2021-10-02
 
-### Fixed
+### Changed
 
-  * Sync dependencies.
+  * Bump minor version due to removal in 0.5.2.
+
+## 0.5.2 - 2021-10-01 
+
+This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Removed
 
