@@ -67,11 +67,10 @@ where
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # use std::{fs::File, io};
+    /// ```
     /// use noodles_bam as bam;
-    /// let mut _reader = File::open("sample.bam").map(bam::Reader::new)?;
-    /// # Ok::<(), io::Error>(())
+    /// let data = [];
+    /// let reader = bam::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
         Self {
