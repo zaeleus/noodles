@@ -5,11 +5,8 @@ use std::convert::TryFrom;
 use noodles_fasta as fasta;
 use noodles_sam::record::Cigar;
 
-use crate::data_container::{
-    compression_header::preservation_map::substitution_matrix::Base, CompressionHeader,
-};
-
 use super::Feature;
+use crate::data_container::CompressionHeader;
 
 /// Resolves the read bases.
 pub fn resolve_bases(
@@ -19,64 +16,88 @@ pub fn resolve_bases(
     alignment_start: i32,
     read_len: usize,
 ) -> Vec<u8> {
-    let mut buf = vec![b'-'; read_len];
-
-    let mut ref_pos = (alignment_start - 1) as usize;
-    let mut read_pos = 0;
-
     let reference_sequence = reference_sequence_record.sequence();
     let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
-    for feature in features {
-        let feature_pos = feature.position() as usize;
+    internal::resolve_bases(
+        reference_sequence,
+        substitution_matrix,
+        features,
+        alignment_start,
+        read_len,
+    )
+}
 
-        while read_pos < feature_pos - 1 {
-            buf[read_pos] = reference_sequence[ref_pos];
-            ref_pos += 1;
-            read_pos += 1;
-        }
+mod internal {
+    use crate::data_container::compression_header::preservation_map::SubstitutionMatrix;
 
-        match feature {
-            Feature::Substitution(_, code) => {
-                let base = reference_sequence[ref_pos] as char;
-                let reference_base = Base::try_from(base).unwrap_or_default();
+    use super::*;
 
-                let read_base = substitution_matrix.get(reference_base, *code);
-                buf[read_pos] = char::from(read_base) as u8;
+    pub(super) fn resolve_bases(
+        reference_sequence: &[u8],
+        substitution_matrix: &SubstitutionMatrix,
+        features: &[Feature],
+        alignment_start: i32,
+        read_length: usize,
+    ) -> Vec<u8> {
+        use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
+        let mut buf = vec![b'-'; read_length];
+
+        let mut ref_pos = (alignment_start - 1) as usize;
+        let mut read_pos = 0;
+
+        for feature in features {
+            let feature_pos = feature.position() as usize;
+
+            while read_pos < feature_pos - 1 {
+                buf[read_pos] = reference_sequence[ref_pos];
                 ref_pos += 1;
                 read_pos += 1;
             }
-            Feature::Insertion(_, bases) => {
-                for &base in bases {
-                    buf[read_pos] = base;
+
+            match feature {
+                Feature::Substitution(_, code) => {
+                    let base = reference_sequence[ref_pos] as char;
+                    let reference_base = Base::try_from(base).unwrap_or_default();
+
+                    let read_base = substitution_matrix.get(reference_base, *code);
+                    buf[read_pos] = char::from(read_base) as u8;
+
+                    ref_pos += 1;
                     read_pos += 1;
                 }
-            }
-            Feature::Deletion(_, len) => {
-                ref_pos += *len as usize;
-            }
-            Feature::InsertBase(_, base) => {
-                buf[read_pos] = *base;
-                read_pos += 1;
-            }
-            Feature::SoftClip(_, bases) => {
-                for &base in bases {
-                    buf[read_pos] = base;
+                Feature::Insertion(_, bases) => {
+                    for &base in bases {
+                        buf[read_pos] = base;
+                        read_pos += 1;
+                    }
+                }
+                Feature::Deletion(_, len) => {
+                    ref_pos += *len as usize;
+                }
+                Feature::InsertBase(_, base) => {
+                    buf[read_pos] = *base;
                     read_pos += 1;
                 }
+                Feature::SoftClip(_, bases) => {
+                    for &base in bases {
+                        buf[read_pos] = base;
+                        read_pos += 1;
+                    }
+                }
+                Feature::HardClip(..) => {}
+                _ => todo!("resolve_bases: {:?}", feature),
             }
-            Feature::HardClip(..) => {}
-            _ => todo!("resolve_bases: {:?}", feature),
         }
-    }
 
-    for base in buf.iter_mut().skip(read_pos) {
-        *base = reference_sequence[ref_pos];
-        ref_pos += 1;
-    }
+        for base in buf.iter_mut().skip(read_pos) {
+            *base = reference_sequence[ref_pos];
+            ref_pos += 1;
+        }
 
-    buf
+        buf
+    }
 }
 
 /// Resolves the read features as CIGAR operations.
@@ -130,6 +151,26 @@ pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_resolve_bases() {
+        let reference_sequence = b"ACGTACGT";
+        let substitution_matrix = Default::default();
+
+        let t = |features: &[Feature], expected: &[u8]| {
+            let actual =
+                internal::resolve_bases(reference_sequence, &substitution_matrix, features, 1, 4);
+            assert_eq!(actual, expected);
+        };
+
+        t(&[], b"ACGT");
+        t(&[Feature::Substitution(2, 1)], b"AGGT");
+        t(&[Feature::Insertion(2, b"GG".to_vec())], b"AGGC");
+        t(&[Feature::Deletion(2, 2)], b"ATAC");
+        t(&[Feature::InsertBase(2, b'G')], b"AGCG");
+        t(&[Feature::SoftClip(3, b"GG".to_vec())], b"ACGG");
+        t(&[Feature::HardClip(1, 2)], b"ACGT");
+    }
 
     #[test]
     fn test_resolve_features() {
