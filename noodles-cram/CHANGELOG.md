@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * record/resolve: Handle reference skip feature in sequence resolver.
+
 ## 0.6.1 - 2021-10-02
 
 ### Fixed

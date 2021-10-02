@@ -80,6 +80,9 @@ mod internal {
                     buf[read_pos] = *base;
                     read_pos += 1;
                 }
+                Feature::ReferenceSkip(_, len) => {
+                    ref_pos += *len as usize;
+                }
                 Feature::SoftClip(_, bases) => {
                     for &base in bases {
                         buf[read_pos] = base;
@@ -168,6 +171,7 @@ mod tests {
         t(&[Feature::Insertion(2, b"GG".to_vec())], b"AGGC");
         t(&[Feature::Deletion(2, 2)], b"ATAC");
         t(&[Feature::InsertBase(2, b'G')], b"AGCG");
+        t(&[Feature::ReferenceSkip(2, 2)], b"ATAC");
         t(&[Feature::SoftClip(3, b"GG".to_vec())], b"ACGG");
         t(&[Feature::HardClip(1, 2)], b"ACGT");
     }
