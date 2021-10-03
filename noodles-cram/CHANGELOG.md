@@ -16,8 +16,8 @@
 
 ### Added
 
-  * cram/reader: Add common methods to access the underlying reader:
-    `get_ref`, `get_mut`, and `into_inner`.
+  * reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut`, and `into_inner`.
 
 ### Fixed
 
