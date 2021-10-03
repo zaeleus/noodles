@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::reader::num::read_itf8;
 
-use super::{rans_advance_step, rans_get_cumulative_freq, rans_get_symbol_from_freq, rans_renorm};
+use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm};
 
 pub fn decode<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
 where
@@ -14,6 +14,8 @@ where
     let mut cumulative_freqs = vec![0; 256];
 
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
+
+    let cumulative_freqs_symbols_table = build_cumulative_freqs_symbols_table(&cumulative_freqs);
 
     let mut state = [0; 4];
     reader.read_u32_into::<LittleEndian>(&mut state)?;
@@ -27,7 +29,7 @@ where
             }
 
             let f = rans_get_cumulative_freq(state[j]);
-            let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
+            let s = cumulative_freqs_symbols_table[f as usize];
 
             output[i + j] = s;
 
@@ -83,4 +85,21 @@ where
     }
 
     Ok(())
+}
+
+fn build_cumulative_freqs_symbols_table(cumulative_freqs: &[u32]) -> [u8; 4096] {
+    let mut table = [0; 4096];
+    let mut sym = 0;
+
+    for (freq, cumulative_freq) in table.iter_mut().enumerate() {
+        let freq = freq as u32;
+
+        while sym < 255 && freq >= cumulative_freqs[(sym + 1) as usize] {
+            sym += 1;
+        }
+
+        *cumulative_freq = sym;
+    }
+
+    table
 }
