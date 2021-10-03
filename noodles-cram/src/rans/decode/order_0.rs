@@ -10,8 +10,8 @@ pub fn decode<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut freqs = vec![0; 256];
-    let mut cumulative_freqs = vec![0; 256];
+    let mut freqs = [0; 256];
+    let mut cumulative_freqs = [0; 256];
 
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
