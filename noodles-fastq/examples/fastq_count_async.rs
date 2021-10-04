@@ -2,6 +2,7 @@
 
 use std::env;
 
+use futures::TryStreamExt;
 use noodles_fastq as fastq;
 use tokio::{
     fs::File,
@@ -17,14 +18,11 @@ async fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(fastq::AsyncReader::new)?;
 
-    let mut record = fastq::Record::default();
+    let mut records = reader.records();
     let mut n = 0;
 
-    loop {
-        match reader.read_record(&mut record).await? {
-            0 => break,
-            _ => n += 1,
-        }
+    while records.try_next().await?.is_some() {
+        n += 1;
     }
 
     println!("{}", n);
