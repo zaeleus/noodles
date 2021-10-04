@@ -188,6 +188,25 @@ impl Record {
         self.reference_sequence_name.as_ref()
     }
 
+    /// Returns a mutable reference to the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let mut record = sam::Record::default();
+    /// *record.reference_sequence_name_mut() = Some("sq0".parse()?);
+    /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
+    ///
+    /// *record.reference_sequence_name_mut() = None;
+    /// assert!(record.reference_sequence_name().is_none());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn reference_sequence_name_mut(&mut self) -> &mut Option<ReferenceSequenceName> {
+        &mut self.reference_sequence_name
+    }
+
     /// Returns the start position of this record.
     ///
     /// This value is 1-based.

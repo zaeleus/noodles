@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record: Add mutable getter for reference sequence name
+    (`Record::reference_sequence_name_mut`).
+
 ## 0.5.0 - 2021-10-01
 
 ### Added
