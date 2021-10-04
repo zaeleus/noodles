@@ -230,6 +230,28 @@ impl Record {
         self.position
     }
 
+    /// Returns a mutable reference to the start position.
+    ///
+    /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_sam::{self as sam, record::Position};
+    ///
+    /// let mut record = sam::Record::default();
+    /// *record.position_mut() = Some(Position::try_from(13)?);
+    /// assert_eq!(record.position().map(i32::from), Some(13));
+    ///
+    /// *record.position_mut() = None;
+    /// assert!(record.position().is_none());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn position_mut(&mut self) -> &mut Option<Position> {
+        &mut self.position
+    }
+
     /// Returns the mapping quality of this record.
     ///
     /// Mapping quality ranges from 0 to 254, inclusive. A value of 255 means no mapping quality is
