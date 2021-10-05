@@ -2,9 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use super::{
-    order_0, rans_advance_step, rans_get_cumulative_freq, rans_get_symbol_from_freq, rans_renorm,
-};
+use super::{order_0, rans_advance_step, rans_get_cumulative_freq, rans_renorm};
 
 pub fn decode<R>(reader: &mut R, output: &mut [u8]) -> io::Result<()>
 where
@@ -15,6 +13,8 @@ where
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
+    let cumulative_freqs_symbols_tables = build_cumulative_freqs_symbols_table_1(&cumulative_freqs);
+
     let mut state = [0; 4];
     reader.read_u32_into::<LittleEndian>(&mut state)?;
 
@@ -24,7 +24,7 @@ where
     while i < output.len() / 4 {
         for j in 0..4 {
             let f = rans_get_cumulative_freq(state[j]);
-            let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j] as usize], f);
+            let s = cumulative_freqs_symbols_tables[last_syms[j] as usize][f as usize];
 
             output[i + j * (output.len() / 4)] = s;
 
@@ -45,7 +45,7 @@ where
 
     while i < output.len() {
         let f = rans_get_cumulative_freq(state[3]);
-        let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[3] as usize], f);
+        let s = cumulative_freqs_symbols_tables[last_syms[3] as usize][f as usize];
 
         output[i] = s;
 
@@ -102,4 +102,14 @@ where
     }
 
     Ok(())
+}
+
+pub fn build_cumulative_freqs_symbols_table_1(cumulative_freqs: &[Vec<u32>]) -> [[u8; 4096]; 256] {
+    let mut tables = [[0; 4096]; 256];
+
+    for (table, cumulative_freqs) in tables.iter_mut().zip(cumulative_freqs) {
+        *table = order_0::build_cumulative_freqs_symbols_table_0(cumulative_freqs);
+    }
+
+    tables
 }

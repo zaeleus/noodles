@@ -44,16 +44,6 @@ pub fn rans_get_cumulative_freq(r: u32) -> u32 {
     r & 0x0fff
 }
 
-pub fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u8 {
-    let mut sym = 0;
-
-    while sym < 255 && freq >= cumulative_freqs[(sym + 1) as usize] {
-        sym += 1;
-    }
-
-    sym
-}
-
 pub fn rans_advance_step(r: u32, c: u32, f: u32) -> u32 {
     f * (r >> 12) + (r & 0x0fff) - c
 }
