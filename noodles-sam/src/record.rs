@@ -404,6 +404,28 @@ impl Record {
         self.mate_position
     }
 
+    /// Returns a mutable reference to the start position.
+    ///
+    /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::convert::TryFrom;
+    /// use noodles_sam::{self as sam, record::Position};
+    ///
+    /// let mut record = sam::Record::default();
+    /// *record.mate_position_mut() = Some(Position::try_from(13)?);
+    /// assert_eq!(record.mate_position().map(i32::from), Some(13));
+    ///
+    /// *record.mate_position_mut() = None;
+    /// assert!(record.mate_position().is_none());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn mate_position_mut(&mut self) -> &mut Option<Position> {
+        &mut self.mate_position
+    }
+
     /// Returns the template length of this record.
     ///
     /// # Examples
