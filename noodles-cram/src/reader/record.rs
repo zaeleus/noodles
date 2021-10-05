@@ -919,8 +919,12 @@ where
             reader.read_u8()
         }
         Encoding::Huffman(alphabet, bit_lens) => {
-            let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
-            decoder.decode(core_data_reader).map(|i| i as u8)
+            if alphabet.len() == 1 {
+                Ok(alphabet[0] as u8)
+            } else {
+                let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
+                decoder.decode(core_data_reader).map(|i| i as u8)
+            }
         }
         Encoding::Beta(offset, len) => core_data_reader
             .read_u32(*len)
@@ -952,8 +956,12 @@ where
             read_itf8(reader)
         }
         Encoding::Huffman(alphabet, bit_lens) => {
-            let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
-            decoder.decode(core_data_reader)
+            if alphabet.len() == 1 {
+                Ok(alphabet[0])
+            } else {
+                let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
+                decoder.decode(core_data_reader)
+            }
         }
         Encoding::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
         _ => todo!("decode_itf8: {:?}", encoding),
