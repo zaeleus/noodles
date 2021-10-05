@@ -4,8 +4,9 @@
 
 ### Added
 
-  * sam/record: Add mutable getter for position (`Record::position_mut`) and
-    reference sequence name (`Record::reference_sequence_name_mut`).
+  * sam/record: Add mutable getters for position (`Record::position_mut`),
+    mate reference sequence name (`Record::mate_reference_sequence_name_mut`),
+    and reference sequence name (`Record::reference_sequence_name_mut`).
 
 ## 0.5.0 - 2021-10-01
 
