@@ -65,9 +65,15 @@ mod tests {
 
     #[test]
     fn test_read_header() -> io::Result<()> {
-        let data = [0x00, 0x25, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00];
+        let data = [
+            0x00, // order = 0
+            0x25, 0x00, 0x00, 0x00, // compressed size = 37
+            0x07, 0x00, 0x00, 0x00, // data size = 7
+        ];
+
         let mut reader = &data[..];
         assert_eq!(read_header(&mut reader)?, (Order::Zero, 37, 7));
+
         Ok(())
     }
 
