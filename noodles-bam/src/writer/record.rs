@@ -348,90 +348,23 @@ where
     use noodles_sam::record::data::field::Value;
 
     for field in data.values() {
-        writer.write_all(field.tag().as_ref().as_bytes())?;
+        let tag = field.tag();
+        writer.write_all(tag.as_ref().as_bytes())?;
 
         let value = field.value();
 
         if let Value::Int(n) = value {
-            write_data_int_value(writer, *n)?;
-            continue;
-        }
-
-        writer.write_u8(char::from(value.ty()) as u8)?;
-
-        if let Some(subtype) = value.subtype() {
-            writer.write_u8(char::from(subtype) as u8)?;
-        }
-
-        match value {
-            Value::Char(c) => {
-                writer.write_u8(*c as u8)?;
-            }
-            Value::Int(_) => unreachable!(),
-            Value::Float(n) => {
-                writer.write_f32::<LittleEndian>(*n)?;
-            }
-            Value::String(s) | Value::Hex(s) => {
-                let c_str = CString::new(s.as_bytes())
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                writer.write_all(c_str.as_bytes_with_nul())?;
-            }
-            Value::Int8Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_i8(n)?;
-                }
-            }
-            Value::UInt8Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_u8(n)?;
-                }
-            }
-            Value::Int16Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_i16::<LittleEndian>(n)?;
-                }
-            }
-            Value::UInt16Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_u16::<LittleEndian>(n)?;
-                }
-            }
-            Value::Int32Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_i32::<LittleEndian>(n)?;
-                }
-            }
-            Value::UInt32Array(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_u32::<LittleEndian>(n)?;
-                }
-            }
-            Value::FloatArray(values) => {
-                writer.write_u32::<LittleEndian>(values.len() as u32)?;
-
-                for &n in values {
-                    writer.write_f32::<LittleEndian>(n)?;
-                }
-            }
+            write_data_field_int_value(writer, *n)?;
+        } else {
+            write_data_field_value_type(writer, value)?;
+            write_data_field_value(writer, value)?;
         }
     }
 
     Ok(())
 }
 
-fn write_data_int_value<W>(writer: &mut W, n: i64) -> io::Result<()>
+fn write_data_field_int_value<W>(writer: &mut W, n: i64) -> io::Result<()>
 where
     W: Write,
 {
@@ -440,34 +373,122 @@ where
     if n >= 0 {
         if n <= i64::from(u8::MAX) {
             writer.write_u8(u8::from(Type::UInt8))?;
-            writer.write_u8(n as u8)
+            return writer.write_u8(n as u8);
         } else if n <= i64::from(u16::MAX) {
             writer.write_u8(u8::from(Type::UInt16))?;
-            writer.write_u16::<LittleEndian>(n as u16)
+            return writer.write_u16::<LittleEndian>(n as u16);
         } else if n <= i64::from(u32::MAX) {
             writer.write_u8(u8::from(Type::UInt32))?;
-            writer.write_u32::<LittleEndian>(n as u32)
-        } else {
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("invalid integer value: {}", n),
-            ))
+            return writer.write_u32::<LittleEndian>(n as u32);
         }
     } else if n >= i64::from(i8::MIN) {
         writer.write_u8(u8::from(Type::Int8))?;
-        writer.write_i8(n as i8)
+        return writer.write_i8(n as i8);
     } else if n >= i64::from(i16::MIN) {
         writer.write_u8(u8::from(Type::Int16))?;
-        writer.write_i16::<LittleEndian>(n as i16)
+        return writer.write_i16::<LittleEndian>(n as i16);
     } else if n >= i64::from(i32::MIN) {
         writer.write_u8(u8::from(Type::Int32))?;
-        writer.write_i32::<LittleEndian>(n as i32)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("invalid integer value: {}", n),
-        ))
+        return writer.write_i32::<LittleEndian>(n as i32);
     }
+
+    Err(io::Error::new(
+        io::ErrorKind::InvalidInput,
+        format!("invalid integer value: {}", n),
+    ))
+}
+
+fn write_data_field_value_type<W>(
+    writer: &mut W,
+    value: &sam::record::data::field::Value,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let val_type = char::from(value.ty()) as u8;
+    writer.write_u8(val_type)?;
+
+    if let Some(subtype) = value.subtype() {
+        let val_subtype = char::from(subtype) as u8;
+        writer.write_u8(val_subtype)?;
+    }
+
+    Ok(())
+}
+
+fn write_data_field_value<W>(
+    writer: &mut W,
+    value: &sam::record::data::field::Value,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use sam::record::data::field::Value;
+
+    match value {
+        Value::Char(c) => writer.write_u8(*c as u8)?,
+        Value::Int(_) => {
+            // Integers are handled by `write_data_field_int_value`.
+            unreachable!();
+        }
+        Value::Float(n) => writer.write_f32::<LittleEndian>(*n)?,
+        Value::String(s) | Value::Hex(s) => {
+            let c_str = CString::new(s.as_bytes())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            writer.write_all(c_str.as_bytes_with_nul())?;
+        }
+        Value::Int8Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_i8(n)?;
+            }
+        }
+        Value::UInt8Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_u8(n)?;
+            }
+        }
+        Value::Int16Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_i16::<LittleEndian>(n)?;
+            }
+        }
+        Value::UInt16Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_u16::<LittleEndian>(n)?;
+            }
+        }
+        Value::Int32Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_i32::<LittleEndian>(n)?;
+            }
+        }
+        Value::UInt32Array(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_u32::<LittleEndian>(n)?;
+            }
+        }
+        Value::FloatArray(values) => {
+            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+
+            for &n in values {
+                writer.write_f32::<LittleEndian>(n)?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 // § 5.3 C source code for computing bin number and overlapping bins (2021-06-03)
@@ -496,10 +517,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_data_int_value() -> io::Result<()> {
+    fn test_write_data_field_int_value() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, n: i64, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_data_int_value(buf, n)?;
+            write_data_field_int_value(buf, n)?;
             assert_eq!(&buf[..], expected, "n = {}", n);
             Ok(())
         }
@@ -509,7 +530,7 @@ mod tests {
         // i32::MIN - 1
         buf.clear();
         assert!(matches!(
-            write_data_int_value(&mut buf, -2147483649),
+            write_data_field_int_value(&mut buf, -2147483649),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
         // i32::MIN
@@ -578,9 +599,139 @@ mod tests {
         // u32::MAX
         buf.clear();
         assert!(matches!(
-            write_data_int_value(&mut buf, 4294967296),
+            write_data_field_int_value(&mut buf, 4294967296),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_data_field_value_type() -> io::Result<()> {
+        use sam::record::data::field::Value;
+
+        fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_data_field_value_type(buf, value)?;
+            assert_eq!(&buf[..], expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, &Value::Char('n'), &[b'A'])?;
+        t(&mut buf, &Value::Int(13), &[b'i'])?;
+        t(&mut buf, &Value::Float(8.0), &[b'f'])?;
+        t(&mut buf, &Value::String(String::from("ndls")), &[b'Z'])?;
+        t(&mut buf, &Value::Hex(String::from("cafe")), &[b'H'])?;
+        t(&mut buf, &Value::Int8Array(vec![1, -2]), &[b'B', b'c'])?;
+        t(&mut buf, &Value::UInt8Array(vec![3, 5]), &[b'B', b'C'])?;
+        t(&mut buf, &Value::Int16Array(vec![8, -13]), &[b'B', b's'])?;
+        t(&mut buf, &Value::UInt16Array(vec![21, 34]), &[b'B', b'S'])?;
+        t(&mut buf, &Value::Int32Array(vec![55, -89]), &[b'B', b'i'])?;
+        t(&mut buf, &Value::UInt32Array(vec![144, 223]), &[b'B', b'I'])?;
+        t(&mut buf, &Value::FloatArray(vec![8.0, 13.0]), &[b'B', b'f'])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_data_field_value() -> io::Result<()> {
+        use sam::record::data::field::Value;
+
+        fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_data_field_value(buf, value)?;
+            assert_eq!(&buf[..], expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, &Value::Char('n'), &[b'n'])?;
+        t(&mut buf, &Value::Float(8.0), &[0x00, 0x00, 0x00, 0x41])?;
+
+        t(
+            &mut buf,
+            &Value::String(String::from("ndls")),
+            &[b'n', b'd', b'l', b's', 0x00],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::Hex(String::from("cafe")),
+            &[b'c', b'a', b'f', b'e', 0x00],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::Int8Array(vec![1, -2]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x01, // values[0] = 1
+                0xfe, // values[1] = -2
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::UInt8Array(vec![3, 5]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x03, // values[0] = 3
+                0x05, // values[1] = 5
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::Int16Array(vec![8, -13]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x08, 0x00, // values[0] = 8
+                0xf3, 0xff, // values[1] = -13
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::UInt16Array(vec![21, 34]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x15, 0x00, // values[0] = 21
+                0x22, 0x00, // values[1] = 34
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::Int32Array(vec![55, -89]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x37, 0x00, 0x00, 0x00, // values[0] = 55
+                0xa7, 0xff, 0xff, 0xff, // values[1] = -89
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::UInt32Array(vec![144, 223]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x90, 0x00, 0x00, 0x00, // values[0] = 55
+                0xdf, 0x00, 0x00, 0x00, // values[1] = -89
+            ],
+        )?;
+
+        t(
+            &mut buf,
+            &Value::FloatArray(vec![8.0, 13.0]),
+            &[
+                0x02, 0x00, 0x00, 0x00, // count = 2
+                0x00, 0x00, 0x00, 0x41, // values[0] = 8.0
+                0x00, 0x00, 0x50, 0x41, // values[1] = 13.0
+            ],
+        )?;
 
         Ok(())
     }
