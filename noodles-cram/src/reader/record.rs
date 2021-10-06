@@ -1056,4 +1056,28 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_decode_itf8() -> io::Result<()> {
+        fn t(encoding: &Encoding, expected: Itf8) -> io::Result<()> {
+            let core_data = [0b10000000];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
+
+            let external_data = [0x0d];
+            let mut external_data_readers = ExternalDataReaders::new();
+            external_data_readers.insert(1, &external_data[..]);
+
+            let actual = decode_itf8(encoding, &mut core_data_reader, &mut external_data_readers)?;
+
+            assert_eq!(expected, actual);
+
+            Ok(())
+        }
+
+        t(&Encoding::External(1), 13)?;
+        t(&Encoding::Huffman(vec![0x4e], vec![0]), 0x4e)?;
+        t(&Encoding::Beta(1, 3), 3)?;
+
+        Ok(())
+    }
 }
