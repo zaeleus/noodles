@@ -2,7 +2,7 @@ use std::{
     convert::TryFrom,
     ffi::CString,
     io::{self, Write},
-    mem,
+    mem, num,
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -425,6 +425,10 @@ where
 {
     use sam::record::data::field::Value;
 
+    fn invalid_array_len(e: num::TryFromIntError) -> io::Error {
+        io::Error::new(io::ErrorKind::InvalidInput, e)
+    }
+
     match value {
         Value::Char(c) => writer.write_u8(*c as u8)?,
         Value::Int(_) => {
@@ -438,49 +442,56 @@ where
             writer.write_all(c_str.as_bytes_with_nul())?;
         }
         Value::Int8Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_i8(n)?;
             }
         }
         Value::UInt8Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_u8(n)?;
             }
         }
         Value::Int16Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_i16::<LittleEndian>(n)?;
             }
         }
         Value::UInt16Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_u16::<LittleEndian>(n)?;
             }
         }
         Value::Int32Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_i32::<LittleEndian>(n)?;
             }
         }
         Value::UInt32Array(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_u32::<LittleEndian>(n)?;
             }
         }
         Value::FloatArray(values) => {
-            writer.write_u32::<LittleEndian>(values.len() as u32)?;
+            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
+            writer.write_u32::<LittleEndian>(len)?;
 
             for &n in values {
                 writer.write_f32::<LittleEndian>(n)?;

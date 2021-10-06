@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * writer/record: Avoid casting data field value array length.
+
+    Converting from `usize` to `i32` now checks whether the value is in range.
+
 ## 0.6.0 - 2021-10-02
 
 ### Changed
