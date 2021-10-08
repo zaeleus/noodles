@@ -48,7 +48,7 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
   * bam/reader/record/data/field/value: Avoid casting array length.
 
-    Converting from `i32` to `usize` now checks whether they it is in range.
+    Converting from `i32` to `usize` now checks whether the value is in range.
 
 ## 0.4.0 - 2021-08-19
 
