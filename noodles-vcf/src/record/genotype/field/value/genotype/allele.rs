@@ -27,6 +27,11 @@ impl Allele {
     pub fn new(position: Option<usize>, phasing: Option<Phasing>) -> Self {
         Self { position, phasing }
     }
+
+    /// Returns the position of the allele.
+    pub fn position(&self) -> Option<usize> {
+        self.position
+    }
 }
 
 /// An error returned when a raw VCF record genotype value allele fails to parse.
