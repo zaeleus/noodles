@@ -129,13 +129,7 @@ impl FromStr for Entry {
         match s.split_once(SEPARATOR) {
             Some((k, v)) => {
                 let key = parse_key(k)?;
-
-                let value = if v.is_empty() {
-                    return Err(ParseError::MissingValue);
-                } else {
-                    percent_decode(v).map_err(ParseError::InvalidValue)?
-                };
-
+                let value = parse_value(v)?;
                 Ok(Self::new(key, value))
             }
             None => Err(ParseError::Invalid),
@@ -148,6 +142,14 @@ fn parse_key(s: &str) -> Result<Cow<'_, str>, ParseError> {
         Err(ParseError::MissingKey)
     } else {
         percent_decode(s).map_err(ParseError::InvalidKey)
+    }
+}
+
+fn parse_value(s: &str) -> Result<Cow<'_, str>, ParseError> {
+    if s.is_empty() {
+        Err(ParseError::MissingValue)
+    } else {
+        percent_decode(s).map_err(ParseError::InvalidValue)
     }
 }
 
