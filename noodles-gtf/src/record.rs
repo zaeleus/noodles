@@ -1,3 +1,7 @@
+//! GTF record and fields.
+
+pub mod attributes;
+
 use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const NULL_FIELD: &str = ".";
