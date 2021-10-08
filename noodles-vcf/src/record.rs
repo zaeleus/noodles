@@ -321,7 +321,7 @@ impl Record {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
+    ///     record::{genotype::{field::{Key, Value}, Field, Genotypes}, Format, Genotype, Position},
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
@@ -334,15 +334,17 @@ impl Record {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.genotypes(), [
+    /// let expected = vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?,
-    /// ]);
+    ///     ])?
+    /// ].into();
+    ///
+    /// assert_eq!(record.genotypes(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn genotypes(&self) -> &[Genotype] {
+    pub fn genotypes(&self) -> &Genotypes {
         &self.genotypes
     }
 }
@@ -463,7 +465,7 @@ impl fmt::Display for Record {
         if let Some(format) = self.format() {
             write!(f, "\t{}", format)?;
 
-            for field in self.genotypes() {
+            for field in self.genotypes().iter() {
                 write!(f, "\t{}", field)?;
             }
         }
