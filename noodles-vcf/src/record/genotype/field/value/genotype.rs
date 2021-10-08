@@ -4,11 +4,19 @@ pub mod allele;
 
 pub use self::allele::Allele;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 /// A VCF record genotype value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Genotype(Vec<Allele>);
+
+impl Deref for Genotype {
+    type Target = [Allele];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// An error returned when a raw VCF record genotype value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
