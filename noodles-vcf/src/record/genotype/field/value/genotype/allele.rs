@@ -28,6 +28,11 @@ impl Allele {
         Self { position, phasing }
     }
 
+    /// Returns the phasing of the allele.
+    pub fn phasing(&self) -> Option<Phasing> {
+        self.phasing
+    }
+
     /// Returns the position of the allele.
     pub fn position(&self) -> Option<usize> {
         self.position
