@@ -99,6 +99,33 @@ impl Genotype {
             }
         }
     }
+
+    /// Returns the VCF record genotype value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::convert::TryFrom;
+    /// use noodles_vcf::record::{genotype::{field::{Key, Value}, Field}, Genotype};
+    ///
+    /// let genotype = Genotype::from_str_format("0|0:13", &"GT:GQ".parse()?)?;
+    ///
+    /// let genotype_value = genotype.genotype();
+    ///
+    /// assert_eq!(genotype_value, Some("0|0".parse()));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn genotype(
+        &self,
+    ) -> Option<Result<field::value::Genotype, field::value::genotype::ParseError>> {
+        self.get(&field::key::Key::Genotype)
+            .and_then(Field::value)
+            .map(|value| match value {
+                field::Value::String(s) => s.parse(),
+                // TODO: What is the correct error to raise here?
+                _ => panic!(),
+            })
+    }
 }
 
 impl Deref for Genotype {
