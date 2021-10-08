@@ -1,0 +1,10 @@
+[package]
+name = "noodles-gtf"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2018"
+description = "Gene Transfer Format (GTF) reader"
+homepage = "https://github.com/zaeleus/noodles"
+repository = "https://github.com/zaeleus/noodles"
+documentation = "https://docs.rs/noodles-gtf"

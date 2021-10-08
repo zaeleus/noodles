@@ -10,6 +10,7 @@ members = [
   "noodles-fasta",
   "noodles-fastq",
   "noodles-gff",
+  "noodles-gtf",
   "noodles-sam",
   "noodles-tabix",
   "noodles-vcf",
