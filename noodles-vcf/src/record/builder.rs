@@ -3,8 +3,8 @@
 use std::{convert::TryFrom, error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Chromosome, Filters, Format, Genotype, Ids, Info,
-    Position, QualityScore, Record, ReferenceBases,
+    reference_bases::Base, AlternateBases, Chromosome, Filters, Format, Genotype, Genotypes, Ids,
+    Info, Position, QualityScore, Record, ReferenceBases,
 };
 
 /// A VCF record builder.
@@ -19,7 +19,7 @@ pub struct Builder {
     filters: Filters,
     info: Info,
     format: Option<Format>,
-    genotypes: Vec<Genotype>,
+    genotypes: Genotypes,
 }
 
 /// An error returned when a VCF record fails to build.
@@ -327,7 +327,7 @@ impl Builder {
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_format(format.clone())
-    ///     .set_genotypes(vec![Genotype::from_str_format("0|0:13", &format)?])
+    ///     .set_genotypes(vec![Genotype::from_str_format("0|0:13", &format)?].into())
     ///     .build()?;
     ///
     /// assert_eq!(record.genotypes(), [
@@ -338,7 +338,7 @@ impl Builder {
     /// ]);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_genotypes(mut self, genotypes: Vec<Genotype>) -> Self {
+    pub fn set_genotypes(mut self, genotypes: Genotypes) -> Self {
         self.genotypes = genotypes;
         self
     }

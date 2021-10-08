@@ -16,6 +16,12 @@ const DELIMITER: char = ':';
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotypes(Vec<Genotype>);
 
+impl Genotypes {
+    pub(crate) fn push(&mut self, genotype: Genotype) {
+        self.0.push(genotype)
+    }
+}
+
 impl Deref for Genotypes {
     type Target = [Genotype];
 
