@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * record: Disallow reference sequence names to start with '>'.
+
 ## 0.2.0 - 2021-09-19
 
 ### Added

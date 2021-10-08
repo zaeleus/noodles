@@ -185,6 +185,8 @@ pub enum ParseError {
     MissingField(Field),
     /// A field is empty.
     EmptyField(Field),
+    /// The reference sequence name is invalid.
+    InvalidReferenceSequenceName,
     /// The start is invalid.
     InvalidStart(num::ParseIntError),
     /// The end is invalid.
@@ -211,6 +213,7 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::MissingField(field) => write!(f, "missing field: {:?}", field),
             Self::EmptyField(field) => write!(f, "empty field: {:?}", field),
+            Self::InvalidReferenceSequenceName => write!(f, "invalid reference sequence name"),
             Self::InvalidStart(e) => write!(f, "invalid start: {}", e),
             Self::InvalidEnd(e) => write!(f, "invalid end: {}", e),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
@@ -228,8 +231,9 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
-        let reference_sequence_name =
-            parse_string(&mut fields, Field::ReferenceSequenceName).map(|s| s.into())?;
+        let reference_sequence_name = parse_string(&mut fields, Field::ReferenceSequenceName)
+            .and_then(parse_reference_sequence_name)?;
+
         let source = parse_string(&mut fields, Field::Source).map(|s| s.into())?;
         let ty = parse_string(&mut fields, Field::Type).map(|s| s.into())?;
 
@@ -288,6 +292,14 @@ where
     fields.next().ok_or(ParseError::MissingField(field))
 }
 
+fn parse_reference_sequence_name(s: &str) -> Result<String, ParseError> {
+    if s.starts_with('>') {
+        Err(ParseError::InvalidReferenceSequenceName)
+    } else {
+        Ok(s.into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -321,5 +333,18 @@ mod tests {
     fn test_from_str_with_cds_feature_and_no_phase() {
         let s = "sq0\tNOODLES\tCDS\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
         assert_eq!(s.parse::<Record>(), Err(ParseError::MissingPhase));
+    }
+
+    #[test]
+    fn test_parse_reference_sequence_name() {
+        assert_eq!(
+            parse_reference_sequence_name("sq0"),
+            Ok(String::from("sq0"))
+        );
+
+        assert_eq!(
+            parse_reference_sequence_name(">sq0"),
+            Err(ParseError::InvalidReferenceSequenceName)
+        );
     }
 }
