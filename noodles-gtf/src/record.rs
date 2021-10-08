@@ -25,18 +25,31 @@ pub struct Record {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The reference sequence name is missing.
     MissingReferenceSequenceName,
+    /// The source is missing.
     MissingSource,
+    /// The type is missing.
     MissingType,
+    /// The start is missing.
     MissingStart,
+    /// The start is invalid.
     InvalidStart(num::ParseIntError),
+    /// The end is missing.
     MissingEnd,
+    /// The end is invalid.
     InvalidEnd(num::ParseIntError),
+    /// The score is missing.
     MissingScore,
+    /// Thes score is invalid.
     InvalidScore(num::ParseFloatError),
+    /// The strand is missing.
     MissingStrand,
+    /// The frame is missing.
     MissingFrame,
+    /// The frame is invalid.
     InvalidFrame,
+    /// The attributes are missing.
     MissingAttributes,
 }
 
