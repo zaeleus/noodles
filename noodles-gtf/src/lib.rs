@@ -1,7 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+#![warn(missing_docs)]
+
+//! **noodles-gtf** handles the reading of the Gene Transfer Format (GTF).
+
+mod reader;
+
+pub use self::reader::Reader;
