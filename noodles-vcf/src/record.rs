@@ -15,9 +15,18 @@ pub mod reference_bases;
 pub(crate) mod value;
 
 pub use self::{
-    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filters::Filters, format::Format, genotype::Genotype, ids::Ids, info::Info, position::Position,
-    quality_score::QualityScore, reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases,
+    builder::Builder,
+    chromosome::Chromosome,
+    field::Field,
+    filters::Filters,
+    format::Format,
+    genotype::{Genotype, Genotypes},
+    ids::Ids,
+    info::Info,
+    position::Position,
+    quality_score::QualityScore,
+    reference_bases::ReferenceBases,
 };
 
 use std::{convert::TryFrom, error, fmt, num, str::FromStr};
@@ -44,7 +53,7 @@ pub struct Record {
     filters: Filters,
     info: Info,
     format: Option<Format>,
-    genotypes: Vec<Genotype>,
+    genotypes: Genotypes,
 }
 
 impl Record {
@@ -553,7 +562,8 @@ impl FromStr for Record {
                     .collect::<Result<_, _>>()
                     .map_err(ParseError::InvalidGenotype)
             })
-            .unwrap_or_else(|| Ok(Vec::new()))?;
+            .unwrap_or_else(|| Ok(Vec::new()))?
+            .into();
 
         Ok(Self {
             chromosome: chrom,
