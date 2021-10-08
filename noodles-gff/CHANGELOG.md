@@ -10,11 +10,11 @@
 
 ### Added
 
-  * gff/record/attributes/entry: Accept `Into<String>` for key and value.
+  * record/attributes/entry: Accept `Into<String>` for key and value.
 
 ### Changed
 
-  * gff/record/attributes/entry: Return `ParseError::Invalid` when no `=`
+  * record/attributes/entry: Return `ParseError::Invalid` when no `=`
     separator is present.
 
     This previously would return `ParseError::MissingValue`.
