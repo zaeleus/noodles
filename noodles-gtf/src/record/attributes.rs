@@ -1,5 +1,5 @@
 //! GTF record attributes.
 
-mod entry;
+pub mod entry;
 
 pub use self::entry::Entry;
