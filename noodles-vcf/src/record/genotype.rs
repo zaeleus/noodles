@@ -17,6 +17,13 @@ const DELIMITER: char = ':';
 pub struct Genotypes(Vec<Genotype>);
 
 impl Genotypes {
+    /// Returns the VCF record genotype value.
+    pub fn genotypes(
+        &self,
+    ) -> Option<Result<Vec<field::value::Genotype>, field::value::genotype::ParseError>> {
+        self.iter().map(Genotype::genotype).collect()
+    }
+
     pub(crate) fn push(&mut self, genotype: Genotype) {
         self.0.push(genotype)
     }
@@ -306,5 +313,25 @@ mod tests {
             Genotype::try_from(fields),
             Err(TryFromFieldsError::DuplicateKey(field::Key::Genotype))
         );
+    }
+
+    #[test]
+    fn test_genotype_values() -> Result<(), Box<dyn std::error::Error>> {
+        let format = "GT:GQ".parse()?;
+
+        let genotypes: Genotypes = vec![
+            Genotype::from_str_format("0|0:7", &format)?,
+            Genotype::from_str_format("./.:20", &format)?,
+            Genotype::from_str_format("1/1:1", &format)?,
+        ]
+        .into();
+
+        let genotype_values = genotypes.genotypes();
+
+        let expected = vec!["0|0".parse()?, "./.".parse()?, "1/1".parse()?];
+
+        assert_eq!(genotype_values, Some(Ok(expected)));
+
+        Ok(())
     }
 }
