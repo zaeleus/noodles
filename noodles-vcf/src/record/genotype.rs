@@ -12,6 +12,24 @@ use super::{Format, MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
+/// VCF record genotypes.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Genotypes(Vec<Genotype>);
+
+impl Deref for Genotypes {
+    type Target = [Genotype];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<Vec<Genotype>> for Genotypes {
+    fn from(genotypes: Vec<Genotype>) -> Self {
+        Self(genotypes)
+    }
+}
+
 /// A VCF record genotype.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Genotype(IndexMap<field::Key, Field>);
