@@ -1080,4 +1080,42 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_decode_byte_array() -> io::Result<()> {
+        fn t(external_data: &[u8], encoding: &Encoding, expected: &[u8]) -> io::Result<()> {
+            let core_data = [];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
+
+            let mut external_data_readers = ExternalDataReaders::new();
+            external_data_readers.insert(1, external_data);
+
+            let actual = decode_byte_array(
+                encoding,
+                &mut core_data_reader,
+                &mut external_data_readers,
+                None,
+            )?;
+
+            assert_eq!(expected, actual);
+
+            Ok(())
+        }
+
+        let len_encoding = Encoding::External(1);
+        let value_encoding = Encoding::External(1);
+        t(
+            &[0x04, 0x6e, 0x64, 0x6c, 0x73],
+            &Encoding::ByteArrayLen(Box::new(len_encoding), Box::new(value_encoding)),
+            b"ndls",
+        )?;
+
+        t(
+            &[0x6e, 0x64, 0x6c, 0x73, 0x00],
+            &Encoding::ByteArrayStop(0x00, 1),
+            b"ndls",
+        )?;
+
+        Ok(())
+    }
 }
