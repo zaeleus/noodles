@@ -78,6 +78,39 @@ impl Record {
     }
 }
 
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{seqname}\t{source}\t{feature}\t{start}\t{end}\t",
+            seqname = self.reference_sequence_name(),
+            source = self.source(),
+            feature = self.ty(),
+            start = self.start(),
+            end = self.end()
+        )?;
+
+        if let Some(score) = self.score() {
+            write!(f, "{}\t", score)?;
+        } else {
+            write!(f, "{}\t", NULL_FIELD)?;
+        }
+
+        if let Some(strand) = self.strand() {
+            write!(f, "{}\t", strand)?;
+        } else {
+            write!(f, "{}\t", NULL_FIELD)?;
+        }
+
+        let frame = self.frame().unwrap_or(NULL_FIELD);
+        write!(f, "{}\t", frame)?;
+
+        write!(f, "{}", self.attributes())?;
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw GTF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -234,12 +267,35 @@ fn parse_frame(s: &str) -> Result<Option<String>, ParseError> {
 
 #[cfg(test)]
 mod tests {
+    use attributes::Entry;
+
     use super::*;
 
     #[test]
-    fn test_from_str() {
-        use attributes::Entry;
+    fn test_fmt() {
+        let record = Record {
+            reference_sequence_name: String::from("sq0"),
+            source: String::from("NOODLES"),
+            ty: String::from("gene"),
+            start: 8,
+            end: 13,
+            score: None,
+            strand: Some(Strand::Forward),
+            frame: None,
+            attributes: Attributes::from(vec![
+                Entry::new("gene_id", "g0"),
+                Entry::new("transcript_id", "t0"),
+            ]),
+        };
 
+        let actual = record.to_string();
+        let expected = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_from_str() {
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
 
         assert_eq!(
