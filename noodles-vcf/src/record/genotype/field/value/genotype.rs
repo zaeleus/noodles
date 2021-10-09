@@ -4,7 +4,12 @@ pub mod allele;
 
 pub use self::allele::Allele;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{
+    convert::TryFrom,
+    error, fmt,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 /// A VCF record genotype value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -15,6 +20,12 @@ impl Deref for Genotype {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Genotype {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
