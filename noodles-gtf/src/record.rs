@@ -1,6 +1,9 @@
 //! GTF record and fields.
 
 pub mod attributes;
+pub mod strand;
+
+pub use self::strand::Strand;
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -15,7 +18,7 @@ pub struct Record {
     start: i32,
     end: i32,
     score: Option<f32>,
-    strand: String,
+    strand: Option<Strand>,
     frame: Option<String>,
     attributes: String,
 }
@@ -45,6 +48,8 @@ pub enum ParseError {
     InvalidScore(num::ParseFloatError),
     /// The strand is missing.
     MissingStrand,
+    /// The strand is invalid.
+    InvalidStrand(strand::ParseError),
     /// The frame is missing.
     MissingFrame,
     /// The frame is invalid.
@@ -69,6 +74,7 @@ impl fmt::Display for ParseError {
             Self::MissingScore => write!(f, "missing score"),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
             Self::MissingStrand => write!(f, "missing strand"),
+            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
             Self::MissingFrame => write!(f, "missing frame"),
             Self::InvalidFrame => write!(f, "invalid frame"),
             Self::MissingAttributes => write!(f, "missing attributes"),
@@ -117,8 +123,8 @@ impl FromStr for Record {
 
         let strand = fields
             .next()
-            .map(|s| s.into())
-            .ok_or(ParseError::MissingStrand)?;
+            .ok_or(ParseError::MissingStrand)
+            .and_then(parse_strand)?;
 
         let frame = fields
             .next()
@@ -152,6 +158,14 @@ fn parse_score(s: &str) -> Result<Option<f32>, ParseError> {
     }
 }
 
+fn parse_strand(s: &str) -> Result<Option<Strand>, ParseError> {
+    if s == NULL_FIELD {
+        Ok(None)
+    } else {
+        s.parse().map(Some).map_err(ParseError::InvalidStrand)
+    }
+}
+
 fn parse_frame(s: &str) -> Result<Option<String>, ParseError> {
     match s {
         NULL_FIELD => Ok(None),
@@ -177,7 +191,7 @@ mod tests {
                 start: 8,
                 end: 13,
                 score: None,
-                strand: String::from("+"),
+                strand: Some(Strand::Forward),
                 frame: None,
                 attributes: String::from(r#"gene_id "ndls0"; transcript_id "ndls0""#),
             })
