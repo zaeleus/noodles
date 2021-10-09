@@ -10,7 +10,7 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-vcf"
 
 [features]
-async = ["futures", "noodles-bgzf/async", "tokio"]
+async = ["futures", "noodles-bgzf/async", "noodles-tabix/async", "tokio"]
 
 [dependencies]
 indexmap = "1.4.0"
