@@ -29,21 +29,55 @@ impl Allele {
     }
 
     /// Returns the phasing of the allele.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::value::genotype::Allele;
+    /// let allele = Allele::new(Some(0), None);
+    /// assert!(allele.phasing().is_none());
+    /// ```
     pub fn phasing(&self) -> Option<Phasing> {
         self.phasing
     }
 
     /// Returns a mutable reference to the phasing of the allele.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::value::genotype::{allele::Phasing, Allele};
+    /// let mut allele = Allele::new(Some(0), None);
+    /// *allele.phasing_mut() = Some(Phasing::Unphased);
+    /// assert_eq!(allele.phasing(), Some(Phasing::Unphased));
+    /// ```
     pub fn phasing_mut(&mut self) -> &mut Option<Phasing> {
         &mut self.phasing
     }
 
     /// Returns the position of the allele.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::value::genotype::Allele;
+    /// let allele = Allele::new(Some(0), None);
+    /// assert_eq!(allele.position(), Some(0));
+    /// ```
     pub fn position(&self) -> Option<usize> {
         self.position
     }
 
     /// Returns a mutable reference to the position of the allele.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotype::field::value::genotype::Allele;
+    /// let mut allele = Allele::new(Some(0), None);
+    /// *allele.position_mut() = Some(1);
+    /// assert_eq!(allele.position(), Some(1));
+    /// ```
     pub fn position_mut(&mut self) -> &mut Option<usize> {
         &mut self.position
     }
