@@ -225,7 +225,7 @@ impl FromStr for Record {
         let attributes = fields
             .next()
             .ok_or(ParseError::MissingAttributes)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidAttributes))?;
+            .and_then(parse_attributes)?;
 
         Ok(Self {
             reference_sequence_name,
@@ -263,6 +263,10 @@ fn parse_frame(s: &str) -> Result<Option<String>, ParseError> {
         "1" | "2" | "3" => Ok(Some(s.into())),
         _ => Err(ParseError::InvalidFrame),
     }
+}
+
+fn parse_attributes(s: &str) -> Result<Attributes, ParseError> {
+    s.parse().map_err(ParseError::InvalidAttributes)
 }
 
 #[cfg(test)]
