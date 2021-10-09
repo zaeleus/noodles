@@ -33,9 +33,19 @@ impl Allele {
         self.phasing
     }
 
+    /// Returns a mutable reference to the phasing of the allele.
+    pub fn phasing_mut(&mut self) -> &mut Option<Phasing> {
+        &mut self.phasing
+    }
+
     /// Returns the position of the allele.
     pub fn position(&self) -> Option<usize> {
         self.position
+    }
+
+    /// Returns a mutable reference to the position of the allele.
+    pub fn position_mut(&mut self) -> &mut Option<usize> {
+        &mut self.position
     }
 }
 
