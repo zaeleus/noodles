@@ -3,7 +3,7 @@
 pub mod attributes;
 pub mod strand;
 
-pub use self::strand::Strand;
+pub use self::{attributes::Attributes, strand::Strand};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -20,7 +20,7 @@ pub struct Record {
     score: Option<f32>,
     strand: Option<Strand>,
     frame: Option<String>,
-    attributes: String,
+    attributes: Attributes,
 }
 
 /// An error returned when a raw GTF record fails to parse.
@@ -56,6 +56,8 @@ pub enum ParseError {
     InvalidFrame,
     /// The attributes are missing.
     MissingAttributes,
+    /// The attributes are invalid.
+    InvalidAttributes(attributes::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -78,6 +80,7 @@ impl fmt::Display for ParseError {
             Self::MissingFrame => write!(f, "missing frame"),
             Self::InvalidFrame => write!(f, "invalid frame"),
             Self::MissingAttributes => write!(f, "missing attributes"),
+            Self::InvalidAttributes(e) => write!(f, "invalid attributes: {}", e),
         }
     }
 }
@@ -133,8 +136,8 @@ impl FromStr for Record {
 
         let attributes = fields
             .next()
-            .map(|s| s.into())
-            .ok_or(ParseError::MissingAttributes)?;
+            .ok_or(ParseError::MissingAttributes)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidAttributes))?;
 
         Ok(Self {
             reference_sequence_name,
@@ -180,7 +183,9 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\"";
+        use attributes::Entry;
+
+        let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
 
         assert_eq!(
             s.parse(),
@@ -193,7 +198,10 @@ mod tests {
                 score: None,
                 strand: Some(Strand::Forward),
                 frame: None,
-                attributes: String::from(r#"gene_id "ndls0"; transcript_id "ndls0""#),
+                attributes: Attributes::from(vec![
+                    Entry::new("gene_id", "g0"),
+                    Entry::new("transcript_id", "t0"),
+                ])
             })
         );
     }
