@@ -23,6 +23,61 @@ pub struct Record {
     attributes: Attributes,
 }
 
+impl Record {
+    /// Returns the reference sequence name.
+    ///
+    /// This is also called the "seqname".
+    pub fn reference_sequence_name(&self) -> &str {
+        &self.reference_sequence_name
+    }
+
+    /// Returns the source.
+    pub fn source(&self) -> &str {
+        &self.source
+    }
+
+    /// Returns the feature type.
+    ///
+    /// This is also simply called "feature".
+    pub fn ty(&self) -> &str {
+        &self.ty
+    }
+
+    /// Returns the start position.
+    ///
+    /// This value is 1-based.
+    pub fn start(&self) -> i32 {
+        self.start
+    }
+
+    /// Returns the end position.
+    ///
+    /// This value is 1-based.
+    pub fn end(&self) -> i32 {
+        self.end
+    }
+
+    /// Returns the confidence score.
+    pub fn score(&self) -> Option<f32> {
+        self.score
+    }
+
+    /// Returns the strand.
+    pub fn strand(&self) -> Option<Strand> {
+        self.strand
+    }
+
+    /// Returns the frame.
+    pub fn frame(&self) -> Option<&str> {
+        self.frame.as_deref()
+    }
+
+    /// Returns the attributes.
+    pub fn attributes(&self) -> &Attributes {
+        &self.attributes
+    }
+}
+
 /// An error returned when a raw GTF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
