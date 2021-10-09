@@ -6,6 +6,8 @@ pub use self::entry::Entry;
 
 use std::{error, fmt, ops::Deref, str::FromStr};
 
+const DELIMITER: &str = "; ";
+
 /// GTF record attributes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Attributes(Vec<Entry>);
@@ -21,6 +23,22 @@ impl Deref for Attributes {
 impl From<Vec<Entry>> for Attributes {
     fn from(entries: Vec<Entry>) -> Self {
         Self(entries)
+    }
+}
+
+impl fmt::Display for Attributes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (i, entry) in self.0.iter().enumerate() {
+            write!(f, "{}", entry)?;
+
+            if i < self.0.len() - 1 {
+                f.write_str(DELIMITER)?;
+            }
+        }
+
+        f.write_str(";")?;
+
+        Ok(())
     }
 }
 
@@ -51,8 +69,6 @@ impl FromStr for Attributes {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        const DELIMITER: &str = "; ";
-
         if s.is_empty() {
             Err(ParseError::Empty)
         } else if let Some(s) = s.strip_suffix(';') {
@@ -70,6 +86,21 @@ impl FromStr for Attributes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let attributes = Attributes::from(vec![Entry::new("gene_id", "g0")]);
+        assert_eq!(attributes.to_string(), r#"gene_id "g0";"#);
+
+        let attributes = Attributes::from(vec![
+            Entry::new("gene_id", "g0"),
+            Entry::new("transcript_id", "t0"),
+        ]);
+        assert_eq!(
+            attributes.to_string(),
+            r#"gene_id "g0"; transcript_id "t0";"#
+        );
+    }
 
     #[test]
     fn test_from_str() {
