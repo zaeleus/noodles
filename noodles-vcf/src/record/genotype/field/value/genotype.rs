@@ -4,7 +4,7 @@ pub mod allele;
 
 pub use self::allele::Allele;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 /// A VCF record genotype value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -58,6 +58,41 @@ impl FromStr for Genotype {
         alleles.push(allele);
 
         Ok(Self(alleles))
+    }
+}
+
+impl TryFrom<Vec<Allele>> for Genotype {
+    type Error = TryFromAllelesError;
+
+    fn try_from(alleles: Vec<Allele>) -> Result<Self, Self::Error> {
+        match alleles.first().map(Allele::phasing) {
+            None => Err(TryFromAllelesError::Empty),
+            Some(Some(_phasing)) => Err(TryFromAllelesError::InvalidPhasing),
+            Some(None) => Ok(Self(alleles)),
+        }
+    }
+}
+
+/// An error returned when VCF genotype cannot be constructed from vector of alleles.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromAllelesError {
+    /// Invalid phasing of alleles.
+    InvalidPhasing,
+    /// No alleles provided.
+    ///
+    /// § 1.6.2 Genotype fields (2021-07-27): "[...] '.' must be specified for each missing allele
+    /// in the GT field".
+    Empty,
+}
+
+impl error::Error for TryFromAllelesError {}
+
+impl fmt::Display for TryFromAllelesError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidPhasing => f.write_str("invalid phasing of alleles provided for genotype"),
+            Self::Empty => f.write_str("no alleles provided for genotype"),
+        }
     }
 }
 
@@ -117,5 +152,33 @@ mod tests {
             "0:1".parse::<Genotype>(),
             Err(ParseError::InvalidAllele(_))
         ));
+    }
+
+    #[test]
+    fn test_try_from_alleles() {
+        use allele::Phasing;
+
+        let correct_alleles = vec![
+            Allele::new(Some(0), None),
+            Allele::new(Some(1), Some(Phasing::Unphased)),
+        ];
+
+        assert_eq!(
+            Genotype::try_from(correct_alleles.clone()),
+            Ok(Genotype(correct_alleles))
+        );
+
+        assert_eq!(
+            Genotype::try_from(vec![
+                Allele::new(Some(0), Some(Phasing::Unphased)),
+                Allele::new(Some(1), Some(Phasing::Unphased)),
+            ]),
+            Err(TryFromAllelesError::InvalidPhasing),
+        );
+
+        assert_eq!(
+            Genotype::try_from(Vec::new()),
+            Err(TryFromAllelesError::Empty),
+        );
     }
 }
