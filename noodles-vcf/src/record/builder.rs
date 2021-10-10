@@ -317,7 +317,7 @@ impl Builder {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field, Genotypes}, Format, Genotype, Position},
+    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;

@@ -7,6 +7,7 @@ mod field;
 pub mod filters;
 pub mod format;
 pub mod genotype;
+pub mod genotypes;
 pub mod ids;
 pub mod info;
 pub mod position;
@@ -15,18 +16,9 @@ pub mod reference_bases;
 pub(crate) mod value;
 
 pub use self::{
-    alternate_bases::AlternateBases,
-    builder::Builder,
-    chromosome::Chromosome,
-    field::Field,
-    filters::Filters,
-    format::Format,
-    genotype::{Genotype, Genotypes},
-    ids::Ids,
-    info::Info,
-    position::Position,
-    quality_score::QualityScore,
-    reference_bases::ReferenceBases,
+    alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
+    filters::Filters, format::Format, genotype::Genotype, genotypes::Genotypes, ids::Ids,
+    info::Info, position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
 };
 
 use std::{convert::TryFrom, error, fmt, num, str::FromStr};
@@ -321,7 +313,7 @@ impl Record {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field, Genotypes}, Format, Genotype, Position},
+    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
