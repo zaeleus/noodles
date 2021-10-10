@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * record/genotype/field/value/genotype: Add conversion from `Vec<Allele>` to
+    `Genotype` ([#43]).
+
+  * record/genotype/field/value/genotype/allele: Add accessors for `position`
+    and `phasing` ([#43]).
+
+[#43]: https://github.com/zaeleus/noodles/pull/43
+
 ## 0.7.0 - 2021-10-01
 
 ### Added
