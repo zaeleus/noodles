@@ -4,7 +4,11 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref};
+use std::{
+    convert::TryFrom,
+    error, fmt,
+    ops::{Deref, DerefMut},
+};
 
 use indexmap::IndexMap;
 
@@ -23,17 +27,19 @@ impl Genotypes {
     ) -> Option<Result<Vec<field::value::Genotype>, field::value::genotype::ParseError>> {
         self.iter().map(Genotype::genotype).collect()
     }
-
-    pub(crate) fn push(&mut self, genotype: Genotype) {
-        self.0.push(genotype)
-    }
 }
 
 impl Deref for Genotypes {
-    type Target = [Genotype];
+    type Target = Vec<Genotype>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Genotypes {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
