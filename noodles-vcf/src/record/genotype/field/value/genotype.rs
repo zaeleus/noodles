@@ -165,30 +165,23 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_alleles() {
+    fn test_try_from_alleles_for_genotype() {
         use allele::Phasing;
 
-        let correct_alleles = vec![
+        let expected = Genotype(vec![
             Allele::new(Some(0), None),
             Allele::new(Some(1), Some(Phasing::Unphased)),
-        ];
+        ]);
+        assert_eq!(Genotype::try_from(expected.0.clone()), Ok(expected));
 
         assert_eq!(
-            Genotype::try_from(correct_alleles.clone()),
-            Ok(Genotype(correct_alleles))
-        );
-
-        assert_eq!(
-            Genotype::try_from(vec![
-                Allele::new(Some(0), Some(Phasing::Unphased)),
-                Allele::new(Some(1), Some(Phasing::Unphased)),
-            ]),
+            Genotype::try_from(vec![Allele::new(Some(0), Some(Phasing::Unphased))]),
             Err(TryFromAllelesError::InvalidFirstAllelePhasing),
         );
 
         assert_eq!(
             Genotype::try_from(Vec::new()),
-            Err(TryFromAllelesError::Empty),
+            Err(TryFromAllelesError::Empty)
         );
     }
 }
