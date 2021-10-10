@@ -76,24 +76,23 @@ impl TryFrom<Vec<Allele>> for Genotype {
     type Error = TryFromAllelesError;
 
     fn try_from(alleles: Vec<Allele>) -> Result<Self, Self::Error> {
-        match alleles.first().map(Allele::phasing) {
+        match alleles.first().map(|a| a.phasing()) {
             None => Err(TryFromAllelesError::Empty),
-            Some(Some(_phasing)) => Err(TryFromAllelesError::InvalidPhasing),
+            Some(Some(_)) => Err(TryFromAllelesError::InvalidFirstAllelePhasing),
             Some(None) => Ok(Self(alleles)),
         }
     }
 }
 
-/// An error returned when VCF genotype cannot be constructed from vector of alleles.
+/// An error returned when a VCF record genotype alleles fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromAllelesError {
-    /// Invalid phasing of alleles.
-    InvalidPhasing,
-    /// No alleles provided.
-    ///
-    /// § 1.6.2 Genotype fields (2021-07-27): "[...] '.' must be specified for each missing allele
-    /// in the GT field".
+    /// The list of alleles is empty.
     Empty,
+    /// The phasing of the first allele is invalid.
+    ///
+    /// The first allele cannot have phasing information.
+    InvalidFirstAllelePhasing,
 }
 
 impl error::Error for TryFromAllelesError {}
@@ -101,8 +100,8 @@ impl error::Error for TryFromAllelesError {}
 impl fmt::Display for TryFromAllelesError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidPhasing => f.write_str("invalid phasing of alleles provided for genotype"),
-            Self::Empty => f.write_str("no alleles provided for genotype"),
+            Self::Empty => f.write_str("empty input"),
+            Self::InvalidFirstAllelePhasing => f.write_str("invalid first allele phasing"),
         }
     }
 }
@@ -184,7 +183,7 @@ mod tests {
                 Allele::new(Some(0), Some(Phasing::Unphased)),
                 Allele::new(Some(1), Some(Phasing::Unphased)),
             ]),
-            Err(TryFromAllelesError::InvalidPhasing),
+            Err(TryFromAllelesError::InvalidFirstAllelePhasing),
         );
 
         assert_eq!(
