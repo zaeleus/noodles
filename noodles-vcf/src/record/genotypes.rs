@@ -1,8 +1,12 @@
-//! VCF record genotypes.
+//! VCF record genotypes and fields.
+
+pub mod genotype;
+
+pub use self::genotype::Genotype;
 
 use std::ops::{Deref, DerefMut};
 
-use super::{genotype::field, Genotype};
+use self::genotype::field;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]

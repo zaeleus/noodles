@@ -67,7 +67,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Number, record::genotype::field::Key};
+    /// use noodles_vcf::{header::Number, record::genotypes::genotype::field::Key};
     /// assert_eq!(Key::Genotype.number(), Number::Count(1));
     /// ```
     pub fn number(&self) -> Number {
@@ -106,7 +106,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::Type, record::genotype::field::Key};
+    /// use noodles_vcf::{header::format::Type, record::genotypes::genotype::field::Key};
     /// assert_eq!(Key::Genotype.ty(), Type::String);
     /// ```
     pub fn ty(&self) -> Type {
@@ -145,7 +145,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::field::Key;
+    /// use noodles_vcf::record::genotypes::genotype::field::Key;
     /// assert_eq!(Key::Genotype.description(), "Genotype");
     /// ```
     pub fn description(&self) -> &str {

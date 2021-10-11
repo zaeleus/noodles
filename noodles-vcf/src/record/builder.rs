@@ -3,8 +3,8 @@
 use std::{convert::TryFrom, error, fmt};
 
 use super::{
-    reference_bases::Base, AlternateBases, Chromosome, Filters, Format, Genotype, Genotypes, Ids,
-    Info, Position, QualityScore, Record, ReferenceBases,
+    genotypes::Genotype, reference_bases::Base, AlternateBases, Chromosome, Filters, Format,
+    Genotypes, Ids, Info, Position, QualityScore, Record, ReferenceBases,
 };
 
 /// A VCF record builder.
@@ -285,7 +285,11 @@ impl Builder {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::field::Key, Format, Genotype, Position},
+    ///     record::{
+    ///         genotypes::{genotype::field::Key, Genotype},
+    ///         Format,
+    ///         Position,
+    ///     },
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
@@ -317,7 +321,11 @@ impl Builder {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
+    ///     record::{
+    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
+    ///         Format,
+    ///         Position,
+    ///     },
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
@@ -353,7 +361,11 @@ impl Builder {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
+    ///     record::{
+    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
+    ///         Format,
+    ///         Position,
+    ///     },
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;

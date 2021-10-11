@@ -12,6 +12,16 @@
 
 [#43]: https://github.com/zaeleus/noodles/pull/43
 
+### Changed
+
+  * record: Move `genotype` under `genotypes` module.
+
+### Deprecated
+
+  * record: Deprecated `genotype` and `Genotype` public exports.
+
+    Use `noodles_vcf::record::genotypes::{genotype, Genotype}` instead.
+
 ## 0.7.0 - 2021-10-01
 
 ### Added

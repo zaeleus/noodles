@@ -39,7 +39,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
     ///
     /// assert_eq!(
     ///     Field::from_str_key("13", &Key::ConditionalGenotypeQuality),
@@ -61,7 +61,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,
@@ -77,7 +77,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,
@@ -95,7 +95,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,

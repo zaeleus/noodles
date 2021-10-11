@@ -21,7 +21,7 @@ impl Allele {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::field::value::genotype::Allele;
+    /// use noodles_vcf::record::genotypes::genotype::field::value::genotype::Allele;
     /// let allele = Allele::new(Some(0), None);
     /// ```
     pub fn new(position: Option<usize>, phasing: Option<Phasing>) -> Self {

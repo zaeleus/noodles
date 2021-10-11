@@ -8,7 +8,7 @@ pub use self::{
 
 use std::io::{self, Read};
 
-use noodles_vcf::{self as vcf, record::Genotype};
+use noodles_vcf::{self as vcf, record::genotypes::Genotype};
 
 use crate::header::StringMap;
 
@@ -152,90 +152,87 @@ mod tests {
 
         let expected_genotypes = vec![
             Genotype::try_from(vec![
-                record::genotype::Field::new(
-                    record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::String(String::from("0/0"))),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::Genotype,
+                    Some(record::genotypes::genotype::field::Value::String(
+                        String::from("0/0"),
+                    )),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ConditionalGenotypeQuality,
-                    Some(record::genotype::field::Value::Integer(10)),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotypes::genotype::field::Value::Integer(10)),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepth,
-                    Some(record::genotype::field::Value::Integer(32)),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepth,
+                    Some(record::genotypes::genotype::field::Value::Integer(32)),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepths,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(32),
-                        Some(0),
-                    ])),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepths,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(32), Some(0)],
+                    )),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(0),
-                        Some(10),
-                        Some(100),
-                    ])),
-                ),
-            ])?,
-            Genotype::try_from(vec![
-                record::genotype::Field::new(
-                    record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::String(String::from("0/1"))),
-                ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ConditionalGenotypeQuality,
-                    Some(record::genotype::field::Value::Integer(10)),
-                ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepth,
-                    Some(record::genotype::field::Value::Integer(48)),
-                ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepths,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(32),
-                        Some(16),
-                    ])),
-                ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(10),
-                        Some(0),
-                        Some(100),
-                    ])),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(0), Some(10), Some(100)],
+                    )),
                 ),
             ])?,
             Genotype::try_from(vec![
-                record::genotype::Field::new(
-                    record::genotype::field::Key::Genotype,
-                    Some(record::genotype::field::Value::String(String::from("1/1"))),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::Genotype,
+                    Some(record::genotypes::genotype::field::Value::String(
+                        String::from("0/1"),
+                    )),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ConditionalGenotypeQuality,
-                    Some(record::genotype::field::Value::Integer(10)),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotypes::genotype::field::Value::Integer(10)),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepth,
-                    Some(record::genotype::field::Value::Integer(64)),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepth,
+                    Some(record::genotypes::genotype::field::Value::Integer(48)),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::ReadDepths,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(0),
-                        Some(64),
-                    ])),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepths,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(32), Some(16)],
+                    )),
                 ),
-                record::genotype::Field::new(
-                    record::genotype::field::Key::RoundedGenotypeLikelihoods,
-                    Some(record::genotype::field::Value::IntegerArray(vec![
-                        Some(100),
-                        Some(10),
-                        Some(0),
-                    ])),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(10), Some(0), Some(100)],
+                    )),
+                ),
+            ])?,
+            Genotype::try_from(vec![
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::Genotype,
+                    Some(record::genotypes::genotype::field::Value::String(
+                        String::from("1/1"),
+                    )),
+                ),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ConditionalGenotypeQuality,
+                    Some(record::genotypes::genotype::field::Value::Integer(10)),
+                ),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepth,
+                    Some(record::genotypes::genotype::field::Value::Integer(64)),
+                ),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::ReadDepths,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(0), Some(64)],
+                    )),
+                ),
+                record::genotypes::genotype::Field::new(
+                    record::genotypes::genotype::field::Key::RoundedGenotypeLikelihoods,
+                    Some(record::genotypes::genotype::field::Value::IntegerArray(
+                        vec![Some(100), Some(10), Some(0)],
+                    )),
                 ),
             ])?,
         ];

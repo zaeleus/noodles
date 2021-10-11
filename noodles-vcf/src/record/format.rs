@@ -4,7 +4,7 @@ use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
 
 use indexmap::IndexSet;
 
-use super::genotype::field::{key, Key};
+use super::genotypes::genotype::field::{key, Key};
 
 const DELIMITER: char = ':';
 
