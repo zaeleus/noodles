@@ -114,7 +114,7 @@ where
 mod tests {
     use std::convert::TryFrom;
 
-    use crate::record::{Format, Genotype, Position};
+    use crate::record::{genotypes::Genotype, Format, Position};
 
     use super::*;
 

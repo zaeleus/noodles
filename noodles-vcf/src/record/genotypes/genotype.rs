@@ -8,7 +8,7 @@ use std::{convert::TryFrom, error, fmt, ops::Deref};
 
 use indexmap::IndexMap;
 
-use super::{Format, MISSING_FIELD};
+use crate::record::{Format, MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
@@ -46,7 +46,7 @@ impl Genotype {
     ///
     /// ```
     /// use std::convert::TryFrom;
-    /// use noodles_vcf::record::{genotype::{field::{Key, Value}, Field}, Genotype};
+    /// use noodles_vcf::record::genotypes::{genotype::{field::{Key, Value}, Field}, Genotype};
     ///
     /// let format = "GT:GQ".parse()?;
     ///
@@ -82,7 +82,7 @@ impl Genotype {
     ///
     /// ```
     /// use std::convert::TryFrom;
-    /// use noodles_vcf::record::{genotype::{field::{Key, Value}, Field}, Genotype};
+    /// use noodles_vcf::record::{genotypes::{genotype::{field::{Key, Value}, Field}, Genotype}};
     ///
     /// let genotype = Genotype::from_str_format("0|0:13", &"GT:GQ".parse()?)?;
     ///

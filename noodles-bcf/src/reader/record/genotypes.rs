@@ -7,7 +7,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
     self as vcf,
-    record::{
+    record::genotypes::{
         genotype::field::{Key, Value},
         Genotype,
     },
@@ -30,7 +30,7 @@ pub fn read_genotypes<R>(
 where
     R: Read,
 {
-    use vcf::record::genotype::Field;
+    use vcf::record::genotypes::genotype::Field;
 
     let mut genotypes = vec![Vec::new(); sample_count];
 

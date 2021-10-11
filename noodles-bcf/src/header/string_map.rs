@@ -146,7 +146,7 @@ mod tests {
                     symbol::{structural_variant::Type, StructuralVariant},
                     Symbol,
                 },
-                genotype::field::Key as GenotypeKey,
+                genotypes::genotype::field::Key as GenotypeKey,
                 info::field::Key as InfoKey,
             },
         };

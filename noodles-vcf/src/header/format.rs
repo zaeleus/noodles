@@ -9,7 +9,7 @@ use std::{convert::TryFrom, error, fmt, num};
 
 use indexmap::IndexMap;
 
-use crate::record::genotype;
+use crate::record::genotypes::genotype;
 
 use super::{number, record, Number, Record};
 
@@ -32,7 +32,7 @@ impl Format {
     /// ```
     /// use noodles_vcf::{
     ///     header::{format::Type, Format, Number},
-    ///     record::genotype::field::Key,
+    ///     record::genotypes::genotype::field::Key,
     /// };
     ///
     /// let format = Format::new(
@@ -58,7 +58,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// use noodles_vcf::{header::Format, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.id(), &Key::Genotype);
     /// ```
@@ -71,7 +71,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::{Format, Number}, record::genotype::field::Key};
+    /// use noodles_vcf::{header::{Format, Number}, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.number(), Number::Count(1));
     /// ```
@@ -84,7 +84,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::{format::Type, Format}, record::genotype::field::Key};
+    /// use noodles_vcf::{header::{format::Type, Format}, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.ty(), Type::String);
     /// ```
@@ -97,7 +97,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// use noodles_vcf::{header::Format, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert_eq!(format.description(), "Genotype");
     /// ```
@@ -112,7 +112,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// use noodles_vcf::{header::Format, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert!(format.idx().is_none());
     /// ```
@@ -127,7 +127,7 @@ impl Format {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Format, record::genotype::field::Key};
+    /// use noodles_vcf::{header::Format, record::genotypes::genotype::field::Key};
     /// let format = Format::from(Key::Genotype);
     /// assert!(format.fields().is_empty());
     /// ```

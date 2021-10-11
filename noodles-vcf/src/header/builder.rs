@@ -87,7 +87,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Format, record::genotype::field::Key};
+    /// use noodles_vcf::{self as vcf, header::Format, record::genotypes::genotype::field::Key};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(Format::from(Key::Genotype))
@@ -415,7 +415,9 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_info(Info::from(record::info::field::Key::SamplesWithDataCount))
             .add_filter(Filter::new("q10", "Quality below 10"))
-            .add_format(Format::from(record::genotype::field::Key::Genotype))
+            .add_format(Format::from(
+                record::genotypes::genotype::field::Key::Genotype,
+            ))
             .add_alternative_allele(AlternativeAllele::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,

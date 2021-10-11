@@ -7,7 +7,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
-    record::genotype::field::{Key, Value},
+    record::genotypes::genotype::field::{Key, Value},
 };
 
 use crate::{
@@ -24,7 +24,7 @@ pub fn write_genotypes<W>(
     writer: &mut W,
     string_map: &StringMap,
     formats: &vcf::record::Format,
-    genotypes: &[vcf::record::Genotype],
+    genotypes: &[vcf::record::genotypes::Genotype],
 ) -> io::Result<()>
 where
     W: Write,

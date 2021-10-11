@@ -145,7 +145,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotype::field::{Key, Value};
+    /// use noodles_vcf::record::genotypes::genotype::field::{Key, Value};
     ///
     /// assert_eq!(
     ///     Value::from_str_key("13", &Key::ConditionalGenotypeQuality),

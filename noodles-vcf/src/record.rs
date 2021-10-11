@@ -6,7 +6,6 @@ pub mod chromosome;
 mod field;
 pub mod filters;
 pub mod format;
-pub mod genotype;
 pub mod genotypes;
 pub mod ids;
 pub mod info;
@@ -17,9 +16,15 @@ pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filters::Filters, format::Format, genotype::Genotype, genotypes::Genotypes, ids::Ids,
-    info::Info, position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
+    filters::Filters, format::Format, genotypes::Genotypes, ids::Ids, info::Info,
+    position::Position, quality_score::QualityScore, reference_bases::ReferenceBases,
 };
+
+#[deprecated(
+    since = "0.8.0",
+    note = "Use `noodles_vcf::record::genotypes::{genotype, Genotype}` instead."
+)]
+pub use self::genotypes::{genotype, Genotype};
 
 use std::{convert::TryFrom, error, fmt, num, str::FromStr};
 
@@ -282,7 +287,11 @@ impl Record {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::field::Key, Format, Genotype, Position},
+    ///     record::{
+    ///         genotypes::{genotype::field::Key, Genotype},
+    ///         Format,
+    ///         Position,
+    ///     },
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
@@ -313,7 +322,11 @@ impl Record {
     /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotype::{field::{Key, Value}, Field}, Format, Genotype, Position},
+    ///     record::{
+    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
+    ///         Format,
+    ///         Position,
+    ///     },
     /// };
     ///
     /// let format: Format = "GT:GQ".parse()?;
@@ -490,7 +503,7 @@ pub enum ParseError {
     /// The format is invalid.
     InvalidFormat(format::ParseError),
     /// A genotype is invalid.
-    InvalidGenotype(genotype::ParseError),
+    InvalidGenotype(genotypes::genotype::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -552,7 +565,7 @@ impl FromStr for Record {
             .as_ref()
             .map(|f| {
                 fields
-                    .map(|s| Genotype::from_str_format(s, f))
+                    .map(|s| genotypes::Genotype::from_str_format(s, f))
                     .collect::<Result<_, _>>()
                     .map_err(ParseError::InvalidGenotype)
             })
@@ -630,6 +643,8 @@ mod tests {
 
     #[test]
     fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
+        use genotypes::Genotype;
+
         let format: Format = "GT:GQ".parse()?;
 
         let record = Record::builder()
@@ -681,6 +696,8 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
+        use genotypes::genotype;
+
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
