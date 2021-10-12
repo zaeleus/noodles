@@ -205,8 +205,9 @@ impl AsRef<[u8; LENGTH]> for Tag {
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let bytes = self.as_ref();
-        f.write_char(bytes[0] as char)?;
-        f.write_char(bytes[1] as char)
+        f.write_char(char::from(bytes[0]))?;
+        f.write_char(char::from(bytes[1]))?;
+        Ok(())
     }
 }
 
