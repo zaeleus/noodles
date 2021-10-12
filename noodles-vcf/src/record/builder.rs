@@ -324,6 +324,7 @@ impl Builder {
     ///     record::{
     ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
     ///         Format,
+    ///         Genotypes,
     ///         Position,
     ///     },
     /// };
@@ -335,15 +336,17 @@ impl Builder {
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_format(format.clone())
-    ///     .set_genotypes(vec![Genotype::from_str_format("0|0:13", &format)?].into())
+    ///     .set_genotypes(Genotypes::from(vec![
+    ///         Genotype::from_str_format("0|0:13", &format)?
+    ///     ]))
     ///     .build()?;
     ///
-    /// let expected = vec![
+    /// let expected = Genotypes::from(vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     ///     ])?,
-    /// ].into();
+    /// ]);
     ///
     /// assert_eq!(record.genotypes(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -364,6 +367,7 @@ impl Builder {
     ///     record::{
     ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
     ///         Format,
+    ///         Genotypes,
     ///         Position,
     ///     },
     /// };
@@ -378,12 +382,12 @@ impl Builder {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// let expected = vec![
+    /// let expected = Genotypes::from(vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     ///     ])?,
-    /// ].into();
+    /// ]);
     ///
     /// assert_eq!(record.genotypes(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
