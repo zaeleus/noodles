@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{record, Directive, Record};
+use super::{Directive, Record};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -80,34 +80,6 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        write!(
-            self.inner,
-            "{seqid}\t{source}\t{ty}\t{start}\t{end}",
-            seqid = record.reference_sequence_name(),
-            source = record.source(),
-            ty = record.ty(),
-            start = record.start(),
-            end = record.end(),
-        )?;
-
-        if let Some(score) = record.score() {
-            write!(self.inner, "\t{}", score)?;
-        } else {
-            write!(self.inner, "\t{}", record::NULL_FIELD)?;
-        }
-
-        write!(self.inner, "\t{}", record.strand())?;
-
-        if let Some(phase) = record.phase() {
-            write!(self.inner, "\t{}", phase)?;
-        } else {
-            write!(self.inner, "\t{}", record::NULL_FIELD)?;
-        }
-
-        if record.attributes().is_empty() {
-            writeln!(self.inner, "\t{}", record::NULL_FIELD)
-        } else {
-            writeln!(self.inner, "\t{}", record.attributes())
-        }
+        writeln!(self.inner, "{}", record)
     }
 }

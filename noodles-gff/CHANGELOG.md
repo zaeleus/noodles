@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * record: Implement `fmt::Display`.
+
+    The string representation of a `Record` is its serialized tabular form.
+
 ### Changed
 
   * record: Disallow reference sequence names to start with '>'.

@@ -176,6 +176,42 @@ impl Default for Record {
     }
 }
 
+impl fmt::Display for Record {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{seqid}\t{source}\t{ty}\t{start}\t{end}",
+            seqid = self.reference_sequence_name(),
+            source = self.source(),
+            ty = self.ty(),
+            start = self.start(),
+            end = self.end(),
+        )?;
+
+        if let Some(score) = self.score() {
+            write!(f, "\t{}", score)?;
+        } else {
+            write!(f, "\t{}", NULL_FIELD)?;
+        }
+
+        write!(f, "\t{}", self.strand())?;
+
+        if let Some(phase) = self.phase() {
+            write!(f, "\t{}", phase)?;
+        } else {
+            write!(f, "\t{}", NULL_FIELD)?;
+        }
+
+        if self.attributes().is_empty() {
+            write!(f, "\t{}", NULL_FIELD)?;
+        } else {
+            write!(f, "\t{}", self.attributes())?;
+        }
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw GFF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -303,6 +339,12 @@ fn parse_reference_sequence_name(s: &str) -> Result<String, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let record = Record::default();
+        assert_eq!(record.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t.");
+    }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
