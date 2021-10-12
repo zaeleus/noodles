@@ -469,10 +469,7 @@ impl fmt::Display for Record {
 
         if let Some(format) = self.format() {
             write!(f, "\t{}", format)?;
-
-            for field in self.genotypes().iter() {
-                write!(f, "\t{}", field)?;
-            }
+            write!(f, "\t{}", self.genotypes())?;
         }
 
         Ok(())
