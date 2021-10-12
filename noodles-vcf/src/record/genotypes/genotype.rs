@@ -76,7 +76,10 @@ impl Genotype {
         }
     }
 
-    /// Returns the VCF record genotype value.
+    /// Returns the VCF record genotypes genotype value.
+    ///
+    /// This is a convenience method to return a parsed version of the genotype (`GT`) field value.
+    /// Use `[Self::get]` with `[field::Key::Genotype]` to get the raw value.
     ///
     /// # Examples
     ///
