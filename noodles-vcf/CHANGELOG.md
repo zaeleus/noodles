@@ -4,12 +4,23 @@
 
 ### Added
 
-  * record/genotype/field/value/genotype: Add conversion from `Vec<Allele>` to
+  * record: Wrap `Genotype` field (`vcf::record::Genotypes`) ([#42]).
+
+    This creates a new type for `Vec<vcf::record::genotypes::Genotype>`.
+
+  * record/genotypes: Add convenience method to return a list of parsed
+    genotype (`GT`) fields (`Genotypes::genotypes`) ([#42]).
+
+  * record/genotypes/genotype: Add convenience method to parse the genotype
+    (`GT`) field (`Genotype::genotype`) ([#42]).
+
+  * record/genotypes/genotype/field/value/genotype: Add conversion from `Vec<Allele>` to
     `Genotype` ([#43]).
 
-  * record/genotype/field/value/genotype/allele: Add accessors for `position`
+  * record/genotypes/genotype/field/value/genotype/allele: Add accessors for `position`
     and `phasing` ([#43]).
 
+[#42]: https://github.com/zaeleus/noodles/issues/42
 [#43]: https://github.com/zaeleus/noodles/pull/43
 
 ### Changed
