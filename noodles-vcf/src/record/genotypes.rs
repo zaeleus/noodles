@@ -19,8 +19,8 @@ impl Genotypes {
     /// Returns the VCF record genotype value.
     pub fn genotypes(
         &self,
-    ) -> Option<Result<Vec<field::value::Genotype>, field::value::genotype::ParseError>> {
-        self.iter().map(Genotype::genotype).collect()
+    ) -> Result<Vec<Option<field::value::Genotype>>, genotype::GenotypeError> {
+        self.iter().map(|g| g.genotype().transpose()).collect()
     }
 }
 
@@ -68,18 +68,22 @@ mod tests {
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         let format = "GT:GQ".parse()?;
 
-        let genotypes: Genotypes = vec![
+        let genotypes = Genotypes::from(vec![
             Genotype::from_str_format("0|0:7", &format)?,
             Genotype::from_str_format("./.:20", &format)?,
             Genotype::from_str_format("1/1:1", &format)?,
-        ]
-        .into();
+            Genotype::from_str_format(".", &format)?,
+        ]);
 
-        let genotype_values = genotypes.genotypes();
+        let actual = genotypes.genotypes();
+        let expected = Ok(vec![
+            Some("0|0".parse()?),
+            Some("./.".parse()?),
+            Some("1/1".parse()?),
+            None,
+        ]);
 
-        let expected = vec!["0|0".parse()?, "./.".parse()?, "1/1".parse()?];
-
-        assert_eq!(genotype_values, Some(Ok(expected)));
+        assert_eq!(actual, expected);
 
         Ok(())
     }
