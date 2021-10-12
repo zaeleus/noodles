@@ -293,7 +293,7 @@ where
 
     for field in data.values() {
         let tag = field.tag();
-        writer.write_all(tag.as_ref().as_bytes()).await?;
+        writer.write_all(tag.as_ref()).await?;
 
         let value = field.value();
 
