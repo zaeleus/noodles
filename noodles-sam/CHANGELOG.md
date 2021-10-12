@@ -9,6 +9,9 @@
     (`Record::mate_reference_sequence_name_mut`), and reference sequence name
     (`Record::reference_sequence_name_mut`).
 
+  * sam/record/data/field/tag: Add `ParseError` variants for invalid length and
+    character.
+
 ### Changed
 
   * sam/record/data/field/tag: `Tag::Other` stores a `[u8; 2]` rather than

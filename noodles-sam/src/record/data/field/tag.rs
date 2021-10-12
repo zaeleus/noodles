@@ -213,13 +213,25 @@ impl fmt::Display for Tag {
 
 /// An error returned when a raw SAM record data field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The length is invalid.
+    ///
+    /// The tag length must be 2 characters.
+    InvalidLength(usize),
+    /// A character is invalid.
+    InvalidCharacter(char),
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.0)
+        match self {
+            Self::InvalidLength(len) => {
+                write!(f, "invalid length: expected {}, got {}", LENGTH, len)
+            }
+            Self::InvalidCharacter(c) => write!(f, "invalid character: {}", c),
+        }
     }
 }
 
@@ -227,11 +239,12 @@ impl fmt::Display for ParseError {
 impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
     fn try_from(s: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        if !s[0].is_ascii_alphabetic() || !s[1].is_ascii_alphanumeric() {
-            return Err(ParseError(format!(
-                "Invalid tag: '{}{}'",
-                s[0] as char, s[1] as char
-            )));
+        if !s[0].is_ascii_alphabetic() {
+            return Err(ParseError::InvalidCharacter(char::from(s[0])));
+        }
+
+        if !s[1].is_ascii_alphanumeric() {
+            return Err(ParseError::InvalidCharacter(char::from(s[1])));
         }
 
         match &s {
@@ -307,7 +320,7 @@ impl TryFrom<&[u8]> for Tag {
         if s.len() == LENGTH {
             Self::try_from([s[0], s[1]])
         } else {
-            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+            Err(ParseError::InvalidLength(s.len()))
         }
     }
 }
@@ -453,29 +466,10 @@ mod tests {
         assert_eq!("UQ".parse(), Ok(Tag::SegmentLikelihood));
         assert_eq!("ZN".parse(), Ok(Tag::Other([b'Z', b'N'])));
 
-        assert_eq!(
-            "".parse::<Tag>(),
-            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
-        );
-        assert_eq!(
-            "R".parse::<Tag>(),
-            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
-        );
-        assert_eq!(
-            "1G".parse::<Tag>(),
-            Err(ParseError(String::from("Invalid tag: '1G'")))
-        );
-        assert_eq!(
-            "R_".parse::<Tag>(),
-            Err(ParseError(String::from("Invalid tag: 'R_'")))
-        );
-        assert_eq!(
-            "RGP".parse::<Tag>(),
-            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
-        );
-        assert_eq!(
-            "RGRP".parse::<Tag>(),
-            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
-        );
+        assert_eq!("".parse::<Tag>(), Err(ParseError::InvalidLength(0)));
+        assert_eq!("R".parse::<Tag>(), Err(ParseError::InvalidLength(1)));
+        assert_eq!("RGP".parse::<Tag>(), Err(ParseError::InvalidLength(3)));
+        assert_eq!("1G".parse::<Tag>(), Err(ParseError::InvalidCharacter('1')));
+        assert_eq!("R_".parse::<Tag>(), Err(ParseError::InvalidCharacter('_')));
     }
 }
