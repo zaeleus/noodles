@@ -9,6 +9,13 @@
     (`Record::mate_reference_sequence_name_mut`), and reference sequence name
     (`Record::reference_sequence_name_mut`).
 
+### Changed
+
+  * sam/record/data/field/tag: `Tag::Other` stores a `[u8; 2]` rather than
+    `String` ([#46]).
+
+[#46]: https://github.com/zaeleus/noodles/issues/46
+
 ## 0.5.0 - 2021-10-01
 
 ### Added
