@@ -1,5 +1,7 @@
-use std::convert::TryInto;
-use std::io::{self, Read};
+use std::{
+    convert::TryFrom,
+    io::{self, Read},
+};
 
 use noodles_sam::record::data::field::Tag;
 
@@ -9,9 +11,7 @@ where
 {
     let mut buf = [0; 2];
     reader.read_exact(&mut buf)?;
-
-    buf.try_into()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Tag::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
