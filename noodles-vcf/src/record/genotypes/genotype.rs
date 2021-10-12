@@ -39,6 +39,28 @@ impl fmt::Display for ParseError {
     }
 }
 
+/// An error returned when a genotype (`GT`) field value fails to parse.
+#[derive(Clone, Debug, PartialEq)]
+pub enum GenotypeError {
+    /// The genotype field value is invalid.
+    InvalidValue(field::value::genotype::ParseError),
+    /// The genotype field value type is invalid.
+    ///
+    /// The `GT` field value must be a `String`.
+    InvalidValueType(field::Value),
+}
+
+impl error::Error for GenotypeError {}
+
+impl fmt::Display for GenotypeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
+            Self::InvalidValueType(value) => write!(f, "invalid String, got {:?}", value),
+        }
+    }
+}
+
 impl Genotype {
     /// Parses a raw genotype for the given genotype format.
     ///
@@ -86,23 +108,16 @@ impl Genotype {
     /// ```
     /// use std::convert::TryFrom;
     /// use noodles_vcf::record::{genotypes::{genotype::{field::{Key, Value}, Field}, Genotype}};
-    ///
     /// let genotype = Genotype::from_str_format("0|0:13", &"GT:GQ".parse()?)?;
-    ///
-    /// let genotype_value = genotype.genotype();
-    ///
-    /// assert_eq!(genotype_value, Some("0|0".parse()));
+    /// assert_eq!(genotype.genotype(), Some(Ok("0|0".parse()?)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn genotype(
-        &self,
-    ) -> Option<Result<field::value::Genotype, field::value::genotype::ParseError>> {
+    pub fn genotype(&self) -> Option<Result<field::value::Genotype, GenotypeError>> {
         self.get(&field::Key::Genotype)
-            .and_then(Field::value)
+            .and_then(|f| f.value())
             .map(|value| match value {
-                field::Value::String(s) => s.parse(),
-                // TODO: What is the correct error to raise here?
-                _ => panic!(),
+                field::Value::String(s) => s.parse().map_err(GenotypeError::InvalidValue),
+                _ => Err(GenotypeError::InvalidValueType(value.clone())),
             })
     }
 }
@@ -285,5 +300,30 @@ mod tests {
             Genotype::try_from(fields),
             Err(TryFromFieldsError::DuplicateKey(field::Key::Genotype))
         );
+    }
+
+    #[test]
+    fn test_genotype() -> Result<(), TryFromFieldsError> {
+        let genotype = Genotype::try_from(vec![Field::new(
+            field::Key::Genotype,
+            Some(field::Value::String(String::from("ndls"))),
+        )])?;
+
+        assert!(matches!(
+            genotype.genotype(),
+            Some(Err(GenotypeError::InvalidValue(_)))
+        ));
+
+        let genotype = Genotype::try_from(vec![Field::new(
+            field::Key::Genotype,
+            Some(field::Value::Integer(0)),
+        )])?;
+
+        assert!(matches!(
+            genotype.genotype(),
+            Some(Err(GenotypeError::InvalidValueType(_)))
+        ));
+
+        Ok(())
     }
 }
