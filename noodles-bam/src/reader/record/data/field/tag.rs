@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::io::{self, Read};
 
 use noodles_sam::record::data::field::Tag;
@@ -6,17 +7,11 @@ pub fn read_tag<R>(reader: &mut R) -> io::Result<Tag>
 where
     R: Read,
 {
-    use std::str;
-
     let mut buf = [0; 2];
     reader.read_exact(&mut buf)?;
 
-    str::from_utf8(&buf)
+    buf.try_into()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
 }
 
 #[cfg(test)]

@@ -349,7 +349,7 @@ where
 
     for field in data.values() {
         let tag = field.tag();
-        writer.write_all(tag.as_ref().as_bytes())?;
+        writer.write_all(tag.as_ref())?;
 
         let value = field.value();
 

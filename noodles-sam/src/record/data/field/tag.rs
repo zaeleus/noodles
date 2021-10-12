@@ -1,6 +1,6 @@
 //! SAM record data field tag.
 
-use std::{error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, fmt::Write, str::FromStr};
 
 const LENGTH: usize = 2;
 
@@ -131,72 +131,72 @@ pub enum Tag {
     /// (`UQ`).
     SegmentLikelihood,
     /// Any other non-standard tag.
-    Other(String),
+    Other([u8; LENGTH]),
 }
 
-impl AsRef<str> for Tag {
-    fn as_ref(&self) -> &str {
+impl AsRef<[u8; LENGTH]> for Tag {
+    fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
-            Self::MinMappingQuality => "AM",
-            Self::AlignmentScore => "AS",
-            Self::SampleBarcodeSequence => "BC",
-            Self::BaseAlignmentQualityOffsets => "BQ",
-            Self::OriginalUmiQualityScores => "BZ",
-            Self::CellBarcodeId => "CB",
-            Self::NextHitReferenceSequenceName => "CC",
-            Self::Cigar => "CG",
-            Self::ColorEditDistance => "CM",
-            Self::Comment => "CO",
-            Self::NextHitPosition => "CP",
-            Self::ColarQualityScores => "CQ",
-            Self::CellBarcodeSequence => "CR",
-            Self::ColorSequence => "CS",
-            Self::CompleteReadAnnotations => "CT",
-            Self::CellBarcodeQualityScores => "CY",
-            Self::NextHitSequence => "E2",
-            Self::SegmentIndex => "FI",
-            Self::SegmentSuffix => "FS",
-            Self::AlternativeSequence => "FZ",
-            Self::ReservedGc => "GC",
-            Self::ReservedGq => "GQ",
-            Self::ReservedGs => "GS",
-            Self::PerfectHitCount => "HO",
-            Self::OneDifferenceHitCount => "H1",
-            Self::TwoDifferenceHitCount => "H2",
-            Self::HitIndex => "HI",
-            Self::TotalHitCount => "IH",
-            Self::Library => "LB",
-            Self::MateCigar => "MC",
-            Self::MismatchedPositions => "MD",
-            Self::ReservedMf => "MF",
-            Self::UmiId => "MI",
-            Self::MateMappingQuality => "MQ",
-            Self::AlignmentHitCount => "NH",
-            Self::EditDistance => "NM",
-            Self::OriginalAlignment => "OA",
-            Self::OriginalCigar => "OC",
-            Self::OriginalPosition => "OP",
-            Self::OriginalQualityScores => "OQ",
-            Self::OriginalUmiBarcodeSequence => "OX",
-            Self::Program => "PG",
-            Self::TemplateLikelihood => "PQ",
-            Self::PaddedReadAnnotations => "PT",
-            Self::PlatformUnit => "PU",
-            Self::MateQualityScores => "Q2",
-            Self::SampleBarcodeQualityScores => "QT",
-            Self::UmiQualityScores => "QX",
-            Self::MateSequence => "R2",
-            Self::ReadGroup => "RG",
-            Self::ReservedRt => "RT",
-            Self::UmiSequence => "RX",
-            Self::ReservedS2 => "S2",
-            Self::OtherAlignments => "SA",
-            Self::TemplateMappingQuality => "SM",
-            Self::ReservedSq => "SQ",
-            Self::SegmentCount => "TC",
-            Self::TranscriptStrand => "TS",
-            Self::NextHitQualityScores => "U2",
-            Self::SegmentLikelihood => "UQ",
+            Self::MinMappingQuality => b"AM",
+            Self::AlignmentScore => b"AS",
+            Self::SampleBarcodeSequence => b"BC",
+            Self::BaseAlignmentQualityOffsets => b"BQ",
+            Self::OriginalUmiQualityScores => b"BZ",
+            Self::CellBarcodeId => b"CB",
+            Self::NextHitReferenceSequenceName => b"CC",
+            Self::Cigar => b"CG",
+            Self::ColorEditDistance => b"CM",
+            Self::Comment => b"CO",
+            Self::NextHitPosition => b"CP",
+            Self::ColarQualityScores => b"CQ",
+            Self::CellBarcodeSequence => b"CR",
+            Self::ColorSequence => b"CS",
+            Self::CompleteReadAnnotations => b"CT",
+            Self::CellBarcodeQualityScores => b"CY",
+            Self::NextHitSequence => b"E2",
+            Self::SegmentIndex => b"FI",
+            Self::SegmentSuffix => b"FS",
+            Self::AlternativeSequence => b"FZ",
+            Self::ReservedGc => b"GC",
+            Self::ReservedGq => b"GQ",
+            Self::ReservedGs => b"GS",
+            Self::PerfectHitCount => b"HO",
+            Self::OneDifferenceHitCount => b"H1",
+            Self::TwoDifferenceHitCount => b"H2",
+            Self::HitIndex => b"HI",
+            Self::TotalHitCount => b"IH",
+            Self::Library => b"LB",
+            Self::MateCigar => b"MC",
+            Self::MismatchedPositions => b"MD",
+            Self::ReservedMf => b"MF",
+            Self::UmiId => b"MI",
+            Self::MateMappingQuality => b"MQ",
+            Self::AlignmentHitCount => b"NH",
+            Self::EditDistance => b"NM",
+            Self::OriginalAlignment => b"OA",
+            Self::OriginalCigar => b"OC",
+            Self::OriginalPosition => b"OP",
+            Self::OriginalQualityScores => b"OQ",
+            Self::OriginalUmiBarcodeSequence => b"OX",
+            Self::Program => b"PG",
+            Self::TemplateLikelihood => b"PQ",
+            Self::PaddedReadAnnotations => b"PT",
+            Self::PlatformUnit => b"PU",
+            Self::MateQualityScores => b"Q2",
+            Self::SampleBarcodeQualityScores => b"QT",
+            Self::UmiQualityScores => b"QX",
+            Self::MateSequence => b"R2",
+            Self::ReadGroup => b"RG",
+            Self::ReservedRt => b"RT",
+            Self::UmiSequence => b"RX",
+            Self::ReservedS2 => b"S2",
+            Self::OtherAlignments => b"SA",
+            Self::TemplateMappingQuality => b"SM",
+            Self::ReservedSq => b"SQ",
+            Self::SegmentCount => b"TC",
+            Self::TranscriptStrand => b"TS",
+            Self::NextHitQualityScores => b"U2",
+            Self::SegmentLikelihood => b"UQ",
             Self::Other(tag) => tag,
         }
     }
@@ -204,7 +204,9 @@ impl AsRef<str> for Tag {
 
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
+        let bytes = self.as_ref();
+        f.write_char(bytes[0] as char)?;
+        f.write_char(bytes[1] as char)
     }
 }
 
@@ -220,98 +222,100 @@ impl fmt::Display for ParseError {
     }
 }
 
+// § 1.5 The alignment section: optional fields (2021-01-07)
+impl TryFrom<[u8; LENGTH]> for Tag {
+    type Error = ParseError;
+    fn try_from(s: [u8; LENGTH]) -> Result<Self, Self::Error> {
+        if !s[0].is_ascii_alphabetic() || !s[1].is_ascii_alphanumeric() {
+            return Err(ParseError(format!("Invalid tag: '{}{}'", s[0] as char, s[1] as char)))
+        }
+
+        match &s {
+            b"AM" => Ok(Self::MinMappingQuality),
+            b"AS" => Ok(Self::AlignmentScore),
+            b"BC" => Ok(Self::SampleBarcodeSequence),
+            b"BQ" => Ok(Self::BaseAlignmentQualityOffsets),
+            b"BZ" => Ok(Self::OriginalUmiQualityScores),
+            b"CB" => Ok(Self::CellBarcodeId),
+            b"CC" => Ok(Self::NextHitReferenceSequenceName),
+            b"CG" => Ok(Self::Cigar),
+            b"CM" => Ok(Self::ColorEditDistance),
+            b"CO" => Ok(Self::Comment),
+            b"CP" => Ok(Self::NextHitPosition),
+            b"CQ" => Ok(Self::ColarQualityScores),
+            b"CR" => Ok(Self::CellBarcodeSequence),
+            b"CS" => Ok(Self::ColorSequence),
+            b"CT" => Ok(Self::CompleteReadAnnotations),
+            b"CY" => Ok(Self::CellBarcodeQualityScores),
+            b"E2" => Ok(Self::NextHitSequence),
+            b"FI" => Ok(Self::SegmentIndex),
+            b"FS" => Ok(Self::SegmentSuffix),
+            b"FZ" => Ok(Self::AlternativeSequence),
+            b"GC" => Ok(Self::ReservedGc),
+            b"GQ" => Ok(Self::ReservedGq),
+            b"GS" => Ok(Self::ReservedGs),
+            b"HO" => Ok(Self::PerfectHitCount),
+            b"H1" => Ok(Self::OneDifferenceHitCount),
+            b"H2" => Ok(Self::TwoDifferenceHitCount),
+            b"HI" => Ok(Self::HitIndex),
+            b"IH" => Ok(Self::TotalHitCount),
+            b"LB" => Ok(Self::Library),
+            b"MC" => Ok(Self::MateCigar),
+            b"MD" => Ok(Self::MismatchedPositions),
+            b"MF" => Ok(Self::ReservedMf),
+            b"MI" => Ok(Self::UmiId),
+            b"MQ" => Ok(Self::MateMappingQuality),
+            b"NH" => Ok(Self::AlignmentHitCount),
+            b"NM" => Ok(Self::EditDistance),
+            b"OA" => Ok(Self::OriginalAlignment),
+            b"OC" => Ok(Self::OriginalCigar),
+            b"OP" => Ok(Self::OriginalPosition),
+            b"OQ" => Ok(Self::OriginalQualityScores),
+            b"OX" => Ok(Self::OriginalUmiBarcodeSequence),
+            b"PG" => Ok(Self::Program),
+            b"PQ" => Ok(Self::TemplateLikelihood),
+            b"PT" => Ok(Self::PaddedReadAnnotations),
+            b"PU" => Ok(Self::PlatformUnit),
+            b"Q2" => Ok(Self::MateQualityScores),
+            b"QT" => Ok(Self::SampleBarcodeQualityScores),
+            b"QX" => Ok(Self::UmiQualityScores),
+            b"R2" => Ok(Self::MateSequence),
+            b"RG" => Ok(Self::ReadGroup),
+            b"RT" => Ok(Self::ReservedRt),
+            b"RX" => Ok(Self::UmiSequence),
+            b"S2" => Ok(Self::ReservedS2),
+            b"SA" => Ok(Self::OtherAlignments),
+            b"SM" => Ok(Self::TemplateMappingQuality),
+            b"SQ" => Ok(Self::ReservedSq),
+            b"TC" => Ok(Self::SegmentCount),
+            b"TS" => Ok(Self::TranscriptStrand),
+            b"U2" => Ok(Self::NextHitQualityScores),
+            b"UQ" => Ok(Self::SegmentLikelihood),
+            _ => Ok(Self::Other([s[0], s[1]]))
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for Tag {
+    type Error = ParseError;
+
+    fn try_from(s: &[u8]) -> Result<Self, Self::Error> {
+        if s.len() == LENGTH {
+            Self::try_from([s[0], s[1]])
+        } else {
+            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+        }
+    }
+}
+
 impl FromStr for Tag {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "AM" => Ok(Self::MinMappingQuality),
-            "AS" => Ok(Self::AlignmentScore),
-            "BC" => Ok(Self::SampleBarcodeSequence),
-            "BQ" => Ok(Self::BaseAlignmentQualityOffsets),
-            "BZ" => Ok(Self::OriginalUmiQualityScores),
-            "CB" => Ok(Self::CellBarcodeId),
-            "CC" => Ok(Self::NextHitReferenceSequenceName),
-            "CG" => Ok(Self::Cigar),
-            "CM" => Ok(Self::ColorEditDistance),
-            "CO" => Ok(Self::Comment),
-            "CP" => Ok(Self::NextHitPosition),
-            "CQ" => Ok(Self::ColarQualityScores),
-            "CR" => Ok(Self::CellBarcodeSequence),
-            "CS" => Ok(Self::ColorSequence),
-            "CT" => Ok(Self::CompleteReadAnnotations),
-            "CY" => Ok(Self::CellBarcodeQualityScores),
-            "E2" => Ok(Self::NextHitSequence),
-            "FI" => Ok(Self::SegmentIndex),
-            "FS" => Ok(Self::SegmentSuffix),
-            "FZ" => Ok(Self::AlternativeSequence),
-            "GC" => Ok(Self::ReservedGc),
-            "GQ" => Ok(Self::ReservedGq),
-            "GS" => Ok(Self::ReservedGs),
-            "HO" => Ok(Self::PerfectHitCount),
-            "H1" => Ok(Self::OneDifferenceHitCount),
-            "H2" => Ok(Self::TwoDifferenceHitCount),
-            "HI" => Ok(Self::HitIndex),
-            "IH" => Ok(Self::TotalHitCount),
-            "LB" => Ok(Self::Library),
-            "MC" => Ok(Self::MateCigar),
-            "MD" => Ok(Self::MismatchedPositions),
-            "MF" => Ok(Self::ReservedMf),
-            "MI" => Ok(Self::UmiId),
-            "MQ" => Ok(Self::MateMappingQuality),
-            "NH" => Ok(Self::AlignmentHitCount),
-            "NM" => Ok(Self::EditDistance),
-            "OA" => Ok(Self::OriginalAlignment),
-            "OC" => Ok(Self::OriginalCigar),
-            "OP" => Ok(Self::OriginalPosition),
-            "OQ" => Ok(Self::OriginalQualityScores),
-            "OX" => Ok(Self::OriginalUmiBarcodeSequence),
-            "PG" => Ok(Self::Program),
-            "PQ" => Ok(Self::TemplateLikelihood),
-            "PT" => Ok(Self::PaddedReadAnnotations),
-            "PU" => Ok(Self::PlatformUnit),
-            "Q2" => Ok(Self::MateQualityScores),
-            "QT" => Ok(Self::SampleBarcodeQualityScores),
-            "QX" => Ok(Self::UmiQualityScores),
-            "R2" => Ok(Self::MateSequence),
-            "RG" => Ok(Self::ReadGroup),
-            "RT" => Ok(Self::ReservedRt),
-            "RX" => Ok(Self::UmiSequence),
-            "S2" => Ok(Self::ReservedS2),
-            "SA" => Ok(Self::OtherAlignments),
-            "SM" => Ok(Self::TemplateMappingQuality),
-            "SQ" => Ok(Self::ReservedSq),
-            "TC" => Ok(Self::SegmentCount),
-            "TS" => Ok(Self::TranscriptStrand),
-            "U2" => Ok(Self::NextHitQualityScores),
-            "UQ" => Ok(Self::SegmentLikelihood),
-            _ => {
-                if is_valid_tag(s) {
-                    Ok(Self::Other(s.into()))
-                } else {
-                    Err(ParseError(s.into()))
-                }
-            }
-        }
+        Tag::try_from(s.as_bytes())
     }
 }
 
-// § 1.5 The alignment section: optional fields (2021-01-07)
-fn is_valid_tag(s: &str) -> bool {
-    if s.len() != LENGTH {
-        return false;
-    }
-
-    let mut chars = s.chars();
-
-    if let Some(c) = chars.next() {
-        if let Some(d) = chars.next() {
-            return c.is_ascii_alphabetic() && d.is_ascii_alphanumeric();
-        }
-    }
-
-    false
-}
 
 #[cfg(test)]
 mod tests {
@@ -379,7 +383,7 @@ mod tests {
         assert_eq!(Tag::TranscriptStrand.to_string(), "TS");
         assert_eq!(Tag::NextHitQualityScores.to_string(), "U2");
         assert_eq!(Tag::SegmentLikelihood.to_string(), "UQ");
-        assert_eq!(Tag::Other(String::from("ZN")).to_string(), "ZN");
+        assert_eq!(Tag::Other([b'Z', b'N']).to_string(), "ZN");
     }
 
     #[test]
@@ -444,13 +448,13 @@ mod tests {
         assert_eq!("TS".parse(), Ok(Tag::TranscriptStrand));
         assert_eq!("U2".parse(), Ok(Tag::NextHitQualityScores));
         assert_eq!("UQ".parse(), Ok(Tag::SegmentLikelihood));
-        assert_eq!("ZN".parse(), Ok(Tag::Other(String::from("ZN"))));
+        assert_eq!("ZN".parse(), Ok(Tag::Other([b'Z', b'N'])));
 
-        assert_eq!("".parse::<Tag>(), Err(ParseError(String::from(""))));
-        assert_eq!("R".parse::<Tag>(), Err(ParseError(String::from("R"))));
-        assert_eq!("1G".parse::<Tag>(), Err(ParseError(String::from("1G"))));
-        assert_eq!("R_".parse::<Tag>(), Err(ParseError(String::from("R_"))));
-        assert_eq!("RGP".parse::<Tag>(), Err(ParseError(String::from("RGP"))));
-        assert_eq!("RGRP".parse::<Tag>(), Err(ParseError(String::from("RGRP"))));
+        assert_eq!("".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
+        assert_eq!("R".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
+        assert_eq!("1G".parse::<Tag>(), Err(ParseError(String::from("Invalid tag: '1G'"))));
+        assert_eq!("R_".parse::<Tag>(), Err(ParseError(String::from("Invalid tag: 'R_'"))));
+        assert_eq!("RGP".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
+        assert_eq!("RGRP".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
     }
 }
