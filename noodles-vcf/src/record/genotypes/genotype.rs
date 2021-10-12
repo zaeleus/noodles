@@ -97,7 +97,7 @@ impl Genotype {
     pub fn genotype(
         &self,
     ) -> Option<Result<field::value::Genotype, field::value::genotype::ParseError>> {
-        self.get(&field::key::Key::Genotype)
+        self.get(&field::Key::Genotype)
             .and_then(Field::value)
             .map(|value| match value {
                 field::Value::String(s) => s.parse(),
