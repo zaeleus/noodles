@@ -227,7 +227,10 @@ impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
     fn try_from(s: [u8; LENGTH]) -> Result<Self, Self::Error> {
         if !s[0].is_ascii_alphabetic() || !s[1].is_ascii_alphanumeric() {
-            return Err(ParseError(format!("Invalid tag: '{}{}'", s[0] as char, s[1] as char)))
+            return Err(ParseError(format!(
+                "Invalid tag: '{}{}'",
+                s[0] as char, s[1] as char
+            )));
         }
 
         match &s {
@@ -291,7 +294,7 @@ impl TryFrom<[u8; LENGTH]> for Tag {
             b"TS" => Ok(Self::TranscriptStrand),
             b"U2" => Ok(Self::NextHitQualityScores),
             b"UQ" => Ok(Self::SegmentLikelihood),
-            _ => Ok(Self::Other([s[0], s[1]]))
+            _ => Ok(Self::Other([s[0], s[1]])),
         }
     }
 }
@@ -315,7 +318,6 @@ impl FromStr for Tag {
         Tag::try_from(s.as_bytes())
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -450,11 +452,29 @@ mod tests {
         assert_eq!("UQ".parse(), Ok(Tag::SegmentLikelihood));
         assert_eq!("ZN".parse(), Ok(Tag::Other([b'Z', b'N'])));
 
-        assert_eq!("".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
-        assert_eq!("R".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
-        assert_eq!("1G".parse::<Tag>(), Err(ParseError(String::from("Invalid tag: '1G'"))));
-        assert_eq!("R_".parse::<Tag>(), Err(ParseError(String::from("Invalid tag: 'R_'"))));
-        assert_eq!("RGP".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
-        assert_eq!("RGRP".parse::<Tag>(), Err(ParseError(format!("Tag not {} bytes", LENGTH))));
+        assert_eq!(
+            "".parse::<Tag>(),
+            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+        );
+        assert_eq!(
+            "R".parse::<Tag>(),
+            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+        );
+        assert_eq!(
+            "1G".parse::<Tag>(),
+            Err(ParseError(String::from("Invalid tag: '1G'")))
+        );
+        assert_eq!(
+            "R_".parse::<Tag>(),
+            Err(ParseError(String::from("Invalid tag: 'R_'")))
+        );
+        assert_eq!(
+            "RGP".parse::<Tag>(),
+            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+        );
+        assert_eq!(
+            "RGRP".parse::<Tag>(),
+            Err(ParseError(format!("Tag not {} bytes", LENGTH)))
+        );
     }
 }
