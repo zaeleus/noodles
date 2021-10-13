@@ -30,7 +30,7 @@ where
     /// # use std::io;
     /// use noodles_gtf as gtf;
     ///
-    /// let data = b"sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\"";
+    /// let data = b"sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";";
     /// let mut reader = gtf::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
@@ -38,7 +38,7 @@ where
     ///
     /// assert_eq!(
     ///     buf,
-    ///     "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\""
+    ///     "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";"
     /// );
     /// # Ok::<_, io::Error>(())
     /// ```
