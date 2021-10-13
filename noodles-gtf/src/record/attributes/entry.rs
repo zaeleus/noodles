@@ -3,6 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 const SEPARATOR: char = ' ';
+pub(super) const TERMINATOR: char = ';';
 
 /// A GTF record attribute entry.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -60,7 +61,14 @@ impl Entry {
 
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, r#"{}{}"{}""#, self.key(), SEPARATOR, self.value(),)
+        write!(
+            f,
+            r#"{}{}"{}"{}"#,
+            self.key(),
+            SEPARATOR,
+            self.value(),
+            TERMINATOR
+        )
     }
 }
 
@@ -71,6 +79,8 @@ pub enum ParseError {
     Empty,
     /// The input is invalid.
     Invalid,
+    /// The terminator is missing.
+    MissingTerminator,
     /// The entry value is invalid.
     InvalidValue,
 }
@@ -82,6 +92,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => write!(f, "empty input"),
             Self::Invalid => write!(f, "invalid input"),
+            Self::MissingTerminator => write!(f, "missing terminator"),
             Self::InvalidValue => write!(f, "invalid value"),
         }
     }
@@ -95,13 +106,20 @@ impl FromStr for Entry {
             return Err(ParseError::Empty);
         }
 
-        match s.split_once(SEPARATOR) {
-            Some((k, v)) => {
-                let value = parse_value(v)?;
-                Ok(Self::new(k, value))
-            }
-            None => Err(ParseError::Invalid),
+        match s.strip_suffix(TERMINATOR) {
+            Some(t) => parse_entry(t),
+            None => Err(ParseError::MissingTerminator),
         }
+    }
+}
+
+fn parse_entry(s: &str) -> Result<Entry, ParseError> {
+    match s.split_once(SEPARATOR) {
+        Some((k, v)) => {
+            let value = parse_value(v)?;
+            Ok(Entry::new(k, value))
+        }
+        None => Err(ParseError::Invalid),
     }
 }
 
@@ -122,29 +140,34 @@ mod tests {
     #[test]
     fn test_fmt() {
         let entry = Entry::new("gene_id", "g0");
-        assert_eq!(entry.to_string(), r#"gene_id "g0""#);
+        assert_eq!(entry.to_string(), r#"gene_id "g0";"#);
     }
 
     #[test]
     fn test_from_str() {
         assert_eq!(
-            r#"gene_id "g0""#.parse::<Entry>(),
+            r#"gene_id "g0";"#.parse::<Entry>(),
             Ok(Entry::new("gene_id", "g0"))
         );
         assert_eq!(
-            r#"gene_id """#.parse::<Entry>(),
+            r#"gene_id "";"#.parse::<Entry>(),
             Ok(Entry::new("gene_id", ""))
         );
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
-        assert_eq!("gene_id".parse::<Entry>(), Err(ParseError::Invalid));
-        assert_eq!(r#""""#.parse::<Entry>(), Err(ParseError::Invalid));
         assert_eq!(
-            r#"gene_id "g0"#.parse::<Entry>(),
+            "gene_id".parse::<Entry>(),
+            Err(ParseError::MissingTerminator)
+        );
+        assert_eq!(r#""""#.parse::<Entry>(), Err(ParseError::MissingTerminator));
+        assert_eq!("gene_id;".parse::<Entry>(), Err(ParseError::Invalid));
+        assert_eq!(r#""";"#.parse::<Entry>(), Err(ParseError::Invalid));
+        assert_eq!(
+            r#"gene_id "g0;"#.parse::<Entry>(),
             Err(ParseError::InvalidValue)
         );
         assert_eq!(
-            r#"gene_id g0""#.parse::<Entry>(),
+            r#"gene_id g0";"#.parse::<Entry>(),
             Err(ParseError::InvalidValue)
         );
     }

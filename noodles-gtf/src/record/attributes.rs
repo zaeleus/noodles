@@ -4,9 +4,14 @@ pub mod entry;
 
 pub use self::entry::Entry;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{
+    error,
+    fmt::{self, Write},
+    ops::Deref,
+    str::FromStr,
+};
 
-const DELIMITER: &str = "; ";
+const DELIMITER: char = ' ';
 
 /// GTF record attributes.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -32,11 +37,9 @@ impl fmt::Display for Attributes {
             write!(f, "{}", entry)?;
 
             if i < self.0.len() - 1 {
-                f.write_str(DELIMITER)?;
+                f.write_char(DELIMITER)?;
             }
         }
-
-        f.write_str(";")?;
 
         Ok(())
     }
@@ -49,7 +52,7 @@ pub enum ParseError {
     Empty,
     /// The input is invalid.
     Invalid,
-    /// The input attributes has an invalid entry.
+    /// The input has an invalid entry.
     InvalidEntry(entry::ParseError),
 }
 
@@ -68,19 +71,43 @@ impl fmt::Display for ParseError {
 impl FromStr for Attributes {
     type Err = ParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            Err(ParseError::Empty)
-        } else if let Some(s) = s.strip_suffix(';') {
-            s.split(DELIMITER)
-                .map(|t| t.parse())
-                .collect::<Result<Vec<_>, _>>()
-                .map(Self::from)
-                .map_err(ParseError::InvalidEntry)
+            return Err(ParseError::Empty);
+        }
+
+        let mut entries = Vec::new();
+
+        while let Some(i) = s.chars().position(|c| c == entry::TERMINATOR) {
+            let (raw_entry, tail) = s.split_at(i + 1);
+
+            let entry = raw_entry.parse().map_err(ParseError::InvalidEntry)?;
+            entries.push(entry);
+
+            s = consume_space(tail)?;
+        }
+
+        if s.is_empty() {
+            Ok(Self(entries))
         } else {
             Err(ParseError::Invalid)
         }
     }
+}
+
+// _GTF2.2: A Gene Annotation Format_ (2013-02-25): "Attributes must end in a semicolon which must
+// then be separated from the start of any subsequent attribute by exactly one space character (NOT
+// a tab character)."
+fn consume_space(s: &str) -> Result<&str, ParseError> {
+    if s.is_empty() {
+        return Ok(s);
+    } else if let Some(t) = s.strip_prefix(DELIMITER) {
+        if t.strip_prefix(DELIMITER).is_none() {
+            return Ok(t);
+        }
+    }
+
+    Err(ParseError::Invalid)
 }
 
 #[cfg(test)]
@@ -122,5 +149,17 @@ mod tests {
             r#"gene_id "g0""#.parse::<Attributes>(),
             Err(ParseError::Invalid)
         );
+        assert_eq!(
+            r#"gene_id "g0";transcript_id "t0";"#.parse::<Attributes>(),
+            Err(ParseError::Invalid)
+        );
+        assert_eq!(
+            r#"gene_id "g0";  transcript_id "t0";"#.parse::<Attributes>(),
+            Err(ParseError::Invalid)
+        );
+        assert!(matches!(
+            r#"gene_id g0;"#.parse::<Attributes>(),
+            Err(ParseError::InvalidEntry(_))
+        ));
     }
 }
