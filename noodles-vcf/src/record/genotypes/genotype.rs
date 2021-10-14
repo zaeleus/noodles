@@ -67,7 +67,7 @@ impl Genotype {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::record::genotypes::{genotype::{field::{Key, Value}, Field}, Genotype};
     ///
     /// let format = "GT:GQ".parse()?;
@@ -106,7 +106,7 @@ impl Genotype {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
+    /// # use std::convert::TryFrom;
     /// use noodles_vcf::record::{genotypes::{genotype::{field::{Key, Value}, Field}, Genotype}};
     /// let genotype = Genotype::from_str_format("0|0:13", &"GT:GQ".parse()?)?;
     /// assert_eq!(genotype.genotype(), Some(Ok("0|0".parse()?)));
