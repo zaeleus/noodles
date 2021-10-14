@@ -122,7 +122,7 @@ impl Record {
             let keys: Vec<_> = first_genotype.keys().cloned().collect();
             let format = Format::try_from(keys)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            builder = builder.set_format(format).set_genotypes(genotypes.into());
+            builder = builder.set_format(format).set_genotypes(genotypes);
         }
 
         builder

@@ -7,9 +7,12 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{
     self as vcf,
-    record::genotypes::{
-        genotype::field::{Key, Value},
-        Genotype,
+    record::{
+        genotypes::{
+            genotype::field::{Key, Value},
+            Genotype,
+        },
+        Genotypes,
     },
 };
 
@@ -26,7 +29,7 @@ pub fn read_genotypes<R>(
     string_map: &StringMap,
     sample_count: usize,
     format_count: usize,
-) -> io::Result<Vec<Genotype>>
+) -> io::Result<Genotypes>
 where
     R: Read,
 {
@@ -54,7 +57,8 @@ where
         .map(|fields| {
             Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(Genotypes::from)
 }
 
 fn read_genotype_field_key<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Key>

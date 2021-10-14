@@ -8,7 +8,7 @@ pub use self::{
 
 use std::io::{self, Read};
 
-use noodles_vcf::{self as vcf, record::genotypes::Genotype};
+use noodles_vcf::{self as vcf, record::Genotypes};
 
 use crate::header::StringMap;
 
@@ -16,14 +16,14 @@ pub fn read_record<R>(
     reader: &mut R,
     header: &vcf::Header,
     string_map: &StringMap,
-) -> io::Result<(Site, Vec<Genotype>)>
+) -> io::Result<(Site, Genotypes)>
 where
     R: Read,
 {
     let site = read_site(reader, header, string_map)?;
 
     let genotypes = if site.n_sample == 0 {
-        Vec::new()
+        Genotypes::default()
     } else {
         read_genotypes(
             reader,
@@ -40,7 +40,7 @@ where
 mod tests {
     use std::convert::TryFrom;
 
-    use noodles_vcf::record::{Filters, Info};
+    use noodles_vcf::record::{genotype::Genotype, Filters, Info};
 
     use crate::record::value::Float;
 
@@ -149,7 +149,7 @@ mod tests {
 
         assert_eq!(actual_site, expected_site);
 
-        let expected_genotypes = vec![
+        let expected_genotypes = Genotypes::from(vec![
             Genotype::try_from(vec![
                 GenotypeField::new(
                     GenotypeFieldKey::Genotype,
@@ -228,7 +228,7 @@ mod tests {
                     ])),
                 ),
             ])?,
-        ];
+        ]);
 
         assert_eq!(actual_genotypes, expected_genotypes);
 
