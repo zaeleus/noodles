@@ -28,7 +28,7 @@ pub struct Entry {
 }
 
 impl Entry {
-    /// Creates a GFF record attribute.
+    /// Creates a GFF record attribute entry.
     ///
     /// # Examples
     ///
