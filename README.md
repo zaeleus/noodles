@@ -52,13 +52,3 @@ argument and append program arguments to the command, e.g.,
 cargo run --release --example bam_write > sample.bam
 cargo run --release --example bam_read_header sample.bam
 ```
-
-## Related tools
-
-noodles itself does not provide any applications, but related tools do depend
-on it.
-
-  * [noodles-squab]: Gene expression quantification by counting aligned record
-    intersections on reference gene annotations.
-
-[noodles-squab]: https://github.com/zaeleus/noodles-squab
