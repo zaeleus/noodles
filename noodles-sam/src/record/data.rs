@@ -40,8 +40,9 @@ impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, field) in self.values().enumerate() {
             if i > 0 {
-                f.write_char('\t')?;
+                f.write_char(DELIMITER)?;
             }
+
             write!(f, "{}", field)?;
         }
 
