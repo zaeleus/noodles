@@ -12,12 +12,22 @@
   * sam/record/data/field/tag: Add `ParseError` variants for invalid length and
     character.
 
+  * sam/record/data/field/tag: Implement `Copy` for `Tag` ([#48]).
+
 ### Changed
+
+  * sam/record/data: Moved `DuplicateTag` to `ParseError` ([#48]).
+
+    Use `ParseError::DuplicateTag` instead of `ParseError::InvalidData(_)`.
+
+  * sam/record/data/field: `Field::tag` returns a copy rather than a reference
+    ([#48]).
 
   * sam/record/data/field/tag: `Tag::Other` stores a `[u8; 2]` rather than
     `String` ([#46]).
 
 [#46]: https://github.com/zaeleus/noodles/issues/46
+[#48]: https://github.com/zaeleus/noodles/pull/48
 
 ## 0.5.0 - 2021-10-01
 
