@@ -87,7 +87,7 @@ pub enum TryFromDataError {
     /// A field is invalid.
     InvalidField,
     /// The data is invalid.
-    InvalidData(sam::record::data::TryFromFieldVectorError),
+    DuplicateTag(sam::record::data::field::Tag),
 }
 
 impl error::Error for TryFromDataError {}
@@ -96,7 +96,7 @@ impl fmt::Display for TryFromDataError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField => write!(f, "invalid field"),
-            Self::InvalidData(e) => write!(f, "invalid data: {}", e),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }
 }
@@ -105,14 +105,18 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
     type Error = TryFromDataError;
 
     fn try_from(data: Data<'_>) -> Result<Self, Self::Error> {
-        let mut sam_fields = Vec::new();
+        let mut sam_data = Self::default();
 
         for result in data.fields() {
             let field = result.map_err(|_| TryFromDataError::InvalidField)?;
-            sam_fields.push(field.into());
+            let tag = field.tag();
+            let samfield = sam::record::data::Field::from(field);
+            if sam_data.insert(tag, samfield).is_some() {
+                return Err(TryFromDataError::DuplicateTag(tag));
+            }
         }
 
-        Self::try_from(sam_fields).map_err(TryFromDataError::InvalidData)
+        Ok(sam_data)
     }
 }
 

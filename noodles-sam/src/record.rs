@@ -593,11 +593,11 @@ impl Record {
     /// );
     ///
     /// let data = record.data_mut();
-    /// data.insert(field.tag().clone(), field.clone());
+    /// data.insert(field.tag(), field.clone());
     ///
     /// let data = record.data();
     /// assert_eq!(data.len(), 1);
-    /// assert_eq!(data.get(field.tag()), Some(&field));
+    /// assert_eq!(data.get(&field.tag()), Some(&field));
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data

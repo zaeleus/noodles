@@ -6,7 +6,8 @@ pub use self::field::Field;
 
 use std::{
     convert::TryFrom,
-    error, fmt,
+    error,
+    fmt::{self, Write},
     ops::{Deref, DerefMut},
     str::FromStr,
 };
@@ -39,9 +40,8 @@ impl fmt::Display for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, field) in self.values().enumerate() {
             if i > 0 {
-                f.write_str("\t")?;
+                f.write_char('\t')?;
             }
-
             write!(f, "{}", field)?;
         }
 
@@ -54,8 +54,11 @@ impl fmt::Display for Data {
 pub enum ParseError {
     /// The input data contains an invalid field.
     InvalidField(field::ParseError),
-    /// The data is invalid.
-    InvalidData(TryFromFieldVectorError),
+    /// A tag is duplicated.
+    ///
+    /// § 1.5 The alignment section: optional fields (2021-01-07): "Each `TAG` can only appear once
+    /// in one alignment line."
+    DuplicateTag(field::Tag),
 }
 
 impl error::Error for ParseError {}
@@ -64,7 +67,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidField(e) => write!(f, "invalid field: {}", e),
-            Self::InvalidData(e) => write!(f, "invalid data: {}", e),
+            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }
 }
@@ -77,44 +80,31 @@ impl FromStr for Data {
             return Ok(Self::default());
         }
 
-        s.split(DELIMITER)
-            .map(|t| t.parse().map_err(ParseError::InvalidField))
-            .collect::<Result<Vec<_>, _>>()
-            .and_then(|fields| Self::try_from(fields).map_err(ParseError::InvalidData))
-    }
-}
+        let mut data = Self::default();
 
-/// An error returned when a vector of SAM record data fields fails to convert.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum TryFromFieldVectorError {
-    /// A tag is duplicated.
-    ///
-    /// § 1.5 The alignment section: optional fields (2021-01-07): "Each `TAG` can only appear once
-    /// in one alignment line."
-    DuplicateTag(field::Tag),
-}
-
-impl error::Error for TryFromFieldVectorError {}
-
-impl fmt::Display for TryFromFieldVectorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
+        for s in s.split(DELIMITER) {
+            let field: Field = s.parse().map_err(|e| ParseError::InvalidField(e))?;
+            let tag = field.tag();
+            if data.insert(tag, field).is_some() {
+                return Err(ParseError::DuplicateTag(tag));
+            }
         }
+
+        Ok(data)
     }
 }
 
 impl TryFrom<Vec<Field>> for Data {
-    type Error = TryFromFieldVectorError;
+    type Error = ParseError;
 
     fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
         let mut map = IndexMap::new();
 
         for field in fields {
-            let tag = field.tag().clone();
+            let tag = field.tag();
 
-            if map.insert(tag.clone(), field).is_some() {
-                return Err(TryFromFieldVectorError::DuplicateTag(tag));
+            if map.insert(tag, field).is_some() {
+                return Err(ParseError::DuplicateTag(tag));
             }
         }
 
@@ -129,7 +119,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromFieldVectorError> {
+    fn test_fmt() -> Result<(), ParseError> {
         let data = Data::try_from(vec![
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
             Field::new(Tag::AlignmentHitCount, Value::Int(1)),
@@ -143,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), TryFromFieldVectorError> {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!("".parse(), Ok(Data::default()));
 
         assert_eq!(
@@ -156,9 +146,7 @@ mod tests {
 
         assert_eq!(
             "NH:i:1\tNH:i:1".parse::<Data>(),
-            Err(ParseError::InvalidData(
-                TryFromFieldVectorError::DuplicateTag(Tag::AlignmentHitCount)
-            ))
+            Err(ParseError::DuplicateTag(Tag::AlignmentHitCount))
         );
 
         Ok(())

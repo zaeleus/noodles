@@ -11,7 +11,7 @@ fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
     for result in record.data().fields() {
         let field = result?;
 
-        if field.tag() == &Tag::AlignmentHitCount {
+        if field.tag() == Tag::AlignmentHitCount {
             let value = field.value();
 
             if let Some(hits) = value.as_int() {
