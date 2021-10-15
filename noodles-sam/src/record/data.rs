@@ -100,17 +100,17 @@ impl TryFrom<Vec<Field>> for Data {
     type Error = ParseError;
 
     fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
-        let mut map = IndexMap::new();
+        let mut data = Self::default();
 
         for field in fields {
             let tag = field.tag();
 
-            if map.insert(tag, field).is_some() {
+            if data.insert(tag, field).is_some() {
                 return Err(ParseError::DuplicateTag(tag));
             }
         }
 
-        Ok(Self(map))
+        Ok(data)
     }
 }
 
