@@ -58,6 +58,14 @@ pub enum DataSeries {
     Bases,
     /// Quality scores (`QS`).
     QualityScores,
+    /// (`TC`).
+    ///
+    /// Legacy CRAM 1.0 data series.
+    ReservedTc,
+    /// (`TN`).
+    ///
+    /// Legacy CRAM 1.0 data series.
+    ReservedTn,
 }
 
 impl DataSeries {
@@ -109,6 +117,8 @@ impl TryFrom<[u8; 2]> for DataSeries {
             [b'M', b'Q'] => Ok(Self::MappingQualities),
             [b'B', b'A'] => Ok(Self::Bases),
             [b'Q', b'S'] => Ok(Self::QualityScores),
+            [b'T', b'C'] => Ok(Self::ReservedTc),
+            [b'T', b'N'] => Ok(Self::ReservedTn),
             _ => Err(TryFromByteArrayError(b)),
         }
     }
@@ -145,6 +155,8 @@ impl From<DataSeries> for [u8; 2] {
             DataSeries::MappingQualities => [b'M', b'Q'],
             DataSeries::Bases => [b'B', b'A'],
             DataSeries::QualityScores => [b'Q', b'S'],
+            DataSeries::ReservedTc => [b'T', b'C'],
+            DataSeries::ReservedTn => [b'T', b'N'],
         }
     }
 }
@@ -253,6 +265,14 @@ mod tests {
             DataSeries::try_from([b'Q', b'S']),
             Ok(DataSeries::QualityScores)
         );
+        assert_eq!(
+            DataSeries::try_from([b'T', b'N']),
+            Ok(DataSeries::ReservedTn)
+        );
+        assert_eq!(
+            DataSeries::try_from([b'T', b'C']),
+            Ok(DataSeries::ReservedTc)
+        );
 
         assert_eq!(
             DataSeries::try_from([b'X', b'Y']),
@@ -311,5 +331,7 @@ mod tests {
         assert_eq!(<[u8; 2]>::from(DataSeries::MappingQualities), [b'M', b'Q']);
         assert_eq!(<[u8; 2]>::from(DataSeries::Bases), [b'B', b'A']);
         assert_eq!(<[u8; 2]>::from(DataSeries::QualityScores), [b'Q', b'S']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::ReservedTn), [b'T', b'N']);
+        assert_eq!(<[u8; 2]>::from(DataSeries::ReservedTc), [b'T', b'C']);
     }
 }

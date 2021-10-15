@@ -4,6 +4,12 @@
 
 ### Added
 
+  * data_container/compression_header/data_series_encoding_map/
+    data_series: Add legacy TC and TN data series.
+
+    These are no longer used in CRAM 3.0 but still need to be handled. See
+    samtools/hts-specs@9a0513783826516fb8086ecf82d13631a2292f75.
+
   * record/resolve: Handle reference skip feature in sequence resolver.
 
 ## 0.6.1 - 2021-10-02

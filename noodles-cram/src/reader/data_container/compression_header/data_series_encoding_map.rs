@@ -77,6 +77,7 @@ where
             DataSeries::MappingQualities => builder.set_mapping_qualities_encoding(encoding),
             DataSeries::Bases => builder.set_bases_encoding(encoding),
             DataSeries::QualityScores => builder.set_quality_scores_encoding(encoding),
+            DataSeries::ReservedTc | DataSeries::ReservedTn => builder,
         }
     }
 
