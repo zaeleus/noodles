@@ -85,6 +85,7 @@ impl FromStr for Data {
         for s in s.split(DELIMITER) {
             let field: Field = s.parse().map_err(ParseError::InvalidField)?;
             let tag = field.tag();
+
             if data.insert(tag, field).is_some() {
                 return Err(ParseError::DuplicateTag(tag));
             }
