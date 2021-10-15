@@ -36,10 +36,10 @@ impl Field {
     /// ```
     /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int(1));
-    /// assert_eq!(field.tag(), &Tag::AlignmentHitCount);
+    /// assert_eq!(field.tag(), Tag::AlignmentHitCount);
     /// ```
-    pub fn tag(&self) -> &Tag {
-        &self.tag
+    pub fn tag(&self) -> Tag {
+        self.tag
     }
 
     /// Returns the data field value.

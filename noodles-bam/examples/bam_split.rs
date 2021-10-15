@@ -52,7 +52,7 @@ fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
     for result in data.fields() {
         let field = result?;
 
-        if field.tag() == &Tag::ReadGroup {
+        if field.tag() == Tag::ReadGroup {
             match field.value() {
                 Value::String(s) => return Ok(Some(s.into())),
                 v => {

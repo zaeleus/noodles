@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Changed
+
+  * bam/record/data: Moved `DuplicateTag` to `ParseError` ([#48]).
+
+    Use `ParseError::DuplicateTag` instead of `ParseError::InvalidData(_)`.
+
+  * bam/record/data/field: `Field::tag` returns a copy rather than a reference
+    ([#48]).
+
+[#48]: https://github.com/zaeleus/noodles/pull/48
+
 ### Fixed
 
   * writer/record: Avoid casting data field value array length.

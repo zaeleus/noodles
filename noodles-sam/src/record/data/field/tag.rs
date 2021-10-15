@@ -8,7 +8,7 @@ const LENGTH: usize = 2;
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
 /// (2020-05-29).
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Tag {
     /// (`AM`).
     MinMappingQuality,
@@ -239,14 +239,6 @@ impl fmt::Display for ParseError {
 impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
     fn try_from(s: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        if !s[0].is_ascii_alphabetic() {
-            return Err(ParseError::InvalidCharacter(char::from(s[0])));
-        }
-
-        if !s[1].is_ascii_alphanumeric() {
-            return Err(ParseError::InvalidCharacter(char::from(s[1])));
-        }
-
         match &s {
             b"AM" => Ok(Self::MinMappingQuality),
             b"AS" => Ok(Self::AlignmentScore),
@@ -308,7 +300,15 @@ impl TryFrom<[u8; LENGTH]> for Tag {
             b"TS" => Ok(Self::TranscriptStrand),
             b"U2" => Ok(Self::NextHitQualityScores),
             b"UQ" => Ok(Self::SegmentLikelihood),
-            _ => Ok(Self::Other([s[0], s[1]])),
+            _ => {
+                if !s[0].is_ascii_alphabetic() {
+                    Err(ParseError::InvalidCharacter(char::from(s[0])))
+                } else if !s[1].is_ascii_alphanumeric() {
+                    Err(ParseError::InvalidCharacter(char::from(s[1])))
+                } else {
+                    Ok(Self::Other([s[0], s[1]]))
+                }
+            }
         }
     }
 }
