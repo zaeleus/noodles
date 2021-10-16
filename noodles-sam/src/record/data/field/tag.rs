@@ -238,6 +238,7 @@ impl fmt::Display for ParseError {
 // § 1.5 The alignment section: optional fields (2021-01-07)
 impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
+
     fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
         match &b {
             b"AM" => Ok(Self::MinMappingQuality),
