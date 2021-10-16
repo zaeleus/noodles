@@ -307,7 +307,7 @@ impl TryFrom<[u8; LENGTH]> for Tag {
                 } else if !b[1].is_ascii_alphanumeric() {
                     Err(ParseError::InvalidCharacter(char::from(b[1])))
                 } else {
-                    Ok(Self::Other([b[0], b[1]]))
+                    Ok(Self::Other(b))
                 }
             }
         }
