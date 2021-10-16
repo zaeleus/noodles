@@ -170,17 +170,16 @@ impl Program {
     /// # use noodles_sam::header::program::builder;
     /// use noodles_sam::header::{program::Tag, Program};
     ///
+    /// let zn = Tag::Other([b'z', b'n']);
+    ///
     /// let program = Program::builder()
     ///     .set_id("pg0")
-    ///     .insert(Tag::Other([b'z', b'n']), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build()?;
     ///
     /// let fields = program.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(
-    ///     fields.get(&Tag::Other([b'z', b'n'])),
-    ///     Some(&String::from("noodles"))
-    /// );
+    /// assert_eq!(fields.get(&zn), Some(&String::from("noodles")));
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(program.id(), "pg0");

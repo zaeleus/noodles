@@ -185,7 +185,7 @@ impl Builder {
     ///
     /// let program = Program::builder()
     ///     .set_id("pg0")
-    ///     .insert(zn.clone(), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build()?;
     ///
     /// assert_eq!(program.fields().get(&zn), Some(&String::from("noodles")));
