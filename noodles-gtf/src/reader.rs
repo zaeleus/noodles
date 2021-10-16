@@ -1,4 +1,9 @@
-use std::io::{self, BufRead};
+use std::{
+    io::{self, BufRead},
+    iter,
+};
+
+use super::Record;
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -44,6 +49,50 @@ where
     /// ```
     pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    ///
+    /// let data = b"##provider: NOODLES
+    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
+    /// ";
+    /// let mut reader = gtf::Reader::new(&data[..]);
+    ///
+    /// let mut records = reader.records();
+    ///
+    /// let record = records.next().transpose()?;
+    /// assert_eq!(record.map(|r| r.start()), Some(8));
+    /// // ...
+    ///
+    /// assert!(records.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+        let mut buf = String::new();
+
+        iter::from_fn(move || loop {
+            buf.clear();
+
+            match self.read_line(&mut buf) {
+                Ok(0) => return None,
+                Ok(_) => {
+                    if !buf.starts_with('#') {
+                        let result = buf
+                            .parse()
+                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
+
+                        return Some(result);
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        })
     }
 }
 
