@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * sam/header: Change header, program, and read group tag representations to
-    `[u8; 2]`.
+  * sam/header: Change header, program, read group, reference sequence tag
+    representations to `[u8; 2]`.
 
 ## 0.6.0 - 2021-10-16
 

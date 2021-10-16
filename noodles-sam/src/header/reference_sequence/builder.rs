@@ -304,7 +304,7 @@ impl Builder {
     /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
-    /// let zn = Tag::Other(String::from("zn"));
+    /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
