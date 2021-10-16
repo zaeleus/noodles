@@ -375,7 +375,7 @@ impl Builder {
     /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
-    /// let zn = Tag::Other(String::from("zn"));
+    /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")

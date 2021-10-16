@@ -1,6 +1,13 @@
 //! SAM header read group tag.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    convert::TryFrom,
+    error,
+    fmt::{self, Write},
+    str::FromStr,
+};
+
+const LENGTH: usize = 2;
 
 /// A SAM header read group tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -34,34 +41,37 @@ pub enum Tag {
     /// Sample (`SM`).
     Sample,
     /// Any other read group tag.
-    Other(String),
+    Other([u8; LENGTH]),
 }
 
-impl AsRef<str> for Tag {
-    fn as_ref(&self) -> &str {
+impl AsRef<[u8; LENGTH]> for Tag {
+    fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
-            Self::Id => "ID",
-            Self::Barcode => "BC",
-            Self::SequencingCenter => "CN",
-            Self::Description => "DS",
-            Self::ProducedAt => "DT",
-            Self::FlowOrder => "FO",
-            Self::KeySequence => "KS",
-            Self::Library => "LB",
-            Self::Program => "PG",
-            Self::PredictedMedianInsertSize => "PI",
-            Self::Platform => "PL",
-            Self::PlatformModel => "PM",
-            Self::PlatformUnit => "PU",
-            Self::Sample => "SM",
-            Self::Other(s) => s,
+            Self::Id => b"ID",
+            Self::Barcode => b"BC",
+            Self::SequencingCenter => b"CN",
+            Self::Description => b"DS",
+            Self::ProducedAt => b"DT",
+            Self::FlowOrder => b"FO",
+            Self::KeySequence => b"KS",
+            Self::Library => b"LB",
+            Self::Program => b"PG",
+            Self::PredictedMedianInsertSize => b"PI",
+            Self::Platform => b"PL",
+            Self::PlatformModel => b"PM",
+            Self::PlatformUnit => b"PU",
+            Self::Sample => b"SM",
+            Self::Other(tag) => tag,
         }
     }
 }
 
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
+        let bytes = self.as_ref();
+        f.write_char(char::from(bytes[0]))?;
+        f.write_char(char::from(bytes[1]))?;
+        Ok(())
     }
 }
 
@@ -89,29 +99,36 @@ impl FromStr for Tag {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            "ID" => Ok(Self::Id),
-            "BC" => Ok(Self::Barcode),
-            "CN" => Ok(Self::SequencingCenter),
-            "DS" => Ok(Self::Description),
-            "DT" => Ok(Self::ProducedAt),
-            "FO" => Ok(Self::FlowOrder),
-            "KS" => Ok(Self::KeySequence),
-            "LB" => Ok(Self::Library),
-            "PG" => Ok(Self::Program),
-            "PI" => Ok(Self::PredictedMedianInsertSize),
-            "PL" => Ok(Self::Platform),
-            "PM" => Ok(Self::PlatformModel),
-            "PU" => Ok(Self::PlatformUnit),
-            "SM" => Ok(Self::Sample),
-            _ => {
-                if s.len() == 2 {
-                    Ok(Self::Other(s.into()))
-                } else {
-                    Err(ParseError::Invalid)
-                }
-            }
+        let bytes = s.as_bytes();
+
+        match bytes.len() {
+            0 => Err(ParseError::Empty),
+            2 => Self::try_from([bytes[0], bytes[1]]),
+            _ => Err(ParseError::Invalid),
+        }
+    }
+}
+
+impl TryFrom<[u8; LENGTH]> for Tag {
+    type Error = ParseError;
+
+    fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
+        match &b {
+            b"ID" => Ok(Self::Id),
+            b"BC" => Ok(Self::Barcode),
+            b"CN" => Ok(Self::SequencingCenter),
+            b"DS" => Ok(Self::Description),
+            b"DT" => Ok(Self::ProducedAt),
+            b"FO" => Ok(Self::FlowOrder),
+            b"KS" => Ok(Self::KeySequence),
+            b"LB" => Ok(Self::Library),
+            b"PG" => Ok(Self::Program),
+            b"PI" => Ok(Self::PredictedMedianInsertSize),
+            b"PL" => Ok(Self::Platform),
+            b"PM" => Ok(Self::PlatformModel),
+            b"PU" => Ok(Self::PlatformUnit),
+            b"SM" => Ok(Self::Sample),
+            _ => Ok(Self::Other(b)),
         }
     }
 }
@@ -136,7 +153,7 @@ mod tests {
         assert_eq!(Tag::PlatformModel.to_string(), "PM");
         assert_eq!(Tag::PlatformUnit.to_string(), "PU");
         assert_eq!(Tag::Sample.to_string(), "SM");
-        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
+        assert_eq!(Tag::Other([b'N', b'D']).to_string(), "ND");
     }
 
     #[test]
@@ -155,7 +172,7 @@ mod tests {
         assert_eq!("PM".parse(), Ok(Tag::PlatformModel));
         assert_eq!("PU".parse(), Ok(Tag::PlatformUnit));
         assert_eq!("SM".parse(), Ok(Tag::Sample));
-        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("ND".parse(), Ok(Tag::Other([b'N', b'D'])));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));
