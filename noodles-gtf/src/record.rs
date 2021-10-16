@@ -260,7 +260,7 @@ fn parse_strand(s: &str) -> Result<Option<Strand>, ParseError> {
 fn parse_frame(s: &str) -> Result<Option<String>, ParseError> {
     match s {
         NULL_FIELD => Ok(None),
-        "1" | "2" | "3" => Ok(Some(s.into())),
+        "0" | "1" | "2" => Ok(Some(s.into())),
         _ => Err(ParseError::InvalidFrame),
     }
 }
