@@ -158,7 +158,7 @@ mod tests {
             Err(ParseError::Invalid)
         );
         assert!(matches!(
-            r#"gene_id g0;"#.parse::<Attributes>(),
+            r#";"#.parse::<Attributes>(),
             Err(ParseError::InvalidEntry(_))
         ));
     }

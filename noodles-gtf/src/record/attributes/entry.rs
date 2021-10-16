@@ -81,8 +81,6 @@ pub enum ParseError {
     Invalid,
     /// The terminator is missing.
     MissingTerminator,
-    /// The entry value is invalid.
-    InvalidValue,
 }
 
 impl error::Error for ParseError {}
@@ -93,7 +91,6 @@ impl fmt::Display for ParseError {
             Self::Empty => write!(f, "empty input"),
             Self::Invalid => write!(f, "invalid input"),
             Self::MissingTerminator => write!(f, "missing terminator"),
-            Self::InvalidValue => write!(f, "invalid value"),
         }
     }
 }
@@ -116,21 +113,15 @@ impl FromStr for Entry {
 fn parse_entry(s: &str) -> Result<Entry, ParseError> {
     match s.split_once(SEPARATOR) {
         Some((k, v)) => {
-            let value = parse_value(v)?;
+            let value = parse_value(v);
             Ok(Entry::new(k, value))
         }
         None => Err(ParseError::Invalid),
     }
 }
 
-fn parse_value(s: &str) -> Result<String, ParseError> {
-    if let Some(s) = s.strip_prefix('"') {
-        if let Some(s) = s.strip_suffix('"') {
-            return Ok(s.into());
-        }
-    }
-
-    Err(ParseError::InvalidValue)
+fn parse_value(s: &str) -> String {
+    s.trim_matches('"').into()
 }
 
 #[cfg(test)]
@@ -153,6 +144,10 @@ mod tests {
             r#"gene_id "";"#.parse::<Entry>(),
             Ok(Entry::new("gene_id", ""))
         );
+        assert_eq!(
+            r#"gene_id 0;"#.parse::<Entry>(),
+            Ok(Entry::new("gene_id", "0"))
+        );
 
         assert_eq!("".parse::<Entry>(), Err(ParseError::Empty));
         assert_eq!(
@@ -162,13 +157,5 @@ mod tests {
         assert_eq!(r#""""#.parse::<Entry>(), Err(ParseError::MissingTerminator));
         assert_eq!("gene_id;".parse::<Entry>(), Err(ParseError::Invalid));
         assert_eq!(r#""";"#.parse::<Entry>(), Err(ParseError::Invalid));
-        assert_eq!(
-            r#"gene_id "g0;"#.parse::<Entry>(),
-            Err(ParseError::InvalidValue)
-        );
-        assert_eq!(
-            r#"gene_id g0";"#.parse::<Entry>(),
-            Err(ParseError::InvalidValue)
-        );
     }
 }
