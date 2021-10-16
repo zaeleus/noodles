@@ -181,7 +181,7 @@ impl Builder {
     /// # use noodles_sam::header::program::builder;
     /// use noodles_sam::header::{program::Tag, Program};
     ///
-    /// let zn = Tag::Other(String::from("zn"));
+    /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let program = Program::builder()
     ///     .set_id("pg0")

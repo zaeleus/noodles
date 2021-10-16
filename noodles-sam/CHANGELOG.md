@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * sam/header/header/tag: Change representation to `[u8; 2]`.
+  * sam/header: Change header and program tag representations to `[u8; 2]`.
 
 ## 0.6.0 - 2021-10-16
 
