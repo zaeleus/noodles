@@ -238,8 +238,8 @@ impl fmt::Display for ParseError {
 // § 1.5 The alignment section: optional fields (2021-01-07)
 impl TryFrom<[u8; LENGTH]> for Tag {
     type Error = ParseError;
-    fn try_from(s: [u8; LENGTH]) -> Result<Self, Self::Error> {
-        match &s {
+    fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
+        match &b {
             b"AM" => Ok(Self::MinMappingQuality),
             b"AS" => Ok(Self::AlignmentScore),
             b"BC" => Ok(Self::SampleBarcodeSequence),
@@ -301,12 +301,12 @@ impl TryFrom<[u8; LENGTH]> for Tag {
             b"U2" => Ok(Self::NextHitQualityScores),
             b"UQ" => Ok(Self::SegmentLikelihood),
             _ => {
-                if !s[0].is_ascii_alphabetic() {
-                    Err(ParseError::InvalidCharacter(char::from(s[0])))
-                } else if !s[1].is_ascii_alphanumeric() {
-                    Err(ParseError::InvalidCharacter(char::from(s[1])))
+                if !b[0].is_ascii_alphabetic() {
+                    Err(ParseError::InvalidCharacter(char::from(b[0])))
+                } else if !b[1].is_ascii_alphanumeric() {
+                    Err(ParseError::InvalidCharacter(char::from(b[1])))
                 } else {
-                    Ok(Self::Other([s[0], s[1]]))
+                    Ok(Self::Other([b[0], b[1]]))
                 }
             }
         }
@@ -316,11 +316,11 @@ impl TryFrom<[u8; LENGTH]> for Tag {
 impl TryFrom<&[u8]> for Tag {
     type Error = ParseError;
 
-    fn try_from(s: &[u8]) -> Result<Self, Self::Error> {
-        if s.len() == LENGTH {
-            Self::try_from([s[0], s[1]])
+    fn try_from(b: &[u8]) -> Result<Self, Self::Error> {
+        if b.len() == LENGTH {
+            Self::try_from([b[0], b[1]])
         } else {
-            Err(ParseError::InvalidLength(s.len()))
+            Err(ParseError::InvalidLength(b.len()))
         }
     }
 }
