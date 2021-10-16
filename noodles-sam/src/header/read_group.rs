@@ -291,17 +291,16 @@ impl ReadGroup {
     /// # use noodles_sam::header::read_group::builder;
     /// use noodles_sam::header::{read_group::Tag, ReadGroup};
     ///
+    /// let zn = Tag::Other([b'z', b'n']);
+    ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
-    ///     .insert(Tag::Other([b'z', b'n']), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build()?;
     ///
     /// let fields = read_group.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(
-    ///     fields.get(&Tag::Other([b'z', b'n'])),
-    ///     Some(&String::from("noodles"))
-    /// );
+    /// assert_eq!(fields.get(&zn), Some(&String::from("noodles")));
     ///
     /// assert_eq!(fields.get(&Tag::Id), None);
     /// assert_eq!(read_group.id(), "rg0");
