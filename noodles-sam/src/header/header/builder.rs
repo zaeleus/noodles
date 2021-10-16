@@ -83,7 +83,7 @@ impl Builder {
     /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let header = Header::builder()
-    ///     .insert(zn.clone(), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build();
     ///
     /// assert_eq!(header.fields().get(&zn), Some(&String::from("noodles")));

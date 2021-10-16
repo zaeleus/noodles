@@ -143,17 +143,16 @@ impl Header {
     /// ```
     /// use noodles_sam::header::header::{Header, SortOrder, Tag, Version};
     ///
+    /// let zn = Tag::Other([b'z', b'n']);
+    ///
     /// let header = Header::builder()
     ///     .set_version(Version::new(1, 6))
-    ///     .insert(Tag::Other([b'z', b'n']), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build();
     ///
     /// let fields = header.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(
-    ///     fields.get(&Tag::Other([b'z', b'n'])),
-    ///     Some(&String::from("noodles"))
-    /// );
+    /// assert_eq!(fields.get(&zn), Some(&String::from("noodles")));
     ///
     /// assert_eq!(fields.get(&Tag::Version), None);
     /// assert_eq!(header.version(), Version::new(1, 6));

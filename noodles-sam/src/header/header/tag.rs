@@ -10,7 +10,7 @@ use std::{
 const LENGTH: usize = 2;
 
 /// A SAM header header tag.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
     /// Format version (`VN`).
     Version,
