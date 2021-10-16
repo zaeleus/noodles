@@ -10,7 +10,7 @@ use std::{
 const LENGTH: usize = 2;
 
 /// A SAM header reference sequence tag.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum Tag {
     /// Reference sequence name (`SN`).
     Name,

@@ -302,18 +302,17 @@ impl ReferenceSequence {
     /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
+    /// let zn = Tag::Other([b'z', b'n']);
+    ///
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0")
     ///     .set_length(13)
-    ///     .insert(Tag::Other([b'z', b'n']), String::from("noodles"))
+    ///     .insert(zn, String::from("noodles"))
     ///     .build()?;
     ///
     /// let fields = reference_sequence.fields();
     /// assert_eq!(fields.len(), 1);
-    /// assert_eq!(
-    ///     fields.get(&Tag::Other([b'z', b'n'])),
-    ///     Some(&String::from("noodles"))
-    /// );
+    /// assert_eq!(fields.get(&zn), Some(&String::from("noodles")));
     ///
     /// assert_eq!(fields.get(&Tag::Name), None);
     /// assert_eq!(reference_sequence.name(), "sq0");
