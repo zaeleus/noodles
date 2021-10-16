@@ -1,6 +1,13 @@
 //! SAM header header tag.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    convert::TryFrom,
+    error,
+    fmt::{self, Write},
+    str::FromStr,
+};
+
+const LENGTH: usize = 2;
 
 /// A SAM header header tag.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -14,24 +21,27 @@ pub enum Tag {
     /// Subsort order of alignments (`SS`).
     SubsortOrder,
     /// Any other header tag.
-    Other(String),
+    Other([u8; LENGTH]),
 }
 
-impl AsRef<str> for Tag {
-    fn as_ref(&self) -> &str {
+impl AsRef<[u8; LENGTH]> for Tag {
+    fn as_ref(&self) -> &[u8; LENGTH] {
         match self {
-            Self::Version => "VN",
-            Self::SortOrder => "SO",
-            Self::GroupOrder => "GO",
-            Self::SubsortOrder => "SS",
-            Self::Other(s) => s,
+            Self::Version => b"VN",
+            Self::SortOrder => b"SO",
+            Self::GroupOrder => b"GO",
+            Self::SubsortOrder => b"SS",
+            Self::Other(tag) => tag,
         }
     }
 }
 
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
+        let bytes = self.as_ref();
+        f.write_char(char::from(bytes[0]))?;
+        f.write_char(char::from(bytes[1]))?;
+        Ok(())
     }
 }
 
@@ -59,19 +69,26 @@ impl FromStr for Tag {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            "VN" => Ok(Self::Version),
-            "SO" => Ok(Self::SortOrder),
-            "GO" => Ok(Self::GroupOrder),
-            "SS" => Ok(Self::SubsortOrder),
-            _ => {
-                if s.len() == 2 {
-                    Ok(Self::Other(s.into()))
-                } else {
-                    Err(ParseError::Invalid)
-                }
-            }
+        let bytes = s.as_bytes();
+
+        match bytes.len() {
+            0 => Err(ParseError::Empty),
+            2 => Self::try_from([bytes[0], bytes[1]]),
+            _ => Err(ParseError::Invalid),
+        }
+    }
+}
+
+impl TryFrom<[u8; LENGTH]> for Tag {
+    type Error = ParseError;
+
+    fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
+        match &b {
+            b"VN" => Ok(Self::Version),
+            b"SO" => Ok(Self::SortOrder),
+            b"GO" => Ok(Self::GroupOrder),
+            b"SS" => Ok(Self::SubsortOrder),
+            _ => Ok(Self::Other(b)),
         }
     }
 }
@@ -86,7 +103,7 @@ mod tests {
         assert_eq!(Tag::SortOrder.to_string(), "SO");
         assert_eq!(Tag::GroupOrder.to_string(), "GO");
         assert_eq!(Tag::SubsortOrder.to_string(), "SS");
-        assert_eq!(Tag::Other(String::from("ND")).to_string(), "ND");
+        assert_eq!(Tag::Other([b'N', b'D']).to_string(), "ND");
     }
 
     #[test]
@@ -95,7 +112,7 @@ mod tests {
         assert_eq!("SO".parse(), Ok(Tag::SortOrder));
         assert_eq!("GO".parse(), Ok(Tag::GroupOrder));
         assert_eq!("SS".parse(), Ok(Tag::SubsortOrder));
-        assert_eq!("ND".parse(), Ok(Tag::Other(String::from("ND"))));
+        assert_eq!("ND".parse(), Ok(Tag::Other([b'N', b'D'])));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::Empty));
         assert_eq!("NDL".parse::<Tag>(), Err(ParseError::Invalid));

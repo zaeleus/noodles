@@ -80,7 +80,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::header::header::{Header, Tag};
     ///
-    /// let zn = Tag::Other(String::from("zn"));
+    /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let header = Header::builder()
     ///     .insert(zn.clone(), String::from("noodles"))

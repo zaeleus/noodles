@@ -145,13 +145,13 @@ impl Header {
     ///
     /// let header = Header::builder()
     ///     .set_version(Version::new(1, 6))
-    ///     .insert(Tag::Other(String::from("zn")), String::from("noodles"))
+    ///     .insert(Tag::Other([b'z', b'n']), String::from("noodles"))
     ///     .build();
     ///
     /// let fields = header.fields();
     /// assert_eq!(fields.len(), 1);
     /// assert_eq!(
-    ///     fields.get(&Tag::Other(String::from("zn"))),
+    ///     fields.get(&Tag::Other([b'z', b'n'])),
     ///     Some(&String::from("noodles"))
     /// );
     ///
