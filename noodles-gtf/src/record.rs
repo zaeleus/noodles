@@ -91,6 +91,12 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
+
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
