@@ -1,9 +1,10 @@
 //! GTF record and fields.
 
 pub mod attributes;
+mod builder;
 pub mod strand;
 
-pub use self::{attributes::Attributes, strand::Strand};
+pub use self::{attributes::Attributes, builder::Builder, strand::Strand};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -24,6 +25,18 @@ pub struct Record {
 }
 
 impl Record {
+    /// Returns a record builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let builder = gtf::Record::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Returns the reference sequence name.
     ///
     /// This is also called the "seqname".
