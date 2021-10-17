@@ -3,7 +3,7 @@ use std::{
     iter,
 };
 
-use super::Record;
+use super::{Line, Record};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -51,6 +51,47 @@ where
         read_line(&mut self.inner, buf)
     }
 
+    /// Returns an iterator over lines starting from the current stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gtf as gtf;
+    ///
+    /// let data = b"##format: gtf
+    /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
+    /// ";
+    /// let mut reader = gtf::Reader::new(&data[..]);
+    ///
+    /// let mut lines = reader.lines();
+    ///
+    /// let line = lines.next().transpose()?;
+    /// assert_eq!(line, Some(gtf::Line::Comment(String::from("#format: gtf"))));
+    ///
+    /// let line = lines.next().transpose()?;
+    /// assert!(matches!(line, Some(gtf::Line::Record(_))));
+    ///
+    /// assert!(lines.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn lines(&mut self) -> impl Iterator<Item = io::Result<Line>> + '_ {
+        let mut buf = String::new();
+
+        iter::from_fn(move || {
+            buf.clear();
+
+            match self.read_line(&mut buf) {
+                Ok(0) => None,
+                Ok(_) => Some(
+                    buf.parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                ),
+                Err(e) => Some(Err(e)),
+            }
+        })
+    }
+
     /// Returns an iterator over records starting from the current stream position.
     ///
     /// # Examples
@@ -59,7 +100,7 @@ where
     /// # use std::io;
     /// use noodles_gtf as gtf;
     ///
-    /// let data = b"##provider: NOODLES
+    /// let data = b"##format: gtf
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
     /// ";
     /// let mut reader = gtf::Reader::new(&data[..]);
@@ -74,22 +115,12 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
-        let mut buf = String::new();
+        let mut lines = self.lines();
 
         iter::from_fn(move || loop {
-            buf.clear();
-
-            match self.read_line(&mut buf) {
-                Ok(0) => return None,
-                Ok(_) => {
-                    if !buf.starts_with('#') {
-                        let result = buf
-                            .parse()
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e));
-
-                        return Some(result);
-                    }
-                }
+            match lines.next()? {
+                Ok(Line::Record(r)) => return Some(Ok(r)),
+                Ok(_) => {}
                 Err(e) => return Some(Err(e)),
             }
         })
