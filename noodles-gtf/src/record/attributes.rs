@@ -14,7 +14,7 @@ use std::{
 const DELIMITER: char = ' ';
 
 /// GTF record attributes.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Attributes(Vec<Entry>);
 
 impl Deref for Attributes {
