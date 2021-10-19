@@ -16,6 +16,14 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the reference sequence name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_reference_sequence_name("sq0").build();
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
+    /// ```
     pub fn set_reference_sequence_name<N>(mut self, reference_sequence_name: N) -> Self
     where
         N: Into<String>,
@@ -25,6 +33,14 @@ impl Builder {
     }
 
     /// Sets the source.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_source("NOODLES").build();
+    /// assert_eq!(record.source(), "NOODLES");
+    /// ```
     pub fn set_source<S>(mut self, source: S) -> Self
     where
         S: Into<String>,
@@ -34,6 +50,14 @@ impl Builder {
     }
 
     /// Sets the feature type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_type("exon").build();
+    /// assert_eq!(record.ty(), "exon");
+    /// ```
     pub fn set_type<T>(mut self, ty: T) -> Self
     where
         T: Into<String>,
@@ -43,30 +67,70 @@ impl Builder {
     }
 
     /// Sets the start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_start(8).build();
+    /// assert_eq!(record.start(), 8);
+    /// ```
     pub fn set_start(mut self, start: i32) -> Self {
         self.start = start;
         self
     }
 
     /// Sets the end position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_end(13).build();
+    /// assert_eq!(record.end(), 13);
+    /// ```
     pub fn set_end(mut self, end: i32) -> Self {
         self.end = end;
         self
     }
 
     /// Sets the score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_score(1.0).build();
+    /// assert_eq!(record.score(), Some(1.0));
+    /// ```
     pub fn set_score(mut self, score: f32) -> Self {
         self.score = Some(score);
         self
     }
 
     /// Sets the strand.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf::{self as gtf, record::Strand};
+    /// let record = gtf::Record::builder().set_strand(Strand::Forward).build();
+    /// assert_eq!(record.strand(), Some(Strand::Forward));
+    /// ```
     pub fn set_strand(mut self, strand: Strand) -> Self {
         self.strand = Some(strand);
         self
     }
 
     /// Sets the frame.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::builder().set_frame("0").build();
+    /// assert_eq!(record.frame(), Some("0"));
+    /// ```
     pub fn set_frame<F>(mut self, frame: F) -> Self
     where
         F: Into<String>,
@@ -76,6 +140,15 @@ impl Builder {
     }
 
     /// Sets the attributes;
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf::{self as gtf, record::{attributes::Entry, Attributes}};
+    /// let attributes = Attributes::from(vec![Entry::new("gene_id", "g0")]);
+    /// let record = gtf::Record::builder().set_attributes(attributes.clone()).build();
+    /// assert_eq!(record.attributes(), &attributes);
+    /// ```
     pub fn set_attributes(mut self, attributes: Attributes) -> Self {
         self.attributes = attributes;
         self
