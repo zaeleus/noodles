@@ -1,4 +1,4 @@
-use super::{Attributes, Record, Strand};
+use super::{Attributes, Record, Strand, NULL_FIELD};
 
 /// A GTF record builder.
 #[derive(Debug)]
@@ -107,9 +107,9 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            reference_sequence_name: String::from("."),
-            source: String::from("."),
-            ty: String::from("."),
+            reference_sequence_name: NULL_FIELD.into(),
+            source: NULL_FIELD.into(),
+            ty: NULL_FIELD.into(),
             start: 1,
             end: 1,
             score: None,
