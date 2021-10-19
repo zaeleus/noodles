@@ -40,11 +40,27 @@ impl Record {
     /// Returns the reference sequence name.
     ///
     /// This is also called the "seqname".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert_eq!(record.reference_sequence_name(), ".");
+    /// ```
     pub fn reference_sequence_name(&self) -> &str {
         &self.reference_sequence_name
     }
 
     /// Returns the source.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert_eq!(record.source(), ".");
+    /// ```
     pub fn source(&self) -> &str {
         &self.source
     }
@@ -52,6 +68,14 @@ impl Record {
     /// Returns the feature type.
     ///
     /// This is also simply called "feature".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert_eq!(record.ty(), ".");
+    /// ```
     pub fn ty(&self) -> &str {
         &self.ty
     }
@@ -59,6 +83,14 @@ impl Record {
     /// Returns the start position.
     ///
     /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert_eq!(record.start(), 1);
+    /// ```
     pub fn start(&self) -> i32 {
         self.start
     }
@@ -66,26 +98,66 @@ impl Record {
     /// Returns the end position.
     ///
     /// This value is 1-based.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert_eq!(record.end(), 1);
+    /// ```
     pub fn end(&self) -> i32 {
         self.end
     }
 
     /// Returns the confidence score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert!(record.score().is_none());
+    /// ```
     pub fn score(&self) -> Option<f32> {
         self.score
     }
 
     /// Returns the strand.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert!(record.strand().is_none());
+    /// ```
     pub fn strand(&self) -> Option<Strand> {
         self.strand
     }
 
     /// Returns the frame.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert!(record.frame().is_none());
+    /// ```
     pub fn frame(&self) -> Option<&str> {
         self.frame.as_deref()
     }
 
     /// Returns the attributes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::Record::default();
+    /// assert!(record.attributes().is_empty());
+    /// ```
     pub fn attributes(&self) -> &Attributes {
         &self.attributes
     }
