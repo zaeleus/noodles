@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut`, and `into_inner`.
+
 ## 0.2.0 - 2021-10-01
 
 ### Added
