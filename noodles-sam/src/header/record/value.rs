@@ -44,8 +44,8 @@ impl Value {
     /// ```
     /// use noodles_sam::header::record::{value, Value};
     ///
-    /// let actual = Value::try_from_iter(vec![("SN", "sq0"), ("LN", "8")])?;
-    /// let expected = Value::Map(vec![
+    /// let actual = Value::try_from_iter([("SN", "sq0"), ("LN", "8")])?;
+    /// let expected = Value::Map([
     ///     (String::from("SN"), String::from("sq0")),
     ///     (String::from("LN"), String::from("8")),
     /// ].into_iter().collect());
@@ -85,16 +85,16 @@ mod tests {
     #[test]
     fn test_try_from_iter() {
         assert_eq!(
-            Value::try_from_iter(vec![(String::from("VN"), String::from("1.6")),]),
+            Value::try_from_iter([(String::from("VN"), String::from("1.6"))]),
             Ok(Value::Map(
-                vec![(String::from("VN"), String::from("1.6")),]
+                [(String::from("VN"), String::from("1.6"))]
                     .into_iter()
                     .collect()
             ))
         );
 
         assert_eq!(
-            Value::try_from_iter(vec![
+            Value::try_from_iter([
                 (String::from("VN"), String::from("1.6")),
                 (String::from("VN"), String::from("1.6")),
             ]),

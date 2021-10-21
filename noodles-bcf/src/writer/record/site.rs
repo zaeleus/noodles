@@ -1,9 +1,6 @@
 mod info;
 
-use std::{
-    convert::TryFrom,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;

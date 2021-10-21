@@ -5,7 +5,6 @@ pub mod allele;
 pub use self::allele::Allele;
 
 use std::{
-    convert::TryFrom,
     error, fmt,
     ops::{Deref, DerefMut},
     str::FromStr,

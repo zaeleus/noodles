@@ -7,7 +7,7 @@ pub mod md5_checksum;
 pub mod molecule_topology;
 pub mod tag;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{collections::HashMap, error, fmt};
 
 pub use self::{
     alternative_locus::AlternativeLocus, alternative_names::AlternativeNames, builder::Builder,
@@ -537,7 +537,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![
+            record::Value::try_from_iter([
                 ("LN", "1"),
                 ("M5", "d7eba311421bbc9d3ada44709dd61534"),
             ])?,
@@ -556,7 +556,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![
+            record::Value::try_from_iter([
                 ("SN", "sq0"),
                 ("M5", "d7eba311421bbc9d3ada44709dd61534"),
             ])?,
@@ -575,7 +575,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![("M5", "d7eba311421bbc9d3ada44709dd61534")])?,
+            record::Value::try_from_iter([("M5", "d7eba311421bbc9d3ada44709dd61534")])?,
         );
 
         assert_eq!(
@@ -591,7 +591,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![("SN", "*")])?,
+            record::Value::try_from_iter([("SN", "*")])?,
         );
 
         assert_eq!(
@@ -607,7 +607,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![("LN", "thirteen")])?,
+            record::Value::try_from_iter([("LN", "thirteen")])?,
         );
 
         assert!(matches!(
@@ -617,7 +617,7 @@ mod tests {
 
         let record = Record::new(
             record::Kind::ReferenceSequence,
-            record::Value::try_from_iter(vec![("SN", "sq0"), ("LN", "0")])?,
+            record::Value::try_from_iter([("SN", "sq0"), ("LN", "0")])?,
         );
 
         assert!(matches!(

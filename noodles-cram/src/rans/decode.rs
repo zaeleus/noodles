@@ -1,10 +1,7 @@
 mod order_0;
 mod order_1;
 
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 

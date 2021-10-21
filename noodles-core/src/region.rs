@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_from_str_reference_sequences() -> Result<(), reference_sequence::NewError> {
-        let reference_sequences = vec![
+        let reference_sequences = [
             ("sq0", 8),
             ("sq1:", 13),
             ("sq2:5", 21),

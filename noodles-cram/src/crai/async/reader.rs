@@ -101,8 +101,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_bam as bam;
 
     use super::*;

@@ -1,7 +1,6 @@
 //! SAM record position.
 
 use std::{
-    convert::TryFrom,
     error, fmt,
     num::{self, NonZeroI32},
     str::FromStr,

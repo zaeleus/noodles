@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A SAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

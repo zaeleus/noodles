@@ -2,7 +2,7 @@
 
 mod key;
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 use crate::record::alternate_bases::allele::{symbol, Symbol};
 

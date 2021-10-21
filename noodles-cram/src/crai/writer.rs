@@ -67,7 +67,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -110,8 +109,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

@@ -1,7 +1,6 @@
 //! SAM header header tag.
 
 use std::{
-    convert::TryFrom,
     error,
     fmt::{self, Write},
     str::FromStr,

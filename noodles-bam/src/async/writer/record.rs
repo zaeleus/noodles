@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, ffi::CString, num};
+use std::{ffi::CString, num};
 
 use noodles_sam::{self as sam, header::ReferenceSequences};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
@@ -454,7 +454,7 @@ mod tests {
     async fn test_write_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::ReferenceSequence;
 
-        let reference_sequences = vec![("sq0", 8), ("sq1", 13)]
+        let reference_sequences = [("sq0", 8), ("sq1", 13)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;

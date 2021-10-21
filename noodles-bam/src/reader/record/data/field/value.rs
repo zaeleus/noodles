@@ -3,10 +3,7 @@ mod ty;
 
 pub use self::{subtype::read_subtype, ty::read_type};
 
-use std::{
-    convert::TryFrom,
-    io::{self, BufRead},
-};
+use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 

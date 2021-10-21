@@ -332,8 +332,6 @@ pub(crate) fn read_file_header_block(block: &Block) -> io::Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use crate::container::block::ContentType;
 
     use super::*;

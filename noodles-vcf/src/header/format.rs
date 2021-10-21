@@ -5,7 +5,7 @@ pub mod ty;
 
 pub use self::{key::Key, ty::Type};
 
-use std::{convert::TryFrom, error, fmt, num};
+use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -377,7 +377,7 @@ mod tests {
                 ty: Type::String,
                 description: String::from("Genotype"),
                 idx: Some(1),
-                fields: vec![(String::from("Comment"), String::from("noodles"))]
+                fields: [(String::from("Comment"), String::from("noodles"))]
                     .into_iter()
                     .collect(),
             })

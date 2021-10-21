@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_bgzf as bgzf;
 use noodles_csi::index::reference_sequence::{bin::Chunk, Metadata};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
@@ -386,7 +384,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequence_names(&mut reader).await?;
 
-        let expected: ReferenceSequenceNames = vec![String::from("sq0"), String::from("sq1")]
+        let expected: ReferenceSequenceNames = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
 

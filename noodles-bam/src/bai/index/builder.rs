@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, io};
+use std::io;
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
@@ -102,8 +102,6 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_bgzf as bgzf;
     use noodles_csi::BinningIndex;
     use noodles_sam::{
@@ -115,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequences = vec![("sq0", 8), ("sq1", 13)]
+        let reference_sequences = [("sq0", 8), ("sq1", 13)]
             .into_iter()
             .map(|(name, len)| {
                 sam::header::ReferenceSequence::new(name, len).map(|rs| (name.into(), rs))

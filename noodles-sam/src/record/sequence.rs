@@ -4,7 +4,7 @@ mod base;
 
 pub use self::base::Base;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 

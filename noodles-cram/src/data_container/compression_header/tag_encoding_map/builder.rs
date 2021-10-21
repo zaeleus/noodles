@@ -64,7 +64,7 @@ mod tests {
 
         let actual = builder.build();
 
-        let expected = vec![
+        let expected = [
             (
                 nh.id(),
                 Encoding::ByteArrayLen(

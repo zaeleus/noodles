@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {

@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 use indexmap::IndexMap;
 

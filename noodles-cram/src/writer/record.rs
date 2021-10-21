@@ -2,7 +2,6 @@ mod tag;
 
 use std::{
     collections::HashMap,
-    convert::TryFrom,
     error, fmt,
     io::{self, Write},
 };

@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use crate::record::{
     value::{Int16, Int32, Int8},

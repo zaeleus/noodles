@@ -8,7 +8,6 @@ mod unmapped_records;
 pub use self::{query::Query, records::Records, unmapped_records::UnmappedRecords};
 
 use std::{
-    convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
 };
@@ -484,7 +483,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader)?;
 
-        let expected: ReferenceSequences = vec![("sq0", 8)]
+        let expected: ReferenceSequences = [("sq0", 8)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;

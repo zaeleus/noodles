@@ -3,8 +3,6 @@ mod ty;
 
 pub use self::{subtype::read_subtype, ty::read_type};
 
-use std::convert::TryFrom;
-
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncReadExt};
 
 use crate::record::data::field::{

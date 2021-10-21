@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_sam::record::quality_scores::{score, Score};
 
 /// An iterator over quality scores.

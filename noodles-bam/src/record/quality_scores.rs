@@ -4,7 +4,7 @@ mod scores;
 
 pub use self::{chars::Chars, scores::Scores};
 
-use std::{convert::TryFrom, ops::Deref, slice};
+use std::{ops::Deref, slice};
 
 use noodles_sam as sam;
 
@@ -58,7 +58,6 @@ impl<'a> QualityScores<'a> {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam::record::QualityScores;
     /// use noodles_sam::record::quality_scores::Score;
     ///

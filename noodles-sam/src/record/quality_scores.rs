@@ -4,7 +4,7 @@ pub mod score;
 
 pub use self::score::Score;
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 use super::NULL_FIELD;
 

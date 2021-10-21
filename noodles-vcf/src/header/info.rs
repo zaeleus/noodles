@@ -5,7 +5,7 @@ pub mod ty;
 
 pub use self::{key::Key, ty::Type};
 
-use std::{convert::TryFrom, error, fmt, num};
+use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -384,7 +384,7 @@ mod tests {
                 ty: Type::Integer,
                 description: String::from("Number of samples with data"),
                 idx: Some(1),
-                fields: vec![
+                fields: [
                     (String::from("Source"), String::from("dbsnp")),
                     (String::from("Version"), String::from("138")),
                 ]

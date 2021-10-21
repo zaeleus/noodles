@@ -13,7 +13,6 @@ pub use self::{
 };
 
 use std::{
-    convert::TryFrom,
     ffi::{self, CStr},
     fmt, mem,
     ops::{Deref, DerefMut},

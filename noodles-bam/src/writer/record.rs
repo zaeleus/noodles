@@ -1,5 +1,4 @@
 use std::{
-    convert::TryFrom,
     ffi::CString,
     io::{self, Write},
     mem, num,
@@ -751,7 +750,7 @@ mod tests {
     fn test_write_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::ReferenceSequence;
 
-        let reference_sequences = vec![("sq0", 8), ("sq1", 13)]
+        let reference_sequences = [("sq0", 8), ("sq1", 13)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;

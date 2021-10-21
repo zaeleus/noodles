@@ -3,7 +3,6 @@ mod string_map;
 mod value;
 
 use std::{
-    convert::TryFrom,
     ffi::CString,
     io::{self, Write},
 };
@@ -129,7 +128,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bcf::{self as bcf, header::StringMap};
     /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
     ///

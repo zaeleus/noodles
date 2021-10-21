@@ -252,7 +252,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, io::Cursor};
+    use std::io::Cursor;
 
     use crate::writer::BGZF_EOF;
 

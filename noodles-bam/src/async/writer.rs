@@ -3,7 +3,7 @@ mod record;
 
 pub use self::builder::Builder;
 
-use std::{convert::TryFrom, ffi::CString};
+use std::ffi::CString;
 
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;

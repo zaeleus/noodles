@@ -193,7 +193,7 @@ mod tests {
             "@HD\tVN:1.6".parse(),
             Ok(Record::new(
                 Kind::Header,
-                Value::try_from_iter(vec![("VN", "1.6")])?,
+                Value::try_from_iter([("VN", "1.6")])?,
             ))
         );
 
@@ -201,7 +201,7 @@ mod tests {
             "@SQ\tSN:sq0\tLN:8".parse(),
             Ok(Record::new(
                 Kind::ReferenceSequence,
-                Value::try_from_iter(vec![("SN", "sq0"), ("LN", "8"),])?
+                Value::try_from_iter([("SN", "sq0"), ("LN", "8"),])?
             ))
         );
 
@@ -209,7 +209,7 @@ mod tests {
             "@RG\tID:rg0".parse(),
             Ok(Record::new(
                 Kind::ReadGroup,
-                Value::try_from_iter(vec![("ID", "rg0")])?
+                Value::try_from_iter([("ID", "rg0")])?
             ))
         );
 
@@ -217,7 +217,7 @@ mod tests {
             "@PG\tID:pg0".parse(),
             Ok(Record::new(
                 Kind::Program,
-                Value::try_from_iter(vec![("ID", "pg0")])?
+                Value::try_from_iter([("ID", "pg0")])?
             ))
         );
 

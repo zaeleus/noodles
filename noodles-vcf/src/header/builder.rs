@@ -233,7 +233,7 @@ impl Builder {
     ///
     /// let pedigree = Pedigree::new(
     ///     String::from("cid"),
-    ///     vec![
+    ///     [
     ///         (String::from("Father"), String::from("fid")),
     ///         (String::from("Mother"), String::from("mid")),
     ///     ]
@@ -283,7 +283,7 @@ impl Builder {
     /// use indexmap::IndexSet;
     /// use noodles_vcf as vcf;
     ///
-    /// let sample_names: IndexSet<_> = vec![String::from("sample0")]
+    /// let sample_names: IndexSet<_> = [String::from("sample0")]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -313,7 +313,7 @@ impl Builder {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// let expected: IndexSet<_> = vec![String::from("sample0"), String::from("sample1")]
+    /// let expected: IndexSet<_> = [String::from("sample0"), String::from("sample1")]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -435,7 +435,7 @@ mod tests {
             .add_sample_name("sample0")
             .add_pedigree(Pedigree::new(
                 String::from("cid"),
-                vec![
+                [
                     (String::from("Father"), String::from("fid")),
                     (String::from("Mother"), String::from("mid")),
                 ]

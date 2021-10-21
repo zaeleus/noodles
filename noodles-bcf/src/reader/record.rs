@@ -38,8 +38,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_vcf::record::{genotype::Genotype, Filters, Info};
 
     use crate::record::value::Float;
@@ -135,7 +133,7 @@ mod tests {
             n_fmt: 5,
             id: "rs123".parse()?,
             ref_alt: vec![String::from("A"), String::from("C")],
-            filter: Filters::try_from_iter(&["PASS"])?,
+            filter: Filters::try_from_iter(["PASS"])?,
             info: Info::try_from(vec![
                 InfoField::new("HM3".parse()?, InfoFieldValue::Flag),
                 InfoField::new(InfoFieldKey::AlleleCount, InfoFieldValue::Integer(3)),

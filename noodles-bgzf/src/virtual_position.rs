@@ -1,6 +1,6 @@
 //! BGZF virtual position.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 pub(crate) const MAX_COMPRESSED_POSITION: u64 = (1 << 48) - 1;
 pub(crate) const MAX_UNCOMPRESSED_POSITION: u16 = u16::MAX;
@@ -116,7 +116,6 @@ impl TryFrom<(u64, u16)> for VirtualPosition {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
     /// use noodles_bgzf as bgzf;
     /// let virtual_position = bgzf::VirtualPosition::try_from((57, 6086));
     /// assert_eq!(virtual_position, Ok(bgzf::VirtualPosition::from(3741638)));

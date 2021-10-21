@@ -5,8 +5,6 @@ mod record;
 
 pub use self::builder::Builder;
 
-use std::convert::TryFrom;
-
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -458,7 +456,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader).await?;
 
-        let expected: ReferenceSequences = vec![("sq0", 8)]
+        let expected: ReferenceSequences = [("sq0", 8)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;

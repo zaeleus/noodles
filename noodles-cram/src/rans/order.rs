@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct TryFromByteError(u8);

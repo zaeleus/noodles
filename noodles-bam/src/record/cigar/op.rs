@@ -1,6 +1,6 @@
 //! BAM record CIGAR operation.
 
-use std::{convert::TryFrom, error, fmt, mem};
+use std::{error, fmt, mem};
 
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam::record::cigar::op::Kind;

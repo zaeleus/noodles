@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
@@ -273,7 +270,7 @@ mod tests {
         let intervals = vec![bgzf::VirtualPosition::from(337)];
         let references = vec![ReferenceSequence::new(bins, intervals, None)];
 
-        let reference_sequence_names = vec![String::from("sq0"), String::from("sq1")]
+        let reference_sequence_names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
 

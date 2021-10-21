@@ -1,6 +1,6 @@
 //! CRAM record tag and fields.
 
-use std::{convert::TryFrom, error, fmt, str};
+use std::{error, fmt, str};
 
 mod key;
 

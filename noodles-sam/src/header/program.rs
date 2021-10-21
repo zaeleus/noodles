@@ -3,7 +3,7 @@
 pub mod builder;
 pub mod tag;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{collections::HashMap, error, fmt};
 
 pub use self::{builder::Builder, tag::Tag};
 
@@ -316,7 +316,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::Program,
-            record::Value::try_from_iter(vec![("PN", "noodles")])?,
+            record::Value::try_from_iter([("PN", "noodles")])?,
         );
 
         assert_eq!(

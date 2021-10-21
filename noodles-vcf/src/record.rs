@@ -26,7 +26,7 @@ pub use self::{
 )]
 pub use self::genotypes::{genotype, Genotype};
 
-use std::{convert::TryFrom, error, fmt, num, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
@@ -75,7 +75,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
     ///
     /// let record = vcf::Record::builder()
@@ -102,7 +101,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
@@ -123,7 +121,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
@@ -147,7 +144,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{reference_bases::Base, Position, ReferenceBases},
@@ -174,7 +170,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases, Position},
@@ -206,7 +201,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
     ///
     /// let record = vcf::Record::builder()
@@ -231,7 +225,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
@@ -253,7 +246,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
@@ -284,7 +276,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
@@ -319,7 +310,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
@@ -401,7 +391,6 @@ impl Record {
     /// ## From the `END` INFO field value
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
     ///
     /// let record = vcf::Record::builder()
@@ -418,7 +407,6 @@ impl Record {
     /// ## Calculated using the start position and reference bases length
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
     ///
     /// let record = vcf::Record::builder()
@@ -593,8 +581,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

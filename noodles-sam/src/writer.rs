@@ -121,8 +121,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use crate::record::{
         data::{self, Field},
         Data,

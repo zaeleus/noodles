@@ -134,7 +134,6 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::builder()
@@ -216,7 +215,6 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::builder()
@@ -272,7 +270,6 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::quality_scores::Score};
     ///
     /// let record = sam::Record::builder()
@@ -297,7 +294,6 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::{data, Data}};
     ///
     /// let record = sam::Record::default();
@@ -392,8 +388,6 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use crate::record::{cigar, data};
 
     use super::*;

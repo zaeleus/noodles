@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_bam as bam;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 

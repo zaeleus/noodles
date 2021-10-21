@@ -60,10 +60,7 @@ pub(crate) const BGZF_HEADER_SIZE: usize = gz::HEADER_SIZE + GZIP_XLEN_SIZE + BG
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        convert::TryFrom,
-        io::{self, BufRead, Read, Write},
-    };
+    use std::io::{self, BufRead, Read, Write};
 
     use super::*;
 

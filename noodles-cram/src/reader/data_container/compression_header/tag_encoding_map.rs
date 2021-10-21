@@ -1,6 +1,5 @@
 use std::{
     collections::HashMap,
-    convert::TryFrom,
     io::{self, Read},
 };
 

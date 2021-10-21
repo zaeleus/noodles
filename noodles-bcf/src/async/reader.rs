@@ -2,8 +2,6 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::convert::TryFrom;
-
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};

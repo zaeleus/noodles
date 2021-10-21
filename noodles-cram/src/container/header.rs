@@ -2,8 +2,6 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use std::convert::TryFrom;
-
 use noodles_sam as sam;
 
 use crate::num::{Itf8, Ltf8};

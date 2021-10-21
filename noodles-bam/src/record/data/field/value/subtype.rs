@@ -1,6 +1,6 @@
 //! BAM record data field value subtype.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A BAM record data field value subtype.
 ///

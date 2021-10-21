@@ -70,7 +70,7 @@ impl Index {
     /// ```
     /// use noodles_tabix::{self as tabix, index::ReferenceSequenceNames};
     ///
-    /// let reference_sequence_names: ReferenceSequenceNames = vec![String::from("sq0")]
+    /// let reference_sequence_names: ReferenceSequenceNames = [String::from("sq0")]
     ///     .into_iter()
     ///     .collect();
     ///

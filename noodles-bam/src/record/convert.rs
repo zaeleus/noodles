@@ -1,4 +1,4 @@
-use std::{convert::TryInto, io, mem};
+use std::{io, mem};
 
 use noodles_sam as sam;
 
@@ -148,7 +148,6 @@ fn get_reference_sequence_name(
 #[cfg(test)]
 mod tests {
     use std::{
-        convert::TryFrom,
         ffi::CString,
         io::{self, BufWriter, Write},
     };
@@ -161,7 +160,7 @@ mod tests {
     ) -> Result<sam::header::ReferenceSequences, sam::header::reference_sequence::NewError> {
         use sam::header::ReferenceSequence;
 
-        vec![("sq0", 5), ("sq1", 8), ("sq2", 13)]
+        [("sq0", 5), ("sq1", 8), ("sq2", 13)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect()

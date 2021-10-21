@@ -4,7 +4,7 @@ mod field;
 
 pub use self::field::Field;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 use noodles_bam as bam;
 
@@ -28,7 +28,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -65,7 +64,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -90,7 +88,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -115,7 +112,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -140,7 +136,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -165,7 +160,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///
@@ -190,7 +184,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bam as bam;
     /// use noodles_cram::crai;
     ///

@@ -1,6 +1,5 @@
 use std::{
     cmp,
-    convert::TryFrom,
     io::{self, Write},
 };
 

@@ -1,6 +1,6 @@
 //! CRAM record feature kind.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A CRAM record feature kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

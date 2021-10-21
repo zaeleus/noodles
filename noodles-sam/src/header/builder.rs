@@ -52,7 +52,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
-    /// let reference_sequences = vec![("sq0", 13)]
+    /// let reference_sequences = [("sq0", 13)]
     ///     .into_iter()
     ///     .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
     ///     .collect::<Result<_, _>>()?;

@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use super::read_encoding;

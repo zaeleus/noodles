@@ -10,7 +10,7 @@ pub mod subsort_order;
 pub mod tag;
 pub mod version;
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt};
+use std::{collections::HashMap, error, fmt};
 
 pub use self::{
     builder::Builder, group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder,
@@ -328,7 +328,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::Header,
-            record::Value::try_from_iter(vec![("SO", "coordinate")])?,
+            record::Value::try_from_iter([("SO", "coordinate")])?,
         );
 
         assert_eq!(

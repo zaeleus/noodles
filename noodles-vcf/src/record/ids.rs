@@ -101,11 +101,11 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Ids::default().to_string(), ".");
         assert_eq!(
-            Ids(vec![String::from("nd0")].into_iter().collect()).to_string(),
+            Ids([String::from("nd0")].into_iter().collect()).to_string(),
             "nd0"
         );
         assert_eq!(
-            Ids(vec![String::from("nd0"), String::from("nd1")]
+            Ids([String::from("nd0"), String::from("nd1")]
                 .into_iter()
                 .collect())
             .to_string(),
@@ -118,11 +118,11 @@ mod tests {
         assert_eq!(".".parse(), Ok(Ids::default()));
         assert_eq!(
             "nd0".parse(),
-            Ok(Ids(vec![String::from("nd0")].into_iter().collect()))
+            Ok(Ids([String::from("nd0")].into_iter().collect()))
         );
         assert_eq!(
             "nd0;nd1".parse(),
-            Ok(Ids(vec![String::from("nd0"), String::from("nd1")]
+            Ok(Ids([String::from("nd0"), String::from("nd1")]
                 .into_iter()
                 .collect()))
         );

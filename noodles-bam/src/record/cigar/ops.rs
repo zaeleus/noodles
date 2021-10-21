@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, io, mem};
+use std::{io, mem};
 
 use super::Op;
 

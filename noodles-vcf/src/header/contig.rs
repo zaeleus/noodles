@@ -2,7 +2,7 @@
 
 mod key;
 
-use std::{convert::TryFrom, error, fmt, num};
+use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
@@ -72,7 +72,6 @@ impl Contig {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::TryFrom;
     /// use noodles_vcf::header::{contig, record, Record, Contig};
     ///
     /// let record = Record::new(
@@ -230,7 +229,7 @@ mod tests {
             Ok(Contig {
                 id: String::from("sq0"),
                 len: Some(13),
-                fields: vec![(
+                fields: [(
                     String::from("md5"),
                     String::from("d7eba311421bbc9d3ada44709dd61534")
                 )]

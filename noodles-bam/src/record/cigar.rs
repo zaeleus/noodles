@@ -5,7 +5,7 @@ mod ops;
 
 pub use self::{op::Op, ops::Ops};
 
-use std::{convert::TryFrom, fmt, io, ops::Deref};
+use std::{fmt, io, ops::Deref};
 
 use noodles_sam::{self as sam, record::cigar::op::Kind};
 

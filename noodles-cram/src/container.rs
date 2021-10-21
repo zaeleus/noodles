@@ -4,7 +4,7 @@ pub mod reference_sequence_id;
 
 pub use self::{block::Block, header::Header, reference_sequence_id::ReferenceSequenceId};
 
-use std::{cmp, convert::TryFrom, error, fmt, io};
+use std::{cmp, error, fmt, io};
 
 use noodles_sam as sam;
 

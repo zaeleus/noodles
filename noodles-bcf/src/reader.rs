@@ -9,7 +9,6 @@ pub(crate) mod value;
 pub use self::{query::Query, records::Records};
 
 use std::{
-    convert::TryFrom,
     ffi::CStr,
     io::{self, Read, Seek},
 };

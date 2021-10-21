@@ -4,7 +4,7 @@ pub mod coordinate_system;
 
 pub use self::coordinate_system::CoordinateSystem;
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 const COORDINATE_SYSTEM_SHIFT: usize = 16;
 const FORMAT_MASK: i32 = 0xffff;

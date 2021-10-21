@@ -1,7 +1,5 @@
 //! CRAM record field resolvers.
 
-use std::convert::TryFrom;
-
 use noodles_fasta as fasta;
 use noodles_sam::record::Cigar;
 

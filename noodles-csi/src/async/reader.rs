@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_bgzf as bgzf;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 

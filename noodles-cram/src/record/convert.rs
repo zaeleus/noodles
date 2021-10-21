@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, io, str};
+use std::{io, str};
 
 use noodles_bam::record::ReferenceSequenceId;
 use noodles_fasta as fasta;

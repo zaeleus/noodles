@@ -1,4 +1,4 @@
-use std::{cmp, collections::HashMap, convert::TryFrom, io};
+use std::{cmp, collections::HashMap, io};
 
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;

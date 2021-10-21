@@ -5,7 +5,6 @@ mod records;
 pub use self::records::Records;
 
 use std::{
-    convert::TryFrom,
     io::{self, BufRead, Read, Seek, SeekFrom},
     ops::{Bound, Range, RangeBounds},
 };

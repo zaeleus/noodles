@@ -3,7 +3,6 @@ mod external_data_readers;
 pub use external_data_readers::ExternalDataReaders;
 
 use std::{
-    convert::TryFrom,
     error, fmt,
     io::{self, BufRead, Read},
 };

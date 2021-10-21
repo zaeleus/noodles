@@ -1,6 +1,6 @@
 //! BAM record reference sequence ID.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// The raw unmapped reference sequence ID.
 pub const UNMAPPED: i32 = -1;

@@ -1,6 +1,6 @@
 //! Tabix index format coordinate system.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A tabix index format coordinate system.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

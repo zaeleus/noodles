@@ -4,7 +4,7 @@ pub mod symbol;
 
 pub use self::symbol::Symbol;
 
-use std::{convert::TryFrom, error, fmt, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 use crate::record::reference_bases::{base, Base};
 

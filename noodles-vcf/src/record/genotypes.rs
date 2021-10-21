@@ -60,8 +60,6 @@ impl From<Vec<Genotype>> for Genotypes {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

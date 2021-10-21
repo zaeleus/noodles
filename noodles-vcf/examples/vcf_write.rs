@@ -4,7 +4,7 @@
 //!
 //! Verify the output by piping to `bcftools view --no-version`.
 
-use std::{convert::TryFrom, io};
+use std::io;
 
 use noodles_vcf::{self as vcf, header::Contig, record::Position};
 

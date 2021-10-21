@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use noodles_vcf::{self as vcf, header::info::Type};
 

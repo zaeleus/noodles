@@ -29,7 +29,7 @@ pub use self::r#async::Reader as AsyncReader;
 
 pub(crate) use self::{bit_reader::BitReader, bit_writer::BitWriter, container::Container};
 
-use std::{cmp, collections::HashMap, convert::TryFrom, fs::File, io, path::Path};
+use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
 use noodles_bam as bam;
 

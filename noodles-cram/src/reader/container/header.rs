@@ -1,9 +1,6 @@
 use noodles_sam as sam;
 
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 

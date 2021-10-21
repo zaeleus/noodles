@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     index::reference_sequence::{bin::Chunk, Metadata},
@@ -347,7 +345,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_reference_sequence_names() -> io::Result<()> {
-        let reference_sequence_names = vec![String::from("sq0"), String::from("sq1")]
+        let reference_sequence_names = [String::from("sq0"), String::from("sq1")]
             .into_iter()
             .collect();
 

@@ -5,7 +5,6 @@ pub mod field;
 pub use self::field::Field;
 
 use std::{
-    convert::TryFrom,
     error,
     fmt::{self, Write},
     ops::{Deref, DerefMut},

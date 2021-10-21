@@ -4,7 +4,7 @@ pub mod key;
 
 pub use self::key::Key;
 
-use std::{convert::TryFrom, error, fmt, num};
+use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 

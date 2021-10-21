@@ -1,6 +1,6 @@
 //! CRAM container block content type.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A CRAM container block content type.
 ///

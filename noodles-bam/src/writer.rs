@@ -1,7 +1,6 @@
 pub(crate) mod record;
 
 use std::{
-    convert::TryFrom,
     ffi::CString,
     io::{self, Write},
 };
@@ -257,8 +256,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_sam::record::Data;
 
     use crate::{record::sequence::Base, Reader, Record};
@@ -289,7 +286,7 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequences = vec![("sq0", 8)]
+        let reference_sequences = [("sq0", 8)]
             .into_iter()
             .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
             .collect::<Result<_, _>>()?;

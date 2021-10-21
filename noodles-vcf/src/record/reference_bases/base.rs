@@ -1,6 +1,6 @@
 //! VCF record reference base.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A VCF record reference base.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 

@@ -1,5 +1,4 @@
 use std::{
-    convert::TryFrom,
     io::{self, Read},
     str,
 };
@@ -433,7 +432,7 @@ mod tests {
     fn test_parse_names() -> io::Result<()> {
         let data = b"noodles\x00tabix\x00";
         let actual = parse_names(&data[..])?;
-        let expected: ReferenceSequenceNames = vec![String::from("noodles"), String::from("tabix")]
+        let expected: ReferenceSequenceNames = [String::from("noodles"), String::from("tabix")]
             .into_iter()
             .collect();
         assert_eq!(actual, expected);

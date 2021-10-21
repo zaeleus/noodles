@@ -1,7 +1,6 @@
 //! SAM header read group tag.
 
 use std::{
-    convert::TryFrom,
     error,
     fmt::{self, Write},
     str::FromStr,

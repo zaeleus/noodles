@@ -114,8 +114,6 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_sam::{
         self as sam,
         record::{Flags, Position},
@@ -125,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequences = vec![("sq0", 8)]
+        let reference_sequences = [("sq0", 8)]
             .into_iter()
             .map(|(name, len)| {
                 sam::header::ReferenceSequence::new(name, len).map(|rs| (name.into(), rs))

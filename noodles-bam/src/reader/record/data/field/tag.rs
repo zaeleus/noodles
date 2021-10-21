@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, Read},
-};
+use std::io::{self, Read};
 
 use noodles_sam::record::data::field::Tag;
 

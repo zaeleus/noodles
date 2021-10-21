@@ -4,7 +4,7 @@ mod histogram;
 
 pub use self::{base::Base, builder::Builder};
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 use self::histogram::Histogram;
 

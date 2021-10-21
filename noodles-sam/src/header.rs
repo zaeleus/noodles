@@ -68,7 +68,7 @@ pub mod read_group;
 pub mod record;
 pub mod reference_sequence;
 
-use std::{collections::HashSet, convert::TryFrom, error, fmt, str::FromStr};
+use std::{collections::HashSet, error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 

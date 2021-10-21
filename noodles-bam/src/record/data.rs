@@ -5,7 +5,7 @@ mod fields;
 
 pub use self::{field::Field, fields::Fields};
 
-use std::{convert::TryFrom, error, fmt, ops::Deref};
+use std::{error, fmt, ops::Deref};
 
 use noodles_sam as sam;
 

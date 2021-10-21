@@ -6,7 +6,7 @@ pub mod tag;
 
 pub use self::{builder::Builder, platform::Platform, tag::Tag};
 
-use std::{collections::HashMap, convert::TryFrom, error, fmt, num};
+use std::{collections::HashMap, error, fmt, num};
 
 use super::{
     record::{self, value::Fields},
@@ -499,7 +499,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::try_from_iter(vec![("PG", "noodles")])?,
+            record::Value::try_from_iter([("PG", "noodles")])?,
         );
 
         assert_eq!(
@@ -515,7 +515,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::try_from_iter(vec![("ID", "rg0"), ("PI", "unknown")])?,
+            record::Value::try_from_iter([("ID", "rg0"), ("PI", "unknown")])?,
         );
 
         assert!(matches!(
@@ -531,7 +531,7 @@ mod tests {
     ) -> Result<(), record::value::TryFromIteratorError> {
         let record = Record::new(
             record::Kind::ReadGroup,
-            record::Value::try_from_iter(vec![("ID", "rg0"), ("PL", "unknown")])?,
+            record::Value::try_from_iter([("ID", "rg0"), ("PL", "unknown")])?,
         );
 
         assert!(matches!(

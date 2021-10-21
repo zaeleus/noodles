@@ -1,6 +1,6 @@
 //! VCF record genotype format.
 
-use std::{convert::TryFrom, error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, str::FromStr};
 
 use indexmap::IndexSet;
 
@@ -130,11 +130,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let format = Format(vec![Key::Genotype].into_iter().collect());
+        let format = Format([Key::Genotype].into_iter().collect());
         assert_eq!(format.to_string(), "GT");
 
         let format = Format(
-            vec![
+            [
                 Key::Genotype,
                 Key::ConditionalGenotypeQuality,
                 Key::ReadDepth,
@@ -150,12 +150,12 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "GT".parse(),
-            Ok(Format(vec![Key::Genotype].into_iter().collect()))
+            Ok(Format([Key::Genotype].into_iter().collect()))
         );
         assert_eq!(
             "GT:GQ".parse(),
             Ok(Format(
-                vec![Key::Genotype, Key::ConditionalGenotypeQuality]
+                [Key::Genotype, Key::ConditionalGenotypeQuality]
                     .into_iter()
                     .collect()
             ))
@@ -172,13 +172,13 @@ mod tests {
     fn test_try_from_vec_key_for_format() {
         assert_eq!(
             Format::try_from(vec![Key::Genotype]),
-            Ok(Format(vec![Key::Genotype].into_iter().collect()))
+            Ok(Format([Key::Genotype].into_iter().collect()))
         );
 
         assert_eq!(
             Format::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality]),
             Ok(Format(
-                vec![Key::Genotype, Key::ConditionalGenotypeQuality]
+                [Key::Genotype, Key::ConditionalGenotypeQuality]
                     .into_iter()
                     .collect()
             ))
@@ -187,7 +187,7 @@ mod tests {
         assert_eq!(
             Format::try_from(vec![Key::ConditionalGenotypeQuality]),
             Ok(Format(
-                vec![Key::ConditionalGenotypeQuality].into_iter().collect()
+                [Key::ConditionalGenotypeQuality].into_iter().collect()
             ))
         );
 

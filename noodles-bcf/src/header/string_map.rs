@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr};
 
 use indexmap::IndexSet;
 use noodles_vcf::{
@@ -24,7 +24,7 @@ impl Default for StringMap {
     fn default() -> Self {
         // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
         // encoded as the first entry in the header dictionary."
-        Self(vec![Filter::pass().id().into()].into_iter().collect())
+        Self([Filter::pass().id().into()].into_iter().collect())
     }
 }
 
@@ -100,7 +100,7 @@ mod tests {
     fn test_default() {
         assert_eq!(
             StringMap::default(),
-            StringMap(vec![String::from("PASS")].into_iter().collect())
+            StringMap([String::from("PASS")].into_iter().collect())
         );
     }
 
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(
             s.parse(),
             Ok(StringMap(
-                vec![
+                [
                     String::from("PASS"),
                     String::from("DP"),
                     String::from("NS"),
@@ -170,7 +170,7 @@ mod tests {
         assert_eq!(
             StringMap::from(&header),
             StringMap(
-                vec![
+                [
                     String::from("PASS"),
                     String::from("NS"),
                     String::from("DP"),

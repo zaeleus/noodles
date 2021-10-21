@@ -7,7 +7,7 @@ use super::{Header, Record};
 /// # Examples
 ///
 /// ```
-/// # use std::{convert::TryFrom, io};
+/// # use std::io;
 /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
 ///
 /// let mut writer = vcf::Writer::new(Vec::new());
@@ -92,7 +92,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_vcf::{self as vcf, record::Position};
     ///
     /// let record = vcf::Record::builder()
@@ -112,8 +111,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use crate::record::{genotypes::Genotype, Format, Position};
 
     use super::*;

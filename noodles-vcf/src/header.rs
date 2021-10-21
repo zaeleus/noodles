@@ -21,7 +21,6 @@ pub use self::{
 };
 
 use std::{
-    convert::TryFrom,
     error,
     str::{FromStr, Lines},
 };
@@ -286,7 +285,7 @@ impl Header {
     ///
     /// let pedigree = Pedigree::new(
     ///     String::from("cid"),
-    ///     vec![
+    ///     [
     ///         (String::from("Father"), String::from("fid")),
     ///         (String::from("Mother"), String::from("mid")),
     ///     ]
@@ -335,7 +334,7 @@ impl Header {
     ///     .add_sample_name("sample1")
     ///     .build();
     ///
-    /// let expected: IndexSet<_> = vec![String::from("sample0"), String::from("sample1")]
+    /// let expected: IndexSet<_> = [String::from("sample0"), String::from("sample1")]
     ///     .into_iter()
     ///     .collect();
     ///
@@ -720,13 +719,13 @@ mod tests {
             ))
             .add_sample(Sample::new(
                 String::from("sample0"),
-                vec![(String::from("Assay"), String::from("WholeGenome"))]
+                [(String::from("Assay"), String::from("WholeGenome"))]
                     .into_iter()
                     .collect(),
             ))
             .add_pedigree(Pedigree::new(
                 String::from("cid"),
-                vec![
+                [
                     (String::from("Father"), String::from("fid")),
                     (String::from("Mother"), String::from("mid")),
                 ]

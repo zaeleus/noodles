@@ -1,6 +1,6 @@
 //! Container compression header preservation map key.
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 /// A container compression header preservation map key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

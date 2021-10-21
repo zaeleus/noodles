@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::TryFrom};
+use std::collections::HashMap;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
@@ -64,7 +64,7 @@ mod tests {
         let actual = read_tag_encoding_map(&mut reader).await?;
 
         let expected = TagEncodingMap::from(
-            vec![(5261146, Encoding::ByteArrayStop(b'\t', 5261146))]
+            [(5261146, Encoding::ByteArrayStop(b'\t', 5261146))]
                 .into_iter()
                 .collect::<HashMap<_, _>>(),
         );

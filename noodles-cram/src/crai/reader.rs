@@ -81,7 +81,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, io::Write};
+    use std::io::Write;
 
     use flate2::write::GzEncoder;
     use noodles_bam as bam;

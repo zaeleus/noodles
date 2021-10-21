@@ -1,4 +1,4 @@
-use std::{convert::TryFrom, io};
+use std::io;
 
 use noodles_vcf::{self as vcf, record::Position};
 use vcf::record::{AlternateBases, Format, QualityScore};
@@ -13,7 +13,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_bcf as bcf;
     /// use noodles_vcf::{self as vcf, record::Position};
     ///

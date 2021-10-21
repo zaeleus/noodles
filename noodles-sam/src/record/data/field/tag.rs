@@ -1,6 +1,6 @@
 //! SAM record data field tag.
 
-use std::{convert::TryFrom, error, fmt, fmt::Write, str::FromStr};
+use std::{error, fmt, fmt::Write, str::FromStr};
 
 const LENGTH: usize = 2;
 

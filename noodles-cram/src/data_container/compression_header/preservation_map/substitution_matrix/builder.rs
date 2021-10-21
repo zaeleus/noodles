@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use crate::{record::Feature, Record};
 
 use super::{Base, Histogram, SubstitutionMatrix};

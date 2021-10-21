@@ -4,7 +4,7 @@ pub mod key;
 
 pub use self::key::Key;
 
-use std::{convert::TryFrom, error, fmt};
+use std::{error, fmt};
 
 use super::{record, Number, Record};
 

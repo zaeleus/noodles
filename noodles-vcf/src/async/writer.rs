@@ -56,8 +56,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
-    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use noodles_vcf::{self as vcf, record::Position};

@@ -209,8 +209,6 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use noodles_bam as bam;
 
     use super::*;

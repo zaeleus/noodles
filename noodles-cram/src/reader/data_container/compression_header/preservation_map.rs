@@ -1,7 +1,4 @@
-use std::{
-    convert::TryFrom,
-    io::{self, BufRead, Read},
-};
+use std::io::{self, BufRead, Read};
 
 use byteorder::ReadBytesExt;
 use noodles_bam as bam;

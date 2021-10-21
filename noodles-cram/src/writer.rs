@@ -4,7 +4,6 @@ pub(crate) mod num;
 pub(crate) mod record;
 
 use std::{
-    convert::TryFrom,
     io::{self, Write},
     mem,
 };

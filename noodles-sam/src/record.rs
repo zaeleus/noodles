@@ -214,7 +214,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::default();
@@ -237,7 +236,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let mut record = sam::Record::default();
@@ -388,7 +386,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let record = sam::Record::default();
@@ -411,7 +408,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::Position};
     ///
     /// let mut record = sam::Record::default();
@@ -559,7 +555,6 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::convert::TryFrom;
     /// use noodles_sam::{self as sam, record::{data, Data}};
     ///
     /// let record = sam::Record::default();
@@ -914,8 +909,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use super::*;
 
     #[test]

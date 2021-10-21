@@ -1,6 +1,6 @@
 //! VCF record quality score.
 
-use std::{convert::TryFrom, error, fmt, num, ops::Deref, str::FromStr};
+use std::{error, fmt, num, ops::Deref, str::FromStr};
 
 use super::{value::parse_f32_case_insensitive_extended, MISSING_FIELD};
 

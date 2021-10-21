@@ -180,7 +180,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, io::Cursor};
+    use std::io::Cursor;
 
     use tokio::io::AsyncReadExt;
 

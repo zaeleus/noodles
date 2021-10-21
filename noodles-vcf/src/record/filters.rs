@@ -48,11 +48,11 @@ impl Filters {
     /// ```
     /// use noodles_vcf::record::Filters;
     ///
-    /// let filters = Filters::try_from_iter(&["PASS"])?;
+    /// let filters = Filters::try_from_iter(["PASS"])?;
     /// assert_eq!(filters, Filters::Pass);
     ///
-    /// let filters = Filters::try_from_iter(&["q10", "s50"])?;
-    /// assert_eq!(filters, Filters::Fail(vec![
+    /// let filters = Filters::try_from_iter(["q10", "s50"])?;
+    /// assert_eq!(filters, Filters::Fail([
     ///     String::from("q10"),
     ///     String::from("s50"),
     /// ].into_iter().collect()));
@@ -159,36 +159,34 @@ mod tests {
     #[test]
     fn test_try_from_iter() {
         assert_eq!(Filters::try_from_iter(&[] as &[&str]), Ok(Filters::Missing));
-        assert_eq!(Filters::try_from_iter(&["PASS"]), Ok(Filters::Pass));
+        assert_eq!(Filters::try_from_iter(["PASS"]), Ok(Filters::Pass));
         assert_eq!(
-            Filters::try_from_iter(&["q10"]),
-            Ok(Filters::Fail(
-                vec![String::from("q10")].into_iter().collect()
-            ))
+            Filters::try_from_iter(["q10"]),
+            Ok(Filters::Fail([String::from("q10")].into_iter().collect()))
         );
         assert_eq!(
-            Filters::try_from_iter(&["q10", "s50"]),
+            Filters::try_from_iter(["q10", "s50"]),
             Ok(Filters::Fail(
-                vec![String::from("q10"), String::from("s50")]
+                [String::from("q10"), String::from("s50")]
                     .into_iter()
                     .collect()
             ))
         );
 
         assert_eq!(
-            Filters::try_from_iter(&["q10", "q10"]),
+            Filters::try_from_iter(["q10", "q10"]),
             Err(TryFromIteratorError::DuplicateFilter(String::from("q10")))
         );
         assert_eq!(
-            Filters::try_from_iter(&[""]),
+            Filters::try_from_iter([""]),
             Err(TryFromIteratorError::InvalidFilter(String::from("")))
         );
         assert_eq!(
-            Filters::try_from_iter(&["0"]),
+            Filters::try_from_iter(["0"]),
             Err(TryFromIteratorError::InvalidFilter(String::from("0")))
         );
         assert_eq!(
-            Filters::try_from_iter(&["q 10"]),
+            Filters::try_from_iter(["q 10"]),
             Err(TryFromIteratorError::InvalidFilter(String::from("q 10")))
         );
     }
@@ -203,10 +201,10 @@ mod tests {
         assert_eq!(Filters::Missing.to_string(), ".");
         assert_eq!(Filters::Pass.to_string(), "PASS");
 
-        let filters = Filters::try_from_iter(&["q10"])?;
+        let filters = Filters::try_from_iter(["q10"])?;
         assert_eq!(filters.to_string(), "q10");
 
-        let filters = Filters::try_from_iter(&["q10", "s50"])?;
+        let filters = Filters::try_from_iter(["q10", "s50"])?;
         assert_eq!(filters.to_string(), "q10;s50");
 
         Ok(())
@@ -219,15 +217,13 @@ mod tests {
 
         assert_eq!(
             "q10".parse(),
-            Ok(Filters::Fail(
-                vec![String::from("q10")].into_iter().collect()
-            ))
+            Ok(Filters::Fail([String::from("q10")].into_iter().collect()))
         );
 
         assert_eq!(
             "q10;s50".parse(),
             Ok(Filters::Fail(
-                vec![String::from("q10"), String::from("s50")]
+                [String::from("q10"), String::from("s50")]
                     .into_iter()
                     .collect()
             ))

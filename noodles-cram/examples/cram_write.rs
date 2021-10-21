@@ -5,7 +5,7 @@
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
-use std::{convert::TryFrom, io};
+use std::io;
 
 use md5::{Digest, Md5};
 

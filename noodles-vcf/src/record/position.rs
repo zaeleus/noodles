@@ -1,6 +1,6 @@
 //! VCF record position.
 
-use std::{convert::TryFrom, error, fmt, num, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 const MIN: i32 = 0;
 
