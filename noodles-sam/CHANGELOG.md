@@ -7,6 +7,11 @@
   * sam/header: Change header, program, read group, reference sequence tag
     representations to `[u8; 2]`.
 
+  * sam/record/data/field: Merge `ParseError::MissingTag` and
+    `ParseError::MissingValue` into `ParseError::Invalid`.
+
+    The colon (`:`) delimiter must exist to parse the tag and value.
+
 ## 0.6.0 - 2021-10-16
 
 ### Added

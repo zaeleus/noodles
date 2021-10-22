@@ -73,12 +73,10 @@ impl fmt::Display for Field {
 /// An error returned when a raw SAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The data field tag is missing.
-    MissingTag,
+    /// The input is invalid.
+    Invalid,
     /// The data field tag is invalid.
     InvalidTag(tag::ParseError),
-    /// The data field value is missing.
-    MissingValue,
     /// The data field value is invalid.
     InvalidValue(value::ParseError),
 }
@@ -88,9 +86,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingTag => f.write_str("missing tag"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
-            Self::MissingValue => f.write_str("missing value"),
             Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
         }
     }
@@ -100,19 +97,14 @@ impl FromStr for Field {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut components = s.splitn(2, DELIMITER);
-
-        let tag = components
-            .next()
-            .ok_or(ParseError::MissingTag)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidTag))?;
-
-        let value = components
-            .next()
-            .ok_or(ParseError::MissingValue)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidValue))?;
-
-        Ok(Self::new(tag, value))
+        match s.split_once(DELIMITER) {
+            Some((t, v)) => {
+                let tag = t.parse().map_err(ParseError::InvalidTag)?;
+                let value = v.parse().map_err(ParseError::InvalidValue)?;
+                Ok(Self::new(tag, value))
+            }
+            None => Err(ParseError::Invalid),
+        }
     }
 }
 
