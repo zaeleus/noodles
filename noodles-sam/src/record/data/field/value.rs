@@ -522,12 +522,10 @@ impl fmt::Display for Value {
 /// An error returned when a raw SAM record data field value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    /// The data field type is missing..
-    MissingType,
+    /// The input is invalid.
+    Invalid,
     /// The data field type is invalid.
     InvalidType(ty::ParseError),
-    /// The data field value is missing.
-    MissingValue,
     /// The data field character value is invalid.
     InvalidCharValue,
     /// The data field integer value is invalid.
@@ -549,9 +547,8 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingType => f.write_str("missing type"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
-            Self::MissingValue => f.write_str("missing value"),
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
             Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
@@ -567,23 +564,24 @@ impl FromStr for Value {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut components = s.splitn(2, DELIMITER);
-
-        let ty = components
-            .next()
-            .ok_or(ParseError::MissingType)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidType))?;
-
-        let value = components.next().ok_or(ParseError::MissingValue)?;
-
-        match ty {
-            Type::Char => parse_char(value).map(Self::Char),
-            Type::Int => parse_int(value).map(Self::Int),
-            Type::Float => parse_f32(value).map(Self::Float),
-            Type::String => parse_string(value).map(Self::String),
-            Type::Hex => parse_hex(value).map(Self::Hex),
-            Type::Array => parse_array(value),
+        match s.split_once(DELIMITER) {
+            Some((t, v)) => t
+                .parse()
+                .map_err(ParseError::InvalidType)
+                .and_then(|ty| parse_value(ty, v)),
+            None => Err(ParseError::Invalid),
         }
+    }
+}
+
+fn parse_value(ty: Type, s: &str) -> Result<Value, ParseError> {
+    match ty {
+        Type::Char => parse_char(s).map(Value::Char),
+        Type::Int => parse_int(s).map(Value::Int),
+        Type::Float => parse_f32(s).map(Value::Float),
+        Type::String => parse_string(s).map(Value::String),
+        Type::Hex => parse_hex(s).map(Value::Hex),
+        Type::Array => parse_array(s),
     }
 }
 

@@ -12,6 +12,11 @@
 
     The colon (`:`) delimiter must exist to parse the tag and value.
 
+  * sam/record/data/field/value: Merge `ParseError::MissingType` and
+    `ParseError::MissingValue` into `ParseError::Invalid`.
+
+    The colon (`:`) delimiter must exist to parse the value.
+
 ## 0.6.0 - 2021-10-16
 
 ### Added
