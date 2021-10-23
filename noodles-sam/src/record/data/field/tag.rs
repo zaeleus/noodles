@@ -4,6 +4,10 @@ use std::{error, fmt, fmt::Write, str::FromStr};
 
 const LENGTH: usize = 2;
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[doc(hidden)]
+pub struct Other([u8; LENGTH]);
+
 /// A SAM record data field tag.
 ///
 /// Standard tags are defined in "Sequence Alignment/Map Optional Fields Specification"
@@ -131,7 +135,7 @@ pub enum Tag {
     /// (`UQ`).
     SegmentLikelihood,
     /// Any other non-standard tag.
-    Other([u8; LENGTH]),
+    Other(Other),
 }
 
 impl AsRef<[u8; LENGTH]> for Tag {
@@ -197,7 +201,7 @@ impl AsRef<[u8; LENGTH]> for Tag {
             Self::TranscriptStrand => b"TS",
             Self::NextHitQualityScores => b"U2",
             Self::SegmentLikelihood => b"UQ",
-            Self::Other(tag) => tag,
+            Self::Other(Other(tag)) => tag,
         }
     }
 }
@@ -307,7 +311,7 @@ impl TryFrom<[u8; LENGTH]> for Tag {
                 } else if !b[1].is_ascii_alphanumeric() {
                     Err(ParseError::InvalidCharacter(char::from(b[1])))
                 } else {
-                    Ok(Self::Other(b))
+                    Ok(Self::Other(Other(b)))
                 }
             }
         }
@@ -400,7 +404,7 @@ mod tests {
         assert_eq!(Tag::TranscriptStrand.to_string(), "TS");
         assert_eq!(Tag::NextHitQualityScores.to_string(), "U2");
         assert_eq!(Tag::SegmentLikelihood.to_string(), "UQ");
-        assert_eq!(Tag::Other([b'Z', b'N']).to_string(), "ZN");
+        assert_eq!(Tag::Other(Other([b'Z', b'N'])).to_string(), "ZN");
     }
 
     #[test]
@@ -465,7 +469,7 @@ mod tests {
         assert_eq!("TS".parse(), Ok(Tag::TranscriptStrand));
         assert_eq!("U2".parse(), Ok(Tag::NextHitQualityScores));
         assert_eq!("UQ".parse(), Ok(Tag::SegmentLikelihood));
-        assert_eq!("ZN".parse(), Ok(Tag::Other([b'Z', b'N'])));
+        assert_eq!("ZN".parse(), Ok(Tag::Other(Other([b'Z', b'N']))));
 
         assert_eq!("".parse::<Tag>(), Err(ParseError::InvalidLength(0)));
         assert_eq!("R".parse::<Tag>(), Err(ParseError::InvalidLength(1)));

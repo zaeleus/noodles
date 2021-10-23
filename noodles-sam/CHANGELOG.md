@@ -12,6 +12,11 @@
 
     The colon (`:`) delimiter must exist to parse the tag and value.
 
+  * sam/record/data/field/tag: Prevent construction of `Tag::Other`.
+
+    Use `Tag::try_from::<[u8; 2]>` instead. This prevents invalid tags from
+    being created.
+
   * sam/record/data/field/value: Merge `ParseError::MissingType` and
     `ParseError::MissingValue` into `ParseError::Invalid`.
 
