@@ -68,17 +68,7 @@ impl Data {
     /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn get(&self, tag: field::Tag) -> Option<&Field> {
-        match tag_to_index(tag) {
-            Some(i) => self.standard_field_indices[i].and_then(|j| {
-                // SAFETY: `j` is guaranteed > 0.
-                let j = usize::from(u16::from(j) - 1);
-                self.fields.get(j)
-            }),
-            None => self.other_field_indices.get(&tag).copied().and_then(|j| {
-                let j = usize::from(j);
-                self.fields.get(j)
-            }),
-        }
+        self.get_index_of(tag).and_then(|j| self.fields.get(j))
     }
 
     /// Returns the index of the field of the given tag.
@@ -97,8 +87,8 @@ impl Data {
     /// ```
     pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
         match tag_to_index(tag) {
-            Some(i) => self.standard_field_indices[i].map(|j| usize::from(u16::from(j) - 1)),
-            None => self.other_field_indices.get(&tag).copied().map(usize::from),
+            Some(i) => self.get_normalized_standard_field_index(i),
+            None => self.get_normalized_other_field_index(tag),
         }
     }
 
@@ -163,6 +153,17 @@ impl Data {
                 None
             }
         }
+    }
+
+    fn get_normalized_standard_field_index(&self, i: usize) -> Option<usize> {
+        self.standard_field_indices[i].map(|j| {
+            // SAFETY: `j` is guaranteed > 0.
+            usize::from(u16::from(j) - 1)
+        })
+    }
+
+    fn get_normalized_other_field_index(&self, tag: field::Tag) -> Option<usize> {
+        self.other_field_indices.get(&tag).copied().map(usize::from)
     }
 
     fn push(&mut self, field: Field) {
