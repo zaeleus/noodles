@@ -109,12 +109,10 @@ impl<'a> TryFrom<Data<'a>> for sam::record::Data {
 
         for result in data.fields() {
             let field = result.map_err(|_| TryFromDataError::InvalidField)?;
-
-            let tag = field.tag();
             let sam_field = sam::record::data::Field::from(field);
 
-            if sam_data.insert(tag, sam_field).is_some() {
-                return Err(TryFromDataError::DuplicateTag(tag));
+            if let Some(f) = sam_data.insert(sam_field) {
+                return Err(TryFromDataError::DuplicateTag(f.tag()));
             }
         }
 

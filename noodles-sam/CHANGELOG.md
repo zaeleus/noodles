@@ -7,6 +7,15 @@
   * sam/header: Change header, program, read group, reference sequence tag
     representations to `[u8; 2]`.
 
+  * sam/record/data: Specialize the inner ordered map (#49).
+
+    This changes `Data` from wrapping `IndexMap` to a specialized ordered map.
+    This improves both parse and access times.
+
+    The interface is familiar but may diverge from the normal collections map
+    interface, e.g., keys are passed by value because `Tag` is `Copy` and
+    insertion only takes a field because the field tag is inherently the key.
+
   * sam/record/data/field: Merge `ParseError::MissingTag` and
     `ParseError::MissingValue` into `ParseError::Invalid`.
 
@@ -21,6 +30,8 @@
     `ParseError::MissingValue` into `ParseError::Invalid`.
 
     The colon (`:`) delimiter must exist to parse the value.
+
+[#49]: https://github.com/zaeleus/noodles/issues/49
 
 ## 0.6.0 - 2021-10-16
 

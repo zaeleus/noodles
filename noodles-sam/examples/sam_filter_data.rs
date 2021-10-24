@@ -18,7 +18,7 @@ fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
 
     let value = record
         .data()
-        .get(&Tag::AlignmentHitCount)
+        .get(Tag::AlignmentHitCount)
         .map(|field| field.value());
 
     match value {
