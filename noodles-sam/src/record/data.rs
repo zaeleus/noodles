@@ -14,6 +14,9 @@ use std::{
 
 use rustc_hash::FxHashMap;
 
+type StandardFieldIndices = [Option<NonZeroU16>; 53];
+type OtherFieldIndices = FxHashMap<field::Tag, u16>;
+
 const DELIMITER: char = '\t';
 
 /// SAM record data.
@@ -21,8 +24,8 @@ const DELIMITER: char = '\t';
 /// This is also called optional fields.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Data {
-    standard_field_indices: [Option<NonZeroU16>; 53],
-    other_field_indices: FxHashMap<field::Tag, u16>,
+    standard_field_indices: StandardFieldIndices,
+    other_field_indices: OtherFieldIndices,
     fields: Vec<Field>,
 }
 
@@ -155,6 +158,34 @@ impl Data {
         }
     }
 
+    /// Removes the field with the given tag.
+    ///
+    /// The field is returned if it exists.
+    ///
+    /// This works like [`Vec::swap_remove`]; it does not preserve the order but has a constant
+    /// time complexity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let rg = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
+    /// let md = Field::new(Tag::AlignmentScore, Value::Int(98));
+    /// let mut data = Data::try_from(vec![nh.clone(), rg.clone(), md.clone()])?;
+    ///
+    /// assert_eq!(data.remove(Tag::AlignmentHitCount), Some(nh));
+    /// assert!(data.remove(Tag::Comment).is_none());
+    ///
+    /// let expected = Data::try_from(vec![md, rg])?;
+    /// assert_eq!(data, expected);
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// ```
+    pub fn remove(&mut self, tag: field::Tag) -> Option<Field> {
+        self.swap_remove(tag)
+    }
+
     fn get_normalized_standard_field_index(&self, i: usize) -> Option<usize> {
         self.standard_field_indices[i].map(|j| {
             // SAFETY: `j` is guaranteed > 0.
@@ -167,22 +198,43 @@ impl Data {
     }
 
     fn push(&mut self, field: Field) {
-        let tag = field.tag();
-
-        // SAFETY: `j` is guaranteed to be < 3224.
-        let j = self.fields.len() as u16;
-
-        match tag_to_index(tag) {
-            Some(i) => {
-                let j = NonZeroU16::new(j + 1);
-                self.standard_field_indices[i] = j;
-            }
-            None => {
-                self.other_field_indices.insert(tag, j);
-            }
-        }
+        set_index(
+            &mut self.standard_field_indices,
+            &mut self.other_field_indices,
+            field.tag(),
+            self.fields.len(),
+        );
 
         self.fields.push(field);
+    }
+
+    fn swap_remove(&mut self, tag: field::Tag) -> Option<Field> {
+        let i = match tag_to_index(tag) {
+            Some(i) => {
+                let j = self.get_normalized_standard_field_index(i);
+                self.standard_field_indices[i].take();
+                j
+            }
+            None => {
+                let j = self.get_normalized_other_field_index(tag);
+                self.other_field_indices.remove(&tag);
+                j
+            }
+        };
+
+        i.map(|j| {
+            let removed_field = self.fields.swap_remove(j);
+
+            let swapped_field = &self.fields[j];
+            set_index(
+                &mut self.standard_field_indices,
+                &mut self.other_field_indices,
+                swapped_field.tag(),
+                j,
+            );
+
+            removed_field
+        })
     }
 }
 
@@ -275,6 +327,26 @@ impl TryFrom<Vec<Field>> for Data {
         }
 
         Ok(data)
+    }
+}
+
+fn set_index(
+    standard_field_indices: &mut StandardFieldIndices,
+    other_field_indices: &mut OtherFieldIndices,
+    tag: field::Tag,
+    i: usize,
+) {
+    // SAFETY: `i` is guaranteed to be < 3224.
+    let j = i as u16;
+
+    match tag_to_index(tag) {
+        Some(i) => {
+            let j = NonZeroU16::new(j + 1);
+            standard_field_indices[i] = j;
+        }
+        None => {
+            other_field_indices.insert(tag, j);
+        }
     }
 }
 
