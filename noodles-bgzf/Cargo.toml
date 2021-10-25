@@ -13,8 +13,8 @@ documentation = "https://docs.rs/noodles-bgzf"
 async = ["bytes", "futures", "num_cpus", "pin-project-lite", "tokio", "tokio-util"]
 
 [dependencies]
-byteorder = "1.2.3"
-flate2 = "1.0.1"
+byteorder = "1.4.3"
+flate2 = "1.0.22"
 
 bytes = { version = "1.0.1", optional = true }
 futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
