@@ -86,10 +86,14 @@ impl<'a> TryFrom<QualityScores<'a>> for sam::record::QualityScores {
     type Error = sam::record::quality_scores::score::TryFromUByteError;
 
     fn try_from(quality_scores: QualityScores<'_>) -> Result<Self, Self::Error> {
-        quality_scores
-            .scores()
-            .collect::<Result<Vec<_>, _>>()
-            .map(Self::from)
+        let mut scores = Vec::with_capacity(quality_scores.len());
+
+        for result in quality_scores.scores() {
+            let score = result?;
+            scores.push(score);
+        }
+
+        Ok(Self::from(scores))
     }
 }
 
