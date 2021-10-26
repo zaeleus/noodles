@@ -21,9 +21,7 @@ impl<'a> QualityScores<'a> {
     ///
     /// ```
     /// use noodles_bam::record::QualityScores;
-    ///
-    /// // NDLS
-    /// let data = [45, 35, 43, 50];
+    /// let data = [45, 35, 43, 50]; // NDLS
     /// let quality_scores = QualityScores::new(&data);
     /// ```
     pub fn new(qual: &'a [u8]) -> Self {
@@ -37,8 +35,7 @@ impl<'a> QualityScores<'a> {
     /// ```
     /// use noodles_bam::record::QualityScores;
     ///
-    /// // NDLS
-    /// let data = [45, 35, 43, 50];
+    /// let data = [45, 35, 43, 50]; // NDLS
     /// let quality_scores = QualityScores::new(&data);
     ///
     /// let mut chars = quality_scores.chars();
@@ -61,8 +58,7 @@ impl<'a> QualityScores<'a> {
     /// use noodles_bam::record::QualityScores;
     /// use noodles_sam::record::quality_scores::Score;
     ///
-    /// // NDLS
-    /// let data = [45, 35, 43, 50];
+    /// let data = [45, 35, 43, 50]; // NDLS
     /// let quality_scores = QualityScores::new(&data);
     ///
     /// let mut scores = quality_scores.scores();
@@ -106,8 +102,7 @@ mod tests {
     ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
         use sam::record::quality_scores::Score;
 
-        // NDLS
-        let data = [45, 35, 43, 50];
+        let data = [45, 35, 43, 50]; // NDLS
         let quality_scores = QualityScores::new(&data);
 
         let actual = sam::record::QualityScores::try_from(quality_scores)?;
