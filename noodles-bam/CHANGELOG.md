@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * Update to Rust 2021.
+
   * bam/record/data: Moved `DuplicateTag` to `ParseError` ([#48]).
 
     Use `ParseError::DuplicateTag` instead of `ParseError::InvalidData(_)`.

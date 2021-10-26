@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * Update to Rust 2021.
+
   * sam/header: Change header, program, read group, reference sequence tag
     representations to `[u8; 2]`.
 

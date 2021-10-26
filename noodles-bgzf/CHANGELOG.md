@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * Update to Rust 2021.
+
 ## 0.4.0 - 2021-08-19
 
 ### Changed

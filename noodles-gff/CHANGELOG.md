@@ -10,6 +10,8 @@
 
 ### Changed
 
+  * Update to Rust 2021.
+
   * record: Disallow reference sequence names to start with '>'.
 
 ## 0.2.0 - 2021-09-19
