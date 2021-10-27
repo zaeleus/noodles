@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * Update to Rust 2021.
+
 ## 0.3.0 - 2021-10-16
 
 ### Added
@@ -9,8 +15,6 @@
     The string representation of a `Record` is its serialized tabular form.
 
 ### Changed
-
-  * Update to Rust 2021.
 
   * record: Disallow reference sequence names to start with '>'.
 
