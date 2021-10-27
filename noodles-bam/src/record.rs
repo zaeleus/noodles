@@ -40,7 +40,8 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 ///
 /// Additionally, it encodes the BAM index bin (`bin`).
 ///
-/// A `bam::Record` stores raw values, and the fields should be considered immutable.
+/// A `bam::Record` and its fields store raw values and care should be taken when manipulating
+/// them.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     pub(crate) ref_id: i32,
