@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_chars() {
         let data: Vec<_> = b"><>=@>;".iter().map(|b| b - QUALITY_OFFSET).collect();
-        let quality = QualityScores::new(&data);
+        let quality = QualityScores::from(data);
         let actual: Vec<char> = quality.chars().collect();
         assert_eq!(actual, vec!['>', '<', '>', '=', '@', '>', ';']);
     }

@@ -54,7 +54,7 @@ pub struct Record {
     pub(crate) read_name: Vec<u8>,
     cigar: Cigar,
     seq: Sequence,
-    pub(crate) qual: Vec<u8>,
+    qual: QualityScores,
     pub(crate) data: Vec<u8>,
 }
 
@@ -312,8 +312,22 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> QualityScores<'_> {
-        QualityScores::new(&self.qual)
+    pub fn quality_scores(&self) -> &QualityScores {
+        &self.qual
+    }
+
+    /// Returns a mutable reference to the quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let mut record = bam::Record::default();
+    /// record.quality_scores_mut().push(8);
+    /// assert_eq!(**record.quality_scores(), [8]);
+    /// ```
+    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
+        &mut self.qual
     }
 
     /// Returns the optional data fields for this record.
@@ -344,7 +358,7 @@ impl Default for Record {
             read_name: b"*\x00".to_vec(),
             cigar: Cigar::default(),
             seq: Sequence::default(),
-            qual: Vec::new(),
+            qual: QualityScores::default(),
             data: Vec::new(),
         }
     }
@@ -389,7 +403,7 @@ mod tests {
             read_name: b"r0\x00".to_vec(),
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
-            qual: vec![0x1f, 0x1d, 0x1e, 0x20],      // @>?A
+            qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
             data: vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
@@ -480,7 +494,7 @@ mod tests {
     #[test]
     fn test_quality_scores() {
         let record = build_record();
-        assert_eq!(*record.quality_scores(), [0x1f, 0x1d, 0x1e, 0x20]);
+        assert_eq!(**record.quality_scores(), [0x1f, 0x1d, 0x1e, 0x20]);
     }
 
     #[test]

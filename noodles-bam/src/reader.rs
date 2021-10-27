@@ -427,8 +427,9 @@ where
     seq.resize(seq_len, Default::default());
     reader.read_exact(seq)?;
 
-    record.qual.resize(l_seq, Default::default());
-    reader.read_exact(&mut record.qual)?;
+    let qual = record.quality_scores_mut();
+    qual.resize(l_seq, Default::default());
+    reader.read_exact(qual)?;
 
     let cigar_len = mem::size_of::<u32>() * n_cigar_op;
     let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;

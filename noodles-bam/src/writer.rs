@@ -282,7 +282,7 @@ where
     }
 
     writer.write_all(record.sequence())?;
-    writer.write_all(&record.qual)?;
+    writer.write_all(record.quality_scores())?;
     writer.write_all(&record.data)?;
 
     Ok(())
@@ -460,7 +460,7 @@ mod tests {
 
         let actual = record.quality_scores();
         let expected = [255, 255, 255, 255];
-        assert_eq!(*actual, expected);
+        assert_eq!(**actual, expected);
 
         Ok(())
     }
@@ -490,7 +490,7 @@ mod tests {
 
         let actual = record.quality_scores();
         let expected = [45, 35, 43, 50];
-        assert_eq!(*actual, expected);
+        assert_eq!(**actual, expected);
 
         Ok(())
     }
