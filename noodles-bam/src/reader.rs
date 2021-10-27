@@ -416,8 +416,9 @@ where
     record.read_name.resize(l_read_name, Default::default());
     reader.read_exact(&mut record.read_name)?;
 
-    record.cigar.resize(n_cigar_op, Default::default());
-    reader.read_u32_into::<LittleEndian>(&mut record.cigar)?;
+    let cigar = record.cigar_mut();
+    cigar.resize(n_cigar_op, Default::default());
+    reader.read_u32_into::<LittleEndian>(cigar)?;
 
     let seq_len = (l_seq + 1) / 2;
     record.seq.resize(seq_len, Default::default());

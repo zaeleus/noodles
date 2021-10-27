@@ -53,7 +53,7 @@ pub struct Record {
     pub(crate) next_pos: i32,
     pub(crate) tlen: i32,
     pub(crate) read_name: Vec<u8>,
-    pub(crate) cigar: Vec<u32>,
+    cigar: Cigar,
     pub(crate) seq: Vec<u8>,
     pub(crate) qual: Vec<u8>,
     pub(crate) data: Vec<u8>,
@@ -247,8 +247,28 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> Cigar<'_> {
-        Cigar::new(&self.cigar)
+    pub fn cigar(&self) -> &Cigar {
+        &self.cigar
+    }
+
+    /// Returns a mutable reference to the CIGAR.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{self as bam, record::cigar::Op};
+    /// use noodles_sam::record::cigar::op::Kind;
+    ///
+    /// let mut record = bam::Record::default();
+    ///
+    /// let raw_op = Op::new(Kind::Match, 36).map(u32::from)?;
+    /// record.cigar_mut().push(raw_op);
+    ///
+    /// assert_eq!(**record.cigar(), [raw_op]);
+    /// Ok::<_, bam::record::cigar::op::LengthError>(())
+    /// ```
+    pub fn cigar_mut(&mut self) -> &mut Cigar {
+        &mut self.cigar
     }
 
     /// Returns the bases in the sequence of this record.
@@ -304,7 +324,7 @@ impl Default for Record {
             next_pos: -1,
             tlen: 0,
             read_name: b"*\x00".to_vec(),
-            cigar: Vec::new(),
+            cigar: Cigar::default(),
             seq: Vec::new(),
             qual: Vec::new(),
             data: Vec::new(),
@@ -351,9 +371,9 @@ mod tests {
             next_pos: 61152,
             tlen: 166,
             read_name: b"r0\x00".to_vec(),
-            cigar: vec![0x00000040],            // 4M
-            seq: vec![0x18, 0x42],              // ATGC
-            qual: vec![0x1f, 0x1d, 0x1e, 0x20], // @>?A
+            cigar: Cigar::from(vec![0x00000040]), // 4M
+            seq: vec![0x18, 0x42],                // ATGC
+            qual: vec![0x1f, 0x1d, 0x1e, 0x20],   // @>?A
             data: vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
@@ -438,7 +458,7 @@ mod tests {
     #[test]
     fn test_cigar() {
         let record = build_record();
-        assert_eq!(*record.cigar(), [0x00000040]);
+        assert_eq!(**record.cigar(), [0x00000040]);
     }
 
     #[test]

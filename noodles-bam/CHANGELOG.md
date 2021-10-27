@@ -11,7 +11,13 @@
     Fields are read individually when reading the record. It no longer
     implements `Deref<Target = [u8]>`.
 
+  * bam/record/cigar: `Cigar` now owns its data.
+
 ### Deprecated
+
+  * bam/record/cigar: Deprecate `Cigar::new`.
+
+    Use `Cigar::from::<Vec<u32>>` instead.
 
   * bam/record/cigar/op: Deprecate `TryFrom<&[u8]>`.
 

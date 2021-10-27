@@ -427,12 +427,13 @@ where
     record.read_name.resize(l_read_name, Default::default());
     reader.read_exact(&mut record.read_name).await?;
 
-    record.cigar.resize(n_cigar_op, Default::default());
-    record.cigar.clear();
+    let cigar = record.cigar_mut();
+    cigar.resize(n_cigar_op, Default::default());
+    cigar.clear();
 
     for _ in 0..n_cigar_op {
         let op = reader.read_u32_le().await?;
-        record.cigar.push(op);
+        cigar.push(op);
     }
 
     let seq_len = (l_seq + 1) / 2;
