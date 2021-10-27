@@ -22,7 +22,7 @@ const DELIMITER: char = '\t';
 /// SAM record data.
 ///
 /// This is also called optional fields.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Data {
     standard_field_indices: StandardFieldIndices,
     other_field_indices: OtherFieldIndices,
@@ -252,6 +252,12 @@ impl Default for Data {
             other_field_indices: FxHashMap::default(),
             fields: Vec::with_capacity(16),
         }
+    }
+}
+
+impl fmt::Debug for Data {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.fields.iter()).finish()
     }
 }
 
