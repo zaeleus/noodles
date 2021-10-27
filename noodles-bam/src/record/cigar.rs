@@ -10,7 +10,7 @@ use std::{fmt, io, ops::Deref};
 use noodles_sam::{self as sam, record::cigar::op::Kind};
 
 /// BAM record CIGAR.
-pub struct Cigar<'a>(&'a [u8]);
+pub struct Cigar<'a>(&'a [u32]);
 
 impl<'a> Cigar<'a> {
     /// Creates a CIGAR by wrapping raw CIGAR data.
@@ -19,18 +19,12 @@ impl<'a> Cigar<'a> {
     ///
     /// ```
     /// use noodles_bam::record::Cigar;
-    ///
-    /// let data = [
-    ///     0x40, 0x02, 0x00, 0x00, // 36M
-    ///     0x84, 0x00, 0x00, 0x00, // 8S
-    /// ];
-    ///
+    /// let data = [0x00000240, 0x00000084]; // 36M8S
     /// let cigar = Cigar::new(&data);
-    ///
     /// assert_eq!(*cigar, data);
     /// ```
-    pub fn new(bytes: &[u8]) -> Cigar<'_> {
-        Cigar(bytes)
+    pub fn new(cigar: &[u32]) -> Cigar<'_> {
+        Cigar(cigar)
     }
 
     /// Returns a iterator over the operations in the CIGAR.
@@ -42,11 +36,7 @@ impl<'a> Cigar<'a> {
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// let data = [
-    ///     0x40, 0x02, 0x00, 0x00, // 36M
-    ///     0x84, 0x00, 0x00, 0x00, // 8S
-    /// ];
-    ///
+    /// let data = [0x00000240, 0x00000084]; // 36M8S
     /// let cigar = Cigar::new(&data);
     ///
     /// let mut ops = cigar.ops();
@@ -73,12 +63,7 @@ impl<'a> Cigar<'a> {
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// let data = [
-    ///     0x40, 0x02, 0x00, 0x00, // 36M
-    ///     0x43, 0x00, 0x00, 0x00, // 4D
-    ///     0x84, 0x00, 0x00, 0x00, // 8S
-    /// ];
-    ///
+    /// let data = [0x00000240, 0x00000043, 0x00000084]; // 36M4D8S
     /// let cigar = Cigar::new(&data);
     ///
     /// assert_eq!(cigar.reference_len()?, 40);
@@ -114,12 +99,7 @@ impl<'a> Cigar<'a> {
     /// use noodles_bam::record::{cigar::Op, Cigar};
     /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// let data = [
-    ///     0x40, 0x02, 0x00, 0x00, // 36M
-    ///     0x43, 0x00, 0x00, 0x00, // 4D
-    ///     0x84, 0x00, 0x00, 0x00, // 8S
-    /// ];
-    ///
+    /// let data = [0x00000240, 0x00000043, 0x00000084]; // 36M4D8S
     /// let cigar = Cigar::new(&data);
     ///
     /// assert_eq!(cigar.read_len()?, 44);
@@ -165,9 +145,9 @@ impl<'a> fmt::Display for Cigar<'a> {
 }
 
 impl<'a> Deref for Cigar<'a> {
-    type Target = [u8];
+    type Target = [u32];
 
-    fn deref(&self) -> &[u8] {
+    fn deref(&self) -> &Self::Target {
         self.0
     }
 }
@@ -193,8 +173,8 @@ mod tests {
 
     #[test]
     fn test_from_bytes() -> Result<(), Box<dyn std::error::Error>> {
-        let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
-        let cigar = Cigar::new(&bytes);
+        let data = [0x00000240, 0x00000362]; // 36MD54
+        let cigar = Cigar::new(&data);
 
         let mut ops = cigar.ops();
 
@@ -209,8 +189,8 @@ mod tests {
     fn test_try_from_cigar_for_sam_record_cigar() -> io::Result<()> {
         use sam::record::cigar::{op, Op};
 
-        let bytes = [0x40, 0x02, 0x00, 0x00, 0x62, 0x03, 0x00, 0x00];
-        let cigar = Cigar::new(&bytes);
+        let data = [0x00000240, 0x00000362]; // 36MD54
+        let cigar = Cigar::new(&data);
 
         let actual = sam::record::Cigar::try_from(cigar)?;
         let expected = sam::record::Cigar::from(vec![

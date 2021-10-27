@@ -427,9 +427,13 @@ where
     record.read_name.resize(l_read_name, Default::default());
     reader.read_exact(&mut record.read_name).await?;
 
-    let cigar_len = n_cigar_op * mem::size_of::<u32>();
-    record.cigar.resize(cigar_len, Default::default());
-    reader.read_exact(&mut record.cigar).await?;
+    record.cigar.resize(n_cigar_op, Default::default());
+    record.cigar.clear();
+
+    for _ in 0..n_cigar_op {
+        let op = reader.read_u32_le().await?;
+        record.cigar.push(op);
+    }
 
     let seq_len = (l_seq + 1) / 2;
     record.seq.resize(seq_len, Default::default());
@@ -438,6 +442,7 @@ where
     record.qual.resize(l_seq, Default::default());
     reader.read_exact(&mut record.qual).await?;
 
+    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
     let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
     let data_len = block_size - data_offset;
     record.data.resize(data_len, Default::default());

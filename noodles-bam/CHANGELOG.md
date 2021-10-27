@@ -11,6 +11,12 @@
     Fields are read individually when reading the record. It no longer
     implements `Deref<Target = [u8]>`.
 
+### Deprecated
+
+  * bam/record/cigar/op: Deprecate `TryFrom<&[u8]>`.
+
+    Use `TryFrom<u32>` instead.
+
 ## 0.7.0 - 2021-10-16
 
 ### Changed

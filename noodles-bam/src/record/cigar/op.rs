@@ -173,6 +173,8 @@ impl fmt::Display for TryFromByteSliceError {
 impl TryFrom<&[u8]> for Op {
     type Error = TryFromByteSliceError;
 
+    #[allow(useless_deprecated)]
+    #[deprecated(since = "0.8.0", note = "Use `TryFrom<u32>` instead.")]
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
         if buf.len() < mem::size_of::<u32>() {
             return Err(TryFromByteSliceError::Invalid(buf.len()));

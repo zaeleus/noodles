@@ -276,7 +276,11 @@ where
     writer.write_i32::<LittleEndian>(record.tlen)?;
 
     writer.write_all(&record.read_name)?;
-    writer.write_all(&record.cigar)?;
+
+    for &raw_op in record.cigar().iter() {
+        writer.write_u32::<LittleEndian>(raw_op)?;
+    }
+
     writer.write_all(&record.seq)?;
     writer.write_all(&record.qual)?;
     writer.write_all(&record.data)?;

@@ -264,7 +264,11 @@ where
     writer.write_i32_le(record.tlen).await?;
 
     writer.write_all(&record.read_name).await?;
-    writer.write_all(&record.cigar).await?;
+
+    for &raw_op in record.cigar().iter() {
+        writer.write_u32_le(raw_op).await?;
+    }
+
     writer.write_all(&record.seq).await?;
     writer.write_all(&record.qual).await?;
     writer.write_all(&record.data).await?;

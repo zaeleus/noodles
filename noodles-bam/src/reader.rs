@@ -416,9 +416,8 @@ where
     record.read_name.resize(l_read_name, Default::default());
     reader.read_exact(&mut record.read_name)?;
 
-    let cigar_len = n_cigar_op * mem::size_of::<u32>();
-    record.cigar.resize(cigar_len, Default::default());
-    reader.read_exact(&mut record.cigar)?;
+    record.cigar.resize(n_cigar_op, Default::default());
+    reader.read_u32_into::<LittleEndian>(&mut record.cigar)?;
 
     let seq_len = (l_seq + 1) / 2;
     record.seq.resize(seq_len, Default::default());
@@ -427,6 +426,7 @@ where
     record.qual.resize(l_seq, Default::default());
     reader.read_exact(&mut record.qual)?;
 
+    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
     let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
     let data_len = block_size - data_offset;
     record.data.resize(data_len, Default::default());

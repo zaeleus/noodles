@@ -176,9 +176,9 @@ mod tests {
             next_pos: 61152,
             tlen: 166,
             read_name: b"r0\x00".to_vec(),
-            cigar: vec![0x40, 0x00, 0x00, 0x00], // 4M
-            seq: vec![0x18, 0x42],               // ATGC
-            qual: vec![0x1f, 0x1d, 0x1e, 0x20],  // @>?A
+            cigar: vec![0x00000040],            // 4M
+            seq: vec![0x18, 0x42],              // ATGC
+            qual: vec![0x1f, 0x1d, 0x1e, 0x20], // @>?A
             data: vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
