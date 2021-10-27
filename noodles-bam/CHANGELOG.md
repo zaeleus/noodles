@@ -6,6 +6,11 @@
 
   * Update to Rust 2021.
 
+  * bam/record: `bam::Record` is no longer backed by a contiguous buffer.
+
+    Fields are read individually when reading the record. It no longer
+    implements `Deref<Target = [u8]>`.
+
 ## 0.7.0 - 2021-10-16
 
 ### Changed

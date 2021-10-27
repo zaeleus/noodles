@@ -5,6 +5,8 @@ mod record;
 
 pub use self::builder::Builder;
 
+use std::mem;
+
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -397,8 +399,49 @@ where
         Err(e) => return Err(e),
     };
 
-    record.resize(block_size);
-    reader.read_exact(record).await?;
+    record.ref_id = reader.read_i32_le().await?;
+    record.pos = reader.read_i32_le().await?;
+
+    let l_read_name = reader.read_u8().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    record.mapq = reader.read_u8().await?;
+    record.bin = reader.read_u16_le().await?;
+
+    let n_cigar_op = reader.read_u16_le().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    record.flag = reader.read_u16_le().await?;
+
+    let l_seq = reader.read_u32_le().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+    record.l_seq = l_seq;
+
+    record.next_ref_id = reader.read_i32_le().await?;
+    record.next_pos = reader.read_i32_le().await?;
+    record.tlen = reader.read_i32_le().await?;
+
+    record.read_name.resize(l_read_name, Default::default());
+    reader.read_exact(&mut record.read_name).await?;
+
+    let cigar_len = n_cigar_op * mem::size_of::<u32>();
+    record.cigar.resize(cigar_len, Default::default());
+    reader.read_exact(&mut record.cigar).await?;
+
+    let seq_len = (l_seq + 1) / 2;
+    record.seq.resize(seq_len, Default::default());
+    reader.read_exact(&mut record.seq).await?;
+
+    record.qual.resize(l_seq, Default::default());
+    reader.read_exact(&mut record.qual).await?;
+
+    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
+    let data_len = block_size - data_offset;
+    record.data.resize(data_len, Default::default());
+    reader.read_exact(&mut record.data).await?;
 
     Ok(block_size)
 }
@@ -469,16 +512,27 @@ mod tests {
     #[tokio::test]
     async fn test_read_record() -> io::Result<()> {
         let data = [
-            0x04, 0x00, 0x00, 0x00, // block_size = 4
-            0x6e, 0x64, 0x6c, 0x73, // ...
+            0x22, 0x00, 0x00, 0x00, // block_size = 34
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x02, // l_read_name = 2
+            0xff, // mapq = 255
+            0x48, 0x12, // bin = 4680
+            0x00, 0x00, // n_cigar_op = 0
+            0x04, 0x00, // flag = 4
+            0x00, 0x00, 0x00, 0x00, // l_seq = 0
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            0x2a, 0x00, // read_name = "*\x00"
         ];
 
         let mut reader = &data[..];
         let mut record = Record::default();
         let block_size = read_record(&mut reader, &mut record).await?;
 
-        assert_eq!(block_size, 4);
-        assert_eq!(&record[..], &data[4..]);
+        assert_eq!(block_size, 34);
+        assert_eq!(record, Record::default());
 
         Ok(())
     }

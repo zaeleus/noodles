@@ -1,8 +1,6 @@
-use std::{io, mem};
+use std::io;
 
 use noodles_sam as sam;
-
-use crate::writer;
 
 use super::{Record, ReferenceSequenceId};
 
@@ -25,13 +23,18 @@ impl Record {
     /// ```
     pub fn try_from_sam_record(
         reference_sequences: &sam::header::ReferenceSequences,
-        record: &sam::Record,
+        sam_record: &sam::Record,
     ) -> io::Result<Self> {
+        use crate::{reader::read_record, writer::record::write_sam_record};
+
         let mut buf = Vec::new();
-        writer::record::write_sam_record(&mut buf, reference_sequences, record)?;
-        // Remove the prepending block size.
-        let start = mem::size_of::<u32>();
-        Ok(Self::from(buf[start..].to_vec()))
+        write_sam_record(&mut buf, reference_sequences, sam_record)?;
+
+        let mut reader = &buf[..];
+        let mut record = Self::default();
+        read_record(&mut reader, &mut record)?;
+
+        Ok(record)
     }
 
     /// Converts this record to a SAM record.
@@ -147,13 +150,6 @@ fn get_reference_sequence_name(
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        ffi::CString,
-        io::{self, BufWriter, Write},
-    };
-
-    use byteorder::{LittleEndian, WriteBytesExt};
-
     use super::*;
 
     fn build_reference_sequences(
@@ -166,52 +162,28 @@ mod tests {
             .collect()
     }
 
-    fn build_record() -> io::Result<Record> {
-        let read_name =
-            CString::new("r0").map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        let flag = u16::from(sam::record::Flags::PAIRED | sam::record::Flags::READ_1);
+    fn build_record() -> Record {
+        use sam::record::Flags;
 
-        let mut writer = BufWriter::new(Vec::new());
-
-        // ref_id
-        writer.write_i32::<LittleEndian>(1)?;
-        // pos
-        writer.write_i32::<LittleEndian>(61061)?;
-        // l_read_name
-        writer.write_u8(read_name.as_bytes_with_nul().len() as u8)?;
-        // mapq
-        writer.write_u8(12)?;
-        // bin
-        writer.write_u16::<LittleEndian>(4684)?;
-        // n_ciar_op
-        writer.write_u16::<LittleEndian>(1)?;
-        // flag
-        writer.write_u16::<LittleEndian>(flag)?;
-        // l_seq
-        writer.write_u32::<LittleEndian>(4)?;
-        // next_ref_id
-        writer.write_i32::<LittleEndian>(1)?;
-        // next_pos
-        writer.write_i32::<LittleEndian>(61152)?;
-        // tlen
-        writer.write_i32::<LittleEndian>(166)?;
-        // read_name
-        writer.write_all(read_name.as_bytes_with_nul())?;
-        // cigar
-        writer.write_all(&[0x40, 0x00, 0x00, 0x00])?;
-        // seq
-        writer.write_all(&[0x18, 0x42])?;
-        // qual
-        writer.write_all(&[0x1f, 0x1d, 0x1e, 0x20])?;
-        // data
-        writer.write_all(&[
-            0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,
-        ])?;
-
-        writer
-            .into_inner()
-            .map(Record::from)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        Record {
+            ref_id: 1,
+            pos: 61061,
+            mapq: 12,
+            bin: 4684,
+            flag: u16::from(Flags::PAIRED | Flags::READ_1),
+            l_seq: 4,
+            next_ref_id: 1,
+            next_pos: 61152,
+            tlen: 166,
+            read_name: b"r0\x00".to_vec(),
+            cigar: vec![0x40, 0x00, 0x00, 0x00], // 4M
+            seq: vec![0x18, 0x42],               // ATGC
+            qual: vec![0x1f, 0x1d, 0x1e, 0x20],  // @>?A
+            data: vec![
+                0x4e, 0x4d, 0x43, 0x00, // NM:i:0
+                0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
+            ],
+        }
     }
 
     #[test]
@@ -224,7 +196,7 @@ mod tests {
             },
         };
 
-        let bam_record = build_record()?;
+        let bam_record = build_record();
         let reference_sequences = build_reference_sequences()?;
         let actual = bam_record.try_into_sam_record(&reference_sequences)?;
 

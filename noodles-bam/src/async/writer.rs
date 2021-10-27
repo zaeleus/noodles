@@ -3,7 +3,7 @@ mod record;
 
 pub use self::builder::Builder;
 
-use std::ffi::CString;
+use std::{ffi::CString, mem};
 
 use noodles_bgzf as bgzf;
 use noodles_sam as sam;
@@ -234,11 +234,40 @@ async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let block_size =
-        u32::try_from(record.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let block_size = u32::try_from(record.block_size())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(block_size).await?;
 
-    writer.write_all(record).await?;
+    writer.write_i32_le(record.ref_id).await?;
+    writer.write_i32_le(record.pos).await?;
+
+    let l_read_name = u8::try_from(record.read_name.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u8(l_read_name).await?;
+
+    writer.write_u8(record.mapq).await?;
+    writer.write_u16_le(record.bin).await?;
+
+    let n_cigar_op = u16::try_from(record.cigar().len() / mem::size_of::<u32>())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u16_le(n_cigar_op).await?;
+
+    writer.write_u16_le(record.flag).await?;
+
+    let l_seq = u32::try_from(record.seq.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(l_seq).await?;
+
+    writer.write_i32_le(record.next_ref_id).await?;
+    writer.write_i32_le(record.next_pos).await?;
+
+    writer.write_i32_le(record.tlen).await?;
+
+    writer.write_all(&record.read_name).await?;
+    writer.write_all(&record.cigar).await?;
+    writer.write_all(&record.seq).await?;
+    writer.write_all(&record.qual).await?;
+    writer.write_all(&record.data).await?;
 
     Ok(())
 }
