@@ -347,14 +347,16 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
+        use sam::record::Flags;
+
         Self {
-            ref_id: -1,
-            pos: -1,
+            ref_id: reference_sequence_id::UNMAPPED,
+            pos: UNMAPPED_POSITION,
             mapq: 255,
             bin: 4680,
-            flag: 0x0004,
-            next_ref_id: -1,
-            next_pos: -1,
+            flag: u16::from(Flags::UNMAPPED),
+            next_ref_id: reference_sequence_id::UNMAPPED,
+            next_pos: UNMAPPED_POSITION,
             tlen: 0,
             read_name: b"*\x00".to_vec(),
             cigar: Cigar::default(),
