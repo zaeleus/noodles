@@ -5,7 +5,7 @@ use std::{error, fmt, mem};
 use byteorder::{ByteOrder, LittleEndian};
 use noodles_sam::record::cigar::op::Kind;
 
-const MAX_LENGTH: u32 = 268_435_455; // 2^28 - 1
+const MAX_LENGTH: u32 = (1 << 28) - 1;
 
 /// A BAM record CIGAR operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
