@@ -266,7 +266,7 @@ where
 
     writer.write_u16::<LittleEndian>(record.flag)?;
 
-    let l_seq = u32::try_from(record.seq.len())
+    let l_seq = u32::try_from(record.sequence().base_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(l_seq)?;
 
@@ -281,7 +281,7 @@ where
         writer.write_u32::<LittleEndian>(raw_op)?;
     }
 
-    writer.write_all(&record.seq)?;
+    writer.write_all(record.sequence())?;
     writer.write_all(&record.qual)?;
     writer.write_all(&record.data)?;
 

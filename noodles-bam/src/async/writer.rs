@@ -254,7 +254,7 @@ where
 
     writer.write_u16_le(record.flag).await?;
 
-    let l_seq = u32::try_from(record.seq.len())
+    let l_seq = u32::try_from(record.sequence().base_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_seq).await?;
 
@@ -269,7 +269,7 @@ where
         writer.write_u32_le(raw_op).await?;
     }
 
-    writer.write_all(&record.seq).await?;
+    writer.write_all(record.sequence()).await?;
     writer.write_all(&record.qual).await?;
     writer.write_all(&record.data).await?;
 

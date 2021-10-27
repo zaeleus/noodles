@@ -8,10 +8,9 @@
 
   * bam/record: `bam::Record` is no longer backed by a contiguous buffer.
 
-    Fields are read individually when reading the record. It no longer
-    implements `Deref<Target = [u8]>`.
-
-  * bam/record/cigar: `Cigar` now owns its data.
+    Fields are read individually when reading the record. `bam::Record` no
+    longer implements `Deref<Target = [u8]>`. `Cigar` and `Sequence` now own
+    their data.
 
 ### Deprecated
 

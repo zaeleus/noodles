@@ -418,7 +418,6 @@ where
     let l_seq = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
-    record.l_seq = l_seq;
 
     record.next_ref_id = reader.read_i32_le().await?;
     record.next_pos = reader.read_i32_le().await?;
@@ -437,8 +436,12 @@ where
     }
 
     let seq_len = (l_seq + 1) / 2;
-    record.seq.resize(seq_len, Default::default());
-    reader.read_exact(&mut record.seq).await?;
+
+    let seq = record.sequence_mut();
+    seq.set_base_count(l_seq);
+
+    seq.resize(seq_len, Default::default());
+    reader.read_exact(seq).await?;
 
     record.qual.resize(l_seq, Default::default());
     reader.read_exact(&mut record.qual).await?;

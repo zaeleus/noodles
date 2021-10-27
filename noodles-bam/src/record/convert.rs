@@ -165,7 +165,7 @@ mod tests {
     fn build_record() -> Record {
         use sam::record::Flags;
 
-        use crate::record::Cigar;
+        use crate::record::{Cigar, Sequence};
 
         Record {
             ref_id: 1,
@@ -173,14 +173,13 @@ mod tests {
             mapq: 12,
             bin: 4684,
             flag: u16::from(Flags::PAIRED | Flags::READ_1),
-            l_seq: 4,
             next_ref_id: 1,
             next_pos: 61152,
             tlen: 166,
             read_name: b"r0\x00".to_vec(),
-            cigar: Cigar::from(vec![0x00000040]), // 4M
-            seq: vec![0x18, 0x42],                // ATGC
-            qual: vec![0x1f, 0x1d, 0x1e, 0x20],   // @>?A
+            cigar: Cigar::from(vec![0x00000040]),    // 4M
+            seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
+            qual: vec![0x1f, 0x1d, 0x1e, 0x20],      // @>?A
             data: vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP

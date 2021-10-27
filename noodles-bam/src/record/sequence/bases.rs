@@ -4,14 +4,14 @@ use super::{Base, Sequence};
 ///
 /// This is created by calling [`Sequence::bases`].
 pub struct Bases<'a> {
-    sequence: &'a Sequence<'a>,
+    sequence: &'a Sequence,
     head: usize,
     tail: usize,
     remaining: usize,
 }
 
 impl<'a> Bases<'a> {
-    pub(crate) fn new(sequence: &'a Sequence<'_>) -> Self {
+    pub(crate) fn new(sequence: &'a Sequence) -> Self {
         let tail = if sequence.is_empty() {
             0
         } else {
