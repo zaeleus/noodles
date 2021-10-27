@@ -1,7 +1,7 @@
 //! Counts the number of records in a GFF file.
 //!
 //! Assuming the input does not have a FASTA section, the result matches the output of `grep
-//! --invert-match '^#' <src> | wc -l`.
+//! --count --invert-match '^#' <src>`.
 
 use std::{
     env,
