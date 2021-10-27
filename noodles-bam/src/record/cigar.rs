@@ -27,7 +27,7 @@ impl<'a> Cigar<'a> {
         Cigar(cigar)
     }
 
-    /// Returns a iterator over the operations in the CIGAR.
+    /// Returns an iterator over the operations in the CIGAR.
     ///
     /// # Examples
     ///
