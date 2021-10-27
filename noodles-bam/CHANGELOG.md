@@ -1,10 +1,14 @@
 # Changelog
 
-## 0.7.0 - 2021-10-16
+## Unreleased
 
 ### Changed
 
   * Update to Rust 2021.
+
+## 0.7.0 - 2021-10-16
+
+### Changed
 
   * bam/record/data: Moved `DuplicateTag` to `ParseError` ([#48]).
 
