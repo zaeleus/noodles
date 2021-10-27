@@ -1,4 +1,4 @@
-use super::{Attributes, Record, Strand, NULL_FIELD};
+use super::{Attributes, Frame, Record, Strand, NULL_FIELD};
 
 /// A GTF record builder.
 #[derive(Debug)]
@@ -10,7 +10,7 @@ pub struct Builder {
     end: i32,
     score: Option<f32>,
     strand: Option<Strand>,
-    frame: Option<String>,
+    frame: Option<Frame>,
     attributes: Attributes,
 }
 
@@ -127,15 +127,14 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::builder().set_frame("0").build();
-    /// assert_eq!(record.frame(), Some("0"));
+    /// use noodles_gtf::{self as gtf, record::Frame};
+    /// let frame = Frame::try_from(0)?;
+    /// let record = gtf::Record::builder().set_frame(frame).build();
+    /// assert_eq!(record.frame(), Some(frame));
+    /// Ok::<_, gtf::record::frame::ParseError>(())
     /// ```
-    pub fn set_frame<F>(mut self, frame: F) -> Self
-    where
-        F: Into<String>,
-    {
-        self.frame = Some(frame.into());
+    pub fn set_frame(mut self, frame: Frame) -> Self {
+        self.frame = Some(frame);
         self
     }
 

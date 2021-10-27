@@ -2,9 +2,10 @@
 
 pub mod attributes;
 mod builder;
+pub mod frame;
 pub mod strand;
 
-pub use self::{attributes::Attributes, builder::Builder, strand::Strand};
+pub use self::{attributes::Attributes, builder::Builder, frame::Frame, strand::Strand};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -20,7 +21,7 @@ pub struct Record {
     end: i32,
     score: Option<f32>,
     strand: Option<Strand>,
-    frame: Option<String>,
+    frame: Option<Frame>,
     attributes: Attributes,
 }
 
@@ -145,8 +146,8 @@ impl Record {
     /// let record = gtf::Record::default();
     /// assert!(record.frame().is_none());
     /// ```
-    pub fn frame(&self) -> Option<&str> {
-        self.frame.as_deref()
+    pub fn frame(&self) -> Option<Frame> {
+        self.frame
     }
 
     /// Returns the attributes.
@@ -193,8 +194,11 @@ impl fmt::Display for Record {
             write!(f, "{}\t", NULL_FIELD)?;
         }
 
-        let frame = self.frame().unwrap_or(NULL_FIELD);
-        write!(f, "{}\t", frame)?;
+        if let Some(frame) = self.frame() {
+            write!(f, "{}\t", frame)?;
+        } else {
+            write!(f, "{}\t", NULL_FIELD)?;
+        }
 
         write!(f, "{}", self.attributes())?;
 
@@ -232,7 +236,7 @@ pub enum ParseError {
     /// The frame is missing.
     MissingFrame,
     /// The frame is invalid.
-    InvalidFrame,
+    InvalidFrame(frame::ParseError),
     /// The attributes are missing.
     MissingAttributes,
     /// The attributes are invalid.
@@ -257,7 +261,7 @@ impl fmt::Display for ParseError {
             Self::MissingStrand => write!(f, "missing strand"),
             Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
             Self::MissingFrame => write!(f, "missing frame"),
-            Self::InvalidFrame => write!(f, "invalid frame"),
+            Self::InvalidFrame(e) => write!(f, "invalid frame: {}", e),
             Self::MissingAttributes => write!(f, "missing attributes"),
             Self::InvalidAttributes(e) => write!(f, "invalid attributes: {}", e),
         }
@@ -348,11 +352,11 @@ fn parse_strand(s: &str) -> Result<Option<Strand>, ParseError> {
     }
 }
 
-fn parse_frame(s: &str) -> Result<Option<String>, ParseError> {
-    match s {
-        NULL_FIELD => Ok(None),
-        "0" | "1" | "2" => Ok(Some(s.into())),
-        _ => Err(ParseError::InvalidFrame),
+fn parse_frame(s: &str) -> Result<Option<Frame>, ParseError> {
+    if s == NULL_FIELD {
+        Ok(None)
+    } else {
+        s.parse().map(Some).map_err(ParseError::InvalidFrame)
     }
 }
 
