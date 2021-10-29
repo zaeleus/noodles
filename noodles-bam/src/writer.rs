@@ -283,7 +283,7 @@ where
 
     writer.write_all(record.sequence())?;
     writer.write_all(record.quality_scores())?;
-    writer.write_all(&record.data)?;
+    writer.write_all(record.data())?;
 
     Ok(())
 }

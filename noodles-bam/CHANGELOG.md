@@ -10,7 +10,7 @@
 
     Fields are read individually when reading the record. `bam::Record` no
     longer implements `Deref<Target = [u8]>`. `Cigar`, `Sequence`, and
-    `QualityScores` now own their data.
+    `QualityScores`, `Data` now own their data.
 
 ### Deprecated
 
@@ -21,6 +21,10 @@
   * bam/record/cigar/op: Deprecate `TryFrom<&[u8]>`.
 
     Use `TryFrom<u32>` instead.
+
+  * bam/record/data: Deprecate `Data::new`.
+
+    Use `Data::from::<Vec<u8>>` instead.
 
 ## 0.7.0 - 2021-10-16
 

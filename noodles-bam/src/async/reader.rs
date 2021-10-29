@@ -447,11 +447,14 @@ where
     qual.resize(l_seq, Default::default());
     reader.read_exact(qual).await?;
 
+    let data = record.data_mut();
+
     let cigar_len = mem::size_of::<u32>() * n_cigar_op;
     let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
     let data_len = block_size - data_offset;
-    record.data.resize(data_len, Default::default());
-    reader.read_exact(&mut record.data).await?;
+    data.resize(data_len, Default::default());
+
+    reader.read_exact(data).await?;
 
     Ok(block_size)
 }

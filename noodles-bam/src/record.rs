@@ -56,7 +56,7 @@ pub struct Record {
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
-    pub(crate) data: Vec<u8>,
+    data: Data,
 }
 
 impl Record {
@@ -340,8 +340,26 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> Data<'_> {
-        Data::new(&self.data)
+    pub fn data(&self) -> &Data {
+        &self.data
+    }
+
+    /// Returns a mutable reference to the data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    ///
+    /// let mut record = bam::Record::default();
+    ///
+    /// let nm = [0x4e, 0x4d, 0x43, 0x00];
+    /// record.data_mut().extend(&nm); // NM:i:0
+    ///
+    /// assert_eq!(**record.data(), nm);
+    /// ```
+    pub fn data_mut(&mut self) -> &mut Data {
+        &mut self.data
     }
 }
 
@@ -362,7 +380,7 @@ impl Default for Record {
             cigar: Cigar::default(),
             seq: Sequence::default(),
             qual: QualityScores::default(),
-            data: Vec::new(),
+            data: Data::default(),
         }
     }
 }
@@ -407,10 +425,10 @@ mod tests {
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
             qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
-            data: vec![
+            data: Data::from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ],
+            ]),
         }
     }
 
@@ -505,7 +523,7 @@ mod tests {
         let record = build_record();
 
         assert_eq!(
-            *record.data(),
+            **record.data(),
             [0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,]
         );
     }

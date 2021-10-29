@@ -5,16 +5,20 @@ mod fields;
 
 pub use self::{field::Field, fields::Fields};
 
-use std::{error, fmt, ops::Deref};
+use std::{
+    error, fmt,
+    ops::{Deref, DerefMut},
+};
 
 use noodles_sam as sam;
 
 /// BAM record data.
 ///
 /// This is also called optional fields.
-pub struct Data<'a>(&'a [u8]);
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct Data(Vec<u8>);
 
-impl<'a> Data<'a> {
+impl Data {
     /// Creates data from raw data data.
     ///
     /// # Examples
@@ -22,14 +26,14 @@ impl<'a> Data<'a> {
     /// ```
     /// use noodles_bam::record::Data;
     ///
-    /// let raw_data = [
+    /// let data = Data::from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
     ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-    /// ];
-    /// let data = Data::new(&raw_data);
+    /// ]);
     /// ```
-    pub fn new(bytes: &[u8]) -> Data<'_> {
-        Data(bytes)
+    #[deprecated(since = "0.8.0", note = "Use `Data::from::<Vec<u8>>` instead.")]
+    pub fn new(data: Vec<u8>) -> Data {
+        Data::from(data)
     }
 
     /// Returns an iterator over data fields.
@@ -41,11 +45,10 @@ impl<'a> Data<'a> {
     /// use noodles_bam::record::{data::{field::Value, Field}, Data};
     /// use noodles_sam::record::data::field::Tag;
     ///
-    /// let raw_data = [
+    /// let data = Data::from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
     ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-    /// ];
-    /// let data = Data::new(&raw_data);
+    /// ]);
     ///
     /// let mut fields = data.fields();
     ///
@@ -63,21 +66,33 @@ impl<'a> Data<'a> {
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn fields(&self) -> Fields<&[u8]> {
-        Fields::new(self.0)
+        Fields::new(self)
     }
 }
 
-impl<'a> Deref for Data<'a> {
-    type Target = [u8];
+impl Deref for Data {
+    type Target = Vec<u8>;
 
     fn deref(&self) -> &Self::Target {
-        self.0
+        &self.0
     }
 }
 
-impl<'a> fmt::Debug for Data<'a> {
+impl DerefMut for Data {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl fmt::Debug for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.fields()).finish()
+    }
+}
+
+impl From<Vec<u8>> for Data {
+    fn from(data: Vec<u8>) -> Self {
+        Self(data)
     }
 }
 
@@ -101,10 +116,10 @@ impl fmt::Display for TryFromDataError {
     }
 }
 
-impl<'a> TryFrom<Data<'a>> for sam::record::Data {
+impl TryFrom<&Data> for sam::record::Data {
     type Error = TryFromDataError;
 
-    fn try_from(data: Data<'_>) -> Result<Self, Self::Error> {
+    fn try_from(data: &Data) -> Result<Self, Self::Error> {
         let mut sam_data = Self::default();
 
         for result in data.fields() {
@@ -131,13 +146,12 @@ mod tests {
             Field,
         };
 
-        let raw_data = [
+        let data = Data::from(vec![
             b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
             b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-        ];
-        let data = Data::new(&raw_data);
+        ]);
 
-        let actual = sam::record::Data::try_from(data)?;
+        let actual = sam::record::Data::try_from(&data)?;
         let expected = sam::record::Data::try_from(vec![
             Field::new(Tag::AlignmentHitCount, Value::Int(1)),
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
