@@ -26,6 +26,10 @@
 
     Use `Data::from::<Vec<u8>>` instead.
 
+  * bam/record/quality_scores: Deprecate `QualityScores::new`.
+
+    Use `QualityScores::from::<Vec<u8>>` instead.
+
 ## 0.7.0 - 2021-10-16
 
 ### Changed
