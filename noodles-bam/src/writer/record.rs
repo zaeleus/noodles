@@ -344,19 +344,28 @@ fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
 where
     W: Write,
 {
+    for field in data.values() {
+        write_data_field(writer, field)?;
+    }
+
+    Ok(())
+}
+
+fn write_data_field<W>(writer: &mut W, field: &sam::record::data::Field) -> io::Result<()>
+where
+    W: Write,
+{
     use noodles_sam::record::data::field::Value;
 
-    for field in data.values() {
-        write_data_field_tag(writer, field.tag())?;
+    write_data_field_tag(writer, field.tag())?;
 
-        let value = field.value();
+    let value = field.value();
 
-        if let Value::Int(n) = value {
-            write_data_field_int_value(writer, *n)?;
-        } else {
-            write_data_field_value_type(writer, value)?;
-            write_data_field_value(writer, value)?;
-        }
+    if let Value::Int(n) = value {
+        write_data_field_int_value(writer, *n)?;
+    } else {
+        write_data_field_value_type(writer, value)?;
+        write_data_field_value(writer, value)?;
     }
 
     Ok(())
