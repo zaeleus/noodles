@@ -25,7 +25,7 @@ impl Record {
         reference_sequences: &sam::header::ReferenceSequences,
         sam_record: &sam::Record,
     ) -> io::Result<Self> {
-        use crate::{reader::read_record, writer::record::write_sam_record};
+        use crate::{reader::record::read_record, writer::record::write_sam_record};
 
         let mut buf = Vec::new();
         write_sam_record(&mut buf, reference_sequences, sam_record)?;
