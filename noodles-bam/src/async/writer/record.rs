@@ -289,19 +289,28 @@ async fn write_data<W>(writer: &mut W, data: &sam::record::Data) -> io::Result<(
 where
     W: AsyncWrite + Unpin,
 {
+    for field in data.values() {
+        write_data_field(writer, field).await?;
+    }
+
+    Ok(())
+}
+
+async fn write_data_field<W>(writer: &mut W, field: &sam::record::data::Field) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
     use sam::record::data::field::Value;
 
-    for field in data.values() {
-        write_data_field_tag(writer, field.tag()).await?;
+    write_data_field_tag(writer, field.tag()).await?;
 
-        let value = field.value();
+    let value = field.value();
 
-        if let Value::Int(n) = value {
-            write_data_field_int_value(writer, *n).await?;
-        } else {
-            write_data_field_value_type(writer, value).await?;
-            write_data_field_value(writer, value).await?;
-        }
+    if let Value::Int(n) = value {
+        write_data_field_int_value(writer, *n).await?;
+    } else {
+        write_data_field_value_type(writer, value).await?;
+        write_data_field_value(writer, value).await?;
     }
 
     Ok(())
