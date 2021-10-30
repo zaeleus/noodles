@@ -347,8 +347,7 @@ where
     use noodles_sam::record::data::field::Value;
 
     for field in data.values() {
-        let tag = field.tag();
-        writer.write_all(tag.as_ref())?;
+        write_data_field_tag(writer, field.tag())?;
 
         let value = field.value();
 
@@ -361,6 +360,13 @@ where
     }
 
     Ok(())
+}
+
+fn write_data_field_tag<W>(writer: &mut W, tag: sam::record::data::field::Tag) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(tag.as_ref())
 }
 
 fn write_data_field_int_value<W>(writer: &mut W, n: i64) -> io::Result<()>
