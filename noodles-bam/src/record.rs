@@ -48,7 +48,7 @@ pub struct Record {
     pub(crate) pos: i32,
     pub(crate) mapq: u8,
     pub(crate) bin: u16,
-    pub(crate) flag: sam::record::Flags,
+    flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
     pub(crate) next_pos: i32,
     pub(crate) tlen: i32,
@@ -162,6 +162,21 @@ impl Record {
     /// ```
     pub fn flags(&self) -> sam::record::Flags {
         self.flag
+    }
+
+    /// Returns a mutable reference to the flags.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::Flags;
+    /// let mut record = bam::Record::default();
+    /// *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
+    /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
+    /// ```
+    pub fn flags_mut(&mut self) -> &mut sam::record::Flags {
+        &mut self.flag
     }
 
     /// Returns the reference sequence ID of the mate of this record.

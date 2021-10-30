@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/record: Add mutable getter for flags (`Record::flags_mut`).
+
 ### Changed
 
   * Update to Rust 2021.

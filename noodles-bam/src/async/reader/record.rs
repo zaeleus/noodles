@@ -33,7 +33,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.flag = read_flag(reader).await?;
+    *record.flags_mut() = read_flag(reader).await?;
 
     let l_seq = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
