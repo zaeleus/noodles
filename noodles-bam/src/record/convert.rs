@@ -172,7 +172,7 @@ mod tests {
             pos: 61061,
             mapq: 12,
             bin: 4684,
-            flag: u16::from(Flags::PAIRED | Flags::READ_1),
+            flag: Flags::PAIRED | Flags::READ_1,
             next_ref_id: 1,
             next_pos: 61152,
             tlen: 166,

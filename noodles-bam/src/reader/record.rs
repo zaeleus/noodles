@@ -8,6 +8,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_sam as sam;
 
 use crate::Record;
 
@@ -35,7 +36,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.flag = reader.read_u16::<LittleEndian>()?;
+    record.flag = read_flag(reader)?;
 
     let l_seq = reader.read_u32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -74,6 +75,15 @@ where
     reader.read_exact(data)?;
 
     Ok(block_size)
+}
+
+fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>
+where
+    R: Read,
+{
+    reader
+        .read_u16::<LittleEndian>()
+        .map(sam::record::Flags::from)
 }
 
 #[cfg(test)]

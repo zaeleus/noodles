@@ -48,7 +48,7 @@ pub struct Record {
     pub(crate) pos: i32,
     pub(crate) mapq: u8,
     pub(crate) bin: u16,
-    pub(crate) flag: u16,
+    pub(crate) flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
     pub(crate) next_pos: i32,
     pub(crate) tlen: i32,
@@ -161,7 +161,7 @@ impl Record {
     /// assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
     /// ```
     pub fn flags(&self) -> sam::record::Flags {
-        sam::record::Flags::from(self.flag)
+        self.flag
     }
 
     /// Returns the reference sequence ID of the mate of this record.
@@ -372,7 +372,7 @@ impl Default for Record {
             pos: UNMAPPED_POSITION,
             mapq: 255,
             bin: 4680,
-            flag: u16::from(Flags::UNMAPPED),
+            flag: Flags::UNMAPPED,
             next_ref_id: reference_sequence_id::UNMAPPED,
             next_pos: UNMAPPED_POSITION,
             tlen: 0,
@@ -417,7 +417,7 @@ mod tests {
             pos: 61061,
             mapq: 12,
             bin: 4684,
-            flag: u16::from(Flags::PAIRED | Flags::READ_1),
+            flag: Flags::PAIRED | Flags::READ_1,
             next_ref_id: 10,
             next_pos: 61152,
             tlen: 166,

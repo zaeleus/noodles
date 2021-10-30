@@ -252,7 +252,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16_le(n_cigar_op).await?;
 
-    writer.write_u16_le(record.flag).await?;
+    let flag = u16::from(record.flags());
+    writer.write_u16_le(flag).await?;
 
     let l_seq = u32::try_from(record.sequence().base_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
