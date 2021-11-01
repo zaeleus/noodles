@@ -10,7 +10,10 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam as sam;
 
-use crate::Record;
+use crate::{
+    record::{Cigar, Data, QualityScores, Sequence},
+    Record,
+};
 
 pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
@@ -46,33 +49,18 @@ where
     record.next_pos = reader.read_i32::<LittleEndian>()?;
     record.tlen = reader.read_i32::<LittleEndian>()?;
 
-    record.read_name.resize(l_read_name, Default::default());
-    reader.read_exact(&mut record.read_name)?;
-
-    let cigar = record.cigar_mut();
-    cigar.resize(n_cigar_op, Default::default());
-    reader.read_u32_into::<LittleEndian>(cigar)?;
-
-    let seq_len = (l_seq + 1) / 2;
-
-    let seq = record.sequence_mut();
-    seq.set_base_count(l_seq);
-
-    seq.resize(seq_len, Default::default());
-    reader.read_exact(seq)?;
-
-    let qual = record.quality_scores_mut();
-    qual.resize(l_seq, Default::default());
-    reader.read_exact(qual)?;
-
-    let data = record.data_mut();
-
-    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
-    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
-    let data_len = block_size - data_offset;
-    data.resize(data_len, Default::default());
-
-    reader.read_exact(data)?;
+    read_read_name(reader, &mut record.read_name, l_read_name)?;
+    read_cigar(reader, record.cigar_mut(), n_cigar_op)?;
+    read_seq(reader, record.sequence_mut(), l_seq)?;
+    read_qual(reader, record.quality_scores_mut(), l_seq)?;
+    read_data(
+        reader,
+        record.data_mut(),
+        block_size,
+        l_read_name,
+        n_cigar_op,
+        l_seq,
+    )?;
 
     Ok(block_size)
 }
@@ -84,6 +72,68 @@ where
     reader
         .read_u16::<LittleEndian>()
         .map(sam::record::Flags::from)
+}
+
+fn read_read_name<R>(reader: &mut R, read_name: &mut Vec<u8>, l_read_name: usize) -> io::Result<()>
+where
+    R: Read,
+{
+    read_name.resize(l_read_name, Default::default());
+    reader.read_exact(read_name)?;
+    Ok(())
+}
+
+fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
+where
+    R: Read,
+{
+    cigar.resize(n_cigar_op, Default::default());
+    reader.read_u32_into::<LittleEndian>(cigar)?;
+    Ok(())
+}
+
+fn read_seq<R>(reader: &mut R, seq: &mut Sequence, l_seq: usize) -> io::Result<()>
+where
+    R: Read,
+{
+    seq.set_base_count(l_seq);
+
+    let seq_len = (l_seq + 1) / 2;
+    seq.resize(seq_len, Default::default());
+    reader.read_exact(seq)?;
+
+    Ok(())
+}
+
+fn read_qual<R>(reader: &mut R, qual: &mut QualityScores, l_seq: usize) -> io::Result<()>
+where
+    R: Read,
+{
+    qual.resize(l_seq, Default::default());
+    reader.read_exact(qual)?;
+    Ok(())
+}
+
+fn read_data<R>(
+    reader: &mut R,
+    data: &mut Data,
+    block_size: usize,
+    l_read_name: usize,
+    n_cigar_op: usize,
+    l_seq: usize,
+) -> io::Result<()>
+where
+    R: Read,
+{
+    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
+    let seq_len = (l_seq + 1) / 2;
+    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
+    let data_len = block_size - data_offset;
+
+    data.resize(data_len, Default::default());
+    reader.read_exact(data)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
