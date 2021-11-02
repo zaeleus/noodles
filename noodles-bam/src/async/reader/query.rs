@@ -1,4 +1,4 @@
-use std::ops::{Bound, RangeBounds};
+use std::ops::RangeBounds;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -6,7 +6,10 @@ use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::Record;
+use crate::{
+    reader::query::{intersects, next_chunk, resolve_interval},
+    Record,
+};
 
 enum State {
     Seek,
@@ -85,24 +88,6 @@ where
     }))
 }
 
-fn resolve_interval<B>(interval: B) -> (i32, i32)
-where
-    B: RangeBounds<i32>,
-{
-    match (interval.start_bound(), interval.end_bound()) {
-        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-        _ => todo!(),
-    }
-}
-
-fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
-    let chunk = chunks.get(*i).copied();
-    *i += 1;
-    chunk
-}
-
 async fn next_record<R>(reader: &mut Reader<R>) -> io::Result<Option<Record>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
@@ -113,26 +98,4 @@ where
         0 => None,
         _ => Some(record),
     })
-}
-
-fn intersects(
-    record: &Record,
-    reference_sequence_id: usize,
-    interval_start: i32,
-    interval_end: i32,
-) -> io::Result<bool> {
-    let id = match record.reference_sequence_id() {
-        Some(i) => i32::from(i) as usize,
-        None => return Ok(false),
-    };
-
-    let start = record.position().map(i32::from).expect("missing position");
-    let len = record.cigar().reference_len().map(|len| len as i32)?;
-    let end = start + len - 1;
-
-    Ok(id == reference_sequence_id && in_interval(start, end, interval_start, interval_end))
-}
-
-fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
-    a_start <= b_end && b_start <= a_end
 }
