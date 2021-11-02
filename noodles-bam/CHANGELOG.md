@@ -4,7 +4,8 @@
 
 ### Added
 
-  * bam/record: Add mutable getter for flags (`Record::flags_mut`).
+  * bam/record: Add mutable getters for flags (`Record::flags_mut`) and mapping
+    quality (`Record::mapping_quality_mut`).
 
 ### Changed
 

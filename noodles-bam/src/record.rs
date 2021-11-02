@@ -46,7 +46,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 pub struct Record {
     pub(crate) ref_id: i32,
     pub(crate) pos: i32,
-    pub(crate) mapq: sam::record::MappingQuality,
+    mapq: sam::record::MappingQuality,
     pub(crate) bin: u16,
     flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
@@ -134,6 +134,23 @@ impl Record {
     /// ```
     pub fn mapping_quality(&self) -> sam::record::MappingQuality {
         self.mapq
+    }
+
+    /// Returns a mutable reference to the mapping quality.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::MappingQuality;
+    ///
+    /// let mut record = bam::Record::default();
+    /// *record.mapping_quality_mut() = MappingQuality::from(13);
+    ///
+    /// assert_eq!(record.mapping_quality().map(u8::from), Some(13));
+    /// ```
+    pub fn mapping_quality_mut(&mut self) -> &mut sam::record::MappingQuality {
+        &mut self.mapq
     }
 
     /// Returns the index bin that includes this record.

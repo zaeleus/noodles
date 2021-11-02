@@ -32,7 +32,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.mapq = read_mapping_quality(reader)?;
+    *record.mapping_quality_mut() = read_mapping_quality(reader)?;
 
     record.bin = reader.read_u16::<LittleEndian>()?;
 
