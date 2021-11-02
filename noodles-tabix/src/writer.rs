@@ -3,8 +3,9 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
+    binning_index::ReferenceSequenceExt,
     index::reference_sequence::{bin::Chunk, Metadata},
-    BinningIndex, BinningIndexReferenceSequence,
+    BinningIndex,
 };
 
 use super::{

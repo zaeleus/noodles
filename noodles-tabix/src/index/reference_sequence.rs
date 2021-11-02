@@ -14,7 +14,7 @@ use std::{
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
-use noodles_csi::{index::reference_sequence::Metadata, BinningIndexReferenceSequence};
+use noodles_csi::{binning_index::ReferenceSequenceExt, index::reference_sequence::Metadata};
 
 const MIN_SHIFT: i32 = 14;
 const DEPTH: i32 = 5;
@@ -180,7 +180,7 @@ impl ReferenceSequence {
     }
 }
 
-impl BinningIndexReferenceSequence for ReferenceSequence {
+impl ReferenceSequenceExt for ReferenceSequence {
     /// Returns the optional metadata for the reference sequence.
     ///
     /// Metadata is parsed from the optional pseudo-bin 37450.
@@ -189,7 +189,7 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     ///
     /// ```
     /// use noodles_bgzf::VirtualPosition;
-    /// use noodles_csi::{index::reference_sequence::Metadata, BinningIndexReferenceSequence};
+    /// use noodles_csi::{binning_index::ReferenceSequenceExt, index::reference_sequence::Metadata};
     /// use noodles_tabix::index::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
@@ -212,7 +212,7 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// use noodles_csi::BinningIndexReferenceSequence;
+    /// use noodles_csi::binning_index::ReferenceSequenceExt;
     /// use noodles_tabix::index::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::default();

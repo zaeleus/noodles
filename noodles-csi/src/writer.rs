@@ -4,11 +4,12 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 
 use super::{
+    binning_index::ReferenceSequenceExt,
     index::{
         reference_sequence::{bin::Chunk, Bin, Metadata},
         ReferenceSequence,
     },
-    BinningIndex, BinningIndexReferenceSequence, Index, MAGIC_NUMBER,
+    BinningIndex, Index, MAGIC_NUMBER,
 };
 
 /// A CSI writer.

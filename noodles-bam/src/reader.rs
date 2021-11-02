@@ -15,7 +15,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
-use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
+use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 
 use self::record::read_record;
@@ -262,15 +262,15 @@ where
     /// }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<I, IRS>(
+    pub fn query<I, RS>(
         &mut self,
         reference_sequences: &ReferenceSequences,
         index: &I,
         region: &Region,
     ) -> io::Result<Query<'_, R>>
     where
-        I: BinningIndex<IRS>,
-        IRS: BinningIndexReferenceSequence,
+        I: BinningIndex<RS>,
+        RS: ReferenceSequenceExt,
     {
         let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
         let chunks = index.query(reference_sequence_id, interval)?;

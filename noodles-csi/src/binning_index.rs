@@ -1,27 +1,22 @@
 //! Binning index utilities.
 
+mod reference_sequence_ext;
+
+pub use reference_sequence_ext::ReferenceSequenceExt;
+
 use std::{io, ops::RangeBounds};
 
 use noodles_bgzf as bgzf;
 
-use super::index::reference_sequence::{bin::Chunk, Metadata};
-
-/// A binning index reference sequence.
-pub trait BinningIndexReferenceSequence {
-    /// Returns the optional metadata for the reference sequence.
-    fn metadata(&self) -> Option<&Metadata>;
-
-    /// Returns the start position of the first record in the last linear bin.
-    fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition>;
-}
+use super::index::reference_sequence::bin::Chunk;
 
 /// A binning index.
-pub trait BinningIndex<R>
+pub trait BinningIndex<RS>
 where
-    R: BinningIndexReferenceSequence,
+    RS: ReferenceSequenceExt,
 {
     /// Returns a list of indexed reference sequences.
-    fn reference_sequences(&self) -> &[R];
+    fn reference_sequences(&self) -> &[RS];
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;

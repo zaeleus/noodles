@@ -9,7 +9,7 @@
 use std::{env, fs::File, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
-use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
+use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use noodles_sam as sam;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

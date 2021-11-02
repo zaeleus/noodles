@@ -13,7 +13,7 @@ use std::{
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
 
-use crate::BinningIndexReferenceSequence;
+use crate::binning_index::ReferenceSequenceExt;
 
 const MIN_POSITION: i64 = 1;
 
@@ -141,7 +141,7 @@ impl ReferenceSequence {
     }
 }
 
-impl BinningIndexReferenceSequence for ReferenceSequence {
+impl ReferenceSequenceExt for ReferenceSequence {
     /// Returns the optional metadata for the reference sequence.
     ///
     /// # Examples
@@ -149,8 +149,8 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::{
+    ///     binning_index::ReferenceSequenceExt,
     ///     index::{reference_sequence::Metadata, ReferenceSequence},
-    ///     BinningIndexReferenceSequence,
     /// };
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Some(Metadata::new(
@@ -173,8 +173,8 @@ impl BinningIndexReferenceSequence for ReferenceSequence {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::{
+    ///     binning_index::ReferenceSequenceExt,
     ///     index::{reference_sequence::Bin, ReferenceSequence},
-    ///     BinningIndexReferenceSequence,
     /// };
     ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);

@@ -8,7 +8,7 @@ pub use self::builder::Builder;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{BinningIndex, BinningIndexReferenceSequence};
+use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
@@ -299,15 +299,15 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I, IRS>(
+    pub fn query<I, RS>(
         &mut self,
         reference_sequences: &ReferenceSequences,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
-        I: BinningIndex<IRS>,
-        IRS: BinningIndexReferenceSequence,
+        I: BinningIndex<RS>,
+        RS: ReferenceSequenceExt,
     {
         let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
         let chunks = index.query(reference_sequence_id, interval)?;

@@ -6,6 +6,11 @@
 
   * Update to Rust 2021.
 
+### Deprecated
+
+  * csi/binning_index: Rename `csi::BinningIndexReferenceSequence` to
+    `csi::binning_index::ReferenceSequenceExt`.
+
 ## 0.3.0 - 2021-08-19
 
 ### Added
