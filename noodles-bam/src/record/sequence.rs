@@ -5,10 +5,7 @@ mod bases;
 
 pub use self::{base::Base, bases::Bases};
 
-use std::{
-    fmt,
-    ops::{Deref, DerefMut},
-};
+use std::fmt;
 
 use noodles_sam as sam;
 
@@ -45,13 +42,28 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_bam::record::Sequence;
-    ///
-    /// let data = vec![0x12, 0x48]; // ACGT
-    /// let sequence = Sequence::new(data, 4);
-    /// assert_eq!(**sequence, [0x12, 0x48]);
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
+    /// assert_eq!(sequence.as_ref(), [0x12, 0x48]);
     /// ```
     pub fn new(seq: Vec<u8>, base_count: usize) -> Self {
         Self { seq, base_count }
+    }
+
+    /// Returns whether the sequence contains any bases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Sequence;
+    ///
+    /// let sequence = Sequence::default();
+    /// assert!(sequence.is_empty());
+    ///
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4);
+    /// assert!(!sequence.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.base_count == 0
     }
 
     /// Returns the number of bases in the sequence.
@@ -146,11 +158,11 @@ impl Sequence {
     /// let mut sequence = Sequence::new(vec![0x12, 0x40], 3); // ACG
     ///
     /// sequence.push(Base::T);
-    /// assert_eq!(**sequence, [0x12, 0x48]); // ACGT
+    /// assert_eq!(sequence.as_ref(), [0x12, 0x48]); // ACGT
     /// assert_eq!(sequence.base_count(), 4);
     ///
     /// sequence.push(Base::A);
-    /// assert_eq!(**sequence, [0x12, 0x48, 0x10]); //ACGTA
+    /// assert_eq!(sequence.as_ref(), [0x12, 0x48, 0x10]); //ACGTA
     /// assert_eq!(sequence.base_count(), 5);
     /// ```
     pub fn push(&mut self, base: Base) {
@@ -172,16 +184,14 @@ impl<'a> fmt::Debug for Sequence {
     }
 }
 
-impl Deref for Sequence {
-    type Target = Vec<u8>;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[u8]> for Sequence {
+    fn as_ref(&self) -> &[u8] {
         &self.seq
     }
 }
 
-impl DerefMut for Sequence {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<Vec<u8>> for Sequence {
+    fn as_mut(&mut self) -> &mut Vec<u8> {
         &mut self.seq
     }
 }

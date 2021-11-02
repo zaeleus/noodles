@@ -100,12 +100,13 @@ where
     Ok(())
 }
 
-fn read_seq<R>(reader: &mut R, seq: &mut Sequence, l_seq: usize) -> io::Result<()>
+fn read_seq<R>(reader: &mut R, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
 where
     R: Read,
 {
-    seq.set_base_count(l_seq);
+    sequence.set_base_count(l_seq);
 
+    let seq = sequence.as_mut();
     let seq_len = (l_seq + 1) / 2;
     seq.resize(seq_len, Default::default());
     reader.read_exact(seq)?;

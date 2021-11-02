@@ -284,7 +284,7 @@ where
         writer.write_u32::<LittleEndian>(raw_op)?;
     }
 
-    writer.write_all(record.sequence())?;
+    writer.write_all(record.sequence().as_ref())?;
     writer.write_all(record.quality_scores())?;
     writer.write_all(record.data())?;
 

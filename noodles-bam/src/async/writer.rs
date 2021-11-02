@@ -272,7 +272,7 @@ where
         writer.write_u32_le(raw_op).await?;
     }
 
-    writer.write_all(record.sequence()).await?;
+    writer.write_all(record.sequence().as_ref()).await?;
     writer.write_all(record.quality_scores()).await?;
     writer.write_all(record.data()).await?;
 

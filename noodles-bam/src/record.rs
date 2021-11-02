@@ -74,7 +74,7 @@ impl Record {
             + mem::size_of::<i32>() // tlen
             + self.read_name.len()
             + (mem::size_of::<u32>() * self.cigar.len())
-            + self.seq.len()
+            + self.seq.as_ref().len()
             + self.qual.len()
             + self.data.len()
     }
@@ -320,16 +320,16 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::{self as bam, record::sequence::Base};
     ///
     /// let mut record = bam::Record::default();
     ///
     /// let sequence = record.sequence_mut();
-    /// sequence.push(0x12); // AC
-    /// sequence.set_base_count(2);
+    /// sequence.push(Base::A);
+    /// sequence.set_base_count(1);
     ///
-    /// assert_eq!(**record.sequence(), [0x12]);
-    /// assert_eq!(record.sequence().base_count(), 2);
+    /// assert_eq!(record.sequence().as_ref(), [0x10]); // A
+    /// assert_eq!(record.sequence().base_count(), 1);
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.seq
@@ -540,7 +540,7 @@ mod tests {
     #[test]
     fn test_sequence() {
         let record = build_record();
-        assert_eq!(**record.sequence(), [0x18, 0x42]);
+        assert_eq!(record.sequence().as_ref(), [0x18, 0x42]);
     }
 
     #[test]
