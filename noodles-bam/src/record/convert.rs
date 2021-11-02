@@ -163,14 +163,14 @@ mod tests {
     }
 
     fn build_record() -> Record {
-        use sam::record::Flags;
+        use sam::record::{Flags, MappingQuality};
 
         use crate::record::{Cigar, Data, QualityScores, Sequence};
 
         Record {
             ref_id: 1,
             pos: 61061,
-            mapq: 12,
+            mapq: MappingQuality::from(12),
             bin: 4684,
             flag: Flags::PAIRED | Flags::READ_1,
             next_ref_id: 1,

@@ -29,7 +29,8 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.mapq = reader.read_u8().await?;
+    record.mapq = read_mapping_quality(reader).await?;
+
     record.bin = reader.read_u16_le().await?;
 
     let n_cigar_op = reader.read_u16_le().await.and_then(|n| {
@@ -61,6 +62,16 @@ where
     .await?;
 
     Ok(block_size)
+}
+
+async fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>
+where
+    R: AsyncRead + Unpin,
+{
+    reader
+        .read_u8()
+        .await
+        .map(sam::record::MappingQuality::from)
 }
 
 async fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>

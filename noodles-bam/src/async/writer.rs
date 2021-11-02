@@ -245,7 +245,9 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u8(l_read_name).await?;
 
-    writer.write_u8(record.mapq).await?;
+    let mapq = u8::from(record.mapping_quality());
+    writer.write_u8(mapq).await?;
+
     writer.write_u16_le(record.bin).await?;
 
     let n_cigar_op = u16::try_from(record.cigar().len() / mem::size_of::<u32>())

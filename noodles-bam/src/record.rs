@@ -46,7 +46,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 pub struct Record {
     pub(crate) ref_id: i32,
     pub(crate) pos: i32,
-    pub(crate) mapq: u8,
+    pub(crate) mapq: sam::record::MappingQuality,
     pub(crate) bin: u16,
     flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
@@ -129,12 +129,11 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
     /// let record = bam::Record::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
     pub fn mapping_quality(&self) -> sam::record::MappingQuality {
-        sam::record::MappingQuality::from(self.mapq)
+        self.mapq
     }
 
     /// Returns the index bin that includes this record.
@@ -380,12 +379,12 @@ impl Record {
 
 impl Default for Record {
     fn default() -> Self {
-        use sam::record::Flags;
+        use sam::record::{Flags, MappingQuality};
 
         Self {
             ref_id: reference_sequence_id::UNMAPPED,
             pos: UNMAPPED_POSITION,
-            mapq: 255,
+            mapq: MappingQuality::default(),
             bin: 4680,
             flag: Flags::UNMAPPED,
             next_ref_id: reference_sequence_id::UNMAPPED,
@@ -425,12 +424,12 @@ mod tests {
     use super::*;
 
     fn build_record() -> Record {
-        use sam::record::Flags;
+        use sam::record::{Flags, MappingQuality};
 
         Record {
             ref_id: 10,
             pos: 61061,
-            mapq: 12,
+            mapq: MappingQuality::from(12),
             bin: 4684,
             flag: Flags::PAIRED | Flags::READ_1,
             next_ref_id: 10,

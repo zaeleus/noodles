@@ -32,7 +32,8 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.mapq = reader.read_u8()?;
+    record.mapq = read_mapping_quality(reader)?;
+
     record.bin = reader.read_u16::<LittleEndian>()?;
 
     let n_cigar_op = reader.read_u16::<LittleEndian>().and_then(|n| {
@@ -63,6 +64,13 @@ where
     )?;
 
     Ok(block_size)
+}
+
+fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>
+where
+    R: Read,
+{
+    reader.read_u8().map(sam::record::MappingQuality::from)
 }
 
 fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>
