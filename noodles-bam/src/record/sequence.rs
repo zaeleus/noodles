@@ -135,6 +135,35 @@ impl Sequence {
     pub fn bases(&self) -> Bases<'_> {
         Bases::new(self)
     }
+
+    /// Appends a base to the end of the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{sequence::Base, Sequence};
+    ///
+    /// let mut sequence = Sequence::new(vec![0x12, 0x40], 3); // ACG
+    ///
+    /// sequence.push(Base::T);
+    /// assert_eq!(**sequence, [0x12, 0x48]); // ACGT
+    /// assert_eq!(sequence.base_count(), 4);
+    ///
+    /// sequence.push(Base::A);
+    /// assert_eq!(**sequence, [0x12, 0x48, 0x10]); //ACGTA
+    /// assert_eq!(sequence.base_count(), 5);
+    /// ```
+    pub fn push(&mut self, base: Base) {
+        let b = u8::from(base);
+
+        if self.base_count % 2 == 0 {
+            self.seq.push(b << 4);
+        } else if let Some(l) = self.seq.last_mut() {
+            *l |= b;
+        }
+
+        self.base_count += 1;
+    }
 }
 
 impl<'a> fmt::Debug for Sequence {

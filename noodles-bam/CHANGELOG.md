@@ -7,6 +7,8 @@
   * bam/record: Add mutable getters for flags (`Record::flags_mut`) and mapping
     quality (`Record::mapping_quality_mut`).
 
+  * bam/record/sequence: Add append base to sequence (`Sequence::push`).
+
 ### Changed
 
   * Update to Rust 2021.
