@@ -33,6 +33,10 @@
 
     Use `Data::from::<Vec<u8>>` instead.
 
+  * bam/record/sequence: Deprecate `Sequence::base_count`.
+
+    Use `Sequence::len` instead.
+
   * bam/record/quality_scores: Deprecate `QualityScores::new`.
 
     Use `QualityScores::from::<Vec<u8>>` instead.

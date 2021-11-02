@@ -15,14 +15,14 @@ impl<'a> Bases<'a> {
         let tail = if sequence.is_empty() {
             0
         } else {
-            sequence.base_count() - 1
+            sequence.len() - 1
         };
 
         Self {
             sequence,
             head: 0,
             tail,
-            remaining: sequence.base_count(),
+            remaining: sequence.len(),
         }
     }
 }

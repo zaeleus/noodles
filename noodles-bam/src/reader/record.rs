@@ -104,7 +104,7 @@ fn read_seq<R>(reader: &mut R, sequence: &mut Sequence, l_seq: usize) -> io::Res
 where
     R: Read,
 {
-    sequence.set_base_count(l_seq);
+    sequence.set_len(l_seq);
 
     let seq = sequence.as_mut();
     let seq_len = (l_seq + 1) / 2;

@@ -326,10 +326,10 @@ impl Record {
     ///
     /// let sequence = record.sequence_mut();
     /// sequence.push(Base::A);
-    /// sequence.set_base_count(1);
+    /// sequence.set_len(1);
     ///
     /// assert_eq!(record.sequence().as_ref(), [0x10]); // A
-    /// assert_eq!(record.sequence().base_count(), 1);
+    /// assert_eq!(record.sequence().len(), 1);
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.seq

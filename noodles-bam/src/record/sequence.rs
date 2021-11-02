@@ -32,7 +32,7 @@ static BASES: &[Base] = &[
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct Sequence {
     seq: Vec<u8>,
-    base_count: usize,
+    len: usize,
 }
 
 impl Sequence {
@@ -45,8 +45,8 @@ impl Sequence {
     /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
     /// assert_eq!(sequence.as_ref(), [0x12, 0x48]);
     /// ```
-    pub fn new(seq: Vec<u8>, base_count: usize) -> Self {
-        Self { seq, base_count }
+    pub fn new(seq: Vec<u8>, len: usize) -> Self {
+        Self { seq, len }
     }
 
     /// Returns whether the sequence contains any bases.
@@ -63,7 +63,7 @@ impl Sequence {
     /// assert!(!sequence.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.base_count == 0
+        self.len == 0
     }
 
     /// Returns the number of bases in the sequence.
@@ -73,10 +73,24 @@ impl Sequence {
     /// ```
     /// use noodles_bam::record::Sequence;
     /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
-    /// assert_eq!(sequence.base_count(), 4);
+    /// assert_eq!(sequence.len(), 4);
     /// ```
+    #[deprecated(since = "0.8.0", note = "Use `Sequence::len` instead.")]
     pub fn base_count(&self) -> usize {
-        self.base_count
+        self.len()
+    }
+
+    /// Returns the number of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Sequence;
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
+    /// assert_eq!(sequence.len(), 4);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.len
     }
 
     /// Returns a mutable reference to the base count.
@@ -86,11 +100,11 @@ impl Sequence {
     /// ```
     /// use noodles_bam::record::Sequence;
     /// let mut sequence = Sequence::default();
-    /// sequence.set_base_count(2);
-    /// assert_eq!(sequence.base_count(), 2);
+    /// sequence.set_len(2);
+    /// assert_eq!(sequence.len(), 2);
     /// ```
-    pub fn set_base_count(&mut self, base_count: usize) {
-        self.base_count = base_count;
+    pub fn set_len(&mut self, len: usize) {
+        self.len = len;
     }
 
     /// Returns a reference to the base at the given index.
@@ -114,7 +128,7 @@ impl Sequence {
         if i % 2 == 0 {
             let k = (b & 0xf0) >> 4;
             Some(&BASES[k as usize])
-        } else if i < self.base_count {
+        } else if i < self.len {
             let k = b & 0x0f;
             Some(&BASES[k as usize])
         } else {
@@ -153,22 +167,22 @@ impl Sequence {
     ///
     /// sequence.push(Base::T);
     /// assert_eq!(sequence.as_ref(), [0x12, 0x48]); // ACGT
-    /// assert_eq!(sequence.base_count(), 4);
+    /// assert_eq!(sequence.len(), 4);
     ///
     /// sequence.push(Base::A);
     /// assert_eq!(sequence.as_ref(), [0x12, 0x48, 0x10]); //ACGTA
-    /// assert_eq!(sequence.base_count(), 5);
+    /// assert_eq!(sequence.len(), 5);
     /// ```
     pub fn push(&mut self, base: Base) {
         let b = u8::from(base);
 
-        if self.base_count % 2 == 0 {
+        if self.len % 2 == 0 {
             self.seq.push(b << 4);
         } else if let Some(l) = self.seq.last_mut() {
             *l |= b;
         }
 
-        self.base_count += 1;
+        self.len += 1;
     }
 }
 
