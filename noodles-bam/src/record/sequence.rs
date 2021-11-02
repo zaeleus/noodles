@@ -59,7 +59,7 @@ impl Sequence {
     /// let sequence = Sequence::default();
     /// assert!(sequence.is_empty());
     ///
-    /// let sequence = Sequence::new(vec![0x12, 0x48], 4);
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
     /// assert!(!sequence.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
@@ -72,10 +72,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_bam::record::Sequence;
-    ///
-    /// let data = vec![0x12, 0x48]; // ACGT
-    /// let sequence = Sequence::new(data, 4);
-    ///
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
     /// assert_eq!(sequence.base_count(), 4);
     /// ```
     pub fn base_count(&self) -> usize {
@@ -105,8 +102,7 @@ impl Sequence {
     /// ```
     /// use noodles_bam::record::{sequence::Base, Sequence};
     ///
-    /// let data = vec![0x12, 0x48]; // ACGT
-    /// let sequence = Sequence::new(data, 4);
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
     ///
     /// assert_eq!(sequence.get(1), Some(&Base::C));
     /// assert_eq!(sequence.get(8), None);
@@ -133,9 +129,7 @@ impl Sequence {
     /// ```
     /// use noodles_bam::record::{sequence::Base, Sequence};
     ///
-    /// let data = vec![0x12, 0x48]; // ACGT
-    /// let sequence = Sequence::new(data, 4);
-    ///
+    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
     /// let mut bases = sequence.bases();
     ///
     /// assert_eq!(bases.next(), Some(Base::A));
@@ -219,8 +213,8 @@ mod tests {
 
     #[test]
     fn test_get() {
-        let data = vec![0x18, 0x40];
-        let sequence = Sequence::new(data, 3);
+        let sequence = Sequence::new(vec![0x18, 0x40], 3); // ATG
+
         assert_eq!(sequence.get(0), Some(&Base::A));
         assert_eq!(sequence.get(1), Some(&Base::T));
         assert_eq!(sequence.get(2), Some(&Base::G));
@@ -230,8 +224,7 @@ mod tests {
 
     #[test]
     fn test_bases() {
-        let data = vec![0x18, 0x42];
-        let sequence = Sequence::new(data, 4);
+        let sequence = Sequence::new(vec![0x18, 0x42], 4); // ATGC
 
         let mut bases = sequence.bases();
 
@@ -250,8 +243,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let data = vec![0x18, 0x42];
-        let sequence = Sequence::new(data, 4);
+        let sequence = Sequence::new(vec![0x18, 0x42], 4); // ATGC
         assert_eq!(sequence.to_string(), "ATGC");
     }
 
@@ -259,9 +251,7 @@ mod tests {
     fn test_from_sequence_for_sam_record_sequence() {
         use sam::record::{sequence::Base as SamBase, Sequence as SamSequence};
 
-        // ATGC
-        let data = vec![0x18, 0x42];
-        let sequence = Sequence::new(data, 4);
+        let sequence = Sequence::new(vec![0x18, 0x42], 4); // ATGC
 
         let actual = SamSequence::from(&sequence);
         let expected = SamSequence::from(vec![SamBase::A, SamBase::T, SamBase::G, SamBase::C]);
