@@ -7,7 +7,10 @@ use std::mem;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::Record;
+use crate::{
+    record::{Cigar, Data, QualityScores, Sequence},
+    Record,
+};
 
 pub(super) async fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
@@ -43,38 +46,19 @@ where
     record.next_pos = reader.read_i32_le().await?;
     record.tlen = reader.read_i32_le().await?;
 
-    record.read_name.resize(l_read_name, Default::default());
-    reader.read_exact(&mut record.read_name).await?;
-
-    let cigar = record.cigar_mut();
-    cigar.resize(n_cigar_op, Default::default());
-    cigar.clear();
-
-    for _ in 0..n_cigar_op {
-        let op = reader.read_u32_le().await?;
-        cigar.push(op);
-    }
-
-    let seq_len = (l_seq + 1) / 2;
-
-    let seq = record.sequence_mut();
-    seq.set_base_count(l_seq);
-
-    seq.resize(seq_len, Default::default());
-    reader.read_exact(seq).await?;
-
-    let qual = record.quality_scores_mut();
-    qual.resize(l_seq, Default::default());
-    reader.read_exact(qual).await?;
-
-    let data = record.data_mut();
-
-    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
-    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
-    let data_len = block_size - data_offset;
-    data.resize(data_len, Default::default());
-
-    reader.read_exact(data).await?;
+    read_read_name(reader, &mut record.read_name, l_read_name).await?;
+    read_cigar(reader, record.cigar_mut(), n_cigar_op).await?;
+    read_seq(reader, record.sequence_mut(), l_seq).await?;
+    read_qual(reader, record.quality_scores_mut(), l_seq).await?;
+    read_data(
+        reader,
+        record.data_mut(),
+        block_size,
+        l_read_name,
+        n_cigar_op,
+        l_seq,
+    )
+    .await?;
 
     Ok(block_size)
 }
@@ -84,6 +68,78 @@ where
     R: AsyncRead + Unpin,
 {
     reader.read_u16_le().await.map(sam::record::Flags::from)
+}
+
+async fn read_read_name<R>(
+    reader: &mut R,
+    read_name: &mut Vec<u8>,
+    l_read_name: usize,
+) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    read_name.resize(l_read_name, Default::default());
+    reader.read_exact(read_name).await?;
+    Ok(())
+}
+
+async fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    cigar.resize(n_cigar_op, Default::default());
+    cigar.clear();
+
+    for _ in 0..n_cigar_op {
+        let op = reader.read_u32_le().await?;
+        cigar.push(op);
+    }
+
+    Ok(())
+}
+
+async fn read_seq<R>(reader: &mut R, seq: &mut Sequence, l_seq: usize) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    seq.set_base_count(l_seq);
+
+    let seq_len = (l_seq + 1) / 2;
+    seq.resize(seq_len, Default::default());
+    reader.read_exact(seq).await?;
+
+    Ok(())
+}
+
+async fn read_qual<R>(reader: &mut R, qual: &mut QualityScores, l_seq: usize) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    qual.resize(l_seq, Default::default());
+    reader.read_exact(qual).await?;
+    Ok(())
+}
+
+async fn read_data<R>(
+    reader: &mut R,
+    data: &mut Data,
+    block_size: usize,
+    l_read_name: usize,
+    n_cigar_op: usize,
+    l_seq: usize,
+) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+{
+    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
+    let seq_len = (l_seq + 1) / 2;
+    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
+    let data_len = block_size - data_offset;
+
+    data.resize(data_len, Default::default());
+    reader.read_exact(data).await?;
+
+    Ok(())
 }
 
 #[cfg(test)]
