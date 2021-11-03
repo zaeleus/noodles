@@ -4,7 +4,6 @@ use std::{
 };
 
 use byteorder::{ByteOrder, LittleEndian};
-use flate2::bufread::DeflateDecoder;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
@@ -197,12 +196,11 @@ where
     Ok(r#isize)
 }
 
-fn inflate_data<R>(reader: R, writer: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: BufRead,
-{
+fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
+    use flate2::bufread::DeflateDecoder;
+
     let mut decoder = DeflateDecoder::new(reader);
-    decoder.read_to_end(writer)
+    decoder.read_exact(writer)
 }
 
 fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
@@ -230,22 +228,16 @@ where
     cdata.resize(cdata_len, Default::default());
     reader.read_exact(cdata)?;
 
-    let ulen = read_trailer(reader)?;
+    let ulen = read_trailer(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
 
     block.set_clen(clen as u64);
     block.set_upos(0);
 
     let udata = block.data_mut();
-    udata.clear();
-
+    udata.resize(ulen, Default::default());
     inflate_data(&cdata[..], udata)?;
-
-    if udata.len() != ulen as usize {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "BGZF block length not equal to isize",
-        ));
-    }
 
     Ok(clen)
 }
