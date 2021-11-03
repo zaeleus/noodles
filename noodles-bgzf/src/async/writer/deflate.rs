@@ -1,12 +1,12 @@
 use std::{
     future::Future,
-    io::{self, Write},
+    io,
     pin::Pin,
     task::{Context, Poll},
 };
 
 use bytes::BytesMut;
-use flate2::{write::DeflateEncoder, Compression, Crc};
+use flate2::Compression;
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
@@ -37,12 +37,6 @@ impl Future for Deflate {
 }
 
 fn deflate(data: BytesMut, compression: Compression) -> io::Result<GzData> {
-    let mut encoder = DeflateEncoder::new(Vec::new(), compression);
-    encoder.write_all(&data[..])?;
-    let compressed_data = encoder.finish()?;
-
-    let mut crc = Crc::new();
-    crc.update(&data[..]);
-
-    Ok((compressed_data, crc.sum(), crc.amount()))
+    use crate::writer::deflate_data;
+    deflate_data(&data, compression)
 }
