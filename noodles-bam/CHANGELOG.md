@@ -9,6 +9,8 @@
 
   * bam/record/sequence: Add append base to sequence (`Sequence::push`).
 
+  * bam/record/quality_scores: Add single score reader (`QualityScores::get`).
+
 ### Changed
 
   * Update to Rust 2021.

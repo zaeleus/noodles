@@ -9,7 +9,7 @@ use std::{
     slice,
 };
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::quality_scores::Score};
 
 /// BAM record quality scores.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -53,6 +53,23 @@ impl QualityScores {
     /// ```
     pub fn chars(&self) -> Chars<slice::Iter<'_, u8>> {
         Chars::new(self.iter())
+    }
+
+    /// Returns the quality score as a [`Score`] at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::QualityScores;
+    /// use noodles_sam::record::quality_scores::Score;
+    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
+    /// assert_eq!(quality_scores.get(1), Some(Score::try_from(35)));
+    /// ```
+    pub fn get(
+        &self,
+        i: usize,
+    ) -> Option<Result<Score, sam::record::quality_scores::score::TryFromUByteError>> {
+        self.0.get(i).copied().map(Score::try_from)
     }
 
     /// Returns an iterator over quality scores.
@@ -121,8 +138,6 @@ mod tests {
     #[test]
     fn test_try_from_quality_scores_for_sam_record_quality_scores(
     ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
-        use sam::record::quality_scores::Score;
-
         let data = vec![45, 35, 43, 50]; // NDLS
         let quality_scores = QualityScores::from(data);
 
