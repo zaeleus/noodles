@@ -4,7 +4,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use flate2::{write::DeflateEncoder, Compression, Crc};
+use flate2::{write::DeflateEncoder, Crc};
 
 use super::{block, gz, BGZF_HEADER_SIZE};
 
@@ -55,8 +55,7 @@ where
     W: Write,
 {
     inner: Option<W>,
-    encoder: DeflateEncoder<Vec<u8>>,
-    crc: Crc,
+    buf: Vec<u8>,
 }
 
 impl<W> Writer<W>
@@ -74,8 +73,7 @@ where
     pub fn new(inner: W) -> Self {
         Self {
             inner: Some(inner),
-            encoder: DeflateEncoder::new(Vec::new(), Compression::default()),
-            crc: Crc::new(),
+            buf: Vec::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
         }
     }
 
@@ -93,17 +91,20 @@ where
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
-        self.encoder.try_finish()?;
+        let mut encoder = DeflateEncoder::new(Vec::new(), Default::default());
+        encoder.write_all(&self.buf)?;
+        let compressed_data = encoder.finish()?;
+
+        let mut crc = Crc::new();
+        crc.update(&self.buf);
 
         let inner = self.inner.as_mut().unwrap();
-        let data = self.encoder.get_ref();
 
-        write_header(inner, data.len())?;
-        inner.write_all(&data[..])?;
-        write_trailer(inner, self.crc.sum(), self.crc.amount())?;
+        write_header(inner, compressed_data.len())?;
+        inner.write_all(&compressed_data[..])?;
+        write_trailer(inner, crc.sum(), crc.amount())?;
 
-        self.encoder.reset(Vec::new())?;
-        self.crc.reset();
+        self.buf.clear();
 
         Ok(())
     }
@@ -169,30 +170,26 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let total_uncompressed_bytes_written = self.crc.amount() as usize;
-
-        // Only the uncompressed size is tracked, and the assumption is that the uncompressed size
-        // will always be less than the compressed size.
-        if total_uncompressed_bytes_written >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+        if self.buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
             self.flush()?;
             return Err(io::Error::from(io::ErrorKind::Interrupted));
         }
 
-        let bytes_to_be_written = cmp::min(
-            block::MAX_UNCOMPRESSED_DATA_LENGTH - total_uncompressed_bytes_written,
+        let max_write_len = cmp::min(
+            block::MAX_UNCOMPRESSED_DATA_LENGTH - self.buf.len(),
             buf.len(),
         );
-        let bytes_written = self.encoder.write(&buf[..bytes_to_be_written])?;
-        self.crc.update(&buf[..bytes_written]);
 
-        Ok(bytes_written)
+        self.buf.extend_from_slice(&buf[..max_write_len]);
+
+        Ok(max_write_len)
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        if self.crc.amount() > 0 {
-            self.flush_block()
-        } else {
+        if self.buf.is_empty() {
             Ok(())
+        } else {
+            self.flush_block()
         }
     }
 }
