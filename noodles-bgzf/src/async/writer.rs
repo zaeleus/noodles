@@ -143,31 +143,3 @@ where
         Poll::Ready(Ok(()))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use tokio::io::AsyncWriteExt;
-
-    use super::*;
-    use crate::writer::BGZF_EOF;
-
-    #[tokio::test]
-    async fn test_write() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-        writer.write_all(b"noodles").await?;
-        writer.shutdown().await?;
-
-        let actual = writer.into_inner();
-
-        let mut expected = vec![
-            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
-            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
-            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
-        ];
-        expected.extend_from_slice(BGZF_EOF);
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-}

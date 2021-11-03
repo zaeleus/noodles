@@ -4,7 +4,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use flate2::{write::DeflateEncoder, Compression, Crc};
+use flate2::{Compression, Crc};
 
 use super::{block, gz, BGZF_HEADER_SIZE};
 
@@ -220,10 +220,39 @@ where
     Ok(())
 }
 
+#[cfg(feature = "libdeflate")]
+pub(crate) fn deflate_data(
+    data: &[u8],
+    _compression: Compression,
+) -> io::Result<(Vec<u8>, u32, u32)> {
+    use libdeflater::{CompressionLvl, Compressor};
+
+    let mut encoder = Compressor::new(CompressionLvl::default());
+
+    let mut compressed_data = Vec::new();
+
+    let max_len = encoder.deflate_compress_bound(data.len());
+    compressed_data.resize(max_len, Default::default());
+
+    let len = encoder
+        .deflate_compress(data, &mut compressed_data)
+        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+
+    compressed_data.resize(len, Default::default());
+
+    let mut crc = Crc::new();
+    crc.update(data);
+
+    Ok((compressed_data, crc.sum(), crc.amount()))
+}
+
+#[cfg(not(feature = "libdeflate"))]
 pub(crate) fn deflate_data(
     data: &[u8],
     compression: Compression,
 ) -> io::Result<(Vec<u8>, u32, u32)> {
+    use flate2::write::DeflateEncoder;
+
     let mut encoder = DeflateEncoder::new(Vec::new(), compression);
     encoder.write_all(data)?;
     let compressed_data = encoder.finish()?;
