@@ -1,10 +1,16 @@
+//! BGZF writer.
+
+mod compression_level;
+
+pub use self::compression_level::CompressionLevel;
+
 use std::{
     cmp,
     io::{self, Write},
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use flate2::{Compression, Crc};
+use flate2::Crc;
 
 use super::{block, gz, BGZF_HEADER_SIZE};
 
@@ -91,7 +97,7 @@ where
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
-        let (cdata, crc32, r#isize) = deflate_data(&self.buf, Compression::default())?;
+        let (cdata, crc32, r#isize) = deflate_data(&self.buf, Default::default())?;
 
         let inner = self.inner.as_mut().unwrap();
 
@@ -223,11 +229,11 @@ where
 #[cfg(feature = "libdeflate")]
 pub(crate) fn deflate_data(
     data: &[u8],
-    _compression: Compression,
+    compression_level: libdeflater::CompressionLvl,
 ) -> io::Result<(Vec<u8>, u32, u32)> {
-    use libdeflater::{CompressionLvl, Compressor};
+    use libdeflater::Compressor;
 
-    let mut encoder = Compressor::new(CompressionLvl::default());
+    let mut encoder = Compressor::new(compression_level);
 
     let mut compressed_data = Vec::new();
 
@@ -249,11 +255,11 @@ pub(crate) fn deflate_data(
 #[cfg(not(feature = "libdeflate"))]
 pub(crate) fn deflate_data(
     data: &[u8],
-    compression: Compression,
+    compression_level: flate2::Compression,
 ) -> io::Result<(Vec<u8>, u32, u32)> {
     use flate2::write::DeflateEncoder;
 
-    let mut encoder = DeflateEncoder::new(Vec::new(), compression);
+    let mut encoder = DeflateEncoder::new(Vec::new(), compression_level);
     encoder.write_all(data)?;
     let compressed_data = encoder.finish()?;
 

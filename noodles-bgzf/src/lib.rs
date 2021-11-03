@@ -41,7 +41,7 @@ mod block;
 mod gz;
 mod reader;
 pub mod virtual_position;
-mod writer;
+pub mod writer;
 
 pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
 

@@ -1,17 +1,20 @@
 use bytes::{Bytes, BytesMut};
-use flate2::Compression;
 use futures::SinkExt;
 use tokio::io::AsyncWrite;
 use tokio_util::codec::FramedWrite;
 
 use super::{Deflater, Writer};
-use crate::{block, r#async::BlockCodec, writer::BGZF_EOF};
+use crate::{
+    block,
+    r#async::BlockCodec,
+    writer::{CompressionLevel, BGZF_EOF},
+};
 
 /// An async BGZF writer builder.
 #[derive(Debug)]
 pub struct Builder<W> {
     inner: W,
-    compression_level: Option<Compression>,
+    compression_level: Option<CompressionLevel>,
     worker_count: Option<usize>,
 }
 
@@ -34,13 +37,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// use flate2::Compression;
-    /// use noodles_bgzf as bgzf;
+    /// use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
     ///
     /// let builder = bgzf::AsyncWriter::builder(Vec::new())
-    ///     .set_compression_level(Compression::best());
+    ///     .set_compression_level(CompressionLevel::best());
     /// ```
-    pub fn set_compression_level(mut self, compression_level: Compression) -> Self {
+    pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
         self.compression_level = Some(compression_level);
         self
     }
@@ -76,7 +78,7 @@ where
             sink: Deflater::new(FramedWrite::new(self.inner, BlockCodec)).buffer(worker_count),
             buf: BytesMut::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
             eof_buf: Bytes::from_static(BGZF_EOF),
-            compression_level,
+            compression_level: compression_level.into(),
         }
     }
 }

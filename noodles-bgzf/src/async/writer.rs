@@ -11,7 +11,6 @@ use std::{
 };
 
 use bytes::{Buf, Bytes, BytesMut};
-use flate2::Compression;
 use futures::{ready, sink::Buffer, Sink};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
@@ -19,6 +18,11 @@ use tokio::io::{self, AsyncWrite};
 use crate::block;
 
 use self::{deflate::Deflate, deflater::Deflater};
+
+#[cfg(feature = "libdeflate")]
+type CompressionLevel = libdeflater::CompressionLvl;
+#[cfg(not(feature = "libdeflate"))]
+type CompressionLevel = flate2::Compression;
 
 pin_project! {
     /// An async BGZF writer.
@@ -28,7 +32,7 @@ pin_project! {
         buf: BytesMut,
         #[pin]
         eof_buf: Bytes,
-        compression_level: Compression,
+        compression_level: CompressionLevel,
     }
 }
 

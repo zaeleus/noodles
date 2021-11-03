@@ -7,12 +7,20 @@
   * Add `libdeflate` feature to use [libdeflate] for encoding and decoding
     DEFLATE streams (#51).
 
+  * writer: Add crate `CompressionLevel` type.
+
+    This replaces the usage of `flate2::Compression` and
+    `libdeflater::CompressionLvl`.
+
 [#51]: https://github.com/zaeleus/noodles/issues/51
 [libdeflate]: https://github.com/ebiggers/libdeflate
 
 ### Changed
 
   * Update to Rust 2021.
+
+  * bgzf/async/writer/builder: The compression level wrapper changed from
+    `flate2::Compression` to `noodles_bgzf::writer::CompressionLevel`.
 
 ## 0.4.0 - 2021-08-19
 

@@ -1,5 +1,4 @@
-use flate2::Compression;
-use noodles_bgzf as bgzf;
+use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
 use tokio::io::AsyncWrite;
 
 use super::Writer;
@@ -7,7 +6,7 @@ use super::Writer;
 /// An async BAM writer builder.
 pub struct Builder<W> {
     inner: W,
-    compression_level: Option<Compression>,
+    compression_level: Option<CompressionLevel>,
     worker_count: Option<usize>,
 }
 
@@ -30,13 +29,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// use flate2::Compression;
     /// use noodles_bam as bam;
+    /// use noodles_bgzf::writer::CompressionLevel;
     ///
     /// let builder = bam::AsyncWriter::builder(Vec::new())
-    ///     .set_compression_level(Compression::best());
+    ///     .set_compression_level(CompressionLevel::best());
     /// ```
-    pub fn set_compression_level(mut self, compression_level: Compression) -> Self {
+    pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
         self.compression_level = Some(compression_level);
         self
     }

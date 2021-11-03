@@ -21,6 +21,9 @@
     longer implements `Deref<Target = [u8]>`. `Cigar`, `Sequence`, and
     `QualityScores`, `Data` now own their data.
 
+  * bam/async/writer/builder: The compression level wrapper changed from
+    `flate2::Compression` to `noodles_bgzf::writer::CompressionLevel`.
+
 ### Deprecated
 
   * bam/record/cigar: Deprecate `Cigar::new`.
