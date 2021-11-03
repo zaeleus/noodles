@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+  * Add `libdeflate` feature to use [libdeflate] for decoding DEFLATE streams
+    (#51).
+
+[#51]: https://github.com/zaeleus/noodles/issues/51
+[libdeflate]: https://github.com/ebiggers/libdeflate
+
 ### Changed
 
   * Update to Rust 2021.

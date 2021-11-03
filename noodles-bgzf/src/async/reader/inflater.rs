@@ -1,13 +1,11 @@
 use std::{
     future::Future,
-    io::{self, Read},
-    mem,
+    io, mem,
     pin::Pin,
     task::{Context, Poll},
 };
 
 use bytes::{Buf, BytesMut};
-use flate2::bufread::DeflateDecoder;
 use futures::{ready, Stream};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
@@ -65,6 +63,8 @@ where
 }
 
 async fn inflate(mut src: BytesMut) -> io::Result<Block> {
+    use crate::reader::inflate_data;
+
     tokio::task::spawn_blocking(move || {
         let mut header = src.split_to(BGZF_HEADER_SIZE);
         header.advance(16); // [ID1, ..., SLEN]
@@ -74,14 +74,14 @@ async fn inflate(mut src: BytesMut) -> io::Result<Block> {
 
         // trailer
         src.advance(mem::size_of::<u32>()); // CRC32
-        let r#isize = src.get_u32_le();
+        let r#isize = usize::try_from(src.get_u32_le())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         let mut block = Block::default();
-        let udata = block.data_mut();
-        udata.reserve_exact((r#isize + 1) as usize);
 
-        let mut decoder = DeflateDecoder::new(&cdata[..]);
-        decoder.read_to_end(udata)?;
+        let udata = block.data_mut();
+        udata.resize(r#isize, Default::default());
+        inflate_data(&cdata, udata)?;
 
         block.set_clen(bsize);
 

@@ -196,7 +196,20 @@ where
     Ok(r#isize)
 }
 
-fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
+#[cfg(feature = "libdeflate")]
+pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
+    use libdeflater::Decompressor;
+
+    let mut decoder = Decompressor::new();
+
+    decoder
+        .deflate_decompress(reader, writer)
+        .map(|_| ())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+#[cfg(not(feature = "libdeflate"))]
+pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
     use flate2::bufread::DeflateDecoder;
 
     let mut decoder = DeflateDecoder::new(reader);
@@ -237,7 +250,7 @@ where
 
     let udata = block.data_mut();
     udata.resize(ulen, Default::default());
-    inflate_data(&cdata[..], udata)?;
+    inflate_data(cdata, udata)?;
 
     Ok(clen)
 }
