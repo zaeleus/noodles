@@ -25,8 +25,7 @@ impl Block {
     /// Returns the unconsumed part of the current block.
     pub fn fill_buf(&self) -> &[u8] {
         let start = self.upos as usize;
-        let end = self.ulen() as usize;
-        &self.data[start..end]
+        &self.data[start..]
     }
 
     /// Returns whether the cursor is at the end of the uncompressed data.
