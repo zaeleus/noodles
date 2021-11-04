@@ -133,6 +133,18 @@ where
 
         Ok(bytes_read)
     }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        let remaining = self.block.fill_buf();
+
+        if buf.len() <= remaining.len() {
+            buf.copy_from_slice(&remaining[..buf.len()]);
+            self.consume(buf.len());
+            Ok(())
+        } else {
+            default_read_exact(self, buf)
+        }
+    }
 }
 
 impl<R> BufRead for Reader<R>
@@ -253,6 +265,30 @@ where
     inflate_data(cdata, udata)?;
 
     Ok(clen)
+}
+
+/// This is effectively the same as `std::io::default_read_exact`.
+fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
+where
+    R: Read,
+{
+    while !buf.is_empty() {
+        match reader.read(buf) {
+            Ok(0) => break,
+            Ok(n) => buf = &mut buf[n..],
+            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => return Err(e),
+        }
+    }
+
+    if buf.is_empty() {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            "failed to fill whole buffer",
+        ))
+    }
 }
 
 #[cfg(test)]
