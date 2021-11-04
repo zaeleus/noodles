@@ -32,7 +32,7 @@ impl Record {
 
         let mut reader = &buf[..];
         let mut record = Self::default();
-        read_record(&mut reader, &mut record)?;
+        read_record(&mut reader, &mut Vec::new(), &mut record)?;
 
         Ok(record)
     }

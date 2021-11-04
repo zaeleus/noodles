@@ -15,7 +15,11 @@ use crate::{
     Record,
 };
 
-pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub(crate) fn read_record<R>(
+    reader: &mut R,
+    buf: &mut Vec<u8>,
+    record: &mut Record,
+) -> io::Result<usize>
 where
     R: Read,
 {
@@ -24,6 +28,12 @@ where
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
         Err(e) => return Err(e),
     };
+
+    buf.resize(block_size, Default::default());
+    reader.read_exact(buf)?;
+
+    let mut reader = &buf[..];
+    let reader = &mut reader;
 
     record.ref_id = reader.read_i32::<LittleEndian>()?;
     record.pos = reader.read_i32::<LittleEndian>()?;
@@ -169,7 +179,7 @@ mod tests {
 
         let mut reader = &data[..];
         let mut record = Record::default();
-        let block_size = read_record(&mut reader, &mut record)?;
+        let block_size = read_record(&mut reader, &mut Vec::new(), &mut record)?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, Record::default());

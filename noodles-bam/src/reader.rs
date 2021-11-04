@@ -55,6 +55,7 @@ where
     R: Read,
 {
     inner: bgzf::Reader<R>,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -75,6 +76,7 @@ where
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
+            buf: Vec::new(),
         }
     }
 
@@ -157,7 +159,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, record)
+        read_record(&mut self.inner, &mut self.buf, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
