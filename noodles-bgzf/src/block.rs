@@ -23,7 +23,7 @@ impl Block {
     }
 
     /// Returns the unconsumed part of the current block.
-    pub fn fill_buf(&self) -> &[u8] {
+    pub fn buffer(&self) -> &[u8] {
         let start = self.upos as usize;
         &self.data[start..]
     }

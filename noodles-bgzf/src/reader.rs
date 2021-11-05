@@ -135,7 +135,7 @@ where
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        let remaining = self.block.fill_buf();
+        let remaining = self.block.buffer();
 
         if buf.len() <= remaining.len() {
             buf.copy_from_slice(&remaining[..buf.len()]);
@@ -164,7 +164,7 @@ where
             self.position += block_size as u64;
         }
 
-        Ok(self.block.fill_buf())
+        Ok(self.block.buffer())
     }
 }
 

@@ -168,7 +168,7 @@ where
             }
         }
 
-        return Poll::Ready(Ok(this.block.fill_buf()));
+        return Poll::Ready(Ok(this.block.buffer()));
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
