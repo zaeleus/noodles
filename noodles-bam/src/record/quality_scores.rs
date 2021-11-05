@@ -22,8 +22,7 @@ impl QualityScores {
     ///
     /// ```
     /// use noodles_bam::record::QualityScores;
-    /// let data = vec![45, 35, 43, 50]; // NDLS
-    /// let quality_scores = QualityScores::from(data);
+    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
     /// ```
     #[deprecated(
         since = "0.8.0",
@@ -40,8 +39,7 @@ impl QualityScores {
     /// ```
     /// use noodles_bam::record::QualityScores;
     ///
-    /// let data = vec![45, 35, 43, 50]; // NDLS
-    /// let quality_scores = QualityScores::from(data);
+    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
     ///
     /// let mut chars = quality_scores.chars();
     ///
@@ -80,15 +78,14 @@ impl QualityScores {
     /// use noodles_bam::record::QualityScores;
     /// use noodles_sam::record::quality_scores::Score;
     ///
-    /// let data = vec![45, 35, 43, 50]; // NDLS
-    /// let quality_scores = QualityScores::from(data);
+    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
     ///
     /// let mut scores = quality_scores.scores();
     ///
-    /// assert_eq!(scores.next(), Some(Score::try_from(45)));
-    /// assert_eq!(scores.next(), Some(Score::try_from(35)));
-    /// assert_eq!(scores.next(), Some(Score::try_from(43)));
-    /// assert_eq!(scores.next(), Some(Score::try_from(50)));
+    /// assert_eq!(scores.next(), Some(Score::try_from(45))); // N
+    /// assert_eq!(scores.next(), Some(Score::try_from(35))); // D
+    /// assert_eq!(scores.next(), Some(Score::try_from(43))); // L
+    /// assert_eq!(scores.next(), Some(Score::try_from(50))); // S
     /// assert_eq!(scores.next(), None);
     /// ```
     pub fn scores(&self) -> Scores<slice::Iter<'_, u8>> {
@@ -138,8 +135,7 @@ mod tests {
     #[test]
     fn test_try_from_quality_scores_for_sam_record_quality_scores(
     ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
-        let data = vec![45, 35, 43, 50]; // NDLS
-        let quality_scores = QualityScores::from(data);
+        let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
 
         let actual = sam::record::QualityScores::try_from(&quality_scores)?;
         let expected = sam::record::QualityScores::from(vec![
