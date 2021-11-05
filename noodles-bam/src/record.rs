@@ -76,7 +76,7 @@ impl Record {
             + (mem::size_of::<u32>() * self.cigar.len())
             + self.seq.as_ref().len()
             + self.qual.len()
-            + self.data.len()
+            + self.data.as_ref().len()
     }
 
     /// Returns the reference sequence ID of this record.
@@ -384,10 +384,10 @@ impl Record {
     ///
     /// let mut record = bam::Record::default();
     ///
-    /// let nm = [0x4e, 0x4d, 0x43, 0x00];
-    /// record.data_mut().extend(&nm); // NM:i:0
+    /// let nm = [0x4e, 0x4d, 0x43, 0x00]; // NM:i:0
+    /// record.data_mut().as_mut().extend_from_slice(&nm);
     ///
-    /// assert_eq!(**record.data(), nm);
+    /// assert_eq!(record.data().as_ref(), nm);
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
@@ -554,7 +554,7 @@ mod tests {
         let record = build_record();
 
         assert_eq!(
-            **record.data(),
+            record.data().as_ref(),
             [0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,]
         );
     }

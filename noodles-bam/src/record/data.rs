@@ -5,10 +5,7 @@ mod fields;
 
 pub use self::{field::Field, fields::Fields};
 
-use std::{
-    error, fmt,
-    ops::{Deref, DerefMut},
-};
+use std::{error, fmt};
 
 use noodles_sam as sam;
 
@@ -34,6 +31,19 @@ impl Data {
     #[deprecated(since = "0.8.0", note = "Use `Data::from::<Vec<u8>>` instead.")]
     pub fn new(data: Vec<u8>) -> Data {
         Data::from(data)
+    }
+
+    /// Returns whether there are any data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Data;
+    /// let data = Data::default();
+    /// assert!(data.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 
     /// Returns an iterator over data fields.
@@ -66,20 +76,18 @@ impl Data {
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn fields(&self) -> Fields<&[u8]> {
-        Fields::new(self)
+        Fields::new(&self.0)
     }
 }
 
-impl Deref for Data {
-    type Target = Vec<u8>;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[u8]> for Data {
+    fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl DerefMut for Data {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<Vec<u8>> for Data {
+    fn as_mut(&mut self) -> &mut Vec<u8> {
         &mut self.0
     }
 }

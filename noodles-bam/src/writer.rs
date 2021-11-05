@@ -286,7 +286,7 @@ where
 
     writer.write_all(record.sequence().as_ref())?;
     writer.write_all(record.quality_scores())?;
-    writer.write_all(record.data())?;
+    writer.write_all(record.data().as_ref())?;
 
     Ok(())
 }
