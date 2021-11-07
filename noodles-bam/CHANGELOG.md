@@ -7,6 +7,8 @@
   * bam/record: Add mutable getters for flags (`Record::flags_mut`) and mapping
     quality (`Record::mapping_quality_mut`).
 
+  * bam/record/data: Add ordered map methods: `get_index`.
+
   * bam/record/sequence: Add append base to sequence (`Sequence::push`).
 
   * bam/record/quality_scores: Add single score reader (`QualityScores::get`).
@@ -34,10 +36,6 @@
 
     Use `TryFrom<u32>` instead.
 
-  * bam/record/data: Deprecate `Data::new`.
-
-    Use `Data::from::<Vec<u8>>` instead.
-
   * bam/record/sequence: Deprecate `Sequence::base_count`.
 
     Use `Sequence::len` instead.
@@ -45,6 +43,12 @@
   * bam/record/quality_scores: Deprecate `QualityScores::new`.
 
     Use `QualityScores::from::<Vec<u8>>` instead.
+
+### Removed
+
+  * bam/record/data: Remove `Data::new`.
+
+    Use `Data::try_from::<Vec<u8>>` instead.
 
 ## 0.7.0 - 2021-10-16
 

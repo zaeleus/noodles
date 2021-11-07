@@ -1,11 +1,13 @@
 //! BAM record data and fields.
 
+mod bounds;
 pub mod field;
 mod fields;
 
+pub(crate) use self::bounds::Bounds;
 pub use self::{field::Field, fields::Fields};
 
-use std::{error, fmt};
+use std::{error, fmt, io};
 
 use noodles_sam as sam;
 
@@ -13,26 +15,12 @@ use noodles_sam as sam;
 ///
 /// This is also called optional fields.
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct Data(Vec<u8>);
+pub struct Data {
+    data: Vec<u8>,
+    pub(crate) bounds: Bounds,
+}
 
 impl Data {
-    /// Creates data from raw data data.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam::record::Data;
-    ///
-    /// let data = Data::from(vec![
-    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
-    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-    /// ]);
-    /// ```
-    #[deprecated(since = "0.8.0", note = "Use `Data::from::<Vec<u8>>` instead.")]
-    pub fn new(data: Vec<u8>) -> Data {
-        Data::from(data)
-    }
-
     /// Returns whether there are any data fields.
     ///
     /// # Examples
@@ -43,7 +31,36 @@ impl Data {
     /// assert!(data.is_empty());
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.data.is_empty()
+    }
+
+    /// Returns a field by an index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// let data = Data::try_from(vec![
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+    /// ])?;
+    ///
+    /// let rg = data.get_index(1).transpose()?;
+    /// assert_eq!(rg, Some(Field::new(Tag::ReadGroup, Value::String(String::from("rg0")))));
+    ///
+    /// assert!(data.get_index(2).is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn get_index(&self, i: usize) -> Option<io::Result<Field>> {
+        use crate::reader::record::data::read_field;
+
+        self.bounds.get(i).map(|range| {
+            let mut reader = &self.data[range];
+            read_field(&mut reader).transpose().unwrap()
+        })
     }
 
     /// Returns an iterator over data fields.
@@ -55,10 +72,10 @@ impl Data {
     /// use noodles_bam::record::{data::{field::Value, Field}, Data};
     /// use noodles_sam::record::data::field::Tag;
     ///
-    /// let data = Data::from(vec![
+    /// let data = Data::try_from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
     ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-    /// ]);
+    /// ])?;
     ///
     /// let mut fields = data.fields();
     ///
@@ -76,19 +93,24 @@ impl Data {
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn fields(&self) -> Fields<&[u8]> {
-        Fields::new(&self.0)
+        Fields::new(&self.data)
+    }
+
+    pub(crate) fn index(&mut self) -> io::Result<()> {
+        self.bounds = Bounds::try_from_buf(&self.data[..])?;
+        Ok(())
     }
 }
 
 impl AsRef<[u8]> for Data {
     fn as_ref(&self) -> &[u8] {
-        &self.0
+        &self.data
     }
 }
 
 impl AsMut<Vec<u8>> for Data {
     fn as_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.0
+        &mut self.data
     }
 }
 
@@ -98,9 +120,18 @@ impl fmt::Debug for Data {
     }
 }
 
-impl From<Vec<u8>> for Data {
-    fn from(data: Vec<u8>) -> Self {
-        Self(data)
+impl TryFrom<Vec<u8>> for Data {
+    type Error = io::Error;
+
+    fn try_from(data: Vec<u8>) -> Result<Self, Self::Error> {
+        let mut data = Self {
+            data,
+            bounds: Bounds::default(),
+        };
+
+        data.index()?;
+
+        Ok(data)
     }
 }
 
@@ -154,10 +185,10 @@ mod tests {
             Field,
         };
 
-        let data = Data::from(vec![
+        let data = Data::try_from(vec![
             b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
             b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
-        ]);
+        ])?;
 
         let actual = sam::record::Data::try_from(&data)?;
         let expected = sam::record::Data::try_from(vec![

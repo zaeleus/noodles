@@ -162,12 +162,12 @@ mod tests {
             .collect()
     }
 
-    fn build_record() -> Record {
+    fn build_record() -> io::Result<Record> {
         use sam::record::{Flags, MappingQuality};
 
         use crate::record::{Cigar, Data, QualityScores, Sequence};
 
-        Record {
+        Ok(Record {
             ref_id: 1,
             pos: 61061,
             mapq: MappingQuality::from(12),
@@ -180,11 +180,11 @@ mod tests {
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
             qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
-            data: Data::from(vec![
+            data: Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ]),
-        }
+            ])?,
+        })
     }
 
     #[test]
@@ -197,7 +197,7 @@ mod tests {
             },
         };
 
-        let bam_record = build_record();
+        let bam_record = build_record()?;
         let reference_sequences = build_reference_sequences()?;
         let actual = bam_record.try_into_sam_record(&reference_sequences)?;
 

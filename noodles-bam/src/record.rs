@@ -438,12 +438,14 @@ impl fmt::Debug for Record {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
+
     use super::*;
 
-    fn build_record() -> Record {
+    fn build_record() -> io::Result<Record> {
         use sam::record::{Flags, MappingQuality};
 
-        Record {
+        Ok(Record {
             ref_id: 10,
             pos: 61061,
             mapq: MappingQuality::from(12),
@@ -456,106 +458,124 @@ mod tests {
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
             qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
-            data: Data::from(vec![
+            data: Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ]),
-        }
+            ])?,
+        })
     }
 
     #[test]
-    fn test_block_size() {
-        let record = build_record();
+    fn test_block_size() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.block_size(), 57);
+        Ok(())
     }
 
     #[test]
-    fn test_reference_sequence_id() {
-        let record = build_record();
+    fn test_reference_sequence_id() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.reference_sequence_id().map(i32::from), Some(10));
+        Ok(())
     }
 
     #[test]
-    fn test_position() {
-        let record = build_record();
+    fn test_position() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.position().map(i32::from), Some(61062));
+        Ok(())
     }
 
     #[test]
-    fn test_mapping_quality() {
-        let record = build_record();
+    fn test_mapping_quality() -> io::Result<()> {
+        let record = build_record()?;
+
         assert_eq!(
             record.mapping_quality(),
             sam::record::MappingQuality::from(12)
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_bin() {
-        let record = build_record();
+    fn test_bin() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.bin(), 4684);
+        Ok(())
     }
 
     #[test]
-    fn test_flags() {
+    fn test_flags() -> io::Result<()> {
         use sam::record::Flags;
-        let record = build_record();
+        let record = build_record()?;
         assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
+        Ok(())
     }
 
     #[test]
-    fn test_mate_reference_sequence_id() {
-        let record = build_record();
+    fn test_mate_reference_sequence_id() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(10));
+        Ok(())
     }
 
     #[test]
-    fn test_mate_position() {
-        let record = build_record();
+    fn test_mate_position() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.mate_position().map(i32::from), Some(61153));
+        Ok(())
     }
 
     #[test]
-    fn test_template_length() {
-        let record = build_record();
+    fn test_template_length() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.template_length(), 166);
+        Ok(())
     }
 
     #[test]
-    fn test_read_name() {
-        let record = build_record();
+    fn test_read_name() -> io::Result<()> {
+        let record = build_record()?;
 
         assert_eq!(
             record.read_name().map(|name| name.to_bytes()),
             Ok("r0".as_bytes())
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_cigar() {
-        let record = build_record();
+    fn test_cigar() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(**record.cigar(), [0x00000040]);
+        Ok(())
     }
 
     #[test]
-    fn test_sequence() {
-        let record = build_record();
+    fn test_sequence() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(record.sequence().as_ref(), [0x18, 0x42]);
+        Ok(())
     }
 
     #[test]
-    fn test_quality_scores() {
-        let record = build_record();
+    fn test_quality_scores() -> io::Result<()> {
+        let record = build_record()?;
         assert_eq!(**record.quality_scores(), [0x1f, 0x1d, 0x1e, 0x20]);
+        Ok(())
     }
 
     #[test]
-    fn test_data() {
-        let record = build_record();
+    fn test_data() -> io::Result<()> {
+        let record = build_record()?;
 
         assert_eq!(
             record.data().as_ref(),
             [0x4e, 0x4d, 0x43, 0x00, 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00,]
         );
+
+        Ok(())
     }
 }

@@ -15,6 +15,7 @@ async = ["flate2", "futures", "noodles-bgzf/async", "tokio"]
 [dependencies]
 bit-vec = "0.6.1"
 byteorder = "1.2.3"
+bytes = "1.0.1"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.4.0" }
 noodles-core = { path = "../noodles-core", version = "0.2.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.3.0" }

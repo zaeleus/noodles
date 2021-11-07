@@ -148,9 +148,11 @@ where
     let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
     let data_len = block_size - data_offset;
 
-    let data = data.as_mut();
-    data.resize(data_len, Default::default());
-    reader.read_exact(data).await?;
+    let buf = data.as_mut();
+    buf.resize(data_len, Default::default());
+    reader.read_exact(buf).await?;
+
+    data.index()?;
 
     Ok(())
 }
