@@ -36,6 +36,10 @@
 
     Use `TryFrom<u32>` instead.
 
+  * bam/record/data: Deprecate `Data::fields`.
+
+    Use `Data::values` instead.
+
   * bam/record/sequence: Deprecate `Sequence::base_count`.
 
     Use `Sequence::len` instead.

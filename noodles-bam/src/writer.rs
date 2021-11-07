@@ -526,7 +526,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let bam_data = record.data();
-        let mut fields = bam_data.fields();
+        let mut fields = bam_data.values();
 
         assert_eq!(
             fields.next().transpose()?,

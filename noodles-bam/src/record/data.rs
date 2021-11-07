@@ -77,7 +77,7 @@ impl Data {
     ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
     /// ])?;
     ///
-    /// let mut fields = data.fields();
+    /// let mut fields = data.values();
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
@@ -92,7 +92,41 @@ impl Data {
     /// assert!(fields.next().is_none());
     /// # Ok::<(), io::Error>(())
     /// ```
+    #[deprecated(since = "0.8.0", note = "Use `Data::values` instead.")]
     pub fn fields(&self) -> Fields<&[u8]> {
+        self.values()
+    }
+
+    /// Returns an iterator over all fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// let data = Data::try_from(vec![
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+    /// ])?;
+    ///
+    /// let mut values = data.values();
+    ///
+    /// assert_eq!(
+    ///     values.next().transpose()?,
+    ///     Some(Field::new(Tag::AlignmentHitCount, Value::Int32(1)))
+    /// );
+    ///
+    /// assert_eq!(
+    ///     values.next().transpose()?,
+    ///     Some(Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))))
+    /// );
+    ///
+    /// assert!(values.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn values(&self) -> Fields<&[u8]> {
         Fields::new(&self.data)
     }
 
@@ -116,7 +150,7 @@ impl AsMut<Vec<u8>> for Data {
 
 impl fmt::Debug for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.fields()).finish()
+        f.debug_list().entries(self.values()).finish()
     }
 }
 
@@ -161,7 +195,7 @@ impl TryFrom<&Data> for sam::record::Data {
     fn try_from(data: &Data) -> Result<Self, Self::Error> {
         let mut sam_data = Self::default();
 
-        for result in data.fields() {
+        for result in data.values() {
             let field = result.map_err(|_| TryFromDataError::InvalidField)?;
             let sam_field = sam::record::data::Field::from(field);
 

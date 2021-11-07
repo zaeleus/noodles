@@ -49,7 +49,7 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 }
 
 fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
-    for result in data.fields() {
+    for result in data.values() {
         let field = result?;
 
         if field.tag() == Tag::ReadGroup {
