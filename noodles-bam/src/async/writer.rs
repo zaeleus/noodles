@@ -1,5 +1,5 @@
 mod builder;
-mod record;
+mod sam_record;
 
 pub use self::builder::Builder;
 
@@ -9,7 +9,6 @@ use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use self::record::write_sam_record;
 use crate::Record;
 
 /// An async BAM writer.
@@ -167,7 +166,7 @@ where
         reference_sequences: &sam::header::ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        write_sam_record(&mut self.inner, reference_sequences, record).await
+        sam_record::write_sam_record(&mut self.inner, reference_sequences, record).await
     }
 }
 
