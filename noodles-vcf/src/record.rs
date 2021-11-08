@@ -138,6 +138,32 @@ impl Record {
         self.position
     }
 
+    /// Returns a mutable reference to the start position of the reference bases.
+    ///
+    /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
+    /// set to 0 and _n_ + 1, where _n_ is the length of the chromosome. Otherwise, it is a 1-based
+    /// start position of the reference bases.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::Position};
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(8)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.position_mut() = Position::try_from(13)?;
+    ///
+    /// assert_eq!(i32::from(record.position()), 13);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn position_mut(&mut self) -> &mut Position {
+        &mut self.position
+    }
+
     /// Returns a list of IDs of the record.
     ///
     /// # Examples

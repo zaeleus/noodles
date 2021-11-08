@@ -4,7 +4,8 @@
 
 ### Added
 
-  * vcf/record: Add mutable getter for chromosome (`Record::chromosome_mut`).
+  * vcf/record: Add mutable getters for chromosome (`Record::chromosome_mut`)
+    and position (`Record::position_mut`).
 
 ### Changed
 
