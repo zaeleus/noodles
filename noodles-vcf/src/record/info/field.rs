@@ -57,6 +57,20 @@ impl Field {
     pub fn value(&self) -> &Value {
         &self.value
     }
+
+    /// Returns a mutable reference to the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// let mut field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// *field.value_mut() = Value::Integer(2);
+    /// assert_eq!(field.value(), &Value::Integer(2));
+    /// ```
+    pub fn value_mut(&mut self) -> &mut Value {
+        &mut self.value
+    }
 }
 
 impl fmt::Display for Field {

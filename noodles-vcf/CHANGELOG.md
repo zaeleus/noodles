@@ -7,6 +7,8 @@
   * vcf/record: Add mutable getters for chromosome (`Record::chromosome_mut`)
     and position (`Record::position_mut`).
 
+  * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`).
+
 ### Changed
 
   * Update to Rust 2021.
