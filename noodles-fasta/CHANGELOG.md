@@ -4,19 +4,19 @@
 
 ### Changed
 
-  * Update to Rust 2021.
+  * fasta: Update to Rust 2021.
 
 ## 0.3.1 - 2021-10-16
 
 ### Fixed
 
-  * Sync dependencies.
+  * fasta: Sync dependencies.
 
 ## 0.3.0 - 2021-10-01
 
 ### Deprecated
 
-  * fai/record: `Record::reference_sequence_name` is now `Record::name`.
+  * fasta/fai/record: `Record::reference_sequence_name` is now `Record::name`.
 
     FASTA records are not necessarily reference sequences.
 
@@ -24,31 +24,31 @@
 
 ### Fixed
 
-  * Sync dependencies.
+  * fasta: Sync dependencies.
 
 ## 0.2.3 - 2021-09-19
 
 ### Fixed
 
-  * Sync dependencies.
+  * fasta: Sync dependencies.
 
 ## 0.2.2 - 2021-08-19
 
 ### Fixed
 
-  * Sync dependencies.
+  * fasta: Sync dependencies.
 
 ## 0.2.1 - 2021-08-11
 
 ### Fixed
 
-  * Sync dependencies.
+  * fasta: Sync dependencies.
 
 ## 0.2.0 - 2021-07-30
 
 ### Changed
 
-  * record: Rename `reference_sequence_name` to `name`.
+  * fasta/record: Rename `reference_sequence_name` to `name`.
 
     FASTA records are not necessarily reference sequences.
 
@@ -56,10 +56,10 @@
 
 ### Fixed
 
-  * Fixed documentation link in package manifest ([#31]).
+  * fasta: Fixed documentation link in package manifest ([#31]).
 
 [#31]: https://github.com/zaeleus/noodles/issues/31
 
 ## 0.1.0 - 2021-07-14
 
-  * Initial release.
+  * fasta: Initial release.

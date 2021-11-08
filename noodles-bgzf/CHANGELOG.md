@@ -4,10 +4,10 @@
 
 ### Added
 
-  * Add `libdeflate` feature to use [libdeflate] for encoding and decoding
-    DEFLATE streams (#51).
+  * bgzf: Add `libdeflate` feature to use [libdeflate] for encoding and
+    decoding DEFLATE streams (#51).
 
-  * writer: Add crate `CompressionLevel` type.
+  * bgzf/writer: Add crate `CompressionLevel` type.
 
     This replaces the usage of `flate2::Compression` and
     `libdeflater::CompressionLvl`.
@@ -17,7 +17,7 @@
 
 ### Changed
 
-  * Update to Rust 2021.
+  * bgzf: Update to Rust 2021.
 
   * bgzf/async/writer/builder: The compression level wrapper changed from
     `flate2::Compression` to `noodles_bgzf::writer::CompressionLevel`.
@@ -26,24 +26,24 @@
 
 ### Changed
 
-  * Update to tokio 1.10.0.
+  * bgzf: Update to tokio 1.10.0.
 
-  * async: I/O builders are now owned/consuming builders.
+  * bgzf/async: I/O builders are now owned/consuming builders.
 
     This fixes the terminal method not being able to move out of a mutable
     reference.
 
 ### Fixed
 
-  * Define features to enable for Docs.rs.
+  * bgzf: Define features to enable for Docs.rs.
 
 ## 0.3.0 - 2021-08-11
 
 ### Added
 
-  * async: Add async reader (`bgzf::AsyncReader`).
+  * bgzf/async: Add async reader (`bgzf::AsyncReader`).
 
-  * async: Add async writer (`bgzf::AsyncWriter`) ([#17]).
+  * bgzf/async: Add async writer (`bgzf::AsyncWriter`) ([#17]).
 
     Async I/O can be enabled with the `async` feature. 
 
@@ -57,27 +57,27 @@
 
 ### Fixed
 
-  * Fixed documentation link in package manifest ([#31]).
+  * bgzf: Fixed documentation link in package manifest ([#31]).
 
 [#31]: https://github.com/zaeleus/noodles/issues/31
 
 ### Removed
 
-  * index: Moved `Chunk` to noodles-csi.
+  * bgzf/index: Moved `Chunk` to noodles-csi.
 
     Replace usages of `noodles_bgzf::index::Chunk` with
     `noodles-csi::index::reference_sequence::bin::Chunk`.
 
-  * index: Moved `Metadata` to noodles-csi.
+  * bgzf/index: Moved `Metadata` to noodles-csi.
 
     Replace usages of `noodles_bgzf::index::Metadata` with
     `noodles-csi::index::reference_sequence::Metadata`.
 
-  * index: Moved chunk merging functions to noodles-csi.
+  * bgzf/index: Moved chunk merging functions to noodles-csi.
 
     Replace usages of `noodles_bgzf::index::{merge_chunks, optimize_chunks}`
     with `noodles_csi::binning_index::{merge_chunks, optimize_chunks}`.
 
 ## 0.1.0 - 2021-07-14
 
-  * Initial release.
+  * bgzf: Initial release.

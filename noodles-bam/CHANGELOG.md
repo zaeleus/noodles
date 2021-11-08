@@ -19,7 +19,7 @@
 
 ### Changed
 
-  * Update to Rust 2021.
+  * bam: Update to Rust 2021.
 
   * bam/record: `bam::Record` is no longer backed by a contiguous buffer.
 
@@ -73,7 +73,7 @@
 
 ### Fixed
 
-  * writer/record: Avoid casting data field value array length.
+  * bam/writer/record: Avoid casting data field value array length.
 
     Converting from `usize` to `i32` now checks whether the value is in range.
 
@@ -81,7 +81,7 @@
 
 ### Changed
 
-  * Bump minor version due to removal in 0.5.2.
+  * bam: Bump minor version due to removal in 0.5.2.
 
 ## 0.5.2 - 2021-10-01 
 
@@ -89,7 +89,7 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Removed
 
-  * record/data: Remove `Reader`.
+  * bam/record/data: Remove `Reader`.
 
     This moves the fields iterator up a module to `bam::record::data`.
 
@@ -97,23 +97,23 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Fixed
 
-  * Sync dependencies.
+  * bam: Sync dependencies.
 
 ## 0.5.0 - 2021-09-19
 
 ### Added
 
-  * bai/async/writer: Add shutdown delegate.
+  * bam/bai/async/writer: Add shutdown delegate.
 
 ### Deprecated
 
-  * record/data/reader: Deprecate `Reader::read_value_type`.
+  * bam/record/data/reader: Deprecate `Reader::read_value_type`.
 
     Use `noodles_bam::reader::record::data::field::read_value` instead.
 
 ### Fixed
 
-  * bai/async: Fix writer not finalizing.
+  * bam/bai/async: Fix writer not finalizing.
 
   * bam/reader/record/data/field/value: Avoid casting array length.
 
@@ -123,14 +123,14 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Changed
 
-  * Update to tokio 1.10.0.
+  * bam: Update to tokio 1.10.0.
 
-  * async: I/O builders are now owned/consuming builders ([#36]).
+  * bam/async: I/O builders are now owned/consuming builders ([#36]).
 
     This fixes the terminal method not being able to move out of a mutable
     reference.
 
-  * writer/record: Write lengths as `u32`.
+  * bam/writer/record: Write lengths as `u32`.
 
     `block_size` and `l_seq` were changed to unsigned integers in
     [samtools/hts-specs@31d6e44887ae3892472c20d06c15e9a763f3c7c0].
@@ -140,19 +140,19 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Fixed
 
-  * Define features to enable for Docs.rs.
+  * bam: Define features to enable for Docs.rs.
 
 ## 0.3.0 - 2021-08-11
 
 ### Added
 
-  * async: Add async reader (`bam::AsyncReader`).
+  * bam/async: Add async reader (`bam::AsyncReader`).
 
-  * async: Add async writer (`bam::AsyncWriter`).
+  * bam/async: Add async writer (`bam::AsyncWriter`).
 
-  * bai/async: Add async reader (`bai::AsyncReader`).
+  * bam/bai/async: Add async reader (`bai::AsyncReader`).
 
-  * bai/async: Add async writer (`bai::AsyncWriter`).
+  * bam/bai/async: Add async writer (`bai::AsyncWriter`).
 
     Async I/O can be enabled with the `async` feature.
 
@@ -160,7 +160,7 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Fixed
 
-  * bai/reader: Return I/O errors when failing to read `n_no_coor`.
+  * bam/bai/reader: Return I/O errors when failing to read `n_no_coor`.
 
     This previously ignored all I/O errors but now only catches
     `UnexpectedEof`.
@@ -169,31 +169,31 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Added
 
-  * bai/index: Implemented `BinningIndex` for `Index`.
+  * bam/bai/index: Implemented `BinningIndex` for `Index`.
 
-  * bai/index: Added `query` method to find chunks that intersect the given
+  * bam/bai/index: Added `query` method to find chunks that intersect the given
     region.
 
-  * bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
+  * bam/bai/index/reference_sequence: Implemented `BinningIndexReferenceSequence`
     for `ReferenceSequence`.
 
-  * reader: Accept any `BinningIndex` to query.
+  * bam/reader: Accept any `BinningIndex` to query.
 
 ### Fixed
 
-  * Fixed documentation link in package manifest ([#31]).
+  * bam: Fixed documentation link in package manifest ([#31]).
 
-  * bai/reader: Avoid casts that may truncate.
+  * bam/bai/reader: Avoid casts that may truncate.
 
     Fields that convert from `u32` to other integer types now check whether
     they are in range.
 
-  * bai/writer: Avoid casts that may truncate.
+  * bam/bai/writer: Avoid casts that may truncate.
 
     Fields that convert to `u32` from other integer types now check whether
     they are in range.
 
-  * writer/record: Fix bin calculation start position.
+  * bam/writer/record: Fix bin calculation start position.
 
     This incorrectly used a 1-based position rather than 0-based.
 
@@ -201,10 +201,10 @@ This was erroneously released as a patch release. Use 0.6.0 instead.
 
 ### Removed
 
-  * bai/index/reference_sequence: Removed `Metadata`.
+  * bam/bai/index/reference_sequence: Removed `Metadata`.
 
     Use `noodles_csi::index::reference_sequence::Metadata` instead.
 
 ## 0.1.0 - 2021-07-14
 
-  * Initial release.
+  * bam: Initial release.
