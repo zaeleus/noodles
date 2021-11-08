@@ -76,6 +76,20 @@ impl From<Subtype> for char {
     }
 }
 
+impl From<Subtype> for u8 {
+    fn from(subtype: Subtype) -> Self {
+        match subtype {
+            Subtype::Int8 => b'c',
+            Subtype::UInt8 => b'C',
+            Subtype::Int16 => b's',
+            Subtype::UInt16 => b'S',
+            Subtype::Int32 => b'i',
+            Subtype::UInt32 => b'I',
+            Subtype::Float => b'f',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,5 +114,16 @@ mod tests {
         assert_eq!(char::from(Subtype::Int32), 'i');
         assert_eq!(char::from(Subtype::UInt32), 'I');
         assert_eq!(char::from(Subtype::Float), 'f');
+    }
+
+    #[test]
+    fn test_from_subtype_for_u8() {
+        assert_eq!(u8::from(Subtype::Int8), b'c');
+        assert_eq!(u8::from(Subtype::UInt8), b'C');
+        assert_eq!(u8::from(Subtype::Int16), b's');
+        assert_eq!(u8::from(Subtype::UInt16), b'S');
+        assert_eq!(u8::from(Subtype::Int32), b'i');
+        assert_eq!(u8::from(Subtype::UInt32), b'I');
+        assert_eq!(u8::from(Subtype::Float), b'f');
     }
 }
