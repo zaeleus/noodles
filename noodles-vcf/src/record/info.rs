@@ -4,7 +4,7 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
@@ -16,11 +16,125 @@ const DELIMITER: char = ';';
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Info(IndexMap<field::Key, Field>);
 
-impl Deref for Info {
-    type Target = IndexMap<field::Key, Field>;
+impl Info {
+    /// Returns the number of info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::Info;
+    /// let info = Info::default();
+    /// assert_eq!(info.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 
-    fn deref(&self) -> &Self::Target {
+    /// Returns whether there are any info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::Info;
+    /// let info = Info::default();
+    /// assert!(info.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns a reference to the field with the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    ///
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(&dp));
+    /// assert!(info.get(&Key::AlleleFrequencies).is_none());
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn get(&self, key: &field::Key) -> Option<&Field> {
+        self.0.get(key)
+    }
+
+    /// Returns a reference to the field at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    ///
+    /// assert_eq!(info.get_index(1), Some(&dp));
+    /// assert!(info.get_index(5).is_none());
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn get_index(&self, i: usize) -> Option<&Field> {
+        self.0.get_index(i).map(|(_, field)| field)
+    }
+
+    /// Returns an iterator over all keys.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let info = Info::try_from(vec![ns, dp.clone()])?;
+    ///
+    /// let mut keys = info.keys();
+    ///
+    /// assert_eq!(keys.next(), Some(&Key::SamplesWithDataCount));
+    /// assert_eq!(keys.next(), Some(&Key::TotalDepth));
+    /// assert!(keys.next().is_none());
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn keys(&self) -> impl Iterator<Item = &field::Key> {
+        self.values().map(|field| field.key())
+    }
+
+    /// Returns an interator over all fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let info = Info::try_from(vec![ns.clone(), dp.clone()])?;
+    ///
+    /// let mut values = info.values();
+    ///
+    /// assert_eq!(values.next(), Some(&ns));
+    /// assert_eq!(values.next(), Some(&dp));
+    /// assert!(values.next().is_none());
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn values(&self) -> impl Iterator<Item = &Field> {
+        self.0.values()
+    }
+}
+
+impl AsRef<IndexMap<field::Key, Field>> for Info {
+    fn as_ref(&self) -> &IndexMap<field::Key, Field> {
         &self.0
+    }
+}
+
+impl AsMut<IndexMap<field::Key, Field>> for Info {
+    fn as_mut(&mut self) -> &mut IndexMap<field::Key, Field> {
+        &mut self.0
     }
 }
 

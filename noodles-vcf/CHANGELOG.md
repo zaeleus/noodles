@@ -13,6 +13,11 @@
 
   * vcf: Update to Rust 2021.
 
+  * vcf/record/info: `Info` no longer implements `Deref`.
+
+    Use `AsRef<IndexMap<field::Key, Field>>` to access the lower level ordered
+    map.
+
 ## 0.8.0 - 2021-10-16
 
 ### Added
