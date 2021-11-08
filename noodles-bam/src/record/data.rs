@@ -21,6 +21,19 @@ pub struct Data {
 }
 
 impl Data {
+    /// Returns the number of data fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Data;
+    /// let data = Data::default();
+    /// assert_eq!(data.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.bounds.len()
+    }
+
     /// Returns whether there are any data fields.
     ///
     /// # Examples

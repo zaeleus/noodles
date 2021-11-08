@@ -29,6 +29,10 @@ impl Bounds {
         Ok(bounds)
     }
 
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn get(&self, i: usize) -> Option<Range<usize>> {
         let start = i
             .checked_sub(1)

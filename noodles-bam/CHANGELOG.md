@@ -7,7 +7,7 @@
   * bam/record: Add mutable getters for flags (`Record::flags_mut`) and mapping
     quality (`Record::mapping_quality_mut`).
 
-  * bam/record/data: Add ordered map methods: `get_index`.
+  * bam/record/data: Add ordered map methods: `get_index` and `len`.
 
   * bam/record/sequence: Add append base to sequence (`Sequence::push`).
 
