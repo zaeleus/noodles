@@ -62,6 +62,31 @@ impl Info {
         self.0.get(key)
     }
 
+    /// Returns a mutable reference to the field with the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let mut info = Info::try_from(vec![ns, dp])?;
+    ///
+    /// if let Some(dp) = info.get_mut(&Key::TotalDepth) {
+    ///     *dp.value_mut() = Value::Integer(8);
+    /// }
+    ///
+    /// assert_eq!(
+    ///     info.get(&Key::TotalDepth).map(|field| field.value()),
+    ///     Some(&Value::Integer(8))
+    /// );
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn get_mut(&mut self, key: &field::Key) -> Option<&mut Field> {
+        self.0.get_mut(key)
+    }
+
     /// Returns a reference to the field at the given index.
     ///
     /// # Examples
@@ -79,6 +104,31 @@ impl Info {
     /// ```
     pub fn get_index(&self, i: usize) -> Option<&Field> {
         self.0.get_index(i).map(|(_, field)| field)
+    }
+
+    /// Returns a mutable reference to the field at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let mut info = Info::try_from(vec![ns, dp])?;
+    ///
+    /// if let Some(dp) = info.get_index_mut(1) {
+    ///     *dp.value_mut() = Value::Integer(8);
+    /// }
+    ///
+    /// assert_eq!(
+    ///     info.get_index(1).map(|field| field.value()),
+    ///     Some(&Value::Integer(8))
+    /// );
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn get_index_mut(&mut self, i: usize) -> Option<&mut Field> {
+        self.0.get_index_mut(i).map(|(_, field)| field)
     }
 
     /// Returns an iterator over all keys.
