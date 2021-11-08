@@ -30,8 +30,7 @@ where
     })?;
 
     *record.mapping_quality_mut() = read_mapping_quality(reader).await?;
-
-    record.bin = reader.read_u16_le().await?;
+    *record.bin_mut() = reader.read_u16_le().await?;
 
     let n_cigar_op = reader.read_u16_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

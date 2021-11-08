@@ -260,7 +260,7 @@ where
     let mapq = u8::from(record.mapping_quality());
     writer.write_u8(mapq)?;
 
-    writer.write_u16::<LittleEndian>(record.bin)?;
+    writer.write_u16::<LittleEndian>(record.bin())?;
 
     let n_cigar_op = u16::try_from(record.cigar().len() / mem::size_of::<u32>())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

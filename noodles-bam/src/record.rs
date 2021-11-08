@@ -47,7 +47,7 @@ pub struct Record {
     pub(crate) ref_id: i32,
     pub(crate) pos: i32,
     mapq: sam::record::MappingQuality,
-    pub(crate) bin: u16,
+    bin: u16,
     flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
     pub(crate) next_pos: i32,
@@ -164,6 +164,10 @@ impl Record {
     /// ```
     pub fn bin(&self) -> u16 {
         self.bin
+    }
+
+    pub(crate) fn bin_mut(&mut self) -> &mut u16 {
+        &mut self.bin
     }
 
     /// Returns the SAM flags of this record.
