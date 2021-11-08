@@ -15,7 +15,7 @@ pub async fn write_sam_record<W>(
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::writer::record::calculate_data_len;
+    use crate::writer::sam_record::calculate_data_len;
 
     let name = record
         .read_name()
@@ -184,7 +184,7 @@ async fn write_bin<W>(writer: &mut W, record: &sam::Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::writer::record::region_to_bin;
+    use crate::writer::sam_record::region_to_bin;
 
     // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
     // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."

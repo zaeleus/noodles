@@ -1,4 +1,4 @@
-pub(crate) mod record;
+pub(crate) mod sam_record;
 
 use std::{
     ffi::CString,
@@ -180,7 +180,7 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        record::write_sam_record(&mut self.inner, reference_sequences, record)
+        sam_record::write_sam_record(&mut self.inner, reference_sequences, record)
     }
 }
 
