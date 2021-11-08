@@ -44,7 +44,7 @@ impl Bounds {
         Some(start..end)
     }
 
-    fn push(&mut self, i: usize) {
+    pub(super) fn push(&mut self, i: usize) {
         self.0.push(i);
     }
 }

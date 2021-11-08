@@ -76,6 +76,47 @@ impl Data {
         })
     }
 
+    /// Inserts a field into the data map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// let mut data = Data::default();
+    ///
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
+    /// data.insert(nh.clone()).transpose()?;
+    ///
+    /// assert_eq!(data.len(), 1);
+    /// assert_eq!(data.get_index(0).transpose()?, Some(nh));
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn insert(&mut self, field: Field) -> Option<io::Result<Field>> {
+        for result in self.values() {
+            match result {
+                Ok(f) => {
+                    if f.tag() == field.tag() {
+                        todo!("unhandled duplicate field tag");
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        let raw_field = match <Vec<u8>>::try_from(field) {
+            Ok(buf) => buf,
+            Err(e) => return Some(Err(e)),
+        };
+
+        self.data.extend_from_slice(&raw_field);
+        self.bounds.push(self.data.len());
+
+        None
+    }
+
     /// Returns an iterator over data fields.
     ///
     /// # Examples

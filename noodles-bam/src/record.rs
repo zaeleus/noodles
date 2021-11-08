@@ -388,14 +388,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// # use std::io;
+    /// use noodles_bam::{self as bam, record::data::{field::Value, Field}};
+    /// use noodles_sam::record::data::field::Tag;
     ///
     /// let mut record = bam::Record::default();
     ///
-    /// let nm = [0x4e, 0x4d, 0x43, 0x00]; // NM:i:0
-    /// record.data_mut().as_mut().extend_from_slice(&nm);
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
+    /// record.data_mut().insert(nh).transpose()?;
     ///
-    /// assert_eq!(record.data().as_ref(), nm);
+    /// assert_eq!(record.data().len(), 1);
+    /// # Ok::<_, io::Error>(())
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
