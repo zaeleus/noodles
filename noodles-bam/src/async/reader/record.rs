@@ -44,7 +44,8 @@ where
 
     record.next_ref_id = reader.read_i32_le().await?;
     record.next_pos = reader.read_i32_le().await?;
-    record.tlen = reader.read_i32_le().await?;
+
+    *record.template_length_mut() = reader.read_i32_le().await?;
 
     read_read_name(reader, &mut record.read_name, l_read_name).await?;
     read_cigar(reader, record.cigar_mut(), n_cigar_op).await?;

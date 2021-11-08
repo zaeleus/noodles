@@ -264,7 +264,7 @@ where
     writer.write_i32_le(record.next_ref_id).await?;
     writer.write_i32_le(record.next_pos).await?;
 
-    writer.write_i32_le(record.tlen).await?;
+    writer.write_i32_le(record.template_length()).await?;
 
     writer.write_all(&record.read_name).await?;
 

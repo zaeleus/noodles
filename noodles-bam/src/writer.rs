@@ -276,7 +276,7 @@ where
     writer.write_i32::<LittleEndian>(record.next_ref_id)?;
     writer.write_i32::<LittleEndian>(record.next_pos)?;
 
-    writer.write_i32::<LittleEndian>(record.tlen)?;
+    writer.write_i32::<LittleEndian>(record.template_length())?;
 
     writer.write_all(&record.read_name)?;
 

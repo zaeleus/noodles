@@ -51,7 +51,7 @@ pub struct Record {
     flag: sam::record::Flags,
     pub(crate) next_ref_id: i32,
     pub(crate) next_pos: i32,
-    pub(crate) tlen: i32,
+    tlen: i32,
     pub(crate) read_name: Vec<u8>,
     cigar: Cigar,
     seq: Sequence,
@@ -254,6 +254,10 @@ impl Record {
     /// ```
     pub fn template_length(&self) -> i32 {
         self.tlen
+    }
+
+    pub(crate) fn template_length_mut(&mut self) -> &mut i32 {
+        &mut self.tlen
     }
 
     /// Returns the read name of this record.

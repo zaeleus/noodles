@@ -57,7 +57,8 @@ where
 
     record.next_ref_id = reader.read_i32::<LittleEndian>()?;
     record.next_pos = reader.read_i32::<LittleEndian>()?;
-    record.tlen = reader.read_i32::<LittleEndian>()?;
+
+    *record.template_length_mut() = reader.read_i32::<LittleEndian>()?;
 
     read_read_name(reader, &mut record.read_name, l_read_name)?;
     read_cigar(reader, record.cigar_mut(), n_cigar_op)?;
