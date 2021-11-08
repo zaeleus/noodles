@@ -9,7 +9,7 @@ pub use self::{field::Field, fields::Fields};
 
 use std::{error, fmt, io};
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::data::field::Tag};
 
 /// BAM record data.
 ///
@@ -151,6 +151,42 @@ impl Data {
         self.values()
     }
 
+    /// Returns an iterator over all tags.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::Data;
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// let data = Data::try_from(vec![
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+    /// ])?;
+    ///
+    /// let mut keys = data.keys();
+    ///
+    /// assert_eq!(keys.next().transpose()?, Some(Tag::AlignmentHitCount));
+    /// assert_eq!(keys.next().transpose()?, Some(Tag::ReadGroup));
+    /// assert!(keys.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn keys(&self) -> impl Iterator<Item = io::Result<Tag>> + '_ {
+        let mut start = 0;
+
+        (0..self.bounds.len()).map(move |i| {
+            let end = self.bounds.as_ref()[i];
+
+            let buf = &self.data[start..end];
+            let raw_tag = [buf[0], buf[1]];
+
+            start = end;
+
+            Tag::try_from(raw_tag).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
     /// Returns an iterator over all fields.
     ///
     /// # Examples
@@ -229,7 +265,7 @@ pub enum TryFromDataError {
     /// A field is invalid.
     InvalidField,
     /// The data is invalid.
-    DuplicateTag(sam::record::data::field::Tag),
+    DuplicateTag(Tag),
 }
 
 impl error::Error for TryFromDataError {}
@@ -268,10 +304,7 @@ mod tests {
 
     #[test]
     fn test_try_from_data_for_sam_record_data() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::data::{
-            field::{Tag, Value},
-            Field,
-        };
+        use sam::record::data::field::Value;
 
         let data = Data::try_from(vec![
             b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
@@ -280,8 +313,8 @@ mod tests {
 
         let actual = sam::record::Data::try_from(&data)?;
         let expected = sam::record::Data::try_from(vec![
-            Field::new(Tag::AlignmentHitCount, Value::Int(1)),
-            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+            sam::record::data::Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+            sam::record::data::Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
         ])?;
 
         assert_eq!(actual, expected);

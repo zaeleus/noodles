@@ -49,6 +49,12 @@ impl Bounds {
     }
 }
 
+impl AsRef<[usize]> for Bounds {
+    fn as_ref(&self) -> &[usize] {
+        &self.0
+    }
+}
+
 fn advance_tag<B>(buf: &mut B) -> io::Result<()>
 where
     B: Buf,

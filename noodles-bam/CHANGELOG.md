@@ -7,7 +7,8 @@
   * bam/record: Add mutable getters for flags (`Record::flags_mut`) and mapping
     quality (`Record::mapping_quality_mut`).
 
-  * bam/record/data: Add ordered map methods: `get_index`, `insert`, and `len`.
+  * bam/record/data: Add ordered map methods: `get_index`, `insert`, `keys`,
+    and `len`.
 
   * bam/record/data/field: Add fallible conversion to `Vec<u8>`.
 
