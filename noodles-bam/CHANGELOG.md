@@ -9,6 +9,8 @@
 
   * bam/record/data: Add ordered map methods: `get_index` and `len`.
 
+  * bam/record/data/field: Add fallible conversion to `Vec<u8>`.
+
   * bam/record/data/field/value/subtype: Add conversion to `u8`.
 
   * bam/record/sequence: Add append base to sequence (`Sequence::push`).
