@@ -319,6 +319,40 @@ impl Record {
         &self.info
     }
 
+    /// Returns a mutable reference to the additional info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
+    /// };
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .set_alternate_bases("C".parse()?)
+    ///     .set_info("NS=3;AF=0.5".parse()?)
+    ///     .build()?;
+    ///
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// record.info_mut().insert(dp.clone());
+    ///
+    /// let expected = Info::try_from(vec![
+    ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
+    ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
+    ///     dp,
+    /// ])?;
+    ///
+    /// assert_eq!(record.info(), &expected);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn info_mut(&mut self) -> &mut Info {
+        &mut self.info
+    }
+
     /// Returns the format of the genotypes of the record.
     ///
     /// # Examples
