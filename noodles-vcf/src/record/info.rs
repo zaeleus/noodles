@@ -131,6 +131,33 @@ impl Info {
         self.0.get_index_mut(i).map(|(_, field)| field)
     }
 
+    /// Inserts a field into the info.
+    ///
+    /// This uses the field key as the key and field as the value.
+    ///
+    /// If the key already exists in the map, the existing field is replaced by the new one, and
+    /// the existing field is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let mut info = Info::try_from(vec![ns])?;
+    /// assert_eq!(info.len(), 1);
+    ///
+    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// info.insert(dp.clone());
+    ///
+    /// assert_eq!(info.len(), 2);
+    /// assert_eq!(info.get(&Key::TotalDepth), Some(&dp));
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn insert(&mut self, field: Field) -> Option<Field> {
+        self.0.insert(field.key().clone(), field)
+    }
+
     /// Returns an iterator over all keys.
     ///
     /// # Examples
