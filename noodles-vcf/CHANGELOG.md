@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/record: Add mutable getter for chromosome (`Record::chromosome_mut`).
+
 ### Changed
 
   * Update to Rust 2021.

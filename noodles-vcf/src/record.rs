@@ -90,6 +90,28 @@ impl Record {
         &self.chromosome
     }
 
+    /// Returns a mutable reference to the chromosome.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{Chromosome, Position}};
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.chromosome_mut() = "sq1".parse()?;
+    ///
+    /// assert_eq!(record.chromosome().to_string(), "sq1");
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn chromosome_mut(&mut self) -> &mut Chromosome {
+        &mut self.chromosome
+    }
+
     /// Returns the start position of the reference bases or indicates a telomeric breakend.
     ///
     /// This field is overloaded. If the record represents a telomere, the telomeric breakends are
