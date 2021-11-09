@@ -1,7 +1,7 @@
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
-    character::complete::{alphanumeric1, none_of},
+    character::complete::none_of,
     combinator::{map, opt},
     multi::separated_list1,
     sequence::{delimited, separated_pair},
@@ -32,7 +32,7 @@ fn value(input: &str) -> IResult<&str, String> {
 }
 
 fn field_key(input: &str) -> IResult<&str, &str> {
-    alphanumeric1(input)
+    take_until("=")(input)
 }
 
 fn field_value(input: &str) -> IResult<&str, String> {
@@ -379,6 +379,18 @@ mod tests {
                     String::from("md5"),
                     String::from("d7eba311421bbc9d3ada44709dd61534")
                 ),
+            ])
+        );
+
+        let (_, (key, value)) = parse(r#"##PEDIGREE=<ID=pedigree0,Name_0=name0,Name_1=name1>"#)?;
+
+        assert_eq!(key, "PEDIGREE");
+        assert_eq!(
+            value,
+            Value::Struct(vec![
+                (String::from("ID"), String::from("pedigree0")),
+                (String::from("Name_0"), String::from("name0")),
+                (String::from("Name_1"), String::from("name1")),
             ])
         );
 

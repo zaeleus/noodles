@@ -14,6 +14,8 @@
 
   * vcf: Update to Rust 2021.
 
+  * vcf/header/record/parser: Remove alphanumeric constraint on field keys.
+
   * vcf/record/info: `Info` no longer implements `Deref`.
 
     Use `AsRef<IndexMap<field::Key, Field>>` to access the lower level ordered
