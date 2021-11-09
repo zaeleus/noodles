@@ -105,6 +105,7 @@ fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> io::Re
 where
     R: Read,
 {
+    let cigar = cigar.as_mut();
     cigar.resize(n_cigar_op, Default::default());
     reader.read_u32_into::<LittleEndian>(cigar)?;
     Ok(())

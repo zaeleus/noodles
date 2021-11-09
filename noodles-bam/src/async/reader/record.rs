@@ -98,6 +98,8 @@ async fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> 
 where
     R: AsyncRead + Unpin,
 {
+    let cigar = cigar.as_mut();
+
     cigar.resize(n_cigar_op, Default::default());
     cigar.clear();
 

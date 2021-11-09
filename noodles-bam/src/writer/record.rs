@@ -45,7 +45,7 @@ where
 
     writer.write_all(&record.read_name)?;
 
-    for &raw_op in record.cigar().iter() {
+    for &raw_op in record.cigar().as_ref().iter() {
         writer.write_u32::<LittleEndian>(raw_op)?;
     }
 

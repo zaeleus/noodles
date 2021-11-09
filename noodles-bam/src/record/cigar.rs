@@ -5,10 +5,7 @@ mod ops;
 
 pub use self::{op::Op, ops::Ops};
 
-use std::{
-    fmt, io,
-    ops::{Deref, DerefMut},
-};
+use std::{fmt, io};
 
 use noodles_sam::{self as sam, record::cigar::op::Kind};
 
@@ -25,11 +22,37 @@ impl Cigar {
     /// use noodles_bam::record::Cigar;
     /// let data = vec![0x00000240, 0x00000084]; // 36M8S
     /// let cigar = Cigar::from(data);
-    /// assert_eq!(**cigar, [0x00000240, 0x00000084]);
+    /// assert_eq!(cigar.as_ref(), [0x00000240, 0x00000084]);
     /// ```
     #[deprecated(since = "0.8.0", note = "Use `Cigar::from::<Vec<u32>>` instead.")]
     pub fn new(cigar: Vec<u32>) -> Cigar {
         Self::from(cigar)
+    }
+
+    /// Returns the number of CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Cigar;
+    /// let cigar = Cigar::default();
+    /// assert_eq!(cigar.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns whether there are any CIGAR operations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Cigar;
+    /// let cigar = Cigar::default();
+    /// assert!(cigar.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 
     /// Returns an iterator over the operations in the CIGAR.
@@ -130,6 +153,38 @@ impl Cigar {
 
         Ok(len)
     }
+
+    /// Appends an op to the end of the CIGAR.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::{cigar::Op, Cigar};
+    /// use noodles_sam::record::cigar::op::Kind;
+    ///
+    /// let mut cigar = Cigar::default();
+    ///
+    /// let op = Op::new(Kind::Match, 36)?;
+    /// cigar.push(op);
+    ///
+    /// assert_eq!(cigar.as_ref(), [0x00000240]);
+    /// Ok::<_, noodles_bam::record::cigar::op::LengthError>(())
+    /// ```
+    pub fn push(&mut self, op: Op) {
+        self.0.push(u32::from(op));
+    }
+}
+
+impl AsRef<[u32]> for Cigar {
+    fn as_ref(&self) -> &[u32] {
+        &self.0
+    }
+}
+
+impl AsMut<Vec<u32>> for Cigar {
+    fn as_mut(&mut self) -> &mut Vec<u32> {
+        &mut self.0
+    }
 }
 
 impl<'a> fmt::Debug for Cigar {
@@ -146,20 +201,6 @@ impl<'a> fmt::Display for Cigar {
         }
 
         Ok(())
-    }
-}
-
-impl Deref for Cigar {
-    type Target = Vec<u32>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Cigar {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

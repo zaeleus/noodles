@@ -300,10 +300,10 @@ impl Record {
     ///
     /// let mut record = bam::Record::default();
     ///
-    /// let raw_op = Op::new(Kind::Match, 36).map(u32::from)?;
-    /// record.cigar_mut().push(raw_op);
+    /// let op = Op::new(Kind::Match, 36)?;
+    /// record.cigar_mut().push(op);
     ///
-    /// assert_eq!(**record.cigar(), [raw_op]);
+    /// assert_eq!(record.cigar().as_ref(), [0x00000240]);
     /// Ok::<_, bam::record::cigar::op::LengthError>(())
     /// ```
     pub fn cigar_mut(&mut self) -> &mut Cigar {
@@ -564,7 +564,7 @@ mod tests {
     #[test]
     fn test_cigar() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(**record.cigar(), [0x00000040]);
+        assert_eq!(record.cigar().as_ref(), [0x00000040]);
         Ok(())
     }
 

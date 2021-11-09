@@ -42,7 +42,7 @@ where
 
     writer.write_all(&record.read_name).await?;
 
-    for &raw_op in record.cigar().iter() {
+    for &raw_op in record.cigar().as_ref().iter() {
         writer.write_u32_le(raw_op).await?;
     }
 
