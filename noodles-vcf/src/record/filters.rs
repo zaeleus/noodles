@@ -4,16 +4,12 @@ use std::{error, fmt, str::FromStr};
 
 use indexmap::IndexSet;
 
-use super::MISSING_FIELD;
-
 const PASS_STATUS: &str = "PASS";
 const DELIMITER: char = ';';
 
 /// VCF record filters (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Filters {
-    /// Missing (`.`).
-    Missing,
     /// Pass (`PASS`).
     Pass,
     /// A list of filters that caused the record to fail.
@@ -23,6 +19,8 @@ pub enum Filters {
 /// An error returned when raw VCF filters fail to convert.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromIteratorError {
+    /// The input is empty.
+    Empty,
     /// A filter is duplicated.
     DuplicateFilter(String),
     /// A filter is invalid.
@@ -34,6 +32,7 @@ impl error::Error for TryFromIteratorError {}
 impl fmt::Display for TryFromIteratorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => f.write_str("empty input"),
             Self::DuplicateFilter(filter) => write!(f, "duplicate filter: {}", filter),
             Self::InvalidFilter(s) => write!(f, "invalid filter: {}", s),
         }
@@ -77,7 +76,7 @@ impl Filters {
         }
 
         if filters.is_empty() {
-            Ok(Self::Missing)
+            Err(TryFromIteratorError::Empty)
         } else if filters.len() == 1 && filters.contains(PASS_STATUS) {
             Ok(Self::Pass)
         } else {
@@ -86,16 +85,9 @@ impl Filters {
     }
 }
 
-impl Default for Filters {
-    fn default() -> Self {
-        Self::Missing
-    }
-}
-
 impl fmt::Display for Filters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Missing => f.write_str(MISSING_FIELD),
             Self::Pass => f.write_str(PASS_STATUS),
             Self::Fail(ids) => {
                 for (i, id) in ids.iter().enumerate() {
@@ -138,7 +130,6 @@ impl FromStr for Filters {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Self::Missing),
             PASS_STATUS => Ok(Self::Pass),
             _ => Self::try_from_iter(s.split(DELIMITER)).map_err(ParseError::InvalidFilters),
         }
@@ -158,7 +149,6 @@ mod tests {
 
     #[test]
     fn test_try_from_iter() {
-        assert_eq!(Filters::try_from_iter(&[] as &[&str]), Ok(Filters::Missing));
         assert_eq!(Filters::try_from_iter(["PASS"]), Ok(Filters::Pass));
         assert_eq!(
             Filters::try_from_iter(["q10"]),
@@ -173,6 +163,10 @@ mod tests {
             ))
         );
 
+        assert_eq!(
+            Filters::try_from_iter(&[] as &[&str]),
+            Err(TryFromIteratorError::Empty)
+        );
         assert_eq!(
             Filters::try_from_iter(["q10", "q10"]),
             Err(TryFromIteratorError::DuplicateFilter(String::from("q10")))
@@ -192,13 +186,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default() {
-        assert_eq!(Filters::default(), Filters::Missing);
-    }
-
-    #[test]
     fn test_fmt() -> Result<(), TryFromIteratorError> {
-        assert_eq!(Filters::Missing.to_string(), ".");
         assert_eq!(Filters::Pass.to_string(), "PASS");
 
         let filters = Filters::try_from_iter(["q10"])?;
@@ -212,7 +200,6 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!(".".parse(), Ok(Filters::Missing));
         assert_eq!("PASS".parse(), Ok(Filters::Pass));
 
         assert_eq!(

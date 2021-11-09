@@ -47,7 +47,7 @@ pub struct Record {
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
-    filters: Filters,
+    filters: Option<Filters>,
     info: Info,
     format: Option<Format>,
     genotypes: Genotypes,
@@ -304,11 +304,11 @@ impl Record {
     ///     .set_filters(Filters::Pass)
     ///     .build()?;
     ///
-    /// assert_eq!(record.filters(), &Filters::Pass);
+    /// assert_eq!(record.filters(), Some(&Filters::Pass));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn filters(&self) -> &Filters {
-        &self.filters
+    pub fn filters(&self) -> Option<&Filters> {
+        self.filters.as_ref()
     }
 
     /// Returns the addition information of the record.
@@ -546,6 +546,11 @@ impl Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let filters = self
+            .filters()
+            .map(|f| f.to_string())
+            .unwrap_or_else(|| MISSING_FIELD.into());
+
         write!(
             f,
             "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
@@ -555,7 +560,7 @@ impl fmt::Display for Record {
             r#ref = self.reference_bases(),
             alt = self.alternate_bases(),
             qual = self.quality_score(),
-            filter = self.filters(),
+            filter = filters,
             info = self.info(),
         )?;
 
@@ -639,8 +644,7 @@ impl FromStr for Record {
         let qual = parse_string(&mut fields, Field::QualityScore)
             .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScore))?;
 
-        let filter = parse_string(&mut fields, Field::Filters)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidFilters))?;
+        let filter = parse_filters(&mut fields)?;
 
         let info = parse_string(&mut fields, Field::Info)
             .and_then(|s| s.parse().map_err(ParseError::InvalidInfo))?;
@@ -681,6 +685,16 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or(ParseError::MissingField(field))
+}
+
+fn parse_filters<'a, I>(fields: &mut I) -> Result<Option<Filters>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Filters).and_then(|s| match s {
+        MISSING_FIELD => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidFilters),
+    })
 }
 
 #[cfg(test)]
@@ -773,7 +787,7 @@ mod tests {
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
         assert_eq!(*record.quality_score(), Some(5.8));
-        assert_eq!(record.filters(), &Filters::Pass);
+        assert_eq!(record.filters(), Some(&Filters::Pass));
         assert_eq!(record.info().len(), 1);
         assert!(record.format().is_none());
         assert!(record.genotypes().is_empty());

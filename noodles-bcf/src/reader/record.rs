@@ -133,7 +133,7 @@ mod tests {
             n_fmt: 5,
             id: "rs123".parse()?,
             ref_alt: vec![String::from("A"), String::from("C")],
-            filter: Filters::try_from_iter(["PASS"])?,
+            filter: Some(Filters::Pass),
             info: Info::try_from(vec![
                 InfoField::new("HM3".parse()?, InfoFieldValue::Flag),
                 InfoField::new(InfoFieldKey::AlleleCount, InfoFieldValue::Integer(3)),

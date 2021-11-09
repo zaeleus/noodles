@@ -163,7 +163,7 @@ where
 fn write_filter<W>(
     writer: &mut W,
     string_map: &StringMap,
-    filters: &vcf::record::Filters,
+    filters: Option<&vcf::record::Filters>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -171,9 +171,9 @@ where
     use vcf::record::Filters;
 
     let indices = match filters {
-        Filters::Missing => Vec::new(),
-        Filters::Pass => vec![0],
-        Filters::Fail(ids) => ids
+        None => Vec::new(),
+        Some(Filters::Pass) => vec![0],
+        Some(Filters::Fail(ids)) => ids
             .iter()
             .map(|id| {
                 string_map

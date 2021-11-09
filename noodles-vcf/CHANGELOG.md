@@ -19,6 +19,13 @@
     Use `AsRef<IndexMap<field::Key, Field>>` to access the lower level ordered
     map.
 
+### Removed
+
+  * vcf/record/filters: Remove missing variant.
+
+    `Filters::Missing` is removed in favor of using an `Option` in
+    `vcf::Record`.
+
 ## 0.8.0 - 2021-10-16
 
 ### Added

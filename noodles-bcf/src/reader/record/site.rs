@@ -28,7 +28,7 @@ pub struct Site {
     pub n_fmt: u8,
     pub id: Ids,
     pub ref_alt: Vec<String>,
-    pub filter: Filters,
+    pub filter: Option<Filters>,
     pub info: Info,
 }
 
@@ -113,7 +113,7 @@ where
     Ok(alleles)
 }
 
-fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Filters>
+fn read_filter<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Option<Filters>>
 where
     R: Read,
 {
@@ -131,5 +131,11 @@ where
         })
         .collect::<Result<_, _>>()?;
 
-    Filters::try_from_iter(raw_filters).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    if raw_filters.is_empty() {
+        Ok(None)
+    } else {
+        Filters::try_from_iter(raw_filters)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
 }

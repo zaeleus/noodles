@@ -16,7 +16,7 @@ pub struct Builder {
     reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
     quality_score: QualityScore,
-    filters: Filters,
+    filters: Option<Filters>,
     info: Info,
     format: Option<Format>,
     genotypes: Genotypes,
@@ -229,11 +229,11 @@ impl Builder {
     ///     .set_filters(Filters::Pass)
     ///     .build()?;
     ///
-    /// assert_eq!(record.filters(), &Filters::Pass);
+    /// assert_eq!(record.filters(), Some(&Filters::Pass));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_filters(mut self, filters: Filters) -> Self {
-        self.filters = filters;
+        self.filters = Some(filters);
         self
     }
 
@@ -424,7 +424,7 @@ mod tests {
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());
         assert!(record.quality_score.is_none());
-        assert!(matches!(record.filters, Filters::Missing));
+        assert!(record.filters.is_none());
         assert!(record.info.is_empty());
         assert!(record.format.is_none());
         assert!(record.genotypes.is_empty());

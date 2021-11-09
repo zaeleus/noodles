@@ -104,7 +104,6 @@ impl Record {
 
         let alternate_bases = AlternateBases::from(alternate_alleles);
 
-        let filters = site.filter;
         let info = site.info;
 
         let mut builder = vcf::Record::builder()
@@ -114,8 +113,11 @@ impl Record {
             .set_reference_bases(reference_bases)
             .set_alternate_bases(alternate_bases)
             .set_quality_score(quality_score)
-            .set_filters(filters)
             .set_info(info);
+
+        if let Some(filters) = site.filter {
+            builder = builder.set_filters(filters);
+        }
 
         if let Some(first_genotype) = genotypes.first() {
             let keys: Vec<_> = first_genotype.keys().cloned().collect();
