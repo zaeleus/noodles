@@ -175,9 +175,7 @@ impl Data {
     pub fn keys(&self) -> impl Iterator<Item = io::Result<Tag>> + '_ {
         let mut start = 0;
 
-        (0..self.bounds.len()).map(move |i| {
-            let end = self.bounds.as_ref()[i];
-
+        self.bounds.as_ref().iter().map(move |&end| {
             let buf = &self.data[start..end];
             let raw_tag = [buf[0], buf[1]];
 
