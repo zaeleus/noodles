@@ -4,10 +4,7 @@ mod scores;
 
 pub use self::{chars::Chars, scores::Scores};
 
-use std::{
-    ops::{Deref, DerefMut},
-    slice,
-};
+use std::slice;
 
 use noodles_sam::{self as sam, record::quality_scores::Score};
 
@@ -32,6 +29,32 @@ impl QualityScores {
         Self::from(qual)
     }
 
+    /// Returns the number of quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert_eq!(quality_scores.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns whether there are any quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert!(quality_scores.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     /// Returns an iterator over quality scores as offset printable ASCII characters.
     ///
     /// # Examples
@@ -50,7 +73,7 @@ impl QualityScores {
     /// assert_eq!(chars.next(), None);
     /// ```
     pub fn chars(&self) -> Chars<slice::Iter<'_, u8>> {
-        Chars::new(self.iter())
+        Chars::new(self.0.iter())
     }
 
     /// Returns the quality score as a [`Score`] at the given index.
@@ -89,20 +112,36 @@ impl QualityScores {
     /// assert_eq!(scores.next(), None);
     /// ```
     pub fn scores(&self) -> Scores<slice::Iter<'_, u8>> {
-        Scores::new(self.iter())
+        Scores::new(self.0.iter())
+    }
+
+    /// Appends a score to the end of the quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::QualityScores;
+    /// use noodles_sam::record::quality_scores::Score;
+    ///
+    /// let mut quality_scores = QualityScores::default();
+    /// quality_scores.push(Score::try_from(8)?);
+    ///
+    /// assert_eq!(quality_scores.as_ref(), [8]);
+    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromUByteError>(())
+    /// ```
+    pub fn push(&mut self, score: Score) {
+        self.0.push(u8::from(score));
     }
 }
 
-impl Deref for QualityScores {
-    type Target = Vec<u8>;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[u8]> for QualityScores {
+    fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl DerefMut for QualityScores {
-    fn deref_mut(&mut self) -> &mut Self::Target {
+impl AsMut<Vec<u8>> for QualityScores {
+    fn as_mut(&mut self) -> &mut Vec<u8> {
         &mut self.0
     }
 }

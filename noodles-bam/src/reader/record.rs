@@ -124,10 +124,11 @@ where
     Ok(())
 }
 
-fn read_qual<R>(reader: &mut R, qual: &mut QualityScores, l_seq: usize) -> io::Result<()>
+fn read_qual<R>(reader: &mut R, quality_scores: &mut QualityScores, l_seq: usize) -> io::Result<()>
 where
     R: Read,
 {
+    let qual = quality_scores.as_mut();
     qual.resize(l_seq, Default::default());
     reader.read_exact(qual)?;
     Ok(())

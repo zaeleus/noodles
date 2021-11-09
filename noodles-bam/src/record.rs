@@ -362,9 +362,13 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
+    /// use noodles_sam::record::quality_scores::Score;
+    ///
     /// let mut record = bam::Record::default();
-    /// record.quality_scores_mut().push(8);
-    /// assert_eq!(**record.quality_scores(), [8]);
+    /// record.quality_scores_mut().push(Score::try_from(8)?);
+    ///
+    /// assert_eq!(record.quality_scores().as_ref(), [8]);
+    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromUByteError>(())
     /// ```
     pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
         &mut self.qual
@@ -574,7 +578,7 @@ mod tests {
     #[test]
     fn test_quality_scores() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(**record.quality_scores(), [0x1f, 0x1d, 0x1e, 0x20]);
+        assert_eq!(record.quality_scores().as_ref(), [0x1f, 0x1d, 0x1e, 0x20]);
         Ok(())
     }
 

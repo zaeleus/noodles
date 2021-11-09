@@ -47,7 +47,7 @@ where
     }
 
     writer.write_all(record.sequence().as_ref()).await?;
-    writer.write_all(record.quality_scores()).await?;
+    writer.write_all(record.quality_scores().as_ref()).await?;
     writer.write_all(record.data().as_ref()).await?;
 
     Ok(())
