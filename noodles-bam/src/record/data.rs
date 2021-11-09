@@ -78,6 +78,11 @@ impl Data {
 
     /// Inserts a field into the data map.
     ///
+    /// This uses the field tag as the key and field as the value.
+    ///
+    /// If the tag already exists in the map, the existing field is replaced by the new one, and
+    /// the existing field is returned.
+    ///
     /// # Examples
     ///
     /// ```
@@ -95,26 +100,42 @@ impl Data {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn insert(&mut self, field: Field) -> Option<io::Result<Field>> {
-        for result in self.values() {
+        for (i, result) in self.values().enumerate() {
             match result {
                 Ok(f) => {
                     if f.tag() == field.tag() {
-                        todo!("unhandled duplicate field tag");
+                        match self.splice(i, field) {
+                            Ok(_) => return Some(Ok(f)),
+                            Err(e) => return Some(Err(e)),
+                        }
                     }
                 }
                 Err(e) => return Some(Err(e)),
             }
         }
 
-        let raw_field = match <Vec<u8>>::try_from(field) {
-            Ok(buf) => buf,
-            Err(e) => return Some(Err(e)),
-        };
+        if let Err(e) = self.push(field) {
+            Some(Err(e))
+        } else {
+            None
+        }
+    }
 
-        self.data.extend_from_slice(&raw_field);
+    fn splice(&mut self, i: usize, field: Field) -> io::Result<()> {
+        let range = self.bounds.get(i).expect("index out of bounds");
+        let buf = <Vec<u8>>::try_from(field)?;
+        self.data.splice(range, buf);
+
+        self.index()?;
+
+        Ok(())
+    }
+
+    fn push(&mut self, field: Field) -> io::Result<()> {
+        let buf = <Vec<u8>>::try_from(field)?;
+        self.data.extend_from_slice(&buf);
         self.bounds.push(self.data.len());
-
-        None
+        Ok(())
     }
 
     /// Returns an iterator over data fields.
@@ -299,6 +320,43 @@ impl TryFrom<&Data> for sam::record::Data {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_insert() -> io::Result<()> {
+        use field::Value;
+
+        let mut data = Data::try_from(vec![
+            b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+            b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+        ])?;
+
+        // push
+        let as_ = Field::new(Tag::AlignmentScore, Value::UInt8(13));
+        assert!(data.insert(as_).transpose()?.is_none());
+        assert_eq!(
+            data.as_ref(),
+            [
+                b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+                b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+                b'A', b'S', b'C', 0x0d, // AS:C:13
+            ]
+        );
+
+        // replace
+        let nh = Field::new(Tag::AlignmentHitCount, Value::UInt8(2));
+        let expected_nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+        assert_eq!(data.insert(nh).transpose()?, Some(expected_nh));
+        assert_eq!(
+            data.as_ref(),
+            [
+                b'N', b'H', b'C', 0x02, // NH:C:2
+                b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+                b'A', b'S', b'C', 0x0d, // AS:C:13
+            ]
+        );
+
+        Ok(())
+    }
 
     #[test]
     fn test_try_from_data_for_sam_record_data() -> Result<(), Box<dyn std::error::Error>> {
