@@ -9,13 +9,13 @@ use super::field::value::Type;
 pub(crate) struct Bounds(Vec<usize>);
 
 impl Bounds {
-    pub fn try_from_buf<B>(mut buf: B) -> io::Result<Self>
+    pub fn update<B>(&mut self, mut buf: B) -> io::Result<()>
     where
         B: Buf,
     {
-        let len = buf.remaining();
+        self.clear();
 
-        let mut bounds = Bounds::default();
+        let len = buf.remaining();
 
         while buf.has_remaining() {
             advance_tag(&mut buf)?;
@@ -23,10 +23,10 @@ impl Bounds {
             advance_value(&mut buf, ty)?;
 
             let i = len - buf.remaining();
-            bounds.push(i);
+            self.push(i);
         }
 
-        Ok(bounds)
+        Ok(())
     }
 
     pub fn len(&self) -> usize {
@@ -46,6 +46,10 @@ impl Bounds {
 
     pub(super) fn push(&mut self, i: usize) {
         self.0.push(i);
+    }
+
+    fn clear(&mut self) {
+        self.0.clear();
     }
 }
 
@@ -146,7 +150,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_buf() -> io::Result<()> {
+    fn test_update() -> io::Result<()> {
         let data = [
             b'Z', b'A', b'A', b'n', // ZA:A:n
             b'Z', b'c', b'c', 0x00, // Zc:c:0
@@ -170,7 +174,9 @@ mod tests {
             0x00, // bf:B:f,0
         ];
 
-        let actual = Bounds::try_from_buf(&data[..])?;
+        let mut actual = Bounds::default();
+        actual.update(&data[..])?;
+
         let expected = Bounds(vec![
             4, 8, 12, 17, 22, 29, 36, 43, 51, 59, 68, 77, 87, 97, 109, 121, 133,
         ]);

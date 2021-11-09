@@ -240,8 +240,7 @@ impl Data {
     }
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
-        self.bounds = Bounds::try_from_buf(&self.data[..])?;
-        Ok(())
+        self.bounds.update(&self.data[..])
     }
 }
 
