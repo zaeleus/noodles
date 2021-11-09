@@ -5,7 +5,8 @@
 ### Added
 
   * vcf/record: Add mutable getters for chromosome (`Record::chromosome_mut`),
-    position (`Record::position_mut`), and info (`Record::info_mut`).
+    info (`Record::info_mut`), position (`Record::position_mut`), and quality
+    score (`Record::quality_score_mut`).
 
   * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`).
 

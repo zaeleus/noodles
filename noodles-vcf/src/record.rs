@@ -265,6 +265,28 @@ impl Record {
         self.quality_score
     }
 
+    /// Returns a mutable reference to the quality score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{Position, QualityScore}};
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.quality_score_mut() = QualityScore::try_from(13.0)?;
+    ///
+    /// assert_eq!(*record.quality_score(), Some(13.0));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn quality_score_mut(&mut self) -> &mut QualityScore {
+        &mut self.quality_score
+    }
+
     /// Returns the filters of the record.
     ///
     /// The filters can either be pass (`PASS`), a list of filter names that caused the record to
