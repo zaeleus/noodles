@@ -72,8 +72,9 @@ impl Record {
 
         let quality_score = match site.qual {
             Float::Value(value) => QualityScore::try_from(value)
+                .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-            Float::Missing => QualityScore::default(),
+            Float::Missing => None,
             qual => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -112,8 +113,11 @@ impl Record {
             .set_ids(ids)
             .set_reference_bases(reference_bases)
             .set_alternate_bases(alternate_bases)
-            .set_quality_score(quality_score)
             .set_info(info);
+
+        if let Some(quality_score) = quality_score {
+            builder = builder.set_quality_score(quality_score);
+        }
 
         if let Some(filters) = site.filter {
             builder = builder.set_filters(filters);

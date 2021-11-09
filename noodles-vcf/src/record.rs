@@ -46,7 +46,7 @@ pub struct Record {
     ids: Ids,
     reference_bases: ReferenceBases,
     alternate_bases: AlternateBases,
-    quality_score: QualityScore,
+    quality_score: Option<QualityScore>,
     filters: Option<Filters>,
     info: Info,
     format: Option<Format>,
@@ -258,10 +258,10 @@ impl Record {
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
     ///
-    /// assert_eq!(*record.quality_score(), Some(13.0));
+    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn quality_score(&self) -> QualityScore {
+    pub fn quality_score(&self) -> Option<QualityScore> {
         self.quality_score
     }
 
@@ -278,12 +278,12 @@ impl Record {
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// *record.quality_score_mut() = QualityScore::try_from(13.0)?;
+    /// *record.quality_score_mut() = QualityScore::try_from(13.0).map(Some)?;
     ///
-    /// assert_eq!(*record.quality_score(), Some(13.0));
+    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn quality_score_mut(&mut self) -> &mut QualityScore {
+    pub fn quality_score_mut(&mut self) -> &mut Option<QualityScore> {
         &mut self.quality_score
     }
 
@@ -294,8 +294,6 @@ impl Record {
     ///
     /// # Examples
     ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
@@ -568,6 +566,11 @@ impl Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let quality_score = self
+            .quality_score()
+            .map(|qs| f32::from(qs).to_string())
+            .unwrap_or_else(|| MISSING_FIELD.into());
+
         let filters = self
             .filters()
             .map(|f| f.to_string())
@@ -581,7 +584,7 @@ impl fmt::Display for Record {
             id = self.ids(),
             r#ref = self.reference_bases(),
             alt = self.alternate_bases(),
-            qual = self.quality_score(),
+            qual = quality_score,
             filter = filters,
             info = self.info(),
         )?;
@@ -663,9 +666,7 @@ impl FromStr for Record {
         let alt = parse_string(&mut fields, Field::AlternateBases)
             .and_then(|s| s.parse().map_err(ParseError::InvalidAlternateBases))?;
 
-        let qual = parse_string(&mut fields, Field::QualityScore)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScore))?;
-
+        let qual = parse_quality_score(&mut fields)?;
         let filter = parse_filters(&mut fields)?;
 
         let info = parse_string(&mut fields, Field::Info)
@@ -707,6 +708,16 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or(ParseError::MissingField(field))
+}
+
+fn parse_quality_score<'a, I>(fields: &mut I) -> Result<Option<QualityScore>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::QualityScore).and_then(|s| match s {
+        MISSING_FIELD => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidQualityScore),
+    })
 }
 
 fn parse_filters<'a, I>(fields: &mut I) -> Result<Option<Filters>, ParseError>
@@ -808,7 +819,7 @@ mod tests {
         let alternate_bases = [Allele::Bases(vec![Base::A])];
         assert_eq!(&record.alternate_bases()[..], &alternate_bases[..]);
 
-        assert_eq!(*record.quality_score(), Some(5.8));
+        assert_eq!(record.quality_score().map(f32::from), Some(5.8));
         assert_eq!(record.filters(), Some(&Filters::Pass));
         assert_eq!(record.info().len(), 1);
         assert!(record.format().is_none());

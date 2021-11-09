@@ -21,6 +21,10 @@
     Use `AsRef<IndexMap<field::Key, Field>>` to access the lower level ordered
     map.
 
+  * vcf/record/quality_score: Wrap only non-missing values.
+
+    The missing quality score state is moved to `vcf::Record` as an `Option`.
+
 ### Removed
 
   * vcf/record/filters: Remove missing variant.

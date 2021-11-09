@@ -15,7 +15,7 @@ pub struct Builder {
     ids: Ids,
     reference_bases: Vec<Base>,
     alternate_bases: AlternateBases,
-    quality_score: QualityScore,
+    quality_score: Option<QualityScore>,
     filters: Option<Filters>,
     info: Info,
     format: Option<Format>,
@@ -207,11 +207,11 @@ impl Builder {
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
     ///
-    /// assert_eq!(*record.quality_score(), Some(13.0));
+    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_quality_score(mut self, quality_score: QualityScore) -> Self {
-        self.quality_score = quality_score;
+        self.quality_score = Some(quality_score);
         self
     }
 

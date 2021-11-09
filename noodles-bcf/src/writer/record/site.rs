@@ -115,11 +115,14 @@ where
     writer.write_i32::<LittleEndian>(pos)
 }
 
-fn write_qual<W>(writer: &mut W, quality_score: vcf::record::QualityScore) -> io::Result<()>
+fn write_qual<W>(writer: &mut W, quality_score: Option<vcf::record::QualityScore>) -> io::Result<()>
 where
     W: Write,
 {
-    let float = quality_score.map(Float::from).unwrap_or(Float::Missing);
+    let float = quality_score
+        .map(|qs| Float::from(f32::from(qs)))
+        .unwrap_or(Float::Missing);
+
     writer.write_f32::<LittleEndian>(f32::from(float))
 }
 
