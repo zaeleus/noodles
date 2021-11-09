@@ -311,6 +311,28 @@ impl Record {
         self.filters.as_ref()
     }
 
+    /// Returns a mutable reference to the filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.filters_mut() = Some(Filters::Pass);
+    ///
+    /// assert_eq!(record.filters(), Some(&Filters::Pass));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn filters_mut(&mut self) -> &mut Option<Filters> {
+        &mut self.filters
+    }
+
     /// Returns the addition information of the record.
     ///
     /// # Examples
