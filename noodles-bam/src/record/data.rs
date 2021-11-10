@@ -47,6 +47,33 @@ impl Data {
         self.data.is_empty()
     }
 
+    /// Removes all fields from the data map.
+    ///
+    /// This does not affect the capacity of the map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::Data;
+    ///
+    /// let mut data = Data::try_from(vec![
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+    /// ])?;
+    ///
+    /// assert_eq!(data.len(), 2);
+    ///
+    /// data.clear();
+    ///
+    /// assert!(data.is_empty());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn clear(&mut self) {
+        self.data.clear();
+        self.bounds.clear();
+    }
+
     /// Returns a field by an index.
     ///
     /// # Examples

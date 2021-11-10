@@ -48,7 +48,7 @@ impl Bounds {
         self.0.push(i);
     }
 
-    fn clear(&mut self) {
+    pub(super) fn clear(&mut self) {
         self.0.clear();
     }
 }
