@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/crai: Add convenience write function (`crai::write`).
+
 ### Changed
 
   * cram: Update to Rust 2021.

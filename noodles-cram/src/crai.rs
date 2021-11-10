@@ -37,3 +37,25 @@ where
     let mut reader = File::open(src).map(Reader::new)?;
     reader.read_index()
 }
+
+/// Writes a CRAM index to a file.
+///
+/// This is a convenience function and is equivalent to creating the file at the given path and
+/// writing the index.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::io;
+/// use noodles_cram::crai;
+/// let index = crai::Index::default();
+/// crai::write("sample.cram.crai", &index)?;
+/// # Ok::<(), io::Error>(())
+/// ```
+pub fn write<P>(dst: P, index: &[Record]) -> io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let mut writer = File::open(dst).map(Writer::new)?;
+    writer.write_index(index)
+}
