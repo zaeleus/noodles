@@ -187,6 +187,29 @@ impl Record {
         &self.ids
     }
 
+    /// Returns a mutable reference to the IDs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{Ids, Position}};
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// let ids: Ids = "nd0".parse()?;
+    /// *record.ids_mut() = ids.clone();
+    ///
+    /// assert_eq!(record.ids(), &ids);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn ids_mut(&mut self) -> &mut Ids {
+        &mut self.ids
+    }
+
     /// Returns the reference bases of the record.
     ///
     /// This is a required field and guaranteed to be nonempty.

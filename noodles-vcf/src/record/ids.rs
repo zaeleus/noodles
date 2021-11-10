@@ -4,7 +4,7 @@ pub mod id;
 
 pub use self::id::Id;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, ops::Deref, ops::DerefMut, str::FromStr};
 
 use indexmap::IndexSet;
 
@@ -21,6 +21,12 @@ impl Deref for Ids {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Ids {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
