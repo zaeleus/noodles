@@ -49,7 +49,7 @@
 
     Async BGZF I/O is implemented using a queue of block buffers, which are
     encoded/decoded in parallel (depending on the async executor). This can
-    signficantly improve read/write performance.
+    significantly improve read/write performance.
 
 [#17]: https://github.com/zaeleus/noodles/issues/17
 
