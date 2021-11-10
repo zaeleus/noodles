@@ -69,6 +69,32 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let mut writer = vcf::Writer::new(Vec::new());
+    /// assert!(writer.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Unwraps and returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let writer = vcf::Writer::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Writes a VCF header.
     ///
     /// # Examples

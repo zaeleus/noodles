@@ -13,6 +13,9 @@
 
   * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`).
 
+  * vcf/writer: Add common methods to access the underlying writer: `get_mut`
+    and `into_inner`.
+
 ### Changed
 
   * vcf: Update to Rust 2021.
