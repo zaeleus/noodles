@@ -56,6 +56,32 @@ impl Data {
         self.len() == 0
     }
 
+    /// Removes all data fields from the data map.
+    ///
+    /// This does not affect the capacity of the map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    ///
+    /// let mut data = Data::try_from(vec![
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+    /// ])?;
+    ///
+    /// assert_eq!(data.len(), 1);
+    ///
+    /// data.clear();
+    ///
+    /// assert!(data.is_empty());
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// ```
+    pub fn clear(&mut self) {
+        self.standard_field_indices.fill(None);
+        self.other_field_indices.clear();
+        self.fields.clear();
+    }
+
     /// Returns a reference to the field of the given tag.
     ///
     /// # Examples
