@@ -8,6 +8,8 @@
     filters (`Record::filters_mut`), info (`Record::info_mut`), position
     (`Record::position_mut`), and quality score (`Record::quality_score_mut`).
 
+  * vcf/record/ids: Add ID wrapper.
+
   * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`).
 
 ### Changed

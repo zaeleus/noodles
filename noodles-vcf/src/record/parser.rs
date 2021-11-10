@@ -138,7 +138,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use alternate_bases::Allele;
         use chromosome::Chromosome;
         use reference_bases::Base;
@@ -152,7 +152,8 @@ mod tests {
 
         let ids = record.ids();
         assert_eq!(ids.len(), 1);
-        assert!(ids.contains("nd0"));
+        let id: ids::Id = "nd0".parse()?;
+        assert!(ids.contains(&id));
 
         let reference_bases = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(&record.reference_bases()[..], &reference_bases[..]);

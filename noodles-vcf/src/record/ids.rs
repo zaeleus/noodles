@@ -1,5 +1,9 @@
 //! VCF record IDs.
 
+pub mod id;
+
+pub use self::id::Id;
+
 use std::{error, fmt, ops::Deref, str::FromStr};
 
 use indexmap::IndexSet;
@@ -10,10 +14,10 @@ const DELIMITER: char = ';';
 
 /// VCF record IDs (`ID`).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Ids(IndexSet<String>);
+pub struct Ids(IndexSet<Id>);
 
 impl Deref for Ids {
-    type Target = IndexSet<String>;
+    type Target = IndexSet<Id>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -46,7 +50,7 @@ pub enum ParseError {
     /// The list of IDs has a duplicate.
     DuplicateId(String),
     /// An ID is invalid.
-    InvalidId(String),
+    InvalidId(id::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -56,7 +60,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::DuplicateId(id) => write!(f, "duplicate ID: {}", id),
-            Self::InvalidId(s) => write!(f, "invalid ID: {}", s),
+            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
         }
     }
 }
@@ -71,11 +75,11 @@ impl FromStr for Ids {
             _ => {
                 let mut ids = IndexSet::new();
 
-                for id in s.split(DELIMITER) {
-                    if !ids.insert(id.into()) {
-                        return Err(ParseError::DuplicateId(id.into()));
-                    } else if !is_valid_id(id) {
-                        return Err(ParseError::InvalidId(id.into()));
+                for raw_id in s.split(DELIMITER) {
+                    let id: Id = raw_id.parse().map_err(ParseError::InvalidId)?;
+
+                    if !ids.insert(id) {
+                        return Err(ParseError::DuplicateId(raw_id.into()));
                     }
                 }
 
@@ -85,68 +89,53 @@ impl FromStr for Ids {
     }
 }
 
-fn is_valid_id(s: &str) -> bool {
-    if s.is_empty() {
-        false
-    } else {
-        s.chars().all(|c| !c.is_ascii_whitespace())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), id::ParseError> {
         assert_eq!(Ids::default().to_string(), ".");
-        assert_eq!(
-            Ids([String::from("nd0")].into_iter().collect()).to_string(),
-            "nd0"
-        );
-        assert_eq!(
-            Ids([String::from("nd0"), String::from("nd1")]
-                .into_iter()
-                .collect())
-            .to_string(),
-            "nd0;nd1"
-        );
+
+        let id0: Id = "nd0".parse()?;
+        let id1: Id = "nd1".parse()?;
+        assert_eq!(Ids([id0.clone()].into_iter().collect()).to_string(), "nd0");
+        assert_eq!(Ids([id0, id1].into_iter().collect()).to_string(), "nd0;nd1");
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), id::ParseError> {
+        let id0: Id = "nd0".parse()?;
+        let id1: Id = "nd1".parse()?;
+
         assert_eq!(".".parse(), Ok(Ids::default()));
-        assert_eq!(
-            "nd0".parse(),
-            Ok(Ids([String::from("nd0")].into_iter().collect()))
-        );
-        assert_eq!(
-            "nd0;nd1".parse(),
-            Ok(Ids([String::from("nd0"), String::from("nd1")]
-                .into_iter()
-                .collect()))
-        );
+        assert_eq!("nd0".parse(), Ok(Ids([id0.clone()].into_iter().collect())));
+        assert_eq!("nd0;nd1".parse(), Ok(Ids([id0, id1].into_iter().collect())));
 
         assert_eq!("".parse::<Ids>(), Err(ParseError::Empty));
         assert_eq!(
             "nd0;nd0".parse::<Ids>(),
             Err(ParseError::DuplicateId(String::from("nd0")))
         );
-        assert_eq!(
+        assert!(matches!(
             "nd 0".parse::<Ids>(),
-            Err(ParseError::InvalidId(String::from("nd 0")))
-        );
-        assert_eq!(
+            Err(ParseError::InvalidId(_))
+        ));
+        assert!(matches!(
             ";nd0".parse::<Ids>(),
-            Err(ParseError::InvalidId(String::from("")))
-        );
-        assert_eq!(
+            Err(ParseError::InvalidId(_))
+        ));
+        assert!(matches!(
             "nd0;;nd1".parse::<Ids>(),
-            Err(ParseError::InvalidId(String::from("")))
-        );
-        assert_eq!(
+            Err(ParseError::InvalidId(_))
+        ));
+        assert!(matches!(
             "nd0;".parse::<Ids>(),
-            Err(ParseError::InvalidId(String::from("")))
-        );
+            Err(ParseError::InvalidId(_))
+        ));
+
+        Ok(())
     }
 }
