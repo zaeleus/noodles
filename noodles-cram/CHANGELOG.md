@@ -8,6 +8,8 @@
 
   * cram/crai/async: Add async writer (`crai::AsyncWriter`).
 
+  * cram/crai/async: Add convenience write function (`crai::r#async::write`).
+
 ### Changed
 
   * cram: Update to Rust 2021.
