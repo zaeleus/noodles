@@ -591,28 +591,29 @@ impl Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let quality_score = self
-            .quality_score()
-            .map(|qs| f32::from(qs).to_string())
-            .unwrap_or_else(|| MISSING_FIELD.into());
-
-        let filters = self
-            .filters()
-            .map(|f| f.to_string())
-            .unwrap_or_else(|| MISSING_FIELD.into());
-
         write!(
             f,
-            "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}",
+            "{chrom}\t{pos}\t{id}\t{ref}\t{alt}",
             chrom = self.chromosome(),
             pos = i32::from(self.position()),
             id = self.ids(),
             r#ref = self.reference_bases(),
             alt = self.alternate_bases(),
-            qual = quality_score,
-            filter = filters,
-            info = self.info(),
         )?;
+
+        if let Some(quality_score) = self.quality_score() {
+            write!(f, "\t{}", quality_score)?;
+        } else {
+            write!(f, "\t{}", MISSING_FIELD)?;
+        }
+
+        if let Some(filters) = self.filters() {
+            write!(f, "\t{}", filters)?;
+        } else {
+            write!(f, "\t{}", MISSING_FIELD)?;
+        }
+
+        write!(f, "\t{}", self.info())?;
 
         if let Some(format) = self.format() {
             write!(f, "\t{}", format)?;
