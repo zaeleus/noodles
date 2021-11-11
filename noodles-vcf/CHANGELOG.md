@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/record/genotypes/genotype/field: Add mutable getter for value
+    (`Field::value_mut`).
+
 ## 0.9.0 - 2021-11-11
 
 ### Added

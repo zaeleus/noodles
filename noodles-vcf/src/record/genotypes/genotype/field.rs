@@ -107,6 +107,20 @@ impl Field {
     pub fn value(&self) -> Option<&Value> {
         self.value.as_ref()
     }
+
+    /// Returns a mutable reference to the value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
+    /// let mut field = Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13)));
+    /// *field.value_mut() = None;
+    /// assert!(field.value().is_none());
+    /// ```
+    pub fn value_mut(&mut self) -> &mut Option<Value> {
+        &mut self.value
+    }
 }
 
 impl fmt::Display for Field {
