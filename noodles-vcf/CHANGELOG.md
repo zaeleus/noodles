@@ -4,6 +4,9 @@
 
 ### Added
 
+  * vcf/reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut` and `into_inner`.
+
   * vcf/record/genotypes/genotype/field: Add mutable getter for value
     (`Field::value_mut`).
 
