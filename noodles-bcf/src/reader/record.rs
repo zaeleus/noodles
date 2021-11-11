@@ -12,6 +12,7 @@ use noodles_vcf::{self as vcf, record::Genotypes};
 
 use crate::header::StringMap;
 
+#[allow(dead_code)]
 pub fn read_record<R>(
     reader: &mut R,
     header: &vcf::Header,

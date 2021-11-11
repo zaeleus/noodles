@@ -299,32 +299,23 @@ where
     R: AsyncRead + Unpin,
 {
     let l_shared = match reader.read_u32_le().await {
-        Ok(len) => len,
+        Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
         Err(e) => return Err(e),
     };
 
-    let l_indiv = reader.read_u32_le().await?;
+    let l_indiv = reader.read_u32_le().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let record_len = l_shared
-        .checked_add(l_indiv)
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!(
-                    "invalid record length: l_shared = {}, l_indiv = {}",
-                    l_shared, l_indiv
-                ),
-            )
-        })
-        .and_then(|len| {
-            usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-    record.resize(record_len);
+    record.resize(l_shared);
     reader.read_exact(record).await?;
 
-    Ok(record_len)
+    let genotypes = record.genotypes_mut().as_mut();
+    genotypes.resize(l_indiv, Default::default());
+    reader.read_exact(genotypes).await?;
+
+    Ok(l_shared + l_indiv)
 }
 
 fn c_str_to_string(buf: &[u8]) -> io::Result<String> {
@@ -399,7 +390,8 @@ mod tests {
         let record_len = read_record(&mut reader, &mut record).await?;
 
         assert_eq!(record_len, 5);
-        assert_eq!(&record[..], [0x00, 0x01, 0x01, 0x02, 0x03]);
+        assert_eq!(&record[..], [0x00, 0x01]);
+        assert_eq!(record.genotypes().as_ref(), [0x01, 0x02, 0x03]);
 
         Ok(())
     }

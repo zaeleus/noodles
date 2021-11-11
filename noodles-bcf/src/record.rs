@@ -1,9 +1,10 @@
 //! BCF record and fields.
 
 mod convert;
+mod genotypes;
 pub mod value;
 
-pub use self::value::Value;
+pub use self::{genotypes::Genotypes, value::Value};
 
 use std::{
     io,
@@ -16,11 +17,14 @@ use noodles_vcf as vcf;
 ///
 /// A `bcf::Record` wraps a raw byte buffer, and the fields should be considered immutable.
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct Record(Vec<u8>);
+pub struct Record {
+    buf: Vec<u8>,
+    genotypes: Genotypes,
+}
 
 impl Record {
     pub(crate) fn resize(&mut self, new_len: usize) {
-        self.0.resize(new_len, Default::default());
+        self.buf.resize(new_len, Default::default());
     }
 
     /// Returns the chromosome ID of the record.
@@ -44,7 +48,7 @@ impl Record {
     pub fn chromosome_id(&self) -> io::Result<i32> {
         const OFFSET: usize = 0;
 
-        let data = &self.0[OFFSET..OFFSET + 4];
+        let data = &self.buf[OFFSET..OFFSET + 4];
 
         data.try_into()
             .map(i32::from_le_bytes)
@@ -77,7 +81,7 @@ impl Record {
 
         const OFFSET: usize = 4;
 
-        let data = &self.0[OFFSET..OFFSET + 4];
+        let data = &self.buf[OFFSET..OFFSET + 4];
 
         data.try_into()
             .map(i32::from_le_bytes)
@@ -91,7 +95,7 @@ impl Record {
     fn rlen(&self) -> io::Result<i32> {
         const OFFSET: usize = 8;
 
-        let data = &self.0[OFFSET..OFFSET + 4];
+        let data = &self.buf[OFFSET..OFFSET + 4];
 
         data.try_into()
             .map(i32::from_le_bytes)
@@ -128,24 +132,35 @@ impl Record {
 
         Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
+
+    pub(crate) fn genotypes(&self) -> &Genotypes {
+        &self.genotypes
+    }
+
+    pub(crate) fn genotypes_mut(&mut self) -> &mut Genotypes {
+        &mut self.genotypes
+    }
 }
 
 impl Deref for Record {
     type Target = [u8];
 
     fn deref(&self) -> &[u8] {
-        &self.0
+        &self.buf
     }
 }
 
 impl DerefMut for Record {
     fn deref_mut(&mut self) -> &mut [u8] {
-        &mut self.0
+        &mut self.buf
     }
 }
 
 impl From<Vec<u8>> for Record {
-    fn from(data: Vec<u8>) -> Self {
-        Self(data)
+    fn from(buf: Vec<u8>) -> Self {
+        Self {
+            buf,
+            genotypes: Genotypes::default(),
+        }
     }
 }

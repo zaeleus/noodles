@@ -130,32 +130,25 @@ where
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let l_shared = match self.inner.read_u32::<LittleEndian>() {
-            Ok(len) => len,
+            Ok(n) => {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+            }
             Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
             Err(e) => return Err(e),
         };
 
-        let l_indiv = self.inner.read_u32::<LittleEndian>()?;
+        let l_indiv = self.inner.read_u32::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
-        let record_len = l_shared
-            .checked_add(l_indiv)
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!(
-                        "invalid record length: l_shared = {}, l_indiv = {}",
-                        l_shared, l_indiv
-                    ),
-                )
-            })
-            .and_then(|len| {
-                usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
-
-        record.resize(record_len);
+        record.resize(l_shared);
         self.inner.read_exact(record)?;
 
-        Ok(record_len)
+        let genotypes = record.genotypes_mut().as_mut();
+        genotypes.resize(l_indiv, Default::default());
+        self.inner.read_exact(genotypes)?;
+
+        Ok(l_shared + l_indiv)
     }
 
     /// Returns an iterator over records starting from the current stream position.

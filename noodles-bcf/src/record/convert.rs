@@ -3,7 +3,7 @@ use std::io;
 use noodles_vcf::{self as vcf, record::Position};
 use vcf::record::{AlternateBases, Format, QualityScore};
 
-use crate::{header::StringMap, reader::record::read_record};
+use crate::header::StringMap;
 
 use super::{value::Float, Record};
 
@@ -50,8 +50,23 @@ impl Record {
         header: &vcf::Header,
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
+        use crate::reader::record::{read_genotypes, read_site};
+
         let mut reader = &self[..];
-        let (site, genotypes) = read_record(&mut reader, header, string_map)?;
+        let site = read_site(&mut reader, header, string_map)?;
+
+        let genotypes = if site.n_sample == 0 {
+            vcf::record::Genotypes::default()
+        } else {
+            let mut reader = self.genotypes().as_ref();
+
+            read_genotypes(
+                &mut reader,
+                string_map,
+                site.n_sample as usize,
+                usize::from(site.n_fmt),
+            )?
+        };
 
         let (_, contig) = usize::try_from(site.chrom)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
