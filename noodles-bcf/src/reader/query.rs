@@ -111,15 +111,8 @@ where
 
                         match result {
                             Ok(record) => {
-                                let chromosome_id = match record.chromosome_id() {
-                                    Ok(id) => id as usize,
-                                    Err(e) => return Some(Err(e)),
-                                };
-
-                                let start = match record.position() {
-                                    Ok(pos) => i32::from(pos),
-                                    Err(e) => return Some(Err(e)),
-                                };
+                                let chromosome_id = record.chromosome_id() as usize;
+                                let start = i32::from(record.position());
 
                                 let end = match record.end() {
                                     Ok(pos) => i32::from(pos),

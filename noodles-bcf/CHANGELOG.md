@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/record: Implement `Debug` for `Record`.
+
+### Changed
+
+  * bcf/record: `bcf::Record` is no longer backed by a contiguous buffer.
+
+    Fields are read individually when reading the record. `bcf::Record` no
+    longer implements `Deref<Target = [u8]>`. `Filters`, `Info`, `Genotypes`
+    now own their data.
+
 ## 0.7.0 - 2021-11-11
 
 ### Changed

@@ -38,6 +38,7 @@ where
     R: AsyncRead,
 {
     inner: bgzf::AsyncReader<R>,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -70,6 +71,7 @@ where
     pub fn new(inner: R) -> Self {
         Self {
             inner: bgzf::AsyncReader::new(inner),
+            buf: Vec::new(),
         }
     }
 
@@ -156,7 +158,7 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, record).await
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -189,13 +191,13 @@ where
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, Record::default()),
-            |(mut reader, mut record)| async {
-                read_record(&mut reader, &mut record)
+            (&mut self.inner, Vec::new(), Record::default()),
+            |(mut reader, mut buf, mut record)| async {
+                read_record(&mut reader, &mut buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,
-                        _ => Some((record.clone(), (reader, record))),
+                        _ => Some((record.clone(), (reader, buf, record))),
                     })
             },
         ))
@@ -294,10 +296,12 @@ where
     c_str_to_string(&buf)
 }
 
-async fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+async fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>, record: &mut Record) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {
+    use crate::reader::record::read_site;
+
     let l_shared = match reader.read_u32_le().await {
         Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
@@ -308,12 +312,16 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.resize(l_shared);
-    reader.read_exact(record).await?;
+    buf.resize(l_shared, Default::default());
+    reader.read_exact(buf).await?;
+    let mut reader = &buf[..];
+    let (n_fmt, n_sample) = read_site(&mut reader, record)?;
 
     let genotypes = record.genotypes_mut().as_mut();
     genotypes.resize(l_indiv, Default::default());
     reader.read_exact(genotypes).await?;
+    record.genotypes_mut().set_format_count(n_fmt);
+    record.genotypes_mut().set_sample_count(n_sample);
 
     Ok(l_shared + l_indiv)
 }
@@ -373,25 +381,6 @@ mod tests {
 
         let mut reader = &data[..];
         assert_eq!(read_header(&mut reader).await?, "noodles");
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_read_record() -> io::Result<()> {
-        let data = [
-            0x02, 0x00, 0x00, 0x00, // l_shared = 2
-            0x03, 0x00, 0x00, 0x00, // l_indiv = 3
-            0x00, 0x01, 0x01, 0x02, 0x03, // ...
-        ];
-
-        let mut reader = &data[..];
-        let mut record = Record::default();
-        let record_len = read_record(&mut reader, &mut record).await?;
-
-        assert_eq!(record_len, 5);
-        assert_eq!(&record[..], [0x00, 0x01]);
-        assert_eq!(record.genotypes().as_ref(), [0x01, 0x02, 0x03]);
 
         Ok(())
     }

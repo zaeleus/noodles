@@ -26,6 +26,7 @@ use super::Record;
 /// The BCF format is comprised of two parts: 1) a VCF header and 2) a list of records.
 pub struct Reader<R> {
     inner: bgzf::Reader<R>,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -44,6 +45,7 @@ where
     pub fn new(reader: R) -> Self {
         Self {
             inner: bgzf::Reader::new(reader),
+            buf: Vec::new(),
         }
     }
 
@@ -129,6 +131,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        use self::record::read_site;
+
         let l_shared = match self.inner.read_u32::<LittleEndian>() {
             Ok(n) => {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
@@ -141,12 +145,16 @@ where
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        record.resize(l_shared);
-        self.inner.read_exact(record)?;
+        self.buf.resize(l_shared, Default::default());
+        self.inner.read_exact(&mut self.buf)?;
+        let mut reader = &self.buf[..];
+        let (n_fmt, n_sample) = read_site(&mut reader, record)?;
 
         let genotypes = record.genotypes_mut().as_mut();
         genotypes.resize(l_indiv, Default::default());
         self.inner.read_exact(genotypes)?;
+        record.genotypes_mut().set_format_count(n_fmt);
+        record.genotypes_mut().set_sample_count(n_sample);
 
         Ok(l_shared + l_indiv)
     }
@@ -167,7 +175,7 @@ where
     ///
     /// for result in reader.records() {
     ///     let record = result?;
-    ///     println!("{:?}", &record[..]);
+    ///     println!("{:?}", record);
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```

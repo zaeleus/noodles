@@ -54,6 +54,7 @@ where
 
         Reader {
             inner: builder.build(),
+            buf: Vec::new(),
         }
     }
 }

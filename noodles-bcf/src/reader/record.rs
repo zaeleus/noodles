@@ -1,43 +1,156 @@
 mod genotypes;
-mod site;
+pub(crate) mod site;
 
-pub use self::{
-    genotypes::read_genotypes,
-    site::{read_site, Site},
-};
+pub use self::genotypes::read_genotypes;
 
 use std::io::{self, Read};
 
-use noodles_vcf::{self as vcf, record::Genotypes};
+use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_vcf::record::{AlternateBases, Ids, Position, QualityScore, ReferenceBases};
 
-use crate::header::StringMap;
+use super::value::read_value;
+use crate::{
+    record::{Filters, Value},
+    Record,
+};
 
-#[allow(dead_code)]
-pub fn read_record<R>(
-    reader: &mut R,
-    header: &vcf::Header,
-    string_map: &StringMap,
-) -> io::Result<(Site, Genotypes)>
+pub fn read_site<R>(reader: &mut R, record: &mut Record) -> io::Result<(usize, usize)>
 where
     R: Read,
 {
-    let site = read_site(reader, header, string_map)?;
+    record.chrom = reader.read_i32::<LittleEndian>()?;
+    record.pos = read_pos(reader)?;
 
-    let genotypes = if site.n_sample == 0 {
-        Genotypes::default()
-    } else {
-        read_genotypes(
-            reader,
-            string_map,
-            site.n_sample as usize,
-            usize::from(site.n_fmt),
-        )?
-    };
+    record.rlen = reader.read_i32::<LittleEndian>()?;
 
-    Ok((site, genotypes))
+    record.qual = read_qual(reader)?;
+
+    let n_info = reader.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_allele = reader.read_u16::<LittleEndian>().map(usize::from)?;
+
+    let n_fmt_sample = reader.read_u32::<LittleEndian>()?;
+    let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
+    let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    record.id = read_id(reader)?;
+
+    let (r#ref, alt) = read_ref_alt(reader, n_allele)?;
+    record.r#ref = r#ref;
+    record.alt = alt;
+
+    read_filter(reader, record.filters_mut())?;
+
+    let info = record.info_mut().as_mut();
+    info.clear();
+    reader.read_to_end(info)?;
+    record.info_mut().set_field_count(n_info);
+
+    Ok((n_fmt, n_sample))
 }
 
-#[cfg(test)]
+pub fn read_pos<R>(reader: &mut R) -> io::Result<Position>
+where
+    R: Read,
+{
+    reader.read_i32::<LittleEndian>().and_then(|n| {
+        Position::try_from(n + 1).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
+}
+
+pub fn read_qual<R>(reader: &mut R) -> io::Result<Option<QualityScore>>
+where
+    R: Read,
+{
+    use crate::record::value::Float;
+
+    match reader.read_f32::<LittleEndian>().map(Float::from)? {
+        Float::Value(value) => QualityScore::try_from(value)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
+        Float::Missing => Ok(None),
+        qual => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("invalid qual: {:?}", qual),
+            ));
+        }
+    }
+}
+
+fn read_id<R>(reader: &mut R) -> io::Result<Ids>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        Some(Value::String(Some(id))) => id
+            .parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        Some(Value::String(None)) => Ok(Ids::default()),
+        v => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("expected string, got {:?}", v),
+        )),
+    }
+}
+
+fn read_ref_alt<R>(reader: &mut R, len: usize) -> io::Result<(ReferenceBases, AlternateBases)>
+where
+    R: Read,
+{
+    let mut alleles = Vec::with_capacity(len);
+
+    for _ in 0..len {
+        match read_value(reader)? {
+            Some(Value::String(Some(s))) => alleles.push(s),
+            Some(Value::String(None)) => alleles.push(String::from(".")),
+            v => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("expected string, got {:?}", v),
+                ))
+            }
+        }
+    }
+
+    let (raw_reference_bases, raw_alternate_bases) = alleles.split_at(1);
+
+    let reference_bases = raw_reference_bases
+        .first()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))
+        .and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
+
+    let alternate_bases = raw_alternate_bases
+        .iter()
+        .map(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(AlternateBases::from)?;
+
+    Ok((reference_bases, alternate_bases))
+}
+
+fn read_filter<R>(reader: &mut R, filters: &mut Filters) -> io::Result<()>
+where
+    R: Read,
+{
+    use super::string_map::read_string_map_indices;
+
+    let filter = filters.as_mut();
+    filter.clear();
+
+    let indices = read_string_map_indices(reader)?;
+    filter.extend_from_slice(&indices);
+
+    Ok(())
+}
+
+/* #[cfg(test)]
 mod tests {
     use noodles_vcf::record::{genotype::Genotype, Filters, Info};
 
@@ -233,4 +346,4 @@ mod tests {
 
         Ok(())
     }
-}
+} */

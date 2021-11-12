@@ -1,11 +1,9 @@
 use std::io;
 
-use noodles_vcf::{self as vcf, record::Position};
-use vcf::record::{AlternateBases, Format, QualityScore};
+use noodles_vcf::{self as vcf, record::Format};
 
+use super::Record;
 use crate::header::StringMap;
-
-use super::{value::Float, Record};
 
 impl Record {
     /// Converts a VCF record to a BCF record.
@@ -20,22 +18,9 @@ impl Record {
     /// let header: vcf::Header = raw_header.parse()?;
     /// let string_map = raw_header.parse()?;
     ///
-    /// let record = bcf::Record::from(vec![
-    ///     0x00, 0x00, 0x00, 0x00, // chrom = sq0
-    ///     0x00, 0x00, 0x00, 0x00, // pos = 0 (base 0)
-    ///     0x01, 0x00, 0x00, 0x00, // rlen = 1
-    ///     0x01, 0x00, 0x80, 0x7f, // qual = Float::Missing
-    ///     0x00, 0x00, // n_info = 0
-    ///     0x01, 0x00, // n_allele = 1
-    ///     0x00, // n_sample = 0
-    ///     0x00, 0x00, 0x00, // n_fmt = 0
-    ///     0x07, // id = [missing]
-    ///     0x17, 0x41, // ref = A
-    ///     0x00, // filter = []
-    /// ]);
+    /// let record = bcf::Record::default();
     ///
     /// let actual = record.try_into_vcf_record(&header, &string_map)?;
-    ///
     /// let expected = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
@@ -50,12 +35,9 @@ impl Record {
         header: &vcf::Header,
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
-        use crate::reader::record::{read_genotypes, read_site};
+        use crate::reader::record::{read_genotypes, site::read_info};
 
-        let mut reader = &self[..];
-        let site = read_site(&mut reader, header, string_map)?;
-
-        let genotypes = if site.n_sample == 0 {
+        let genotypes = if self.genotypes().is_empty() {
             vcf::record::Genotypes::default()
         } else {
             let mut reader = self.genotypes().as_ref();
@@ -63,12 +45,12 @@ impl Record {
             read_genotypes(
                 &mut reader,
                 string_map,
-                site.n_sample as usize,
-                usize::from(site.n_fmt),
+                self.genotypes().len(),
+                self.genotypes().format_count(),
             )?
         };
 
-        let (_, contig) = usize::try_from(site.chrom)
+        let (_, contig) = usize::try_from(self.chromosome_id())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             .and_then(|i| {
                 header
@@ -82,59 +64,44 @@ impl Record {
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let position = Position::try_from(site.pos + 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let quality_score = match site.qual {
-            Float::Value(value) => QualityScore::try_from(value)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-            Float::Missing => None,
-            qual => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("invalid qual: {:?}", qual),
-                ));
-            }
+        let filters = if self.filters().is_empty() {
+            None
+        } else {
+            self.filters()
+                .as_ref()
+                .iter()
+                .map(|&i| {
+                    string_map.get_index(i).ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidInput,
+                            format!("invalid string map index: {}", i),
+                        )
+                    })
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .and_then(|raw_filters| {
+                    vcf::record::Filters::try_from_iter(raw_filters)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+                })
+                .map(Some)?
         };
 
-        let ids = site.id;
-
-        let (raw_reference_bases, raw_alternate_bases) = site.ref_alt.split_at(1);
-
-        let reference_bases = raw_reference_bases
-            .first()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
-
-        let alternate_alleles: Vec<_> = raw_alternate_bases
-            .iter()
-            .map(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })
-            .collect::<Result<_, _>>()?;
-
-        let alternate_bases = AlternateBases::from(alternate_alleles);
-
-        let info = site.info;
+        let mut reader = self.info().as_ref();
+        let info = read_info(&mut reader, header.infos(), string_map, self.info().len())?;
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
-            .set_position(position)
-            .set_ids(ids)
-            .set_reference_bases(reference_bases)
-            .set_alternate_bases(alternate_bases)
+            .set_position(self.position())
+            .set_ids(self.ids().clone())
+            .set_reference_bases(self.reference_bases().clone())
+            .set_alternate_bases(self.alternate_bases().clone())
             .set_info(info);
 
-        if let Some(quality_score) = quality_score {
+        if let Some(quality_score) = self.quality_score() {
             builder = builder.set_quality_score(quality_score);
         }
 
-        if let Some(filters) = site.filter {
+        if let Some(filters) = filters {
             builder = builder.set_filters(filters);
         }
 
