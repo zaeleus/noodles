@@ -131,32 +131,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        use self::record::read_site;
-
-        let l_shared = match self.inner.read_u32::<LittleEndian>() {
-            Ok(n) => {
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-            }
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
-            Err(e) => return Err(e),
-        };
-
-        let l_indiv = self.inner.read_u32::<LittleEndian>().and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        self.buf.resize(l_shared, Default::default());
-        self.inner.read_exact(&mut self.buf)?;
-        let mut reader = &self.buf[..];
-        let (n_fmt, n_sample) = read_site(&mut reader, record)?;
-
-        let genotypes = record.genotypes_mut().as_mut();
-        genotypes.resize(l_indiv, Default::default());
-        self.inner.read_exact(genotypes)?;
-        record.genotypes_mut().set_format_count(n_fmt);
-        record.genotypes_mut().set_sample_count(n_sample);
-
-        Ok(l_shared + l_indiv)
+        record::read_record(&mut self.inner, &mut self.buf, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
