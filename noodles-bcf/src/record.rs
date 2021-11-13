@@ -18,7 +18,7 @@ use noodles_vcf as vcf;
 /// first be converted to a [`vcf::Record`] (see [`vcf::Record::try_into_vcf_record`]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    pub(crate) chrom: i32,
+    chrom: i32,
     pub(crate) pos: vcf::record::Position,
     pub(crate) rlen: i32,
     pub(crate) qual: Option<vcf::record::QualityScore>,
@@ -44,6 +44,10 @@ impl Record {
     /// ```
     pub fn chromosome_id(&self) -> i32 {
         self.chrom
+    }
+
+    pub(crate) fn chromosome_id_mut(&mut self) -> &mut i32 {
+        &mut self.chrom
     }
 
     /// Returns the start position of this record.

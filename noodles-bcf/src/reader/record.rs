@@ -46,7 +46,7 @@ pub(crate) fn read_site<R>(reader: &mut R, record: &mut Record) -> io::Result<(u
 where
     R: Read,
 {
-    record.chrom = reader.read_i32::<LittleEndian>()?;
+    *record.chromosome_id_mut() = reader.read_i32::<LittleEndian>()?;
     record.pos = read_pos(reader)?;
 
     record.rlen = reader.read_i32::<LittleEndian>()?;
