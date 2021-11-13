@@ -14,7 +14,8 @@ use noodles_vcf as vcf;
 
 /// A BCF record.
 ///
-/// A `bcf::Record` wraps a raw byte buffer, and the fields should be considered immutable.
+/// The fields of a `bcf::Record` are immutable. They can be read, but to make changes, it must
+/// first be converted to a [`vcf::Record`] (see [`vcf::Record::try_into_vcf_record`]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) chrom: i32,
