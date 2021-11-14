@@ -6,6 +6,8 @@
 
   * bcf/record: Implement `Debug` for `Record`.
 
+  * bcf/record: Add getter for quality score (`Record::quality_score`).
+
   * bcf/record: Add mutable getter for position (`Record::position_mut`).
 
 ### Changed

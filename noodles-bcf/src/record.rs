@@ -111,7 +111,16 @@ impl Record {
         Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    pub(crate) fn quality_score(&self) -> Option<vcf::record::QualityScore> {
+    /// Returns the quality score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert!(record.quality_score().is_none());
+    /// ```
+    pub fn quality_score(&self) -> Option<vcf::record::QualityScore> {
         self.qual
     }
 
