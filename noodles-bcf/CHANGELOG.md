@@ -6,6 +6,8 @@
 
   * bcf/record: Implement `Debug` for `Record`.
 
+  * bcf/record: Add mutable getter for position (`Record::position_mut`).
+
 ### Changed
 
   * bcf/record: `bcf::Record` is no longer backed by a contiguous buffer.

@@ -19,7 +19,7 @@ use noodles_vcf as vcf;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     chrom: i32,
-    pub(crate) pos: vcf::record::Position,
+    pos: vcf::record::Position,
     pub(crate) rlen: i32,
     pub(crate) qual: Option<vcf::record::QualityScore>,
     pub(crate) id: vcf::record::Ids,
@@ -64,6 +64,24 @@ impl Record {
     /// ```
     pub fn position(&self) -> vcf::record::Position {
         self.pos
+    }
+
+    /// Returns a mutable reference to the start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::record::Position;
+    ///
+    /// let mut record = bcf::Record::default();
+    /// *record.position_mut() = Position::try_from(8)?;
+    ///
+    /// assert_eq!(i32::from(record.position()), 8);
+    /// # Ok::<_, noodles_vcf::record::position::TryFromIntError>(())
+    /// ```
+    pub fn position_mut(&mut self) -> &mut vcf::record::Position {
+        &mut self.pos
     }
 
     fn rlen(&self) -> i32 {

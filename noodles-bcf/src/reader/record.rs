@@ -47,7 +47,7 @@ where
     R: Read,
 {
     *record.chromosome_id_mut() = reader.read_i32::<LittleEndian>()?;
-    record.pos = read_pos(reader)?;
+    *record.position_mut() = read_pos(reader)?;
 
     record.rlen = reader.read_i32::<LittleEndian>()?;
 
