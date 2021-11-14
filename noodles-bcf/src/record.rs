@@ -21,7 +21,7 @@ pub struct Record {
     chrom: i32,
     pos: vcf::record::Position,
     pub(crate) rlen: i32,
-    pub(crate) qual: Option<vcf::record::QualityScore>,
+    qual: Option<vcf::record::QualityScore>,
     pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
     pub(crate) alt: vcf::record::AlternateBases,
@@ -122,6 +122,24 @@ impl Record {
     /// ```
     pub fn quality_score(&self) -> Option<vcf::record::QualityScore> {
         self.qual
+    }
+
+    /// Return a mutable reference to the quality score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::record::QualityScore;
+    ///
+    /// let mut record = bcf::Record::default();
+    /// *record.quality_score_mut() = QualityScore::try_from(13.0).map(Some)?;
+    ///
+    /// assert_eq!(record.quality_score().map(f32::from), Some(13.0));
+    /// # Ok::<_, noodles_vcf::record::quality_score::TryFromFloatError>(())
+    /// ```
+    pub fn quality_score_mut(&mut self) -> &mut Option<vcf::record::QualityScore> {
+        &mut self.qual
     }
 
     pub(crate) fn ids(&self) -> &vcf::record::Ids {

@@ -8,7 +8,8 @@
 
   * bcf/record: Add getter for quality score (`Record::quality_score`).
 
-  * bcf/record: Add mutable getter for position (`Record::position_mut`).
+  * bcf/record: Add mutable getters for position (`Record::position_mut`) and
+    quality score (`Record::quality_score_mut`).
 
 ### Changed
 

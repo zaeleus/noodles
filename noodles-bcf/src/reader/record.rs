@@ -51,7 +51,7 @@ where
 
     record.rlen = reader.read_i32::<LittleEndian>()?;
 
-    record.qual = read_qual(reader)?;
+    *record.quality_score_mut() = read_qual(reader)?;
 
     let n_info = reader.read_u16::<LittleEndian>().map(usize::from)?;
     let n_allele = reader.read_u16::<LittleEndian>().map(usize::from)?;
