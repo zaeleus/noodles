@@ -22,7 +22,7 @@ pub struct Record {
     pos: vcf::record::Position,
     rlen: i32,
     qual: Option<vcf::record::QualityScore>,
-    pub(crate) id: vcf::record::Ids,
+    id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
     pub(crate) alt: vcf::record::AlternateBases,
     filter: Filters,
@@ -157,6 +157,25 @@ impl Record {
     /// ```
     pub fn ids(&self) -> &vcf::record::Ids {
         &self.id
+    }
+
+    /// Returns a mutable reference to the IDs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf::record::Ids;
+    ///
+    /// let mut record = bcf::Record::default();
+    /// let ids: Ids = "nd0".parse()?;
+    /// *record.ids_mut() = ids.clone();
+    ///
+    /// assert_eq!(record.ids(), &ids);
+    /// # Ok::<_, noodles_vcf::record::ids::ParseError>(())
+    /// ```
+    pub fn ids_mut(&mut self) -> &mut vcf::record::Ids {
+        &mut self.id
     }
 
     pub(crate) fn reference_bases(&self) -> &vcf::record::ReferenceBases {

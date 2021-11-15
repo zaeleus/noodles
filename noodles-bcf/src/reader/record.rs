@@ -61,7 +61,7 @@ where
     let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    record.id = read_id(reader)?;
+    *record.ids_mut() = read_id(reader)?;
 
     let (r#ref, alt) = read_ref_alt(reader, n_allele)?;
     record.r#ref = r#ref;
