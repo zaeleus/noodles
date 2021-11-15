@@ -117,7 +117,7 @@ where
         Some(Value::String(None)) => Ok(Ids::default()),
         v => Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("expected string, got {:?}", v),
+            format!("invalid id: expected string, got {:?}", v),
         )),
     }
 }
@@ -135,7 +135,7 @@ where
             v => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("expected string, got {:?}", v),
+                    format!("invalid ref_alt: expected string, got {:?}", v),
                 ))
             }
         }
