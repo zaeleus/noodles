@@ -1,8 +1,55 @@
+use std::io;
+
+use noodles_vcf as vcf;
+
+use crate::header::StringMap;
+
 /// BCF record filters.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Filters(Vec<usize>);
 
 impl Filters {
+    /// Converts BCF record filters to VCF record filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::{header::StringMap, record::Filters};
+    ///
+    /// let bcf_filters = Filters::default();
+    /// let string_map = StringMap::default();
+    /// let vcf_filters = bcf_filters.try_into_vcf_record_filters(&string_map)?;
+    ///
+    /// assert!(vcf_filters.is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn try_into_vcf_record_filters(
+        &self,
+        string_map: &StringMap,
+    ) -> io::Result<Option<vcf::record::Filters>> {
+        let raw_filters: Vec<_> = self
+            .0
+            .iter()
+            .map(|&i| {
+                string_map.get_index(i).ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid string map index: {}", i),
+                    )
+                })
+            })
+            .collect::<Result<_, _>>()?;
+
+        if raw_filters.is_empty() {
+            Ok(None)
+        } else {
+            vcf::record::Filters::try_from_iter(raw_filters)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        }
+    }
+
     /// Returns the number of filters.
     ///
     /// # Examples

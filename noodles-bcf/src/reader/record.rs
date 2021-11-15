@@ -196,7 +196,7 @@ mod tests {
                 field::{Key as InfoFieldKey, Value as InfoFieldValue},
                 Field as InfoField,
             },
-            Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
+            Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
         };
 
         // § Putting it all together (2021-01-13)
@@ -284,7 +284,11 @@ mod tests {
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
         // FIXME: r#ref
         // FIXME: alt
-        // FIXME: filters
+
+        assert_eq!(
+            record.filters().try_into_vcf_record_filters(&string_map)?,
+            Some(VcfFilters::Pass),
+        );
 
         // info
 
