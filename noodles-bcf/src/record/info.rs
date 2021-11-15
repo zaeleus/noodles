@@ -19,6 +19,19 @@ impl Info {
         self.field_count
     }
 
+    /// Returns whether there are any info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Info;
+    /// let info = Info::default();
+    /// assert!(info.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub(crate) fn set_field_count(&mut self, field_count: usize) {
         self.field_count = field_count;
     }
