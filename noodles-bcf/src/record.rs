@@ -195,7 +195,16 @@ impl Record {
         &mut self.filter
     }
 
-    pub(crate) fn info(&self) -> &Info {
+    /// Returns the info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert_eq!(record.info().len(), 0);
+    /// ```
+    pub fn info(&self) -> &Info {
         &self.info
     }
 

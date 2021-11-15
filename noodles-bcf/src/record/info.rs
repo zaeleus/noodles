@@ -6,7 +6,16 @@ pub struct Info {
 }
 
 impl Info {
-    pub(crate) fn len(&self) -> usize {
+    /// Returns the number of info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Info;
+    /// let info = Info::default();
+    /// assert_eq!(info.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
         self.field_count
     }
 
