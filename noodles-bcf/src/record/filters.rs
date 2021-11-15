@@ -3,11 +3,29 @@
 pub struct Filters(Vec<usize>);
 
 impl Filters {
-    pub(crate) fn len(&self) -> usize {
+    /// Returns the number of filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Filters;
+    /// let filters = Filters::default();
+    /// assert_eq!(filters.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
         self.0.len()
     }
 
-    pub(crate) fn is_empty(&self) -> bool {
+    /// Returns whether there are any filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Filters;
+    /// let filters = Filters::default();
+    /// assert!(filters.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 }

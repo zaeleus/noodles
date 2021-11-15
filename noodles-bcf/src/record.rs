@@ -187,7 +187,16 @@ impl Record {
         &self.alt
     }
 
-    pub(crate) fn filters(&self) -> &Filters {
+    /// Returns the filters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert!(record.filters().is_empty());
+    /// ```
+    pub fn filters(&self) -> &Filters {
         &self.filter
     }
 
