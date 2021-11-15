@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_vcf::{self as vcf, record::Format};
+use noodles_vcf as vcf;
 
 use super::Record;
 use crate::header::StringMap;
@@ -35,21 +35,6 @@ impl Record {
         header: &vcf::Header,
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
-        use crate::reader::record::read_genotypes;
-
-        let genotypes = if self.genotypes().is_empty() {
-            vcf::record::Genotypes::default()
-        } else {
-            let mut reader = self.genotypes().as_ref();
-
-            read_genotypes(
-                &mut reader,
-                string_map,
-                self.genotypes().len(),
-                self.genotypes().format_count(),
-            )?
-        };
-
         let (_, contig) = usize::try_from(self.chromosome_id())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             .and_then(|i| {
@@ -104,10 +89,9 @@ impl Record {
             builder = builder.set_filters(filters);
         }
 
-        if let Some(first_genotype) = genotypes.first() {
-            let keys: Vec<_> = first_genotype.keys().cloned().collect();
-            let format = Format::try_from(keys)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let (format, genotypes) = self.genotypes().try_into_vcf_record_genotypes(string_map)?;
+
+        if let Some(format) = format {
             builder = builder.set_format(format).set_genotypes(genotypes);
         }
 

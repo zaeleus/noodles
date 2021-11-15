@@ -1,3 +1,9 @@
+use std::io;
+
+use noodles_vcf as vcf;
+
+use crate::header::StringMap;
+
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Genotypes {
@@ -7,6 +13,44 @@ pub struct Genotypes {
 }
 
 impl Genotypes {
+    /// Converts BCF record genotypes to VCF record genotypes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::{header::StringMap, record::Genotypes};
+    ///
+    /// let bcf_genotypes = Genotypes::default();
+    /// let string_map = StringMap::default();
+    ///
+    /// let (format, vcf_genotypes) = bcf_genotypes.try_into_vcf_record_genotypes(&string_map)?;
+    ///
+    /// assert!(format.is_none());
+    /// assert!(vcf_genotypes.is_empty());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn try_into_vcf_record_genotypes(
+        &self,
+        string_map: &StringMap,
+    ) -> io::Result<(Option<vcf::record::Format>, vcf::record::Genotypes)> {
+        use crate::reader::record::read_genotypes;
+
+        if self.is_empty() {
+            return Ok((None, vcf::record::Genotypes::default()));
+        }
+
+        let mut reader = &self.buf[..];
+        let genotypes = read_genotypes(&mut reader, string_map, self.len(), self.format_count())?;
+
+        let first_genotype = genotypes.first().expect("unexpected empty genotypes");
+        let keys: Vec<_> = first_genotype.keys().cloned().collect();
+        let format = vcf::record::Format::try_from(keys)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        Ok((Some(format), genotypes))
+    }
+
     /// Returns the number of samples.
     ///
     /// # Examples
