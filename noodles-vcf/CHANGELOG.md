@@ -16,15 +16,18 @@
 
   * vcf/record: Add mutable getters for chromosome (`Record::chromosome_mut`),
     filters (`Record::filters_mut`), IDs (`Record::ids_mut`), info
-    (`Record::info_mut`), position (`Record::position_mut`), and quality score
-    (`Record::quality_score_mut`).
+    (`Record::info_mut`; [#52]), position (`Record::position_mut`), and quality
+    score (`Record::quality_score_mut`).
 
   * vcf/record/ids: Add ID wrapper.
 
-  * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`).
+  * vcf/record/info/field: Add mutable getter for value (`Field::value_mut`;
+    [#52]).
 
   * vcf/writer: Add common methods to access the underlying writer: `get_mut`
     and `into_inner`.
+
+[#52]: https://github.com/zaeleus/noodles/issues/52
 
 ### Changed
 
