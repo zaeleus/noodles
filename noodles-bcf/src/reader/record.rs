@@ -178,28 +178,37 @@ where
     Ok(())
 }
 
-/* #[cfg(test)]
+#[cfg(test)]
 mod tests {
-    use noodles_vcf::record::{genotype::Genotype, Filters, Info};
-
-    use crate::record::value::Float;
-
     use super::*;
 
     #[test]
     fn test_read_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::record::{
-            genotypes::genotype::field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
-            genotypes::genotype::Field as GenotypeField,
-            info::field::{Key as InfoFieldKey, Value as InfoFieldValue},
-            info::Field as InfoField,
+            genotypes::{
+                genotype::{
+                    field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
+                    Field as GenotypeField,
+                },
+                Genotype,
+            },
+            info::{
+                field::{Key as InfoFieldKey, Value as InfoFieldValue},
+                Field as InfoField,
+            },
+            Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
         };
 
         // § Putting it all together (2021-01-13)
         //
+        // `l_shared` is defined to be 51 bytes but is actually 52 bytes.
+        //
         // Note that the data in the reference table mixes big and little endian. INFO string map
         // indices are offset by -79. FORMAT string map indices are offset by +4.
         let data = [
+            0x34, 0x00, 0x00, 0x00, // l_shared = 52
+            0x2a, 0x00, 0x00, 0x00, // l_indiv = 42
+            //
             0x01, 0x00, 0x00, 0x00, // chrom = 1
             0x64, 0x00, 0x00, 0x00, // pos = 100 (base 0)
             0x01, 0x00, 0x00, 0x00, // rlen = 1
@@ -243,8 +252,6 @@ mod tests {
             0x64, 0x0a, 0x00, // [100, 10, 0]
         ];
 
-        let mut reader = &data[..];
-
         let raw_header = r#"##fileformat=VCFv4.3
 ##INFO=<ID=HM3,Number=0,Type=Flag,Description="HM3 membership",IDX=1>
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed",IDX=2>
@@ -262,34 +269,48 @@ mod tests {
         let header = raw_header.parse()?;
         let string_map = raw_header.parse()?;
 
-        let (actual_site, actual_genotypes) = read_record(&mut reader, &header, &string_map)?;
+        let mut reader = &data[..];
+        let mut buf = Vec::new();
+        let mut record = Record::default();
+        read_record(&mut reader, &mut buf, &mut record)?;
 
-        let expected_site = Site {
-            chrom: 1,
-            pos: 100,
-            rlen: 1,
-            qual: Float::from(30.1),
-            n_info: 4,
-            n_allele: 2,
-            n_sample: 3,
-            n_fmt: 5,
-            id: "rs123".parse()?,
-            ref_alt: vec![String::from("A"), String::from("C")],
-            filter: Some(Filters::Pass),
-            info: Info::try_from(vec![
-                InfoField::new("HM3".parse()?, InfoFieldValue::Flag),
-                InfoField::new(InfoFieldKey::AlleleCount, InfoFieldValue::Integer(3)),
-                InfoField::new(InfoFieldKey::TotalAlleleCount, InfoFieldValue::Integer(6)),
-                InfoField::new(
-                    InfoFieldKey::AncestralAllele,
-                    InfoFieldValue::String(String::from("C")),
-                ),
-            ])?,
-        };
+        assert_eq!(record.chromosome_id(), 1);
+        assert_eq!(record.position(), Position::try_from(101)?);
+        // FIXME: rlen
+        assert_eq!(
+            record.quality_score(),
+            QualityScore::try_from(30.1).map(Some)?
+        );
+        assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
+        // FIXME: r#ref
+        // FIXME: alt
+        // FIXME: filters
 
-        assert_eq!(actual_site, expected_site);
+        // info
 
-        let expected_genotypes = Genotypes::from(vec![
+        let actual = record
+            .info()
+            .try_into_vcf_record_info(&header, &string_map)?;
+
+        let expected = VcfInfo::try_from(vec![
+            InfoField::new("HM3".parse()?, InfoFieldValue::Flag),
+            InfoField::new(InfoFieldKey::AlleleCount, InfoFieldValue::Integer(3)),
+            InfoField::new(InfoFieldKey::TotalAlleleCount, InfoFieldValue::Integer(6)),
+            InfoField::new(
+                InfoFieldKey::AncestralAllele,
+                InfoFieldValue::String(String::from("C")),
+            ),
+        ])?;
+
+        assert_eq!(actual, expected);
+
+        // genotypes
+
+        let (_, actual) = record
+            .genotypes()
+            .try_into_vcf_record_genotypes(&string_map)?;
+
+        let expected = VcfGenotypes::from(vec![
             Genotype::try_from(vec![
                 GenotypeField::new(
                     GenotypeFieldKey::Genotype,
@@ -370,8 +391,8 @@ mod tests {
             ])?,
         ]);
 
-        assert_eq!(actual_genotypes, expected_genotypes);
+        assert_eq!(actual, expected);
 
         Ok(())
     }
-} */
+}
