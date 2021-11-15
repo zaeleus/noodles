@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut`, and `into_inner`.
+
 ## 0.5.0 - 2021-11-11
 
 ### Added
