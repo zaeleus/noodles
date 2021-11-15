@@ -146,7 +146,16 @@ impl Record {
         &mut self.qual
     }
 
-    pub(crate) fn ids(&self) -> &vcf::record::Ids {
+    /// Returns the IDs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert!(record.ids().is_empty());
+    /// ```
+    pub fn ids(&self) -> &vcf::record::Ids {
         &self.id
     }
 
