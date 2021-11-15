@@ -1,3 +1,9 @@
+use std::io;
+
+use noodles_vcf as vcf;
+
+use crate::header::StringMap;
+
 /// BCF record info.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Info {
@@ -6,6 +12,33 @@ pub struct Info {
 }
 
 impl Info {
+    /// Converts BCF record info to VCF record info.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let bcf_info = bcf::record::Info::default();
+    /// let header = vcf::Header::default();
+    /// let string_map = bcf::header::StringMap::default();
+    ///
+    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, &string_map)?;
+    /// assert!(vcf_info.is_empty());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn try_into_vcf_record_info(
+        &self,
+        header: &vcf::Header,
+        string_map: &StringMap,
+    ) -> io::Result<vcf::record::Info> {
+        use crate::reader::record::site::read_info;
+        let mut reader = &self.buf[..];
+        read_info(&mut reader, header.infos(), string_map, self.len())
+    }
+
     /// Returns the number of info fields.
     ///
     /// # Examples

@@ -35,7 +35,7 @@ impl Record {
         header: &vcf::Header,
         string_map: &StringMap,
     ) -> io::Result<vcf::Record> {
-        use crate::reader::record::{read_genotypes, site::read_info};
+        use crate::reader::record::read_genotypes;
 
         let genotypes = if self.genotypes().is_empty() {
             vcf::record::Genotypes::default()
@@ -86,8 +86,7 @@ impl Record {
                 .map(Some)?
         };
 
-        let mut reader = self.info().as_ref();
-        let info = read_info(&mut reader, header.infos(), string_map, self.info().len())?;
+        let info = self.info().try_into_vcf_record_info(header, string_map)?;
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
