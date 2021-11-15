@@ -221,7 +221,16 @@ impl Record {
         &mut self.info
     }
 
-    pub(crate) fn genotypes(&self) -> &Genotypes {
+    /// Returns the genotypes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let record = bcf::Record::default();
+    /// assert!(record.genotypes().is_empty());
+    /// ```
+    pub fn genotypes(&self) -> &Genotypes {
         &self.genotypes
     }
 

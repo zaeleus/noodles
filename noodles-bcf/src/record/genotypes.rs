@@ -7,15 +7,42 @@ pub struct Genotypes {
 }
 
 impl Genotypes {
-    pub(crate) fn len(&self) -> usize {
+    /// Returns the number of samples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Genotypes;
+    /// let genotypes = Genotypes::default();
+    /// assert_eq!(genotypes.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
         self.sample_count
     }
 
-    pub(crate) fn is_empty(&self) -> bool {
+    /// Returns whether there are any samples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Genotypes;
+    /// let genotypes = Genotypes::default();
+    /// assert!(genotypes.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    pub(crate) fn format_count(&self) -> usize {
+    /// Returns the number of fields per sample.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Genotypes;
+    /// let genotypes = Genotypes::default();
+    /// assert_eq!(genotypes.format_count(), 0);
+    /// ```
+    pub fn format_count(&self) -> usize {
         self.format_count
     }
 

@@ -7,8 +7,8 @@
   * bcf/record: Implement `Debug` for `Record`.
 
   * bcf/record: Add getter for filters (`Record::filters`), IDs
-    (`Record::ids`), info (`Record::info`), and quality score
-    (`Record::quality_score`).
+    (`Record::ids`), genotypes (`Record::genotypes`), info (`Record::info`),
+    and quality score (`Record::quality_score`).
 
   * bcf/record: Add mutable getters for IDs (`Record::ids_mut`), position
     (`Record::position_mut`) and quality score (`Record::quality_score_mut`).
