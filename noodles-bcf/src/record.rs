@@ -20,7 +20,7 @@ use noodles_vcf as vcf;
 pub struct Record {
     chrom: i32,
     pos: vcf::record::Position,
-    pub(crate) rlen: i32,
+    rlen: i32,
     qual: Option<vcf::record::QualityScore>,
     pub(crate) id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
@@ -86,6 +86,10 @@ impl Record {
 
     fn rlen(&self) -> i32 {
         self.rlen
+    }
+
+    pub(crate) fn rlen_mut(&mut self) -> &mut i32 {
+        &mut self.rlen
     }
 
     /// Returns the end position of this record.

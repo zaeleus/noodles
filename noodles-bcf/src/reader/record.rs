@@ -49,7 +49,7 @@ where
     *record.chromosome_id_mut() = reader.read_i32::<LittleEndian>()?;
     *record.position_mut() = read_pos(reader)?;
 
-    record.rlen = reader.read_i32::<LittleEndian>()?;
+    *record.rlen_mut() = reader.read_i32::<LittleEndian>()?;
 
     *record.quality_score_mut() = read_qual(reader)?;
 
