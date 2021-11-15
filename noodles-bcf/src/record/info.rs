@@ -1,3 +1,4 @@
+/// BCF record info.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Info {
     buf: Vec<u8>,
@@ -9,7 +10,7 @@ impl Info {
         self.field_count
     }
 
-    pub fn set_field_count(&mut self, field_count: usize) {
+    pub(crate) fn set_field_count(&mut self, field_count: usize) {
         self.field_count = field_count;
     }
 }

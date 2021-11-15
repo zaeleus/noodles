@@ -7,7 +7,7 @@ mod r#async;
 
 pub mod header;
 pub mod reader;
-mod record;
+pub mod record;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};

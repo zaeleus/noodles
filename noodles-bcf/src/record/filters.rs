@@ -1,3 +1,4 @@
+/// BCF record filters.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Filters(Vec<usize>);
 

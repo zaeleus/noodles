@@ -4,9 +4,10 @@ mod convert;
 mod filters;
 mod genotypes;
 mod info;
-pub mod value;
+pub(crate) mod value;
 
-pub use self::{filters::Filters, genotypes::Genotypes, info::Info, value::Value};
+pub(crate) use self::value::Value;
+pub use self::{filters::Filters, genotypes::Genotypes, info::Info};
 
 use std::io;
 

@@ -1,3 +1,4 @@
+/// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Genotypes {
     buf: Vec<u8>,
