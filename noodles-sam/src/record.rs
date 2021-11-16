@@ -20,7 +20,12 @@ pub use self::{
     reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
-use std::{fmt, str::FromStr};
+use std::{fmt, io, str::FromStr};
+
+use super::{
+    header::{ReferenceSequence, ReferenceSequences},
+    RecordExt,
+};
 
 pub(crate) const NULL_FIELD: &str = "*";
 const EQ_FIELD: &str = "=";
@@ -595,6 +600,26 @@ impl Record {
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
+    }
+}
+
+impl RecordExt for Record {
+    /// Returns the reference sequence name from the referece sequence dictionary.
+    fn reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        self.reference_sequence_name()
+            .map(|reference_sequence_name| {
+                reference_sequences
+                    .get(reference_sequence_name.as_str())
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid reference sequence name",
+                        )
+                    })
+            })
     }
 }
 

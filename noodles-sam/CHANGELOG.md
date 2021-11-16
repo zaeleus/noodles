@@ -4,8 +4,10 @@
 
 ### Added
 
-  * sam/record/reference_sequence_name: Implement `Hash`
-    for `ReferenceSequenceName`.
+  * sam: Add trait for record extensions (`RecordExt`).
+
+  * sam/record/reference_sequence_name: Implement `Hash` for
+    `ReferenceSequenceName`.
 
 ### Changed
 
