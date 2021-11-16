@@ -418,22 +418,34 @@ impl sam::RecordExt for Record {
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        self.reference_sequence_id().map(|reference_sequence_id| {
-            usize::try_from(i32::from(reference_sequence_id))
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .and_then(|id| {
-                    reference_sequences
-                        .get_index(id)
-                        .map(|(_, rs)| rs)
-                        .ok_or_else(|| {
-                            io::Error::new(
-                                io::ErrorKind::InvalidData,
-                                "invalid reference sequence ID",
-                            )
-                        })
-                })
-        })
+        get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
+
+    /// Returns the associated reference sequence of the mate.
+    fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        get_reference_sequence(reference_sequences, self.mate_reference_sequence_id())
+    }
+}
+
+fn get_reference_sequence(
+    reference_sequences: &ReferenceSequences,
+    reference_sequence_id: Option<ReferenceSequenceId>,
+) -> Option<io::Result<&ReferenceSequence>> {
+    reference_sequence_id.map(|reference_sequence_id| {
+        usize::try_from(i32::from(reference_sequence_id))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .and_then(|i| {
+                reference_sequences
+                    .get_index(i)
+                    .map(|(_, rs)| rs)
+                    .ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+                    })
+            })
+    })
 }
 
 impl Default for Record {

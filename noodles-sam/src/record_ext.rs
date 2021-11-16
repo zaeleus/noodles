@@ -9,4 +9,10 @@ pub trait RecordExt {
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>>;
+
+    /// Returns the associated reference sequence of the mate.
+    fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>>;
 }

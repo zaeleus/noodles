@@ -609,18 +609,30 @@ impl RecordExt for Record {
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        self.reference_sequence_name()
-            .map(|reference_sequence_name| {
-                reference_sequences
-                    .get(reference_sequence_name.as_str())
-                    .ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidData,
-                            "invalid reference sequence name",
-                        )
-                    })
-            })
+        get_reference_sequence(reference_sequences, self.reference_sequence_name())
     }
+
+    /// Returns the associated reference sequence of the mate.
+    fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        get_reference_sequence(reference_sequences, self.mate_reference_sequence_name())
+    }
+}
+
+fn get_reference_sequence<'rs>(
+    reference_sequences: &'rs ReferenceSequences,
+    reference_sequence_name: Option<&ReferenceSequenceName>,
+) -> Option<io::Result<&'rs ReferenceSequence>> {
+    reference_sequence_name.map(|name| {
+        reference_sequences.get(name.as_str()).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid reference sequence name",
+            )
+        })
+    })
 }
 
 impl Default for Record {
