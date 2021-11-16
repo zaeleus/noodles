@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_sam as sam;
+use noodles_sam::{self as sam, RecordExt};
 
 use super::{Record, ReferenceSequenceId};
 
@@ -79,10 +79,10 @@ impl Record {
 
         builder = builder.set_flags(self.flags());
 
-        if let Some(reference_sequence_name) =
-            get_reference_sequence_name(reference_sequences, self.reference_sequence_id())?
+        if let Some(reference_sequence) =
+            self.reference_sequence(reference_sequences).transpose()?
         {
-            builder = builder.set_reference_sequence_name(reference_sequence_name);
+            builder = builder.set_reference_sequence_name(reference_sequence.name().clone());
         }
 
         if let Some(position) = self.position() {

@@ -14,10 +14,13 @@ pub use self::{
 
 use std::{
     ffi::{self, CStr},
-    fmt, mem,
+    fmt, io, mem,
 };
 
-use noodles_sam as sam;
+use noodles_sam::{
+    self as sam,
+    header::{ReferenceSequence, ReferenceSequences},
+};
 
 pub(crate) const UNMAPPED_POSITION: i32 = -1;
 
@@ -406,6 +409,30 @@ impl Record {
     /// ```
     pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
+    }
+}
+
+impl sam::RecordExt for Record {
+    /// Returns the associated reference sequence.
+    fn reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        self.reference_sequence_id().map(|reference_sequence_id| {
+            usize::try_from(i32::from(reference_sequence_id))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .and_then(|id| {
+                    reference_sequences
+                        .get_index(id)
+                        .map(|(_, rs)| rs)
+                        .ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "invalid reference sequence ID",
+                            )
+                        })
+                })
+        })
     }
 }
 

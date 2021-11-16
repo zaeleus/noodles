@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record: Implement `sam::RecordExt`.
+
 ## 0.8.0 - 2021-11-11
 
 ### Added
