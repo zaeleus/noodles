@@ -28,7 +28,7 @@ GGCGCCCCGCTGTGCAAAAAT
 
 fn build_header(
     reference_sequence_records: &[fasta::Record],
-) -> Result<sam::Header, sam::header::reference_sequence::builder::BuildError> {
+) -> Result<sam::Header, Box<dyn std::error::Error>> {
     let mut builder = sam::Header::builder()
         .set_header(header::header::Header::default())
         .add_program(Program::new("noodles-cram"))
@@ -42,7 +42,7 @@ fn build_header(
         let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
 
         let reference_sequence = ReferenceSequence::builder()
-            .set_name(record.name())
+            .set_name(record.name().parse()?)
             .set_length(sequence.len() as i32)
             .set_md5_checksum(md5_checksum)
             .build()?;

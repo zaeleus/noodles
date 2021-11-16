@@ -50,11 +50,14 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{self as sam, header::{reference_sequence, ReferenceSequence}};
     ///
-    /// let reference_sequences = [("sq0", 13)]
+    /// let reference_sequences = [("sq0".parse()?, 13)]
     ///     .into_iter()
-    ///     .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+    ///     .map(|(name, len): (reference_sequence::Name, i32)| {
+    ///         let sn = name.to_string();
+    ///         ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+    ///     })
     ///     .collect::<Result<_, _>>()?;
     ///
     /// let header = sam::Header::builder()
@@ -64,7 +67,7 @@ impl Builder {
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
-    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
         self.reference_sequences = reference_sequences;
@@ -79,16 +82,16 @@ impl Builder {
     /// use noodles_sam::{self as sam, header::ReferenceSequence};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 13)?)
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key("sq0"));
-    /// # Ok::<(), sam::header::reference_sequence::NewError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_reference_sequence(mut self, reference_sequence: ReferenceSequence) -> Self {
-        let name = reference_sequence.name().into();
+        let name = reference_sequence.name().to_string();
         self.reference_sequences.insert(name, reference_sequence);
         self
     }
@@ -174,8 +177,6 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use crate::header::reference_sequence;
-
     use super::*;
 
     #[test]
@@ -190,11 +191,11 @@ mod tests {
     }
 
     #[test]
-    fn test_build() -> Result<(), reference_sequence::NewError> {
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let header = Builder::new()
-            .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
-            .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
-            .add_reference_sequence(ReferenceSequence::new("sq2", 21)?)
+            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+            .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
             .add_program(Program::new("noodles-sam"))

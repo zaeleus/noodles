@@ -361,8 +361,9 @@ where
     let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
 
     for _ in 0..n_ref {
-        let reference_sequence = read_reference_sequence(reader).await?;
-        reference_sequences.insert(reference_sequence.name().into(), reference_sequence);
+        let reference_sequence = dbg!(read_reference_sequence(reader).await?);
+        let name = reference_sequence.name().to_string();
+        reference_sequences.insert(name, reference_sequence);
     }
 
     Ok(reference_sequences)
@@ -379,7 +380,11 @@ where
     let mut c_name = vec![0; l_name];
     reader.read_exact(&mut c_name).await?;
 
-    let name = bytes_with_nul_to_string(&c_name)?;
+    let name = bytes_with_nul_to_string(&c_name).and_then(|name| {
+        name.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let l_ref = reader.read_u32_le().await.and_then(|len| {
         i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -389,6 +394,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam as sam;
+
     use super::*;
 
     #[tokio::test]
@@ -430,6 +437,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::header::reference_sequence;
+
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
             0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
@@ -440,9 +449,12 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader).await?;
 
-        let expected: ReferenceSequences = [("sq0", 8)]
+        let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .map(|(name, len): (reference_sequence::Name, i32)| {
+                let sn = name.to_string();
+                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+            })
             .collect::<Result<_, _>>()?;
 
         assert_eq!(actual, expected);

@@ -7,6 +7,15 @@
   * sam/record/reference_sequence_name: Implement `Hash`
     for `ReferenceSequenceName`.
 
+### Changed
+
+  * sam/header/reference_sequence: The reference sequence name (`name`) is now
+    wrapped as a `header::reference_sequence::Name`. (This is currently the
+    same as a `record::ReferenceSequenceName`.)
+
+  * sam/header/reference_sequence: `ParseError::DuplicateReferenceSequenceName`
+    now stores a `header::reference_sequence::Name` rather than a `String`.
+
 ## 0.7.0 - 2021-11-11
 
 ### Changed

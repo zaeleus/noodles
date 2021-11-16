@@ -128,7 +128,7 @@ where
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -227,7 +227,7 @@ fn write_reference_sequence<W>(
 where
     W: Write,
 {
-    let c_name = CString::new(reference_sequence.name())
+    let c_name = CString::new(reference_sequence.name().as_bytes())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
@@ -274,9 +274,14 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequences = [("sq0", 8)]
+        use sam::header::reference_sequence;
+
+        let reference_sequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .map(|(name, len): (reference_sequence::Name, i32)| {
+                let sn = name.to_string();
+                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+            })
             .collect::<Result<_, _>>()?;
 
         let mut buf = Vec::new();
@@ -469,7 +474,7 @@ mod tests {
     #[test]
     fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = ReferenceSequence::new("sq0", 8)?;
+        let reference_sequence = ReferenceSequence::new("sq0".parse()?, 8)?;
         write_reference_sequence(&mut buf, &reference_sequence)?;
 
         let expected = [

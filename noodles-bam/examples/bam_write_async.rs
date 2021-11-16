@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(Default::default())
-        .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+        .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
         .add_program(Program::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();

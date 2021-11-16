@@ -153,13 +153,21 @@ mod tests {
     use super::*;
 
     fn build_reference_sequences(
-    ) -> Result<sam::header::ReferenceSequences, sam::header::reference_sequence::NewError> {
-        use sam::header::ReferenceSequence;
+    ) -> Result<sam::header::ReferenceSequences, Box<dyn std::error::Error>> {
+        use sam::header::{reference_sequence, ReferenceSequence};
 
-        [("sq0", 5), ("sq1", 8), ("sq2", 13)]
-            .into_iter()
-            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
-            .collect()
+        [
+            ("sq0".parse()?, 5),
+            ("sq1".parse()?, 8),
+            ("sq2".parse()?, 13),
+        ]
+        .into_iter()
+        .map(|(name, len): (reference_sequence::Name, i32)| {
+            let sn = name.to_string();
+            ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+        })
+        .collect::<Result<_, _>>()
+        .map_err(|e| e.into())
     }
 
     fn build_record() -> io::Result<Record> {

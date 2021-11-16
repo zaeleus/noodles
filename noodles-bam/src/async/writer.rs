@@ -106,7 +106,7 @@ where
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
+    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -214,7 +214,7 @@ async fn write_reference_sequence<W>(
 where
     W: AsyncWrite + Unpin,
 {
-    let c_name = CString::new(reference_sequence.name())
+    let c_name = CString::new(reference_sequence.name().as_bytes())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     let name = c_name.as_bytes_with_nul();
 
@@ -237,7 +237,7 @@ mod tests {
     #[tokio::test]
     async fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = sam::header::ReferenceSequence::new("sq0", 8)?;
+        let reference_sequence = sam::header::ReferenceSequence::new("sq0".parse()?, 8)?;
         write_reference_sequence(&mut buf, &reference_sequence).await?;
 
         let expected = [

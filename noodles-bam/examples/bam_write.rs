@@ -19,9 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(header::header::Header::default())
-        .add_reference_sequence(ReferenceSequence::new("sq0", 8)?)
-        .add_reference_sequence(ReferenceSequence::new("sq1", 13)?)
-        .add_reference_sequence(ReferenceSequence::new("sq2", 21)?)
+        .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+        .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+        .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
         .add_program(Program::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();

@@ -21,7 +21,7 @@ pub enum ParseError {
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
     /// A reference sequence name is duplicated.
-    DuplicateReferenceSequenceName(String),
+    DuplicateReferenceSequenceName(reference_sequence::Name),
     /// A read group record is invalid.
     InvalidReadGroup(read_group::TryFromRecordError),
     /// A read group ID is duplicated.
@@ -81,7 +81,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut builder = Header::builder();
 
     let mut read_group_ids: HashSet<String> = HashSet::new();
-    let mut reference_sequence_names: HashSet<String> = HashSet::new();
+    let mut reference_sequence_names: HashSet<reference_sequence::Name> = HashSet::new();
     let mut program_ids: HashSet<String> = HashSet::new();
 
     for (i, line) in s.lines().enumerate() {
@@ -101,9 +101,9 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 let reference_sequence = ReferenceSequence::try_from(record)
                     .map_err(ParseError::InvalidReferenceSequence)?;
 
-                if !reference_sequence_names.insert(reference_sequence.name().into()) {
+                if !reference_sequence_names.insert(reference_sequence.name().clone()) {
                     return Err(ParseError::DuplicateReferenceSequenceName(
-                        reference_sequence.name().into(),
+                        reference_sequence.name().clone(),
                     ));
                 }
 
@@ -199,7 +199,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_duplicate_reference_sequence_names() {
+    fn test_parse_with_duplicate_reference_sequence_names(
+    ) -> Result<(), reference_sequence::name::ParseError> {
         let s = "\
 @SQ\tSN:sq0\tLN:8
 @SQ\tSN:sq0\tLN:8
@@ -207,10 +208,10 @@ mod tests {
 
         assert_eq!(
             parse(s),
-            Err(ParseError::DuplicateReferenceSequenceName(String::from(
-                "sq0"
-            )))
+            Err(ParseError::DuplicateReferenceSequenceName("sq0".parse()?))
         );
+
+        Ok(())
     }
 
     #[test]

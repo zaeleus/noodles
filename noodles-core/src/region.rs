@@ -240,21 +240,24 @@ fn parse_interval(s: &str) -> Result<Interval, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::header::{reference_sequence, ReferenceSequence};
-
     use super::*;
 
     #[test]
-    fn test_from_str_reference_sequences() -> Result<(), reference_sequence::NewError> {
+    fn test_from_str_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_sam::header::{reference_sequence, ReferenceSequence};
+
         let reference_sequences = [
-            ("sq0", 8),
-            ("sq1:", 13),
-            ("sq2:5", 21),
-            ("sq3", 34),
-            ("sq3:5-8", 55),
+            ("sq0".parse()?, 8),
+            ("sq1:".parse()?, 13),
+            ("sq2:5".parse()?, 21),
+            ("sq3".parse()?, 34),
+            ("sq3:5-8".parse()?, 55),
         ]
         .into_iter()
-        .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (rs.name().into(), rs)))
+        .map(|(name, len): (reference_sequence::Name, i32)| {
+            let sn = name.to_string();
+            ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+        })
         .collect::<Result<_, _>>()?;
 
         assert_eq!(

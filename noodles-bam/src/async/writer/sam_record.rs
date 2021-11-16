@@ -470,11 +470,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::ReferenceSequence;
+        use sam::header::{reference_sequence, ReferenceSequence};
 
-        let reference_sequences = [("sq0", 8), ("sq1", 13)]
+        let reference_sequences = [("sq0".parse()?, 8), ("sq1".parse()?, 13)]
             .into_iter()
-            .map(|(name, len)| ReferenceSequence::new(name, len).map(|rs| (name.into(), rs)))
+            .map(|(name, len): (reference_sequence::Name, i32)| {
+                let sn = name.to_string();
+                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+            })
             .collect::<Result<_, _>>()?;
 
         let mut buf = Vec::new();

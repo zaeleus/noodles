@@ -123,10 +123,13 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequences = [("sq0", 8)]
+        use sam::header::reference_sequence;
+
+        let reference_sequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len)| {
-                sam::header::ReferenceSequence::new(name, len).map(|rs| (name.into(), rs))
+            .map(|(name, len): (reference_sequence::Name, i32)| {
+                let sn = name.to_string();
+                sam::header::ReferenceSequence::new(name, len).map(|rs| (sn, rs))
             })
             .collect::<Result<_, _>>()?;
 

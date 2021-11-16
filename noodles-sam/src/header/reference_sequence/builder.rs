@@ -3,14 +3,14 @@
 use std::{collections::HashMap, error, fmt};
 
 use super::{
-    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, ReferenceSequence, Tag,
-    MIN_LENGTH,
+    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, ReferenceSequence,
+    Tag, MIN_LENGTH,
 };
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    name: Option<String>,
+    name: Option<Name>,
     len: Option<i32>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
@@ -28,8 +28,6 @@ pub struct Builder {
 pub enum BuildError {
     /// The name is missing.
     MissingName,
-    /// The name is invalid.
-    InvalidName,
     /// The length is missing.
     MissingLength,
     /// The length is invalid.
@@ -42,7 +40,6 @@ impl fmt::Display for BuildError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MissingName => f.write_str("missing name"),
-            Self::InvalidName => f.write_str("invalid name"),
             Self::MissingLength => f.write_str("missing length"),
             Self::InvalidLength(len) => write!(f, "invalid length: {}", len),
         }
@@ -55,22 +52,18 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.name(), "sq0");
-    /// # Ok::<(), builder::BuildError>(())
+    /// assert_eq!(**reference_sequence.name(), "sq0");
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_name<I>(mut self, name: I) -> Self
-    where
-        I: Into<String>,
-    {
-        self.name = Some(name.into());
+    pub fn set_name(mut self, name: Name) -> Self {
+        self.name = Some(name);
         self
     }
 
@@ -79,16 +72,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.len(), 13);
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_length(mut self, len: i32) -> Self {
         self.len = Some(len);
@@ -100,11 +92,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::AlternativeLocus, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_alternative_locus(AlternativeLocus::Unknown)
     ///     .build()?;
@@ -113,7 +104,7 @@ impl Builder {
     ///     reference_sequence.alternative_locus(),
     ///     Some(&AlternativeLocus::Unknown)
     /// );
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_alternative_locus(mut self, alternative_locus: AlternativeLocus) -> Self {
         self.alternative_locus = Some(alternative_locus);
@@ -133,7 +124,7 @@ impl Builder {
     /// let alternative_names: AlternativeNames = "0,SQ.0".parse()?;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_alternative_names(alternative_names.clone())
     ///     .build()?;
@@ -151,17 +142,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_assembly_id("ref")
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.assembly_id(), Some("ref"));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_assembly_id<I>(mut self, assembly_id: I) -> Self
     where
@@ -176,17 +166,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_description("noodles")
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.description(), Some("noodles"));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_description<I>(mut self, description: I) -> Self
     where
@@ -201,11 +190,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Md5Checksum, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_md5_checksum(Md5Checksum::from([
     ///         0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
@@ -217,7 +205,7 @@ impl Builder {
     ///     0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d,
     ///     0x3a, 0xda, 0x44, 0x70, 0x9d, 0xd6, 0x15, 0x34,
     /// ])));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_md5_checksum(mut self, md5_checksum: Md5Checksum) -> Self {
         self.md5_checksum = Some(md5_checksum);
@@ -229,17 +217,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_species("human")
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.species(), Some("human"));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_species<I>(mut self, species: I) -> Self
     where
@@ -254,17 +241,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::MoleculeTopology, ReferenceSequence};
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_molecule_topology(MoleculeTopology::Linear)
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.molecule_topology(), Some(MoleculeTopology::Linear));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_molecule_topology(mut self, molecule_topology: MoleculeTopology) -> Self {
         self.molecule_topology = Some(molecule_topology);
@@ -276,17 +262,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .set_uri("file:///tmp/ref.fasta")
     ///     .build()?;
     ///
     /// assert_eq!(reference_sequence.uri(), Some("file:///tmp/ref.fasta"));
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_uri<I>(mut self, uri: I) -> Self
     where
@@ -301,13 +286,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::{reference_sequence::Tag, ReferenceSequence};
     ///
     /// let zn = Tag::Other([b'z', b'n']);
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .insert(zn, String::from("noodles"))
     ///     .build()?;
@@ -316,7 +300,7 @@ impl Builder {
     ///     reference_sequence.fields().get(&zn),
     ///     Some(&String::from("noodles"))
     /// );
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
     where
@@ -331,24 +315,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_sam::header::reference_sequence::builder;
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let reference_sequence = ReferenceSequence::builder()
-    ///     .set_name("sq0")
+    ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
     ///     .build()?;
-    /// # Ok::<(), builder::BuildError>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn build(self) -> Result<ReferenceSequence, BuildError> {
-        use crate::record::reference_sequence_name::is_valid_name;
-
         let name = self.name.ok_or(BuildError::MissingName)?;
-
-        if !is_valid_name(&name) {
-            return Err(BuildError::InvalidName);
-        }
-
         let len = self.len.ok_or(BuildError::MissingLength)?;
 
         if len < MIN_LENGTH {
@@ -374,27 +350,27 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::header::reference_sequence::name;
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), name::ParseError> {
         assert_eq!(
             Builder::default().set_length(13).build(),
             Err(BuildError::MissingName)
         );
 
-        assert_eq!(
-            Builder::default().set_name("sq 0").set_length(13).build(),
-            Err(BuildError::InvalidName)
-        );
+        let name: Name = "sq0".parse()?;
 
         assert_eq!(
-            Builder::default().set_name("sq0").build(),
+            Builder::default().set_name(name.clone()).build(),
             Err(BuildError::MissingLength)
         );
 
         assert_eq!(
-            Builder::default().set_name("sq0").set_length(0).build(),
+            Builder::default().set_name(name).set_length(0).build(),
             Err(BuildError::InvalidLength(0))
         );
+
+        Ok(())
     }
 }

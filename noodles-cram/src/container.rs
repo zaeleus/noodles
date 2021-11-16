@@ -212,7 +212,7 @@ mod tests {
     #[test]
     fn test_try_from_sam_header_for_container() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = sam::header::ReferenceSequence::builder()
-            .set_name("sq0")
+            .set_name("sq0".parse()?)
             .set_length(8)
             .set_md5_checksum(
                 [
@@ -262,9 +262,9 @@ mod tests {
 
     #[test]
     fn test_try_from_sam_header_for_container_with_missing_reference_sequence_md5_checksum(
-    ) -> Result<(), sam::header::reference_sequence::NewError> {
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let header = sam::Header::builder()
-            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0", 8)?)
+            .add_reference_sequence(sam::header::ReferenceSequence::new("sq0".parse()?, 8)?)
             .build();
 
         assert_eq!(
