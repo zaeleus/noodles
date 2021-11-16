@@ -75,6 +75,22 @@ impl Filters {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    /// Removes all filter IDs from the filters list.
+    ///
+    /// This does not affect the capacity of the list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Filters;
+    /// let mut filters = Filters::default();
+    /// filters.clear();
+    /// assert!(filters.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
 }
 
 impl AsRef<[usize]> for Filters {
