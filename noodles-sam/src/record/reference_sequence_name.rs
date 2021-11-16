@@ -5,7 +5,7 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 const MIN_LENGTH: usize = 1;
 
 /// A SAM record reference sequence name.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ReferenceSequenceName(String);
 
 impl Deref for ReferenceSequenceName {

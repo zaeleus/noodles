@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/reference_sequence_name: Implement `Hash`
+    for `ReferenceSequenceName`.
+
 ## 0.7.0 - 2021-11-11
 
 ### Changed
