@@ -604,7 +604,7 @@ impl Record {
 }
 
 impl RecordExt for Record {
-    /// Returns the reference sequence name from the referece sequence dictionary.
+    /// Returns the associated reference sequence.
     fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs ReferenceSequences,
