@@ -136,54 +136,56 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
 }
 
 fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+    use record::Key;
+
     let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
     builder = match record.key() {
-        record::Key::FileFormat => {
+        Key::FileFormat => {
             return Err(ParseError::UnexpectedFileFormat);
         }
-        record::Key::Info => {
+        Key::Info => {
             let info = Info::try_from(record).map_err(ParseError::InvalidInfo)?;
             builder.add_info(info)
         }
-        record::Key::Filter => {
+        Key::Filter => {
             let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
             builder.add_filter(filter)
         }
-        record::Key::Format => {
+        Key::Format => {
             let format = Format::try_from(record).map_err(ParseError::InvalidFormat)?;
             builder.add_format(format)
         }
-        record::Key::AlternativeAllele => {
+        Key::AlternativeAllele => {
             let alternative_allele = AlternativeAllele::try_from(record)
                 .map_err(ParseError::InvalidAlternativeAllele)?;
             builder.add_alternative_allele(alternative_allele)
         }
-        record::Key::Assembly => match record.value() {
+        Key::Assembly => match record.value() {
             record::Value::String(value) => builder.set_assembly(value),
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Key::Contig => {
+        Key::Contig => {
             let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
             builder.add_contig(contig)
         }
-        record::Key::Meta => {
+        Key::Meta => {
             let meta = Meta::try_from(record).map_err(ParseError::InvalidMeta)?;
             builder.add_meta(meta)
         }
-        record::Key::Sample => {
+        Key::Sample => {
             let sample = Sample::try_from(record).map_err(ParseError::InvalidSample)?;
             builder.add_sample(sample)
         }
-        record::Key::Pedigree => {
+        Key::Pedigree => {
             let pedigree = Pedigree::try_from(record).map_err(ParseError::InvalidPedigree)?;
             builder.add_pedigree(pedigree)
         }
-        record::Key::PedigreeDb => match record.value() {
+        Key::PedigreeDb => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        record::Key::Other(_) => builder.insert(record),
+        Key::Other(_) => builder.insert(record),
     };
 
     Ok(builder)
