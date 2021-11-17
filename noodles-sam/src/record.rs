@@ -605,6 +605,15 @@ impl Record {
 
 impl RecordExt for Record {
     /// Returns the associated reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReferenceSequences, RecordExt};
+    /// let record = sam::Record::default();
+    /// let reference_sequences = ReferenceSequences::default();
+    /// assert!(record.reference_sequence(&reference_sequences).is_none());
+    /// ```
     fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs ReferenceSequences,
@@ -613,6 +622,15 @@ impl RecordExt for Record {
     }
 
     /// Returns the associated reference sequence of the mate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, header::ReferenceSequences, RecordExt};
+    /// let record = sam::Record::default();
+    /// let reference_sequences = ReferenceSequences::default();
+    /// assert!(record.mate_reference_sequence(&reference_sequences).is_none());
+    /// ```
     fn mate_reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs ReferenceSequences,
