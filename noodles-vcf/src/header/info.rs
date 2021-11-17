@@ -11,7 +11,7 @@ use indexmap::IndexMap;
 
 use crate::record::info;
 
-use super::{number, record, Number, Record};
+use super::{number, record, FileFormat, Number, Record};
 
 /// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -25,6 +25,16 @@ pub struct Info {
 }
 
 impl Info {
+    pub(super) fn try_from_record_file_format(
+        record: Record,
+        file_format: FileFormat,
+    ) -> Result<Self, TryFromRecordError> {
+        match record.into() {
+            (record::Key::Info, record::Value::Struct(fields)) => parse_struct(file_format, fields),
+            _ => Err(TryFromRecordError::InvalidRecord),
+        }
+    }
+
     /// Creates a VCF header information record.
     ///
     /// # Examples
@@ -219,14 +229,14 @@ impl TryFrom<Record> for Info {
     type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
-        match record.into() {
-            (record::Key::Info, record::Value::Struct(fields)) => parse_struct(fields),
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
+        Self::try_from_record_file_format(record, FileFormat::default())
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Info, TryFromRecordError> {
+fn parse_struct(
+    file_format: FileFormat,
+    fields: Vec<(String, String)>,
+) -> Result<Info, TryFromRecordError> {
     let mut it = fields.into_iter();
 
     let id = it
@@ -253,7 +263,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Info, TryFromRecordErro
             _ => Err(TryFromRecordError::MissingField(Key::Type)),
         })?;
 
-    if !matches!(id, info::field::Key::Other(..)) {
+    if file_format >= FileFormat::new(4, 3) && !matches!(id, info::field::Key::Other(..)) {
         if id.number() != number {
             return Err(TryFromRecordError::NumberMismatch(number, id.number()));
         }
@@ -341,6 +351,32 @@ mod tests {
         assert_eq!(info.to_string(), expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_record_file_format() {
+        let record = Record::new(
+            record::Key::Info,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data"),
+                ),
+            ]),
+        );
+
+        assert_eq!(
+            Info::try_from_record_file_format(record, FileFormat::new(4, 2)),
+            Ok(Info::new(
+                info::field::Key::SamplesWithDataCount,
+                Number::Unknown,
+                Type::Integer,
+                String::from("Number of samples with data"),
+            ))
+        );
     }
 
     #[test]

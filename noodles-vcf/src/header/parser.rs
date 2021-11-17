@@ -105,7 +105,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
             break;
         }
 
-        builder = parse_record(builder, line)?;
+        builder = parse_record(file_format, builder, line)?;
     }
 
     if !has_header {
@@ -135,7 +135,11 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
     }
 }
 
-fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError> {
+fn parse_record(
+    file_format: FileFormat,
+    mut builder: Builder,
+    line: &str,
+) -> Result<Builder, ParseError> {
     use record::Key;
 
     let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
@@ -145,7 +149,8 @@ fn parse_record(mut builder: Builder, line: &str) -> Result<Builder, ParseError>
             return Err(ParseError::UnexpectedFileFormat);
         }
         Key::Info => {
-            let info = Info::try_from(record).map_err(ParseError::InvalidInfo)?;
+            let info = Info::try_from_record_file_format(record, file_format)
+                .map_err(ParseError::InvalidInfo)?;
             builder.add_info(info)
         }
         Key::Filter => {

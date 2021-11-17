@@ -10,6 +10,13 @@
   * vcf/record/genotypes/genotype/field: Add mutable getter for value
     (`Field::value_mut`).
 
+### Changed
+
+  * vcf/header/info: Disable type checking when the file format is < VCF 4.3
+    (#41).
+
+[#41]: https://github.com/zaeleus/noodles/issues/41
+
 ## 0.9.0 - 2021-11-11
 
 ### Added
