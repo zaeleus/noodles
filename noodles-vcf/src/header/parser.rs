@@ -158,7 +158,8 @@ fn parse_record(
             builder.add_filter(filter)
         }
         Key::Format => {
-            let format = Format::try_from(record).map_err(ParseError::InvalidFormat)?;
+            let format = Format::try_from_record_file_format(record, file_format)
+                .map_err(ParseError::InvalidFormat)?;
             builder.add_format(format)
         }
         Key::AlternativeAllele => {

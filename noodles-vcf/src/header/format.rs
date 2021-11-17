@@ -11,7 +11,7 @@ use indexmap::IndexMap;
 
 use crate::record::genotypes::genotype;
 
-use super::{number, record, Number, Record};
+use super::{number, record, FileFormat, Number, Record};
 
 /// A VCF header genotype format record (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -25,6 +25,18 @@ pub struct Format {
 }
 
 impl Format {
+    pub(super) fn try_from_record_file_format(
+        record: Record,
+        file_format: FileFormat,
+    ) -> Result<Self, TryFromRecordError> {
+        match record.into() {
+            (record::Key::Format, record::Value::Struct(fields)) => {
+                parse_struct(file_format, fields)
+            }
+            _ => Err(TryFromRecordError::InvalidRecord),
+        }
+    }
+
     /// Creates a VCF header genotype format record.
     ///
     /// # Examples
@@ -220,14 +232,14 @@ impl TryFrom<Record> for Format {
     type Error = TryFromRecordError;
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
-        match record.into() {
-            (record::Key::Format, record::Value::Struct(fields)) => parse_struct(fields),
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
+        Self::try_from_record_file_format(record, FileFormat::default())
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordError> {
+fn parse_struct(
+    file_format: FileFormat,
+    fields: Vec<(String, String)>,
+) -> Result<Format, TryFromRecordError> {
     let mut it = fields.into_iter();
 
     let id = it
@@ -254,7 +266,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Format, TryFromRecordEr
             _ => Err(TryFromRecordError::MissingField(Key::Type)),
         })?;
 
-    if !matches!(id, genotype::field::Key::Other(..)) {
+    if file_format >= FileFormat::new(4, 3) && !matches!(id, genotype::field::Key::Other(..)) {
         if id.number() != number {
             return Err(TryFromRecordError::NumberMismatch(number, id.number()));
         }
@@ -338,6 +350,29 @@ mod tests {
         assert_eq!(format.to_string(), expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_try_from_record_file_format() {
+        let record = Record::new(
+            record::Key::Format,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+            ]),
+        );
+
+        assert_eq!(
+            Format::try_from_record_file_format(record, FileFormat::new(4, 2)),
+            Ok(Format::new(
+                genotype::field::Key::Genotype,
+                Number::Unknown,
+                Type::String,
+                String::from("Genotype"),
+            ))
+        );
     }
 
     #[test]

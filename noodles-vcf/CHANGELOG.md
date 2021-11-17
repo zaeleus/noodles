@@ -12,6 +12,9 @@
 
 ### Changed
 
+  * vcf/header/format: Disable type checking when the file format is < VCF 4.3
+    (#41).
+
   * vcf/header/info: Disable type checking when the file format is < VCF 4.3
     (#41).
 
