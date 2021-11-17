@@ -97,7 +97,7 @@ impl Header {
     /// assert_eq!(header.file_format(), FileFormat::default());
     /// ```
     pub fn file_format(&self) -> FileFormat {
-        self.file_format.clone()
+        self.file_format
     }
 
     /// Returns a map of information records (`INFO`).

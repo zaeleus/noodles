@@ -3,7 +3,7 @@
 use std::{error, fmt, num, str::FromStr};
 
 /// A VCF header file format.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct FileFormat {
     major: u32,
     minor: u32,
