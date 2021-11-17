@@ -621,6 +621,19 @@ impl RecordExt for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_name())
     }
 
+    /// Returns the start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, RecordExt};
+    /// let record = sam::Record::default();
+    /// assert!(record.alignment_start().is_none());
+    /// ```
+    fn alignment_start(&self) -> Option<Position> {
+        self.position()
+    }
+
     /// Returns the associated reference sequence of the mate.
     ///
     /// # Examples
