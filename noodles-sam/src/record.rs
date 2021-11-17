@@ -634,6 +634,21 @@ impl RecordExt for Record {
         self.position()
     }
 
+    /// Calculates the alignment span over the reference sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_sam::{self as sam, RecordExt};
+    /// let record = sam::Record::default();
+    /// assert_eq!(record.alignment_span()?, 0);
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    fn alignment_span(&self) -> io::Result<u32> {
+        Ok(self.cigar().reference_len())
+    }
+
     /// Returns the associated reference sequence of the mate.
     ///
     /// # Examples

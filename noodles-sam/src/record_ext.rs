@@ -16,6 +16,9 @@ pub trait RecordExt {
     /// Returns the start position.
     fn alignment_start(&self) -> Option<Position>;
 
+    /// Calculates the alignment span over the reference sequence.
+    fn alignment_span(&self) -> io::Result<u32>;
+
     /// Returns the associated reference sequence of the mate.
     fn mate_reference_sequence<'rs>(
         &self,
