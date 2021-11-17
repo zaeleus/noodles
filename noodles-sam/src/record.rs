@@ -405,7 +405,7 @@ impl Record {
         self.mate_position
     }
 
-    /// Returns a mutable reference to the start position.
+    /// Returns a mutable reference to the start position of the mate.
     ///
     /// This value is 1-based.
     ///
