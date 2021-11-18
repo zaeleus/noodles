@@ -13,6 +13,9 @@
     (`RecordExt::alignment_span`), and mate's associated reference sequence
     (`RecordExt::mate_reference_sequence`).
 
+  * sam/reader: Add common methods to access the underlying reader: `get_ref`
+    and `get_mut`.
+
   * sam/record/reference_sequence_name: Implement `Hash` for
     `ReferenceSequenceName`.
 
