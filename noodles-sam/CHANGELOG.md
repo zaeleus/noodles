@@ -6,6 +6,13 @@
 
   * sam: Add trait for record extensions (`RecordExt`).
 
+    This includes getting the associated reference sequence
+    (`RecordExt::reference_sequence`), alignment start
+    (`RecordExt::alignment_start`) and end (`RecordExt::alignment_end`)
+    positions, alignment span over the reference sequence
+    (`RecordExt::alignment_span`), and mate's associated reference sequence
+    (`RecordExt::mate_reference_sequence`).
+
   * sam/record/reference_sequence_name: Implement `Hash` for
     `ReferenceSequenceName`.
 
