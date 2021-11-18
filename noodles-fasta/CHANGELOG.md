@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2021-11-18
+
+### Fixed
+
+  * fasta: Sync dependencies.
+
 ## 0.4.0 - 2021-11-11
 
 ### Changed

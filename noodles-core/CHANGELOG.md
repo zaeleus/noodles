@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2021-11-18
+
+### Fixed
+
+  * core: Sync dependencies.
+
 ## 0.3.0 - 2021-11-11
 
 ### Changed
