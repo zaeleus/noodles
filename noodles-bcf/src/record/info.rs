@@ -65,6 +65,23 @@ impl Info {
         self.len() == 0
     }
 
+    /// Removes all fields from the info map.
+    ///
+    /// This does not affect the capacity of the map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Info;
+    /// let mut info = Info::default();
+    /// info.clear();
+    /// assert!(info.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.buf.clear();
+        self.set_field_count(0);
+    }
+
     pub(crate) fn set_field_count(&mut self, field_count: usize) {
         self.field_count = field_count;
     }

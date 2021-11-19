@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/record/info: Add method to clear all fields (`Info::clear`).
+
 ## 0.8.0 - 2021-11-18
 
 ### Added
