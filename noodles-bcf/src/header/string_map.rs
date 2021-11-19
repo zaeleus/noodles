@@ -1,4 +1,7 @@
-use std::{ops::Deref, str::FromStr};
+use std::{
+    ops::Deref,
+    str::{FromStr, Lines},
+};
 
 use indexmap::IndexSet;
 use noodles_vcf::{
@@ -44,7 +47,10 @@ impl FromStr for StringMap {
 
         let mut string_map = StringMap::default();
 
-        for line in s.lines() {
+        let mut lines = s.lines();
+        let file_format = parse_file_format(&mut lines)?;
+
+        for line in &mut lines {
             if line.starts_with("#CHROM") {
                 break;
             }
@@ -57,11 +63,13 @@ impl FromStr for StringMap {
                     string_map.insert(filter.id().into());
                 }
                 Key::Format => {
-                    let format = Format::try_from(record).map_err(ParseError::InvalidFormat)?;
+                    let format = Format::try_from_record_file_format(record, file_format)
+                        .map_err(ParseError::InvalidFormat)?;
                     string_map.insert(format.id().as_ref().into());
                 }
                 Key::Info => {
-                    let info = Info::try_from(record).map_err(ParseError::InvalidInfo)?;
+                    let info = Info::try_from_record_file_format(record, file_format)
+                        .map_err(ParseError::InvalidInfo)?;
                     string_map.insert(info.id().as_ref().into());
                 }
                 _ => {}
@@ -69,6 +77,24 @@ impl FromStr for StringMap {
         }
 
         Ok(string_map)
+    }
+}
+
+fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, ParseError> {
+    use vcf::header::record::{Key, Value};
+
+    let record: Record = lines
+        .next()
+        .ok_or(ParseError::MissingFileFormat)
+        .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
+
+    if record.key() == &Key::FileFormat {
+        match record.value() {
+            Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
+            _ => Err(ParseError::InvalidRecordValue),
+        }
+    } else {
+        Err(ParseError::MissingFileFormat)
     }
 }
 
@@ -180,6 +206,43 @@ mod tests {
                 .into_iter()
                 .collect()
             )
+        );
+    }
+
+    #[test]
+    fn test_parse_file_format() {
+        use vcf::header::FileFormat;
+
+        let s = "##fileformat=VCFv4.3\n";
+        let mut lines = s.lines();
+        assert_eq!(parse_file_format(&mut lines), Ok(FileFormat::new(4, 3)));
+
+        let s = "";
+        let mut lines = s.lines();
+        assert_eq!(
+            parse_file_format(&mut lines),
+            Err(ParseError::MissingFileFormat)
+        );
+
+        let s = "fileformat=VCFv4.3";
+        let mut lines = s.lines();
+        assert!(matches!(
+            parse_file_format(&mut lines),
+            Err(ParseError::InvalidRecord(_))
+        ));
+
+        let s = "##fileformat=VCF43\n";
+        let mut lines = s.lines();
+        assert!(matches!(
+            parse_file_format(&mut lines),
+            Err(ParseError::InvalidFileFormat(_))
+        ));
+
+        let s = "##fileDate=20211119";
+        let mut lines = s.lines();
+        assert_eq!(
+            parse_file_format(&mut lines),
+            Err(ParseError::MissingFileFormat)
         );
     }
 }

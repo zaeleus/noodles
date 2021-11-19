@@ -8,6 +8,9 @@
 
 ### Changed
 
+  * bcf/header/string_map: Disable type checking when the file format is < VCF
+    4.3.
+
   * bcf/reader/record/genotypes: Always use key from header.
 
   * bcf/reader/record/site/info: Always use key from header.
