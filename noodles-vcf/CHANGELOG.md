@@ -6,7 +6,7 @@
 
   * vcf/async/reader: `Reader::records` now parses records with the header.
 
-  * vcf/reader: `Reader::records` now parses records with the header.
+  * vcf/reader: `Reader::{records, query}` now parse records with the header.
 
   * vcf/record/format: Prefer key from header.
 

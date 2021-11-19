@@ -20,10 +20,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(bgzf::Reader::new)
         .map(vcf::Reader::new)?;
 
+    let header = reader.read_header()?.parse()?;
+
     let index = tabix::read(src.with_extension("gz.tbi"))?;
     let region = raw_region.parse()?;
 
-    let query = reader.query(&index, &region)?;
+    let query = reader.query(&header, &index, &region)?;
 
     for result in query {
         let record = result?;

@@ -271,7 +271,7 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io};
+    /// # use std::fs::File;
     /// use noodles_bgzf as bgzf;;
     /// use noodles_core::Region;
     /// use noodles_tabix as tabix;
@@ -281,21 +281,36 @@ where
     ///     .map(bgzf::Reader::new)
     ///     .map(vcf::Reader::new)?;
     ///
+    /// let header = reader.read_header()?.parse()?;
+    ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
     /// let region = Region::mapped("sq0", 8..=13);
-    /// let query = reader.query(&index, &region)?;
+    /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// Ok::<(), io::Error>(())
+    /// Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query(&mut self, index: &tabix::Index, region: &Region) -> io::Result<Query<'_, R>> {
+    pub fn query<'r, 'h>(
+        &'r mut self,
+        header: &'h Header,
+        index: &tabix::Index,
+        region: &Region,
+    ) -> io::Result<Query<'r, 'h, R>> {
         let (reference_sequence_id, reference_sequence_name, interval) =
             resolve_region(index, region)?;
+
         let chunks = index.query(reference_sequence_id, interval)?;
-        Ok(Query::new(self, chunks, reference_sequence_name, interval))
+
+        Ok(Query::new(
+            self,
+            chunks,
+            reference_sequence_name,
+            interval,
+            header,
+        ))
     }
 }
 

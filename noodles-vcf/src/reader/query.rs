@@ -6,9 +6,8 @@ use std::{
 use noodles_bgzf as bgzf;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use crate::{record::Chromosome, Record};
-
 use super::Reader;
+use crate::{record::Chromosome, Header, Record};
 
 enum State {
     Seek,
@@ -19,29 +18,31 @@ enum State {
 /// An iterator over records of a VCF reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R>
+pub struct Query<'r, 'h, R>
 where
-    R: Read + Seek,
+    R: Read + Seek + 'r,
 {
-    reader: &'a mut Reader<bgzf::Reader<R>>,
+    reader: &'r mut Reader<bgzf::Reader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_name: String,
     start: i32,
     end: i32,
     i: usize,
     state: State,
+    header: &'h Header,
     line_buf: String,
 }
 
-impl<'a, R> Query<'a, R>
+impl<'r, 'h, R> Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
     pub(crate) fn new<B>(
-        reader: &'a mut Reader<bgzf::Reader<R>>,
+        reader: &'r mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_name: String,
         interval: B,
+        header: &'h Header,
     ) -> Self
     where
         B: RangeBounds<i32>,
@@ -61,6 +62,7 @@ where
             end,
             i: 0,
             state: State::Seek,
+            header,
             line_buf: String::new(),
         }
     }
@@ -84,8 +86,7 @@ where
         match self.reader.read_record(&mut self.line_buf) {
             Ok(0) => None,
             Ok(_) => Some(
-                self.line_buf
-                    .parse()
+                Record::try_from_str(&self.line_buf, self.header)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
             ),
             Err(e) => Some(Err(e)),
@@ -93,7 +94,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Query<'a, R>
+impl<'r, 'h, R> Iterator for Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
