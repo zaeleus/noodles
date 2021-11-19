@@ -30,6 +30,8 @@ pub use self::genotypes::{genotype, Genotype};
 
 use std::{error, fmt, num, str::FromStr};
 
+use super::Header;
+
 pub(crate) const MISSING_FIELD: &str = ".";
 pub(crate) const FIELD_DELIMITER: char = '\t';
 
@@ -628,7 +630,7 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parser::parse(s)
+        parser::parse(s, &Header::default())
     }
 }
 

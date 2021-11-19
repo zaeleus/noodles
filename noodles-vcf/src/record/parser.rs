@@ -2,8 +2,9 @@ use std::{error, fmt};
 
 use super::{
     alternate_bases, chromosome, filters, format, genotypes, ids, info, position, quality_score,
-    reference_bases, Field, Filters, QualityScore, Record, FIELD_DELIMITER, MISSING_FIELD,
+    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER, MISSING_FIELD,
 };
+use crate::Header;
 
 /// An error returned when a raw VCF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -52,7 +53,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub fn parse(s: &str) -> Result<Record, ParseError> {
+pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
     let mut fields = s.split(FIELD_DELIMITER);
 
     let chrom = parse_string(&mut fields, Field::Chromosome)
@@ -74,7 +75,7 @@ pub fn parse(s: &str) -> Result<Record, ParseError> {
     let filter = parse_filters(&mut fields)?;
 
     let info = parse_string(&mut fields, Field::Info)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidInfo))?;
+        .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
 
     let format = match fields.next() {
         Some(s) => s.parse().map(Some).map_err(ParseError::InvalidFormat)?,

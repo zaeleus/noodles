@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/info/field: Prefer key from header.
+
 ## 0.10.0 - 2021-11-18
 
 ### Added

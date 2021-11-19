@@ -9,6 +9,7 @@ use std::{error, fmt, str::FromStr};
 use indexmap::IndexMap;
 
 use super::MISSING_FIELD;
+use crate::header;
 
 const DELIMITER: char = ';';
 
@@ -17,6 +18,11 @@ const DELIMITER: char = ';';
 pub struct Info(IndexMap<field::Key, Field>);
 
 impl Info {
+    /// Parses raw VCF record info.
+    pub fn try_from_str(s: &str, infos: &header::Infos) -> Result<Self, ParseError> {
+        parse(s, infos)
+    }
+
     /// Returns the number of info fields.
     ///
     /// # Examples
@@ -260,18 +266,22 @@ impl FromStr for Info {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Self::default()),
-            _ => {
-                let fields = s
-                    .split(DELIMITER)
-                    .map(|s| s.parse())
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(ParseError::InvalidField)?;
+        Self::try_from_str(s, &header::Infos::default())
+    }
+}
 
-                Self::try_from(fields).map_err(ParseError::Invalid)
-            }
+fn parse(s: &str, infos: &header::Infos) -> Result<Info, ParseError> {
+    match s {
+        "" => Err(ParseError::Empty),
+        MISSING_FIELD => Ok(Info::default()),
+        _ => {
+            let fields = s
+                .split(DELIMITER)
+                .map(|s| Field::try_from_str(s, infos))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(ParseError::InvalidField)?;
+
+            Info::try_from(fields).map_err(ParseError::Invalid)
         }
     }
 }

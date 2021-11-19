@@ -7,7 +7,7 @@ pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
-use crate::header::info::Type;
+use crate::header::{self, info::Type};
 
 const SEPARATOR: char = '=';
 const MAX_COMPONENTS: usize = 2;
@@ -20,6 +20,11 @@ pub struct Field {
 }
 
 impl Field {
+    /// Parses a raw VCF record info field.
+    pub fn try_from_str(s: &str, infos: &header::Infos) -> Result<Self, ParseError> {
+        parse(s, infos)
+    }
+
     /// Creates a VCF record info field.
     ///
     /// # Examples
@@ -112,30 +117,42 @@ impl FromStr for Field {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
+        Self::try_from_str(s, &header::Infos::default())
+    }
+}
 
-        let key: Key = components
-            .next()
-            .ok_or(ParseError::MissingKey)
-            .and_then(|s| s.parse().map_err(ParseError::InvalidKey))?;
+fn parse(s: &str, infos: &header::Infos) -> Result<Field, ParseError> {
+    let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
-        let value = if let Type::Flag = key.ty() {
-            let t = components.next().unwrap_or_default();
-            Value::from_str_key(t, &key).map_err(ParseError::InvalidValue)?
-        } else if let Key::Other(..) = key {
-            if let Some(t) = components.next() {
-                Value::from_str_key(t, &key).map_err(ParseError::InvalidValue)?
-            } else {
-                Value::Flag
-            }
+    let raw_key = components.next().ok_or(ParseError::MissingKey)?;
+
+    let key = match infos.keys().find(|k| k.as_ref() == raw_key) {
+        Some(k) => k.clone(),
+        None => raw_key.parse().map_err(ParseError::InvalidKey)?,
+    };
+
+    let value = parse_value(&mut components, &key)?;
+
+    Ok(Field::new(key, value))
+}
+
+fn parse_value<'a, I>(iter: &mut I, key: &Key) -> Result<Value, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    if let Type::Flag = key.ty() {
+        let t = iter.next().unwrap_or_default();
+        Value::from_str_key(t, key).map_err(ParseError::InvalidValue)
+    } else if let Key::Other(..) = key {
+        if let Some(t) = iter.next() {
+            Value::from_str_key(t, key).map_err(ParseError::InvalidValue)
         } else {
-            components
-                .next()
-                .ok_or(ParseError::MissingValue)
-                .and_then(|t| Value::from_str_key(t, &key).map_err(ParseError::InvalidValue))?
-        };
-
-        Ok(Self::new(key, value))
+            Ok(Value::Flag)
+        }
+    } else {
+        iter.next()
+            .ok_or(ParseError::MissingValue)
+            .and_then(|t| Value::from_str_key(t, key).map_err(ParseError::InvalidValue))
     }
 }
 
