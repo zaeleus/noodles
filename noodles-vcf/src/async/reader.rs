@@ -9,7 +9,7 @@ use noodles_tabix as tabix;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::query::query;
-use crate::{reader::resolve_region, Record};
+use crate::{reader::resolve_region, Header, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -28,10 +28,8 @@ const HEADER_PREFIX: u8 = b'#';
 /// # Examples
 ///
 /// ```no_run
-/// # use std::io;
-/// #
 /// # #[tokio::main]
-/// # async fn main() -> io::Result<()> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use futures::TryStreamExt;
 /// use noodles_vcf as vcf;
 /// use tokio::{fs::File, io::BufReader};
@@ -41,9 +39,9 @@ const HEADER_PREFIX: u8 = b'#';
 ///     .map(BufReader::new)
 ///     .map(vcf::AsyncReader::new)?;
 ///
-/// reader.read_header().await?;
+/// let header = reader.read_header().await?.parse()?;
 ///
-/// let mut records = reader.records();
+/// let mut records = reader.records(&header);
 ///
 /// while let Some(record) = records.try_next().await? {
 ///     // ...
@@ -160,10 +158,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    ///
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_vcf as vcf;
     ///
@@ -173,9 +169,9 @@ where
     /// ";
     ///
     /// let mut reader = vcf::AsyncReader::new(&data[..]);
-    /// reader.read_header().await?;
+    /// let header = reader.read_header().await?.parse()?;
     ///
-    /// let mut records = reader.records();
+    /// let mut records = reader.records(&header);
     ///
     /// while let Some(record) = records.try_next().await? {
     ///     // ...
@@ -183,7 +179,10 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h Header,
+    ) -> impl Stream<Item = io::Result<Record>> + 'r {
         Box::pin(stream::try_unfold(
             (&mut self.inner, String::new()),
             |(mut reader, mut buf)| async {
@@ -191,8 +190,7 @@ where
 
                 match read_line(&mut reader, &mut buf).await? {
                     0 => Ok(None),
-                    _ => buf
-                        .parse()
+                    _ => Record::try_from_str(&buf, header)
                         .map(|record| Some((record, (reader, buf))))
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
                 }

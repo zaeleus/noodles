@@ -4,8 +4,9 @@
 
 ### Changed
 
-  * vcf/reader: `Reader::records` now takes a `Header` to use for record
-    parsing.
+  * vcf/async/reader: `Reader::records` now parses records with the header.
+
+  * vcf/reader: `Reader::records` now parses records with the header.
 
   * vcf/record/format: Prefer key from header.
 

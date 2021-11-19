@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::AsyncWriter::new(io::stdout());
     writer.write_header(&header).await?;
 
-    let mut records = reader.records();
+    let mut records = reader.records(&header);
 
     while let Some(record) = records.try_next().await? {
         writer.write_record(&record).await?;
