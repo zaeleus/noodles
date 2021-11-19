@@ -7,17 +7,17 @@
 //! ## Read all records from a file
 //!
 //! ```no_run
-//! # use std::{fs::File, io::{self, BufReader}};
+//! # use std::{fs::File, io::BufReader};
 //! use noodles_vcf as vcf;
 //!
 //! let mut reader = File::open("sample.vcf").map(BufReader::new).map(vcf::Reader::new)?;
-//! reader.read_header()?;
+//! let header = reader.read_header()?.parse()?;
 //!
-//! for result in reader.records() {
+//! for result in reader.records(&header) {
 //!     let record = result?;
 //!     println!("{:?}", record);
 //! }
-//! # Ok::<(), io::Error>(())
+//! # Ok::<_, Box<dyn std::error::Error>>(())
 //! ```
 
 #[cfg(feature = "async")]

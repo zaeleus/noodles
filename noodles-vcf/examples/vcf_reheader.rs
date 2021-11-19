@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
 
-    let mut header: vcf::Header = reader.read_header()?.parse()?;
+    let mut header = reader.read_header()?.parse()?;
     add_comment(&mut header);
 
     let stdout = io::stdout();
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
         writer.write_record(&record)?;
     }

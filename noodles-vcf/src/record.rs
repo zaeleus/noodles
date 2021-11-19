@@ -58,6 +58,11 @@ pub struct Record {
 }
 
 impl Record {
+    /// Parses a raw VCF record.
+    pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
+        parser::parse(s, header)
+    }
+
     /// Returns a builder to create a record from each of its fields.
     ///
     /// # Examples
@@ -630,7 +635,7 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        parser::parse(s, &Header::default())
+        Self::try_from_str(s, &Header::default())
     }
 }
 

@@ -10,11 +10,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
-    let header: vcf::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
 
     print!("{}", header);
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
         println!("{}", record);
     }

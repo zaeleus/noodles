@@ -13,6 +13,8 @@ use noodles_core::{region::Interval, Region};
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
+use super::Header;
+
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
 
@@ -30,20 +32,20 @@ const HEADER_PREFIX: u8 = b'#';
 /// # Examples
 ///
 /// ```no_run
-/// # use std::{fs::File, io::{self, BufReader}};
+/// # use std::{fs::File, io::BufReader};
 /// use noodles_vcf as vcf;
 ///
 /// let mut reader = File::open("sample.vcf")
 ///     .map(BufReader::new)
 ///     .map(vcf::Reader::new)?;
 ///
-/// reader.read_header()?;
+/// let header = reader.read_header()?.parse()?;
 ///
-/// for result in reader.records() {
+/// for result in reader.records(&header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
-/// # Ok::<(), io::Error>(())
+/// # Ok::<_, Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -192,7 +194,6 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
@@ -201,15 +202,15 @@ where
     /// ";
     ///
     /// let mut reader = vcf::Reader::new(&data[..]);
-    /// let header = reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     ///
-    /// let mut records = reader.records();
+    /// let mut records = reader.records(&header);
     /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+    pub fn records<'r, 'h>(&'r mut self, header: &'h Header) -> Records<'r, 'h, R> {
+        Records::new(self, header)
     }
 }
 
