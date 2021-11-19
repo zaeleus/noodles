@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(src).map(BufReader::new).map(vcf::Reader::new)?;
     let header: vcf::Header = reader.read_header()?.parse()?;
 
-    println!("{}", header);
+    print!("{}", header);
 
     for result in reader.records() {
         let record = result?;
