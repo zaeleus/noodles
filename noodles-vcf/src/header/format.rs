@@ -25,7 +25,37 @@ pub struct Format {
 }
 
 impl Format {
-    pub(super) fn try_from_record_file_format(
+    /// Converts a generic VCF header record to a VCF header format record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{format::Type, record::{Key, Value}, FileFormat, Format, Number, Record},
+    ///     record::genotypes::genotype,
+    /// };
+    ///
+    /// let record = Record::new(
+    ///     Key::Format,
+    ///     Value::Struct(vec![
+    ///         (String::from("ID"), String::from("GT")),
+    ///         (String::from("Number"), String::from("1")),
+    ///         (String::from("Type"), String::from("String")),
+    ///         (String::from("Description"), String::from("Genotype")),
+    ///     ]),
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Format::try_from_record_file_format(record, FileFormat::new(4, 3)),
+    ///     Ok(Format::new(
+    ///         genotype::field::Key::Genotype,
+    ///         Number::Count(1),
+    ///         Type::String,
+    ///         String::from("Genotype"),
+    ///     ))
+    /// );
+    /// ```
+    pub fn try_from_record_file_format(
         record: Record,
         file_format: FileFormat,
     ) -> Result<Self, TryFromRecordError> {
