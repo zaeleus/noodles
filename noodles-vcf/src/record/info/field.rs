@@ -186,47 +186,47 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        let actual: Field = "NS=2".parse()?;
-        assert_eq!(actual.key(), &Key::SamplesWithDataCount);
-        assert_eq!(actual.value(), &Value::Integer(2));
-
-        let actual: Field = "BQ=1.333".parse()?;
-        assert_eq!(actual.key(), &Key::BaseQuality);
-        assert_eq!(actual.value(), &Value::Float(1.333));
-
-        let actual: Field = "SOMATIC".parse()?;
-        assert_eq!(actual.key(), &Key::IsSomaticMutation);
-        assert_eq!(actual.value(), &Value::Flag);
-
-        let actual: Field = "EVENT=INV0".parse()?;
-        assert_eq!(actual.key(), &Key::BreakendEventId);
-        assert_eq!(actual.value(), &Value::String(String::from("INV0")));
-
-        let actual: Field = "NDLS=VCF".parse()?;
+    fn test_from_str() {
         assert_eq!(
-            actual.key(),
-            &Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            )
+            "NS=2".parse(),
+            Ok(Field::new(Key::SamplesWithDataCount, Value::Integer(2)))
         );
-        assert_eq!(actual.value(), &Value::String(String::from("VCF")));
 
-        let actual: Field = "FLG".parse()?;
         assert_eq!(
-            actual.key(),
-            &Key::Other(
-                String::from("FLG"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            )
+            "BQ=1.333".parse(),
+            Ok(Field::new(Key::BaseQuality, Value::Float(1.333)))
         );
-        assert_eq!(actual.value(), &Value::Flag);
 
-        Ok(())
+        assert_eq!(
+            "SOMATIC".parse(),
+            Ok(Field::new(Key::IsSomaticMutation, Value::Flag))
+        );
+
+        assert_eq!(
+            "EVENT=INV0".parse(),
+            Ok(Field::new(
+                Key::BreakendEventId,
+                Value::String(String::from("INV0"))
+            ))
+        );
+
+        let key = Key::Other(
+            String::from("NDLS"),
+            Number::Count(1),
+            Type::String,
+            String::default(),
+        );
+        assert_eq!(
+            "NDLS=VCF".parse(),
+            Ok(Field::new(key, Value::String(String::from("VCF"))))
+        );
+
+        let key = Key::Other(
+            String::from("FLG"),
+            Number::Count(1),
+            Type::String,
+            String::default(),
+        );
+        assert_eq!("FLG".parse(), Ok(Field::new(key, Value::Flag)));
     }
 }
