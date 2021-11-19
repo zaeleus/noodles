@@ -25,7 +25,40 @@ pub struct Info {
 }
 
 impl Info {
-    pub(super) fn try_from_record_file_format(
+    /// Converts a generic VCF header record to a VCF header info record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     header::{info::Type, record::{Key, Value}, FileFormat, Info, Number, Record},
+    ///     record::info,
+    /// };
+    ///
+    /// let record = Record::new(
+    ///     Key::Info,
+    ///     Value::Struct(vec![
+    ///         (String::from("ID"), String::from("NS")),
+    ///         (String::from("Number"), String::from("1")),
+    ///         (String::from("Type"), String::from("Integer")),
+    ///         (
+    ///             String::from("Description"),
+    ///             String::from("Number of samples with data"),
+    ///         ),
+    ///     ]),
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Info::try_from_record_file_format(record, FileFormat::new(4, 3)),
+    ///     Ok(Info::new(
+    ///         info::field::Key::SamplesWithDataCount,
+    ///         Number::Count(1),
+    ///         Type::Integer,
+    ///         String::from("Number of samples with data"),
+    ///     ))
+    /// );
+    /// ```
+    pub fn try_from_record_file_format(
         record: Record,
         file_format: FileFormat,
     ) -> Result<Self, TryFromRecordError> {

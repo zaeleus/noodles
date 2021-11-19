@@ -7,6 +7,9 @@
   * vcf/header/format: Add conversion from `vcf::header::Record` to
     `vcf::header::Format` with a file format constraint.
 
+  * vcf/header/info: Add conversion from `vcf::header::Record` to
+    `vcf::header::Info` with a file format constraint.
+
 ### Changed
 
   * vcf/async/reader: `Reader::{records, query}` now parse records with the
