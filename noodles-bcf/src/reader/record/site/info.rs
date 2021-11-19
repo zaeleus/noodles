@@ -23,7 +23,7 @@ where
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let key = read_info_field_key(reader, string_map)?;
+        let key = read_info_field_key(reader, infos, string_map)?;
 
         let info = infos.get(&key).ok_or_else(|| {
             io::Error::new(
@@ -43,6 +43,7 @@ where
 
 fn read_info_field_key<R>(
     reader: &mut R,
+    infos: &vcf::header::Infos,
     string_map: &StringMap,
 ) -> io::Result<vcf::record::info::field::Key>
 where
@@ -57,9 +58,17 @@ where
                 )
             })
         })
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        .and_then(|raw_key| {
+            infos
+                .keys()
+                .find(|k| k.as_ref() == raw_key)
+                .cloned()
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("missing header INFO record for {}", raw_key),
+                    )
+                })
         })
 }
 

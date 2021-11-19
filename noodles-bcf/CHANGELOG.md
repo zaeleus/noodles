@@ -6,6 +6,10 @@
 
   * bcf/record/info: Add method to clear all fields (`Info::clear`).
 
+### Changed
+
+  * bcf/reader/record/site/info: Always use key from header.
+
 ## 0.8.0 - 2021-11-18
 
 ### Added
