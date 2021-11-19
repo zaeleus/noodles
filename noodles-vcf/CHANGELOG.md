@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * vcf/record/format: Prefer key from header.
+
   * vcf/record/info/field: Prefer key from header.
 
 ## 0.10.0 - 2021-11-18

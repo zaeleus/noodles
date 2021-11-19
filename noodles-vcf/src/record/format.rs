@@ -5,12 +5,20 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 use indexmap::IndexSet;
 
 use super::genotypes::genotype::field::{key, Key};
+use crate::header;
 
 const DELIMITER: char = ':';
 
 /// A VCF record genotype format (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Format(IndexSet<Key>);
+
+impl Format {
+    /// Parses a raw VCF record genotype format.
+    pub fn try_from_str(s: &str, formats: &header::Formats) -> Result<Self, ParseError> {
+        parse(s, formats)
+    }
+}
 
 impl Deref for Format {
     type Target = IndexSet<Key>;
@@ -61,15 +69,24 @@ impl FromStr for Format {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            Err(ParseError::Empty)
-        } else {
-            s.split(DELIMITER)
-                .map(|s| s.parse())
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(ParseError::InvalidKey)
-                .and_then(|keys| Self::try_from(keys).map_err(ParseError::InvalidFormat))
-        }
+        parse(s, &header::Formats::default())
+    }
+}
+
+fn parse(s: &str, formats: &header::Formats) -> Result<Format, ParseError> {
+    if s.is_empty() {
+        Err(ParseError::Empty)
+    } else {
+        s.split(DELIMITER)
+            .map(
+                |raw_key| match formats.keys().find(|k| k.as_ref() == raw_key) {
+                    Some(k) => Ok(k.clone()),
+                    None => raw_key.parse(),
+                },
+            )
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(ParseError::InvalidKey)
+            .and_then(|keys| Format::try_from(keys).map_err(ParseError::InvalidFormat))
     }
 }
 

@@ -2,7 +2,8 @@ use std::{error, fmt};
 
 use super::{
     alternate_bases, chromosome, filters, format, genotypes, ids, info, position, quality_score,
-    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER, MISSING_FIELD,
+    reference_bases, Field, Filters, Format, Info, QualityScore, Record, FIELD_DELIMITER,
+    MISSING_FIELD,
 };
 use crate::Header;
 
@@ -78,7 +79,9 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
         .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
 
     let format = match fields.next() {
-        Some(s) => s.parse().map(Some).map_err(ParseError::InvalidFormat)?,
+        Some(s) => Format::try_from_str(s, header.formats())
+            .map(Some)
+            .map_err(ParseError::InvalidFormat)?,
         None => None,
     };
 
