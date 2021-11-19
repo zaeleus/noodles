@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * bcf/reader/record/genotypes: Always use key from header.
+
   * bcf/reader/record/site/info: Always use key from header.
 
 ## 0.8.0 - 2021-11-18

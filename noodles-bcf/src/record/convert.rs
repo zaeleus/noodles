@@ -89,7 +89,9 @@ impl Record {
             builder = builder.set_filters(filters);
         }
 
-        let (format, genotypes) = self.genotypes().try_into_vcf_record_genotypes(string_map)?;
+        let (format, genotypes) = self
+            .genotypes()
+            .try_into_vcf_record_genotypes(header, string_map)?;
 
         if let Some(format) = format {
             builder = builder.set_format(format).set_genotypes(genotypes);

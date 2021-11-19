@@ -312,7 +312,7 @@ mod tests {
 
         let (_, actual) = record
             .genotypes()
-            .try_into_vcf_record_genotypes(&string_map)?;
+            .try_into_vcf_record_genotypes(&header, &string_map)?;
 
         let expected = VcfGenotypes::from(vec![
             Genotype::try_from(vec![

@@ -25,6 +25,7 @@ use crate::{
 
 pub fn read_genotypes<R>(
     reader: &mut R,
+    formats: &vcf::header::Formats,
     string_map: &StringMap,
     sample_count: usize,
     format_count: usize,
@@ -37,7 +38,7 @@ where
     let mut genotypes = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
-        let key = read_genotype_field_key(reader, string_map)?;
+        let key = read_genotype_field_key(reader, formats, string_map)?;
 
         let values = if key == Key::Genotype {
             read_genotype_genotype_field_values(reader, sample_count)?
@@ -60,7 +61,11 @@ where
         .map(Genotypes::from)
 }
 
-fn read_genotype_field_key<R>(reader: &mut R, string_map: &StringMap) -> io::Result<Key>
+fn read_genotype_field_key<R>(
+    reader: &mut R,
+    formats: &vcf::header::Formats,
+    string_map: &StringMap,
+) -> io::Result<Key>
 where
     R: Read,
 {
@@ -73,9 +78,17 @@ where
                 )
             })
         })
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        .and_then(|raw_key| {
+            formats
+                .keys()
+                .find(|k| k.as_ref() == raw_key)
+                .cloned()
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("missing header FORMAT record for {}", raw_key),
+                    )
+                })
         })
 }
 
