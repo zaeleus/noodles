@@ -263,7 +263,7 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_bgzf as bgzf;
     /// use noodles_core::Region;
@@ -276,9 +276,11 @@ where
     ///     .map(bgzf::AsyncReader::new)
     ///     .map(vcf::AsyncReader::new)?;
     ///
+    /// let header = reader.read_header().await?.parse()?;
+    ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
     /// let region = Region::mapped("sq0", 8..=13);
-    /// let mut query = reader.query(&index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -286,15 +288,24 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query(
-        &mut self,
+    pub fn query<'r>(
+        &'r mut self,
+        header: &'r Header,
         index: &tabix::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_> {
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
         let (reference_sequence_id, reference_sequence_name, interval) =
             resolve_region(index, region)?;
+
         let chunks = index.query(reference_sequence_id, interval)?;
-        Ok(query(self, chunks, reference_sequence_name, interval))
+
+        Ok(query(
+            self,
+            chunks,
+            reference_sequence_name,
+            interval,
+            header,
+        ))
     }
 }
 

@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * vcf/async/reader: `Reader::records` now parses records with the header.
+  * vcf/async/reader: `Reader::{records, query}` now parse records with the
+    header.
 
   * vcf/reader: `Reader::{records, query}` now parse records with the header.
 

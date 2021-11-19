@@ -6,7 +6,7 @@ use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::Record;
+use crate::{Header, Record};
 
 enum State {
     Seek,
@@ -14,11 +14,11 @@ enum State {
     Done,
 }
 
-struct Context<'a, R>
+struct Context<'r, R>
 where
     R: AsyncRead + AsyncSeek,
 {
-    reader: &'a mut Reader<bgzf::AsyncReader<R>>,
+    reader: &'r mut Reader<bgzf::AsyncReader<R>>,
 
     chunks: Vec<Chunk>,
     i: usize,
@@ -28,14 +28,17 @@ where
     end: i32,
 
     state: State,
+
+    header: &'r Header,
 }
 
-pub fn query<R, B>(
-    reader: &mut Reader<bgzf::AsyncReader<R>>,
+pub fn query<'r, R, B>(
+    reader: &'r mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_name: String,
     interval: B,
-) -> impl Stream<Item = io::Result<Record>> + '_
+    header: &'r Header,
+) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
     B: RangeBounds<i32>,
@@ -53,6 +56,8 @@ where
         end,
 
         state: State::Seek,
+
+        header,
     };
 
     Box::pin(stream::try_unfold(ctx, |mut ctx| async {
@@ -67,7 +72,7 @@ where
                         None => State::Done,
                     };
                 }
-                State::Read(chunk_end) => match next_record(&mut ctx.reader).await? {
+                State::Read(chunk_end) => match next_record(&mut ctx.reader, ctx.header).await? {
                     Some(record) => {
                         if ctx.reader.virtual_position() >= chunk_end {
                             ctx.state = State::Seek;
@@ -103,7 +108,10 @@ fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     chunk
 }
 
-async fn next_record<R>(reader: &mut Reader<bgzf::AsyncReader<R>>) -> io::Result<Option<Record>>
+async fn next_record<R>(
+    reader: &mut Reader<bgzf::AsyncReader<R>>,
+    header: &Header,
+) -> io::Result<Option<Record>>
 where
     R: AsyncRead + Unpin,
 {
@@ -111,8 +119,7 @@ where
 
     match reader.read_record(&mut buf).await? {
         0 => Ok(None),
-        _ => buf
-            .parse()
+        _ => Record::try_from_str(&buf, header)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
