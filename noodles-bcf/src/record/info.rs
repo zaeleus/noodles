@@ -100,6 +100,57 @@ impl Info {
         self.set_field_count(0);
     }
 
+    /// Returns the field with the given key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::{header::StringMap, record::Info};
+    /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(vcf::header::Info::from(Key::AlleleCount))
+    ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
+    ///     .build();
+    ///
+    /// let string_map = StringMap::from(&header);
+    ///
+    /// let data = vec![
+    ///     0x11, 0x01, 0x11, 0x05, // AC=5
+    ///     0x11, 0x02, 0x11, 0x08, // DP=8
+    /// ];
+    ///
+    /// let info = Info::new(data, 2);
+    ///
+    /// assert_eq!(
+    ///     info.get(&header, &string_map, &Key::AlleleCount).transpose()?,
+    ///     Some(Field::new(Key::AlleleCount, Value::Integer(5)))
+    /// );
+    ///
+    /// assert!(info.get(&header, &string_map, &Key::AncestralAllele).is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn get(
+        &self,
+        header: &vcf::Header,
+        string_map: &StringMap,
+        key: &vcf::record::info::field::Key,
+    ) -> Option<io::Result<vcf::record::info::Field>> {
+        for result in self.values(header, string_map) {
+            match result {
+                Ok(field) => {
+                    if field.key() == key {
+                        return Some(Ok(field));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns an iterator over all info fields.
     ///
     /// # Examples

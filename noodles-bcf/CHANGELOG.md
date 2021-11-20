@@ -5,7 +5,10 @@
 ### Added
 
   * bcf/record/info: Add methods to wrap an INFO buffer (`Info::new`), clear
-    all fields (`Info::clear`), and iterate all fields (`Info::values`).
+    all fields (`Info::clear`), retrieve a field by key (`Info::get`; [#52]),
+    and iterate all fields (`Info::values`).
+
+[#52]: https://github.com/zaeleus/noodles/issues/52
 
 ### Changed
 
