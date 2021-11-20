@@ -23,22 +23,33 @@ where
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let key = read_info_field_key(reader, infos, string_map)?;
-
-        let info = infos.get(&key).ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("missing header INFO record for {}", key),
-            )
-        })?;
-
-        let value = read_info_field_value(reader, info)?;
-
-        let field = vcf::record::info::Field::new(key, value);
+        let field = read_info_field(reader, infos, string_map)?;
         fields.push(field);
     }
 
     vcf::record::Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_info_field<R>(
+    reader: &mut R,
+    infos: &vcf::header::Infos,
+    string_map: &StringMap,
+) -> io::Result<vcf::record::info::Field>
+where
+    R: Read,
+{
+    let key = read_info_field_key(reader, infos, string_map)?;
+
+    let info = infos.get(&key).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("missing header INFO record for {}", key),
+        )
+    })?;
+
+    let value = read_info_field_value(reader, info)?;
+
+    Ok(vcf::record::info::Field::new(key, value))
 }
 
 fn read_info_field_key<R>(
