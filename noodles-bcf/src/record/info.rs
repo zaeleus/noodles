@@ -39,6 +39,24 @@ impl Info {
         read_info(&mut reader, header.infos(), string_map, self.len())
     }
 
+    /// Creates an info map by wrapping the given buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Info;
+    ///
+    /// let data = vec![
+    ///     0x11, 0x01, 0x11, 0x05, // AC=5
+    ///     0x11, 0x02, 0x11, 0x08, // DP=8
+    /// ];
+    ///
+    /// let info = Info::new(data, 2);
+    /// ```
+    pub fn new(buf: Vec<u8>, field_count: usize) -> Self {
+        Self { buf, field_count }
+    }
+
     /// Returns the number of info fields.
     ///
     /// # Examples

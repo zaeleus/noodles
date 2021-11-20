@@ -6,6 +6,8 @@
 
   * bcf/record/info: Add method to clear all fields (`Info::clear`).
 
+  * bcf/header/info: Add `new` static method.
+
 ### Changed
 
   * bcf/header/string_map: Disable type checking when the file format is < VCF
