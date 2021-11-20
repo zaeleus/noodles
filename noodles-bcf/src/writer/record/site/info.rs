@@ -20,10 +20,22 @@ where
     W: Write,
 {
     for field in info.values() {
-        write_info_field_key(writer, string_map, field.key())?;
-        write_info_field_value(writer, field.value())?;
+        write_info_field(writer, string_map, field)?;
     }
 
+    Ok(())
+}
+
+fn write_info_field<W>(
+    writer: &mut W,
+    string_map: &StringMap,
+    field: &vcf::record::info::Field,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    write_info_field_key(writer, string_map, field.key())?;
+    write_info_field_value(writer, field.value())?;
     Ok(())
 }
 
