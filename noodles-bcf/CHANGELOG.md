@@ -4,9 +4,8 @@
 
 ### Added
 
-  * bcf/record/info: Add method to clear all fields (`Info::clear`).
-
-  * bcf/header/info: Add `new` static method.
+  * bcf/record/info: Add methods to wrap an INFO buffer (`Info::new`), clear
+    all fields (`Info::clear`), and iterate all fields (`Info::values`).
 
 ### Changed
 

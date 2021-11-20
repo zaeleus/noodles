@@ -30,7 +30,7 @@ where
     vcf::record::Info::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn read_info_field<R>(
+pub fn read_info_field<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
     string_map: &StringMap,

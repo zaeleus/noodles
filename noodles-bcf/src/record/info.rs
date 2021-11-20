@@ -100,6 +100,46 @@ impl Info {
         self.set_field_count(0);
     }
 
+    /// Returns an iterator over all info fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf::{header::StringMap, record::Info};
+    /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(vcf::header::Info::from(Key::AlleleCount))
+    ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
+    ///     .build();
+    ///
+    /// let string_map = StringMap::from(&header);
+    ///
+    /// let data = vec![
+    ///     0x11, 0x01, 0x11, 0x05, // AC=5
+    ///     0x11, 0x02, 0x11, 0x08, // DP=8
+    /// ];
+    ///
+    /// let info = Info::new(data, 2);
+    ///
+    /// let mut fields = info.values(&header, &string_map);
+    ///
+    /// assert_eq!(fields.next().transpose()?, Some(Field::new(Key::AlleleCount, Value::Integer(5))));
+    /// assert_eq!(fields.next().transpose()?, Some(Field::new(Key::TotalDepth, Value::Integer(8))));
+    /// assert!(fields.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn values<'a>(
+        &'a self,
+        header: &'a vcf::Header,
+        string_map: &'a StringMap,
+    ) -> impl Iterator<Item = io::Result<vcf::record::info::Field>> + 'a {
+        use crate::reader::record::site::info::read_info_field;
+        let mut reader = &self.buf[..];
+        (0..self.len()).map(move |_| read_info_field(&mut reader, header.infos(), string_map))
+    }
+
     pub(crate) fn set_field_count(&mut self, field_count: usize) {
         self.field_count = field_count;
     }
