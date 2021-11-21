@@ -23,7 +23,7 @@ pub struct Query<'a, R>
 where
     R: Read + Seek,
 {
-    reader: &'a mut Reader<R>,
+    reader: &'a mut Reader<bgzf::Reader<R>>,
     chunks: Vec<Chunk>,
     chromosome_id: usize,
     start: i32,
@@ -38,7 +38,7 @@ where
     R: Read + Seek,
 {
     pub(crate) fn new<B>(
-        reader: &'a mut Reader<R>,
+        reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         chromosome_id: usize,
         interval: B,

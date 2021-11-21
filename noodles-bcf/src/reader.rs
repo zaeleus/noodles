@@ -25,7 +25,7 @@ use super::Record;
 ///
 /// The BCF format is comprised of two parts: 1) a VCF header and 2) a list of records.
 pub struct Reader<R> {
-    inner: bgzf::Reader<R>,
+    inner: R,
     buf: Vec<u8>,
 }
 
@@ -33,22 +33,6 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    /// Creates a BCF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::Reader::new(&data[..]);
-    /// ```
-    pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::Reader::new(reader),
-            buf: Vec::new(),
-        }
-    }
-
     /// Reads the BCF file format.
     ///
     /// The BCF magic number is also checked.
@@ -157,6 +141,27 @@ where
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
+}
+
+impl<R> Reader<bgzf::Reader<R>>
+where
+    R: Read,
+{
+    /// Creates a BCF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let reader = bcf::Reader::new(&data[..]);
+    /// ```
+    pub fn new(reader: R) -> Self {
+        Self {
+            inner: bgzf::Reader::new(reader),
+            buf: Vec::new(),
+        }
+    }
 
     /// Returns the current virtual position of the underlying BGZF reader.
     ///
@@ -179,7 +184,7 @@ where
     }
 }
 
-impl<R> Reader<R>
+impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {
