@@ -15,11 +15,6 @@ use noodles_tabix as tabix;
 
 use super::Header;
 
-const LINE_FEED: char = '\n';
-const CARRIAGE_RETURN: char = '\r';
-
-const HEADER_PREFIX: u8 = b'#';
-
 /// A VCF reader.
 ///
 /// The VCF format has two main parts: 1) a header and 2) a list of VCF records.
@@ -318,6 +313,9 @@ fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: BufRead,
 {
+    const HEADER_PREFIX: u8 = b'#';
+    const LINE_FEED: u8 = b'\n';
+
     let mut header_buf = Vec::new();
     let mut is_eol = false;
 
@@ -328,7 +326,7 @@ where
             break;
         }
 
-        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED as u8, buf) {
+        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED, buf) {
             header_buf.extend(&buf[..=i]);
             (true, i + 1)
         } else {
@@ -351,6 +349,9 @@ fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
+    const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
+
     match reader.read_line(buf) {
         Ok(0) => Ok(0),
         Ok(n) => {
