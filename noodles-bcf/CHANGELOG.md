@@ -8,6 +8,8 @@
     all fields (`Info::clear`), retrieve a field by key (`Info::get`; [#52]),
     and iterate all fields (`Info::values`).
 
+  * bcf/reader: Add conversion from `R` into `Reader<R>`.
+
 [#52]: https://github.com/zaeleus/noodles/issues/52
 
 ### Changed

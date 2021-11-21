@@ -157,10 +157,7 @@ where
     /// let reader = bcf::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::Reader::new(reader),
-            buf: Vec::new(),
-        }
+        Self::from(bgzf::Reader::new(reader))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
@@ -248,6 +245,15 @@ where
         let (reference_sequence_id, interval) = resolve_region(contigs, region)?;
         let chunks = index.query(reference_sequence_id, interval)?;
         Ok(Query::new(self, chunks, reference_sequence_id, interval))
+    }
+}
+
+impl<R> From<R> for Reader<R> {
+    fn from(inner: R) -> Self {
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 
