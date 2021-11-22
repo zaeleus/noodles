@@ -11,7 +11,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use super::{header::StringMap, MAGIC_NUMBER};
+use super::header::StringMap;
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -87,10 +87,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_format(&mut self) -> io::Result<()> {
-        self.inner.write_all(MAGIC_NUMBER)?;
-        self.inner.write_u8(MAJOR)?;
-        self.inner.write_u8(MINOR)?;
-        Ok(())
+        write_file_format(&mut self.inner)
     }
 
     /// Writes a VCF header.
@@ -180,6 +177,19 @@ where
     }
 }
 
+fn write_file_format<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    use super::MAGIC_NUMBER;
+
+    writer.write_all(MAGIC_NUMBER)?;
+    writer.write_u8(MAJOR)?;
+    writer.write_u8(MINOR)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Reader;
@@ -188,14 +198,16 @@ mod tests {
 
     #[test]
     fn test_write_file_format() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-        writer.write_file_format()?;
-        writer.try_finish()?;
+        let mut buf = Vec::new();
+        write_file_format(&mut buf)?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
-        let file_format = reader.read_file_format()?;
+        let expected = [
+            b'B', b'C', b'F', // magic
+            0x02, // major
+            0x02, // minor
+        ];
 
-        assert_eq!(file_format, (2, 2));
+        assert_eq!(buf, expected);
 
         Ok(())
     }
