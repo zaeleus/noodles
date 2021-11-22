@@ -5,7 +5,7 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 use indexmap::IndexSet;
 
 use super::genotype::field::{key, Key};
-use crate::header;
+use crate::{header, record::MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
@@ -30,15 +30,19 @@ impl Deref for Keys {
 
 impl fmt::Display for Keys {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, key) in self.iter().enumerate() {
-            if i > 0 {
-                write!(f, "{}", DELIMITER)?;
+        if self.is_empty() {
+            f.write_str(MISSING_FIELD)
+        } else {
+            for (i, key) in self.iter().enumerate() {
+                if i > 0 {
+                    write!(f, "{}", DELIMITER)?;
+                }
+
+                f.write_str(key.as_ref())?;
             }
 
-            f.write_str(key.as_ref())?;
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
@@ -93,8 +97,6 @@ fn parse(s: &str, formats: &header::Formats) -> Result<Keys, ParseError> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// An error returned when a vector of keys fails to convert to a format.
 pub enum TryFromKeyVectorError {
-    /// The input is empty.
-    Empty,
     /// The genotype key (`GT`) position is invalid.
     ///
     /// The genotype key must be first if present. See § 1.6.2 Genotype fields (2020-06-25).
@@ -110,7 +112,6 @@ impl error::Error for TryFromKeyVectorError {}
 impl fmt::Display for TryFromKeyVectorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("empty input"),
             Self::InvalidGenotypeKeyPosition => f.write_str("invalid genotype key position"),
             Self::DuplicateKey(key) => write!(f, "duplicate key: {}", key),
         }
@@ -122,7 +123,7 @@ impl TryFrom<Vec<Key>> for Keys {
 
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
         if keys.is_empty() {
-            return Err(TryFromKeyVectorError::Empty);
+            return Ok(Keys(IndexSet::default()));
         } else if let Some(i) = keys.iter().position(|k| k == &Key::Genotype) {
             if i != 0 {
                 return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition);
@@ -147,6 +148,9 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        let format = Keys(IndexSet::default());
+        assert_eq!(format.to_string(), ".");
+
         let format = Keys([Key::Genotype].into_iter().collect());
         assert_eq!(format.to_string(), "GT");
 
@@ -187,6 +191,8 @@ mod tests {
 
     #[test]
     fn test_try_from_vec_key_for_format() {
+        assert_eq!(Keys::try_from(Vec::new()), Ok(Keys(IndexSet::default())));
+
         assert_eq!(
             Keys::try_from(vec![Key::Genotype]),
             Ok(Keys([Key::Genotype].into_iter().collect()))
@@ -206,11 +212,6 @@ mod tests {
             Ok(Keys(
                 [Key::ConditionalGenotypeQuality].into_iter().collect()
             ))
-        );
-
-        assert_eq!(
-            Keys::try_from(Vec::new()),
-            Err(TryFromKeyVectorError::Empty)
         );
 
         assert_eq!(

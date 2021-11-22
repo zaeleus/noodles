@@ -21,6 +21,8 @@
 
   * vcf/record/genotypes/keys: Prefer key from header.
 
+  * vcf/record/genotypes/keys: Allow empty genotypes keys.
+
   * vcf/record/info/field: Prefer key from header.
 
 ### Deprecated
@@ -28,6 +30,12 @@
   * vcf/record: Deprecate `vcf::record::Format`.
 
     Use `vcf::record::genotypes::Keys` instead.
+
+### Removed
+
+  * vcf/record/genotypes/keys: Remove `TryFromKeyVectorError::Empty`.
+
+    Empty genotype keys are now allowed.
 
 ## 0.10.0 - 2021-11-18
 
