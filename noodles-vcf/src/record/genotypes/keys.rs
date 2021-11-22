@@ -10,7 +10,7 @@ use crate::{header, record::MISSING_FIELD};
 const DELIMITER: char = ':';
 
 /// A VCF record genotype format (`FORMAT`).
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Keys(IndexSet<Key>);
 
 impl Keys {
@@ -123,7 +123,7 @@ impl TryFrom<Vec<Key>> for Keys {
 
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
         if keys.is_empty() {
-            return Ok(Keys(IndexSet::default()));
+            return Ok(Keys::default());
         } else if let Some(i) = keys.iter().position(|k| k == &Key::Genotype) {
             if i != 0 {
                 return Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition);
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let format = Keys(IndexSet::default());
+        let format = Keys::default();
         assert_eq!(format.to_string(), ".");
 
         let format = Keys([Key::Genotype].into_iter().collect());
@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_try_from_vec_key_for_format() {
-        assert_eq!(Keys::try_from(Vec::new()), Ok(Keys(IndexSet::default())));
+        assert_eq!(Keys::try_from(Vec::new()), Ok(Keys::default()));
 
         assert_eq!(
             Keys::try_from(vec![Key::Genotype]),
