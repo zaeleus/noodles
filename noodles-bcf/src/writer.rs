@@ -17,62 +17,25 @@ const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
 
 /// A BCF writer.
-pub struct Writer<W>
-where
-    W: Write,
-{
-    inner: bgzf::Writer<W>,
+pub struct Writer<W> {
+    inner: W,
 }
 
 impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a BCF writer with a default compression level.
-    ///
-    /// The given stream is wrapped in a BGZF encoder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// let writer = bcf::Writer::new(Vec::new());
-    /// ```
-    pub fn new(writer: W) -> Self {
-        Self {
-            inner: bgzf::Writer::new(writer),
-        }
-    }
-
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bcf as bcf;
-    /// let writer = bcf::Writer::new(Vec::new());
+    /// let writer = bcf::Writer::from(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        self.inner.get_ref()
-    }
-
-    /// Attempts to finish the output stream.
-    ///
-    /// This is typically only manually called if the underlying stream is needed before the writer
-    /// is dropped.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bcf as bcf;
-    /// let mut writer = bcf::Writer::new(Vec::new());
-    /// writer.try_finish()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn try_finish(&mut self) -> io::Result<()> {
-        self.inner.try_finish()
+        &self.inner
     }
 
     /// Writes a BCF file format.
@@ -163,6 +126,49 @@ where
         self.inner.write_all(&genotypes_buf)?;
 
         Ok(())
+    }
+}
+
+impl<W> Writer<bgzf::Writer<W>>
+where
+    W: Write,
+{
+    /// Creates a BCF writer with a default compression level.
+    ///
+    /// The given stream is wrapped in a BGZF encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let writer = bcf::Writer::new(Vec::new());
+    /// ```
+    pub fn new(writer: W) -> Self {
+        Self::from(bgzf::Writer::new(writer))
+    }
+
+    /// Attempts to finish the output stream.
+    ///
+    /// This is typically only manually called if the underlying stream is needed before the writer
+    /// is dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bcf as bcf;
+    /// let mut writer = bcf::Writer::new(Vec::new());
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_finish(&mut self) -> io::Result<()> {
+        self.inner.try_finish()
+    }
+}
+
+impl<W> From<W> for Writer<W> {
+    fn from(inner: W) -> Self {
+        Self { inner }
     }
 }
 

@@ -12,6 +12,8 @@
 
   * bcf/reader: Add conversion from `R` into `Reader<R>`.
 
+  * bcf/writer: Add conversion from `W` into `Writer<W>`.
+
 [#52]: https://github.com/zaeleus/noodles/issues/52
 
 ### Changed
