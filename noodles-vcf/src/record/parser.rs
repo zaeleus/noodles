@@ -1,9 +1,8 @@
 use std::{error, fmt};
 
 use super::{
-    alternate_bases, chromosome, filters, genotypes::{self, Format}, ids, info, position, quality_score,
-    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER,
-    MISSING_FIELD,
+    alternate_bases, chromosome, filters, genotypes, ids, info, position, quality_score,
+    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER, MISSING_FIELD,
 };
 use crate::Header;
 
@@ -29,7 +28,7 @@ pub enum ParseError {
     /// The info is invalid.
     InvalidInfo(info::ParseError),
     /// The format is invalid.
-    InvalidFormat(genotypes::format::ParseError),
+    InvalidFormat(genotypes::keys::ParseError),
     /// A genotype is invalid.
     InvalidGenotype(genotypes::genotype::ParseError),
 }
@@ -79,7 +78,7 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
         .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
 
     let format = match fields.next() {
-        Some(s) => Format::try_from_str(s, header.formats())
+        Some(s) => genotypes::Keys::try_from_str(s, header.formats())
             .map(Some)
             .map_err(ParseError::InvalidFormat)?,
         None => None,
@@ -181,7 +180,7 @@ mod tests {
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;
 
-        let expected = Format::try_from(vec![
+        let expected = genotypes::Keys::try_from(vec![
             genotype::field::Key::Genotype,
             genotype::field::Key::ConditionalGenotypeQuality,
         ])?;

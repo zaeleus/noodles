@@ -11,16 +11,16 @@ const DELIMITER: char = ':';
 
 /// A VCF record genotype format (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Format(IndexSet<Key>);
+pub struct Keys(IndexSet<Key>);
 
-impl Format {
+impl Keys {
     /// Parses a raw VCF record genotype format.
     pub fn try_from_str(s: &str, formats: &header::Formats) -> Result<Self, ParseError> {
         parse(s, formats)
     }
 }
 
-impl Deref for Format {
+impl Deref for Keys {
     type Target = IndexSet<Key>;
 
     fn deref(&self) -> &Self::Target {
@@ -28,7 +28,7 @@ impl Deref for Format {
     }
 }
 
-impl fmt::Display for Format {
+impl fmt::Display for Keys {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, key) in self.iter().enumerate() {
             if i > 0 {
@@ -65,7 +65,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Format {
+impl FromStr for Keys {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -73,7 +73,7 @@ impl FromStr for Format {
     }
 }
 
-fn parse(s: &str, formats: &header::Formats) -> Result<Format, ParseError> {
+fn parse(s: &str, formats: &header::Formats) -> Result<Keys, ParseError> {
     if s.is_empty() {
         Err(ParseError::Empty)
     } else {
@@ -86,7 +86,7 @@ fn parse(s: &str, formats: &header::Formats) -> Result<Format, ParseError> {
             )
             .collect::<Result<Vec<_>, _>>()
             .map_err(ParseError::InvalidKey)
-            .and_then(|keys| Format::try_from(keys).map_err(ParseError::InvalidFormat))
+            .and_then(|keys| Keys::try_from(keys).map_err(ParseError::InvalidFormat))
     }
 }
 
@@ -117,7 +117,7 @@ impl fmt::Display for TryFromKeyVectorError {
     }
 }
 
-impl TryFrom<Vec<Key>> for Format {
+impl TryFrom<Vec<Key>> for Keys {
     type Error = TryFromKeyVectorError;
 
     fn try_from(keys: Vec<Key>) -> Result<Self, Self::Error> {
@@ -147,10 +147,10 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let format = Format([Key::Genotype].into_iter().collect());
+        let format = Keys([Key::Genotype].into_iter().collect());
         assert_eq!(format.to_string(), "GT");
 
-        let format = Format(
+        let format = Keys(
             [
                 Key::Genotype,
                 Key::ConditionalGenotypeQuality,
@@ -167,20 +167,20 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "GT".parse(),
-            Ok(Format([Key::Genotype].into_iter().collect()))
+            Ok(Keys([Key::Genotype].into_iter().collect()))
         );
         assert_eq!(
             "GT:GQ".parse(),
-            Ok(Format(
+            Ok(Keys(
                 [Key::Genotype, Key::ConditionalGenotypeQuality]
                     .into_iter()
                     .collect()
             ))
         );
 
-        assert_eq!("".parse::<Format>(), Err(ParseError::Empty));
+        assert_eq!("".parse::<Keys>(), Err(ParseError::Empty));
         assert!(matches!(
-            "GQ:GT".parse::<Format>(),
+            "GQ:GT".parse::<Keys>(),
             Err(ParseError::InvalidFormat(_))
         ));
     }
@@ -188,13 +188,13 @@ mod tests {
     #[test]
     fn test_try_from_vec_key_for_format() {
         assert_eq!(
-            Format::try_from(vec![Key::Genotype]),
-            Ok(Format([Key::Genotype].into_iter().collect()))
+            Keys::try_from(vec![Key::Genotype]),
+            Ok(Keys([Key::Genotype].into_iter().collect()))
         );
 
         assert_eq!(
-            Format::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality]),
-            Ok(Format(
+            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality]),
+            Ok(Keys(
                 [Key::Genotype, Key::ConditionalGenotypeQuality]
                     .into_iter()
                     .collect()
@@ -202,24 +202,24 @@ mod tests {
         );
 
         assert_eq!(
-            Format::try_from(vec![Key::ConditionalGenotypeQuality]),
-            Ok(Format(
+            Keys::try_from(vec![Key::ConditionalGenotypeQuality]),
+            Ok(Keys(
                 [Key::ConditionalGenotypeQuality].into_iter().collect()
             ))
         );
 
         assert_eq!(
-            Format::try_from(Vec::new()),
+            Keys::try_from(Vec::new()),
             Err(TryFromKeyVectorError::Empty)
         );
 
         assert_eq!(
-            Format::try_from(vec![Key::ConditionalGenotypeQuality, Key::Genotype]),
+            Keys::try_from(vec![Key::ConditionalGenotypeQuality, Key::Genotype]),
             Err(TryFromKeyVectorError::InvalidGenotypeKeyPosition)
         );
 
         assert_eq!(
-            Format::try_from(vec![Key::Genotype, Key::Genotype]),
+            Keys::try_from(vec![Key::Genotype, Key::Genotype]),
             Err(TryFromKeyVectorError::DuplicateKey(Key::Genotype))
         );
     }

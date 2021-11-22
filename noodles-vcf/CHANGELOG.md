@@ -17,13 +17,17 @@
 
   * vcf/reader: `Reader::{records, query}` now parse records with the header.
 
-  * vcf/record: Move `Format` under genotypes module.
+  * vcf/record: Move `Format` under genotypes module as `Keys`.
 
-    Use `vcf::record::genotypes::Format` instead.
-
-  * vcf/record/genotypes/format: Prefer key from header.
+  * vcf/record/genotypes/keys: Prefer key from header.
 
   * vcf/record/info/field: Prefer key from header.
+
+### Deprecated
+
+  * vcf/record: Deprecate `vcf::record::Format`.
+
+    Use `vcf::record::genotypes::Keys` instead.
 
 ## 0.10.0 - 2021-11-18
 
