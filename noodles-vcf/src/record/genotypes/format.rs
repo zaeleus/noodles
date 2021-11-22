@@ -4,7 +4,7 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 use indexmap::IndexSet;
 
-use super::genotypes::genotype::field::{key, Key};
+use super::genotype::field::{key, Key};
 use crate::header;
 
 const DELIMITER: char = ':';

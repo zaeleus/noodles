@@ -1,8 +1,8 @@
 use std::{error, fmt};
 
 use super::{
-    alternate_bases, chromosome, filters, format, genotypes, ids, info, position, quality_score,
-    reference_bases, Field, Filters, Format, Info, QualityScore, Record, FIELD_DELIMITER,
+    alternate_bases, chromosome, filters, genotypes::{self, Format}, ids, info, position, quality_score,
+    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER,
     MISSING_FIELD,
 };
 use crate::Header;
@@ -29,7 +29,7 @@ pub enum ParseError {
     /// The info is invalid.
     InvalidInfo(info::ParseError),
     /// The format is invalid.
-    InvalidFormat(format::ParseError),
+    InvalidFormat(genotypes::format::ParseError),
     /// A genotype is invalid.
     InvalidGenotype(genotypes::genotype::ParseError),
 }
@@ -176,7 +176,6 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
-        use format::Format;
         use genotypes::genotype;
 
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";

@@ -1,8 +1,9 @@
 //! VCF record genotypes and fields.
 
+pub mod format;
 pub mod genotype;
 
-pub use self::genotype::Genotype;
+pub use self::{format::Format, genotype::Genotype};
 
 use std::{
     fmt,

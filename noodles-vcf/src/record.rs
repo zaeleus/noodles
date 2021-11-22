@@ -5,7 +5,6 @@ pub mod builder;
 pub mod chromosome;
 mod field;
 pub mod filters;
-pub mod format;
 pub mod genotypes;
 pub mod ids;
 pub mod info;
@@ -17,7 +16,7 @@ pub(crate) mod value;
 
 pub use self::{
     alternate_bases::AlternateBases, builder::Builder, chromosome::Chromosome, field::Field,
-    filters::Filters, format::Format, genotypes::Genotypes, ids::Ids, info::Info,
+    filters::Filters, genotypes::Genotypes, ids::Ids, info::Info,
     parser::ParseError, position::Position, quality_score::QualityScore,
     reference_bases::ReferenceBases,
 };
@@ -27,6 +26,12 @@ pub use self::{
     note = "Use `noodles_vcf::record::genotypes::{genotype, Genotype}` instead."
 )]
 pub use self::genotypes::{genotype, Genotype};
+
+#[deprecated(
+    since = "0.11.0",
+    note = "Use `noodles_vcf::record::genotypes::Format` instead."
+)]
+pub use self::genotypes::Format;
 
 use std::{error, fmt, num, str::FromStr};
 
