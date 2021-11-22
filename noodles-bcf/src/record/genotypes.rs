@@ -87,6 +87,24 @@ impl Genotypes {
         self.len() == 0
     }
 
+    /// Removes all genotype fields.
+    ///
+    /// This does not affect the capacity of the buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::record::Genotypes;
+    /// let mut genotypes = Genotypes::default();
+    /// genotypes.clear();
+    /// assert!(genotypes.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.buf.clear();
+        self.set_format_count(0);
+        self.set_sample_count(0);
+    }
+
     /// Returns the number of fields per sample.
     ///
     /// # Examples

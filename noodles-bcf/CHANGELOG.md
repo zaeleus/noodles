@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bcf/record/genotypes: Add method to clear all fields (`Genotypes::clear`).
+
   * bcf/record/info: Add methods to wrap an INFO buffer (`Info::new`), clear
     all fields (`Info::clear`), retrieve a field by key (`Info::get`; [#52]),
     and iterate all fields (`Info::values`).
