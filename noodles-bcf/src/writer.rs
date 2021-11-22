@@ -106,18 +106,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
-        let raw_header = header.to_string();
-        let c_raw_header =
-            CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let text = c_raw_header.as_bytes_with_nul();
-        let l_text = u32::try_from(text.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        self.inner.write_u32::<LittleEndian>(l_text)?;
-        self.inner.write_all(text)?;
-
-        Ok(())
+        write_header(&mut self.inner, header)
     }
 
     /// Writes a VCF record.
@@ -190,10 +179,26 @@ where
     Ok(())
 }
 
+fn write_header<W>(writer: &mut W, header: &vcf::Header) -> io::Result<()>
+where
+    W: Write,
+{
+    let raw_header = header.to_string();
+    let c_raw_header =
+        CString::new(raw_header).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let text = c_raw_header.as_bytes_with_nul();
+    let l_text =
+        u32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    writer.write_u32::<LittleEndian>(l_text)?;
+    writer.write_all(text)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::Reader;
-
     use super::*;
 
     #[test]
@@ -214,21 +219,18 @@ mod tests {
 
     #[test]
     fn test_write_header() -> io::Result<()> {
-        let mut writer = Writer::new(Vec::new());
-        writer.write_file_format()?;
-
+        let mut buf = Vec::new();
         let header = vcf::Header::default();
-        writer.write_header(&header)?;
+        write_header(&mut buf, &header)?;
 
-        writer.try_finish()?;
+        let mut expected = vec![
+            0x3d, 0x00, 0x00, 0x00, // l_text = 61
+        ];
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
-        reader.read_file_format()?;
-        let actual = reader.read_header()?;
+        let text = b"##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n\0";
+        expected.extend_from_slice(text);
 
-        let expected = "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
-
-        assert_eq!(actual, expected);
+        assert_eq!(buf, expected);
 
         Ok(())
     }
