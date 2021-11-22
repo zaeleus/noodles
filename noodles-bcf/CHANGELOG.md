@@ -14,6 +14,9 @@
 
   * bcf/writer: Add conversion from `W` into `Writer<W>`.
 
+  * bcf/writer: Add common methods to access the underlying writer: `get_mut`
+    and `into_inner`.
+
 [#52]: https://github.com/zaeleus/noodles/issues/52
 
 ### Changed
