@@ -49,28 +49,7 @@ impl Record {
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let filters = if self.filters().is_empty() {
-            None
-        } else {
-            self.filters()
-                .as_ref()
-                .iter()
-                .map(|&i| {
-                    string_map.get_index(i).ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!("invalid string map index: {}", i),
-                        )
-                    })
-                })
-                .collect::<Result<Vec<_>, _>>()
-                .and_then(|raw_filters| {
-                    vcf::record::Filters::try_from_iter(raw_filters)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                })
-                .map(Some)?
-        };
-
+        let filters = self.filters().try_into_vcf_record_filters(string_map)?;
         let info = self.info().try_into_vcf_record_info(header, string_map)?;
 
         let mut builder = vcf::Record::builder()
