@@ -49,7 +49,7 @@ where
 
     let value = read_info_field_value(reader, info)?;
 
-    Ok(vcf::record::info::Field::new(key, Some(value)))
+    Ok(vcf::record::info::Field::new(key, value))
 }
 
 fn read_info_field_key<R>(
@@ -86,7 +86,7 @@ where
 fn read_info_field_value<R>(
     reader: &mut R,
     info: &vcf::header::Info,
-) -> io::Result<vcf::record::info::field::Value>
+) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
 {
@@ -99,80 +99,105 @@ where
     }
 }
 
-fn read_info_field_integer_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
-where
-    R: Read,
-{
-    let value = match read_value(reader)? {
-        Some(Value::Int8(Some(Int8::Value(n)))) => {
-            vcf::record::info::field::Value::Integer(i32::from(n))
-        }
-        Some(Value::Int8Array(values)) => vcf::record::info::field::Value::IntegerArray(
-            values.into_iter().map(i32::from).collect(),
-        ),
-        Some(Value::Int16(Some(Int16::Value(n)))) => {
-            vcf::record::info::field::Value::Integer(i32::from(n))
-        }
-        Some(Value::Int16Array(values)) => vcf::record::info::field::Value::IntegerArray(
-            values.into_iter().map(i32::from).collect(),
-        ),
-        Some(Value::Int32(Some(Int32::Value(n)))) => vcf::record::info::field::Value::Integer(n),
-        Some(Value::Int32Array(values)) => vcf::record::info::field::Value::IntegerArray(values),
-        v => return Err(type_mismatch_error(v, Type::Integer)),
-    };
-
-    Ok(value)
-}
-
-fn read_info_field_flag_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+fn read_info_field_integer_value<R>(
+    reader: &mut R,
+) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
 {
     match read_value(reader)? {
-        Some(Value::Int8(Some(Int8::Value(1)))) | None => Ok(vcf::record::info::field::Value::Flag),
+        None
+        | Some(Value::Int8(None | Some(Int8::Missing)))
+        | Some(Value::Int16(None | Some(Int16::Missing)))
+        | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(Value::Int8(Some(Int8::Value(n)))) => {
+            Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
+        }
+        Some(Value::Int8Array(values)) => Ok(Some(vcf::record::info::field::Value::IntegerArray(
+            values.into_iter().map(i32::from).collect(),
+        ))),
+        Some(Value::Int16(Some(Int16::Value(n)))) => {
+            Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
+        }
+        Some(Value::Int16Array(values)) => Ok(Some(vcf::record::info::field::Value::IntegerArray(
+            values.into_iter().map(i32::from).collect(),
+        ))),
+        Some(Value::Int32(Some(Int32::Value(n)))) => {
+            Ok(Some(vcf::record::info::field::Value::Integer(n)))
+        }
+        Some(Value::Int32Array(values)) => {
+            Ok(Some(vcf::record::info::field::Value::IntegerArray(values)))
+        }
+        v => Err(type_mismatch_error(v, Type::Integer)),
+    }
+}
+
+fn read_info_field_flag_value<R>(
+    reader: &mut R,
+) -> io::Result<Option<vcf::record::info::field::Value>>
+where
+    R: Read,
+{
+    match read_value(reader)? {
+        None | Some(Value::Int8(Some(Int8::Value(1)))) => {
+            Ok(Some(vcf::record::info::field::Value::Flag))
+        }
         v => Err(type_mismatch_error(v, Type::Flag)),
     }
 }
 
-fn read_info_field_float_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+fn read_info_field_float_value<R>(
+    reader: &mut R,
+) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
 {
     match read_value(reader)? {
-        Some(Value::Float(Some(Float::Value(n)))) => Ok(vcf::record::info::field::Value::Float(n)),
-        Some(Value::FloatArray(values)) => Ok(vcf::record::info::field::Value::FloatArray(values)),
+        None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(Value::Float(Some(Float::Value(n)))) => {
+            Ok(Some(vcf::record::info::field::Value::Float(n)))
+        }
+        Some(Value::FloatArray(values)) => {
+            Ok(Some(vcf::record::info::field::Value::FloatArray(values)))
+        }
         v => Err(type_mismatch_error(v, Type::Float)),
     }
 }
 
-fn read_info_field_character_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+fn read_info_field_character_value<R>(
+    reader: &mut R,
+) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
 {
     match read_value(reader)? {
+        None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => match s.len() {
             0 | 1 => s
                 .chars()
                 .next()
                 .map(vcf::record::info::field::Value::Character)
-                .map(Ok)
+                .map(|v| Ok(Some(v)))
                 .ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
                 })?,
-            _ => Ok(vcf::record::info::field::Value::CharacterArray(
+            _ => Ok(Some(vcf::record::info::field::Value::CharacterArray(
                 s.chars().collect(),
-            )),
+            ))),
         },
         v => Err(type_mismatch_error(v, Type::Character)),
     }
 }
 
-fn read_info_field_string_value<R>(reader: &mut R) -> io::Result<vcf::record::info::field::Value>
+fn read_info_field_string_value<R>(
+    reader: &mut R,
+) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
 {
     match read_value(reader)? {
-        Some(Value::String(Some(s))) => Ok(vcf::record::info::field::Value::String(s)),
+        None | Some(Value::String(None)) => Ok(None),
+        Some(Value::String(Some(s))) => Ok(Some(vcf::record::info::field::Value::String(s))),
         v => Err(type_mismatch_error(v, Type::String)),
     }
 }
@@ -192,14 +217,14 @@ mod tests {
 
     #[test]
     fn test_read_info_field_value_with_integer_value() -> io::Result<()> {
-        fn t(data: &[u8], info: &vcf::header::Info, expected_value: i32) -> io::Result<()> {
-            let mut reader = data;
-
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<i32>,
+        ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected = vcf::record::info::field::Value::Integer(expected_value);
-
+            let expected = expected_value.map(vcf::record::info::field::Value::Integer);
             assert_eq!(actual, expected);
-
             Ok(())
         }
 
@@ -210,24 +235,43 @@ mod tests {
             String::default(),
         ));
 
+        // None
+        t(&[0x00], &info, None)?;
+
+        // Some(Value::Int8(None))
+        t(&[0x01], &info, None)?;
+        // Some(Value::Int8(Int8::Missing))
+        t(&[0x11, 0x80], &info, None)?;
         // Some(Value::Int8(Some(Int8::Value(8))))
-        t(&[0x11, 0x08], &info, 8)?;
+        t(&[0x11, 0x08], &info, Some(8))?;
+
+        // Some(Value::Int16(None))
+        t(&[0x02], &info, None)?;
+        // Some(Value::Int16(Int16::Missing))
+        t(&[0x12, 0x00, 0x80], &info, None)?;
         // Some(Value::Int16(Some(Int16::Value(13))))
-        t(&[0x12, 0x0d, 0x00], &info, 13)?;
+        t(&[0x12, 0x0d, 0x00], &info, Some(13))?;
+
+        // Some(Value::Int32(None))
+        t(&[0x03], &info, None)?;
+        // Some(Value::Int32(Int32::Missing))
+        t(&[0x13, 0x00, 0x00, 0x00, 0x80], &info, None)?;
         // Some(Value::Int32(Some(Int32::Value(21))))
-        t(&[0x13, 0x15, 0x00, 0x00, 0x00], &info, 21)?;
+        t(&[0x13, 0x15, 0x00, 0x00, 0x00], &info, Some(21))?;
 
         Ok(())
     }
 
     #[test]
     fn test_read_info_field_value_with_integer_array_value() -> io::Result<()> {
-        use vcf::record::info::field::Value;
-
-        fn t(data: &[u8], info: &vcf::header::Info, expected: &Value) -> io::Result<()> {
-            let mut reader = data;
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<Vec<i32>>,
+        ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            assert_eq!(&actual, expected);
+            let expected = expected_value.map(vcf::record::info::field::Value::IntegerArray);
+            assert_eq!(actual, expected);
             Ok(())
         }
 
@@ -238,17 +282,15 @@ mod tests {
             String::default(),
         ));
 
-        let value = Value::IntegerArray(vec![8, 13]);
-        t(&[0x21, 0x08, 0x0d], &info, &value)?;
-
-        let value = Value::IntegerArray(vec![21, 34]);
-        t(&[0x22, 0x15, 0x00, 0x22, 0x00], &info, &value)?;
-
-        let value = Value::IntegerArray(vec![55, 89]);
+        // Some(Value::IntegerArray([8, 13]))
+        t(&[0x21, 0x08, 0x0d], &info, Some(vec![8, 13]))?;
+        // Some(Value::IntegerArray([21, 34]))
+        t(&[0x22, 0x15, 0x00, 0x22, 0x00], &info, Some(vec![21, 34]))?;
+        // Some(Value::IntegerArray([55, 89]))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
             &info,
-            &value,
+            Some(vec![55, 89]),
         )?;
 
         Ok(())
@@ -256,14 +298,10 @@ mod tests {
 
     #[test]
     fn test_read_info_field_value_with_flag_value() -> io::Result<()> {
-        fn t(data: &[u8], info: &vcf::header::Info) -> io::Result<()> {
-            let mut reader = data;
-
+        fn t(mut reader: &[u8], info: &vcf::header::Info) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
-            let expected = vcf::record::info::field::Value::Flag;
-
+            let expected = Some(vcf::record::info::field::Value::Flag);
             assert_eq!(actual, expected);
-
             Ok(())
         }
 
@@ -284,9 +322,16 @@ mod tests {
 
     #[test]
     fn test_read_info_field_value_with_float_value() -> io::Result<()> {
-        // Some(Value::Float(Some(Float::Value(0.0))))
-        let data = [0x15, 0x00, 0x00, 0x00, 0x00];
-        let mut reader = &data[..];
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<f32>,
+        ) -> io::Result<()> {
+            let actual = read_info_field_value(&mut reader, info)?;
+            let expected = expected_value.map(vcf::record::info::field::Value::Float);
+            assert_eq!(actual, expected);
+            Ok(())
+        }
 
         let info = vcf::header::Info::from(Key::Other(
             String::from("F32"),
@@ -295,19 +340,31 @@ mod tests {
             String::default(),
         ));
 
-        let actual = read_info_field_value(&mut reader, &info)?;
-        let expected = vcf::record::info::field::Value::Float(0.0);
+        // None
+        t(&[0x00], &info, None)?;
+        // Some(Value::Float(None))
+        t(&[0x05], &info, None)?;
+        // Some(Value::Float(Some(Float::Missing)))
+        t(&[0x15, 0x01, 0x00, 0x80, 0x7f], &info, None)?;
 
-        assert_eq!(actual, expected);
+        // Some(Value::Float(Some(Float::Value(0.0))))
+        t(&[0x15, 0x00, 0x00, 0x00, 0x00], &info, Some(0.0))?;
 
         Ok(())
     }
 
     #[test]
     fn test_read_info_field_value_with_float_array_value() -> io::Result<()> {
-        // Some(Value::FloatArray([0.0, 1.0]))
-        let data = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f];
-        let mut reader = &data[..];
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<Vec<f32>>,
+        ) -> io::Result<()> {
+            let actual = read_info_field_value(&mut reader, info)?;
+            let expected = expected_value.map(vcf::record::info::field::Value::FloatArray);
+            assert_eq!(actual, expected);
+            Ok(())
+        }
 
         let info = vcf::header::Info::from(Key::Other(
             String::from("F32"),
@@ -316,19 +373,28 @@ mod tests {
             String::default(),
         ));
 
-        let actual = read_info_field_value(&mut reader, &info)?;
-        let expected = vcf::record::info::field::Value::FloatArray(vec![0.0, 1.0]);
-
-        assert_eq!(actual, expected);
+        // Some(Value::FloatArray([0.0, 1.0]))
+        t(
+            &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
+            &info,
+            Some(vec![0.0, 1.0]),
+        )?;
 
         Ok(())
     }
 
     #[test]
     fn test_read_info_field_value_with_character_value() -> io::Result<()> {
-        // Some(Value::String(Some(String::from("n"))))
-        let data = [0x17, 0x6e];
-        let mut reader = &data[..];
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<char>,
+        ) -> io::Result<()> {
+            let actual = read_info_field_value(&mut reader, info)?;
+            let expected = expected_value.map(vcf::record::info::field::Value::Character);
+            assert_eq!(actual, expected);
+            Ok(())
+        }
 
         let info = vcf::header::Info::from(Key::Other(
             String::from("CHAR"),
@@ -337,19 +403,29 @@ mod tests {
             String::default(),
         ));
 
-        let actual = read_info_field_value(&mut reader, &info)?;
-        let expected = vcf::record::info::field::Value::Character('n');
+        // None
+        t(&[0x00], &info, None)?;
+        // Some(Value::String(None))
+        t(&[0x07], &info, None)?;
 
-        assert_eq!(actual, expected);
+        // Some(Value::String(Some(String::from("n"))))
+        t(&[0x17, 0x6e], &info, Some('n'))?;
 
         Ok(())
     }
 
     #[test]
     fn test_read_info_field_value_with_character_array_value() -> io::Result<()> {
-        // Some(Value::String(Some(String::from("nd"))))
-        let data = [0x27, 0x6e, 0x64];
-        let mut reader = &data[..];
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<Vec<char>>,
+        ) -> io::Result<()> {
+            let actual = read_info_field_value(&mut reader, info)?;
+            let expected = expected_value.map(vcf::record::info::field::Value::CharacterArray);
+            assert_eq!(actual, expected);
+            Ok(())
+        }
 
         let info = vcf::header::Info::from(Key::Other(
             String::from("CHAR"),
@@ -358,19 +434,28 @@ mod tests {
             String::default(),
         ));
 
-        let actual = read_info_field_value(&mut reader, &info)?;
-        let expected = vcf::record::info::field::Value::CharacterArray(vec!['n', 'd']);
+        // None
+        t(&[0x00], &info, None)?;
 
-        assert_eq!(actual, expected);
+        // Some(Value::String(Some(String::from("nd"))))
+        t(&[0x27, 0x6e, 0x64], &info, Some(vec!['n', 'd']))?;
 
         Ok(())
     }
 
     #[test]
     fn test_read_info_field_value_with_string_value() -> io::Result<()> {
-        // Some(Value::String(Some(String::from("ndls"))))
-        let data = [0x47, 0x6e, 0x64, 0x6c, 0x73];
-        let mut reader = &data[..];
+        fn t(
+            mut reader: &[u8],
+            info: &vcf::header::Info,
+            expected_value: Option<&str>,
+        ) -> io::Result<()> {
+            let actual = read_info_field_value(&mut reader, info)?;
+            let expected =
+                expected_value.map(|s| vcf::record::info::field::Value::String(s.into()));
+            assert_eq!(actual, expected);
+            Ok(())
+        }
 
         let info = vcf::header::Info::from(Key::Other(
             String::from("STRING"),
@@ -379,10 +464,13 @@ mod tests {
             String::default(),
         ));
 
-        let actual = read_info_field_value(&mut reader, &info)?;
-        let expected = vcf::record::info::field::Value::String(String::from("ndls"));
+        // None
+        t(&[0x00], &info, None)?;
 
-        assert_eq!(actual, expected);
+        // Some(Value::String(None))
+        t(&[0x07], &info, None)?;
+        // Some(Value::String(Some(String::from("ndls"))))
+        t(&[0x47, 0x6e, 0x64, 0x6c, 0x73], &info, Some("ndls"))?;
 
         Ok(())
     }

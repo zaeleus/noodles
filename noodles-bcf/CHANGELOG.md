@@ -28,6 +28,12 @@
 
   * bcf/reader/record/site/info: Always use key from header.
 
+### Fixed
+
+  * bcf/reader/record/site/info: Allow value to be optional (#56).
+
+[#56]: https://github.com/zaeleus/noodles/issues/56
+
 ## 0.8.0 - 2021-11-18
 
 ### Added
