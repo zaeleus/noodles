@@ -74,6 +74,41 @@ impl Data {
         self.bounds.clear();
     }
 
+    /// Returns a field by the given tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
+    /// use noodles_sam::record::data::field::Tag;
+    ///
+    /// let data = Data::try_from(vec![
+    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
+    ///     b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+    /// ])?;
+    ///
+    /// let rg = data.get(Tag::ReadGroup).transpose()?;
+    /// assert_eq!(rg, Some(Field::new(Tag::ReadGroup, Value::String(String::from("rg0")))));
+    ///
+    /// assert!(data.get(Tag::AlignmentScore).is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn get(&self, tag: Tag) -> Option<io::Result<Field>> {
+        for (i, result) in self.keys().enumerate() {
+            match result {
+                Ok(t) => {
+                    if t == tag {
+                        return self.get_index(i);
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns a field by an index.
     ///
     /// # Examples

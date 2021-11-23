@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/record/data: Add method to retrieve a field by tag (`Data::get`).
+
 ### Fixed
 
   * bam/async/record/writer: Fix `n_cigar_op` value ([#58]).
