@@ -9,14 +9,14 @@ use std::{error, fmt, str::FromStr};
 
 use crate::header::{self, info::Type};
 
+const MISSING_VALUE: &str = ".";
 const SEPARATOR: char = '=';
-const MAX_COMPONENTS: usize = 2;
 
 /// A VCF record info field.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Field {
     key: Key,
-    value: Value,
+    value: Option<Value>,
 }
 
 impl Field {
@@ -31,9 +31,9 @@ impl Field {
     ///
     /// ```
     /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
-    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// ```
-    pub fn new(key: Key, value: Value) -> Self {
+    pub fn new(key: Key, value: Option<Value>) -> Self {
         Self { key, value }
     }
 
@@ -43,7 +43,7 @@ impl Field {
     ///
     /// ```
     /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
-    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
+    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// assert_eq!(field.key(), &Key::SamplesWithDataCount);
     /// ```
     pub fn key(&self) -> &Key {
@@ -56,11 +56,11 @@ impl Field {
     ///
     /// ```
     /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
-    /// let field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
-    /// assert_eq!(field.value(), &Value::Integer(1));
+    /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
+    /// assert_eq!(field.value(), Some(&Value::Integer(1)));
     /// ```
-    pub fn value(&self) -> &Value {
-        &self.value
+    pub fn value(&self) -> Option<&Value> {
+        self.value.as_ref()
     }
 
     /// Returns a mutable reference to the value.
@@ -69,11 +69,11 @@ impl Field {
     ///
     /// ```
     /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
-    /// let mut field = Field::new(Key::SamplesWithDataCount, Value::Integer(1));
-    /// *field.value_mut() = Value::Integer(2);
-    /// assert_eq!(field.value(), &Value::Integer(2));
+    /// let mut field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
+    /// *field.value_mut() = Some(Value::Integer(2));
+    /// assert_eq!(field.value(), Some(&Value::Integer(2)));
     /// ```
-    pub fn value_mut(&mut self) -> &mut Value {
+    pub fn value_mut(&mut self) -> &mut Option<Value> {
         &mut self.value
     }
 }
@@ -81,8 +81,9 @@ impl Field {
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.value() {
-            Value::Flag => write!(f, "{}", self.key),
-            value => write!(f, "{}{}{}", self.key, SEPARATOR, value),
+            None => write!(f, "{}{}{}", self.key, SEPARATOR, MISSING_VALUE),
+            Some(Value::Flag) => write!(f, "{}", self.key),
+            Some(value) => write!(f, "{}{}{}", self.key, SEPARATOR, value),
         }
     }
 }
@@ -122,6 +123,8 @@ impl FromStr for Field {
 }
 
 fn parse(s: &str, infos: &header::Infos) -> Result<Field, ParseError> {
+    const MAX_COMPONENTS: usize = 2;
+
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
     let raw_key = components.next().ok_or(ParseError::MissingKey)?;
@@ -136,23 +139,42 @@ fn parse(s: &str, infos: &header::Infos) -> Result<Field, ParseError> {
     Ok(Field::new(key, value))
 }
 
-fn parse_value<'a, I>(iter: &mut I, key: &Key) -> Result<Value, ParseError>
+fn parse_value<'a, I>(iter: &mut I, key: &Key) -> Result<Option<Value>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
     if let Type::Flag = key.ty() {
         let t = iter.next().unwrap_or_default();
-        Value::from_str_key(t, key).map_err(ParseError::InvalidValue)
+
+        if t == MISSING_VALUE {
+            Ok(None)
+        } else {
+            Value::from_str_key(t, key)
+                .map(Some)
+                .map_err(ParseError::InvalidValue)
+        }
     } else if let Key::Other(..) = key {
         if let Some(t) = iter.next() {
-            Value::from_str_key(t, key).map_err(ParseError::InvalidValue)
+            if t == MISSING_VALUE {
+                Ok(None)
+            } else {
+                Value::from_str_key(t, key)
+                    .map(Some)
+                    .map_err(ParseError::InvalidValue)
+            }
         } else {
-            Ok(Value::Flag)
+            Ok(Some(Value::Flag))
+        }
+    } else if let Some(t) = iter.next() {
+        if t == MISSING_VALUE {
+            Ok(None)
+        } else {
+            Value::from_str_key(t, key)
+                .map(Some)
+                .map_err(ParseError::InvalidValue)
         }
     } else {
-        iter.next()
-            .ok_or(ParseError::MissingValue)
-            .and_then(|t| Value::from_str_key(t, key).map_err(ParseError::InvalidValue))
+        Err(ParseError::MissingValue)
     }
 }
 
@@ -164,13 +186,16 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let field = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+        let field = Field::new(Key::AlleleCount, None);
+        assert_eq!(field.to_string(), "AC=.");
+
+        let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
         assert_eq!(field.to_string(), "NS=2");
 
-        let field = Field::new(Key::BaseQuality, Value::Float(1.333));
+        let field = Field::new(Key::BaseQuality, Some(Value::Float(1.333)));
         assert_eq!(field.to_string(), "BQ=1.333");
 
-        let field = Field::new(Key::IsSomaticMutation, Value::Flag);
+        let field = Field::new(Key::IsSomaticMutation, Some(Value::Flag));
         assert_eq!(field.to_string(), "SOMATIC");
 
         let field = Field::new(
@@ -180,33 +205,38 @@ mod tests {
                 Type::String,
                 String::default(),
             ),
-            Value::String(String::from("DEL")),
+            Some(Value::String(String::from("DEL"))),
         );
         assert_eq!(field.to_string(), "SVTYPE=DEL");
     }
 
     #[test]
     fn test_from_str() {
+        assert_eq!("AC=.".parse(), Ok(Field::new(Key::AlleleCount, None)));
+
         assert_eq!(
             "NS=2".parse(),
-            Ok(Field::new(Key::SamplesWithDataCount, Value::Integer(2)))
+            Ok(Field::new(
+                Key::SamplesWithDataCount,
+                Some(Value::Integer(2))
+            ))
         );
 
         assert_eq!(
             "BQ=1.333".parse(),
-            Ok(Field::new(Key::BaseQuality, Value::Float(1.333)))
+            Ok(Field::new(Key::BaseQuality, Some(Value::Float(1.333))))
         );
 
         assert_eq!(
             "SOMATIC".parse(),
-            Ok(Field::new(Key::IsSomaticMutation, Value::Flag))
+            Ok(Field::new(Key::IsSomaticMutation, Some(Value::Flag)))
         );
 
         assert_eq!(
             "EVENT=INV0".parse(),
             Ok(Field::new(
                 Key::BreakendEventId,
-                Value::String(String::from("INV0"))
+                Some(Value::String(String::from("INV0")))
             ))
         );
 
@@ -218,7 +248,7 @@ mod tests {
         );
         assert_eq!(
             "NDLS=VCF".parse(),
-            Ok(Field::new(key, Value::String(String::from("VCF"))))
+            Ok(Field::new(key, Some(Value::String(String::from("VCF")))))
         );
 
         let key = Key::Other(
@@ -227,6 +257,6 @@ mod tests {
             Type::String,
             String::default(),
         );
-        assert_eq!("FLG".parse(), Ok(Field::new(key, Value::Flag)));
+        assert_eq!("FLG".parse(), Ok(Field::new(key, Some(Value::Flag))));
     }
 }

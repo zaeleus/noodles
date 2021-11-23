@@ -49,7 +49,7 @@ where
 
     let value = read_info_field_value(reader, info)?;
 
-    Ok(vcf::record::info::Field::new(key, value))
+    Ok(vcf::record::info::Field::new(key, Some(value)))
 }
 
 fn read_info_field_key<R>(

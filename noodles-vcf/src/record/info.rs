@@ -56,8 +56,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns, dp.clone()])?;
     ///
     /// assert_eq!(info.get(&Key::TotalDepth), Some(&dp));
@@ -75,17 +75,17 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let mut info = Info::try_from(vec![ns, dp])?;
     ///
     /// if let Some(dp) = info.get_mut(&Key::TotalDepth) {
-    ///     *dp.value_mut() = Value::Integer(8);
+    ///     *dp.value_mut() = Some(Value::Integer(8));
     /// }
     ///
     /// assert_eq!(
     ///     info.get(&Key::TotalDepth).map(|field| field.value()),
-    ///     Some(&Value::Integer(8))
+    ///     Some(Some(&Value::Integer(8)))
     /// );
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
@@ -100,8 +100,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns, dp.clone()])?;
     ///
     /// assert_eq!(info.get_index(1), Some(&dp));
@@ -119,17 +119,17 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let mut info = Info::try_from(vec![ns, dp])?;
     ///
     /// if let Some(dp) = info.get_index_mut(1) {
-    ///     *dp.value_mut() = Value::Integer(8);
+    ///     *dp.value_mut() = Some(Value::Integer(8));
     /// }
     ///
     /// assert_eq!(
     ///     info.get_index(1).map(|field| field.value()),
-    ///     Some(&Value::Integer(8))
+    ///     Some(Some(&Value::Integer(8)))
     /// );
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
@@ -149,11 +149,11 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let mut info = Info::try_from(vec![ns])?;
     /// assert_eq!(info.len(), 1);
     ///
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// info.insert(dp.clone());
     ///
     /// assert_eq!(info.len(), 2);
@@ -171,8 +171,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns, dp.clone()])?;
     ///
     /// let mut keys = info.keys();
@@ -193,8 +193,8 @@ impl Info {
     /// ```
     /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
     ///
-    /// let ns = Field::new(Key::SamplesWithDataCount, Value::Integer(2));
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// let info = Info::try_from(vec![ns.clone(), dp.clone()])?;
     ///
     /// let mut values = info.values();
@@ -338,15 +338,18 @@ mod tests {
 
         let info = Info::try_from(vec![Field::new(
             field::Key::SamplesWithDataCount,
-            field::Value::Integer(2),
+            Some(field::Value::Integer(2)),
         )])?;
         assert_eq!(info.to_string(), "NS=2");
 
         let info = Info::try_from(vec![
-            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
+            Field::new(
+                field::Key::SamplesWithDataCount,
+                Some(field::Value::Integer(2)),
+            ),
             Field::new(
                 field::Key::AlleleFrequencies,
-                field::Value::FloatArray(vec![0.333, 0.667]),
+                Some(field::Value::FloatArray(vec![0.333, 0.667])),
             ),
         ])?;
         assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
@@ -380,13 +383,19 @@ mod tests {
 
         let fields = vec![Field::new(
             field::Key::SamplesWithDataCount,
-            field::Value::Integer(2),
+            Some(field::Value::Integer(2)),
         )];
         assert!(Info::try_from(fields).is_ok());
 
         let fields = vec![
-            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
-            Field::new(field::Key::SamplesWithDataCount, field::Value::Integer(2)),
+            Field::new(
+                field::Key::SamplesWithDataCount,
+                Some(field::Value::Integer(2)),
+            ),
+            Field::new(
+                field::Key::SamplesWithDataCount,
+                Some(field::Value::Integer(2)),
+            ),
         ];
         assert_eq!(
             Info::try_from(fields),

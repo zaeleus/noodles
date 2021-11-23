@@ -27,6 +27,8 @@
 
   * vcf/record/info/field: Prefer key from header.
 
+  * vcf/record/info/field: Allow value to optional.
+
 ### Deprecated
 
   * vcf/record: Deprecate `vcf::record::Format`.

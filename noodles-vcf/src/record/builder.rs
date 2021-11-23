@@ -256,8 +256,8 @@ impl Builder {
     ///     .build()?;
     ///
     /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
-    ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
+    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![0.5]))),
     /// ])?;
     ///
     /// assert_eq!(record.info(), &expected);

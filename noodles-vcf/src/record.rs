@@ -386,8 +386,8 @@ impl Record {
     ///     .build()?;
     ///
     /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
-    ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
+    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![0.5]))),
     /// ])?;
     ///
     /// assert_eq!(record.info(), &expected);
@@ -415,12 +415,12 @@ impl Record {
     ///     .set_info("NS=3;AF=0.5".parse()?)
     ///     .build()?;
     ///
-    /// let dp = Field::new(Key::TotalDepth, Value::Integer(13));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
     /// record.info_mut().insert(dp.clone());
     ///
     /// let expected = Info::try_from(vec![
-    ///     Field::new(Key::SamplesWithDataCount, Value::Integer(3)),
-    ///     Field::new(Key::AlleleFrequencies, Value::FloatArray(vec![0.5])),
+    ///     Field::new(Key::SamplesWithDataCount, Some(Value::Integer(3))),
+    ///     Field::new(Key::AlleleFrequencies, Some(Value::FloatArray(vec![0.5]))),
     ///     dp,
     /// ])?;
     ///
@@ -583,7 +583,7 @@ impl Record {
 
         let end = if let Some(field) = self.info().get(&Key::EndPosition) {
             match field.value() {
-                Value::Integer(n) => *n,
+                Some(Value::Integer(n)) => *n,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
             }
         } else {
@@ -655,7 +655,7 @@ mod tests {
             .set_reference_bases("A".parse()?)
             .set_info(Info::try_from(vec![info::Field::new(
                 info::field::Key::EndPosition,
-                info::field::Value::Flag,
+                Some(info::field::Value::Flag),
             )])?)
             .build()?;
 

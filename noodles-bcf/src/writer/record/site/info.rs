@@ -60,7 +60,7 @@ where
 
 fn write_info_field_value<W>(
     writer: &mut W,
-    value: &vcf::record::info::field::Value,
+    value: Option<&vcf::record::info::field::Value>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -68,17 +68,24 @@ where
     use vcf::record::info::field;
 
     match value {
-        field::Value::Integer(n) => write_info_field_integer_value(writer, *n),
-        field::Value::Float(n) => write_info_field_float_value(writer, *n),
-        field::Value::Flag => write_info_field_flag_value(writer),
-        field::Value::Character(c) => write_info_field_character_value(writer, *c),
-        field::Value::String(s) => write_info_field_string_value(writer, s),
-        field::Value::IntegerArray(values) => write_info_field_integer_array_value(writer, values),
-        field::Value::FloatArray(values) => write_info_field_float_array_value(writer, values),
-        field::Value::CharacterArray(values) => {
+        Some(field::Value::Integer(n)) => write_info_field_integer_value(writer, *n),
+        Some(field::Value::Float(n)) => write_info_field_float_value(writer, *n),
+        Some(field::Value::Flag) => write_info_field_flag_value(writer),
+        Some(field::Value::Character(c)) => write_info_field_character_value(writer, *c),
+        Some(field::Value::String(s)) => write_info_field_string_value(writer, s),
+        Some(field::Value::IntegerArray(values)) => {
+            write_info_field_integer_array_value(writer, values)
+        }
+        Some(field::Value::FloatArray(values)) => {
+            write_info_field_float_array_value(writer, values)
+        }
+        Some(field::Value::CharacterArray(values)) => {
             write_info_field_character_array_value(writer, values)
         }
-        field::Value::StringArray(values) => write_info_field_string_array_value(writer, values),
+        Some(field::Value::StringArray(values)) => {
+            write_info_field_string_array_value(writer, values)
+        }
+        _ => todo!("unhandled INFO field value: {:?}", value),
     }
 }
 
@@ -251,7 +258,7 @@ mod test {
 
         fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_info_field_value(buf, value)?;
+            write_info_field_value(buf, Some(value))?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -261,7 +268,7 @@ mod test {
         let value = field::Value::Integer(-2147483641);
         buf.clear();
         assert!(matches!(
-            write_info_field_value(&mut buf, &value),
+            write_info_field_value(&mut buf, Some(&value)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -307,7 +314,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::Float(0.0);
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x15, 0x00, 0x00, 0x00, 0x00];
 
@@ -322,7 +329,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::Flag;
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x00];
 
@@ -337,7 +344,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::Character('n');
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x17, 0x6e];
 
@@ -352,7 +359,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::String(String::from("ndls"));
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x47, 0x6e, 0x64, 0x6c, 0x73];
 
@@ -367,7 +374,7 @@ mod test {
 
         fn t(buf: &mut Vec<u8>, value: &field::Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_info_field_value(buf, value)?;
+            write_info_field_value(buf, Some(value))?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -377,7 +384,7 @@ mod test {
         let value = field::Value::IntegerArray(vec![-2147483641, -2147483640]);
         buf.clear();
         assert!(matches!(
-            write_info_field_value(&mut buf, &value),
+            write_info_field_value(&mut buf, Some(&value)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -439,7 +446,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::FloatArray(vec![0.0, 1.0]);
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f];
 
@@ -454,7 +461,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::CharacterArray(vec!['n', 'd', 'l', 's']);
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x77, 0x6e, 0x2c, 0x64, 0x2c, 0x6c, 0x2c, 0x73];
 
@@ -469,7 +476,7 @@ mod test {
 
         let mut buf = Vec::new();
         let value = field::Value::StringArray(vec![String::from("nd"), String::from("ls")]);
-        write_info_field_value(&mut buf, &value)?;
+        write_info_field_value(&mut buf, Some(&value))?;
 
         let expected = [0x57, 0x6e, 0x64, 0x2c, 0x6c, 0x73];
 

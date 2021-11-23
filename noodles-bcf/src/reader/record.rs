@@ -297,12 +297,15 @@ mod tests {
             .try_into_vcf_record_info(&header, &string_map)?;
 
         let expected = VcfInfo::try_from(vec![
-            InfoField::new("HM3".parse()?, InfoFieldValue::Flag),
-            InfoField::new(InfoFieldKey::AlleleCount, InfoFieldValue::Integer(3)),
-            InfoField::new(InfoFieldKey::TotalAlleleCount, InfoFieldValue::Integer(6)),
+            InfoField::new("HM3".parse()?, Some(InfoFieldValue::Flag)),
+            InfoField::new(InfoFieldKey::AlleleCount, Some(InfoFieldValue::Integer(3))),
+            InfoField::new(
+                InfoFieldKey::TotalAlleleCount,
+                Some(InfoFieldValue::Integer(6)),
+            ),
             InfoField::new(
                 InfoFieldKey::AncestralAllele,
-                InfoFieldValue::String(String::from("C")),
+                Some(InfoFieldValue::String(String::from("C"))),
             ),
         ])?;
 

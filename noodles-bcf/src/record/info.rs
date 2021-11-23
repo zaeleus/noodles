@@ -125,7 +125,7 @@ impl Info {
     ///
     /// assert_eq!(
     ///     info.get(&header, &string_map, &Key::AlleleCount).transpose()?,
-    ///     Some(Field::new(Key::AlleleCount, Value::Integer(5)))
+    ///     Some(Field::new(Key::AlleleCount, Some(Value::Integer(5))))
     /// );
     ///
     /// assert!(info.get(&header, &string_map, &Key::AncestralAllele).is_none());
@@ -173,11 +173,18 @@ impl Info {
     /// ];
     ///
     /// let info = Info::new(data, 2);
-    ///
     /// let mut fields = info.values(&header, &string_map);
     ///
-    /// assert_eq!(fields.next().transpose()?, Some(Field::new(Key::AlleleCount, Value::Integer(5))));
-    /// assert_eq!(fields.next().transpose()?, Some(Field::new(Key::TotalDepth, Value::Integer(8))));
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some(Field::new(Key::AlleleCount, Some(Value::Integer(5))))
+    /// );
+    ///
+    /// assert_eq!(
+    ///     fields.next().transpose()?,
+    ///     Some(Field::new(Key::TotalDepth, Some(Value::Integer(8))))
+    /// );
+    ///
     /// assert!(fields.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
