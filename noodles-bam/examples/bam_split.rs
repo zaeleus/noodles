@@ -6,7 +6,7 @@
 //!
 //! This is similar to the outputs of `samtools split <src>`.
 
-use noodles_bam::{self as bam, record::data::field::Value};
+use noodles_bam as bam;
 use noodles_sam::{self as sam, record::data::field::Tag};
 
 use std::{collections::HashMap, env, fs::File, io};
@@ -49,23 +49,22 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 }
 
 fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
-    for result in data.values() {
-        let field = result?;
+    use bam::record::data::field::value::Type;
 
-        if field.tag() == Tag::ReadGroup {
-            match field.value() {
-                Value::String(s) => return Ok(Some(s.into())),
-                v => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("expected String, got {:?}", v),
-                    ))
-                }
-            }
-        }
+    match data.get(Tag::ReadGroup) {
+        Some(Ok(field)) => field
+            .value()
+            .as_str()
+            .map(|s| Some(s.into()))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("expected {:?}, got {:?}", Type::String, field.value()),
+                )
+            }),
+        Some(Err(e)) => Err(e),
+        None => Ok(None),
     }
-
-    Ok(None)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in reader.records() {
         let record = result?;
 
-        if let Some(rg) = find_read_group(&record.data())? {
+        if let Some(rg) = find_read_group(record.data())? {
             let writer = writers.get_mut(&rg).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
