@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/writer: Fix `n_cigar_op` value ([#58]).
+
+    This used an old calculation when `Cigar` stored a raw byte buffer.
+
+[#58]: https://github.com/zaeleus/noodles/issues/58
+
 ## 0.9.0 - 2021-11-18
 
 ### Added
