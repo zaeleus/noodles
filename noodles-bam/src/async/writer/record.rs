@@ -58,6 +58,33 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    async fn test_write_record_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+        let record = Record::default();
+        write_record(&mut buf, &record).await?;
+
+        let expected = [
+            0x22, 0x00, 0x00, 0x00, // block_size = 34
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x02, // l_read_name = 2
+            0xff, // mapq = 255
+            0x48, 0x12, // bin = 4680
+            0x00, 0x00, // n_cigar_op = 0
+            0x04, 0x00, // flag = 4
+            0x00, 0x00, 0x00, 0x00, // l_seq = 0
+            0xff, 0xff, 0xff, 0xff, // next_ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // next_pos = -1
+            0x00, 0x00, 0x00, 0x00, // tlen = 0
+            0x2a, 0x00, // read_name = "*\x00"
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
             cigar::op::Kind, data::field::Tag, quality_scores::Score, Flags, MappingQuality,
