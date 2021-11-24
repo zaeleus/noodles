@@ -1,6 +1,6 @@
-mod record;
 mod string_map;
 mod value;
+mod vcf_record;
 
 use std::{
     ffi::CString,
@@ -132,7 +132,7 @@ where
         record: &vcf::Record,
     ) -> io::Result<()> {
         let mut site_buf = Vec::new();
-        record::write_site(&mut site_buf, header, string_map, record)?;
+        vcf_record::write_site(&mut site_buf, header, string_map, record)?;
 
         let l_shared = u32::try_from(site_buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -140,7 +140,12 @@ where
         let mut genotypes_buf = Vec::new();
 
         if let Some(format) = record.format() {
-            record::write_genotypes(&mut genotypes_buf, string_map, format, record.genotypes())?;
+            vcf_record::write_genotypes(
+                &mut genotypes_buf,
+                string_map,
+                format,
+                record.genotypes(),
+            )?;
         };
 
         let l_indiv = u32::try_from(genotypes_buf.len())
