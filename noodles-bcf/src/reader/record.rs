@@ -1,7 +1,7 @@
 mod genotypes;
-pub(crate) mod site;
+pub mod info;
 
-pub use self::genotypes::read_genotypes;
+pub use self::{genotypes::read_genotypes, info::read_info};
 
 use std::io::{self, Read};
 

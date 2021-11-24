@@ -34,7 +34,7 @@ impl Info {
         header: &vcf::Header,
         string_map: &StringMap,
     ) -> io::Result<vcf::record::Info> {
-        use crate::reader::record::site::read_info;
+        use crate::reader::record::read_info;
         let mut reader = &self.buf[..];
         read_info(&mut reader, header.infos(), string_map, self.len())
     }
@@ -193,7 +193,7 @@ impl Info {
         header: &'a vcf::Header,
         string_map: &'a StringMap,
     ) -> impl Iterator<Item = io::Result<vcf::record::info::Field>> + 'a {
-        use crate::reader::record::site::info::read_info_field;
+        use crate::reader::record::info::read_info_field;
         let mut reader = &self.buf[..];
         (0..self.len()).map(move |_| read_info_field(&mut reader, header.infos(), string_map))
     }
