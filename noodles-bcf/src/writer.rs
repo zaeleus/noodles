@@ -131,32 +131,7 @@ where
         string_map: &StringMap,
         record: &vcf::Record,
     ) -> io::Result<()> {
-        let mut site_buf = Vec::new();
-        vcf_record::write_site(&mut site_buf, header, string_map, record)?;
-
-        let l_shared = u32::try_from(site_buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let mut genotypes_buf = Vec::new();
-
-        if let Some(format) = record.format() {
-            vcf_record::write_genotypes(
-                &mut genotypes_buf,
-                string_map,
-                format,
-                record.genotypes(),
-            )?;
-        };
-
-        let l_indiv = u32::try_from(genotypes_buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        self.inner.write_u32::<LittleEndian>(l_shared)?;
-        self.inner.write_u32::<LittleEndian>(l_indiv)?;
-        self.inner.write_all(&site_buf)?;
-        self.inner.write_all(&genotypes_buf)?;
-
-        Ok(())
+        vcf_record::write_vcf_record(&mut self.inner, header, string_map, record)
     }
 }
 
