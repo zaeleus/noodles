@@ -1,11 +1,13 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::Record;
+use crate::{validate, Record};
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
+    validate(record)?;
+
     let block_size = u32::try_from(record.block_size())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(block_size).await?;
@@ -111,8 +113,8 @@ mod tests {
         record.read_name.extend_from_slice(b"r0\x00");
 
         let cigar = record.cigar_mut();
-        cigar.push(Op::new(Kind::Match, 36)?);
-        cigar.push(Op::new(Kind::SoftClip, 8)?);
+        cigar.push(Op::new(Kind::Match, 3)?);
+        cigar.push(Op::new(Kind::SoftClip, 1)?);
 
         let sequence = record.sequence_mut();
         sequence.push(Base::A);
@@ -146,8 +148,8 @@ mod tests {
             0x15, 0x00, 0x00, 0x00, // next_pos = 21
             0x90, 0x00, 0x00, 0x00, // tlen = 144
             b'r', b'0', 0x00, // read_name = "r0\x00"
-            0x40, 0x02, 0x00, 0x00, // cigar[0] = 36M
-            0x84, 0x00, 0x00, 0x00, // cigar[1] = 8S
+            0x30, 0x00, 0x00, 0x00, // cigar[0] = 36M
+            0x14, 0x00, 0x00, 0x00, // cigar[1] = 8S
             0x12, 0x48, // seq = ACGT
             0x2d, 0x23, 0x2b, 0x32, // qual = NDLS
             b'N', b'H', b'C', 0x01, // data[0] = NH:i:1

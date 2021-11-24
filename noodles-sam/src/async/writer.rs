@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{Header, Record};
+use crate::{validate, Header, Record};
 
 /// An async SAM writer.
 pub struct Writer<W>
@@ -99,6 +99,8 @@ where
     /// ```
     pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
         const LINE_FEED: u8 = b'\n';
+
+        validate(record)?;
 
         let raw_record = record.to_string();
         self.inner.write_all(raw_record.as_bytes()).await?;

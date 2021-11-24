@@ -9,6 +9,7 @@ use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
     record::{Cigar, Data, QualityScores, Sequence},
+    validate,
 };
 
 use crate::record::sequence::Base;
@@ -30,6 +31,8 @@ pub fn write_sam_record<W>(
 where
     W: Write,
 {
+    validate(record)?;
+
     let name = record.read_name().map(|name| name.as_str()).unwrap_or("*");
     let c_read_name =
         CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -102,25 +105,13 @@ where
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
-    if !sequence.is_empty() {
-        write_seq(writer, sequence)?;
-
-        if sequence.len() == quality_scores.len() {
-            write_qual(writer, quality_scores)?;
-        } else if quality_scores.is_empty() {
-            for _ in 0..sequence.len() {
-                writer.write_u8(NULL_QUALITY_SCORE)?;
-            }
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "quality scores length mismatch: expected {}, got {}",
-                    sequence.len(),
-                    quality_scores.len()
-                ),
-            ));
+    write_seq(writer, sequence)?;
+    if quality_scores.is_empty() {
+        for _ in 0..sequence.len() {
+            writer.write_u8(NULL_QUALITY_SCORE)?;
         }
+    } else {
+        write_qual(writer, quality_scores)?;
     }
 
     write_data(writer, record.data())?;

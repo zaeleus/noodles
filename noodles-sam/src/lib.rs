@@ -41,7 +41,8 @@ mod record_ext;
 mod writer;
 
 pub use self::{
-    header::Header, reader::Reader, record::Record, record_ext::RecordExt, writer::Writer,
+    header::Header, reader::Reader, record::Record, record_ext::RecordExt, writer::validate,
+    writer::Writer,
 };
 
 #[cfg(feature = "async")]

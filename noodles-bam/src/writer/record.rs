@@ -2,12 +2,17 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::Record;
+use crate::{validate, Record};
+
+// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
+const NULL_QUALITY_SCORE: u8 = 255;
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
+    validate(record)?;
+
     let block_size = u32::try_from(record.block_size())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(block_size)?;
@@ -47,7 +52,14 @@ where
     }
 
     writer.write_all(record.sequence().as_ref())?;
-    writer.write_all(record.quality_scores().as_ref())?;
+    if record.quality_scores().is_empty() {
+        for _ in 0..l_seq {
+            writer.write_u8(NULL_QUALITY_SCORE)?;
+        }
+    } else {
+        writer.write_all(record.quality_scores().as_ref())?;
+    }
+
     writer.write_all(record.data().as_ref())?;
 
     Ok(())
@@ -112,26 +124,37 @@ mod tests {
         record.read_name.clear();
         record.read_name.extend_from_slice(b"r0\x00");
 
-        let cigar = record.cigar_mut();
-        cigar.push(Op::new(Kind::Match, 36)?);
-        cigar.push(Op::new(Kind::SoftClip, 8)?);
+        record.cigar_mut().push(Op::new(Kind::Match, 3)?);
+        record.cigar_mut().push(Op::new(Kind::SoftClip, 1)?);
 
-        let sequence = record.sequence_mut();
-        sequence.push(Base::A);
-        sequence.push(Base::C);
-        sequence.push(Base::G);
-        sequence.push(Base::T);
+        record.sequence_mut().push(Base::A);
+        record.sequence_mut().push(Base::C);
+        record.sequence_mut().push(Base::G);
 
-        let quality_scores = record.quality_scores_mut();
-        quality_scores.push(Score::try_from('N')?);
-        quality_scores.push(Score::try_from('D')?);
-        quality_scores.push(Score::try_from('L')?);
-        quality_scores.push(Score::try_from('S')?);
+        record.quality_scores_mut().push(Score::try_from('N')?);
+        record.quality_scores_mut().push(Score::try_from('D')?);
+        record.quality_scores_mut().push(Score::try_from('L')?);
 
-        let data = record.data_mut();
-        data.insert(Field::new(Tag::AlignmentHitCount, Value::UInt8(1)));
+        record
+            .data_mut()
+            .insert(Field::new(Tag::AlignmentHitCount, Value::UInt8(1)));
 
+        //trigger cigar length error
         let mut buf = Vec::new();
+        assert!(write_record(&mut buf, &record).is_err());
+        buf.clear();
+
+        //fix sequence
+        record.sequence_mut().push(Base::T);
+
+        //trigger remaining quality length error
+        let mut buf = Vec::new();
+        assert!(write_record(&mut buf, &record).is_err());
+        buf.clear();
+
+        //fix quality
+        record.quality_scores_mut().push(Score::try_from('S')?);
+
         write_record(&mut buf, &record)?;
 
         let expected = [
@@ -148,8 +171,8 @@ mod tests {
             0x15, 0x00, 0x00, 0x00, // next_pos = 21
             0x90, 0x00, 0x00, 0x00, // tlen = 144
             b'r', b'0', 0x00, // read_name = "r0\x00"
-            0x40, 0x02, 0x00, 0x00, // cigar[0] = 36M
-            0x84, 0x00, 0x00, 0x00, // cigar[1] = 8S
+            0x30, 0x00, 0x00, 0x00, // cigar[0] = 3M
+            0x14, 0x00, 0x00, 0x00, // cigar[1] = 1S
             0x12, 0x48, // seq = ACGT
             0x2d, 0x23, 0x2b, 0x32, // qual = NDLS
             b'N', b'H', b'C', 0x01, // data[0] = NH:i:1

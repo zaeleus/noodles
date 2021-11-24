@@ -115,8 +115,46 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+        validate(record)?;
         writeln!(self.inner, "{}", record)
     }
+}
+
+/// Validate SAM field relations
+pub fn validate(record: &Record) -> io::Result<()> {
+    // Before writing validate record requirements for BAM encoding
+    // Sequence and quality must be same length
+    // If no qualities are present use 0xFF as placeholders
+    // https://samtools.github.io/hts-specs/SAMv1.pdf#subsubsection.4.2.3
+    let sequence_len = record.sequence().len();
+    let quality_scores_len = record.quality_scores().len();
+
+    if quality_scores_len > 0 && quality_scores_len != sequence_len {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "quality scores length mismatch: expected {}, got {}",
+                sequence_len, quality_scores_len
+            ),
+        ));
+    }
+
+    // The sum of the query consuming CIGAR operations must equal the SEQ length
+    // https://samtools.github.io/hts-specs/SAMv1.pdf#subsubsection.4.2.2
+    let sequence_len =
+        u32::try_from(sequence_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let cigar_query_len = record.cigar().read_len();
+    if cigar_query_len != sequence_len {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "cigar operations length mismatch: expected {}, got {}",
+                sequence_len, cigar_query_len
+            ),
+        ));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

@@ -7,7 +7,7 @@ pub use self::builder::Builder;
 use std::ffi::CString;
 
 use noodles_bgzf as bgzf;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, validate};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::Record;
@@ -167,6 +167,7 @@ where
         reference_sequences: &sam::header::ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
+        validate(record)?;
         sam_record::write_sam_record(&mut self.inner, reference_sequences, record).await
     }
 }
