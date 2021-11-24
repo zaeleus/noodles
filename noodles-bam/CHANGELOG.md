@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam/record: Add builder (`bam::record::Builder`).
+
   * bam/record/data: Add method to retrieve a field by tag (`Data::get`).
 
 ### Fixed

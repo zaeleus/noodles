@@ -1,5 +1,6 @@
 //! BAM record and fields.
 
+mod builder;
 pub mod cigar;
 mod convert;
 pub mod data;
@@ -8,7 +9,7 @@ pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
-    cigar::Cigar, data::Data, quality_scores::QualityScores,
+    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores,
     reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
@@ -63,6 +64,19 @@ pub struct Record {
 }
 
 impl Record {
+    /// Creates a BAM record builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let builder = bam::Record::builder();
+    /// let record = builder.build();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     pub(crate) fn block_size(&self) -> usize {
         mem::size_of::<i32>() // ref_id
             + mem::size_of::<i32>() // pos
