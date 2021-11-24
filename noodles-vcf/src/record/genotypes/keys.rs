@@ -1,4 +1,4 @@
-//! VCF record genotype format.
+//! VCF record genotypes keys.
 
 use std::{error, fmt, ops::Deref, str::FromStr};
 
@@ -9,12 +9,12 @@ use crate::{header, record::MISSING_FIELD};
 
 const DELIMITER: char = ':';
 
-/// A VCF record genotype format (`FORMAT`).
+/// A VCF record genotypes keys, i.e., `FORMAT`.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Keys(IndexSet<Key>);
 
 impl Keys {
-    /// Parses a raw VCF record genotype format.
+    /// Parses raw VCF record genotypes keys.
     pub fn try_from_str(s: &str, formats: &header::Formats) -> Result<Self, ParseError> {
         parse(s, formats)
     }
@@ -46,7 +46,7 @@ impl fmt::Display for Keys {
     }
 }
 
-/// An error returned when a raw VCF record format fails to parse.
+/// An error returned when raw VCF record genotypes keys fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.
@@ -94,8 +94,8 @@ fn parse(s: &str, formats: &header::Formats) -> Result<Keys, ParseError> {
     }
 }
 
+/// An error returned when a vector of record genotypes keys fails to convert to a format.
 #[derive(Clone, Debug, Eq, PartialEq)]
-/// An error returned when a vector of keys fails to convert to a format.
 pub enum TryFromKeyVectorError {
     /// The genotype key (`GT`) position is invalid.
     ///
