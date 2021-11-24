@@ -6,6 +6,8 @@
 
   * bam/record: Add builder (`bam::record::Builder`).
 
+  * bam/record/cigar: Add conversion from `Vec<Op>` to `Cigar`.
+
   * bam/record/data: Add method to retrieve a field by tag (`Data::get`).
 
 ### Fixed

@@ -180,9 +180,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Cigar};
+    /// use noodles_bam::{self as bam, record::{cigar::Op, Cigar}};
+    /// use noodles_sam::record::cigar::op::Kind;
     ///
-    /// let cigar = Cigar::from(vec![0x00000240]); // 36M
+    /// let cigar = Cigar::from(vec![Op::new(Kind::Match, 36)?]);
     ///
     /// let record = bam::Record::builder()
     ///     .set_cigar(cigar.clone())

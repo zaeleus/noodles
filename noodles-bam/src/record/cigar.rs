@@ -210,6 +210,13 @@ impl From<Vec<u32>> for Cigar {
     }
 }
 
+impl From<Vec<Op>> for Cigar {
+    fn from(ops: Vec<Op>) -> Self {
+        let raw_ops = ops.into_iter().map(u32::from).collect();
+        Self(raw_ops)
+    }
+}
+
 impl TryFrom<&Cigar> for sam::record::Cigar {
     type Error = io::Error;
 
@@ -240,6 +247,13 @@ mod tests {
         assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x362)?));
         assert_eq!(ops.next().transpose()?, None);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_vec_ops_for_cigar() -> Result<(), op::LengthError> {
+        let cigar = Cigar::from(vec![Op::new(Kind::Match, 36)?, Op::new(Kind::SoftClip, 8)?]);
+        assert_eq!(cigar.as_ref(), [0x00000240, 0x00000084]);
         Ok(())
     }
 
