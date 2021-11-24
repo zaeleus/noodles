@@ -237,17 +237,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_bytes() -> Result<(), Box<dyn std::error::Error>> {
-        let data = vec![0x00000240, 0x00000362]; // 36MD54
-        let cigar = Cigar::from(data);
-
-        let mut ops = cigar.ops();
-
-        assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x240)?));
-        assert_eq!(ops.next().transpose()?, Some(Op::try_from(0x362)?));
-        assert_eq!(ops.next().transpose()?, None);
-
-        Ok(())
+    fn test_from_vec_u8_for_cigar() {
+        let cigar = Cigar::from(vec![0x00000240, 0x00000084]); // 36M8S
+        assert_eq!(cigar.as_ref(), [0x00000240, 0x00000084]);
     }
 
     #[test]
@@ -259,16 +251,13 @@ mod tests {
 
     #[test]
     fn test_try_from_cigar_for_sam_record_cigar() -> io::Result<()> {
-        use sam::record::cigar::{op, Op};
+        use sam::record::cigar::{op::Kind, Op};
 
-        let data = vec![0x00000240, 0x00000362]; // 36MD54
-        let cigar = Cigar::from(data);
+        let cigar = Cigar::from(vec![0x00000240, 0x00000084]); // 36M8S
 
         let actual = sam::record::Cigar::try_from(&cigar)?;
-        let expected = sam::record::Cigar::from(vec![
-            Op::new(op::Kind::Match, 36),
-            Op::new(op::Kind::Deletion, 54),
-        ]);
+        let expected =
+            sam::record::Cigar::from(vec![Op::new(Kind::Match, 36), Op::new(Kind::SoftClip, 8)]);
 
         assert_eq!(actual, expected);
 
