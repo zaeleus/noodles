@@ -221,11 +221,13 @@ impl TryFrom<&Cigar> for sam::record::Cigar {
     type Error = io::Error;
 
     fn try_from(cigar: &Cigar) -> Result<Self, Self::Error> {
+        use sam::record::cigar::Op;
+
         let mut ops = Vec::new();
 
         for result in cigar.ops() {
             let op = result?;
-            ops.push(sam::record::cigar::Op::new(op.kind(), op.len()));
+            ops.push(Op::from(op));
         }
 
         Ok(Self::from(ops))

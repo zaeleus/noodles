@@ -3,7 +3,7 @@
 use std::{error, fmt, mem};
 
 use byteorder::{ByteOrder, LittleEndian};
-use noodles_sam::record::cigar::op::Kind;
+use noodles_sam::{self as sam, record::cigar::op::Kind};
 
 const MAX_LENGTH: u32 = (1 << 28) - 1;
 
@@ -198,6 +198,12 @@ impl From<Op> for u32 {
     }
 }
 
+impl From<Op> for sam::record::cigar::Op {
+    fn from(op: Op) -> Self {
+        sam::record::cigar::Op::new(op.kind(), op.len())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -267,6 +273,18 @@ mod tests {
         assert_eq!(u32::from(Op::new(Kind::Pad, 7)?), 7 << 4 | 6);
         assert_eq!(u32::from(Op::new(Kind::SeqMatch, 8)?), 8 << 4 | 7);
         assert_eq!(u32::from(Op::new(Kind::SeqMismatch, 9)?), 9 << 4 | 8);
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_op_for_sam_record_cigar_op() -> Result<(), LengthError> {
+        let op = Op::new(Kind::Match, 36)?;
+
+        let actual = sam::record::cigar::Op::from(op);
+        let expected = sam::record::cigar::Op::new(op.kind(), op.len());
+
+        assert_eq!(actual, expected);
+
         Ok(())
     }
 }

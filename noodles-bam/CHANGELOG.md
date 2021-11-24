@@ -8,6 +8,8 @@
 
   * bam/record/cigar: Add conversion from `Vec<Op>` to `Cigar`.
 
+  * bam/record/cigar/op: Add conversion from `Op` to `sam::record::cigar::Op`.
+
   * bam/record/data: Add method to retrieve a field by tag (`Data::get`).
 
 ### Fixed
