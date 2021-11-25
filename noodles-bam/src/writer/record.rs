@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::Record;
+use crate::{Record, NULL_QUALITY_SCORE};
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -46,8 +46,28 @@ where
         writer.write_u32::<LittleEndian>(raw_op)?;
     }
 
-    writer.write_all(record.sequence().as_ref())?;
-    writer.write_all(record.quality_scores().as_ref())?;
+    let sequence = record.sequence();
+    let quality_scores = record.quality_scores();
+
+    writer.write_all(sequence.as_ref())?;
+
+    if sequence.len() == quality_scores.len() {
+        writer.write_all(record.quality_scores().as_ref())?;
+    } else if quality_scores.is_empty() {
+        for _ in 0..l_seq {
+            writer.write_u8(NULL_QUALITY_SCORE)?;
+        }
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "quality scores length mismatch: expected {}, got {}",
+                sequence.len(),
+                quality_scores.len()
+            ),
+        ));
+    }
+
     writer.write_all(record.data().as_ref())?;
 
     Ok(())
