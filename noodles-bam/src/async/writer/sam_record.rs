@@ -1,6 +1,6 @@
 use std::{ffi::CString, num};
 
-use noodles_sam::{self as sam, header::ReferenceSequences};
+use noodles_sam::{self as sam, header::ReferenceSequences, validate};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
@@ -16,6 +16,8 @@ where
     W: AsyncWrite + Unpin,
 {
     use crate::writer::sam_record::calculate_data_len;
+
+    validate(record)?;
 
     let name = record
         .read_name()
@@ -52,7 +54,7 @@ where
         reference_sequences,
         record.reference_sequence_name(),
     )
-    .await?;
+        .await?;
 
     // pos
     write_position(writer, record.position()).await?;
@@ -81,7 +83,7 @@ where
         reference_sequences,
         record.mate_reference_sequence_name(),
     )
-    .await?;
+        .await?;
 
     // next_pos
     write_position(writer, record.mate_position()).await?;
@@ -97,27 +99,16 @@ where
 
     let sequence = record.sequence();
 
-    if !sequence.is_empty() {
-        // seq
-        write_sequence(writer, record.sequence()).await?;
+    // seq
+    write_sequence(writer, record.sequence()).await?;
 
-        let quality_scores = record.quality_scores();
+    let quality_scores = record.quality_scores();
+    if quality_scores.is_empty() {
 
         // qual
-        if sequence.len() == quality_scores.len() {
-            write_quality_scores(writer, record.quality_scores()).await?;
-        } else if quality_scores.is_empty() {
-            write_missing_filled_quality_scores(writer, sequence.len()).await?;
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "quality scores length mismatch: expected {}, got {}",
-                    sequence.len(),
-                    quality_scores.len()
-                ),
-            ));
-        }
+        write_missing_filled_quality_scores(writer, sequence.len()).await?;
+    } else {
+        write_quality_scores(writer, record.quality_scores()).await?;
     }
 
     write_data(writer, record.data()).await?;

@@ -1,6 +1,9 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{validate, Record};
+//
+// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
+const NULL_QUALITY_SCORE: u8 = 255;
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -47,7 +50,13 @@ where
     }
 
     writer.write_all(record.sequence().as_ref()).await?;
-    writer.write_all(record.quality_scores().as_ref()).await?;
+    if record.quality_scores().is_empty() {
+        for _ in 0..l_seq {
+            writer.write_u8(NULL_QUALITY_SCORE).await?;
+        }
+    } else {
+        writer.write_all(record.quality_scores().as_ref()).await?;
+    }
     writer.write_all(record.data().as_ref()).await?;
 
     Ok(())
@@ -148,8 +157,8 @@ mod tests {
             0x15, 0x00, 0x00, 0x00, // next_pos = 21
             0x90, 0x00, 0x00, 0x00, // tlen = 144
             b'r', b'0', 0x00, // read_name = "r0\x00"
-            0x30, 0x00, 0x00, 0x00, // cigar[0] = 36M
-            0x14, 0x00, 0x00, 0x00, // cigar[1] = 8S
+            0x30, 0x00, 0x00, 0x00, // cigar[0] = 3M
+            0x14, 0x00, 0x00, 0x00, // cigar[1] = 1S
             0x12, 0x48, // seq = ACGT
             0x2d, 0x23, 0x2b, 0x32, // qual = NDLS
             b'N', b'H', b'C', 0x01, // data[0] = NH:i:1
