@@ -1,6 +1,6 @@
 //! BAM record and fields.
 
-mod builder;
+pub mod builder;
 pub mod cigar;
 mod convert;
 pub mod data;
@@ -71,7 +71,8 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let builder = bam::Record::builder();
-    /// let record = builder.build();
+    /// let record = builder.build()?;
+    /// # Ok::<(), bam::record::builder::BuildError>(())
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
