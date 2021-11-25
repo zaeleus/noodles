@@ -54,7 +54,7 @@ where
         reference_sequences,
         record.reference_sequence_name(),
     )
-        .await?;
+    .await?;
 
     // pos
     write_position(writer, record.position()).await?;
@@ -83,7 +83,7 @@ where
         reference_sequences,
         record.mate_reference_sequence_name(),
     )
-        .await?;
+    .await?;
 
     // next_pos
     write_position(writer, record.mate_position()).await?;
@@ -104,7 +104,6 @@ where
 
     let quality_scores = record.quality_scores();
     if quality_scores.is_empty() {
-
         // qual
         write_missing_filled_quality_scores(writer, sequence.len()).await?;
     } else {
