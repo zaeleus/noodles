@@ -14,6 +14,9 @@
 
   * bam/record/sequence: Add conversion from `Vec<Base>` to `Sequence`.
 
+  * bam/record/quality_scores: Add conversion from `Vec<Score>` to
+    `QualityScores`.
+
 ### Fixed
 
   * bam/async/record/writer: Fix `n_cigar_op` value ([#58]).

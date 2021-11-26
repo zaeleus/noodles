@@ -152,6 +152,12 @@ impl From<Vec<u8>> for QualityScores {
     }
 }
 
+impl From<Vec<Score>> for QualityScores {
+    fn from(scores: Vec<Score>) -> Self {
+        Self::from(scores.into_iter().map(u8::from).collect::<Vec<_>>())
+    }
+}
+
 impl TryFrom<&QualityScores> for sam::record::QualityScores {
     type Error = sam::record::quality_scores::score::TryFromUByteError;
 
@@ -170,6 +176,23 @@ impl TryFrom<&QualityScores> for sam::record::QualityScores {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_from_vec_score_for_quality_scores(
+    ) -> Result<(), sam::record::quality_scores::score::TryFromCharError> {
+        let actual = QualityScores::from(vec![
+            Score::try_from('N')?,
+            Score::try_from('D')?,
+            Score::try_from('L')?,
+            Score::try_from('S')?,
+        ]);
+
+        let expected = QualityScores::from(vec![45, 35, 43, 50]);
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_try_from_quality_scores_for_sam_record_quality_scores(

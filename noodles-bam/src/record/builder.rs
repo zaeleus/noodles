@@ -231,15 +231,21 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam::{self as bam, record::QualityScores};
+    /// use noodles_sam::record::quality_scores::Score;
     ///
-    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]); // NDLS
+    /// let quality_scores = QualityScores::from(vec![
+    ///     Score::try_from('N')?,
+    ///     Score::try_from('D')?,
+    ///     Score::try_from('L')?,
+    ///     Score::try_from('S')?,
+    /// ]);
     ///
     /// let record = bam::Record::builder()
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build()?;
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, bam::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.qual = quality_scores;
