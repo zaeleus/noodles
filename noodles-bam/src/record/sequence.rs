@@ -214,6 +214,21 @@ impl fmt::Display for Sequence {
     }
 }
 
+impl From<Vec<Base>> for Sequence {
+    fn from(bases: Vec<Base>) -> Self {
+        let data = bases
+            .chunks(2)
+            .map(|chunk| {
+                let l = chunk[0];
+                let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+                u8::from(l) << 4 | u8::from(r)
+            })
+            .collect();
+
+        Self::new(data, bases.len())
+    }
+}
+
 impl From<&Sequence> for sam::record::Sequence {
     fn from(sequence: &Sequence) -> Self {
         let sam_bases: Vec<_> = sequence.bases().map(|b| b.into()).collect();
@@ -259,6 +274,17 @@ mod tests {
     fn test_fmt() {
         let sequence = Sequence::new(vec![0x18, 0x42], 4); // ATGC
         assert_eq!(sequence.to_string(), "ATGC");
+    }
+
+    #[test]
+    fn test_from_vec_base_for_sequence() {
+        let actual = Sequence::from(vec![Base::A, Base::T, Base::G]);
+        let expected = Sequence::new(vec![0x18, 0x40], 3);
+        assert_eq!(actual, expected);
+
+        let actual = Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]);
+        let expected = Sequence::new(vec![0x18, 0x42], 4);
+        assert_eq!(actual, expected);
     }
 
     #[test]

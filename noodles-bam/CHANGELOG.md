@@ -12,6 +12,8 @@
 
   * bam/record/data: Add method to retrieve a field by tag (`Data::get`).
 
+  * bam/record/sequence: Add conversion from `Vec<Base>` to `Sequence`.
+
 ### Fixed
 
   * bam/async/record/writer: Fix `n_cigar_op` value ([#58]).

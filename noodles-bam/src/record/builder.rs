@@ -209,9 +209,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Sequence};
+    /// use noodles_bam::{self as bam, record::{sequence::Base, Sequence}};
     ///
-    /// let sequence = Sequence::new(vec![0x12, 0x48], 4); // A
+    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
     ///
     /// let record = bam::Record::builder()
     ///     .set_sequence(sequence.clone())
