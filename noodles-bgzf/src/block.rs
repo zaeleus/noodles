@@ -10,7 +10,7 @@ pub(crate) const MAX_UNCOMPRESSED_DATA_LENGTH: usize = 1 << 16; // bytes
 /// of the block itself.
 #[derive(Debug)]
 pub struct Block {
-    data: Vec<u8>,
+    data: Box<[u8]>,
     cpos: u64,
     clen: u64,
     upos: usize,
@@ -85,7 +85,7 @@ impl Block {
 impl Default for Block {
     fn default() -> Self {
         Self {
-            data: vec![0; MAX_UNCOMPRESSED_DATA_LENGTH],
+            data: vec![0; MAX_UNCOMPRESSED_DATA_LENGTH].into_boxed_slice(),
             cpos: 0,
             clen: 0,
             upos: 0,
@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_virtual_position() {
         let mut block = Block {
-            data: vec![0; 4],
+            data: vec![0; 4].into_boxed_slice(),
             cpos: 0,
             clen: 8,
             upos: 0,
@@ -157,7 +157,7 @@ mod tests {
     #[test]
     fn test_is_eof() {
         let mut block = Block {
-            data: vec![0; 4],
+            data: vec![0; 4].into_boxed_slice(),
             cpos: 0,
             clen: 8,
             upos: 0,
