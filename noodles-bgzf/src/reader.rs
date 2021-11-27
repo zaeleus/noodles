@@ -155,7 +155,7 @@ where
         self.position = cpos + (block_size as u64);
 
         self.block.set_cpos(cpos);
-        self.block.set_upos(u32::from(upos));
+        self.block.set_upos(usize::from(upos));
 
         Ok(pos)
     }
@@ -195,7 +195,7 @@ where
 {
     fn consume(&mut self, mut amt: usize) {
         amt = cmp::min(amt, crate::block::MAX_UNCOMPRESSED_DATA_LENGTH);
-        let upos = cmp::min(self.block.ulen(), self.block.upos() + amt as u32);
+        let upos = cmp::min(self.block.ulen(), self.block.upos() + amt);
         self.block.set_upos(upos);
     }
 

@@ -13,7 +13,7 @@ pub struct Block {
     data: Vec<u8>,
     cpos: u64,
     clen: u64,
-    upos: u32,
+    upos: usize,
 }
 
 impl Block {
@@ -24,8 +24,7 @@ impl Block {
 
     /// Returns the unconsumed part of the current block.
     pub fn buffer(&self) -> &[u8] {
-        let start = self.upos as usize;
-        &self.data[start..]
+        &self.data[self.upos..]
     }
 
     /// Returns whether the cursor is at the end of the uncompressed data.
@@ -50,7 +49,7 @@ impl Block {
     }
 
     /// Sets the position of this block in the uncompressed stream.
-    pub fn set_upos(&mut self, upos: u32) {
+    pub fn set_upos(&mut self, upos: usize) {
         self.upos = upos;
     }
 
@@ -62,28 +61,28 @@ impl Block {
             VirtualPosition::try_from((next_cpos, 0)).unwrap()
         } else {
             assert!(self.cpos <= virtual_position::MAX_COMPRESSED_POSITION);
-            assert!(self.upos <= u32::from(virtual_position::MAX_UNCOMPRESSED_POSITION));
+            assert!(self.upos <= usize::from(virtual_position::MAX_UNCOMPRESSED_POSITION));
             VirtualPosition::try_from((self.cpos, self.upos as u16)).unwrap()
         }
     }
 
     /// Returns the uncompressed data length.
-    pub fn ulen(&self) -> u32 {
-        self.data.len() as u32
+    pub fn ulen(&self) -> usize {
+        self.data.len()
     }
 
     /// Returns the position in the uncompressed data.
-    pub fn upos(&self) -> u32 {
+    pub fn upos(&self) -> usize {
         self.upos
     }
 }
 
 impl Read for Block {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let upos = self.upos as usize;
-        let read_len = (&self.data[upos..]).read(buf)?;
-        self.upos += read_len as u32;
-        Ok(read_len)
+        let mut reader = self.buffer();
+        let n = reader.read(buf)?;
+        self.upos += n;
+        Ok(n)
     }
 }
 

@@ -114,7 +114,7 @@ where
                 self.position = cpos + block.clen();
 
                 block.set_cpos(cpos);
-                block.set_upos(u32::from(upos));
+                block.set_upos(usize::from(upos));
 
                 block
             }
@@ -173,7 +173,7 @@ where
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
         let this = self.project();
-        let upos = cmp::min(this.block.ulen(), this.block.upos() + amt as u32);
+        let upos = cmp::min(this.block.ulen(), this.block.upos() + amt);
         this.block.set_upos(upos);
     }
 }
