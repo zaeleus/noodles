@@ -166,6 +166,19 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        use super::block;
+
+        // If a new block is about to be read and the given buffer is guaranteed to be larger than
+        // next block, reading to the block buffer can be skipped. The uncompressed data is read
+        // directly to the given buffer to avoid double copying.
+        if self.block.is_eof() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+            let block_size =
+                read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
+            self.block.set_cpos(self.position);
+            self.position += block_size as u64;
+            return Ok(self.block.ulen());
+        }
+
         let bytes_read = {
             let mut remaining = self.fill_buf()?;
             remaining.read(buf)?
@@ -317,6 +330,30 @@ where
     block.set_ulen(ulen);
 
     inflate_data(cdata, block.buffer_mut())?;
+
+    Ok(clen)
+}
+
+fn read_block_into<R>(
+    reader: &mut R,
+    cdata: &mut Vec<u8>,
+    block: &mut Block,
+    buf: &mut [u8],
+) -> io::Result<usize>
+where
+    R: Read,
+{
+    let (clen, ulen) = match read_compressed_block(reader, cdata) {
+        Ok((0, 0)) => return Ok(0),
+        Ok((clen, ulen)) => (clen, ulen),
+        Err(e) => return Err(e),
+    };
+
+    block.set_clen(clen as u64);
+    block.set_upos(ulen);
+    block.set_ulen(ulen);
+
+    inflate_data(cdata, buf)?;
 
     Ok(clen)
 }
