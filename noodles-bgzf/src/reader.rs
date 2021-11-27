@@ -301,10 +301,9 @@ where
 
     block.set_clen(clen as u64);
     block.set_upos(0);
+    block.set_ulen(ulen);
 
-    let udata = block.data_mut();
-    udata.resize(ulen, Default::default());
-    inflate_data(cdata, udata)?;
+    inflate_data(cdata, block.buffer_mut())?;
 
     Ok(clen)
 }

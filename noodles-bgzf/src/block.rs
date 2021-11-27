@@ -8,23 +8,24 @@ pub(crate) const MAX_UNCOMPRESSED_DATA_LENGTH: usize = 1 << 16; // bytes
 ///
 /// A BGZF block is a gzip stream less than 64 KiB and contains an extra field describing the size
 /// of the block itself.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Block {
     data: Vec<u8>,
     cpos: u64,
     clen: u64,
     upos: usize,
+    ulen: usize,
 }
 
 impl Block {
     /// Returns a mutable reference to the uncompressed data of this block.
-    pub fn data_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.data
+    pub fn buffer_mut(&mut self) -> &mut [u8] {
+        &mut self.data[self.upos..self.ulen]
     }
 
     /// Returns the unconsumed part of the current block.
     pub fn buffer(&self) -> &[u8] {
-        &self.data[self.upos..]
+        &self.data[self.upos..self.ulen]
     }
 
     /// Returns whether the cursor is at the end of the uncompressed data.
@@ -68,12 +69,28 @@ impl Block {
 
     /// Returns the uncompressed data length.
     pub fn ulen(&self) -> usize {
-        self.data.len()
+        self.ulen
+    }
+
+    pub fn set_ulen(&mut self, ulen: usize) {
+        self.ulen = ulen;
     }
 
     /// Returns the position in the uncompressed data.
     pub fn upos(&self) -> usize {
         self.upos
+    }
+}
+
+impl Default for Block {
+    fn default() -> Self {
+        Self {
+            data: vec![0; MAX_UNCOMPRESSED_DATA_LENGTH],
+            cpos: 0,
+            clen: 0,
+            upos: 0,
+            ulen: 0,
+        }
     }
 }
 
@@ -89,6 +106,17 @@ impl Read for Block {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        let block = Block::default();
+
+        assert_eq!(block.data.len(), 1 << 16);
+        assert_eq!(block.cpos, 0);
+        assert_eq!(block.clen, 0);
+        assert_eq!(block.upos, 0);
+        assert_eq!(block.ulen, 0);
+    }
 
     #[test]
     fn test_set_cpos() {
@@ -111,6 +139,7 @@ mod tests {
             cpos: 0,
             clen: 8,
             upos: 0,
+            ulen: 4,
         };
 
         assert_eq!(block.virtual_position(), VirtualPosition::from(0));
@@ -126,19 +155,13 @@ mod tests {
     }
 
     #[test]
-    fn test_data_mut() {
-        let mut block = Block::default();
-        block.data_mut().extend(&[0, 0]);
-        assert_eq!(block.data.len(), 2);
-    }
-
-    #[test]
     fn test_is_eof() {
         let mut block = Block {
             data: vec![0; 4],
             cpos: 0,
             clen: 8,
             upos: 0,
+            ulen: 4,
         };
 
         assert!(!block.is_eof());

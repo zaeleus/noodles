@@ -79,11 +79,11 @@ async fn inflate(mut src: BytesMut) -> io::Result<Block> {
 
         let mut block = Block::default();
 
-        let udata = block.data_mut();
-        udata.resize(r#isize, Default::default());
-        inflate_data(&cdata, udata)?;
-
         block.set_clen(bsize);
+        block.set_upos(0);
+        block.set_ulen(r#isize);
+
+        inflate_data(&cdata, block.buffer_mut())?;
 
         Ok(block)
     })
