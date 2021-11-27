@@ -270,12 +270,12 @@ pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
     decoder.read_exact(writer)
 }
 
-fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
+fn read_compressed_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<(usize, usize)>
 where
     R: Read,
 {
     let clen = match read_header(reader) {
-        Ok(0) => return Ok(0),
+        Ok(0) => return Ok((0, 0)),
         Ok(bs) => bs as usize,
         Err(e) => return Err(e),
     };
@@ -292,12 +292,25 @@ where
     }
 
     let cdata_len = clen - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
-    cdata.resize(cdata_len, Default::default());
-    reader.read_exact(cdata)?;
+    buf.resize(cdata_len, Default::default());
+    reader.read_exact(buf)?;
 
     let ulen = read_trailer(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     })?;
+
+    Ok((clen, ulen))
+}
+
+fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
+where
+    R: Read,
+{
+    let (clen, ulen) = match read_compressed_block(reader, cdata) {
+        Ok((0, 0)) => return Ok(0),
+        Ok((clen, ulen)) => (clen, ulen),
+        Err(e) => return Err(e),
+    };
 
     block.set_clen(clen as u64);
     block.set_upos(0);
