@@ -113,7 +113,7 @@ impl ReferenceSequence {
         &self.intervals
     }
 
-    /// Returns a list of bins in this reference seqeunce that intersect the given range.
+    /// Returns a list of bins in this reference sequence that intersect the given range.
     ///
     /// The interval values are 1-based.
     ///
