@@ -160,7 +160,7 @@ impl Builder {
             let end = (slice_alignment_end - 1) as usize;
 
             let mut hasher = Md5::new();
-            hasher.update(&reference_sequence[start..=end]);
+            hasher.update(&reference_sequence.as_ref()[start..=end]);
             <[u8; 16]>::from(hasher.finalize())
         } else {
             [0; 16]

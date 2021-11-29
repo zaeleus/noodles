@@ -32,13 +32,15 @@ mod internal {
     use super::*;
 
     pub(super) fn resolve_bases(
-        reference_sequence: &[u8],
+        reference_sequence: &fasta::record::Sequence,
         substitution_matrix: &SubstitutionMatrix,
         features: &[Feature],
         alignment_start: i32,
         read_length: usize,
     ) -> Vec<u8> {
         use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
+
+        let raw_reference_sequence = reference_sequence.as_ref();
 
         let mut buf = vec![b'-'; read_length];
 
@@ -49,14 +51,14 @@ mod internal {
             let feature_pos = feature.position() as usize;
 
             while read_pos < feature_pos - 1 {
-                buf[read_pos] = reference_sequence[ref_pos];
+                buf[read_pos] = raw_reference_sequence[ref_pos];
                 ref_pos += 1;
                 read_pos += 1;
             }
 
             match feature {
                 Feature::Substitution(_, code) => {
-                    let base = reference_sequence[ref_pos] as char;
+                    let base = raw_reference_sequence[ref_pos] as char;
                     let reference_base = Base::try_from(base).unwrap_or_default();
 
                     let read_base = substitution_matrix.get(reference_base, *code);
@@ -93,7 +95,7 @@ mod internal {
         }
 
         for base in buf.iter_mut().skip(read_pos) {
-            *base = reference_sequence[ref_pos];
+            *base = raw_reference_sequence[ref_pos];
             ref_pos += 1;
         }
 
@@ -155,12 +157,12 @@ mod tests {
 
     #[test]
     fn test_resolve_bases() {
-        let reference_sequence = b"ACGTACGT";
+        let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
 
         let t = |features: &[Feature], expected: &[u8]| {
             let actual =
-                internal::resolve_bases(reference_sequence, &substitution_matrix, features, 1, 4);
+                internal::resolve_bases(&reference_sequence, &substitution_matrix, features, 1, 4);
             assert_eq!(actual, expected);
         };
 

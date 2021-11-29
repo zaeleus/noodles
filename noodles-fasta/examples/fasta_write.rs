@@ -12,7 +12,14 @@ fn main() -> io::Result<()> {
     let mut writer = fasta::Writer::new(handle);
 
     let definition = fasta::record::Definition::new("sq0", None);
-    let sequence = b"ACGT".iter().cycle().take(256).copied().collect();
+    let sequence = fasta::record::Sequence::from(
+        b"ACGT"
+            .iter()
+            .cycle()
+            .take(256)
+            .copied()
+            .collect::<Vec<_>>(),
+    );
     let record = fasta::Record::new(definition, sequence);
 
     writer.write_record(&record)?;

@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::Record;
+use crate::{record::Sequence, Record};
 
 use super::Reader;
 
@@ -48,7 +48,7 @@ where
 
         match self.inner.read_sequence(&mut sequence_buf) {
             Ok(_) => {
-                let record = Record::new(definition, sequence_buf);
+                let record = Record::new(definition, Sequence::from(sequence_buf));
                 Some(Ok(record))
             }
             Err(e) => Some(Err(e)),

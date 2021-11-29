@@ -6,6 +6,12 @@
 
   * fasta/record/definition: Accept `Into<String>` for name.
 
+### Changed
+
+  * fasta/record: Wrap sequence.
+
+    Use `Sequence::as_ref` to get the underlying list.
+
 ## 0.4.1 - 2021-11-18
 
 ### Fixed

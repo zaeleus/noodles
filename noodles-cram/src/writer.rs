@@ -244,7 +244,7 @@ fn add_record(
         .reference_sequence_id()
         .map(i32::from)
         .and_then(|id| reference_sequences.get(id as usize))
-        .map(|rs| rs.sequence())
+        .map(|rs| rs.sequence().as_ref())
         .unwrap_or_default();
 
     data_container_builder.add_record(reference_sequence, record)

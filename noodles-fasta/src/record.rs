@@ -1,14 +1,15 @@
 //! FASTA record and definition.
 
 pub mod definition;
+mod sequence;
 
-pub use self::definition::Definition;
+pub use self::{definition::Definition, sequence::Sequence};
 
 /// A FASTA record.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {
     definition: Definition,
-    sequence: Vec<u8>,
+    sequence: Sequence,
 }
 
 impl Record {
@@ -17,12 +18,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let sequence = b"ACGT".to_vec();
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     /// ```
-    pub fn new(definition: Definition, sequence: Vec<u8>) -> Self {
+    pub fn new(definition: Definition, sequence: Sequence) -> Self {
         Self {
             definition,
             sequence,
@@ -34,10 +35,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let sequence = b"ACGT".to_vec();
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition.clone(), sequence);
     ///
     /// assert_eq!(record.definition(), &definition);
@@ -51,10 +52,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let sequence = b"ACGT".to_vec();
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
@@ -69,10 +70,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let sequence = b"ACGT".to_vec();
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
     /// assert_eq!(record.name(), "sq0");
@@ -86,14 +87,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = fasta::record::Definition::new(
-    ///     String::from("sq0"),
-    ///     Some(String::from("LN:4"))
-    /// );
-    ///
-    /// let sequence = b"ACGT".to_vec();
+    /// let definition = Definition::new("sq0", Some(String::from("LN:4")));
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
     /// assert_eq!(record.description(), Some("LN:4"));
@@ -107,15 +104,15 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let sequence = b"ACGT".to_vec();
-    /// let record = fasta::Record::new(definition, sequence);
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let record = fasta::Record::new(definition, sequence.clone());
     ///
-    /// assert_eq!(record.sequence(), b"ACGT");
+    /// assert_eq!(record.sequence(), &sequence);
     /// ```
-    pub fn sequence(&self) -> &[u8] {
+    pub fn sequence(&self) -> &Sequence {
         &self.sequence
     }
 }

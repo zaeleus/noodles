@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::Record;
+use super::{record::Sequence, Record};
 
 const LINE_BASES: u64 = 80;
 
@@ -49,12 +49,13 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
     /// let mut writer = fasta::Writer::new(Vec::new());
     ///
-    /// let definition = fasta::record::Definition::new("sq0", None);
-    /// let record = fasta::Record::new(definition, b"ACGT".to_vec());
+    /// let definition = Definition::new("sq0", None);
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let record = fasta::Record::new(definition, sequence);
     ///
     /// writer.write_record(&record)?;
     ///
@@ -68,15 +69,20 @@ where
     }
 }
 
-fn write_record_sequence<W>(writer: &mut W, sequence: &[u8], line_bases: usize) -> io::Result<()>
+fn write_record_sequence<W>(
+    writer: &mut W,
+    sequence: &Sequence,
+    line_bases: usize,
+) -> io::Result<()>
 where
     W: Write,
 {
     let mut start = 0;
+    let raw_sequence = sequence.as_ref();
 
     while start < sequence.len() {
         let end = cmp::min(start + line_bases, sequence.len());
-        let line = &sequence[start..end];
+        let line = &raw_sequence[start..end];
 
         writer.write_all(line)?;
         writeln!(writer)?;
@@ -94,19 +100,23 @@ mod tests {
     #[test]
     fn test_write_record_sequence() -> io::Result<()> {
         let mut writer = Vec::new();
-        write_record_sequence(&mut writer, b"AC", 4)?;
+        let sequence = Sequence::from(b"AC".to_vec());
+        write_record_sequence(&mut writer, &sequence, 4)?;
         assert_eq!(writer, b"AC\n");
 
         writer.clear();
-        write_record_sequence(&mut writer, b"ACGT", 4)?;
+        let sequence = Sequence::from(b"ACGT".to_vec());
+        write_record_sequence(&mut writer, &sequence, 4)?;
         assert_eq!(writer, b"ACGT\n");
 
         writer.clear();
-        write_record_sequence(&mut writer, b"ACGTACGT", 4)?;
+        let sequence = Sequence::from(b"ACGTACGT".to_vec());
+        write_record_sequence(&mut writer, &sequence, 4)?;
         assert_eq!(writer, b"ACGT\nACGT\n");
 
         writer.clear();
-        write_record_sequence(&mut writer, b"ACGTACGTAC", 4)?;
+        let sequence = Sequence::from(b"ACGTACGTAC".to_vec());
+        write_record_sequence(&mut writer, &sequence, 4)?;
         assert_eq!(writer, b"ACGT\nACGT\nAC\n");
 
         Ok(())

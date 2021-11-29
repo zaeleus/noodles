@@ -111,7 +111,7 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::Reader::new(&data[..]);
@@ -119,13 +119,13 @@ where
     /// let mut records = reader.records();
     ///
     /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
-    ///     fasta::record::Definition::new("sq0", None),
-    ///     b"ACGT".to_vec(),
+    ///     Definition::new("sq0", None),
+    ///     Sequence::from(b"ACGT".to_vec()),
     /// )));
     ///
     /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
-    ///     fasta::record::Definition::new("sq1", None),
-    ///     b"NNNNNNNNNN".to_vec(),
+    ///     Definition::new("sq1", None),
+    ///     Sequence::from(b"NNNNNNNNNN".to_vec()),
     /// )));
     ///
     /// assert!(records.next().is_none());
@@ -173,7 +173,7 @@ where
     /// ```
     /// # use std::io::{self, Cursor};
     /// use noodles_core::Region;
-    /// use noodles_fasta::{self as fasta, fai};
+    /// use noodles_fasta::{self as fasta, fai, record::{Definition, Sequence}};
     ///
     /// let data = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
     /// let index = vec![
@@ -187,20 +187,20 @@ where
     /// let region = Region::mapped("sq1", ..);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
-    ///     fasta::record::Definition::new("sq1", None),
-    ///     b"ACGT".to_vec(),
+    ///     Definition::new("sq1", None),
+    ///     Sequence::from(b"ACGT".to_vec()),
     /// ));
     ///
     /// let region = Region::mapped("sq1", 2..=3);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
-    ///     fasta::record::Definition::new("sq1:2-3", None),
-    ///     b"CG".to_vec(),
+    ///     Definition::new("sq1:2-3", None),
+    ///     Sequence::from(b"CG".to_vec()),
     /// ));
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
-        use crate::record::Definition;
+        use crate::record::{Definition, Sequence};
 
         let (i, interval) = resolve_region(index, region)?;
         let index_record = &index[i];
@@ -210,11 +210,13 @@ where
 
         let definition = Definition::new(region.to_string(), None);
 
-        let mut sequence = Vec::new();
-        self.read_sequence(&mut sequence)?;
+        let mut raw_sequence = Vec::new();
+        self.read_sequence(&mut raw_sequence)?;
 
-        let range = interval_to_slice_range(interval, sequence.len())?;
-        Ok(Record::new(definition, sequence[range].to_vec()))
+        let range = interval_to_slice_range(interval, raw_sequence.len())?;
+        let sequence = Sequence::from(raw_sequence[range].to_vec());
+
+        Ok(Record::new(definition, sequence))
     }
 }
 
