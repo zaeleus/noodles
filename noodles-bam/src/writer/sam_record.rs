@@ -20,7 +20,7 @@ use crate::record::sequence::Base;
 const BLOCK_HEADER_SIZE: u32 = 32;
 
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
-const NULL_QUALITY_SCORE: u8 = 255;
+pub(crate) const NULL_QUALITY_SCORE: u8 = 255;
 
 pub fn write_sam_record<W>(
     writer: &mut W,
