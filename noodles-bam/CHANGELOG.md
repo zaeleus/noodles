@@ -21,11 +21,19 @@
 
   * bam/async/writer/record: Fix `n_cigar_op` value ([#58]).
 
+  * bam/async/writer/record: Fix encoding SEQ and QUAL fields ([#59]).
+
   * bam/writer/record: Fix `n_cigar_op` value ([#58]).
 
     This used an old calculation when `Cigar` stored a raw byte buffer.
 
+  * bam/writer/record: Fix encoding SEQ and QUAL fields ([#59]).
+
+    This validates the lengths to ensure they're equal or only `QUAL` is
+    missing.
+
 [#58]: https://github.com/zaeleus/noodles/issues/58
+[#59]: https://github.com/zaeleus/noodles/issues/59
 
 ## 0.9.0 - 2021-11-18
 
