@@ -52,7 +52,7 @@ where
     if sequence.len() == quality_scores.len() {
         writer.write_all(record.quality_scores().as_ref()).await?;
     } else if quality_scores.is_empty() {
-        for _ in 0..l_seq {
+        for _ in 0..sequence.len() {
             writer.write_u8(NULL_QUALITY_SCORE).await?;
         }
     } else {
