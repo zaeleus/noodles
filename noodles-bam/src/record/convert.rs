@@ -170,29 +170,37 @@ mod tests {
         .map_err(|e| e.into())
     }
 
-    fn build_record() -> io::Result<Record> {
-        use sam::record::{Flags, MappingQuality};
+    fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
+        use sam::record::{
+            cigar::op::Kind, quality_scores::Score, Flags, MappingQuality, Position,
+        };
 
-        use crate::record::{Cigar, Data, QualityScores, Sequence};
+        use crate::record::{cigar::Op, sequence::Base, Cigar, Data, QualityScores, Sequence};
 
-        Ok(Record {
-            ref_id: 1,
-            pos: 61061,
-            mapq: MappingQuality::from(12),
-            bin: 4684,
-            flag: Flags::PAIRED | Flags::READ_1,
-            next_ref_id: 1,
-            next_pos: 61152,
-            tlen: 166,
-            read_name: b"r0\x00".to_vec(),
-            cigar: Cigar::from(vec![0x00000040]),    // 4M
-            seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
-            qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
-            data: Data::try_from(vec![
+        let record = Record::builder()
+            .set_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+            .set_position(Position::try_from(61062)?)
+            .set_mapping_quality(MappingQuality::from(12))
+            .set_flags(Flags::PAIRED | Flags::READ_1)
+            .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+            .set_mate_position(Position::try_from(61153)?)
+            .set_template_length(166)
+            .set_read_name(b"r0\x00".to_vec())
+            .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
+            .set_sequence(Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]))
+            .set_quality_scores(QualityScores::from(vec![
+                Score::try_from('@')?,
+                Score::try_from('>')?,
+                Score::try_from('?')?,
+                Score::try_from('A')?,
+            ]))
+            .set_data(Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ])?,
-        })
+            ])?)
+            .build()?;
+
+        Ok(record)
     }
 
     #[test]
