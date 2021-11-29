@@ -353,7 +353,7 @@ where
     block.set_upos(ulen);
     block.set_ulen(ulen);
 
-    inflate_data(cdata, buf)?;
+    inflate_data(cdata, &mut buf[..ulen])?;
 
     Ok(clen)
 }
