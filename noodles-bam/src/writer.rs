@@ -15,10 +15,6 @@ use noodles_sam::{
 
 use super::Record;
 
-/// Missing quality score
-/// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
-pub const NULL_QUALITY_SCORE: u8 = 255;
-
 /// A BAM writer.
 ///
 /// Since the raw text header and `bam::Record` are immutable, BAM files are created by encoding a

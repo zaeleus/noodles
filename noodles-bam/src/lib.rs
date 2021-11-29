@@ -57,7 +57,7 @@ pub mod reader;
 pub mod record;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer, writer::NULL_QUALITY_SCORE};
+pub use self::{reader::Reader, record::Record, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::{Reader as AsyncReader, Writer as AsyncWriter};

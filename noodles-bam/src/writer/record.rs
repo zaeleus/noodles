@@ -2,7 +2,8 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::{Record, NULL_QUALITY_SCORE};
+use super::sam_record::NULL_QUALITY_SCORE;
+use crate::Record;
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where

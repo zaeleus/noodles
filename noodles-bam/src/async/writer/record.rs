@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{Record, NULL_QUALITY_SCORE};
+use crate::{writer::sam_record::NULL_QUALITY_SCORE, Record};
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
