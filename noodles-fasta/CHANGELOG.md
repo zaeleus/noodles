@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/record/definition: Accept `Into<String>` for name.
+
 ## 0.4.1 - 2021-11-18
 
 ### Fixed

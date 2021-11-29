@@ -11,7 +11,7 @@ fn main() -> io::Result<()> {
     let handle = stdout.lock();
     let mut writer = fasta::Writer::new(handle);
 
-    let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    let definition = fasta::record::Definition::new("sq0", None);
     let sequence = b"ACGT".iter().cycle().take(256).copied().collect();
     let record = fasta::Record::new(definition, sequence);
 

@@ -119,12 +119,12 @@ where
     /// let mut records = reader.records();
     ///
     /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
-    ///     fasta::record::Definition::new(String::from("sq0"), None),
+    ///     fasta::record::Definition::new("sq0", None),
     ///     b"ACGT".to_vec(),
     /// )));
     ///
     /// assert_eq!(records.next().transpose()?, Some(fasta::Record::new(
-    ///     fasta::record::Definition::new(String::from("sq1"), None),
+    ///     fasta::record::Definition::new("sq1", None),
     ///     b"NNNNNNNNNN".to_vec(),
     /// )));
     ///
@@ -187,14 +187,14 @@ where
     /// let region = Region::mapped("sq1", ..);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
-    ///     fasta::record::Definition::new(String::from("sq1"), None),
+    ///     fasta::record::Definition::new("sq1", None),
     ///     b"ACGT".to_vec(),
     /// ));
     ///
     /// let region = Region::mapped("sq1", 2..=3);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
-    ///     fasta::record::Definition::new(String::from("sq1:2-3"), None),
+    ///     fasta::record::Definition::new("sq1:2-3", None),
     ///     b"CG".to_vec(),
     /// ));
     /// # Ok::<(), io::Error>(())

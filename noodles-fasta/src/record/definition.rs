@@ -21,10 +21,16 @@ impl Definition {
     ///
     /// ```
     /// use noodles_fasta::record::Definition;
-    /// let definition = Definition::new(String::from("sq0"), None);
+    /// let definition = Definition::new("sq0", None);
     /// ```
-    pub fn new(name: String, description: Option<String>) -> Self {
-        Self { name, description }
+    pub fn new<N>(name: N, description: Option<String>) -> Self
+    where
+        N: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            description,
+        }
     }
 
     /// Returns the reference sequence name.
@@ -33,7 +39,7 @@ impl Definition {
     ///
     /// ```
     /// use noodles_fasta::record::Definition;
-    /// let definition = Definition::new(String::from("sq0"), None);
+    /// let definition = Definition::new("sq0", None);
     /// assert_eq!(definition.reference_sequence_name(), "sq0");
     /// ```
     #[deprecated(since = "0.3.0", note = "Use `name` instead.")]
@@ -47,7 +53,7 @@ impl Definition {
     ///
     /// ```
     /// use noodles_fasta::record::Definition;
-    /// let definition = Definition::new(String::from("sq0"), None);
+    /// let definition = Definition::new("sq0", None);
     /// assert_eq!(definition.name(), "sq0");
     /// ```
     pub fn name(&self) -> &str {
@@ -61,10 +67,10 @@ impl Definition {
     /// ```
     /// use noodles_fasta::record::Definition;
     ///
-    /// let definition = Definition::new(String::from("sq0"), None);
+    /// let definition = Definition::new("sq0", None);
     /// assert_eq!(definition.description(), None);
     ///
-    /// let definition = Definition::new(String::from("sq0"), Some(String::from("LN:13")));
+    /// let definition = Definition::new("sq0", Some(String::from("LN:13")));
     /// assert_eq!(definition.description(), Some("LN:13"));
     /// ```
     pub fn description(&self) -> Option<&str> {
@@ -137,26 +143,20 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let definition = Definition::new(String::from("sq0"), None);
+        let definition = Definition::new("sq0", None);
         assert_eq!(definition.to_string(), ">sq0");
 
-        let definition = Definition::new(String::from("sq0"), Some(String::from("LN:13")));
+        let definition = Definition::new("sq0", Some(String::from("LN:13")));
         assert_eq!(definition.to_string(), ">sq0 LN:13");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!(
-            ">sq0".parse(),
-            Ok(Definition::new(String::from("sq0"), None))
-        );
+        assert_eq!(">sq0".parse(), Ok(Definition::new("sq0", None)));
 
         assert_eq!(
             ">sq0  LN:13".parse(),
-            Ok(Definition::new(
-                String::from("sq0"),
-                Some(String::from("LN:13"))
-            ))
+            Ok(Definition::new("sq0", Some(String::from("LN:13"))))
         );
 
         assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));

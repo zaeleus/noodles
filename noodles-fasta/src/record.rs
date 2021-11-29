@@ -18,7 +18,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_fasta as fasta;
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition, sequence);
     /// ```
@@ -36,7 +36,7 @@ impl Record {
     /// ```
     /// use noodles_fasta as fasta;
     ///
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition.clone(), sequence);
     ///
@@ -53,7 +53,7 @@ impl Record {
     /// ```
     /// use noodles_fasta as fasta;
     ///
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition, sequence);
     ///
@@ -71,7 +71,7 @@ impl Record {
     /// ```
     /// use noodles_fasta as fasta;
     ///
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition, sequence);
     ///
@@ -109,7 +109,7 @@ impl Record {
     /// ```
     /// use noodles_fasta as fasta;
     ///
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let sequence = b"ACGT".to_vec();
     /// let record = fasta::Record::new(definition, sequence);
     ///

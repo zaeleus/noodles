@@ -53,7 +53,7 @@ where
     ///
     /// let mut writer = fasta::Writer::new(Vec::new());
     ///
-    /// let definition = fasta::record::Definition::new(String::from("sq0"), None);
+    /// let definition = fasta::record::Definition::new("sq0", None);
     /// let record = fasta::Record::new(definition, b"ACGT".to_vec());
     ///
     /// writer.write_record(&record)?;
