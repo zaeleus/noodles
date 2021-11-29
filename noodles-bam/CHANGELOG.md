@@ -19,9 +19,9 @@
 
 ### Fixed
 
-  * bam/async/record/writer: Fix `n_cigar_op` value ([#58]).
+  * bam/async/writer/record: Fix `n_cigar_op` value ([#58]).
 
-  * bam/record/writer: Fix `n_cigar_op` value ([#58]).
+  * bam/writer/record: Fix `n_cigar_op` value ([#58]).
 
     This used an old calculation when `Cigar` stored a raw byte buffer.
 
