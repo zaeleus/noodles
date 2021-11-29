@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram: Require tokio's `fs` feature as a dependency ([#62]).
+
+[#62]: https://github.com/zaeleus/noodles/issues/62
+
 ## 0.8.1 - 2021-11-18
 
 ### Fixed

@@ -23,7 +23,7 @@ noodles-sam = { path = "../noodles-sam", version = "0.8.0" }
 
 flate2 = { version = "1.0.1", optional = true }
 futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }
-tokio = { version = "1.10.0", optional = true, features = ["io-util"] }
+tokio = { version = "1.10.0", optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
 tokio = { version = "1.10.0", features = ["fs", "io-std", "macros", "rt-multi-thread"] }
