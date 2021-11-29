@@ -330,6 +330,8 @@ impl Record {
     ///
     /// # Examples
     ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, record::{Filters, Position}};
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
