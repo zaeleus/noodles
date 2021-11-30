@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/reader: Read to given buffer when it is guaranteed to be larger than
+    the next block.
+
 ## 0.6.0 - 2021-11-18
 
 ### Added
