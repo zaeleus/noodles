@@ -36,7 +36,7 @@ impl Genotypes {
         &self,
         header: &vcf::Header,
         string_map: &StringMap,
-    ) -> io::Result<(Option<vcf::record::Format>, vcf::record::Genotypes)> {
+    ) -> io::Result<(Option<vcf::record::genotypes::Keys>, vcf::record::Genotypes)> {
         use crate::reader::record::read_genotypes;
 
         if self.is_empty() {
@@ -55,7 +55,7 @@ impl Genotypes {
 
         let first_genotype = genotypes.first().expect("unexpected empty genotypes");
         let keys: Vec<_> = first_genotype.keys().cloned().collect();
-        let format = vcf::record::Format::try_from(keys)
+        let format = vcf::record::genotypes::Keys::try_from(keys)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         Ok((Some(format), genotypes))

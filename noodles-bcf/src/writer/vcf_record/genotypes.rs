@@ -22,16 +22,16 @@ const MISSING_VALUE: char = '.';
 pub fn write_genotypes<W>(
     writer: &mut W,
     string_map: &StringMap,
-    formats: &vcf::record::Format,
+    keys: &vcf::record::genotypes::Keys,
     genotypes: &[vcf::record::genotypes::Genotype],
 ) -> io::Result<()>
 where
     W: Write,
 {
-    for (i, key) in formats.iter().enumerate() {
+    for (i, key) in keys.iter().enumerate() {
         write_genotype_field_key(writer, string_map, key)?;
 
-        let mut values = Vec::with_capacity(formats.len());
+        let mut values = Vec::with_capacity(keys.len());
 
         for genotype in genotypes {
             let value = genotype
