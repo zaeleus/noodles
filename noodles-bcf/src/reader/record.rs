@@ -317,7 +317,7 @@ mod tests {
             .genotypes()
             .try_into_vcf_record_genotypes(&header, &string_map)?;
 
-        let expected = VcfGenotypes::from(vec![
+        let expected = VcfGenotypes::new(vec![
             Genotype::try_from(vec![
                 GenotypeField::new(
                     GenotypeFieldKey::Genotype,

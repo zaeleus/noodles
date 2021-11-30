@@ -2,7 +2,8 @@ use std::{error, fmt};
 
 use super::{
     alternate_bases, chromosome, filters, genotypes, ids, info, position, quality_score,
-    reference_bases, Field, Filters, Info, QualityScore, Record, FIELD_DELIMITER, MISSING_FIELD,
+    reference_bases, Field, Filters, Genotypes, Info, QualityScore, Record, FIELD_DELIMITER,
+    MISSING_FIELD,
 };
 use crate::Header;
 
@@ -92,8 +93,8 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
                 .collect::<Result<_, _>>()
                 .map_err(ParseError::InvalidGenotype)
         })
-        .unwrap_or_else(|| Ok(Vec::new()))?
-        .into();
+        .unwrap_or_else(|| Ok(Vec::new()))
+        .map(Genotypes::new)?;
 
     Ok(Record {
         chromosome: chrom,

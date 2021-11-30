@@ -58,7 +58,7 @@ where
             Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
         .collect::<Result<Vec<_>, _>>()
-        .map(Genotypes::from)
+        .map(Genotypes::new)
 }
 
 fn read_genotype_field_key<R>(

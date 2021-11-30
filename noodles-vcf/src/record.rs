@@ -475,7 +475,7 @@ impl Record {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
+    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype, Genotypes},
     ///         Format,
     ///         Position,
     ///     },
@@ -491,12 +491,12 @@ impl Record {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// let expected = vec![
+    /// let expected = Genotypes::new(vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
     ///     ])?
-    /// ].into();
+    /// ]);
     ///
     /// assert_eq!(record.genotypes(), &expected);
     /// # Ok::<(), Box<dyn std::error::Error>>(())

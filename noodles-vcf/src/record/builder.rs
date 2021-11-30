@@ -325,12 +325,12 @@ impl Builder {
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
     ///     .set_format(format.clone())
-    ///     .set_genotypes(Genotypes::from(vec![
+    ///     .set_genotypes(Genotypes::new(vec![
     ///         Genotype::from_str_format("0|0:13", &format)?
     ///     ]))
     ///     .build()?;
     ///
-    /// let expected = Genotypes::from(vec![
+    /// let expected = Genotypes::new(vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
@@ -370,7 +370,7 @@ impl Builder {
     ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
     ///     .build()?;
     ///
-    /// let expected = Genotypes::from(vec![
+    /// let expected = Genotypes::new(vec![
     ///     Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),

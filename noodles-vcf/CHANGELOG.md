@@ -41,6 +41,10 @@
 
     Empty genotype keys are now allowed.
 
+  * vcf/record/genotypes: Remove `From<Vec<Genotype>>`.
+
+    Use `Genotypes::new` instead.
+
 ## 0.10.0 - 2021-11-18
 
 ### Added

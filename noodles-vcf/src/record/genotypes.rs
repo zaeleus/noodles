@@ -17,6 +17,18 @@ use self::genotype::field;
 pub struct Genotypes(Vec<Genotype>);
 
 impl Genotypes {
+    /// Creates VCF record genotypes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::Genotypes;
+    /// let genotypes = Genotypes::new(Vec::new());
+    /// ```
+    pub fn new(genotypes: Vec<Genotype>) -> Self {
+        Self(genotypes)
+    }
+
     /// Returns the VCF record genotype value.
     pub fn genotypes(
         &self,
@@ -53,12 +65,6 @@ impl fmt::Display for Genotypes {
     }
 }
 
-impl From<Vec<Genotype>> for Genotypes {
-    fn from(genotypes: Vec<Genotype>) -> Self {
-        Self(genotypes)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -67,7 +73,7 @@ mod tests {
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         let format = "GT:GQ".parse()?;
 
-        let genotypes = Genotypes::from(vec![
+        let genotypes = Genotypes::new(vec![
             Genotype::from_str_format("0|0:7", &format)?,
             Genotype::from_str_format("./.:20", &format)?,
             Genotype::from_str_format("1/1:1", &format)?,
@@ -94,7 +100,7 @@ mod tests {
             Field,
         };
 
-        let genotypes = Genotypes::from(vec![Genotype::try_from(vec![
+        let genotypes = Genotypes::new(vec![Genotype::try_from(vec![
             Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
             Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
         ])?]);
