@@ -3,8 +3,10 @@
 use std::{error, fmt};
 
 use super::{
-    genotypes::Genotype, reference_bases::Base, AlternateBases, Chromosome, Filters, Format,
-    Genotypes, Ids, Info, Position, QualityScore, Record, ReferenceBases,
+    genotypes::{self, Genotype},
+    reference_bases::Base,
+    AlternateBases, Chromosome, Filters, Genotypes, Ids, Info, Position, QualityScore, Record,
+    ReferenceBases,
 };
 
 /// A VCF record builder.
@@ -18,7 +20,7 @@ pub struct Builder {
     quality_score: Option<QualityScore>,
     filters: Option<Filters>,
     info: Info,
-    format: Option<Format>,
+    format: Option<genotypes::Keys>,
     genotypes: Genotypes,
 }
 
@@ -276,29 +278,28 @@ impl Builder {
     /// use noodles_vcf::{
     ///     self as vcf,
     ///     record::{
-    ///         genotypes::{genotype::field::Key, Genotype},
-    ///         Format,
+    ///         genotypes::{self, genotype::field::Key, Genotype},
     ///         Position,
     ///     },
     /// };
     ///
-    /// let format: Format = "GT:GQ".parse()?;
+    /// let keys: genotypes::Keys = "GT:GQ".parse()?;
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(format.clone())
-    ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+    ///     .set_format(keys.clone())
+    ///     .add_genotype(Genotype::from_str_format("0|0:13", &keys)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.format(), Some(&Format::try_from(vec![
+    /// assert_eq!(record.format(), Some(&genotypes::Keys::try_from(vec![
     ///     Key::Genotype,
     ///     Key::ConditionalGenotypeQuality,
     /// ])?));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_format(mut self, format: Format) -> Self {
+    pub fn set_format(mut self, format: genotypes::Keys) -> Self {
         self.format = Some(format);
         self
     }
@@ -312,22 +313,22 @@ impl Builder {
     ///     self as vcf,
     ///     record::{
     ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
-    ///         Format,
     ///         Genotypes,
     ///         Position,
     ///     },
     /// };
     ///
-    /// let format: Format = "GT:GQ".parse()?;
+    /// let keys = "GT:GQ".parse()?;
+    /// let genotypes = Genotypes::new(vec![
+    ///     Genotype::from_str_format("0|0:13", &keys)?
+    /// ]);
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(format.clone())
-    ///     .set_genotypes(Genotypes::new(vec![
-    ///         Genotype::from_str_format("0|0:13", &format)?
-    ///     ]))
+    ///     .set_format(keys)
+    ///     .set_genotypes(genotypes)
     ///     .build()?;
     ///
     /// let expected = Genotypes::new(vec![
@@ -354,20 +355,20 @@ impl Builder {
     ///     self as vcf,
     ///     record::{
     ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
-    ///         Format,
     ///         Genotypes,
     ///         Position,
     ///     },
     /// };
     ///
-    /// let format: Format = "GT:GQ".parse()?;
+    /// let keys = "GT:GQ".parse()?;
+    /// let genotype = Genotype::from_str_format("0|0:13", &keys)?;
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(format.clone())
-    ///     .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+    ///     .set_format(keys)
+    ///     .add_genotype(genotype)
     ///     .build()?;
     ///
     /// let expected = Genotypes::new(vec![

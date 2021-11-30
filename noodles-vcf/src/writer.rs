@@ -137,7 +137,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{genotypes::Genotype, Format, Position};
+    use crate::record::{
+        genotypes::{self, Genotype},
+        Position,
+    };
 
     use super::*;
 
@@ -180,7 +183,7 @@ mod tests {
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
-        let format: Format = "GT:GQ".parse()?;
+        let format: genotypes::Keys = "GT:GQ".parse()?;
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)

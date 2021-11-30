@@ -71,13 +71,13 @@ mod tests {
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
-        let format = "GT:GQ".parse()?;
+        let keys = "GT:GQ".parse()?;
 
         let genotypes = Genotypes::new(vec![
-            Genotype::from_str_format("0|0:7", &format)?,
-            Genotype::from_str_format("./.:20", &format)?,
-            Genotype::from_str_format("1/1:1", &format)?,
-            Genotype::from_str_format(".", &format)?,
+            Genotype::from_str_format("0|0:7", &keys)?,
+            Genotype::from_str_format("./.:20", &keys)?,
+            Genotype::from_str_format("1/1:1", &keys)?,
+            Genotype::from_str_format(".", &keys)?,
         ]);
 
         let actual = genotypes.genotypes();

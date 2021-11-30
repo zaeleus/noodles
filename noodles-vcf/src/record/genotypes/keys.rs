@@ -148,13 +148,13 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let format = Keys::default();
-        assert_eq!(format.to_string(), ".");
+        let keys = Keys::default();
+        assert_eq!(keys.to_string(), ".");
 
-        let format = Keys([Key::Genotype].into_iter().collect());
-        assert_eq!(format.to_string(), "GT");
+        let keys = Keys([Key::Genotype].into_iter().collect());
+        assert_eq!(keys.to_string(), "GT");
 
-        let format = Keys(
+        let keys = Keys(
             [
                 Key::Genotype,
                 Key::ConditionalGenotypeQuality,
@@ -164,7 +164,7 @@ mod tests {
             .into_iter()
             .collect(),
         );
-        assert_eq!(format.to_string(), "GT:GQ:DP:HQ");
+        assert_eq!(keys.to_string(), "GT:GQ:DP:HQ");
     }
 
     #[test]
