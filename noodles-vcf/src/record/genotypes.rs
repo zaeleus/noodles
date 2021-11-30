@@ -41,12 +41,12 @@ impl DerefMut for Genotypes {
 
 impl fmt::Display for Genotypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, field) in self.0.iter().enumerate() {
+        for (i, genotype) in self.0.iter().enumerate() {
             if i > 0 {
                 write!(f, "\t")?;
             }
 
-            write!(f, "{}", field)?;
+            write!(f, "{}", genotype)?;
         }
 
         Ok(())
