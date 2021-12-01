@@ -102,25 +102,23 @@ where
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
-    if !sequence.is_empty() {
-        write_seq(writer, sequence)?;
+    write_seq(writer, sequence)?;
 
-        if sequence.len() == quality_scores.len() {
-            write_qual(writer, quality_scores)?;
-        } else if quality_scores.is_empty() {
-            for _ in 0..sequence.len() {
-                writer.write_u8(NULL_QUALITY_SCORE)?;
-            }
-        } else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "quality scores length mismatch: expected {}, got {}",
-                    sequence.len(),
-                    quality_scores.len()
-                ),
-            ));
+    if sequence.len() == quality_scores.len() {
+        write_qual(writer, quality_scores)?;
+    } else if quality_scores.is_empty() {
+        for _ in 0..sequence.len() {
+            writer.write_u8(NULL_QUALITY_SCORE)?;
         }
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "quality scores length mismatch: expected {}, got {}",
+                sequence.len(),
+                quality_scores.len()
+            ),
+        ));
     }
 
     write_data(writer, record.data())?;

@@ -34,6 +34,9 @@
     This validates the lengths to ensure they're equal or only `QUAL` is
     missing.
 
+  * bam/writer/sam_record: Return error when the sequence is empty and quality
+    scores exist.
+
 [#58]: https://github.com/zaeleus/noodles/issues/58
 [#59]: https://github.com/zaeleus/noodles/issues/59
 [#62]: https://github.com/zaeleus/noodles/issues/62

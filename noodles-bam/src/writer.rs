@@ -369,6 +369,22 @@ mod tests {
     }
 
     #[test]
+    fn test_write_sam_record_with_no_sequence_and_with_quality_scores(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        let header = sam::Header::default();
+        let mut record = sam::Record::default();
+        *record.quality_scores_mut() = "NDLS".parse()?;
+
+        assert!(writer
+            .write_sam_record(header.reference_sequences(), &record)
+            .is_err());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_write_sam_record_with_sequence_and_no_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
