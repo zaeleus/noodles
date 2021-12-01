@@ -53,7 +53,7 @@ pub struct Record {
     mapq: sam::record::MappingQuality,
     bin: u16,
     flag: sam::record::Flags,
-    pub(crate) next_ref_id: i32,
+    pub(crate) next_ref_id: Option<ReferenceSequenceId>,
     pub(crate) next_pos: i32,
     tlen: i32,
     pub(crate) read_name: Vec<u8>,
@@ -241,13 +241,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        let id = self.next_ref_id;
-
-        if id == reference_sequence_id::UNMAPPED {
-            None
-        } else {
-            ReferenceSequenceId::try_from(id).ok()
-        }
+        self.next_ref_id
     }
 
     /// Returns the start position of the mate of this record.
@@ -538,7 +532,7 @@ impl Default for Record {
             mapq: MappingQuality::default(),
             bin: 4680,
             flag: Flags::UNMAPPED,
-            next_ref_id: reference_sequence_id::UNMAPPED,
+            next_ref_id: None,
             next_pos: UNMAPPED_POSITION,
             tlen: 0,
             read_name: b"*\x00".to_vec(),
@@ -589,7 +583,7 @@ mod tests {
             mapq: MappingQuality::from(12),
             bin: 4684,
             flag: Flags::PAIRED | Flags::READ_1,
-            next_ref_id: 10,
+            next_ref_id: ref_id,
             next_pos: 61152,
             tlen: 166,
             read_name: b"r0\x00".to_vec(),

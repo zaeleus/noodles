@@ -43,7 +43,12 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(l_seq)?;
 
-    writer.write_i32::<LittleEndian>(record.next_ref_id)?;
+    let next_ref_id = record
+        .mate_reference_sequence_id()
+        .map(i32::from)
+        .unwrap_or(reference_sequence_id::UNMAPPED);
+    writer.write_i32::<LittleEndian>(next_ref_id)?;
+
     writer.write_i32::<LittleEndian>(record.next_pos)?;
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
@@ -134,7 +139,7 @@ mod tests {
         *record.mapping_quality_mut() = MappingQuality::from(13);
         *record.bin_mut() = 6765;
         *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
-        record.next_ref_id = 1;
+        record.next_ref_id = record.reference_sequence_id();
         record.next_pos = 21; // 0-based
         *record.template_length_mut() = 144;
 

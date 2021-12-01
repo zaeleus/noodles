@@ -286,7 +286,7 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
-        use super::{reference_sequence_id, UNMAPPED_POSITION};
+        use super::UNMAPPED_POSITION;
         use crate::writer::sam_record::region_to_bin;
 
         // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
@@ -310,11 +310,6 @@ impl Builder {
             region_to_bin(pos, end) as u16
         };
 
-        let next_ref_id = self
-            .next_ref_id
-            .map(i32::from)
-            .unwrap_or(reference_sequence_id::UNMAPPED);
-
         let next_pos = self
             .next_pos
             .map(|p| i32::from(p) - 1)
@@ -332,7 +327,7 @@ impl Builder {
             mapq: self.mapq,
             bin,
             flag: self.flag,
-            next_ref_id,
+            next_ref_id: self.next_ref_id,
             next_pos,
             tlen: self.tlen,
             read_name,
