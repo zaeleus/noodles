@@ -22,7 +22,7 @@ where
         Err(e) => return Err(e),
     };
 
-    record.ref_id = read_reference_sequence_id(reader).await?;
+    *record.reference_sequence_id_mut() = read_reference_sequence_id(reader).await?;
     record.pos = reader.read_i32_le().await?;
 
     let l_read_name = reader.read_u8().await.and_then(|n| {

@@ -126,7 +126,7 @@ mod tests {
 
         let mut record = Record::default();
 
-        record.ref_id = ReferenceSequenceId::try_from(1).map(Some)?;
+        *record.reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
         record.pos = 8; // 0-based
         *record.mapping_quality_mut() = MappingQuality::from(13);
         *record.bin_mut() = 6765;

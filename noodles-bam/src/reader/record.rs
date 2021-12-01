@@ -35,7 +35,7 @@ where
     let mut reader = &buf[..];
     let reader = &mut reader;
 
-    record.ref_id = read_reference_sequence_id(reader)?;
+    *record.reference_sequence_id_mut() = read_reference_sequence_id(reader)?;
     record.pos = reader.read_i32::<LittleEndian>()?;
 
     let l_read_name = reader.read_u8().and_then(|n| {

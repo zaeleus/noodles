@@ -48,7 +48,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 /// them.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
-    pub(crate) ref_id: Option<ReferenceSequenceId>,
+    ref_id: Option<ReferenceSequenceId>,
     pub(crate) pos: i32,
     mapq: sam::record::MappingQuality,
     bin: u16,
@@ -111,6 +111,23 @@ impl Record {
     /// ```
     pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         self.ref_id
+    }
+
+    /// Returns a mutable reference to the reference sequence ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
+    ///
+    /// let mut record = bam::Record::default();
+    /// *record.reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
+    ///
+    /// assert_eq!(record.reference_sequence_id().map(i32::from), Some(1));
+    /// # Ok::<_, bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
+    pub fn reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
+        &mut self.ref_id
     }
 
     /// Returns the start position of this record.

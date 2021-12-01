@@ -6,6 +6,9 @@
 
   * bam/record: Add builder (`bam::record::Builder`).
 
+  * bam/record: Add mutable getter for reference sequence ID
+    (`Record::reference_sequence_id_mut`).
+
   * bam/record/cigar: Add conversion from `Vec<Op>` to `Cigar`.
 
   * bam/record/cigar/op: Add conversion from `Op` to `sam::record::cigar::Op`.
