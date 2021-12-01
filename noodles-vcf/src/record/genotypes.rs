@@ -61,6 +61,8 @@ impl DerefMut for Genotypes {
 
 impl fmt::Display for Genotypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}\t", self.keys())?;
+
         for (i, genotype) in self.genotypes.iter().enumerate() {
             if i > 0 {
                 write!(f, "\t")?;
@@ -116,7 +118,7 @@ mod tests {
             ])?],
         );
 
-        assert_eq!(genotypes.to_string(), "0|0:13");
+        assert_eq!(genotypes.to_string(), "GT:GQ\t0|0:13");
 
         Ok(())
     }

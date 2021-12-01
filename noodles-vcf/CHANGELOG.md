@@ -21,6 +21,8 @@
 
   * vcf/record: Move `Format` under genotypes module as `Keys`.
 
+  * vcf/record/genotypes: Print keys on display.
+
   * vcf/record/genotypes/keys: Prefer key from header.
 
   * vcf/record/genotypes/keys: Allow empty genotypes keys.

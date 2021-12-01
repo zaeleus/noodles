@@ -622,11 +622,8 @@ impl fmt::Display for Record {
 
         write!(f, "\t{}", self.info())?;
 
-        let genotypes = self.genotypes();
-
-        if !genotypes.is_empty() {
-            write!(f, "\t{}", genotypes.keys())?;
-            write!(f, "\t{}", genotypes)?;
+        if !self.genotypes().is_empty() {
+            write!(f, "\t{}", self.genotypes())?;
         }
 
         Ok(())
