@@ -28,10 +28,8 @@ pub enum ParseError {
     InvalidFilters(filters::ParseError),
     /// The info is invalid.
     InvalidInfo(info::ParseError),
-    /// The format is invalid.
-    InvalidFormat(genotypes::keys::ParseError),
     /// A genotype is invalid.
-    InvalidGenotype(genotypes::genotype::ParseError),
+    InvalidGenotypes(genotypes::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -48,14 +46,15 @@ impl fmt::Display for ParseError {
             Self::InvalidQualityScore(e) => write!(f, "invalid quality score: {}", e),
             Self::InvalidFilters(e) => write!(f, "invalid filters: {}", e),
             Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
-            Self::InvalidFormat(e) => write!(f, "invalid format: {}", e),
-            Self::InvalidGenotype(e) => write!(f, "invalid genotype: {}", e),
+            Self::InvalidGenotypes(e) => write!(f, "invalid genotypes: {}", e),
         }
     }
 }
 
 pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
-    let mut fields = s.split(FIELD_DELIMITER);
+    const MAX_FIELDS: usize = 9;
+
+    let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
     let chrom = parse_string(&mut fields, Field::Chromosome)
         .and_then(|s| s.parse().map_err(ParseError::InvalidChromosome))?;
@@ -78,19 +77,8 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
     let info = parse_string(&mut fields, Field::Info)
         .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
 
-    let mut format = match fields.next() {
-        Some(s) => genotypes::Keys::try_from_str(s, header.formats())
-            .map(Some)
-            .map_err(ParseError::InvalidFormat)?,
-        None => None,
-    };
-
-    let genotypes = if let Some(keys) = format.take() {
-        fields
-            .map(|s| genotypes::Genotype::from_str_format(s, &keys))
-            .collect::<Result<_, _>>()
-            .map(|genotypes| Genotypes::new(keys, genotypes))
-            .map_err(ParseError::InvalidGenotype)?
+    let genotypes = if let Some(s) = fields.next() {
+        s.parse().map_err(ParseError::InvalidGenotypes)?
     } else {
         Genotypes::default()
     };

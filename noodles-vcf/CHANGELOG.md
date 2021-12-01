@@ -10,6 +10,8 @@
   * vcf/header/info: Add conversion from `vcf::header::Record` to
     `vcf::header::Info` with a file format constraint.
 
+  * vcf/record/genotypes: Add parser.
+
   * vcf/record/genotypes/keys: Implement `Default`.
 
 ### Changed
@@ -42,6 +44,10 @@
   * vcf/record/builder: Remove `Builder::{add_genotype,set_format}`.
 
     Use `Builder::set_genotypes` instead.
+
+  * vcf/record: Remove `ParseError::{InvalidFormat,InvalidGenotype}`.
+
+    These are now wrapped by `ParseError::InvalidGenotypes`.
 
   * vcf/record/genotypes/keys: Remove `TryFromKeyVectorError::Empty`.
 
