@@ -48,7 +48,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 /// them.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
-    pub(crate) ref_id: i32,
+    pub(crate) ref_id: Option<ReferenceSequenceId>,
     pub(crate) pos: i32,
     mapq: sam::record::MappingQuality,
     bin: u16,
@@ -110,13 +110,7 @@ impl Record {
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
     pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        let id = self.ref_id;
-
-        if id == reference_sequence_id::UNMAPPED {
-            None
-        } else {
-            ReferenceSequenceId::try_from(id).ok()
-        }
+        self.ref_id
     }
 
     /// Returns the start position of this record.
@@ -522,7 +516,7 @@ impl Default for Record {
         use sam::record::{Flags, MappingQuality};
 
         Self {
-            ref_id: reference_sequence_id::UNMAPPED,
+            ref_id: None,
             pos: UNMAPPED_POSITION,
             mapq: MappingQuality::default(),
             bin: 4680,
@@ -568,8 +562,12 @@ mod tests {
     fn build_record() -> io::Result<Record> {
         use sam::record::{Flags, MappingQuality};
 
+        let ref_id = ReferenceSequenceId::try_from(10)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         Ok(Record {
-            ref_id: 10,
+            ref_id,
             pos: 61061,
             mapq: MappingQuality::from(12),
             bin: 4684,

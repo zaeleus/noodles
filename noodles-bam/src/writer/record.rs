@@ -9,11 +9,18 @@ pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
+    use crate::record::reference_sequence_id;
+
     let block_size = u32::try_from(record.block_size())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(block_size)?;
 
-    writer.write_i32::<LittleEndian>(record.ref_id)?;
+    let ref_id = record
+        .reference_sequence_id()
+        .map(i32::from)
+        .unwrap_or(reference_sequence_id::UNMAPPED);
+    writer.write_i32::<LittleEndian>(ref_id)?;
+
     writer.write_i32::<LittleEndian>(record.pos)?;
 
     let l_read_name = u8::try_from(record.read_name.len())
@@ -117,11 +124,12 @@ mod tests {
             cigar::Op,
             data::{field::Value, Field},
             sequence::Base,
+            ReferenceSequenceId,
         };
 
         let mut record = Record::default();
 
-        record.ref_id = 1;
+        record.ref_id = ReferenceSequenceId::try_from(1).map(Some)?;
         record.pos = 8; // 0-based
         *record.mapping_quality_mut() = MappingQuality::from(13);
         *record.bin_mut() = 6765;

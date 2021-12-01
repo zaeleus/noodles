@@ -293,11 +293,6 @@ impl Builder {
         // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
         const UNMAPPED_BIN: u16 = 4680;
 
-        let ref_id = self
-            .ref_id
-            .map(i32::from)
-            .unwrap_or(reference_sequence_id::UNMAPPED);
-
         let pos = self
             .pos
             .map(|p| i32::from(p) - 1)
@@ -332,7 +327,7 @@ impl Builder {
         };
 
         Ok(Record {
-            ref_id,
+            ref_id: self.ref_id,
             pos,
             mapq: self.mapq,
             bin,

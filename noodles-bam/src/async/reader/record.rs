@@ -8,7 +8,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    record::{Cigar, Data, QualityScores, Sequence},
+    record::{Cigar, Data, QualityScores, ReferenceSequenceId, Sequence},
     Record,
 };
 
@@ -22,7 +22,7 @@ where
         Err(e) => return Err(e),
     };
 
-    record.ref_id = reader.read_i32_le().await?;
+    record.ref_id = read_reference_sequence_id(reader).await?;
     record.pos = reader.read_i32_le().await?;
 
     let l_read_name = reader.read_u8().await.and_then(|n| {
@@ -62,6 +62,20 @@ where
     .await?;
 
     Ok(block_size)
+}
+
+async fn read_reference_sequence_id<R>(reader: &mut R) -> io::Result<Option<ReferenceSequenceId>>
+where
+    R: AsyncRead + Unpin,
+{
+    use crate::record::reference_sequence_id::UNMAPPED;
+
+    match reader.read_i32_le().await? {
+        UNMAPPED => Ok(None),
+        n => ReferenceSequenceId::try_from(n)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+    }
 }
 
 async fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>

@@ -11,7 +11,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam as sam;
 
 use crate::{
-    record::{Cigar, Data, QualityScores, Sequence},
+    record::{Cigar, Data, QualityScores, ReferenceSequenceId, Sequence},
     Record,
 };
 
@@ -35,7 +35,7 @@ where
     let mut reader = &buf[..];
     let reader = &mut reader;
 
-    record.ref_id = reader.read_i32::<LittleEndian>()?;
+    record.ref_id = read_reference_sequence_id(reader)?;
     record.pos = reader.read_i32::<LittleEndian>()?;
 
     let l_read_name = reader.read_u8().and_then(|n| {
@@ -74,6 +74,20 @@ where
     )?;
 
     Ok(block_size)
+}
+
+fn read_reference_sequence_id<R>(reader: &mut R) -> io::Result<Option<ReferenceSequenceId>>
+where
+    R: Read,
+{
+    use crate::record::reference_sequence_id::UNMAPPED;
+
+    match reader.read_i32::<LittleEndian>()? {
+        UNMAPPED => Ok(None),
+        n => ReferenceSequenceId::try_from(n)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+    }
 }
 
 fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>
