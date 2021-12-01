@@ -55,7 +55,7 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    record.next_ref_id = read_reference_sequence_id(reader)?;
+    *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(reader)?;
     record.next_pos = reader.read_i32::<LittleEndian>()?;
 
     *record.template_length_mut() = reader.read_i32::<LittleEndian>()?;

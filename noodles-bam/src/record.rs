@@ -53,7 +53,7 @@ pub struct Record {
     mapq: sam::record::MappingQuality,
     bin: u16,
     flag: sam::record::Flags,
-    pub(crate) next_ref_id: Option<ReferenceSequenceId>,
+    next_ref_id: Option<ReferenceSequenceId>,
     pub(crate) next_pos: i32,
     tlen: i32,
     pub(crate) read_name: Vec<u8>,
@@ -242,6 +242,23 @@ impl Record {
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
         self.next_ref_id
+    }
+
+    /// Returns a mutable reference to the mate reference sequence ID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
+    ///
+    /// let mut record = bam::Record::default();
+    /// *record.mate_reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
+    ///
+    /// assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(1));
+    /// # Ok::<_, bam::record::reference_sequence_id::TryFromIntError>(())
+    /// ```
+    pub fn mate_reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
+        &mut self.next_ref_id
     }
 
     /// Returns the start position of the mate of this record.

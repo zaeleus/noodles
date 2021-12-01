@@ -6,8 +6,9 @@
 
   * bam/record: Add builder (`bam::record::Builder`).
 
-  * bam/record: Add mutable getter for reference sequence ID
-    (`Record::reference_sequence_id_mut`).
+  * bam/record: Add mutable getters for reference sequence ID
+    (`Record::reference_sequence_id_mut`) and mate reference sequence ID
+    (`Record::mate_reference_sequence_id_mut`).
 
   * bam/record/cigar: Add conversion from `Vec<Op>` to `Cigar`.
 

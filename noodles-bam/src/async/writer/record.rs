@@ -136,7 +136,7 @@ mod tests {
         *record.mapping_quality_mut() = MappingQuality::from(13);
         *record.bin_mut() = 6765;
         *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
-        record.next_ref_id = record.reference_sequence_id();
+        *record.mate_reference_sequence_id_mut() = record.reference_sequence_id();
         record.next_pos = 21; // 0-based
         *record.template_length_mut() = 144;
 
