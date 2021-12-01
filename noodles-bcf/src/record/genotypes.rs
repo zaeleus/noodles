@@ -26,9 +26,8 @@ impl Genotypes {
     ///
     /// let header = vcf::Header::default();
     /// let string_map = StringMap::default();
-    /// let (format, vcf_genotypes) = bcf_genotypes.try_into_vcf_record_genotypes(&header, &string_map)?;
+    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_genotypes(&header, &string_map)?;
     ///
-    /// assert!(format.is_none());
     /// assert!(vcf_genotypes.is_empty());
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -36,11 +35,11 @@ impl Genotypes {
         &self,
         header: &vcf::Header,
         string_map: &StringMap,
-    ) -> io::Result<(Option<vcf::record::genotypes::Keys>, vcf::record::Genotypes)> {
+    ) -> io::Result<vcf::record::Genotypes> {
         use crate::reader::record::read_genotypes;
 
         if self.is_empty() {
-            return Ok((None, vcf::record::Genotypes::default()));
+            return Ok(vcf::record::Genotypes::default());
         }
 
         let mut reader = &self.buf[..];
@@ -53,12 +52,7 @@ impl Genotypes {
             self.format_count(),
         )?;
 
-        let first_genotype = genotypes.first().expect("unexpected empty genotypes");
-        let keys: Vec<_> = first_genotype.keys().cloned().collect();
-        let format = vcf::record::genotypes::Keys::try_from(keys)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        Ok((Some(format), genotypes))
+        Ok(genotypes)
     }
 
     /// Returns the number of samples.

@@ -28,6 +28,11 @@
 
   * bcf/reader/record/site/info: Always use key from header.
 
+  * bcf/record/genotypes: Return `Genotypes` from
+    `Genotypes::try_into_vcf_record_genotypes`.
+
+    Use `vcf::record::Genotypes::keys` for the genotypes keys.
+
 ### Fixed
 
   * bcf/reader/record/site/info: Allow value to be optional (#56).

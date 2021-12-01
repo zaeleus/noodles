@@ -37,6 +37,10 @@
 
 ### Removed
 
+  * vcf/record/builder: Remove `Builder::{add_genotype,set_format}`.
+
+    Use `Builder::set_genotypes` instead.
+
   * vcf/record/genotypes/keys: Remove `TryFromKeyVectorError::Empty`.
 
     Empty genotype keys are now allowed.

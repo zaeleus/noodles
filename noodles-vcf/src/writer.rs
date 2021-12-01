@@ -139,7 +139,7 @@ where
 mod tests {
     use crate::record::{
         genotypes::{self, Genotype},
-        Position,
+        Genotypes, Position,
     };
 
     use super::*;
@@ -183,14 +183,14 @@ mod tests {
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
-        let format: genotypes::Keys = "GT:GQ".parse()?;
+        let keys: genotypes::Keys = "GT:GQ".parse()?;
+        let genotypes = vec![Genotype::from_str_format("0|0:13", &keys)?];
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
-            .set_format(format.clone())
-            .add_genotype(Genotype::from_str_format("0|0:13", &format)?)
+            .set_genotypes(Genotypes::new(keys, genotypes))
             .build()?;
 
         writer.write_record(&record)?;

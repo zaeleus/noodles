@@ -61,12 +61,8 @@ where
         ));
     }
 
-    let n_fmt = record
-        .format()
-        .map(|format| {
-            u8::try_from(format.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })
-        .unwrap_or(Ok(0))?;
+    let n_fmt = u8::try_from(record.genotypes().keys().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let n_fmt_sample = u32::from(n_fmt) << 24 | n_sample;
     writer.write_u32::<LittleEndian>(n_fmt_sample)?;

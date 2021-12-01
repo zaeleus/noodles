@@ -51,6 +51,9 @@ impl Record {
 
         let filters = self.filters().try_into_vcf_record_filters(string_map)?;
         let info = self.info().try_into_vcf_record_info(header, string_map)?;
+        let genotypes = self
+            .genotypes()
+            .try_into_vcf_record_genotypes(header, string_map)?;
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)
@@ -58,7 +61,8 @@ impl Record {
             .set_ids(self.ids().clone())
             .set_reference_bases(self.reference_bases().clone())
             .set_alternate_bases(self.alternate_bases().clone())
-            .set_info(info);
+            .set_info(info)
+            .set_genotypes(genotypes);
 
         if let Some(quality_score) = self.quality_score() {
             builder = builder.set_quality_score(quality_score);
@@ -66,14 +70,6 @@ impl Record {
 
         if let Some(filters) = filters {
             builder = builder.set_filters(filters);
-        }
-
-        let (format, genotypes) = self
-            .genotypes()
-            .try_into_vcf_record_genotypes(header, string_map)?;
-
-        if let Some(format) = format {
-            builder = builder.set_format(format).set_genotypes(genotypes);
         }
 
         builder

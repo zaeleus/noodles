@@ -3,10 +3,8 @@
 use std::{error, fmt};
 
 use super::{
-    genotypes::{self, Genotype},
-    reference_bases::Base,
-    AlternateBases, Chromosome, Filters, Genotypes, Ids, Info, Position, QualityScore, Record,
-    ReferenceBases,
+    reference_bases::Base, AlternateBases, Chromosome, Filters, Genotypes, Ids, Info, Position,
+    QualityScore, Record, ReferenceBases,
 };
 
 /// A VCF record builder.
@@ -20,7 +18,6 @@ pub struct Builder {
     quality_score: Option<QualityScore>,
     filters: Option<Filters>,
     info: Info,
-    format: Option<genotypes::Keys>,
     genotypes: Genotypes,
 }
 
@@ -270,40 +267,6 @@ impl Builder {
         self
     }
 
-    /// Sets the genotype format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     record::{
-    ///         genotypes::{self, genotype::field::Key, Genotype},
-    ///         Position,
-    ///     },
-    /// };
-    ///
-    /// let keys: genotypes::Keys = "GT:GQ".parse()?;
-    ///
-    /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
-    ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(keys.clone())
-    ///     .add_genotype(Genotype::from_str_format("0|0:13", &keys)?)
-    ///     .build()?;
-    ///
-    /// assert_eq!(record.format(), Some(&genotypes::Keys::try_from(vec![
-    ///     Key::Genotype,
-    ///     Key::ConditionalGenotypeQuality,
-    /// ])?));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn set_format(mut self, format: genotypes::Keys) -> Self {
-        self.format = Some(format);
-        self
-    }
-
     /// Sets the list of genotypes.
     ///
     /// # Examples
@@ -319,70 +282,26 @@ impl Builder {
     /// };
     ///
     /// let keys = "GT:GQ".parse()?;
-    /// let genotypes = Genotypes::new(vec![
-    ///     Genotype::from_str_format("0|0:13", &keys)?
-    /// ]);
+    /// let genotypes = Genotypes::new(
+    ///     keys,
+    ///     vec![Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?],
+    /// );
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
     ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(keys)
-    ///     .set_genotypes(genotypes)
+    ///     .set_genotypes(genotypes.clone())
     ///     .build()?;
     ///
-    /// let expected = Genotypes::new(vec![
-    ///     Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?,
-    /// ]);
-    ///
-    /// assert_eq!(record.genotypes(), &expected);
+    /// assert_eq!(record.genotypes(), &genotypes);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_genotypes(mut self, genotypes: Genotypes) -> Self {
         self.genotypes = genotypes;
-        self
-    }
-
-    /// Adds a genotype.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{
-    ///     self as vcf,
-    ///     record::{
-    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
-    ///         Genotypes,
-    ///         Position,
-    ///     },
-    /// };
-    ///
-    /// let keys = "GT:GQ".parse()?;
-    /// let genotype = Genotype::from_str_format("0|0:13", &keys)?;
-    ///
-    /// let record = vcf::Record::builder()
-    ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
-    ///     .set_reference_bases("A".parse()?)
-    ///     .set_format(keys)
-    ///     .add_genotype(genotype)
-    ///     .build()?;
-    ///
-    /// let expected = Genotypes::new(vec![
-    ///     Genotype::try_from(vec![
-    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
-    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
-    ///     ])?,
-    /// ]);
-    ///
-    /// assert_eq!(record.genotypes(), &expected);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn add_genotype(mut self, genotype: Genotype) -> Self {
-        self.genotypes.push(genotype);
         self
     }
 
@@ -405,7 +324,6 @@ impl Builder {
             quality_score: self.quality_score,
             filters: self.filters,
             info: self.info,
-            format: self.format,
             genotypes: self.genotypes,
         })
     }
@@ -427,7 +345,6 @@ mod tests {
         assert!(record.quality_score.is_none());
         assert!(record.filters.is_none());
         assert!(record.info.is_empty());
-        assert!(record.format.is_none());
         assert!(record.genotypes.is_empty());
     }
 

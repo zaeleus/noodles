@@ -9,7 +9,7 @@ use noodles_vcf::{
     record::{
         genotypes::{
             genotype::field::{Key, Value},
-            Genotype,
+            Genotype, Keys,
         },
         Genotypes,
     },
@@ -35,10 +35,12 @@ where
 {
     use vcf::record::genotypes::genotype::Field;
 
+    let mut keys = Vec::with_capacity(format_count);
     let mut genotypes = vec![Vec::new(); sample_count];
 
     for _ in 0..format_count {
         let key = read_genotype_field_key(reader, formats, string_map)?;
+        keys.push(key.clone());
 
         let values = if key == Key::Genotype {
             read_genotype_genotype_field_values(reader, sample_count)?
@@ -52,13 +54,15 @@ where
         }
     }
 
-    genotypes
+    let keys = Keys::try_from(keys).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let genotypes = genotypes
         .into_iter()
         .map(|fields| {
             Genotype::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
-        .collect::<Result<Vec<_>, _>>()
-        .map(Genotypes::new)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(Genotypes::new(keys, genotypes))
 }
 
 fn read_genotype_field_key<R>(

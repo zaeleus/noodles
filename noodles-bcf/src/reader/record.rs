@@ -190,7 +190,7 @@ mod tests {
                     field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
                     Field as GenotypeField,
                 },
-                Genotype,
+                Genotype, Keys,
             },
             info::{
                 field::{Key as InfoFieldKey, Value as InfoFieldValue},
@@ -313,90 +313,101 @@ mod tests {
 
         // genotypes
 
-        let (_, actual) = record
+        let actual = record
             .genotypes()
             .try_into_vcf_record_genotypes(&header, &string_map)?;
 
-        let expected = VcfGenotypes::new(vec![
-            Genotype::try_from(vec![
-                GenotypeField::new(
-                    GenotypeFieldKey::Genotype,
-                    Some(GenotypeFieldValue::String(String::from("0/0"))),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ConditionalGenotypeQuality,
-                    Some(GenotypeFieldValue::Integer(10)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepth,
-                    Some(GenotypeFieldValue::Integer(32)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepths,
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::RoundedGenotypeLikelihoods,
-                    Some(GenotypeFieldValue::IntegerArray(vec![
-                        Some(0),
-                        Some(10),
-                        Some(100),
-                    ])),
-                ),
-            ])?,
-            Genotype::try_from(vec![
-                GenotypeField::new(
-                    GenotypeFieldKey::Genotype,
-                    Some(GenotypeFieldValue::String(String::from("0/1"))),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ConditionalGenotypeQuality,
-                    Some(GenotypeFieldValue::Integer(10)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepth,
-                    Some(GenotypeFieldValue::Integer(48)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepths,
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::RoundedGenotypeLikelihoods,
-                    Some(GenotypeFieldValue::IntegerArray(vec![
-                        Some(10),
-                        Some(0),
-                        Some(100),
-                    ])),
-                ),
-            ])?,
-            Genotype::try_from(vec![
-                GenotypeField::new(
-                    GenotypeFieldKey::Genotype,
-                    Some(GenotypeFieldValue::String(String::from("1/1"))),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ConditionalGenotypeQuality,
-                    Some(GenotypeFieldValue::Integer(10)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepth,
-                    Some(GenotypeFieldValue::Integer(64)),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::ReadDepths,
-                    Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
-                ),
-                GenotypeField::new(
-                    GenotypeFieldKey::RoundedGenotypeLikelihoods,
-                    Some(GenotypeFieldValue::IntegerArray(vec![
-                        Some(100),
-                        Some(10),
-                        Some(0),
-                    ])),
-                ),
-            ])?,
-        ]);
+        let keys = Keys::try_from(vec![
+            GenotypeFieldKey::Genotype,
+            GenotypeFieldKey::ConditionalGenotypeQuality,
+            GenotypeFieldKey::ReadDepth,
+            GenotypeFieldKey::ReadDepths,
+            GenotypeFieldKey::RoundedGenotypeLikelihoods,
+        ])?;
+
+        let expected = VcfGenotypes::new(
+            keys,
+            vec![
+                Genotype::try_from(vec![
+                    GenotypeField::new(
+                        GenotypeFieldKey::Genotype,
+                        Some(GenotypeFieldValue::String(String::from("0/0"))),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        Some(GenotypeFieldValue::Integer(10)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepth,
+                        Some(GenotypeFieldValue::Integer(32)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepths,
+                        Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(0)])),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        Some(GenotypeFieldValue::IntegerArray(vec![
+                            Some(0),
+                            Some(10),
+                            Some(100),
+                        ])),
+                    ),
+                ])?,
+                Genotype::try_from(vec![
+                    GenotypeField::new(
+                        GenotypeFieldKey::Genotype,
+                        Some(GenotypeFieldValue::String(String::from("0/1"))),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        Some(GenotypeFieldValue::Integer(10)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepth,
+                        Some(GenotypeFieldValue::Integer(48)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepths,
+                        Some(GenotypeFieldValue::IntegerArray(vec![Some(32), Some(16)])),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        Some(GenotypeFieldValue::IntegerArray(vec![
+                            Some(10),
+                            Some(0),
+                            Some(100),
+                        ])),
+                    ),
+                ])?,
+                Genotype::try_from(vec![
+                    GenotypeField::new(
+                        GenotypeFieldKey::Genotype,
+                        Some(GenotypeFieldValue::String(String::from("1/1"))),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ConditionalGenotypeQuality,
+                        Some(GenotypeFieldValue::Integer(10)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepth,
+                        Some(GenotypeFieldValue::Integer(64)),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::ReadDepths,
+                        Some(GenotypeFieldValue::IntegerArray(vec![Some(0), Some(64)])),
+                    ),
+                    GenotypeField::new(
+                        GenotypeFieldKey::RoundedGenotypeLikelihoods,
+                        Some(GenotypeFieldValue::IntegerArray(vec![
+                            Some(100),
+                            Some(10),
+                            Some(0),
+                        ])),
+                    ),
+                ])?,
+            ],
+        );
 
         assert_eq!(actual, expected);
 

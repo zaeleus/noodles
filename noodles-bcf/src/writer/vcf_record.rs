@@ -26,9 +26,10 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let mut genotypes_buf = Vec::new();
+    let genotypes = record.genotypes();
 
-    if let Some(format) = record.format() {
-        write_genotypes(&mut genotypes_buf, string_map, format, record.genotypes())?;
+    if !genotypes.is_empty() {
+        write_genotypes(&mut genotypes_buf, string_map, genotypes.keys(), genotypes)?;
     };
 
     let l_indiv = u32::try_from(genotypes_buf.len())
