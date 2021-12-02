@@ -70,7 +70,7 @@ where
                         None => State::Done,
                     };
                 }
-                State::Read(chunk_end) => match next_record(&mut ctx.reader).await? {
+                State::Read(chunk_end) => match next_record(ctx.reader).await? {
                     Some(record) => {
                         if ctx.reader.virtual_position() >= chunk_end {
                             ctx.state = State::Seek;

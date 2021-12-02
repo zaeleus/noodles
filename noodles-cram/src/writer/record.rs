@@ -112,8 +112,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             bam_bit_flags,
         )
     }
@@ -128,8 +128,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             cram_bit_flags,
         )
     }
@@ -192,8 +192,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     reference_id,
                 )
             })
@@ -210,8 +210,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             len,
         )
     }
@@ -224,8 +224,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             alignment_start,
         )
     }
@@ -238,8 +238,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             read_group,
         )
     }
@@ -257,8 +257,8 @@ where
             .and_then(|encoding| {
                 encode_byte_array(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     read_name,
                 )
             })
@@ -306,8 +306,8 @@ where
 
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     next_mate_bit_flags,
                 )
             })
@@ -331,8 +331,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     next_fragment_reference_sequence_id,
                 )
             })
@@ -357,8 +357,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             position,
         )
     }
@@ -376,8 +376,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     template_size,
                 )
             })
@@ -399,8 +399,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     distance_to_next_fragment,
                 )
             })
@@ -441,8 +441,8 @@ where
 
             encode_byte_array(
                 encoding,
-                &mut self.core_data_writer,
-                &mut self.external_data_writers,
+                self.core_data_writer,
+                self.external_data_writers,
                 &buf,
             )?;
         }
@@ -458,8 +458,8 @@ where
 
         encode_itf8(
             encoding,
-            &mut self.core_data_writer,
-            &mut self.external_data_writers,
+            self.core_data_writer,
+            self.external_data_writers,
             tag_line,
         )
     }
@@ -504,8 +504,8 @@ where
 
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     number_of_read_features,
                 )
             })
@@ -573,8 +573,8 @@ where
 
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     feature_code,
                 )
             })
@@ -593,8 +593,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     position,
                 )
             })
@@ -613,8 +613,8 @@ where
             .and_then(|encoding| {
                 encode_byte_array(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     bases,
                 )
             })
@@ -635,8 +635,8 @@ where
             .and_then(|encoding| {
                 encode_byte_array(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     quality_scores,
                 )
             })
@@ -655,8 +655,8 @@ where
             .and_then(|encoding| {
                 encode_byte(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     base,
                 )
             })
@@ -675,8 +675,8 @@ where
             .and_then(|encoding| {
                 encode_byte(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     quality_score,
                 )
             })
@@ -695,8 +695,8 @@ where
             .and_then(|encoding| {
                 encode_byte(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     code,
                 )
             })
@@ -715,8 +715,8 @@ where
             .and_then(|encoding| {
                 encode_byte_array(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     bases,
                 )
             })
@@ -735,8 +735,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     len,
                 )
             })
@@ -755,8 +755,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     len,
                 )
             })
@@ -775,8 +775,8 @@ where
             .and_then(|encoding| {
                 encode_byte_array(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     bases,
                 )
             })
@@ -795,8 +795,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     len,
                 )
             })
@@ -815,8 +815,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     len,
                 )
             })
@@ -835,8 +835,8 @@ where
             .and_then(|encoding| {
                 encode_itf8(
                     encoding,
-                    &mut self.core_data_writer,
-                    &mut self.external_data_writers,
+                    self.core_data_writer,
+                    self.external_data_writers,
                     mapping_quality,
                 )
             })
