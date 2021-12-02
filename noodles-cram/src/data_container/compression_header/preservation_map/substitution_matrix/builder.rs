@@ -10,15 +10,13 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
-        let substitution_matrix = SubstitutionMatrix::default();
-
         for feature in record.features() {
             if let Feature::Substitution(pos, code) = feature {
                 // FIXME: pos = 1-based, position = 0-based
                 let reference_position = (pos - 1) as usize;
                 let base = reference_sequence[reference_position] as char;
                 let reference_base = Base::try_from(base).unwrap_or_default();
-                let read_base = substitution_matrix.get(reference_base, *code);
+                let read_base = self.substitution_matrix.get(reference_base, *code);
                 self.histogram.hit(reference_base, read_base);
             }
         }
