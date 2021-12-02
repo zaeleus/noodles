@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 - 2021-12-02
+
+### Fixed
+
+  * sam: Sync dependencies.
+
 ## 0.8.0 - 2021-11-18
 
 ### Added

@@ -1,6 +1,6 @@
 [package]
 name = "noodles-csi"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
@@ -15,7 +15,7 @@ async = ["noodles-bgzf/async", "tokio"]
 [dependencies]
 bit-vec = "0.6.1"
 byteorder = "1.2.3"
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.6.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.7.0" }
 
 tokio = { version = "1.10.0", optional = true, features = ["fs", "io-util"] }
 
