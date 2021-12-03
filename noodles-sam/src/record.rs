@@ -83,7 +83,7 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn builder() -> Builder {
-        Builder::new()
+        Builder::default()
     }
 
     /// Returns the read name of this record.

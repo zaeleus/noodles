@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * sam/record/builder: Deprecate `Builder::new`.
+
+    Use `sam::Record::builder` instead.
+
 ## 0.8.1 - 2021-12-02
 
 ### Fixed

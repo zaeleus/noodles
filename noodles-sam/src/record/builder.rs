@@ -63,6 +63,7 @@ impl Builder {
     /// use noodles_sam as sam;
     /// let builder = sam::Record::builder();
     /// ```
+    #[deprecated(since = "0.9.0", note = "Use `Record::builder` instead.")]
     pub fn new() -> Self {
         Self::default()
     }
@@ -424,7 +425,7 @@ mod tests {
             data::field::Value::Int(1),
         )])?;
 
-        let record = Builder::new()
+        let record = Builder::default()
             .set_read_name(read_name.clone())
             .set_flags(Flags::PAIRED | Flags::READ_1)
             .set_reference_sequence_name(reference_sequence_name.clone())
