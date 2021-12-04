@@ -14,6 +14,8 @@
 
       * `Flags::PAIRED` => `Flags::SEGMENTED`
       * `Flags::is_paired` => `Flags::is_segmented`
+      * `Flags::PROPER_PAIR` => `Flags::PROPERLY_ALIGNED`
+      * `Flags::is_proper_pair` => `Flags::is_properly_aligned`
 
 ## 0.8.1 - 2021-12-02
 

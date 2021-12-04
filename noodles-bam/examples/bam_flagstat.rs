@@ -66,7 +66,7 @@ fn count(counts: &mut Counts, record: &bam::Record) {
             }
 
             if !flags.is_unmapped() {
-                if flags.is_proper_pair() {
+                if flags.is_properly_aligned() {
                     counts.proper_pair += 1;
                 }
 

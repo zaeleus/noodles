@@ -9,7 +9,11 @@ bitflags::bitflags! {
         const SEGMENTED = 0x01;
 
         /// Both reads are properly aligned (`0x02`).
+        #[deprecated(since = "0.9.0", note = "Use `Flags::PROPERLY_ALIGNED` instead.")]
         const PROPER_PAIR = 0x02;
+        /// Each segment in the read is properly aligned (`0x02`).
+        const PROPERLY_ALIGNED = 0x02;
+
         /// Read is unmapped (`Ox04`).
         const UNMAPPED = 0x04;
         /// The mate is unmapped (`0x08`).
@@ -70,8 +74,22 @@ impl Flags {
     /// assert!(Flags::PROPER_PAIR.is_proper_pair());
     /// assert!(!Flags::UNMAPPED.is_proper_pair());
     /// ```
+    #[deprecated(since = "0.9.0", note = "Use `Flags::is_properly_aligned` instead.")]
     pub fn is_proper_pair(self) -> bool {
-        self.contains(Self::PROPER_PAIR)
+        self.is_properly_aligned()
+    }
+
+    /// Returns whether the `PROPERLY_ALIGNED` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Flags;
+    /// assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
+    /// assert!(!Flags::UNMAPPED.is_properly_aligned());
+    /// ```
+    pub fn is_properly_aligned(self) -> bool {
+        self.contains(Self::PROPERLY_ALIGNED)
     }
 
     /// Returns whether the `UNMAPPED` flag is set.
@@ -228,7 +246,7 @@ mod tests {
         assert!(flags.is_empty());
 
         assert!(!flags.is_segmented());
-        assert!(!flags.is_proper_pair());
+        assert!(!flags.is_properly_aligned());
         assert!(!flags.is_unmapped());
         assert!(!flags.is_mate_unmapped());
         assert!(!flags.is_reverse_complemented());
@@ -244,7 +262,7 @@ mod tests {
     #[test]
     fn test_contains() {
         assert!(Flags::SEGMENTED.is_segmented());
-        assert!(Flags::PROPER_PAIR.is_proper_pair());
+        assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
         assert!(Flags::UNMAPPED.is_unmapped());
         assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
         assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
