@@ -8,6 +8,13 @@
 
     Use `sam::Record::builder` instead.
 
+  * sam/record/flags: Rename "pair" to "segment".
+
+    The following are now deprecated and listed with their replacements:
+
+      * `Flags::PAIRED` => `Flags::SEGMENTED`
+      * `Flags::is_paired` => `Flags::is_segmented`
+
 ## 0.8.1 - 2021-12-02
 
 ### Fixed

@@ -3,7 +3,11 @@ bitflags::bitflags! {
     #[derive(Default)]
     pub struct Flags: u16 {
         /// Read is paired (`0x01`).
+        #[deprecated(since = "0.9.0", note = "Use `Flags::SEGMENTED` instead.")]
         const PAIRED = 0x01;
+        /// Read is segmented (0x01).
+        const SEGMENTED = 0x01;
+
         /// Both reads are properly aligned (`0x02`).
         const PROPER_PAIR = 0x02;
         /// Read is unmapped (`Ox04`).
@@ -39,8 +43,22 @@ impl Flags {
     /// assert!(Flags::PAIRED.is_paired());
     /// assert!(!Flags::UNMAPPED.is_paired());
     /// ```
+    #[deprecated(since = "0.9.0", note = "Use `Flags::is_segmented` instead.")]
     pub fn is_paired(self) -> bool {
-        self.contains(Self::PAIRED)
+        self.is_segmented()
+    }
+
+    /// Returns whether the `SEGMENTED` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Flags;
+    /// assert!(Flags::SEGMENTED.is_segmented());
+    /// assert!(!Flags::UNMAPPED.is_segmented());
+    /// ```
+    pub fn is_segmented(self) -> bool {
+        self.contains(Self::SEGMENTED)
     }
 
     /// Returns whether the `PROPER_PAIR` flag is set.
@@ -209,7 +227,7 @@ mod tests {
 
         assert!(flags.is_empty());
 
-        assert!(!flags.is_paired());
+        assert!(!flags.is_segmented());
         assert!(!flags.is_proper_pair());
         assert!(!flags.is_unmapped());
         assert!(!flags.is_mate_unmapped());
@@ -225,7 +243,7 @@ mod tests {
 
     #[test]
     fn test_contains() {
-        assert!(Flags::PAIRED.is_paired());
+        assert!(Flags::SEGMENTED.is_segmented());
         assert!(Flags::PROPER_PAIR.is_proper_pair());
         assert!(Flags::UNMAPPED.is_unmapped());
         assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());

@@ -181,7 +181,7 @@ mod tests {
             .set_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
             .set_position(Position::try_from(61062)?)
             .set_mapping_quality(MappingQuality::from(12))
-            .set_flags(Flags::PAIRED | Flags::READ_1)
+            .set_flags(Flags::SEGMENTED | Flags::READ_1)
             .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
@@ -219,7 +219,7 @@ mod tests {
 
         let expected = sam::Record::builder()
             .set_read_name("r0".parse()?)
-            .set_flags(sam::record::Flags::PAIRED | sam::record::Flags::READ_1)
+            .set_flags(sam::record::Flags::SEGMENTED | sam::record::Flags::READ_1)
             .set_reference_sequence_name("sq1".parse()?)
             .set_position(sam::record::Position::try_from(61062)?)
             .set_mapping_quality(sam::record::MappingQuality::from(12))
