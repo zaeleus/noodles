@@ -427,7 +427,7 @@ mod tests {
 
         let record = Builder::default()
             .set_read_name(read_name.clone())
-            .set_flags(Flags::SEGMENTED | Flags::READ_1)
+            .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(Position::try_from(13)?)
             .set_mapping_quality(MappingQuality::from(37))
@@ -441,7 +441,7 @@ mod tests {
             .build()?;
 
         assert_eq!(record.read_name(), Some(&read_name));
-        assert_eq!(record.flags(), Flags::SEGMENTED | Flags::READ_1);
+        assert_eq!(record.flags(), Flags::SEGMENTED | Flags::FIRST_SEGMENT);
         assert_eq!(
             record.reference_sequence_name(),
             Some(&reference_sequence_name)

@@ -599,7 +599,7 @@ mod tests {
             pos: 61061,
             mapq: MappingQuality::from(12),
             bin: 4684,
-            flag: Flags::SEGMENTED | Flags::READ_1,
+            flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
             next_ref_id: ref_id,
             next_pos: 61152,
             tlen: 166,
@@ -658,7 +658,7 @@ mod tests {
     fn test_flags() -> io::Result<()> {
         use sam::record::Flags;
         let record = build_record()?;
-        assert_eq!(record.flags(), Flags::SEGMENTED | Flags::READ_1);
+        assert_eq!(record.flags(), Flags::SEGMENTED | Flags::FIRST_SEGMENT);
         Ok(())
     }
 

@@ -57,7 +57,7 @@ fn count(counts: &mut Counts, record: &bam::Record) {
         if flags.is_segmented() {
             counts.paired += 1;
 
-            if flags.is_read_1() {
+            if flags.is_first_segment() {
                 counts.read_1 += 1;
             }
 

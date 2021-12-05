@@ -22,8 +22,13 @@ bitflags::bitflags! {
         const REVERSE_COMPLEMENTED = 0x10;
         /// The sequence of the mate is reverse complemented (`0x20`).
         const MATE_REVERSE_COMPLEMENTED = 0x20;
+
         /// First in pair (`0x40`).
+        #[deprecated(since = "0.9.0", note = "Use `Flags::FIRST_SEGMENT` instead.")]
         const READ_1 = 0x40;
+        /// First segment in the read (`0x40`).
+        const FIRST_SEGMENT = 0x40;
+
         /// Second in pair (`0x80`).
         const READ_2 = 0x80;
         /// Secondary read (`0x0100`).
@@ -152,8 +157,22 @@ impl Flags {
     /// assert!(Flags::READ_1.is_read_1());
     /// assert!(!Flags::UNMAPPED.is_read_1());
     /// ```
+    #[deprecated(since = "0.9.0", note = "Use `Flags::is_first_segment` instead.")]
     pub fn is_read_1(self) -> bool {
-        self.contains(Self::READ_1)
+        self.is_first_segment()
+    }
+
+    /// Returns whether the `FIRST_SEGMENT` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Flags;
+    /// assert!(Flags::FIRST_SEGMENT.is_first_segment());
+    /// assert!(!Flags::UNMAPPED.is_first_segment());
+    /// ```
+    pub fn is_first_segment(self) -> bool {
+        self.contains(Self::FIRST_SEGMENT)
     }
 
     /// Returns whether the `READ_2` flag is set.
@@ -251,7 +270,7 @@ mod tests {
         assert!(!flags.is_mate_unmapped());
         assert!(!flags.is_reverse_complemented());
         assert!(!flags.is_mate_reverse_complemented());
-        assert!(!flags.is_read_1());
+        assert!(!flags.is_first_segment());
         assert!(!flags.is_read_2());
         assert!(!flags.is_secondary());
         assert!(!flags.is_qc_fail());
@@ -267,7 +286,7 @@ mod tests {
         assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
         assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
         assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
-        assert!(Flags::READ_1.is_read_1());
+        assert!(Flags::FIRST_SEGMENT.is_first_segment());
         assert!(Flags::READ_2.is_read_2());
         assert!(Flags::SECONDARY.is_secondary());
         assert!(Flags::QC_FAIL.is_qc_fail());
@@ -277,11 +296,11 @@ mod tests {
 
     #[test]
     fn test_from_u16_for_flags() {
-        assert_eq!(Flags::from(0x40), Flags::READ_1);
+        assert_eq!(Flags::from(0x40), Flags::FIRST_SEGMENT);
     }
 
     #[test]
     fn test_from_flags_for_u16() {
-        assert_eq!(u16::from(Flags::READ_1), 0x40);
+        assert_eq!(u16::from(Flags::FIRST_SEGMENT), 0x40);
     }
 }
