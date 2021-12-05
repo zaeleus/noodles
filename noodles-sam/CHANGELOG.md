@@ -18,6 +18,8 @@
       * `Flags::is_proper_pair` => `Flags::is_properly_aligned`
       * `Flags::READ_1` => `Flags::FIRST_SEGMENT`
       * `Flags::is_read_1` => `Flags::is_first_segment`
+      * `Flags::READ_2` => `Flags::LAST_SEGMENT`
+      * `Flags::is_read_2` => `Flags::is_last_segment`
 
 ## 0.8.1 - 2021-12-02
 

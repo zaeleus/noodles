@@ -30,7 +30,11 @@ bitflags::bitflags! {
         const FIRST_SEGMENT = 0x40;
 
         /// Second in pair (`0x80`).
+        #[deprecated(since = "0.9.0", note = "Use `Flags::LAST_SEGMENT` instead.")]
         const READ_2 = 0x80;
+        /// Last segment in the read (`0x80`).
+        const LAST_SEGMENT = 0x80;
+
         /// Secondary read (`0x0100`).
         const SECONDARY = 0x0100;
         /// Read failed quality checks (`0x0200`).
@@ -184,8 +188,22 @@ impl Flags {
     /// assert!(Flags::READ_2.is_read_2());
     /// assert!(!Flags::UNMAPPED.is_read_2());
     /// ```
+    #[deprecated(since = "0.9.0", note = "Use `Flags::is_last_segment` instead.")]
     pub fn is_read_2(self) -> bool {
-        self.contains(Self::READ_2)
+        self.is_last_segment()
+    }
+
+    /// Returns whether the `READ_2` flag is set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Flags;
+    /// assert!(Flags::READ_2.is_read_2());
+    /// assert!(!Flags::UNMAPPED.is_read_2());
+    /// ```
+    pub fn is_last_segment(self) -> bool {
+        self.contains(Self::LAST_SEGMENT)
     }
 
     /// Returns whether the `SECONDARY` flag is set.
@@ -271,7 +289,7 @@ mod tests {
         assert!(!flags.is_reverse_complemented());
         assert!(!flags.is_mate_reverse_complemented());
         assert!(!flags.is_first_segment());
-        assert!(!flags.is_read_2());
+        assert!(!flags.is_last_segment());
         assert!(!flags.is_secondary());
         assert!(!flags.is_qc_fail());
         assert!(!flags.is_duplicate());
@@ -287,7 +305,7 @@ mod tests {
         assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
         assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
         assert!(Flags::FIRST_SEGMENT.is_first_segment());
-        assert!(Flags::READ_2.is_read_2());
+        assert!(Flags::LAST_SEGMENT.is_last_segment());
         assert!(Flags::SECONDARY.is_secondary());
         assert!(Flags::QC_FAIL.is_qc_fail());
         assert!(Flags::DUPLICATE.is_duplicate());

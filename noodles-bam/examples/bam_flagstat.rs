@@ -61,7 +61,7 @@ fn count(counts: &mut Counts, record: &bam::Record) {
                 counts.read_1 += 1;
             }
 
-            if flags.is_read_2() {
+            if flags.is_last_segment() {
                 counts.read_2 += 1;
             }
 
