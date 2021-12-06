@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/writer: Add mutable getter (`Writer::get_mut`) for the underlying
+    writer.
+
 ### Deprecated
 
   * sam/record/builder: Deprecate `Builder::new`.
