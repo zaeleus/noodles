@@ -13,6 +13,7 @@ struct StandardFields {
     start_position: u64,
     end_position: u64,
     name: Option<String>,
+    score: Option<u16>,
 }
 
 impl StandardFields {
@@ -25,6 +26,7 @@ impl StandardFields {
             start_position,
             end_position,
             name: None,
+            score: None,
         }
     }
 }
@@ -36,7 +38,22 @@ pub struct Record<const N: u8> {
     optional_fields: OptionalFields,
 }
 
-impl<const N: u8> Record<N> {
+/// A trait describing the number of standard fields is in a BED record.
+pub trait BedN<const N: u8> {}
+
+impl BedN<3> for Record<3> {}
+impl BedN<3> for Record<4> {}
+impl BedN<3> for Record<5> {}
+
+impl BedN<4> for Record<4> {}
+impl BedN<4> for Record<5> {}
+
+impl BedN<5> for Record<5> {}
+
+impl<const N: u8> Record<N>
+where
+    Self: BedN<3>,
+{
     /// Returns the reference sequence name (`chrom`).
     pub fn reference_sequence_name(&self) -> &str {
         &self.standard_fields.reference_sequence_name
@@ -58,10 +75,23 @@ impl<const N: u8> Record<N> {
     }
 }
 
-impl Record<4> {
+impl<const N: u8> Record<N>
+where
+    Self: BedN<4>,
+{
     /// Returns the feature name (`name`).
     pub fn name(&self) -> Option<&str> {
         self.standard_fields.name.as_deref()
+    }
+}
+
+impl<const N: u8> Record<N>
+where
+    Self: BedN<5>,
+{
+    /// Returns the score (`score`).
+    pub fn score(&self) -> Option<u16> {
+        self.standard_fields.score
     }
 }
 
@@ -80,6 +110,10 @@ pub enum ParseError {
     InvalidEndPosition(num::ParseIntError),
     /// The name is missing.
     MissingName,
+    /// The score is missing.
+    MissingScore,
+    /// The score is invalid.
+    InvalidScore(num::ParseIntError),
 }
 
 impl error::Error for ParseError {}
@@ -93,6 +127,8 @@ impl fmt::Display for ParseError {
             Self::MissingEndPosition => f.write_str("missing end position"),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
             Self::MissingName => f.write_str("missing name"),
+            Self::MissingScore => f.write_str("missing score"),
+            Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
         }
     }
 }
@@ -121,6 +157,25 @@ impl FromStr for Record<4> {
 
         let mut standard_fields = parse_mandatory_fields(&mut fields)?;
         standard_fields.name = parse_name(&mut fields)?;
+
+        let optional_fields = parse_optional_fields(&mut fields);
+
+        Ok(Self {
+            standard_fields,
+            optional_fields,
+        })
+    }
+}
+
+impl FromStr for Record<5> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.split(DELIMITER);
+
+        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
+        standard_fields.name = parse_name(&mut fields)?;
+        standard_fields.score = parse_score(&mut fields)?;
 
         let optional_fields = parse_optional_fields(&mut fields);
 
@@ -171,6 +226,21 @@ where
     })
 }
 
+fn parse_score<'a, I>(fields: &mut I) -> Result<Option<u16>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    const MISSING_FIELD: &str = "0";
+
+    fields.next().ok_or(ParseError::MissingName).and_then(|s| {
+        if s == MISSING_FIELD {
+            Ok(None)
+        } else {
+            s.parse().map(Some).map_err(ParseError::InvalidScore)
+        }
+    })
+}
+
 fn parse_optional_fields<'a, I>(fields: &mut I) -> OptionalFields
 where
     I: Iterator<Item = &'a str>,
@@ -201,6 +271,21 @@ mod tests {
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.name = Some(String::from("ndls1"));
+
+        let expected = Ok(Record {
+            standard_fields,
+            optional_fields: Vec::new(),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_from_str_for_record_5() {
+        let actual = "sq0\t8\t13\t.\t21".parse::<Record<5>>();
+
+        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        standard_fields.score = Some(21);
 
         let expected = Ok(Record {
             standard_fields,
