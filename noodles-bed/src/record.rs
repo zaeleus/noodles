@@ -5,11 +5,14 @@ use std::{error, fmt, num, str::FromStr};
 /// A list of raw optional fields.
 pub type OptionalFields = Vec<String>;
 
+const DELIMITER: char = '\t';
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields {
     reference_sequence_name: String,
     start_position: u64,
     end_position: u64,
+    name: Option<String>,
 }
 
 impl StandardFields {
@@ -21,6 +24,7 @@ impl StandardFields {
             reference_sequence_name: reference_sequence_name.into(),
             start_position,
             end_position,
+            name: None,
         }
     }
 }
@@ -54,6 +58,13 @@ impl<const N: u8> Record<N> {
     }
 }
 
+impl Record<4> {
+    /// Returns the feature name (`name`).
+    pub fn name(&self) -> Option<&str> {
+        self.standard_fields.name.as_deref()
+    }
+}
+
 /// An error returned when a raw BED record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -67,6 +78,8 @@ pub enum ParseError {
     MissingEndPosition,
     /// The end position is invalid.
     InvalidEndPosition(num::ParseIntError),
+    /// The name is missing.
+    MissingName,
 }
 
 impl error::Error for ParseError {}
@@ -79,6 +92,7 @@ impl fmt::Display for ParseError {
             Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
             Self::MissingEndPosition => f.write_str("missing end position"),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
+            Self::MissingName => f.write_str("missing name"),
         }
     }
 }
@@ -87,11 +101,27 @@ impl FromStr for Record<3> {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        const DELIMITER: char = '\t';
-
         let mut fields = s.split(DELIMITER);
 
         let standard_fields = parse_mandatory_fields(&mut fields)?;
+        let optional_fields = parse_optional_fields(&mut fields);
+
+        Ok(Self {
+            standard_fields,
+            optional_fields,
+        })
+    }
+}
+
+impl FromStr for Record<4> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.split(DELIMITER);
+
+        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
+        standard_fields.name = parse_name(&mut fields)?;
+
         let optional_fields = parse_optional_fields(&mut fields);
 
         Ok(Self {
@@ -126,6 +156,21 @@ where
     ))
 }
 
+fn parse_name<'a, I>(fields: &mut I) -> Result<Option<String>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    const MISSING_FIELD: &str = ".";
+
+    fields.next().ok_or(ParseError::MissingName).map(|s| {
+        if s == MISSING_FIELD {
+            None
+        } else {
+            Some(s.into())
+        }
+    })
+}
+
 fn parse_optional_fields<'a, I>(fields: &mut I) -> OptionalFields
 where
     I: Iterator<Item = &'a str>,
@@ -139,9 +184,24 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_3() {
-        let actual = "sq0\t8\t13".parse();
+        let actual = "sq0\t8\t13".parse::<Record<3>>();
 
         let standard_fields = StandardFields::new("sq0", 8, 13);
+        let expected = Ok(Record {
+            standard_fields,
+            optional_fields: Vec::new(),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_from_str_for_record_4() {
+        let actual = "sq0\t8\t13\tndls1".parse::<Record<4>>();
+
+        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        standard_fields.name = Some(String::from("ndls1"));
+
         let expected = Ok(Record {
             standard_fields,
             optional_fields: Vec::new(),
