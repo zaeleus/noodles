@@ -3,6 +3,7 @@ members = [
   "noodles",
   "noodles-bam",
   "noodles-bcf",
+  "noodles-bed",
   "noodles-bgzf",
   "noodles-core",
   "noodles-cram",
