@@ -44,7 +44,7 @@ pub struct Record<const N: u8> {
     optional_fields: OptionalFields,
 }
 
-/// A trait describing the number of standard fields is in a BED record.
+/// A trait describing the number of standard fields in a BED record.
 pub trait BedN<const N: u8> {}
 
 impl BedN<3> for Record<3> {}
