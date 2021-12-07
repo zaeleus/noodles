@@ -1,8 +1,9 @@
 //! BED record and fields.
 
+pub mod score;
 pub mod strand;
 
-pub use self::strand::Strand;
+pub use self::{score::Score, strand::Strand};
 
 use std::{error, fmt, num, str::FromStr};
 
@@ -17,7 +18,7 @@ struct StandardFields {
     start_position: u64,
     end_position: u64,
     name: Option<String>,
-    score: Option<u16>,
+    score: Option<Score>,
     strand: Option<Strand>,
 }
 
@@ -108,7 +109,7 @@ where
     Self: BedN<5>,
 {
     /// Returns the score (`score`).
-    pub fn score(&self) -> Option<u16> {
+    pub fn score(&self) -> Option<Score> {
         self.standard_fields.score
     }
 }
@@ -141,7 +142,7 @@ pub enum ParseError {
     /// The score is missing.
     MissingScore,
     /// The score is invalid.
-    InvalidScore(num::ParseIntError),
+    InvalidScore(score::ParseError),
     /// The strand is missing.
     MissingStrand,
     /// The strand is invalid.
@@ -285,19 +286,19 @@ where
     })
 }
 
-fn parse_score<'a, I>(fields: &mut I) -> Result<Option<u16>, ParseError>
+fn parse_score<'a, I>(fields: &mut I) -> Result<Option<Score>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
     const MISSING_FIELD: &str = "0";
 
-    fields.next().ok_or(ParseError::MissingName).and_then(|s| {
-        if s == MISSING_FIELD {
-            Ok(None)
-        } else {
-            s.parse().map(Some).map_err(ParseError::InvalidScore)
-        }
-    })
+    fields
+        .next()
+        .ok_or(ParseError::MissingName)
+        .and_then(|s| match s {
+            MISSING_FIELD => Ok(None),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidScore),
+        })
 }
 
 fn parse_strand<'a, I>(fields: &mut I) -> Result<Option<Strand>, ParseError>
@@ -349,15 +350,17 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_for_record_5() {
+    fn test_from_str_for_record_5() -> Result<(), score::TryFromIntError> {
         let actual = "sq0\t8\t13\t.\t21".parse::<Record<5>>();
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
-        standard_fields.score = Some(21);
+        standard_fields.score = Score::try_from(21).map(Some)?;
 
         let expected = Ok(Record::new(standard_fields, Vec::new()));
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]
