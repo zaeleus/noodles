@@ -65,6 +65,13 @@ impl<const N: u8> Record<N>
 where
     Self: BedN<3>,
 {
+    fn new(standard_fields: StandardFields, optional_fields: OptionalFields) -> Self {
+        Self {
+            standard_fields,
+            optional_fields,
+        }
+    }
+
     /// Returns the reference sequence name (`chrom`).
     pub fn reference_sequence_name(&self) -> &str {
         &self.standard_fields.reference_sequence_name
@@ -165,14 +172,9 @@ impl FromStr for Record<3> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(DELIMITER);
-
-        let standard_fields = parse_mandatory_fields(&mut fields)?;
+        let standard_fields = parse_bed_3_fields(&mut fields)?;
         let optional_fields = parse_optional_fields(&mut fields);
-
-        Ok(Self {
-            standard_fields,
-            optional_fields,
-        })
+        Ok(Self::new(standard_fields, optional_fields))
     }
 }
 
@@ -181,16 +183,9 @@ impl FromStr for Record<4> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(DELIMITER);
-
-        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
-        standard_fields.name = parse_name(&mut fields)?;
-
+        let standard_fields = parse_bed_4_fields(&mut fields)?;
         let optional_fields = parse_optional_fields(&mut fields);
-
-        Ok(Self {
-            standard_fields,
-            optional_fields,
-        })
+        Ok(Self::new(standard_fields, optional_fields))
     }
 }
 
@@ -199,17 +194,9 @@ impl FromStr for Record<5> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(DELIMITER);
-
-        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
-        standard_fields.name = parse_name(&mut fields)?;
-        standard_fields.score = parse_score(&mut fields)?;
-
+        let standard_fields = parse_bed_5_fields(&mut fields)?;
         let optional_fields = parse_optional_fields(&mut fields);
-
-        Ok(Self {
-            standard_fields,
-            optional_fields,
-        })
+        Ok(Self::new(standard_fields, optional_fields))
     }
 }
 
@@ -218,19 +205,44 @@ impl FromStr for Record<6> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut fields = s.split(DELIMITER);
-
-        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
-        standard_fields.name = parse_name(&mut fields)?;
-        standard_fields.score = parse_score(&mut fields)?;
-        standard_fields.strand = parse_strand(&mut fields)?;
-
+        let standard_fields = parse_bed_6_fields(&mut fields)?;
         let optional_fields = parse_optional_fields(&mut fields);
-
-        Ok(Self {
-            standard_fields,
-            optional_fields,
-        })
+        Ok(Self::new(standard_fields, optional_fields))
     }
+}
+
+fn parse_bed_3_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_mandatory_fields(fields)
+}
+
+fn parse_bed_4_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut standard_fields = parse_bed_3_fields(fields)?;
+    standard_fields.name = parse_name(fields)?;
+    Ok(standard_fields)
+}
+
+fn parse_bed_5_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut standard_fields = parse_bed_4_fields(fields)?;
+    standard_fields.score = parse_score(fields)?;
+    Ok(standard_fields)
+}
+
+fn parse_bed_6_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut standard_fields = parse_bed_5_fields(fields)?;
+    standard_fields.strand = parse_strand(fields)?;
+    Ok(standard_fields)
 }
 
 fn parse_mandatory_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
@@ -319,10 +331,7 @@ mod tests {
         let actual = "sq0\t8\t13".parse::<Record<3>>();
 
         let standard_fields = StandardFields::new("sq0", 8, 13);
-        let expected = Ok(Record {
-            standard_fields,
-            optional_fields: Vec::new(),
-        });
+        let expected = Ok(Record::new(standard_fields, Vec::new()));
 
         assert_eq!(actual, expected);
     }
@@ -334,10 +343,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.name = Some(String::from("ndls1"));
 
-        let expected = Ok(Record {
-            standard_fields,
-            optional_fields: Vec::new(),
-        });
+        let expected = Ok(Record::new(standard_fields, Vec::new()));
 
         assert_eq!(actual, expected);
     }
@@ -349,10 +355,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.score = Some(21);
 
-        let expected = Ok(Record {
-            standard_fields,
-            optional_fields: Vec::new(),
-        });
+        let expected = Ok(Record::new(standard_fields, Vec::new()));
 
         assert_eq!(actual, expected);
     }
@@ -364,10 +367,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.strand = Some(Strand::Forward);
 
-        let expected = Ok(Record {
-            standard_fields,
-            optional_fields: Vec::new(),
-        });
+        let expected = Ok(Record::new(standard_fields, Vec::new()));
 
         assert_eq!(actual, expected);
     }
