@@ -1,5 +1,9 @@
 //! BED record and fields.
 
+pub mod strand;
+
+pub use self::strand::Strand;
+
 use std::{error, fmt, num, str::FromStr};
 
 /// A list of raw optional fields.
@@ -14,7 +18,7 @@ struct StandardFields {
     end_position: u64,
     name: Option<String>,
     score: Option<u16>,
-    strand: Option<String>,
+    strand: Option<Strand>,
 }
 
 impl StandardFields {
@@ -107,8 +111,8 @@ where
     Self: BedN<6>,
 {
     /// Returns the feature strand (`strand`).
-    pub fn strand(&self) -> Option<&str> {
-        self.standard_fields.strand.as_deref()
+    pub fn strand(&self) -> Option<Strand> {
+        self.standard_fields.strand
     }
 }
 
@@ -134,7 +138,7 @@ pub enum ParseError {
     /// The strand is missing.
     MissingStrand,
     /// The strand is invalid.
-    InvalidStrand,
+    InvalidStrand(strand::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -151,7 +155,7 @@ impl fmt::Display for ParseError {
             Self::MissingScore => f.write_str("missing score"),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
             Self::MissingStrand => f.write_str("missing strand"),
-            Self::InvalidStrand => f.write_str("invalid strand"),
+            Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
         }
     }
 }
@@ -284,7 +288,7 @@ where
     })
 }
 
-fn parse_strand<'a, I>(fields: &mut I) -> Result<Option<String>, ParseError>
+fn parse_strand<'a, I>(fields: &mut I) -> Result<Option<Strand>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -295,8 +299,7 @@ where
         .ok_or(ParseError::MissingStrand)
         .and_then(|s| match s {
             MISSING_FIELD => Ok(None),
-            "-" | "+" => Ok(Some(s.into())),
-            _ => Err(ParseError::InvalidStrand),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidStrand),
         })
 }
 
@@ -356,10 +359,10 @@ mod tests {
 
     #[test]
     fn test_from_str_for_record_6() {
-        let actual = "sq0\t8\t13\t.\t0\t-".parse::<Record<6>>();
+        let actual = "sq0\t8\t13\t.\t0\t+".parse::<Record<6>>();
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
-        standard_fields.strand = Some(String::from("-"));
+        standard_fields.strand = Some(Strand::Forward);
 
         let expected = Ok(Record {
             standard_fields,
