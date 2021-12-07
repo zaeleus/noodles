@@ -14,6 +14,7 @@ struct StandardFields {
     end_position: u64,
     name: Option<String>,
     score: Option<u16>,
+    strand: Option<String>,
 }
 
 impl StandardFields {
@@ -27,6 +28,7 @@ impl StandardFields {
             end_position,
             name: None,
             score: None,
+            strand: None,
         }
     }
 }
@@ -44,11 +46,16 @@ pub trait BedN<const N: u8> {}
 impl BedN<3> for Record<3> {}
 impl BedN<3> for Record<4> {}
 impl BedN<3> for Record<5> {}
+impl BedN<3> for Record<6> {}
 
 impl BedN<4> for Record<4> {}
 impl BedN<4> for Record<5> {}
+impl BedN<4> for Record<6> {}
 
 impl BedN<5> for Record<5> {}
+impl BedN<5> for Record<6> {}
+
+impl BedN<6> for Record<6> {}
 
 impl<const N: u8> Record<N>
 where
@@ -95,6 +102,16 @@ where
     }
 }
 
+impl<const N: u8> Record<N>
+where
+    Self: BedN<6>,
+{
+    /// Returns the feature strand (`strand`).
+    pub fn strand(&self) -> Option<&str> {
+        self.standard_fields.strand.as_deref()
+    }
+}
+
 /// An error returned when a raw BED record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -114,6 +131,10 @@ pub enum ParseError {
     MissingScore,
     /// The score is invalid.
     InvalidScore(num::ParseIntError),
+    /// The strand is missing.
+    MissingStrand,
+    /// The strand is invalid.
+    InvalidStrand,
 }
 
 impl error::Error for ParseError {}
@@ -129,6 +150,8 @@ impl fmt::Display for ParseError {
             Self::MissingName => f.write_str("missing name"),
             Self::MissingScore => f.write_str("missing score"),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
+            Self::MissingStrand => f.write_str("missing strand"),
+            Self::InvalidStrand => f.write_str("invalid strand"),
         }
     }
 }
@@ -176,6 +199,26 @@ impl FromStr for Record<5> {
         let mut standard_fields = parse_mandatory_fields(&mut fields)?;
         standard_fields.name = parse_name(&mut fields)?;
         standard_fields.score = parse_score(&mut fields)?;
+
+        let optional_fields = parse_optional_fields(&mut fields);
+
+        Ok(Self {
+            standard_fields,
+            optional_fields,
+        })
+    }
+}
+
+impl FromStr for Record<6> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.split(DELIMITER);
+
+        let mut standard_fields = parse_mandatory_fields(&mut fields)?;
+        standard_fields.name = parse_name(&mut fields)?;
+        standard_fields.score = parse_score(&mut fields)?;
+        standard_fields.strand = parse_strand(&mut fields)?;
 
         let optional_fields = parse_optional_fields(&mut fields);
 
@@ -241,6 +284,22 @@ where
     })
 }
 
+fn parse_strand<'a, I>(fields: &mut I) -> Result<Option<String>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    const MISSING_FIELD: &str = ".";
+
+    fields
+        .next()
+        .ok_or(ParseError::MissingStrand)
+        .and_then(|s| match s {
+            MISSING_FIELD => Ok(None),
+            "-" | "+" => Ok(Some(s.into())),
+            _ => Err(ParseError::InvalidStrand),
+        })
+}
+
 fn parse_optional_fields<'a, I>(fields: &mut I) -> OptionalFields
 where
     I: Iterator<Item = &'a str>,
@@ -286,6 +345,21 @@ mod tests {
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.score = Some(21);
+
+        let expected = Ok(Record {
+            standard_fields,
+            optional_fields: Vec::new(),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_from_str_for_record_6() {
+        let actual = "sq0\t8\t13\t.\t0\t-".parse::<Record<6>>();
+
+        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        standard_fields.strand = Some(String::from("-"));
 
         let expected = Ok(Record {
             standard_fields,
