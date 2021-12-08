@@ -50,11 +50,8 @@ use super::{bai, Record, MAGIC_NUMBER};
 ///
 /// # Ok::<(), io::Error>(())
 /// ```
-pub struct Reader<R>
-where
-    R: Read,
-{
-    inner: bgzf::Reader<R>,
+pub struct Reader<R> {
+    inner: R,
     buf: Vec<u8>,
 }
 
@@ -62,24 +59,6 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    /// Creates a BAM reader.
-    ///
-    /// The given reader must be a raw BGZF stream, as the underlying reader wraps it in a decoder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::Reader::new(&data[..]);
-    /// ```
-    pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::Reader::new(reader),
-            buf: Vec::new(),
-        }
-    }
-
     /// Reads the raw SAM header.
     ///
     /// The BAM magic number is also checked.
@@ -186,6 +165,29 @@ where
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
     }
+}
+
+impl<R> Reader<bgzf::Reader<R>>
+where
+    R: Read,
+{
+    /// Creates a BAM reader.
+    ///
+    /// The given reader must be a raw BGZF stream, as the underlying reader wraps it in a decoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let data = [];
+    /// let reader = bam::Reader::new(&data[..]);
+    /// ```
+    pub fn new(reader: R) -> Self {
+        Self {
+            inner: bgzf::Reader::new(reader),
+            buf: Vec::new(),
+        }
+    }
 
     /// Returns the current virtual position of the underlying BGZF reader.
     ///
@@ -208,7 +210,7 @@ where
     }
 }
 
-impl<R> Reader<R>
+impl<R> Reader<bgzf::Reader<R>>
 where
     R: Read + Seek,
 {

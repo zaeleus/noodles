@@ -1,5 +1,7 @@
 use std::io::{self, Read};
 
+use noodles_bgzf as bgzf;
+
 use crate::Record;
 
 use super::Reader;
@@ -11,7 +13,7 @@ pub struct UnmappedRecords<'a, R>
 where
     R: Read,
 {
-    reader: &'a mut Reader<R>,
+    reader: &'a mut Reader<bgzf::Reader<R>>,
     record: Record,
 }
 
@@ -19,7 +21,7 @@ impl<'a, R> UnmappedRecords<'a, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<R>) -> Self {
+    pub(crate) fn new(reader: &'a mut Reader<bgzf::Reader<R>>) -> Self {
         Self {
             reader,
             record: Record::default(),

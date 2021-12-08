@@ -3,7 +3,7 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
-use noodles_bgzf::VirtualPosition;
+use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use crate::Record;
@@ -23,7 +23,7 @@ pub struct Query<'a, R>
 where
     R: Read + Seek,
 {
-    reader: &'a mut Reader<R>,
+    reader: &'a mut Reader<bgzf::Reader<R>>,
 
     chunks: Vec<Chunk>,
     i: usize,
@@ -41,7 +41,7 @@ where
     R: Read + Seek,
 {
     pub(super) fn new<B>(
-        reader: &'a mut Reader<R>,
+        reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: B,
