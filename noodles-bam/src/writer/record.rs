@@ -16,7 +16,8 @@ where
     // ref_id
     write_reference_sequence_id(writer, record.reference_sequence_id())?;
 
-    writer.write_i32::<LittleEndian>(record.pos)?;
+    // pos
+    write_position(writer, record.pos)?;
 
     let l_read_name = u8::try_from(record.read_name.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -41,7 +42,8 @@ where
     // next_ref_id
     write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
 
-    writer.write_i32::<LittleEndian>(record.next_pos)?;
+    // next_pos
+    write_position(writer, record.next_pos)?;
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
 
@@ -89,6 +91,14 @@ where
 
     let ref_id = reference_sequence_id.map(i32::from).unwrap_or(UNMAPPED);
     writer.write_i32::<LittleEndian>(ref_id)
+}
+
+// pos is 0-based.
+fn write_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_i32::<LittleEndian>(pos)
 }
 
 #[cfg(test)]
