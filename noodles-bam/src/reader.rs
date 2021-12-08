@@ -183,10 +183,7 @@ where
     /// let reader = bam::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::Reader::new(reader),
-            buf: Vec::new(),
-        }
+        Self::from(bgzf::Reader::new(reader))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
@@ -307,6 +304,15 @@ where
         }
 
         Ok(UnmappedRecords::new(self))
+    }
+}
+
+impl<R> From<R> for Reader<R> {
+    fn from(inner: R) -> Self {
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 

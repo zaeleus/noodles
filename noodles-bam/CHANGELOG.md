@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/reader: Add conversion from `R` to `Reader<R>`.
+
 ## 0.10.0 - 2021-12-02
 
 ### Added
