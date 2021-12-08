@@ -1,22 +1,17 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{writer::sam_record::NULL_QUALITY_SCORE, Record};
+use crate::{record::ReferenceSequenceId, writer::sam_record::NULL_QUALITY_SCORE, Record};
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::record::reference_sequence_id;
-
     let block_size = u32::try_from(record.block_size())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(block_size).await?;
 
-    let ref_id = record
-        .reference_sequence_id()
-        .map(i32::from)
-        .unwrap_or(reference_sequence_id::UNMAPPED);
-    writer.write_i32_le(ref_id).await?;
+    // ref_id
+    write_reference_sequence_id(writer, record.reference_sequence_id()).await?;
 
     writer.write_i32_le(record.pos).await?;
 
@@ -40,11 +35,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_seq).await?;
 
-    let next_ref_id = record
-        .mate_reference_sequence_id()
-        .map(i32::from)
-        .unwrap_or(reference_sequence_id::UNMAPPED);
-    writer.write_i32_le(next_ref_id).await?;
+    // next_ref_id
+    write_reference_sequence_id(writer, record.mate_reference_sequence_id()).await?;
 
     writer.write_i32_le(record.next_pos).await?;
 
@@ -81,6 +73,19 @@ where
     writer.write_all(record.data().as_ref()).await?;
 
     Ok(())
+}
+
+async fn write_reference_sequence_id<W>(
+    writer: &mut W,
+    reference_sequence_id: Option<ReferenceSequenceId>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::record::reference_sequence_id::UNMAPPED;
+
+    let ref_id = reference_sequence_id.map(i32::from).unwrap_or(UNMAPPED);
+    writer.write_i32_le(ref_id).await
 }
 
 #[cfg(test)]
