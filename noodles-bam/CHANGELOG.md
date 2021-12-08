@@ -6,6 +6,9 @@
 
   * bam/reader: Add conversion from `R` to `Reader<R>`.
 
+  * bam/reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut`, and `into_inner`.
+
   * bam/writer: Add conversion from `W` to `Writer<W>`.
 
 ## 0.10.0 - 2021-12-02
