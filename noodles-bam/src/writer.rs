@@ -58,6 +58,32 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let mut writer = bam::Writer::from(Vec::new());
+    /// assert!(writer.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let writer = bam::Writer::from(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> W {
+        self.inner
+    }
+
     /// Writes a SAM header.
     ///
     /// # Examples

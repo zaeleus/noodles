@@ -11,6 +11,9 @@
 
   * bam/writer: Add conversion from `W` to `Writer<W>`.
 
+  * bam/writer: Add common methods to access the underlying writer: `get_mut`
+    and `into_inner`.
+
 ## 0.10.0 - 2021-12-02
 
 ### Added
