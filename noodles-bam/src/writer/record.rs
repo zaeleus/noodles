@@ -3,23 +3,18 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::sam_record::NULL_QUALITY_SCORE;
-use crate::Record;
+use crate::{record::ReferenceSequenceId, Record};
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::record::reference_sequence_id;
-
     let block_size = u32::try_from(record.block_size())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(block_size)?;
 
-    let ref_id = record
-        .reference_sequence_id()
-        .map(i32::from)
-        .unwrap_or(reference_sequence_id::UNMAPPED);
-    writer.write_i32::<LittleEndian>(ref_id)?;
+    // ref_id
+    write_reference_sequence_id(writer, record.reference_sequence_id())?;
 
     writer.write_i32::<LittleEndian>(record.pos)?;
 
@@ -43,11 +38,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(l_seq)?;
 
-    let next_ref_id = record
-        .mate_reference_sequence_id()
-        .map(i32::from)
-        .unwrap_or(reference_sequence_id::UNMAPPED);
-    writer.write_i32::<LittleEndian>(next_ref_id)?;
+    // next_ref_id
+    write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
 
     writer.write_i32::<LittleEndian>(record.next_pos)?;
 
@@ -84,6 +76,19 @@ where
     writer.write_all(record.data().as_ref())?;
 
     Ok(())
+}
+
+fn write_reference_sequence_id<W>(
+    writer: &mut W,
+    reference_sequence_id: Option<ReferenceSequenceId>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::reference_sequence_id::UNMAPPED;
+
+    let ref_id = reference_sequence_id.map(i32::from).unwrap_or(UNMAPPED);
+    writer.write_i32::<LittleEndian>(ref_id)
 }
 
 #[cfg(test)]
