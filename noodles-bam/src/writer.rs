@@ -37,62 +37,25 @@ use super::Record;
 /// writer.write_sam_record(header.reference_sequences(), &record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
-pub struct Writer<W>
-where
-    W: Write,
-{
-    inner: bgzf::Writer<W>,
+pub struct Writer<W> {
+    inner: W,
 }
 
 impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a BAM writer with a default compression level.
-    ///
-    /// The given stream is wrapped in a BGZF encoder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let writer = bam::Writer::new(Vec::new());
-    /// ```
-    pub fn new(writer: W) -> Self {
-        Self {
-            inner: bgzf::Writer::new(writer),
-        }
-    }
-
     /// Returns a reference to the underlying writer.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::Writer::new(Vec::new());
+    /// let writer = bam::Writer::from(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
-        self.inner.get_ref()
-    }
-
-    /// Attempts to finish the output stream.
-    ///
-    /// This is typically only manually called if the underlying stream is needed before the writer
-    /// is dropped.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam as bam;
-    /// let mut writer = bam::Writer::new(Vec::new());
-    /// writer.try_finish()?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn try_finish(&mut self) -> io::Result<()> {
-        self.inner.try_finish()
+        &self.inner
     }
 
     /// Writes a SAM header.
@@ -181,6 +144,49 @@ where
         record: &sam::Record,
     ) -> io::Result<()> {
         sam_record::write_sam_record(&mut self.inner, reference_sequences, record)
+    }
+}
+
+impl<W> Writer<bgzf::Writer<W>>
+where
+    W: Write,
+{
+    /// Creates a BAM writer with a default compression level.
+    ///
+    /// The given stream is wrapped in a BGZF encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let writer = bam::Writer::new(Vec::new());
+    /// ```
+    pub fn new(writer: W) -> Self {
+        Self::from(bgzf::Writer::new(writer))
+    }
+
+    /// Attempts to finish the output stream.
+    ///
+    /// This is typically only manually called if the underlying stream is needed before the writer
+    /// is dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// let mut writer = bam::Writer::new(Vec::new());
+    /// writer.try_finish()?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn try_finish(&mut self) -> io::Result<()> {
+        self.inner.try_finish()
+    }
+}
+
+impl<W> From<W> for Writer<W> {
+    fn from(inner: W) -> Self {
+        Self { inner }
     }
 }
 
@@ -308,7 +314,7 @@ mod tests {
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
+        let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
         reader.read_record(&mut record)?;
@@ -397,7 +403,7 @@ mod tests {
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
+        let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
         reader.read_record(&mut record)?;
@@ -425,7 +431,7 @@ mod tests {
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
+        let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
         reader.read_record(&mut record)?;
@@ -461,7 +467,7 @@ mod tests {
         writer.write_sam_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
-        let mut reader = Reader::new(writer.get_ref().as_slice());
+        let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
 
         let mut record = Record::default();
         reader.read_record(&mut record)?;

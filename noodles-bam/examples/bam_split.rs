@@ -7,11 +7,12 @@
 //! This is similar to the outputs of `samtools split <src>`.
 
 use noodles_bam as bam;
+use noodles_bgzf as bgzf;
 use noodles_sam::{self as sam, record::data::field::Tag};
 
 use std::{collections::HashMap, env, fs::File, io};
 
-type Writers = HashMap<String, bam::Writer<File>>;
+type Writers = HashMap<String, bam::Writer<bgzf::Writer<File>>>;
 
 fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers> {
     read_groups

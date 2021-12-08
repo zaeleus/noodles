@@ -6,6 +6,8 @@
 
   * bam/reader: Add conversion from `R` to `Reader<R>`.
 
+  * bam/writer: Add conversion from `W` to `Writer<W>`.
+
 ## 0.10.0 - 2021-12-02
 
 ### Added
