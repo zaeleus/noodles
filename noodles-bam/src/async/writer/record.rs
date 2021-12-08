@@ -13,7 +13,8 @@ where
     // ref_id
     write_reference_sequence_id(writer, record.reference_sequence_id()).await?;
 
-    writer.write_i32_le(record.pos).await?;
+    // pos
+    write_position(writer, record.pos).await?;
 
     let l_read_name = u8::try_from(record.read_name.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -38,7 +39,8 @@ where
     // next_ref_id
     write_reference_sequence_id(writer, record.mate_reference_sequence_id()).await?;
 
-    writer.write_i32_le(record.next_pos).await?;
+    // next_pos
+    write_position(writer, record.next_pos).await?;
 
     writer.write_i32_le(record.template_length()).await?;
 
@@ -86,6 +88,14 @@ where
 
     let ref_id = reference_sequence_id.map(i32::from).unwrap_or(UNMAPPED);
     writer.write_i32_le(ref_id).await
+}
+
+// pos is 0-based.
+async fn write_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer.write_i32_le(pos).await
 }
 
 #[cfg(test)]
