@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 - 2021-12-09
+
+### Fixed
+
+  * vcf: Sync dependencies.
+
 ## 0.11.0 - 2021-12-02
 
 ### Added

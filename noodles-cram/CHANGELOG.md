@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3 - 2021-12-09
+
+### Fixed
+
+  * cram: Sync dependencies.
+
 ## 0.8.2 - 2021-12-02
 
 ### Fixed
