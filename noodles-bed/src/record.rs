@@ -180,23 +180,56 @@ where
 
 impl fmt::Display for Record<3> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}{}{}{}{}",
-            self.reference_sequence_name(),
-            DELIMITER,
-            self.start_position(),
-            DELIMITER,
-            self.end_position()
-        )?;
-
-        if !self.optional_fields().is_empty() {
-            f.write_char(DELIMITER)?;
-            write!(f, "{}", self.optional_fields())?;
-        }
-
+        format_bed_3_fields(f, self)?;
+        format_optional_fields(f, self.optional_fields())?;
         Ok(())
     }
+}
+
+impl fmt::Display for Record<4> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        format_bed_4_fields(f, self)?;
+        format_optional_fields(f, self.optional_fields())?;
+        Ok(())
+    }
+}
+
+fn format_bed_3_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+where
+    Record<N>: BedN<3>,
+{
+    write!(
+        f,
+        "{}{}{}{}{}",
+        record.reference_sequence_name(),
+        DELIMITER,
+        record.start_position(),
+        DELIMITER,
+        record.end_position()
+    )
+}
+
+fn format_bed_4_fields(f: &mut fmt::Formatter<'_>, record: &Record<4>) -> fmt::Result {
+    format_bed_3_fields(f, record)?;
+
+    write!(
+        f,
+        "{}{}",
+        DELIMITER,
+        record.name().unwrap_or(MISSING_STRING)
+    )
+}
+
+fn format_optional_fields(
+    f: &mut fmt::Formatter<'_>,
+    optional_fields: &OptionalFields,
+) -> fmt::Result {
+    if !optional_fields.is_empty() {
+        f.write_char(DELIMITER)?;
+        write!(f, "{}", optional_fields)?;
+    }
+
+    Ok(())
 }
 
 /// An error returned when a raw BED record fails to parse.
@@ -400,15 +433,34 @@ mod tests {
     #[test]
     fn test_fmt_for_record_3() {
         let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record = Record::new(standard_fields, OptionalFields::default());
+        let record: Record<3> = Record::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t8\t13");
 
         let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record = Record::new(
+        let record: Record<3> = Record::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
         assert_eq!(record.to_string(), "sq0\t8\t13\tndls");
+    }
+
+    #[test]
+    fn test_fmt_for_record_4() {
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t8\t13\t.");
+
+        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        standard_fields.name = Some(String::from("ndls1"));
+        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t8\t13\tndls1");
+
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record: Record<4> = Record::new(
+            standard_fields,
+            OptionalFields::from(vec![String::from("ndls")]),
+        );
+        assert_eq!(record.to_string(), "sq0\t8\t13\t.\tndls");
     }
 
     #[test]
