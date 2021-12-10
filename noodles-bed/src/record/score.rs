@@ -6,6 +6,12 @@ use std::{error, fmt, num, str::FromStr};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Score(u16);
 
+impl fmt::Display for Score {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// An error returned when a raw BED record score fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -71,6 +77,12 @@ impl From<Score> for u16 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Score(1).to_string(), "1");
+        assert_eq!(Score(1000).to_string(), "1000");
+    }
 
     #[test]
     fn test_try_from_u16_for_score() {
