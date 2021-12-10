@@ -5,10 +5,13 @@ pub mod strand;
 
 pub use self::{score::Score, strand::Strand};
 
-use std::{error, fmt, num, str::FromStr};
-
-/// A list of raw optional fields.
-pub type OptionalFields = Vec<String>;
+use std::{
+    error,
+    fmt::{self, Write},
+    num,
+    ops::Deref,
+    str::FromStr,
+};
 
 const DELIMITER: char = '\t';
 
@@ -35,6 +38,55 @@ impl StandardFields {
             score: None,
             strand: None,
         }
+    }
+}
+
+/// Raw BED record optional fields.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct OptionalFields(Vec<String>);
+
+impl Deref for OptionalFields {
+    type Target = [String];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl fmt::Display for OptionalFields {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (i, field) in self.0.iter().enumerate() {
+            if i > 0 {
+                f.write_char(DELIMITER)?;
+            }
+
+            f.write_str(field)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl From<Vec<String>> for OptionalFields {
+    fn from(fields: Vec<String>) -> Self {
+        Self(fields)
+    }
+}
+
+#[cfg(test)]
+mod optional_fields_tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        let fields = OptionalFields::default();
+        assert_eq!(fields.to_string(), "");
+
+        let fields = OptionalFields::from(vec![String::from("n")]);
+        assert_eq!(fields.to_string(), "n");
+
+        let fields = OptionalFields::from(vec![String::from("n"), String::from("d")]);
+        assert_eq!(fields.to_string(), "n\td");
     }
 }
 
@@ -320,7 +372,8 @@ fn parse_optional_fields<'a, I>(fields: &mut I) -> OptionalFields
 where
     I: Iterator<Item = &'a str>,
 {
-    fields.map(|s| s.into()).collect()
+    let raw_fields: Vec<_> = fields.map(|s| s.into()).collect();
+    OptionalFields::from(raw_fields)
 }
 
 #[cfg(test)]
@@ -332,7 +385,7 @@ mod tests {
         let actual = "sq0\t8\t13".parse::<Record<3>>();
 
         let standard_fields = StandardFields::new("sq0", 8, 13);
-        let expected = Ok(Record::new(standard_fields, Vec::new()));
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
     }
@@ -344,7 +397,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.name = Some(String::from("ndls1"));
 
-        let expected = Ok(Record::new(standard_fields, Vec::new()));
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
     }
@@ -356,7 +409,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.score = Score::try_from(21).map(Some)?;
 
-        let expected = Ok(Record::new(standard_fields, Vec::new()));
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
 
@@ -370,7 +423,7 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
         standard_fields.strand = Some(Strand::Forward);
 
-        let expected = Ok(Record::new(standard_fields, Vec::new()));
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
     }
