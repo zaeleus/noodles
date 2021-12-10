@@ -194,6 +194,14 @@ impl fmt::Display for Record<4> {
     }
 }
 
+impl fmt::Display for Record<5> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        format_bed_5_fields(f, self)?;
+        format_optional_fields(f, self.optional_fields())?;
+        Ok(())
+    }
+}
+
 fn format_bed_3_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
 where
     Record<N>: BedN<3>,
@@ -209,7 +217,10 @@ where
     )
 }
 
-fn format_bed_4_fields(f: &mut fmt::Formatter<'_>, record: &Record<4>) -> fmt::Result {
+fn format_bed_4_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+where
+    Record<N>: BedN<3> + BedN<4>,
+{
     format_bed_3_fields(f, record)?;
 
     write!(
@@ -218,6 +229,18 @@ fn format_bed_4_fields(f: &mut fmt::Formatter<'_>, record: &Record<4>) -> fmt::R
         DELIMITER,
         record.name().unwrap_or(MISSING_STRING)
     )
+}
+
+fn format_bed_5_fields(f: &mut fmt::Formatter<'_>, record: &Record<5>) -> fmt::Result {
+    format_bed_4_fields(f, record)?;
+
+    f.write_char(DELIMITER)?;
+
+    if let Some(score) = record.score() {
+        write!(f, "{}", score)
+    } else {
+        f.write_str(MISSING_NUMBER)
+    }
 }
 
 fn format_optional_fields(
@@ -461,6 +484,27 @@ mod tests {
             OptionalFields::from(vec![String::from("ndls")]),
         );
         assert_eq!(record.to_string(), "sq0\t8\t13\t.\tndls");
+    }
+
+    #[test]
+    fn test_fmt_for_record_5() -> Result<(), score::TryFromIntError> {
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0");
+
+        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        standard_fields.score = Score::try_from(21).map(Some)?;
+        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t21");
+
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record: Record<5> = Record::new(
+            standard_fields,
+            OptionalFields::from(vec![String::from("ndls")]),
+        );
+        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0\tndls");
+
+        Ok(())
     }
 
     #[test]
