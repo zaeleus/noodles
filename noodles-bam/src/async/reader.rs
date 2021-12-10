@@ -361,7 +361,7 @@ where
     let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
 
     for _ in 0..n_ref {
-        let reference_sequence = dbg!(read_reference_sequence(reader).await?);
+        let reference_sequence = read_reference_sequence(reader).await?;
         let name = reference_sequence.name().to_string();
         reference_sequences.insert(name, reference_sequence);
     }
