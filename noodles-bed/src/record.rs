@@ -14,6 +14,8 @@ use std::{
 };
 
 const DELIMITER: char = '\t';
+const MISSING_STRING: &str = ".";
+const MISSING_NUMBER: &str = "0";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields {
@@ -348,28 +350,24 @@ fn parse_name<'a, I>(fields: &mut I) -> Result<Option<String>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    const MISSING_FIELD: &str = ".";
-
-    fields.next().ok_or(ParseError::MissingName).map(|s| {
-        if s == MISSING_FIELD {
-            None
-        } else {
-            Some(s.into())
-        }
-    })
+    fields
+        .next()
+        .ok_or(ParseError::MissingName)
+        .map(|s| match s {
+            MISSING_STRING => None,
+            _ => Some(s.into()),
+        })
 }
 
 fn parse_score<'a, I>(fields: &mut I) -> Result<Option<Score>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    const MISSING_FIELD: &str = "0";
-
     fields
         .next()
         .ok_or(ParseError::MissingName)
         .and_then(|s| match s {
-            MISSING_FIELD => Ok(None),
+            MISSING_NUMBER => Ok(None),
             _ => s.parse().map(Some).map_err(ParseError::InvalidScore),
         })
 }
@@ -378,13 +376,11 @@ fn parse_strand<'a, I>(fields: &mut I) -> Result<Option<Strand>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    const MISSING_FIELD: &str = ".";
-
     fields
         .next()
         .ok_or(ParseError::MissingStrand)
         .and_then(|s| match s {
-            MISSING_FIELD => Ok(None),
+            MISSING_STRING => Ok(None),
             _ => s.parse().map(Some).map_err(ParseError::InvalidStrand),
         })
 }
