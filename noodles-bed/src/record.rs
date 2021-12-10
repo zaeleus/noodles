@@ -176,6 +176,27 @@ where
     }
 }
 
+impl fmt::Display for Record<3> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}{}{}{}",
+            self.reference_sequence_name(),
+            DELIMITER,
+            self.start_position(),
+            DELIMITER,
+            self.end_position()
+        )?;
+
+        if !self.optional_fields().is_empty() {
+            f.write_char(DELIMITER)?;
+            write!(f, "{}", self.optional_fields())?;
+        }
+
+        Ok(())
+    }
+}
+
 /// An error returned when a raw BED record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -379,6 +400,20 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt_for_record_3() {
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t8\t13");
+
+        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let record = Record::new(
+            standard_fields,
+            OptionalFields::from(vec![String::from("ndls")]),
+        );
+        assert_eq!(record.to_string(), "sq0\t8\t13\tndls");
+    }
 
     #[test]
     fn test_from_str_for_record_3() {
