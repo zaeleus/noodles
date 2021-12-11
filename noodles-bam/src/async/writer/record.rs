@@ -1,6 +1,10 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{record::ReferenceSequenceId, writer::sam_record::NULL_QUALITY_SCORE, Record};
+use crate::{
+    record::{Cigar, ReferenceSequenceId},
+    writer::sam_record::NULL_QUALITY_SCORE,
+    Record,
+};
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -46,9 +50,7 @@ where
 
     writer.write_all(&record.read_name).await?;
 
-    for &raw_op in record.cigar().as_ref().iter() {
-        writer.write_u32_le(raw_op).await?;
-    }
+    write_cigar(writer, record.cigar()).await?;
 
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
@@ -96,6 +98,17 @@ where
     W: AsyncWrite + Unpin,
 {
     writer.write_i32_le(pos).await
+}
+
+async fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    for &raw_op in cigar.as_ref() {
+        writer.write_u32_le(raw_op).await?;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
