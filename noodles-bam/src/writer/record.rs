@@ -150,47 +150,43 @@ mod tests {
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
             cigar::op::Kind, data::field::Tag, quality_scores::Score, Flags, MappingQuality,
+            Position,
         };
 
         use crate::record::{
             cigar::Op,
             data::{field::Value, Field},
             sequence::Base,
-            ReferenceSequenceId,
+            Cigar, Data, QualityScores, ReferenceSequenceId, Sequence,
         };
 
-        let mut record = Record::default();
+        let reference_sequence_id = ReferenceSequenceId::try_from(1)?;
 
-        *record.reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
-        record.pos = 8; // 0-based
-        *record.mapping_quality_mut() = MappingQuality::from(13);
-        *record.bin_mut() = 6765;
-        *record.flags_mut() = Flags::SEGMENTED | Flags::FIRST_SEGMENT;
-        *record.mate_reference_sequence_id_mut() = record.reference_sequence_id();
-        record.next_pos = 21; // 0-based
-        *record.template_length_mut() = 144;
-
-        record.read_name.clear();
-        record.read_name.extend_from_slice(b"r0\x00");
-
-        let cigar = record.cigar_mut();
-        cigar.push(Op::new(Kind::Match, 36)?);
-        cigar.push(Op::new(Kind::SoftClip, 8)?);
-
-        let sequence = record.sequence_mut();
-        sequence.push(Base::A);
-        sequence.push(Base::C);
-        sequence.push(Base::G);
-        sequence.push(Base::T);
-
-        let quality_scores = record.quality_scores_mut();
-        quality_scores.push(Score::try_from('N')?);
-        quality_scores.push(Score::try_from('D')?);
-        quality_scores.push(Score::try_from('L')?);
-        quality_scores.push(Score::try_from('S')?);
-
-        let data = record.data_mut();
-        data.insert(Field::new(Tag::AlignmentHitCount, Value::UInt8(1)));
+        let record = Record::builder()
+            .set_reference_sequence_id(reference_sequence_id)
+            .set_position(Position::try_from(9)?)
+            .set_mapping_quality(MappingQuality::from(13))
+            .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
+            .set_mate_reference_sequence_id(reference_sequence_id)
+            .set_mate_position(Position::try_from(22)?)
+            .set_template_length(144)
+            .set_read_name(b"r0\x00".to_vec())
+            .set_cigar(Cigar::from(vec![
+                Op::new(Kind::Match, 36)?,
+                Op::new(Kind::SoftClip, 8)?,
+            ]))
+            .set_sequence(Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]))
+            .set_quality_scores(QualityScores::from(vec![
+                Score::try_from('N')?,
+                Score::try_from('D')?,
+                Score::try_from('L')?,
+                Score::try_from('S')?,
+            ]))
+            .set_data(Data::try_from(vec![Field::new(
+                Tag::AlignmentHitCount,
+                Value::UInt8(1),
+            )])?)
+            .build()?;
 
         let mut buf = Vec::new();
         write_record(&mut buf, &record)?;
@@ -201,7 +197,7 @@ mod tests {
             0x08, 0x00, 0x00, 0x00, // pos = 8
             0x03, // l_read_name = 3
             0x0d, // mapq = 13
-            0x6d, 0x1a, // bin = 6765
+            0x49, 0x12, // bin = 4681
             0x02, 0x00, // n_cigar_op = 2
             0x41, 0x00, // flag = 65
             0x04, 0x00, 0x00, 0x00, // l_seq = 4
