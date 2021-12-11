@@ -3,7 +3,10 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use super::sam_record::NULL_QUALITY_SCORE;
-use crate::{record::ReferenceSequenceId, Record};
+use crate::{
+    record::{Cigar, ReferenceSequenceId},
+    Record,
+};
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -49,9 +52,7 @@ where
 
     writer.write_all(&record.read_name)?;
 
-    for &raw_op in record.cigar().as_ref().iter() {
-        writer.write_u32::<LittleEndian>(raw_op)?;
-    }
+    write_cigar(writer, record.cigar())?;
 
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
@@ -99,6 +100,17 @@ where
     W: Write,
 {
     writer.write_i32::<LittleEndian>(pos)
+}
+
+fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
+where
+    W: Write,
+{
+    for &raw_op in cigar.as_ref() {
+        writer.write_u32::<LittleEndian>(raw_op)?;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
