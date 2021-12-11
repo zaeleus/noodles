@@ -339,6 +339,21 @@ impl TryFrom<Vec<u8>> for Data {
     }
 }
 
+impl TryFrom<Vec<Field>> for Data {
+    type Error = io::Error;
+
+    fn try_from(fields: Vec<Field>) -> Result<Self, Self::Error> {
+        let mut buf = Vec::new();
+
+        for field in fields {
+            let raw_field = <Vec<u8>>::try_from(field)?;
+            buf.extend_from_slice(&raw_field);
+        }
+
+        Self::try_from(buf)
+    }
+}
+
 /// An error returned when BAM data fails to convert to SAM data.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromDataError {
@@ -414,6 +429,28 @@ mod tests {
                 b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
                 b'A', b'S', b'C', 0x0d, // AS:C:13
             ]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_from_vec_field_for_data() -> io::Result<()> {
+        use field::Value;
+
+        let fields = vec![
+            Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
+            Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+        ];
+
+        let data = Data::try_from(fields)?;
+
+        assert_eq!(
+            data.as_ref(),
+            vec![
+                b'N', b'H', b'C', 0x01, // NH:i:1
+                b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+            ],
         );
 
         Ok(())

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/record/data: Add conversion from `Vec<Field>` to `Data`.
+
 ### Fixed
 
   * bam/async/reader: Remove stray debug output when reading reference
