@@ -4,7 +4,7 @@
 
 ### Fixed
 
-  * bam/async/reader: Removed stray debug output when reading reference
+  * bam/async/reader: Remove stray debug output when reading reference
     sequences.
 
 ## 0.11.0 - 2021-12-09
