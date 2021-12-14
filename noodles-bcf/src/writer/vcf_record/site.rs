@@ -27,13 +27,10 @@ where
     write_chrom(writer, header.contigs(), record.chromosome())?;
     write_pos(writer, record.position())?;
 
-    let start = i32::from(record.position());
     let end = record
         .end()
-        .map(i32::from)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    let rlen = end - start + 1;
-    writer.write_i32::<LittleEndian>(rlen)?;
+    write_rlen(writer, record.position(), end)?;
 
     write_qual(writer, record.quality_score())?;
 
@@ -109,6 +106,18 @@ where
 {
     let pos = i32::from(position) - 1;
     writer.write_i32::<LittleEndian>(pos)
+}
+
+fn write_rlen<W>(
+    writer: &mut W,
+    start: vcf::record::Position,
+    end: vcf::record::Position,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let rlen = i32::from(start) - i32::from(end) + 1;
+    writer.write_i32::<LittleEndian>(rlen)
 }
 
 fn write_qual<W>(writer: &mut W, quality_score: Option<vcf::record::QualityScore>) -> io::Result<()>
