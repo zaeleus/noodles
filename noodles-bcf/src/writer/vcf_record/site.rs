@@ -48,21 +48,11 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_allele)?;
 
-    let n_sample = u32::try_from(header.sample_names().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    if n_sample > MAX_SAMPLE_NAME_COUNT {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("invalid sample name count: {}", n_sample),
-        ));
-    }
-
-    let n_fmt = u8::try_from(record.genotypes().keys().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-    let n_fmt_sample = u32::from(n_fmt) << 24 | n_sample;
-    writer.write_u32::<LittleEndian>(n_fmt_sample)?;
+    write_n_fmt_sample(
+        writer,
+        header.sample_names().len(),
+        record.genotypes().keys().len(),
+    )?;
 
     write_id(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
@@ -129,6 +119,29 @@ where
         .unwrap_or(Float::Missing);
 
     writer.write_f32::<LittleEndian>(f32::from(float))
+}
+
+fn write_n_fmt_sample<W>(writer: &mut W, sample_count: usize, format_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_sample =
+        u32::try_from(sample_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    if n_sample > MAX_SAMPLE_NAME_COUNT {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid sample name count: {}", n_sample),
+        ));
+    }
+
+    let n_fmt =
+        u8::try_from(format_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let n_fmt_sample = u32::from(n_fmt) << 24 | n_sample;
+    writer.write_u32::<LittleEndian>(n_fmt_sample)?;
+
+    Ok(())
 }
 
 fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<()>
