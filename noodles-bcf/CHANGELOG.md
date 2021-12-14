@@ -6,6 +6,12 @@
 
   * bcf/writer: Add record writer (`Writer::write_record`).
 
+### Fixed
+
+  * bcf/writer/vcf_record/site: Fix allele count calculation.
+
+    This overcounted by 1 when there were no alternate bases.
+
 ## 0.9.0 - 2021-12-02
 
 ### Added

@@ -120,11 +120,10 @@ pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> 
 where
     W: Write,
 {
-    use std::cmp;
+    const REFERENCE_BASE_COUNT: usize = 1;
 
-    let n = cmp::max(1, alternate_base_count);
-    let n_allele =
-        u16::try_from(1 + n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let n = REFERENCE_BASE_COUNT + alternate_base_count;
+    let n_allele = u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_allele)?;
 
     Ok(())
