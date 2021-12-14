@@ -38,15 +38,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_info)?;
 
-    let alternate_bases_len = if record.alternate_bases().is_empty() {
-        1
-    } else {
-        record.alternate_bases().len()
-    };
-
-    let n_allele = u16::try_from(1 + alternate_bases_len)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(n_allele)?;
+    write_n_allele(writer, record.alternate_bases().len())?;
 
     write_n_fmt_sample(
         writer,
@@ -119,6 +111,20 @@ where
         .unwrap_or(Float::Missing);
 
     writer.write_f32::<LittleEndian>(f32::from(float))
+}
+
+fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    use std::cmp;
+
+    let n = cmp::max(1, alternate_base_count);
+    let n_allele =
+        u16::try_from(1 + n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u16::<LittleEndian>(n_allele)?;
+
+    Ok(())
 }
 
 fn write_n_fmt_sample<W>(writer: &mut W, sample_count: usize, format_count: usize) -> io::Result<()>
