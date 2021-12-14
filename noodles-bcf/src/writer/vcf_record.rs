@@ -1,5 +1,5 @@
 mod genotypes;
-mod site;
+pub(crate) mod site;
 
 use std::io::{self, Write};
 

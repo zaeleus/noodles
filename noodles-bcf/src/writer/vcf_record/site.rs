@@ -82,7 +82,7 @@ where
     writer.write_i32::<LittleEndian>(chrom)
 }
 
-fn write_pos<W>(writer: &mut W, position: vcf::record::Position) -> io::Result<()>
+pub(crate) fn write_pos<W>(writer: &mut W, position: vcf::record::Position) -> io::Result<()>
 where
     W: Write,
 {
@@ -90,7 +90,7 @@ where
     writer.write_i32::<LittleEndian>(pos)
 }
 
-fn write_rlen<W>(
+pub(crate) fn write_rlen<W>(
     writer: &mut W,
     start: vcf::record::Position,
     end: vcf::record::Position,
@@ -102,7 +102,10 @@ where
     writer.write_i32::<LittleEndian>(rlen)
 }
 
-fn write_qual<W>(writer: &mut W, quality_score: Option<vcf::record::QualityScore>) -> io::Result<()>
+pub(crate) fn write_qual<W>(
+    writer: &mut W,
+    quality_score: Option<vcf::record::QualityScore>,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -113,7 +116,7 @@ where
     writer.write_f32::<LittleEndian>(f32::from(float))
 }
 
-fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
+pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -127,7 +130,11 @@ where
     Ok(())
 }
 
-fn write_n_fmt_sample<W>(writer: &mut W, sample_count: usize, format_count: usize) -> io::Result<()>
+pub(crate) fn write_n_fmt_sample<W>(
+    writer: &mut W,
+    sample_count: usize,
+    format_count: usize,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -150,7 +157,7 @@ where
     Ok(())
 }
 
-fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<()>
+pub(crate) fn write_id<W>(writer: &mut W, ids: &vcf::record::Ids) -> io::Result<()>
 where
     W: Write,
 {
@@ -163,7 +170,7 @@ where
     write_value(writer, value)
 }
 
-fn write_ref_alt<W>(
+pub(crate) fn write_ref_alt<W>(
     writer: &mut W,
     reference_bases: &vcf::record::ReferenceBases,
     alternate_bases: &vcf::record::AlternateBases,

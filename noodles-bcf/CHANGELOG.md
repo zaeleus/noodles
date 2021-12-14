@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/writer: Add record writer (`Writer::write_record`).
+
 ## 0.9.0 - 2021-12-02
 
 ### Added
