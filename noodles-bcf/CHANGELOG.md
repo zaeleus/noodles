@@ -4,6 +4,9 @@
 
 ### Added
 
+  * bcf/reader: Add common methods to access the underlying reader: `get_ref`,
+    `get_mut` and `into_inner`.
+
   * bcf/writer: Add record writer (`Writer::write_record`).
 
 ### Fixed
