@@ -199,7 +199,7 @@ mod tests {
             Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
         };
 
-        // § Putting it all together (2021-01-13)
+        // § Putting it all together (2021-07-27)
         //
         // `l_shared` is defined to be 51 bytes but is actually 52 bytes.
         //
@@ -213,8 +213,10 @@ mod tests {
             0x64, 0x00, 0x00, 0x00, // pos = 100 (base 0)
             0x01, 0x00, 0x00, 0x00, // rlen = 1
             0xcd, 0xcc, 0xf0, 0x41, // qual = 30.1
-            0x04, 0x00, 0x02, 0x00, // n_allele_info (allele count, info count) = (2, 4)
-            0x03, 0x00, 0x00, 0x05, // n_fmt_sample (format count, sample_count) = (5, 3)
+            0x04, 0x00, // n_info = 4
+            0x02, 0x00, // n_allele = 2
+            0x03, 0x00, 0x00, // n_sample = 3
+            0x05, // n_fmt = 5
             0x57, 0x72, 0x73, 0x31, 0x32, 0x33, // id = "rs123"
             0x17, 0x41, // ref = A
             0x17, 0x43, // alt = C
