@@ -97,8 +97,8 @@ mod tests {
             0x01, 0x00, 0x80, 0x7f, // qual = Float::Missing
             0x00, 0x00, // n_info = 0
             0x01, 0x00, // n_allele = 1
-            0x00, // n_fmt = 0
             0x00, 0x00, 0x00, // n_sample = 0
+            0x00, // n_fmt = 0
             0x07, // id = None
             0x17, b'A', // ref = [A]
             0x07, // alt = []
