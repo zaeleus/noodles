@@ -201,12 +201,10 @@ mod tests {
 
         // § Putting it all together (2021-07-27)
         //
-        // `l_shared` is defined to be 51 bytes but is actually 52 bytes.
-        //
         // Note that the data in the reference table mixes big and little endian. INFO string map
         // indices are offset by -79. FORMAT string map indices are offset by +4.
         let data = [
-            0x34, 0x00, 0x00, 0x00, // l_shared = 52
+            0x33, 0x00, 0x00, 0x00, // l_shared = 51
             0x2a, 0x00, 0x00, 0x00, // l_indiv = 42
             //
             0x01, 0x00, 0x00, 0x00, // chrom = 1
@@ -222,7 +220,7 @@ mod tests {
             0x17, 0x43, // alt = C
             0x11, 0x00, // filter = 0 (PASS)
             //
-            0x11, 0x01, 0x11, 0x01, // infos[HM3] = (1, true)
+            0x11, 0x01, 0x00, // infos[HM3] = (1, true)
             0x11, 0x02, 0x11, 0x03, // infos[AC] = (2, 3)
             0x11, 0x03, 0x11, 0x06, // infos[AN] = (3, 6)
             0x11, 0x04, 0x17, 0x43, // infos[AA] = (4, "C")
