@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Update to [md-5 0.10.0].
+
+[md-5 0.10.0]: https://crates.io/crates/md-5/0.10.0
+
 ## 0.8.3 - 2021-12-09
 
 ### Fixed
