@@ -2,4 +2,4 @@
 
 ## Unreleased
 
-  * bed: Initital release.
+  * bed: Initial release.
