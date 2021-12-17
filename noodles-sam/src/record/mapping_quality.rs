@@ -22,10 +22,7 @@ impl From<u8> for MappingQuality {
 
 impl From<MappingQuality> for u8 {
     fn from(mapping_quality: MappingQuality) -> Self {
-        match *mapping_quality {
-            Some(n) => n,
-            None => NULL_QUALITY,
-        }
+        mapping_quality.unwrap_or(NULL_QUALITY)
     }
 }
 
