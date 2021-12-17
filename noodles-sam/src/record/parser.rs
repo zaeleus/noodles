@@ -3,11 +3,12 @@ use std::{error, fmt, num};
 use super::{
     cigar::{self, Cigar},
     data::{self, Data},
+    mapping_quality,
     position::{self, Position},
     quality_scores,
     read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
-    sequence, Field, Flags, MappingQuality, Record, EQ_FIELD, NULL_FIELD,
+    sequence, Field, Flags, Record, EQ_FIELD, NULL_FIELD,
 };
 
 const ZERO_FIELD: &str = "0";
@@ -28,7 +29,7 @@ pub enum ParseError {
     /// The record position is invalid.
     InvalidPosition(position::ParseError),
     /// The record mapping quality is invalid.
-    InvalidMappingQuality(num::ParseIntError),
+    InvalidMappingQuality(mapping_quality::ParseError),
     /// The record CIGAR string is invalid.
     InvalidCigar(cigar::ParseError),
     /// The record mate reference sequence name is invalid.
@@ -109,9 +110,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
     }
 
     let mapq = parse_string(&mut fields, Field::MappingQuality)
-        .and_then(|s| s.parse::<u8>().map_err(ParseError::InvalidMappingQuality))
-        .map(MappingQuality::from)?;
-
+        .and_then(|s| s.parse().map_err(ParseError::InvalidMappingQuality))?;
     builder = builder.set_mapping_quality(mapq);
 
     let cigar: Cigar = parse_string(&mut fields, Field::Cigar)

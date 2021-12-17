@@ -7,6 +7,15 @@
   * sam/record/mapping_quality: Add constant for raw missing mapping quality
     (`mapping_quality::MISSING`).
 
+  * sam/record/mapping_quality: Add parser.
+
+### Changed
+
+  * sam/record/parser: Change `ParseError::InvalidMappingQuality` from wrapping
+    `num::ParseIntError` to `mapping_quality::ParseError`.
+
+    Use `mapping_quality::ParseError::Parse` for the `num::ParseIntError`.
+
 ## 0.9.0 - 2021-12-09
 
 ### Added
