@@ -642,7 +642,7 @@ fn parse_string(s: &str) -> Result<String, ParseError> {
 
 // § 1.5 The alignment section: optional fields (2021-01-07)
 fn is_valid_hex_char(c: char) -> bool {
-    matches!(c, '0'..='9' | 'A'..='F')
+    matches!(c, '0'..='9' | 'A'..='F' | 'a'..='f')
 }
 
 fn parse_hex(s: &str) -> Result<String, ParseError> {
