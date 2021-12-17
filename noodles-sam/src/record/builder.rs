@@ -325,7 +325,7 @@ impl Builder {
     pub fn build(self) -> Result<Record, BuildError> {
         // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
         // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
-        if !self.flags.is_unmapped() && !self.sequence.is_empty() {
+        if !self.flags.is_unmapped() && !self.sequence.is_empty() && !self.cigar.is_empty() {
             let sequence_len = self.sequence.len() as u32;
             let cigar_read_len = self.cigar.read_len();
 
