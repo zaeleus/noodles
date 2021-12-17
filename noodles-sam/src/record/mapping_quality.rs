@@ -1,3 +1,5 @@
+//! SAM record mapping quality.
+
 use std::ops::Deref;
 
 const NULL_QUALITY: u8 = 255;

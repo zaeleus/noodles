@@ -5,7 +5,7 @@ pub mod cigar;
 pub mod data;
 mod field;
 mod flags;
-mod mapping_quality;
+pub mod mapping_quality;
 mod parser;
 pub mod position;
 pub mod quality_scores;
