@@ -791,7 +791,6 @@ mod tests {
         assert_eq!("Z:🍜".parse::<Value>(), Err(ParseError::InvalidStringValue));
 
         assert_eq!("H:CAFE".parse(), Ok(Value::Hex(String::from("CAFE"))));
-        assert_eq!("H:cafe".parse::<Value>(), Err(ParseError::InvalidHexValue));
         assert_eq!("H:CAFE0".parse::<Value>(), Err(ParseError::InvalidHexValue));
         assert_eq!("H:NDLS".parse::<Value>(), Err(ParseError::InvalidHexValue));
 
