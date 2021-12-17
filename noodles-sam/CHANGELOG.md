@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/mapping_quality: Add constant for raw missing mapping quality
+    (`mapping_quality::MISSING`).
+
 ## 0.9.0 - 2021-12-09
 
 ### Added

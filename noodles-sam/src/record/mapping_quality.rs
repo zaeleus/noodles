@@ -2,7 +2,8 @@
 
 use std::ops::Deref;
 
-const NULL_QUALITY: u8 = 255;
+/// The raw value of a missing mapping quality.
+pub const MISSING: u8 = 255;
 
 /// A SAM record mapping quality.
 ///
@@ -14,7 +15,7 @@ pub struct MappingQuality(Option<u8>);
 
 impl From<u8> for MappingQuality {
     fn from(n: u8) -> Self {
-        if n == NULL_QUALITY {
+        if n == MISSING {
             Self(None)
         } else {
             Self(Some(n))
@@ -24,7 +25,7 @@ impl From<u8> for MappingQuality {
 
 impl From<MappingQuality> for u8 {
     fn from(mapping_quality: MappingQuality) -> Self {
-        mapping_quality.unwrap_or(NULL_QUALITY)
+        mapping_quality.unwrap_or(MISSING)
     }
 }
 
