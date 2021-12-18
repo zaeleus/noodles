@@ -1,3 +1,4 @@
+use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
@@ -24,8 +25,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u8(l_read_name).await?;
 
-    let mapq = u8::from(record.mapping_quality());
-    writer.write_u8(mapq).await?;
+    // mapq
+    write_mapping_quality(writer, record.mapping_quality()).await?;
 
     writer.write_u16_le(record.bin()).await?;
 
@@ -100,6 +101,17 @@ where
     writer.write_i32_le(pos).await
 }
 
+async fn write_mapping_quality<W>(
+    writer: &mut W,
+    mapping_quality: sam::record::MappingQuality,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let mapq = u8::from(mapping_quality);
+    writer.write_u8(mapq).await
+}
+
 async fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -113,8 +125,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam as sam;
-
     use super::*;
 
     #[tokio::test]
