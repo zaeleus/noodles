@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_sam as sam;
 
 use super::sam_record::NULL_QUALITY_SCORE;
 use crate::{
@@ -26,8 +27,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u8(l_read_name)?;
 
-    let mapq = u8::from(record.mapping_quality());
-    writer.write_u8(mapq)?;
+    // mapq
+    write_mapping_quality(writer, record.mapping_quality())?;
 
     writer.write_u16::<LittleEndian>(record.bin())?;
 
@@ -102,6 +103,17 @@ where
     writer.write_i32::<LittleEndian>(pos)
 }
 
+fn write_mapping_quality<W>(
+    writer: &mut W,
+    mapping_quality: sam::record::MappingQuality,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let mapq = u8::from(mapping_quality);
+    writer.write_u8(mapq)
+}
+
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
 where
     W: Write,
@@ -115,8 +127,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam as sam;
-
     use super::*;
 
     #[test]
