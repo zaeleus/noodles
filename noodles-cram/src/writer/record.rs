@@ -475,8 +475,7 @@ where
             prev_position = feature.position();
         }
 
-        let mapping_quality = i32::from(u8::from(record.mapping_quality()));
-        self.write_mapping_quality(mapping_quality)?;
+        self.write_mapping_quality(record.mapping_quality())?;
 
         let flags = record.flags();
 
@@ -822,8 +821,12 @@ where
             })
     }
 
-    fn write_mapping_quality(&mut self, mapping_quality: Itf8) -> io::Result<()> {
-        self.compression_header
+    fn write_mapping_quality(
+        &mut self,
+        mapping_quality: Option<sam::record::MappingQuality>,
+    ) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .mapping_qualities_encoding()
             .ok_or_else(|| {
@@ -831,15 +834,20 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::MappingQualities),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    mapping_quality,
-                )
-            })
+            })?;
+
+        let mapping_quality = i32::from(
+            mapping_quality
+                .map(u8::from)
+                .unwrap_or(sam::record::mapping_quality::MISSING),
+        );
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            mapping_quality,
+        )
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {

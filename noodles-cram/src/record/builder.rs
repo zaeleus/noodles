@@ -21,7 +21,7 @@ pub struct Builder {
     tags: Vec<Tag>,
     bases: Vec<u8>,
     features: Vec<Feature>,
-    mapping_quality: sam::record::MappingQuality,
+    mapping_quality: Option<sam::record::MappingQuality>,
     quality_scores: Vec<u8>,
 }
 
@@ -151,7 +151,7 @@ impl Builder {
 
     /// Sets the mapping quality.
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
-        self.mapping_quality = mapping_quality;
+        self.mapping_quality = Some(mapping_quality);
         self
     }
 
@@ -211,7 +211,7 @@ impl Default for Builder {
             tags: Vec::new(),
             bases: Vec::new(),
             features: Vec::new(),
-            mapping_quality: sam::record::MappingQuality::default(),
+            mapping_quality: None,
             quality_scores: Vec::new(),
         }
     }
@@ -241,10 +241,7 @@ mod tests {
         assert!(builder.tags.is_empty());
         assert!(builder.bases.is_empty());
         assert!(builder.features.is_empty());
-        assert_eq!(
-            builder.mapping_quality,
-            sam::record::MappingQuality::default()
-        );
+        assert!(builder.mapping_quality.is_none());
         assert!(builder.quality_scores.is_empty());
     }
 }

@@ -503,8 +503,9 @@ where
             builder = builder.add_feature(feature);
         }
 
-        let mapping_quality = self.read_mapping_quality().await?;
-        builder = builder.set_mapping_quality(mapping_quality);
+        if let Some(mapping_quality) = self.read_mapping_quality().await? {
+            builder = builder.set_mapping_quality(mapping_quality);
+        }
 
         if flags.are_quality_scores_stored_as_array() {
             for _ in 0..read_length {
@@ -863,7 +864,9 @@ where
         .await
     }
 
-    async fn read_mapping_quality(&mut self) -> io::Result<sam::record::MappingQuality> {
+    async fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
+        use sam::record::mapping_quality::MISSING;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -875,14 +878,20 @@ where
                 )
             })?;
 
-        decode_itf8(
+        let n = decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
         .await
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(sam::record::MappingQuality::from)
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+        match n {
+            MISSING => Ok(None),
+            _ => sam::record::MappingQuality::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        }
     }
 
     async fn read_unmapped_read(

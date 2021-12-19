@@ -50,7 +50,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
     pub(crate) pos: i32,
-    mapq: sam::record::MappingQuality,
+    mapq: Option<sam::record::MappingQuality>,
     bin: u16,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
@@ -161,7 +161,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mapping_quality().is_none());
     /// ```
-    pub fn mapping_quality(&self) -> sam::record::MappingQuality {
+    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapq
     }
 
@@ -174,11 +174,12 @@ impl Record {
     /// use noodles_sam::record::MappingQuality;
     ///
     /// let mut record = bam::Record::default();
-    /// *record.mapping_quality_mut() = MappingQuality::from(13);
+    /// *record.mapping_quality_mut() = MappingQuality::try_from(13).map(Some)?;
     ///
     /// assert_eq!(record.mapping_quality().map(u8::from), Some(13));
+    /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut sam::record::MappingQuality {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
         &mut self.mapq
     }
 
@@ -541,12 +542,12 @@ fn get_reference_sequence(
 
 impl Default for Record {
     fn default() -> Self {
-        use sam::record::{Flags, MappingQuality};
+        use sam::record::Flags;
 
         Self {
             ref_id: None,
             pos: UNMAPPED_POSITION,
-            mapq: MappingQuality::default(),
+            mapq: None,
             bin: 4680,
             flag: Flags::UNMAPPED,
             next_ref_id: None,
@@ -594,10 +595,14 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let mapq = MappingQuality::try_from(12)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         Ok(Record {
             ref_id,
             pos: 61061,
-            mapq: MappingQuality::from(12),
+            mapq,
             bin: 4684,
             flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
             next_ref_id: ref_id,
@@ -638,12 +643,7 @@ mod tests {
     #[test]
     fn test_mapping_quality() -> io::Result<()> {
         let record = build_record()?;
-
-        assert_eq!(
-            record.mapping_quality(),
-            sam::record::MappingQuality::from(12)
-        );
-
+        assert_eq!(record.mapping_quality().map(u8::from), Some(12));
         Ok(())
     }
 

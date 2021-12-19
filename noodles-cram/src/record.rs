@@ -38,7 +38,7 @@ pub struct Record {
     pub(crate) tags: Vec<Tag>,
     pub(crate) bases: Vec<u8>,
     pub(crate) features: Vec<Feature>,
-    pub(crate) mapping_quality: sam::record::MappingQuality,
+    pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: Vec<u8>,
 }
 
@@ -165,7 +165,7 @@ impl Record {
     }
 
     /// Returns the mapping quality.
-    pub fn mapping_quality(&self) -> sam::record::MappingQuality {
+    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
     }
 

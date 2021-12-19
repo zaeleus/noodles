@@ -109,9 +109,15 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_position(pos);
     }
 
-    let mapq = parse_string(&mut fields, Field::MappingQuality)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidMappingQuality))?;
-    builder = builder.set_mapping_quality(mapq);
+    let mapq = parse_string(&mut fields, Field::MappingQuality).and_then(|s| match s.parse() {
+        Ok(mapping_quality) => Ok(Some(mapping_quality)),
+        Err(mapping_quality::ParseError::Missing) => Ok(None),
+        Err(e) => Err(ParseError::InvalidMappingQuality(e)),
+    })?;
+
+    if let Some(mapping_quality) = mapq {
+        builder = builder.set_mapping_quality(mapping_quality);
+    }
 
     let cigar: Cigar = parse_string(&mut fields, Field::Cigar)
         .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;

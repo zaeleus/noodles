@@ -90,11 +90,18 @@ where
     }
 }
 
-fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>
+fn read_mapping_quality<R>(reader: &mut R) -> io::Result<Option<sam::record::MappingQuality>>
 where
     R: Read,
 {
-    reader.read_u8().map(sam::record::MappingQuality::from)
+    use sam::record::mapping_quality::MISSING;
+
+    match reader.read_u8()? {
+        MISSING => Ok(None),
+        n => sam::record::MappingQuality::try_from(n)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+    }
 }
 
 fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>

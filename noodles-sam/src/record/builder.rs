@@ -42,7 +42,7 @@ pub struct Builder {
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
     position: Option<Position>,
-    mapping_quality: MappingQuality,
+    mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
     mate_position: Option<Position>,
@@ -157,14 +157,14 @@ impl Builder {
     /// use noodles_sam::{self as sam, record::MappingQuality};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_mapping_quality(MappingQuality::from(34))
+    ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build()?;
     ///
-    /// assert_eq!(*record.mapping_quality(), Some(34));
-    /// # Ok::<(), sam::record::builder::BuildError>(())
+    /// assert_eq!(record.mapping_quality().map(u8::from), Some(34));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: MappingQuality) -> Self {
-        self.mapping_quality = mapping_quality;
+        self.mapping_quality = Some(mapping_quality);
         self
     }
 
@@ -375,7 +375,7 @@ impl Default for Builder {
             flags: Flags::UNMAPPED,
             reference_sequence_name: Default::default(),
             position: Default::default(),
-            mapping_quality: MappingQuality::default(),
+            mapping_quality: Default::default(),
             cigar: Cigar::default(),
             mate_reference_sequence_name: Default::default(),
             mate_position: Default::default(),
@@ -430,7 +430,7 @@ mod tests {
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_name(reference_sequence_name.clone())
             .set_position(Position::try_from(13)?)
-            .set_mapping_quality(MappingQuality::from(37))
+            .set_mapping_quality(MappingQuality::try_from(37)?)
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
             .set_mate_position(Position::try_from(17)?)
@@ -447,7 +447,7 @@ mod tests {
             Some(&reference_sequence_name)
         );
         assert_eq!(record.position().map(i32::from), Some(13));
-        assert_eq!(u8::from(record.mapping_quality()), 37);
+        assert_eq!(record.mapping_quality().map(u8::from), Some(37));
         assert_eq!(record.cigar().len(), 1);
 
         assert_eq!(

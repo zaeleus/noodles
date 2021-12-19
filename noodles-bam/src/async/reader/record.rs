@@ -78,14 +78,18 @@ where
     }
 }
 
-async fn read_mapping_quality<R>(reader: &mut R) -> io::Result<sam::record::MappingQuality>
+async fn read_mapping_quality<R>(reader: &mut R) -> io::Result<Option<sam::record::MappingQuality>>
 where
     R: AsyncRead + Unpin,
 {
-    reader
-        .read_u8()
-        .await
-        .map(sam::record::MappingQuality::from)
+    use sam::record::mapping_quality::MISSING;
+
+    match reader.read_u8().await? {
+        MISSING => Ok(None),
+        n => sam::record::MappingQuality::try_from(n)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+    }
 }
 
 async fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>

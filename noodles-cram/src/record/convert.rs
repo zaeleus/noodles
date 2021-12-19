@@ -47,7 +47,9 @@ impl Record {
             builder = builder.set_position(alignment_start);
         }
 
-        builder = builder.set_mapping_quality(self.mapping_quality());
+        if let Some(mapping_quality) = self.mapping_quality() {
+            builder = builder.set_mapping_quality(mapping_quality);
+        }
 
         let cigar = resolve_features(self.features(), self.read_length() as i32);
         builder = builder.set_cigar(cigar);

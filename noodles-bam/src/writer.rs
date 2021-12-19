@@ -349,10 +349,7 @@ mod tests {
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.position().is_none());
-        assert_eq!(
-            record.mapping_quality(),
-            sam::record::MappingQuality::from(255)
-        );
+        assert!(record.mapping_quality().is_none());
         assert!(record.cigar().is_empty());
         assert!(record.mate_reference_sequence_id().is_none());
         assert!(record.mate_position().is_none());

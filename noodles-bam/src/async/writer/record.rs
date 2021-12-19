@@ -103,12 +103,13 @@ where
 
 async fn write_mapping_quality<W>(
     writer: &mut W,
-    mapping_quality: sam::record::MappingQuality,
+    mapping_quality: Option<sam::record::MappingQuality>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let mapq = u8::from(mapping_quality);
+    use sam::record::mapping_quality::MISSING;
+    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
     writer.write_u8(mapq).await
 }
 
@@ -173,7 +174,7 @@ mod tests {
         let record = Record::builder()
             .set_reference_sequence_id(reference_sequence_id)
             .set_position(Position::try_from(9)?)
-            .set_mapping_quality(MappingQuality::from(13))
+            .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(22)?)

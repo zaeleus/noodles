@@ -53,7 +53,7 @@ pub struct Record {
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
     position: Option<Position>,
-    mapping_quality: MappingQuality,
+    mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
     mate_position: Option<Position>,
@@ -256,8 +256,7 @@ impl Record {
 
     /// Returns the mapping quality of this record.
     ///
-    /// Mapping quality ranges from 0 to 254, inclusive. A value of 255 means no mapping quality is
-    /// set.
+    /// Mapping quality ranges from 0 to 254, inclusive.
     ///
     /// # Examples
     ///
@@ -266,13 +265,14 @@ impl Record {
     ///
     /// let record = sam::Record::default();
     /// assert!(record.mapping_quality().is_none());
-    /// assert_eq!(u8::from(record.mapping_quality()), 255);
     ///
-    /// let record = sam::Record::builder().set_mapping_quality(MappingQuality::from(8)).build()?;
-    /// assert_eq!(*record.mapping_quality(), Some(8));
-    /// # Ok::<(), sam::record::builder::BuildError>(())
+    /// let record = sam::Record::builder()
+    ///     .set_mapping_quality(MappingQuality::try_from(8)?)
+    ///     .build()?;
+    /// assert_eq!(record.mapping_quality().map(u8::from), Some(8));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn mapping_quality(&self) -> MappingQuality {
+    pub fn mapping_quality(&self) -> Option<MappingQuality> {
         self.mapping_quality
     }
 
@@ -284,13 +284,14 @@ impl Record {
     /// use noodles_sam::{self as sam, record::MappingQuality};
     ///
     /// let mut record = sam::Record::default();
-    /// *record.mapping_quality_mut() = MappingQuality::from(8);
-    /// assert_eq!(*record.mapping_quality(), Some(8));
+    /// *record.mapping_quality_mut() = MappingQuality::try_from(8).map(Some)?;
+    /// assert_eq!(record.mapping_quality().map(u8::from), Some(8));
     ///
-    /// *record.mapping_quality_mut() = MappingQuality::from(255);
+    /// *record.mapping_quality_mut() = None;
     /// assert!(record.mapping_quality().is_none());
+    /// # Ok::<_, sam::record::mapping_quality::ParseError>(())
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut MappingQuality {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<MappingQuality> {
         &mut self.mapping_quality
     }
 
@@ -688,7 +689,7 @@ impl Default for Record {
             flags: Flags::UNMAPPED,
             reference_sequence_name: Default::default(),
             position: Default::default(),
-            mapping_quality: MappingQuality::default(),
+            mapping_quality: Default::default(),
             cigar: Cigar::default(),
             mate_reference_sequence_name: Default::default(),
             mate_position: Default::default(),
@@ -713,6 +714,11 @@ impl fmt::Display for Record {
             .unwrap_or(NULL_FIELD);
 
         let pos = self.position().map(i32::from).unwrap_or(position::UNMAPPED);
+
+        let mapq = self
+            .mapping_quality()
+            .map(u8::from)
+            .unwrap_or(mapping_quality::MISSING);
 
         let rnext = self
             .mate_reference_sequence_name()
@@ -739,7 +745,7 @@ impl fmt::Display for Record {
             flag = u16::from(self.flags()),
             rname = rname,
             pos = pos,
-            mapq = u8::from(self.mapping_quality()),
+            mapq = mapq,
             cigar = self.cigar(),
             rnext = rnext,
             pnext = pnext,

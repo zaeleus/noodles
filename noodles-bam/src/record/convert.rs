@@ -89,9 +89,12 @@ impl Record {
             builder = builder.set_position(position);
         }
 
-        builder = builder
-            .set_mapping_quality(self.mapping_quality())
-            .set_cigar(self.cigar().try_into()?);
+        if let Some(mapping_quality) = self.mapping_quality() {
+            builder = builder.set_mapping_quality(mapping_quality);
+        }
+
+        let cigar = self.cigar().try_into()?;
+        builder = builder.set_cigar(cigar);
 
         if let Some(mate_reference_sequence_name) =
             get_reference_sequence_name(reference_sequences, self.mate_reference_sequence_id())?
@@ -180,7 +183,7 @@ mod tests {
         let record = Record::builder()
             .set_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
             .set_position(Position::try_from(61062)?)
-            .set_mapping_quality(MappingQuality::from(12))
+            .set_mapping_quality(MappingQuality::try_from(12)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
             .set_mate_position(Position::try_from(61153)?)
@@ -222,7 +225,7 @@ mod tests {
             .set_flags(sam::record::Flags::SEGMENTED | sam::record::Flags::FIRST_SEGMENT)
             .set_reference_sequence_name("sq1".parse()?)
             .set_position(sam::record::Position::try_from(61062)?)
-            .set_mapping_quality(sam::record::MappingQuality::from(12))
+            .set_mapping_quality(sam::record::MappingQuality::try_from(12)?)
             .set_cigar(sam::record::Cigar::from(vec![Op::new(op::Kind::Match, 4)]))
             .set_mate_reference_sequence_name("sq1".parse()?)
             .set_mate_position(sam::record::Position::try_from(61153)?)

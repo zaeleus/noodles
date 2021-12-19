@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record: Mapping quality is now stored as an `Option`.
+
+    Valid mapping qualities are between 0 and 254, inclusive (`Some`). A
+    mapping quality of 255 is considered to be missing (`None`).
+
 ## 0.12.0 - 2021-12-16
 
 ### Added

@@ -11,7 +11,7 @@ use super::{Cigar, Data, QualityScores, Record, ReferenceSequenceId, Sequence};
 pub struct Builder {
     ref_id: Option<ReferenceSequenceId>,
     pos: Option<sam::record::Position>,
-    mapq: sam::record::MappingQuality,
+    mapq: Option<sam::record::MappingQuality>,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
@@ -74,14 +74,14 @@ impl Builder {
     /// use noodles_sam::record::MappingQuality;
     ///
     /// let record = bam::Record::builder()
-    ///     .set_mapping_quality(MappingQuality::from(34))
+    ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build()?;
     ///
-    /// assert_eq!(*record.mapping_quality(), Some(34));
-    /// # Ok::<_, bam::record::builder::BuildError>(())
+    /// assert_eq!(record.mapping_quality().map(u8::from), Some(34));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
-        self.mapq = mapping_quality;
+        self.mapq = Some(mapping_quality);
         self
     }
 
@@ -341,12 +341,12 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
-        use sam::record::{Flags, MappingQuality};
+        use sam::record::Flags;
 
         Self {
             ref_id: None,
             pos: None,
-            mapq: MappingQuality::default(),
+            mapq: None,
             flag: Flags::UNMAPPED,
             next_ref_id: None,
             next_pos: None,

@@ -11,10 +11,21 @@
 
 ### Changed
 
+  * sam/record: Mapping quality is now stored as an `Option`.
+
+    Valid mapping qualities are between 0 and 254, inclusive (`Some`). A
+    mapping quality of 255 is considered to be missing (`None`).
+
   * sam/record/parser: Change `ParseError::InvalidMappingQuality` from wrapping
     `num::ParseIntError` to `mapping_quality::ParseError`.
 
     Use `mapping_quality::ParseError::Parse` for the `num::ParseIntError`.
+
+### Removed
+
+  * sam/record/mapping_quality: Remove `Deref` and `From<u8>` implementations.
+
+    Conversion is now fallible; use `TryFrom<u8>` instead.
 
 ## 0.9.0 - 2021-12-09
 

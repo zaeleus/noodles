@@ -5,6 +5,7 @@
 use std::{env, fmt, fs::File, io};
 
 use noodles_bam as bam;
+use noodles_sam as sam;
 
 #[derive(Debug, Default)]
 struct Counts {
@@ -78,7 +79,12 @@ fn count(counts: &mut Counts, record: &bam::Record) {
                     if record.mate_reference_sequence_id() != record.reference_sequence_id() {
                         counts.mate_reference_sequence_id_mismatch += 1;
 
-                        if u8::from(record.mapping_quality()) >= 5 {
+                        let mapq = record
+                            .mapping_quality()
+                            .map(u8::from)
+                            .unwrap_or(sam::record::mapping_quality::MISSING);
+
+                        if mapq >= 5 {
                             counts.mate_reference_sequence_id_mismatch_hq += 1;
                         }
                     }
