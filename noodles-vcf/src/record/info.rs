@@ -186,7 +186,7 @@ impl Info {
         self.values().map(|field| field.key())
     }
 
-    /// Returns an interator over all fields.
+    /// Returns an iterator over all fields.
     ///
     /// # Examples
     ///
