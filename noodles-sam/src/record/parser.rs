@@ -3,7 +3,7 @@ use std::{error, fmt, num};
 use super::{
     cigar::{self, Cigar},
     data::{self, Data},
-    mapping_quality,
+    mapping_quality::{self, MappingQuality},
     position::{self, Position},
     quality_scores,
     read_name::{self, ReadName},
@@ -109,11 +109,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_position(pos);
     }
 
-    let mapq = parse_string(&mut fields, Field::MappingQuality).and_then(|s| match s.parse() {
-        Ok(mapping_quality) => Ok(Some(mapping_quality)),
-        Err(mapping_quality::ParseError::Missing) => Ok(None),
-        Err(e) => Err(ParseError::InvalidMappingQuality(e)),
-    })?;
+    let mapq = parse_mapq(&mut fields)?;
 
     if let Some(mapping_quality) = mapq {
         builder = builder.set_mapping_quality(mapping_quality);
@@ -208,6 +204,17 @@ where
     parse_string(fields, Field::Position).and_then(|s| match s {
         ZERO_FIELD => Ok(None),
         _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
+    })
+}
+
+fn parse_mapq<'a, I>(fields: &mut I) -> Result<Option<MappingQuality>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::MappingQuality).and_then(|s| match s.parse() {
+        Ok(mapping_quality) => Ok(Some(mapping_quality)),
+        Err(mapping_quality::ParseError::Missing) => Ok(None),
+        Err(e) => Err(ParseError::InvalidMappingQuality(e)),
     })
 }
 
