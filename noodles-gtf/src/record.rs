@@ -227,7 +227,7 @@ pub enum ParseError {
     InvalidEnd(num::ParseIntError),
     /// The score is missing.
     MissingScore,
-    /// Thes score is invalid.
+    /// The score is invalid.
     InvalidScore(num::ParseFloatError),
     /// The strand is missing.
     MissingStrand,
