@@ -97,10 +97,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_read_name(qname);
     }
 
-    let flag = parse_string(&mut fields, Field::Flags)
-        .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
-        .map(Flags::from)?;
-
+    let flag = parse_flag(&mut fields)?;
     builder = builder.set_flags(flag);
 
     let rname = parse_rname(&mut fields)?;
@@ -167,6 +164,15 @@ where
     I: Iterator<Item = &'a str>,
 {
     fields.next().ok_or(ParseError::MissingField(field))
+}
+
+fn parse_flag<'a, I>(fields: &mut I) -> Result<Flags, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Flags)
+        .and_then(|s| s.parse::<u16>().map_err(ParseError::InvalidFlags))
+        .map(Flags::from)
 }
 
 fn parse_qname<'a, I>(fields: &mut I) -> Result<Option<ReadName>, ParseError>
