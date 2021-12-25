@@ -121,7 +121,7 @@ impl Data {
         }
     }
 
-    /// Returns an interator over all tags.
+    /// Returns an iterator over all tags.
     ///
     /// # Examples
     ///
@@ -140,7 +140,7 @@ impl Data {
         self.fields.iter().map(|field| field.tag())
     }
 
-    /// Returns an interator over all fields.
+    /// Returns an iterator over all fields.
     ///
     /// # Examples
     ///
