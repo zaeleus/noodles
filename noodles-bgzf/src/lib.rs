@@ -2,7 +2,7 @@
 
 //! **noodles-bgzf** handles the reading and writing of the blocked gzip format (BGZF).
 //!
-//! While the gzip format is typically a single stream, a BGZF is the concatentation of many gzip
+//! While the gzip format is typically a single stream, a BGZF is the concatenation of many gzip
 //! streams. Each stream is called a block, with its uncompressed data size being constrained to
 //! less than 64 KiB. This multistream gzip allows random access using [`virtual positions`].
 //!
