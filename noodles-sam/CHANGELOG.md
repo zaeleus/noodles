@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/record/data/field/tag: Add base modification probabilities (`ML`) tag.
+
   * sam/record/mapping_quality: Add constant for raw missing mapping quality
     (`mapping_quality::MISSING`).
 

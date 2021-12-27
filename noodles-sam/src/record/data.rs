@@ -14,7 +14,7 @@ use std::{
 
 use rustc_hash::FxHashMap;
 
-type StandardFieldIndices = [Option<NonZeroU16>; 53];
+type StandardFieldIndices = [Option<NonZeroU16>; 54];
 type OtherFieldIndices = FxHashMap<field::Tag, u16>;
 
 const DELIMITER: char = '\t';
@@ -270,7 +270,7 @@ impl Default for Data {
             None, None, None, None, None, None, None, None, None, None, None, None, None, None,
             None, None, None, None, None, None, None, None, None, None, None, None, None, None,
             None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, None, None, None, None, None, None,
+            None, None, None, None, None, None, None, None, None, None, None, None,
         ];
 
         Self {
@@ -415,30 +415,31 @@ fn tag_to_index(tag: field::Tag) -> Option<usize> {
         Tag::MateCigar => Some(26),
         Tag::MismatchedPositions => Some(27),
         Tag::UmiId => Some(28),
-        Tag::MateMappingQuality => Some(29),
-        Tag::AlignmentHitCount => Some(30),
-        Tag::EditDistance => Some(31),
-        Tag::OriginalAlignment => Some(32),
-        Tag::OriginalCigar => Some(33),
-        Tag::OriginalPosition => Some(34),
-        Tag::OriginalQualityScores => Some(35),
-        Tag::OriginalUmiBarcodeSequence => Some(36),
-        Tag::Program => Some(37),
-        Tag::TemplateLikelihood => Some(38),
-        Tag::PaddedReadAnnotations => Some(39),
-        Tag::PlatformUnit => Some(40),
-        Tag::MateQualityScores => Some(41),
-        Tag::SampleBarcodeQualityScores => Some(42),
-        Tag::UmiQualityScores => Some(43),
-        Tag::MateSequence => Some(44),
-        Tag::ReadGroup => Some(45),
-        Tag::UmiSequence => Some(46),
-        Tag::OtherAlignments => Some(47),
-        Tag::TemplateMappingQuality => Some(48),
-        Tag::SegmentCount => Some(49),
-        Tag::TranscriptStrand => Some(50),
-        Tag::NextHitQualityScores => Some(51),
-        Tag::SegmentLikelihood => Some(52),
+        Tag::BaseModificationProbabilities => Some(29),
+        Tag::MateMappingQuality => Some(30),
+        Tag::AlignmentHitCount => Some(31),
+        Tag::EditDistance => Some(32),
+        Tag::OriginalAlignment => Some(33),
+        Tag::OriginalCigar => Some(34),
+        Tag::OriginalPosition => Some(35),
+        Tag::OriginalQualityScores => Some(36),
+        Tag::OriginalUmiBarcodeSequence => Some(37),
+        Tag::Program => Some(38),
+        Tag::TemplateLikelihood => Some(39),
+        Tag::PaddedReadAnnotations => Some(40),
+        Tag::PlatformUnit => Some(41),
+        Tag::MateQualityScores => Some(42),
+        Tag::SampleBarcodeQualityScores => Some(43),
+        Tag::UmiQualityScores => Some(44),
+        Tag::MateSequence => Some(45),
+        Tag::ReadGroup => Some(46),
+        Tag::UmiSequence => Some(47),
+        Tag::OtherAlignments => Some(48),
+        Tag::TemplateMappingQuality => Some(49),
+        Tag::SegmentCount => Some(50),
+        Tag::TranscriptStrand => Some(51),
+        Tag::NextHitQualityScores => Some(52),
+        Tag::SegmentLikelihood => Some(53),
         _ => None,
     }
 }

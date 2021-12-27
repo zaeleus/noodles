@@ -80,6 +80,8 @@ pub enum Tag {
     ReservedMf,
     /// (`MI`).
     UmiId,
+    /// (`ML`).
+    BaseModificationProbabilities,
     /// (`MQ`).
     MateMappingQuality,
     /// (`NH`).
@@ -174,6 +176,7 @@ impl AsRef<[u8; LENGTH]> for Tag {
             Self::MismatchedPositions => b"MD",
             Self::ReservedMf => b"MF",
             Self::UmiId => b"MI",
+            Self::BaseModificationProbabilities => b"ML",
             Self::MateMappingQuality => b"MQ",
             Self::AlignmentHitCount => b"NH",
             Self::EditDistance => b"NM",
@@ -278,6 +281,7 @@ impl TryFrom<[u8; LENGTH]> for Tag {
             b"MD" => Ok(Self::MismatchedPositions),
             b"MF" => Ok(Self::ReservedMf),
             b"MI" => Ok(Self::UmiId),
+            b"ML" => Ok(Self::BaseModificationProbabilities),
             b"MQ" => Ok(Self::MateMappingQuality),
             b"NH" => Ok(Self::AlignmentHitCount),
             b"NM" => Ok(Self::EditDistance),
@@ -377,6 +381,7 @@ mod tests {
         assert_eq!(Tag::MismatchedPositions.to_string(), "MD");
         assert_eq!(Tag::ReservedMf.to_string(), "MF");
         assert_eq!(Tag::UmiId.to_string(), "MI");
+        assert_eq!(Tag::BaseModificationProbabilities.to_string(), "ML");
         assert_eq!(Tag::MateMappingQuality.to_string(), "MQ");
         assert_eq!(Tag::AlignmentHitCount.to_string(), "NH");
         assert_eq!(Tag::EditDistance.to_string(), "NM");
@@ -442,6 +447,7 @@ mod tests {
         assert_eq!("MD".parse(), Ok(Tag::MismatchedPositions));
         assert_eq!("MF".parse(), Ok(Tag::ReservedMf));
         assert_eq!("MI".parse(), Ok(Tag::UmiId));
+        assert_eq!("ML".parse(), Ok(Tag::BaseModificationProbabilities));
         assert_eq!("MQ".parse(), Ok(Tag::MateMappingQuality));
         assert_eq!("NH".parse(), Ok(Tag::AlignmentHitCount));
         assert_eq!("NM".parse(), Ok(Tag::EditDistance));
