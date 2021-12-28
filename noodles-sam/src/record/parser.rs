@@ -112,9 +112,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_mapping_quality(mapping_quality);
     }
 
-    let cigar: Cigar = parse_string(&mut fields, Field::Cigar)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidCigar))?;
-
+    let cigar = parse_cigar(&mut fields)?;
     builder = builder.set_cigar(cigar);
 
     if let Some(rnext) = parse_rnext(&mut fields, rname.as_ref())? {
@@ -222,6 +220,13 @@ where
         Err(mapping_quality::ParseError::Missing) => Ok(None),
         Err(e) => Err(ParseError::InvalidMappingQuality(e)),
     })
+}
+
+fn parse_cigar<'a, I>(fields: &mut I) -> Result<Cigar, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::Cigar).and_then(|s| s.parse().map_err(ParseError::InvalidCigar))
 }
 
 fn parse_rnext<'a, I>(
