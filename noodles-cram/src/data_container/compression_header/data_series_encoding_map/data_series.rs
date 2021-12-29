@@ -46,7 +46,7 @@ pub enum DataSeries {
     Insertion,
     /// Reference skip length (`RS`).
     ReferenceSkipLength,
-    /// Pading (`PD`).
+    /// Padding (`PD`).
     Padding,
     /// Hard clip (`HC`).
     HardClip,
