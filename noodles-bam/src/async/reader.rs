@@ -220,9 +220,7 @@ where
     /// let reader = bam::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::AsyncReader::new(reader),
-        }
+        Self::from(bgzf::AsyncReader::new(reader))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
@@ -314,6 +312,12 @@ where
         let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
         let chunks = index.query(reference_sequence_id, interval)?;
         Ok(query(self, chunks, reference_sequence_id, interval))
+    }
+}
+
+impl<R> From<R> for Reader<R> {
+    fn from(inner: R) -> Self {
+        Self { inner }
     }
 }
 

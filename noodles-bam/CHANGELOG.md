@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam/async/reader: Add conversion from `R` to `Reader<R>`.
+
   * bam/record: Mapping quality is now stored as an `Option`.
 
     Valid mapping qualities are between 0 and 254, inclusive (`Some`). A

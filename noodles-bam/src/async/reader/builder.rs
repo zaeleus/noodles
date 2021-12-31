@@ -52,8 +52,6 @@ where
             builder = builder.set_worker_count(worker_count);
         }
 
-        Reader {
-            inner: builder.build(),
-        }
+        Reader::from(builder.build())
     }
 }
