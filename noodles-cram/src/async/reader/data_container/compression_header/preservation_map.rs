@@ -209,7 +209,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_read_subtitution_matrix() -> io::Result<()> {
+    async fn test_read_substitution_matrix() -> io::Result<()> {
         // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
         let data = [0x1b, 0x1b, 0x1b, 0x1b, 0x1b];
         let mut reader = &data[..];
