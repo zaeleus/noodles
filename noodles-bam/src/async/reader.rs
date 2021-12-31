@@ -43,46 +43,14 @@ use crate::{
 /// # Ok(())
 /// # }
 /// ```
-pub struct Reader<R>
-where
-    R: AsyncRead,
-{
-    inner: bgzf::AsyncReader<R>,
+pub struct Reader<R> {
+    inner: R,
 }
 
 impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    /// Creates an async BAM reader builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let data = [];
-    /// let builder = bam::AsyncReader::builder(&data[..]);
-    /// let reader = builder.build();
-    /// ```
-    pub fn builder(inner: R) -> Builder<R> {
-        Builder::new(inner)
-    }
-
-    /// Creates an async BAM reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let data = [];
-    /// let reader = bam::AsyncReader::new(&data[..]);
-    /// ```
-    pub fn new(reader: R) -> Self {
-        Self {
-            inner: bgzf::AsyncReader::new(reader),
-        }
-    }
-
     /// Reads the raw SAM header.
     ///
     /// The BAM magic number is also checked.
@@ -222,6 +190,40 @@ where
             },
         ))
     }
+}
+
+impl<R> Reader<bgzf::AsyncReader<R>>
+where
+    R: AsyncRead + Unpin,
+{
+    /// Creates an async BAM reader builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let data = [];
+    /// let builder = bam::AsyncReader::builder(&data[..]);
+    /// let reader = builder.build();
+    /// ```
+    pub fn builder(inner: R) -> Builder<R> {
+        Builder::new(inner)
+    }
+
+    /// Creates an async BAM reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let data = [];
+    /// let reader = bam::AsyncReader::new(&data[..]);
+    /// ```
+    pub fn new(reader: R) -> Self {
+        Self {
+            inner: bgzf::AsyncReader::new(reader),
+        }
+    }
 
     /// Returns the current virtual position of the underlying BGZF reader.
     ///
@@ -242,7 +244,7 @@ where
     }
 }
 
-impl<R> Reader<R>
+impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
