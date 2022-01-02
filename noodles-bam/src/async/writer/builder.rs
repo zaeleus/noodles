@@ -63,7 +63,7 @@ where
     /// use noodles_bam as bam;
     /// let writer = bam::AsyncWriter::builder(Vec::new()).build();
     /// ```
-    pub fn build(self) -> Writer<W> {
+    pub fn build(self) -> Writer<bgzf::AsyncWriter<W>> {
         let mut builder = bgzf::AsyncWriter::builder(self.inner);
 
         if let Some(compression_level) = self.compression_level {

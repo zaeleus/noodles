@@ -13,44 +13,14 @@ use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 use crate::Record;
 
 /// An async BAM writer.
-pub struct Writer<W>
-where
-    W: AsyncWrite,
-{
-    inner: bgzf::AsyncWriter<W>,
+pub struct Writer<W> {
+    inner: W,
 }
 
 impl<W> Writer<W>
 where
     W: AsyncWrite + Unpin,
 {
-    /// Creates an async BAM writer builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let builder = bam::AsyncWriter::builder(Vec::new());
-    /// let writer = builder.build();
-    /// ```
-    pub fn builder(inner: W) -> Builder<W> {
-        Builder::new(inner)
-    }
-
-    /// Creates an async BAM writer with a default compression level.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let writer = bam::AsyncWriter::new(Vec::new());
-    /// ```
-    pub fn new(inner: W) -> Self {
-        Self {
-            inner: bgzf::AsyncWriter::new(inner),
-        }
-    }
-
     /// Shuts down the output stream.
     ///
     /// # Examples
@@ -168,6 +138,38 @@ where
         record: &sam::Record,
     ) -> io::Result<()> {
         sam_record::write_sam_record(&mut self.inner, reference_sequences, record).await
+    }
+}
+
+impl<W> Writer<bgzf::AsyncWriter<W>>
+where
+    W: AsyncWrite + Unpin,
+{
+    /// Creates an async BAM writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let builder = bam::AsyncWriter::builder(Vec::new());
+    /// let writer = builder.build();
+    /// ```
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
+    }
+
+    /// Creates an async BAM writer with a default compression level.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let writer = bam::AsyncWriter::new(Vec::new());
+    /// ```
+    pub fn new(inner: W) -> Self {
+        Self {
+            inner: bgzf::AsyncWriter::new(inner),
+        }
     }
 }
 
