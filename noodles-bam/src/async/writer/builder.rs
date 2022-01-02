@@ -74,8 +74,6 @@ where
             builder = builder.set_worker_count(worker_count);
         }
 
-        Writer {
-            inner: builder.build(),
-        }
+        Writer::from(builder.build())
     }
 }

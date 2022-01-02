@@ -167,9 +167,13 @@ where
     /// let writer = bam::AsyncWriter::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self {
-            inner: bgzf::AsyncWriter::new(inner),
-        }
+        Self::from(bgzf::AsyncWriter::new(inner))
+    }
+}
+
+impl<W> From<W> for Writer<W> {
+    fn from(inner: W) -> Self {
+        Self { inner }
     }
 }
 

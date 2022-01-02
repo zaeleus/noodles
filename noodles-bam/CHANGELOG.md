@@ -9,6 +9,8 @@
   * bam/async/reader: Add common methods to access the underlying reader:
     `get_ref`, `get_mut`, and `into_inner`.
 
+  * bam/async/writer: Add conversion from `W` to `Writer<W>`.
+
   * bam/record: Mapping quality is now stored as an `Option`.
 
     Valid mapping qualities are between 0 and 254, inclusive (`Some`). A
