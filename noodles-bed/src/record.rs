@@ -134,21 +134,81 @@ where
     }
 
     /// Returns the reference sequence name (`chrom`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn reference_sequence_name(&self) -> &str {
         &self.standard_fields.reference_sequence_name
     }
 
     /// Returns the feature start position (`chromStart`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.start_position(), 8);
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn start_position(&self) -> u64 {
         self.standard_fields.start_position
     }
 
     /// Returns the feature end position (`chromEnd`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.end_position(), 13);
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn end_position(&self) -> u64 {
         self.standard_fields.end_position
     }
 
     /// Returns the list of raw optional fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert!(record.optional_fields().is_empty());
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn optional_fields(&self) -> &OptionalFields {
         &self.optional_fields
     }
@@ -159,6 +219,22 @@ where
     Self: BedN<4>,
 {
     /// Returns the feature name (`name`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<4>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_name("ndls1")
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.name(), Some("ndls1"));
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn name(&self) -> Option<&str> {
         self.standard_fields.name.as_deref()
     }
@@ -169,6 +245,22 @@ where
     Self: BedN<5>,
 {
     /// Returns the score (`score`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::{self as bed, record::Score};
+    ///
+    /// let record = bed::Record::<5>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_score(Score::try_from(21)?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.score().map(u16::from), Some(21));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn score(&self) -> Option<Score> {
         self.standard_fields.score
     }
@@ -179,6 +271,22 @@ where
     Self: BedN<6>,
 {
     /// Returns the feature strand (`strand`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::{self as bed, record::Strand};
+    ///
+    /// let record = bed::Record::<6>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_strand(Strand::Forward)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.strand(), Some(Strand::Forward));
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn strand(&self) -> Option<Strand> {
         self.standard_fields.strand
     }
