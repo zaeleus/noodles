@@ -1,9 +1,10 @@
 //! BED record and fields.
 
+pub mod builder;
 pub mod score;
 pub mod strand;
 
-pub use self::{score::Score, strand::Strand};
+pub use self::{builder::Builder, score::Score, strand::Strand};
 
 use std::{
     error,
@@ -120,6 +121,11 @@ impl<const N: u8> Record<N>
 where
     Self: BedN<3>,
 {
+    /// Creates a BED record builder.
+    pub fn builder() -> Builder<N> {
+        Builder::default()
+    }
+
     fn new(standard_fields: StandardFields, optional_fields: OptionalFields) -> Self {
         Self {
             standard_fields,
