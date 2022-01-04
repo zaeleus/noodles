@@ -35,6 +35,21 @@ where
     Self: BedN<3>,
 {
     /// Sets the reference sequence name (`chrom`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.reference_sequence_name(), "sq0");
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_reference_sequence_name<M>(mut self, reference_sequence_name: M) -> Self
     where
         M: Into<String>,
@@ -44,18 +59,66 @@ where
     }
 
     /// Sets the feature start position (`chromStart`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.start_position(), 8);
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_start_position(mut self, start_position: u64) -> Self {
         self.start_position = Some(start_position);
         self
     }
 
     /// Sets the feature end position (`chromEnd`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.end_position(), 13);
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_end_position(mut self, end_position: u64) -> Self {
         self.end_position = Some(end_position);
         self
     }
 
     /// Sets the list of raw optional fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::{self as bed, record::OptionalFields};
+    ///
+    /// let optional_fields = OptionalFields::from(vec![String::from("n")]);
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_optional_fields(optional_fields.clone())
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.optional_fields(), &optional_fields);
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_optional_fields(mut self, optional_fields: OptionalFields) -> Self {
         self.optional_fields = optional_fields;
         self
@@ -64,6 +127,19 @@ where
 
 impl Builder<3> {
     /// Builds a BED3 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<3>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn build(self) -> Result<Record<3>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
@@ -87,6 +163,22 @@ where
     Self: BedN<4>,
 {
     /// Sets the feature name (`name`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<4>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_name("ndls1")
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.name(), Some("ndls1"));
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_name<M>(mut self, name: M) -> Self
     where
         M: Into<String>,
@@ -98,6 +190,19 @@ where
 
 impl Builder<4> {
     /// Builds a BED4 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<4>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn build(self) -> Result<Record<4>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
@@ -122,6 +227,22 @@ where
     Self: BedN<5>,
 {
     /// Sets the score (`score`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::{self as bed, record::Score};
+    ///
+    /// let record = bed::Record::<5>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_score(Score::try_from(21)?)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.score().map(u16::from), Some(21));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn set_score(mut self, score: Score) -> Self {
         self.score = Some(score);
         self
@@ -130,6 +251,19 @@ where
 
 impl Builder<5> {
     /// Builds a BED5 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<5>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn build(self) -> Result<Record<5>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
@@ -155,6 +289,22 @@ where
     Self: BedN<6>,
 {
     /// Sets the feature strand (`strand`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed::{self as bed, record::Strand};
+    ///
+    /// let record = bed::Record::<6>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .set_strand(Strand::Forward)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.strand(), Some(Strand::Forward));
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn set_strand(mut self, strand: Strand) -> Self {
         self.strand = Some(strand);
         self
@@ -163,6 +313,19 @@ where
 
 impl Builder<6> {
     /// Builds a BED6 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    ///
+    /// let record = bed::Record::<6>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(8)
+    ///     .set_end_position(13)
+    ///     .build()?;
+    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// ```
     pub fn build(self) -> Result<Record<6>, BuildError> {
         let reference_sequence_name = self
             .reference_sequence_name
