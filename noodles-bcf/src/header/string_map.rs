@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), ParseError> {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20210412
 ##contig=<ID=sq0,length=8>
@@ -147,20 +147,22 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        assert_eq!(
-            s.parse(),
-            Ok(StringMap(
-                [
-                    String::from("PASS"),
-                    String::from("DP"),
-                    String::from("NS"),
-                    String::from("q10"),
-                    String::from("GT"),
-                ]
-                .into_iter()
-                .collect()
-            ))
+        let actual: StringMap = s.parse()?;
+        let expected = StringMap(
+            [
+                String::from("PASS"),
+                String::from("NS"),
+                String::from("DP"),
+                String::from("q10"),
+                String::from("GT"),
+            ]
+            .into_iter()
+            .collect(),
         );
+
+        assert!(actual.iter().eq(expected.iter()));
+
+        Ok(())
     }
 
     #[test]
@@ -193,20 +195,20 @@ mod tests {
             ))
             .build();
 
-        assert_eq!(
-            StringMap::from(&header),
-            StringMap(
-                [
-                    String::from("PASS"),
-                    String::from("NS"),
-                    String::from("DP"),
-                    String::from("q10"),
-                    String::from("GT"),
-                ]
-                .into_iter()
-                .collect()
-            )
+        let actual = StringMap::from(&header);
+        let expected = StringMap(
+            [
+                String::from("PASS"),
+                String::from("NS"),
+                String::from("DP"),
+                String::from("q10"),
+                String::from("GT"),
+            ]
+            .into_iter()
+            .collect(),
         );
+
+        assert!(actual.iter().eq(expected.iter()));
     }
 
     #[test]
