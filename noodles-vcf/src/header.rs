@@ -401,6 +401,62 @@ impl Header {
         &mut self.sample_names
     }
 
+    /// Returns a map of the unstructured header records.
+    ///
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
+    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    ///
+    /// let record = Record::new(
+    ///     Key::Other(String::from("fileDate")),
+    ///     Value::String(String::from("20200709")),
+    /// );
+    ///
+    /// let header = vcf::Header::builder().insert(record.clone()).build();
+    ///
+    /// assert_eq!(
+    ///     header.records().first(),
+    ///     Some((&String::from("fileDate"), &vec![record])),
+    /// );
+    /// ```
+    pub fn records(&self) -> &IndexMap<String, Vec<Record>> {
+        &self.map
+    }
+
+    /// Returns a mutable reference to a map of the unstructured header records.
+    ///
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
+    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    ///
+    /// To simply add an unstructured record, consider using [`Self::insert`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let record = Record::new(
+    ///     Key::Other(String::from("fileDate")),
+    ///     Value::String(String::from("20200709")),
+    /// );
+    ///
+    /// header.records_mut().insert(String::from("fileDate"), vec![record.clone()]);
+    ///
+    /// assert_eq!(
+    ///     header.records().first(),
+    ///     Some((&String::from("fileDate"), &vec![record])),
+    /// );
+    /// ```
+    pub fn records_mut(&mut self) -> &mut IndexMap<String, Vec<Record>> {
+        &mut self.map
+    }
+
     /// Returns a header record with the given key.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
