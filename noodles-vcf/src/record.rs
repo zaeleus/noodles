@@ -248,6 +248,36 @@ impl Record {
         &self.reference_bases
     }
 
+    /// Returns a mutable reference to the reference bases of the record.
+    ///
+    /// This is a required field and guaranteed to be nonempty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{reference_bases::Base, Position, ReferenceBases},
+    /// };
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.reference_bases_mut() = "T".parse()?;
+    ///
+    /// assert_eq!(
+    ///     record.reference_bases(),
+    ///     &ReferenceBases::try_from(vec![Base::T])?,
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn reference_bases_mut(&mut self) -> &mut ReferenceBases {
+        &mut self.reference_bases
+    }
+
     /// Returns the alternate bases of the record.
     ///
     /// # Examples
