@@ -12,9 +12,15 @@
   * vcf/record: Add mutable getters for genotypes, reference bases, and
     alternate bases.
 
+  * vcf/record/genotypes: Add mutable getter for keys.
+
   * vcf/record/reference_bases: Implement `DerefMut`.
 
   * vcf/record/alternate_bases: Implement `DerefMut`.
+
+  * vcf/record/genotypes/keys: Implement `DerefMut`.
+
+  * vcf/record/genotypes/genotype: Implement `DerefMut`.
 
 ## 0.11.1 - 2021-12-09
 
