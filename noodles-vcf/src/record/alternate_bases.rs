@@ -4,7 +4,11 @@ pub mod allele;
 
 pub use self::allele::Allele;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{
+    error, fmt,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use super::MISSING_FIELD;
 
@@ -19,6 +23,12 @@ impl Deref for AlternateBases {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for AlternateBases {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
