@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header: Add mutable getters for `vcf::Header` fields.
+
 ## 0.11.1 - 2021-12-09
 
 ### Fixed
