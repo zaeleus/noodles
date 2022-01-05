@@ -498,6 +498,43 @@ impl Record {
     pub fn genotypes(&self) -> &Genotypes {
         &self.genotypes
     }
+
+    /// Returns a mutable reference to the genotypes of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{
+    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype, Genotypes},
+    ///         Position,
+    ///     },
+    /// };
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// let keys = "GT:GQ".parse()?;
+    /// let genotypes = Genotypes::new(
+    ///     keys,
+    ///     vec![Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?],
+    /// );
+    ///
+    /// *record.genotypes_mut() = genotypes.clone();
+    ///
+    /// assert_eq!(record.genotypes(), &genotypes);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn genotypes_mut(&mut self) -> &mut Genotypes {
+        &mut self.genotypes
+    }
 }
 
 /// An error returned when the end position is invalid.
