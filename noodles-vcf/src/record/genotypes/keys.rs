@@ -1,6 +1,10 @@
 //! VCF record genotypes keys.
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{
+    error, fmt,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use indexmap::IndexSet;
 
@@ -25,6 +29,12 @@ impl Deref for Keys {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Keys {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
