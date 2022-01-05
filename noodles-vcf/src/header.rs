@@ -100,6 +100,13 @@ impl Header {
         self.file_format
     }
 
+    /// Returns a mutable reference to the file format (`fileformat`) of the VCF.
+    ///
+    /// `fileformat` is a required meta record and is guaranteed to be set.
+    pub fn file_format_mut(&mut self) -> &mut FileFormat {
+        &mut self.file_format
+    }
+
     /// Returns a map of information records (`INFO`).
     ///
     /// # Examples
@@ -117,6 +124,11 @@ impl Header {
     /// ```
     pub fn infos(&self) -> &Infos {
         &self.infos
+    }
+
+    /// Returns a mutable reference to a map of information records (`INFO`).
+    pub fn infos_mut(&mut self) -> &mut Infos {
+        &mut self.infos
     }
 
     /// Returns a map of filter records (`FILTER`).
@@ -138,6 +150,11 @@ impl Header {
         &self.filters
     }
 
+    /// Returns a mutable reference to a map of filter records (`FILTER`).
+    pub fn filters_mut(&mut self) -> &mut Filters {
+        &mut self.filters
+    }
+
     /// Returns a list of genotype format records (`FORMAT`).
     ///
     /// # Examples
@@ -155,6 +172,11 @@ impl Header {
     /// ```
     pub fn formats(&self) -> &Formats {
         &self.formats
+    }
+
+    /// Returns a mutable reference to a list of genotype format records (`FORMAT`).
+    pub fn formats_mut(&mut self) -> &mut Formats {
+        &mut self.formats
     }
 
     /// Returns a map of symbolic alternate alleles (`ALT`).
@@ -189,6 +211,11 @@ impl Header {
         &self.alternative_alleles
     }
 
+    /// Returns a mutable reference to a map of symbolic alternate alleles (`ALT`).
+    pub fn alternative_alleles_mut(&mut self) -> &mut AlternativeAlleles {
+        &mut self.alternative_alleles
+    }
+
     /// Returns a URI to the breakpoint assemblies (`assembly`) referenced in records.
     ///
     /// # Examples
@@ -204,6 +231,12 @@ impl Header {
     /// ```
     pub fn assembly(&self) -> Option<&str> {
         self.assembly.as_deref()
+    }
+
+    /// Returns a mutable reference to a URI to the breakpoint assemblies (`assembly`) referenced in
+    /// records.
+    pub fn assembly_mut(&mut self) -> &mut Option<String> {
+        &mut self.assembly
     }
 
     /// Returns a map of contig records (`contig`).
@@ -223,6 +256,11 @@ impl Header {
     /// ```
     pub fn contigs(&self) -> &Contigs {
         &self.contigs
+    }
+
+    /// Returns a mutable reference to a map of contig records (`contig`).
+    pub fn contigs_mut(&mut self) -> &mut Contigs {
+        &mut self.contigs
     }
 
     /// Returns a map of meta records (`META`).
@@ -249,6 +287,11 @@ impl Header {
         &self.meta
     }
 
+    /// Returns a mutable reference to a map of meta records (`META`).
+    pub fn meta_mut(&mut self) -> &mut IndexMap<String, Meta> {
+        &mut self.meta
+    }
+
     /// Returns a map of sample records (`SAMPLE`).
     ///
     /// # Examples
@@ -267,6 +310,11 @@ impl Header {
     /// assert_eq!(records[0], sample);
     pub fn samples(&self) -> &Samples {
         &self.samples
+    }
+
+    /// Returns a mutable reference to a map of sample records (`SAMPLE`).
+    pub fn samples_mut(&mut self) -> &mut Samples {
+        &mut self.samples
     }
 
     /// Returns a map of pedigree records (`PEDIGREE`).
@@ -297,6 +345,11 @@ impl Header {
         &self.pedigrees
     }
 
+    /// Returns a mutable reference to a map of pedigree records (`PEDIGREE`).
+    pub fn pedigrees_mut(&mut self) -> &mut Pedigrees {
+        &mut self.pedigrees
+    }
+
     /// Returns a URI to the relationships between genomes (`pedigreeDB`).
     ///
     /// # Examples
@@ -312,6 +365,11 @@ impl Header {
     /// ```
     pub fn pedigree_db(&self) -> Option<&str> {
         self.pedigree_db.as_deref()
+    }
+
+    /// Returns a mutable reference to a URI to the relationships between genomes (`pedigreeDB`).
+    pub fn pedigree_db_mut(&mut self) -> &mut Option<String> {
+        &mut self.pedigree_db
     }
 
     /// Returns a list sample names that come after the FORMAT column in the header record.
@@ -335,6 +393,12 @@ impl Header {
     /// ```
     pub fn sample_names(&self) -> &SampleNames {
         &self.sample_names
+    }
+
+    /// Returns a mutable reference to a list of sample names that come after the FORMAT column in
+    /// the header record.
+    pub fn sample_names_mut(&mut self) -> &mut SampleNames {
+        &mut self.sample_names
     }
 
     /// Returns a header record with the given key.
