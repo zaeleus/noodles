@@ -38,6 +38,11 @@ impl Genotypes {
         &self.keys
     }
 
+    /// Returns a mutable reference to the genotypes keys.
+    pub fn keys_mut(&mut self) -> &mut Keys {
+        &mut self.keys
+    }
+
     /// Returns the VCF record genotype value.
     pub fn genotypes(
         &self,
