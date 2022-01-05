@@ -9,6 +9,13 @@
   * vcf/header: Add immutable and mutable getters for unstructured
     `vcf::Header` fields.
 
+  * vcf/record: Add mutable getters for genotypes, reference bases, and
+    alternate bases.
+
+  * vcf/record/reference_bases: Implement `DerefMut`.
+
+  * vcf/record/alternate_bases: Implement `DerefMut`.
+
 ## 0.11.1 - 2021-12-09
 
 ### Fixed
