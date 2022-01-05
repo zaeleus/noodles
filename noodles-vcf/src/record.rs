@@ -305,6 +305,34 @@ impl Record {
         &self.alternate_bases
     }
 
+    /// Returns a mutable reference to the alternate bases of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     record::{alternate_bases::Allele, reference_bases::Base, AlternateBases, Position},
+    /// };
+    ///
+    /// let mut record = vcf::Record::builder()
+    ///     .set_chromosome("sq0".parse()?)
+    ///     .set_position(Position::try_from(1)?)
+    ///     .set_reference_bases("A".parse()?)
+    ///     .build()?;
+    ///
+    /// *record.alternate_bases_mut() = "C".parse()?;
+    ///
+    /// assert_eq!(
+    ///     record.alternate_bases(),
+    ///     &AlternateBases::from(vec![Allele::Bases(vec![Base::C])]),
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn alternate_bases_mut(&mut self) -> &mut AlternateBases {
+        &mut self.alternate_bases
+    }
+
     /// Returns the quality score of the record.
     ///
     /// The quality score is a [Phred quality score].
