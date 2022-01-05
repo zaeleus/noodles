@@ -4,7 +4,10 @@ pub mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, ops::Deref};
+use std::{
+    error, fmt,
+    ops::{Deref, DerefMut},
+};
 
 use indexmap::IndexMap;
 
@@ -126,6 +129,12 @@ impl Deref for Genotype {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Genotype {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
