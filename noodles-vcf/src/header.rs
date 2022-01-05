@@ -83,7 +83,7 @@ impl Header {
 
     /// Returns the file format (`fileformat`) of the VCF.
     ///
-    /// `fileformat` is a reqiured meta record and is guaranteed to be set.
+    /// `fileformat` is a required meta record and is guaranteed to be set.
     ///
     /// # Examples
     ///
@@ -372,7 +372,7 @@ impl Header {
         &mut self.pedigree_db
     }
 
-    /// Returns a list sample names that come after the FORMAT column in the header record.
+    /// Returns a list of sample names that come after the FORMAT column in the header record.
     ///
     /// # Examples
     ///
