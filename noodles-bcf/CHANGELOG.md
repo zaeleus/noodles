@@ -6,6 +6,12 @@
 
   * bcf/async/reader: Add conversion from `R` into `Reader<R>`.
 
+### Changed
+
+  * bcf/header/string_map: Parsing can now fail with
+    `vcf::header::ParseError::StringMapPositionMismatch` if the string map
+    position of an entry and record-defined IDX field value do not match.
+
 ## 0.10.0 - 2021-12-16
 
 ### Added

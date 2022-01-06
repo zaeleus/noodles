@@ -21,6 +21,10 @@ impl StringMap {
     fn insert(&mut self, value: String) {
         self.0.insert(value);
     }
+
+    fn insert_full(&mut self, value: String) -> (usize, bool) {
+        self.0.insert_full(value)
+    }
 }
 
 impl Default for StringMap {
@@ -57,22 +61,31 @@ impl FromStr for StringMap {
 
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            match record.key() {
+            let (idx, j) = match record.key() {
                 Key::Filter => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
-                    string_map.insert(filter.id().into());
+                    let (j, _) = string_map.insert_full(filter.id().into());
+                    (filter.idx(), j)
                 }
                 Key::Format => {
                     let format = Format::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidFormat)?;
-                    string_map.insert(format.id().as_ref().into());
+                    let (j, _) = string_map.insert_full(format.id().as_ref().into());
+                    (format.idx(), j)
                 }
                 Key::Info => {
                     let info = Info::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidInfo)?;
-                    string_map.insert(info.id().as_ref().into());
+                    let (j, _) = string_map.insert_full(info.id().as_ref().into());
+                    (info.idx(), j)
                 }
-                _ => {}
+                _ => continue,
+            };
+
+            if let Some(i) = idx {
+                if i != j {
+                    return Err(ParseError::StringMapPositionMismatch(i, j));
+                }
             }
         }
 
@@ -163,6 +176,30 @@ mod tests {
         assert!(actual.iter().eq(expected.iter()));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_from_str_with_a_position_mismatch() {
+        let s = r#"##fileformat=VCFv4.3
+##FILTER=<ID=PASS,Description="All filters passed",IDX=8>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
+"#;
+
+        assert_eq!(
+            s.parse::<StringMap>(),
+            Err(ParseError::StringMapPositionMismatch(8, 0))
+        );
+
+        let s = r#"##fileformat=VCFv4.3
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Combined depth across samples",IDX=1>
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth",IDX=2>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
+"#;
+
+        assert_eq!(
+            s.parse::<StringMap>(),
+            Err(ParseError::StringMapPositionMismatch(2, 1))
+        );
     }
 
     #[test]
