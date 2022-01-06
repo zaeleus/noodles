@@ -199,10 +199,7 @@ where
     /// let reader = bcf::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner: bgzf::AsyncReader::new(inner),
-            buf: Vec::new(),
-        }
+        Self::from(bgzf::AsyncReader::new(inner))
     }
 
     /// Returns the current virtual position of the underlying BGZF reader.
@@ -252,6 +249,15 @@ where
     /// ```
     pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos).await
+    }
+}
+
+impl<R> From<R> for Reader<R> {
+    fn from(inner: R) -> Self {
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 

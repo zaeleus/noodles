@@ -52,9 +52,6 @@ where
             builder = builder.set_worker_count(worker_count);
         }
 
-        Reader {
-            inner: builder.build(),
-            buf: Vec::new(),
-        }
+        Reader::from(builder.build())
     }
 }
