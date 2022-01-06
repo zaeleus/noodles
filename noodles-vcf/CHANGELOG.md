@@ -12,6 +12,12 @@
   * vcf/header: Add `Records` type alias for records (`IndexMap<String,
     Vec<Record>`).
 
+  * vcf/header/parser: Add `ParseError::StringMapPositionMismatch(actual,
+    expected)`.
+
+    This is returned when the IDX field value of a record does not match its
+    relative position in a string map. It is primarily used in BCF.
+
   * vcf/record: Add mutable getters for genotypes, reference bases, and
     alternate bases.
 

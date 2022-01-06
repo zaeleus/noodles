@@ -55,6 +55,9 @@ pub enum ParseError {
     DuplicateSampleName(String),
     /// More data unexpectedly appears after the header header (`#CHROM`...).
     ExpectedEof,
+    /// The position of the entry in the string match does not match the absolute position defined
+    /// by the `IDX` field of a record.
+    StringMapPositionMismatch(usize, usize),
 }
 
 impl error::Error for ParseError {}
@@ -85,6 +88,11 @@ impl std::fmt::Display for ParseError {
                 write!(f, "duplicate sample name: {}", sample_name)
             }
             Self::ExpectedEof => f.write_str("expected EOF"),
+            Self::StringMapPositionMismatch(actual, expected) => write!(
+                f,
+                "string map position mismatch: expected {}, got {}",
+                expected, actual
+            ),
         }
     }
 }
