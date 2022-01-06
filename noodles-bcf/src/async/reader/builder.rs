@@ -45,7 +45,7 @@ where
     /// let data = [];
     /// let reader = bcf::AsyncReader::builder(&data[..]).build();
     /// ```
-    pub fn build(self) -> Reader<R> {
+    pub fn build(self) -> Reader<bgzf::AsyncReader<R>> {
         let mut builder = bgzf::AsyncReader::builder(self.inner);
 
         if let Some(worker_count) = self.worker_count {

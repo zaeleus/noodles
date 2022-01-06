@@ -33,11 +33,8 @@ use crate::Record;
 /// # Ok(())
 /// # }
 /// ```
-pub struct Reader<R>
-where
-    R: AsyncRead,
-{
-    inner: bgzf::AsyncReader<R>,
+pub struct Reader<R> {
+    inner: R,
     buf: Vec<u8>,
 }
 
@@ -45,36 +42,6 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    /// Creates an async BCF reader builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let builder = bcf::AsyncReader::builder(&data[..]);
-    /// let reader = builder.build();
-    /// ```
-    pub fn builder(inner: R) -> Builder<R> {
-        Builder::new(inner)
-    }
-
-    /// Creates an async BCF reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let reader = bcf::AsyncReader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self {
-            inner: bgzf::AsyncReader::new(inner),
-            buf: Vec::new(),
-        }
-    }
-
     /// Reads the BCF file format.
     ///
     /// The BCF magic number is also checked.
@@ -202,6 +169,41 @@ where
             },
         ))
     }
+}
+
+impl<R> Reader<bgzf::AsyncReader<R>>
+where
+    R: AsyncRead + Unpin,
+{
+    /// Creates an async BCF reader builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let builder = bcf::AsyncReader::builder(&data[..]);
+    /// let reader = builder.build();
+    /// ```
+    pub fn builder(inner: R) -> Builder<R> {
+        Builder::new(inner)
+    }
+
+    /// Creates an async BCF reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let reader = bcf::AsyncReader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self {
+            inner: bgzf::AsyncReader::new(inner),
+            buf: Vec::new(),
+        }
+    }
 
     /// Returns the current virtual position of the underlying BGZF reader.
     ///
@@ -222,7 +224,7 @@ where
     }
 }
 
-impl<R> Reader<R>
+impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
