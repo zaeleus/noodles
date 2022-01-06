@@ -50,6 +50,9 @@ pub type Pedigrees = IndexMap<String, Pedigree>;
 /// VCF header sample names.
 pub type SampleNames = IndexSet<String>;
 
+/// VCF header generic records.
+pub type Records = IndexMap<String, Vec<Record>>;
+
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
@@ -423,7 +426,7 @@ impl Header {
     ///     Some((&String::from("fileDate"), &vec![record])),
     /// );
     /// ```
-    pub fn records(&self) -> &IndexMap<String, Vec<Record>> {
+    pub fn records(&self) -> &Records {
         &self.map
     }
 
@@ -453,7 +456,7 @@ impl Header {
     ///     Some((&String::from("fileDate"), &vec![record])),
     /// );
     /// ```
-    pub fn records_mut(&mut self) -> &mut IndexMap<String, Vec<Record>> {
+    pub fn records_mut(&mut self) -> &mut Records {
         &mut self.map
     }
 

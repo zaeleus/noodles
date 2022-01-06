@@ -9,6 +9,9 @@
   * vcf/header: Add immutable and mutable getters for unstructured
     `vcf::Header` fields.
 
+  * vcf/header: Add `Records` type alias for records (`IndexMap<String,
+    Vec<Record>`).
+
   * vcf/record: Add mutable getters for genotypes, reference bases, and
     alternate bases.
 
