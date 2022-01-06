@@ -19,6 +19,9 @@
 
   * vcf/record/genotypes: Add mutable getter for keys.
 
+  * vcf/record/genotypes: Add method to return whether there are any samples
+    (`Genotypes::is_empty`).
+
   * vcf/record/genotypes/genotype: Implement `DerefMut`.
 
   * vcf/record/genotypes/keys: Implement `DerefMut`.

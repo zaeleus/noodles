@@ -33,6 +33,19 @@ impl Genotypes {
         Self { keys, genotypes }
     }
 
+    /// Returns whether there are any samples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::Genotypes;
+    /// let genotypes = Genotypes::default();
+    /// assert!(genotypes.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.genotypes.is_empty()
+    }
+
     /// Returns the genotypes keys.
     pub fn keys(&self) -> &Keys {
         &self.keys
