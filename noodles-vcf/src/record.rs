@@ -28,7 +28,7 @@ pub use self::genotypes::{genotype, Genotype};
 
 #[deprecated(
     since = "0.11.0",
-    note = "Use `noodles_vcf::record::genotypes::Format` instead."
+    note = "Use `noodles_vcf::record::genotypes::Keys` instead."
 )]
 pub use self::genotypes::Keys as Format;
 
