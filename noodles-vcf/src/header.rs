@@ -106,6 +106,19 @@ impl Header {
     /// Returns a mutable reference to the file format (`fileformat`) of the VCF.
     ///
     /// `fileformat` is a required meta record and is guaranteed to be set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::FileFormat};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let file_format = FileFormat::new(4, 2);
+    /// *header.file_format_mut() = file_format;
+    ///
+    /// assert_eq!(header.file_format(), file_format);
+    /// ```
     pub fn file_format_mut(&mut self) -> &mut FileFormat {
         &mut self.file_format
     }
@@ -130,6 +143,21 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of information records (`INFO`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let info = Info::from(Key::SamplesWithDataCount);
+    /// header.infos_mut().insert(info.id().clone(), info);
+    ///
+    /// let infos = header.infos();
+    /// assert_eq!(infos.len(), 1);
+    /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
+    /// ```
     pub fn infos_mut(&mut self) -> &mut Infos {
         &mut self.infos
     }
@@ -154,6 +182,21 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of filter records (`FILTER`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Filter};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let filter = Filter::new("q10", "Quality below 10");
+    /// header.filters_mut().insert(filter.id().into(), filter);
+    ///
+    /// let filters = header.filters();
+    /// assert_eq!(filters.len(), 1);
+    /// assert_eq!(filters[0].id(), "q10");
+    /// ```
     pub fn filters_mut(&mut self) -> &mut Filters {
         &mut self.filters
     }
@@ -178,6 +221,21 @@ impl Header {
     }
 
     /// Returns a mutable reference to a list of genotype format records (`FORMAT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Format, record::genotypes::genotype::field::Key};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let format = Format::from(Key::Genotype);
+    /// header.formats_mut().insert(format.id().clone(), format);
+    ///
+    /// let formats = header.formats();
+    /// assert_eq!(formats.len(), 1);
+    /// assert_eq!(formats[0].id(), &Key::Genotype);
+    /// ```
     pub fn formats_mut(&mut self) -> &mut Formats {
         &mut self.formats
     }
@@ -215,6 +273,33 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of symbolic alternate alleles (`ALT`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::AlternativeAllele,
+    ///     record::alternate_bases::allele::{
+    ///         symbol::{structural_variant::Type, StructuralVariant},
+    ///         Symbol,
+    ///     },
+    /// };
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let alternative_allele = AlternativeAllele::new(
+    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///     "Deletion",
+    /// );
+    /// header
+    ///     .alternative_alleles_mut()
+    ///     .insert(alternative_allele.id().clone(), alternative_allele.clone());
+    ///
+    /// let alternative_alleles = header.alternative_alleles();
+    /// assert_eq!(alternative_alleles.len(), 1);
+    /// assert_eq!(alternative_alleles[0], alternative_allele);
+    /// ```
     pub fn alternative_alleles_mut(&mut self) -> &mut AlternativeAlleles {
         &mut self.alternative_alleles
     }
@@ -238,6 +323,15 @@ impl Header {
 
     /// Returns a mutable reference to a URI to the breakpoint assemblies (`assembly`) referenced in
     /// records.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let mut header = vcf::Header::default();
+    /// *header.assembly_mut() = Some(String::from("file:///assemblies.fasta"));
+    /// assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
+    /// ```
     pub fn assembly_mut(&mut self) -> &mut Option<String> {
         &mut self.assembly
     }
@@ -262,6 +356,21 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of contig records (`contig`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Contig};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let contig = Contig::new("sq0");
+    /// header.contigs_mut().insert(contig.id().into(), contig.clone());
+    ///
+    /// let contigs = header.contigs();
+    /// assert_eq!(contigs.len(), 1);
+    /// assert_eq!(contigs[0], contig);
+    /// ```
     pub fn contigs_mut(&mut self) -> &mut Contigs {
         &mut self.contigs
     }
@@ -291,6 +400,24 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of meta records (`META`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Meta};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let meta = Meta::new(
+    ///     String::from("Assay"),
+    ///     vec![String::from("WholeGenome"), String::from("Exome")],
+    /// );
+    /// header.meta_mut().insert(meta.id().into(), meta.clone());
+    ///
+    /// let records = header.meta();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], meta);
+    /// ```
     pub fn meta_mut(&mut self) -> &mut IndexMap<String, Meta> {
         &mut self.meta
     }
@@ -316,6 +443,21 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of sample records (`SAMPLE`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Sample};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let sample = Sample::new(String::from("sample0"), Default::default());
+    /// header.samples_mut().insert(sample.id().into(), sample.clone());
+    ///
+    /// let records = header.samples();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], sample);
+    /// ```
     pub fn samples_mut(&mut self) -> &mut Samples {
         &mut self.samples
     }
@@ -349,6 +491,29 @@ impl Header {
     }
 
     /// Returns a mutable reference to a map of pedigree records (`PEDIGREE`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::Pedigree};
+    ///
+    /// let mut header = vcf::Header::default();
+    ///
+    /// let pedigree = Pedigree::new(
+    ///     String::from("cid"),
+    ///     [
+    ///         (String::from("Father"), String::from("fid")),
+    ///         (String::from("Mother"), String::from("mid")),
+    ///     ]
+    ///     .into_iter()
+    ///     .collect(),
+    /// );
+    /// header.pedigrees_mut().insert(pedigree.id().into(), pedigree.clone());
+    ///
+    /// let records = header.pedigrees();
+    /// assert_eq!(records.len(), 1);
+    /// assert_eq!(records[0], pedigree);
+    /// ```
     pub fn pedigrees_mut(&mut self) -> &mut Pedigrees {
         &mut self.pedigrees
     }
@@ -371,6 +536,15 @@ impl Header {
     }
 
     /// Returns a mutable reference to a URI to the relationships between genomes (`pedigreeDB`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let mut header = vcf::Header::default();
+    /// *header.pedigree_db_mut() = Some(String::from("file:///pedigree.db"));
+    /// assert_eq!(header.pedigree_db(), Some("file:///pedigree.db"));
+    /// ```
     pub fn pedigree_db_mut(&mut self) -> &mut Option<String> {
         &mut self.pedigree_db
     }
@@ -400,6 +574,22 @@ impl Header {
 
     /// Returns a mutable reference to a list of sample names that come after the FORMAT column in
     /// the header record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexmap::IndexSet;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut header = vcf::Header::builder().add_sample_name("sample0").build();
+    /// header.sample_names_mut().insert(String::from("sample1"));
+    ///
+    /// let expected: IndexSet<_> = [String::from("sample0"), String::from("sample1")]
+    ///     .into_iter()
+    ///     .collect();
+    ///
+    /// assert_eq!(header.sample_names(), &expected);
+    /// ```
     pub fn sample_names_mut(&mut self) -> &mut SampleNames {
         &mut self.sample_names
     }
