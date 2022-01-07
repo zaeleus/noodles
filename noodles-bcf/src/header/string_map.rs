@@ -17,7 +17,7 @@ use noodles_vcf::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringMap {
     indices: HashMap<String, usize>,
-    entries: Vec<String>,
+    entries: Vec<Option<String>>,
 }
 
 impl StringMap {
@@ -32,7 +32,7 @@ impl StringMap {
     /// assert!(string_map.get_index(1).is_none());
     /// ```
     pub fn get_index(&self, i: usize) -> Option<&str> {
-        self.entries.get(i).map(|entry| &**entry)
+        self.entries.get(i).and_then(|entry| entry.as_deref())
     }
 
     /// Returns the index of the entry of the given value.
@@ -49,6 +49,11 @@ impl StringMap {
         self.indices.get(value).copied()
     }
 
+    fn get_full(&self, value: &str) -> Option<(usize, &str)> {
+        self.get_index_of(value)
+            .and_then(|i| self.get_index(i).map(|entry| (i, entry)))
+    }
+
     fn insert(&mut self, value: String) -> Option<String> {
         self.insert_full(value).1
     }
@@ -56,8 +61,8 @@ impl StringMap {
     fn insert_full(&mut self, value: String) -> (usize, Option<String>) {
         match self.get_index_of(&value) {
             Some(i) => {
-                let entry = mem::replace(&mut self.entries[i], value);
-                (i, Some(entry))
+                let entry = mem::replace(&mut self.entries[i], Some(value));
+                (i, entry)
             }
             None => {
                 let i = self.push(value);
@@ -66,11 +71,20 @@ impl StringMap {
         }
     }
 
+    fn insert_at(&mut self, i: usize, value: String) -> Option<String> {
+        if i >= self.entries.len() {
+            self.entries.resize(i + 1, None);
+        }
+
+        self.indices.insert(value.clone(), i);
+        mem::replace(&mut self.entries[i], Some(value))
+    }
+
     fn push(&mut self, value: String) -> usize {
         let i = self.entries.len();
 
         self.indices.insert(value.clone(), i);
-        self.entries.push(value);
+        self.entries.push(Some(value));
 
         i
     }
@@ -84,7 +98,7 @@ impl Default for StringMap {
 
         Self {
             indices: [(pass.clone(), 0)].into_iter().collect(),
-            entries: vec![pass],
+            entries: vec![Some(pass)],
         }
     }
 }
@@ -107,31 +121,37 @@ impl FromStr for StringMap {
 
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            let (idx, j) = match record.key() {
+            let (id, idx) = match record.key() {
                 Key::Filter => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
-                    let (j, _) = string_map.insert_full(filter.id().into());
-                    (filter.idx(), j)
+                    (filter.id().to_string(), filter.idx())
                 }
                 Key::Format => {
                     let format = Format::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidFormat)?;
-                    let (j, _) = string_map.insert_full(format.id().as_ref().into());
-                    (format.idx(), j)
+                    (format.id().as_ref().to_string(), format.idx())
                 }
                 Key::Info => {
                     let info = Info::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidInfo)?;
-                    let (j, _) = string_map.insert_full(info.id().as_ref().into());
-                    (info.idx(), j)
+                    (info.id().as_ref().to_string(), info.idx())
                 }
                 _ => continue,
             };
 
             if let Some(i) = idx {
-                if i != j {
-                    return Err(ParseError::StringMapPositionMismatch(i, j));
+                if let Some((j, entry)) = string_map.get_full(&id) {
+                    let actual = (i, id);
+                    let expected = (j, entry.into());
+
+                    if actual != expected {
+                        return Err(ParseError::StringMapPositionMismatch(actual, expected));
+                    }
+                } else {
+                    string_map.insert_at(i, id);
                 }
+            } else {
+                string_map.insert(id);
             }
         }
 
@@ -189,7 +209,7 @@ mod tests {
         assert_eq!(string_map.indices.get("PASS"), Some(&0));
 
         assert_eq!(string_map.entries.len(), 1);
-        assert_eq!(string_map.entries[0], String::from("PASS"));
+        assert_eq!(string_map.entries[0], Some(String::from("PASS")));
     }
 
     #[test]
@@ -219,11 +239,46 @@ mod tests {
         .into_iter()
         .collect();
         let entries = vec![
-            String::from("PASS"),
-            String::from("NS"),
-            String::from("DP"),
-            String::from("q10"),
-            String::from("GT"),
+            Some(String::from("PASS")),
+            Some(String::from("NS")),
+            Some(String::from("DP")),
+            Some(String::from("q10")),
+            Some(String::from("GT")),
+        ];
+        let expected = StringMap { indices, entries };
+
+        assert_eq!(s.parse(), Ok(expected));
+    }
+
+    #[test]
+    fn test_from_str_with_mixed_positions() {
+        let s = r#"##fileformat=VCFv4.3
+##fileDate=20210412
+##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data",IDX=1>
+##FILTER=<ID=PASS,Description="All filters passed",IDX=0>
+##FILTER=<ID=q10,Description="Quality below 10",IDX=3>
+##FILTER=<ID=q15,Description="Quality below 15",IDX=4>
+##FILTER=<ID=q20,Description="Quality below 20">
+##FILTER=<ID=NS,Description="">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
+"#;
+
+        let indices = [
+            (String::from("PASS"), 0),
+            (String::from("NS"), 1),
+            (String::from("q10"), 3),
+            (String::from("q15"), 4),
+            (String::from("q20"), 5),
+        ]
+        .into_iter()
+        .collect();
+        let entries = vec![
+            Some(String::from("PASS")),
+            Some(String::from("NS")),
+            None,
+            Some(String::from("q10")),
+            Some(String::from("q15")),
+            Some(String::from("q20")),
         ];
         let expected = StringMap { indices, entries };
 
@@ -239,7 +294,10 @@ mod tests {
 
         assert_eq!(
             s.parse::<StringMap>(),
-            Err(ParseError::StringMapPositionMismatch(8, 0))
+            Err(ParseError::StringMapPositionMismatch(
+                (8, String::from("PASS")),
+                (0, String::from("PASS"))
+            ))
         );
 
         let s = r#"##fileformat=VCFv4.3
@@ -250,7 +308,10 @@ mod tests {
 
         assert_eq!(
             s.parse::<StringMap>(),
-            Err(ParseError::StringMapPositionMismatch(2, 1))
+            Err(ParseError::StringMapPositionMismatch(
+                (2, String::from("DP")),
+                (1, String::from("DP"))
+            ))
         );
     }
 
@@ -296,11 +357,11 @@ mod tests {
         .into_iter()
         .collect();
         let entries = vec![
-            String::from("PASS"),
-            String::from("NS"),
-            String::from("DP"),
-            String::from("q10"),
-            String::from("GT"),
+            Some(String::from("PASS")),
+            Some(String::from("NS")),
+            Some(String::from("DP")),
+            Some(String::from("q10")),
+            Some(String::from("GT")),
         ];
         let expected = StringMap { indices, entries };
 

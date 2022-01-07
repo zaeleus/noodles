@@ -57,7 +57,7 @@ pub enum ParseError {
     ExpectedEof,
     /// The position of the entry in the string match does not match the absolute position defined
     /// by the `IDX` field of a record.
-    StringMapPositionMismatch(usize, usize),
+    StringMapPositionMismatch((usize, String), (usize, String)),
 }
 
 impl error::Error for ParseError {}
@@ -90,8 +90,8 @@ impl std::fmt::Display for ParseError {
             Self::ExpectedEof => f.write_str("expected EOF"),
             Self::StringMapPositionMismatch(actual, expected) => write!(
                 f,
-                "string map position mismatch: expected {}, got {}",
-                expected, actual
+                "string map position mismatch: expected {} (IDX={}), got {} (IDX={})",
+                expected.1, expected.0, actual.1, actual.0,
             ),
         }
     }

@@ -12,6 +12,11 @@
     `vcf::header::ParseError::StringMapPositionMismatch` if the string map
     position of an entry and record-defined IDX field value do not match.
 
+  * bcf/header/string_map: If present, the IDX field is used to determine the
+    position of the entry in the string map ([#64]).
+
+[#64]: https://github.com/zaeleus/noodles/issues/64
+
 ### Removed
 
   * bcf/header/string_map: Remove `Deref<Target = IndexSet<String>>` for
