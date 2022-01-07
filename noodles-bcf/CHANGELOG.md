@@ -12,6 +12,13 @@
     `vcf::header::ParseError::StringMapPositionMismatch` if the string map
     position of an entry and record-defined IDX field value do not match.
 
+### Removed
+
+  * bcf/header/string_map: Remove `Deref<Target = IndexSet<String>>` for
+    `StringMap`.
+
+    `StringMap` is no longer backed by an `IndexMap`.
+
 ## 0.10.0 - 2021-12-16
 
 ### Added

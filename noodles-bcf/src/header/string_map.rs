@@ -1,9 +1,9 @@
 use std::{
-    ops::Deref,
+    collections::HashMap,
+    mem,
     str::{FromStr, Lines},
 };
 
-use indexmap::IndexSet;
 use noodles_vcf::{
     self as vcf,
     header::{Filter, Format, Info, ParseError, Record},
@@ -15,15 +15,64 @@ use noodles_vcf::{
 ///
 /// See § 6.2.1 Dictionary of strings (2021-05-13).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StringMap(IndexSet<String>);
+pub struct StringMap {
+    indices: HashMap<String, usize>,
+    entries: Vec<String>,
+}
 
 impl StringMap {
-    fn insert(&mut self, value: String) {
-        self.0.insert(value);
+    /// Returns an entry by index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::header::StringMap;
+    /// let string_map = StringMap::default();
+    /// assert_eq!(string_map.get_index(0), Some("PASS"));
+    /// assert!(string_map.get_index(1).is_none());
+    /// ```
+    pub fn get_index(&self, i: usize) -> Option<&str> {
+        self.entries.get(i).map(|entry| &**entry)
     }
 
-    fn insert_full(&mut self, value: String) -> (usize, bool) {
-        self.0.insert_full(value)
+    /// Returns the index of the entry of the given value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::header::StringMap;
+    /// let string_map = StringMap::default();
+    /// assert_eq!(string_map.get_index_of("PASS"), Some(0));
+    /// assert!(string_map.get_index_of("DP").is_none());
+    /// ```
+    pub fn get_index_of(&self, value: &str) -> Option<usize> {
+        self.indices.get(value).copied()
+    }
+
+    fn insert(&mut self, value: String) -> Option<String> {
+        self.insert_full(value).1
+    }
+
+    fn insert_full(&mut self, value: String) -> (usize, Option<String>) {
+        match self.get_index_of(&value) {
+            Some(i) => {
+                let entry = mem::replace(&mut self.entries[i], value);
+                (i, Some(entry))
+            }
+            None => {
+                let i = self.push(value);
+                (i, None)
+            }
+        }
+    }
+
+    fn push(&mut self, value: String) -> usize {
+        let i = self.entries.len();
+
+        self.indices.insert(value.clone(), i);
+        self.entries.push(value);
+
+        i
     }
 }
 
@@ -31,15 +80,12 @@ impl Default for StringMap {
     fn default() -> Self {
         // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
         // encoded as the first entry in the header dictionary."
-        Self([Filter::pass().id().into()].into_iter().collect())
-    }
-}
+        let pass = Filter::pass().id().to_string();
 
-impl Deref for StringMap {
-    type Target = IndexSet<String>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+        Self {
+            indices: [(pass.clone(), 0)].into_iter().collect(),
+            entries: vec![pass],
+        }
     }
 }
 
@@ -137,14 +183,17 @@ mod tests {
 
     #[test]
     fn test_default() {
-        assert_eq!(
-            StringMap::default(),
-            StringMap([String::from("PASS")].into_iter().collect())
-        );
+        let string_map = StringMap::default();
+
+        assert_eq!(string_map.indices.len(), 1);
+        assert_eq!(string_map.indices.get("PASS"), Some(&0));
+
+        assert_eq!(string_map.entries.len(), 1);
+        assert_eq!(string_map.entries[0], String::from("PASS"));
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() {
         let s = r#"##fileformat=VCFv4.3
 ##fileDate=20210412
 ##contig=<ID=sq0,length=8>
@@ -160,22 +209,25 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        let actual: StringMap = s.parse()?;
-        let expected = StringMap(
-            [
-                String::from("PASS"),
-                String::from("NS"),
-                String::from("DP"),
-                String::from("q10"),
-                String::from("GT"),
-            ]
-            .into_iter()
-            .collect(),
-        );
+        let indices = [
+            (String::from("PASS"), 0),
+            (String::from("NS"), 1),
+            (String::from("DP"), 2),
+            (String::from("q10"), 3),
+            (String::from("GT"), 4),
+        ]
+        .into_iter()
+        .collect();
+        let entries = vec![
+            String::from("PASS"),
+            String::from("NS"),
+            String::from("DP"),
+            String::from("q10"),
+            String::from("GT"),
+        ];
+        let expected = StringMap { indices, entries };
 
-        assert!(actual.iter().eq(expected.iter()));
-
-        Ok(())
+        assert_eq!(s.parse(), Ok(expected));
     }
 
     #[test]
@@ -233,19 +285,26 @@ mod tests {
             .build();
 
         let actual = StringMap::from(&header);
-        let expected = StringMap(
-            [
-                String::from("PASS"),
-                String::from("NS"),
-                String::from("DP"),
-                String::from("q10"),
-                String::from("GT"),
-            ]
-            .into_iter()
-            .collect(),
-        );
 
-        assert!(actual.iter().eq(expected.iter()));
+        let indices = [
+            (String::from("PASS"), 0),
+            (String::from("NS"), 1),
+            (String::from("DP"), 2),
+            (String::from("q10"), 3),
+            (String::from("GT"), 4),
+        ]
+        .into_iter()
+        .collect();
+        let entries = vec![
+            String::from("PASS"),
+            String::from("NS"),
+            String::from("DP"),
+            String::from("q10"),
+            String::from("GT"),
+        ];
+        let expected = StringMap { indices, entries };
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
