@@ -321,8 +321,8 @@ impl Header {
         self.assembly.as_deref()
     }
 
-    /// Returns a mutable reference to a URI to the breakpoint assemblies (`assembly`) referenced in
-    /// records.
+    /// Returns a mutable reference to a URI to the breakpoint assemblies (`assembly`) referenced
+    /// in records.
     ///
     /// # Examples
     ///
