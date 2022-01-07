@@ -17,6 +17,7 @@ use self::key::Key;
 pub struct Contig {
     id: String,
     len: Option<i32>,
+    idx: Option<usize>,
     fields: IndexMap<String, String>,
 }
 
@@ -37,6 +38,7 @@ impl Contig {
         Self {
             id: id.into(),
             len: None,
+            idx: None,
             fields: IndexMap::new(),
         }
     }
@@ -65,6 +67,21 @@ impl Contig {
     /// ```
     pub fn len(&self) -> Option<i32> {
         self.len
+    }
+
+    /// Returns the index of the ID in the dictionary of strings.
+    ///
+    /// This is typically used in BCF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Contig;
+    /// let contig = Contig::new("sq0");
+    /// assert!(contig.idx().is_none());
+    /// ```
+    pub fn idx(&self) -> Option<usize> {
+        self.idx
     }
 
     /// Returns the value of the field with the given key.
@@ -110,6 +127,10 @@ impl fmt::Display for Contig {
             super::fmt::write_escaped_string(f, value)?;
         }
 
+        if let Some(idx) = self.idx() {
+            write!(f, ",{}={}", Key::Idx, idx)?;
+        }
+
         f.write_str(">")?;
 
         Ok(())
@@ -129,6 +150,8 @@ pub enum TryFromRecordError {
     InvalidLength(num::ParseIntError),
     /// A required field is missing.
     MissingField(Key),
+    /// The index (`IDX`) is invalid.
+    InvalidIdx(num::ParseIntError),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -141,6 +164,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId => f.write_str("invalid ID"),
             Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
         }
     }
 }
@@ -159,6 +183,7 @@ impl TryFrom<Record> for Contig {
 fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordError> {
     let mut id = None;
     let mut len = None;
+    let mut idx = None;
     let mut other_fields = IndexMap::new();
 
     for (raw_key, value) in fields {
@@ -178,6 +203,12 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidLength)?;
             }
+            Key::Idx => {
+                idx = value
+                    .parse()
+                    .map(Some)
+                    .map_err(TryFromRecordError::InvalidIdx)?;
+            }
             Key::Other(k) => {
                 other_fields.insert(k, value);
             }
@@ -187,6 +218,7 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
     Ok(Contig {
         id: id.ok_or(TryFromRecordError::MissingField(Key::Id))?,
         len,
+        idx,
         fields: other_fields,
     })
 }
@@ -229,6 +261,38 @@ mod tests {
             Ok(Contig {
                 id: String::from("sq0"),
                 len: Some(13),
+                idx: None,
+                fields: [(
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534")
+                )]
+                .into_iter()
+                .collect(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_try_from_record_for_contig_with_extra_fields() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+                (String::from("IDX"), String::from("1")),
+            ]),
+        );
+
+        assert_eq!(
+            Contig::try_from(record),
+            Ok(Contig {
+                id: String::from("sq0"),
+                len: Some(13),
+                idx: Some(1),
                 fields: [(
                     String::from("md5"),
                     String::from("d7eba311421bbc9d3ada44709dd61534")
@@ -301,6 +365,23 @@ mod tests {
         assert!(matches!(
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidLength(_))
+        ));
+    }
+
+    #[test]
+    fn test() {
+        let record = Record::new(
+            record::Key::Contig,
+            record::Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (String::from("IDX"), String::from("ndls")),
+            ]),
+        );
+
+        assert!(matches!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidIdx(_))
         ));
     }
 }

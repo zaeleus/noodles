@@ -9,6 +9,8 @@ pub enum Key {
     Id,
     /// (`length`).
     Length,
+    /// (`IDX`).
+    Idx,
     /// Any other key.
     Other(String),
 }
@@ -18,6 +20,7 @@ impl AsRef<str> for Key {
         match self {
             Self::Id => "ID",
             Self::Length => "length",
+            Self::Idx => "IDX",
             Self::Other(s) => s,
         }
     }
@@ -54,6 +57,7 @@ impl FromStr for Key {
             "" => Err(ParseError::Empty),
             "ID" => Ok(Self::Id),
             "length" => Ok(Self::Length),
+            "IDX" => Ok(Self::Idx),
             _ => Ok(Self::Other(s.into())),
         }
     }
@@ -67,6 +71,7 @@ mod tests {
     fn test_fmt() {
         assert_eq!(Key::Id.to_string(), "ID");
         assert_eq!(Key::Length.to_string(), "length");
+        assert_eq!(Key::Idx.to_string(), "IDX");
         assert_eq!(Key::Other(String::from("md5")).to_string(), "md5");
     }
 
@@ -74,6 +79,7 @@ mod tests {
     fn test_from_str() {
         assert_eq!("ID".parse(), Ok(Key::Id));
         assert_eq!("length".parse(), Ok(Key::Length));
+        assert_eq!("IDX".parse(), Ok(Key::Idx));
         assert_eq!("assembly".parse(), Ok(Key::Other(String::from("assembly"))));
         assert_eq!("md5".parse(), Ok(Key::Other(String::from("md5"))));
         assert_eq!("species".parse(), Ok(Key::Other(String::from("species"))));

@@ -38,6 +38,20 @@
 [#67]: https://github.com/zaeleus/noodles/pull/67
 [#69]: https://github.com/zaeleus/noodles/pull/69
 
+### Changed
+
+  * vcf/header/contig: Parse `IDX` field from a raw record ([#64]).
+
+    This was previously added to the other fields map but is now a field on
+    `Contig`.
+
+### Fixed
+
+  * vcf/header/contig: Write the IDX field value as an integer rather than a
+    string ([#64]).
+
+[#64]: https://github.com/zaeleus/noodles/issues/64
+
 ## 0.11.1 - 2021-12-09
 
 ### Fixed
