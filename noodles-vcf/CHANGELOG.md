@@ -4,10 +4,10 @@
 
 ### Added
 
-  * vcf/header: Add mutable getters for `vcf::Header` fields.
+  * vcf/header: Add mutable getters for `vcf::Header` fields ([#65]).
 
   * vcf/header: Add immutable and mutable getters for unstructured
-    `vcf::Header` fields.
+    `vcf::Header` fields ([#69]).
 
   * vcf/header: Add `Records` type alias for records (`IndexMap<String,
     Vec<Record>`).
@@ -19,20 +19,24 @@
     relative position in a string map. It is primarily used in BCF.
 
   * vcf/record: Add mutable getters for genotypes, reference bases, and
-    alternate bases.
+    alternate bases ([#67]).
 
-  * vcf/record/alternate_bases: Implement `DerefMut`.
+  * vcf/record/alternate_bases: Implement `DerefMut` ([#67]).
 
-  * vcf/record/genotypes: Add mutable getter for keys.
+  * vcf/record/genotypes: Add mutable getter for keys ([#67]).
 
   * vcf/record/genotypes: Add method to return whether there are any samples
     (`Genotypes::is_empty`).
 
-  * vcf/record/genotypes/genotype: Implement `DerefMut`.
+  * vcf/record/genotypes/genotype: Implement `DerefMut` ([#67]).
 
-  * vcf/record/genotypes/keys: Implement `DerefMut`.
+  * vcf/record/genotypes/keys: Implement `DerefMut` ([#67]).
 
-  * vcf/record/reference_bases: Implement `DerefMut`.
+  * vcf/record/reference_bases: Implement `DerefMut` ([#67]).
+
+[#65]: https://github.com/zaeleus/noodles/issues/65
+[#67]: https://github.com/zaeleus/noodles/pull/67
+[#69]: https://github.com/zaeleus/noodles/pull/69
 
 ## 0.11.1 - 2021-12-09
 
