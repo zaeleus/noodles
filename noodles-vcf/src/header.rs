@@ -438,6 +438,7 @@ impl Header {
     /// let records = header.samples();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], sample);
+    /// ```
     pub fn samples(&self) -> &Samples {
         &self.samples
     }
@@ -486,6 +487,7 @@ impl Header {
     /// let records = header.pedigrees();
     /// assert_eq!(records.len(), 1);
     /// assert_eq!(records[0], pedigree);
+    /// ```
     pub fn pedigrees(&self) -> &Pedigrees {
         &self.pedigrees
     }
