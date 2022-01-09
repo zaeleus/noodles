@@ -368,6 +368,27 @@ impl Header {
             && self.programs.is_empty()
             && self.comments.is_empty()
     }
+
+    /// Removes all records from the header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    ///
+    /// let mut header = sam::Header::builder().add_comment("ndls").build();
+    /// assert!(!header.is_empty());
+    ///
+    /// header.clear();
+    /// assert!(header.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.header.take();
+        self.reference_sequences.clear();
+        self.read_groups.clear();
+        self.programs.clear();
+        self.comments.clear();
+    }
 }
 
 impl fmt::Display for Header {

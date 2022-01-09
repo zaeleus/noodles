@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/header: Add `clear` method to remove all records from the header.
+
   * sam/record/data/field/tag: Add base modification probabilities (`ML`) and
     base modifications (`MM`) tags.
 
