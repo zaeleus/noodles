@@ -3,7 +3,7 @@ use std::io;
 use noodles_vcf as vcf;
 
 use super::Record;
-use crate::header::StringMap;
+use crate::header::StringMaps;
 
 impl Record {
     /// Converts a VCF record to a BCF record.
@@ -16,11 +16,11 @@ impl Record {
     ///
     /// let raw_header = "##fileformat=VCFv4.3\n##contig=<ID=sq0>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
     /// let header: vcf::Header = raw_header.parse()?;
-    /// let string_map = raw_header.parse()?;
+    /// let string_maps = raw_header.parse()?;
     ///
     /// let record = bcf::Record::default();
     ///
-    /// let actual = record.try_into_vcf_record(&header, &string_map)?;
+    /// let actual = record.try_into_vcf_record(&header, &string_maps)?;
     /// let expected = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
     ///     .set_position(Position::try_from(1)?)
@@ -33,7 +33,7 @@ impl Record {
     pub fn try_into_vcf_record(
         &self,
         header: &vcf::Header,
-        string_map: &StringMap,
+        string_maps: &StringMaps,
     ) -> io::Result<vcf::Record> {
         let (_, contig) = usize::try_from(self.chromosome_id())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
@@ -49,11 +49,17 @@ impl Record {
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let filters = self.filters().try_into_vcf_record_filters(string_map)?;
-        let info = self.info().try_into_vcf_record_info(header, string_map)?;
+        let filters = self
+            .filters()
+            .try_into_vcf_record_filters(string_maps.strings())?;
+
+        let info = self
+            .info()
+            .try_into_vcf_record_info(header, string_maps.strings())?;
+
         let genotypes = self
             .genotypes()
-            .try_into_vcf_record_genotypes(header, string_map)?;
+            .try_into_vcf_record_genotypes(header, string_maps.strings())?;
 
         let mut builder = vcf::Record::builder()
             .set_chromosome(chromosome)

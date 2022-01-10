@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_vcf as vcf;
 
-use crate::header::StringMap;
+use crate::header::string_maps::StringStringMap;
 
 /// BCF record filters.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -15,24 +15,24 @@ impl Filters {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMap, record::Filters};
+    /// use noodles_bcf::{header::StringMaps, record::Filters};
     ///
     /// let bcf_filters = Filters::default();
-    /// let string_map = StringMap::default();
-    /// let vcf_filters = bcf_filters.try_into_vcf_record_filters(&string_map)?;
+    /// let string_maps = StringMaps::default();
+    /// let vcf_filters = bcf_filters.try_into_vcf_record_filters(string_maps.strings())?;
     ///
     /// assert!(vcf_filters.is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn try_into_vcf_record_filters(
         &self,
-        string_map: &StringMap,
+        string_string_map: &StringStringMap,
     ) -> io::Result<Option<vcf::record::Filters>> {
         let raw_filters: Vec<_> = self
             .0
             .iter()
             .map(|&i| {
-                string_map.get_index(i).ok_or_else(|| {
+                string_string_map.get_index(i).ok_or_else(|| {
                     io::Error::new(
                         io::ErrorKind::InvalidInput,
                         format!("invalid string map index: {}", i),

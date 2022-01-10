@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
 use crate::{
-    header::StringMap,
+    header::{string_maps::StringStringMap, StringMaps},
     record::value::{Float, Value},
     writer::value::write_value,
 };
@@ -18,7 +18,7 @@ const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 pub fn write_site<W>(
     writer: &mut W,
     header: &vcf::Header,
-    string_map: &StringMap,
+    string_maps: &StringMaps,
     record: &vcf::Record,
 ) -> io::Result<()>
 where
@@ -48,8 +48,8 @@ where
 
     write_id(writer, record.ids())?;
     write_ref_alt(writer, record.reference_bases(), record.alternate_bases())?;
-    write_filter(writer, string_map, record.filters())?;
-    write_info(writer, string_map, record.info())?;
+    write_filter(writer, string_maps.strings(), record.filters())?;
+    write_info(writer, string_maps.strings(), record.info())?;
 
     Ok(())
 }
@@ -195,7 +195,7 @@ where
 
 fn write_filter<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     filters: Option<&vcf::record::Filters>,
 ) -> io::Result<()>
 where
@@ -209,7 +209,7 @@ where
         Some(Filters::Fail(ids)) => ids
             .iter()
             .map(|id| {
-                string_map
+                string_string_map
                     .get_index_of(id)
                     .ok_or_else(|| {
                         io::Error::new(

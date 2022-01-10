@@ -10,7 +10,7 @@ use noodles_vcf::{
 };
 
 use crate::{
-    header::StringMap,
+    header::string_maps::StringStringMap,
     record::value::{Float, Int16, Int32, Int8, Type},
     writer::{string_map::write_string_map_index, value::write_type},
 };
@@ -21,7 +21,7 @@ const MISSING_VALUE: char = '.';
 
 pub fn write_genotypes<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     keys: &vcf::record::genotypes::Keys,
     genotypes: &[vcf::record::genotypes::Genotype],
 ) -> io::Result<()>
@@ -29,7 +29,7 @@ where
     W: Write,
 {
     for (i, key) in keys.iter().enumerate() {
-        write_genotype_field_key(writer, string_map, key)?;
+        write_genotype_field_key(writer, string_string_map, key)?;
 
         let mut values = Vec::with_capacity(keys.len());
 
@@ -52,7 +52,7 @@ where
 
 pub fn write_genotype_field_key<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_map: &StringStringMap,
     key: &Key,
 ) -> io::Result<()>
 where

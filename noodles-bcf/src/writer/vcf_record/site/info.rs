@@ -6,21 +6,21 @@ use std::{
 use noodles_vcf as vcf;
 
 use crate::{
-    header::StringMap,
+    header::string_maps::StringStringMap,
     record::value::{Float, Int16, Int32, Int8, Value},
     writer::{string_map::write_string_map_index, value::write_value},
 };
 
 pub fn write_info<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     info: &vcf::record::Info,
 ) -> io::Result<()>
 where
     W: Write,
 {
     for field in info.values() {
-        write_info_field(writer, string_map, field)?;
+        write_info_field(writer, string_string_map, field)?;
     }
 
     Ok(())
@@ -28,26 +28,26 @@ where
 
 fn write_info_field<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     field: &vcf::record::info::Field,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    write_info_field_key(writer, string_map, field.key())?;
+    write_info_field_key(writer, string_string_map, field.key())?;
     write_info_field_value(writer, field.value())?;
     Ok(())
 }
 
 fn write_info_field_key<W>(
     writer: &mut W,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     key: &vcf::record::info::field::Key,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    string_map
+    string_string_map
         .get_index_of(key.as_ref())
         .ok_or_else(|| {
             io::Error::new(

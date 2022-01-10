@@ -25,8 +25,8 @@ impl Genotypes {
     /// let bcf_genotypes = Genotypes::default();
     ///
     /// let header = vcf::Header::default();
-    /// let string_map = StringMap::default();
-    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_genotypes(&header, &string_map)?;
+    /// let string_maps = StringMap::default();
+    /// let vcf_genotypes = bcf_genotypes.try_into_vcf_record_genotypes(&header, &string_maps)?;
     ///
     /// assert!(vcf_genotypes.is_empty());
     /// # Ok::<_, io::Error>(())

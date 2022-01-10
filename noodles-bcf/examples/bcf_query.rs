@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_header = reader.read_header()?;
 
     let header: vcf::Header = raw_header.parse()?;
-    let string_map = raw_header.parse()?;
+    let string_maps = raw_header.parse()?;
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
 
@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in query {
         let record = result?;
-        let vcf_record = record.try_into_vcf_record(&header, &string_map)?;
+        let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
         println!("{}", vcf_record);
     }
 

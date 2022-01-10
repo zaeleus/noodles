@@ -6,12 +6,12 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
-use crate::header::StringMap;
+use crate::header::StringMaps;
 
 pub fn write_vcf_record<W>(
     writer: &mut W,
     header: &vcf::Header,
-    string_map: &StringMap,
+    string_maps: &StringMaps,
     record: &vcf::Record,
 ) -> io::Result<()>
 where
@@ -20,7 +20,7 @@ where
     use self::{genotypes::write_genotypes, site::write_site};
 
     let mut site_buf = Vec::new();
-    write_site(&mut site_buf, header, string_map, record)?;
+    write_site(&mut site_buf, header, string_maps, record)?;
 
     let l_shared = u32::try_from(site_buf.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -29,7 +29,12 @@ where
     let genotypes = record.genotypes();
 
     if !genotypes.is_empty() {
-        write_genotypes(&mut genotypes_buf, string_map, genotypes.keys(), genotypes)?;
+        write_genotypes(
+            &mut genotypes_buf,
+            string_maps.strings(),
+            genotypes.keys(),
+            genotypes,
+        )?;
     };
 
     let l_indiv = u32::try_from(genotypes_buf.len())
@@ -53,7 +58,7 @@ mod tests {
             .add_contig(vcf::header::Contig::new("sq0"))
             .build();
 
-        let string_map = StringMap::default();
+        let string_maps = StringMaps::default();
 
         let record = vcf::Record::builder()
             .set_chromosome("sq0".parse()?)
@@ -62,7 +67,7 @@ mod tests {
             .build()?;
 
         let mut buf = Vec::new();
-        write_vcf_record(&mut buf, &header, &string_map, &record)?;
+        write_vcf_record(&mut buf, &header, &string_maps, &record)?;
 
         let expected = [
             0x1d, 0x00, 0x00, 0x00, // l_shared = 29

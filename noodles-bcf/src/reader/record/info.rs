@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use noodles_vcf::{self as vcf, header::info::Type};
 
 use crate::{
-    header::StringMap,
+    header::string_maps::StringStringMap,
     reader::{string_map::read_string_map_index, value::read_value},
     record::{
         value::{Float, Int16, Int32, Int8},
@@ -14,7 +14,7 @@ use crate::{
 pub fn read_info<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
     len: usize,
 ) -> io::Result<vcf::record::Info>
 where
@@ -23,7 +23,7 @@ where
     let mut fields = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let field = read_info_field(reader, infos, string_map)?;
+        let field = read_info_field(reader, infos, string_string_map)?;
         fields.push(field);
     }
 
@@ -33,12 +33,12 @@ where
 pub fn read_info_field<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
 ) -> io::Result<vcf::record::info::Field>
 where
     R: Read,
 {
-    let key = read_info_field_key(reader, infos, string_map)?;
+    let key = read_info_field_key(reader, infos, string_string_map)?;
 
     let info = infos.get(&key).ok_or_else(|| {
         io::Error::new(
@@ -55,14 +55,14 @@ where
 fn read_info_field_key<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
-    string_map: &StringMap,
+    string_string_map: &StringStringMap,
 ) -> io::Result<vcf::record::info::field::Key>
 where
     R: Read,
 {
     read_string_map_index(reader)
         .and_then(|j| {
-            string_map.get_index(j).ok_or_else(|| {
+            string_string_map.get_index(j).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!("invalid string map index: {}", j),

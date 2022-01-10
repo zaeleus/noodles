@@ -199,6 +199,8 @@ mod tests {
             Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
         };
 
+        use crate::header::StringMaps;
+
         // § Putting it all together (2021-07-27)
         //
         // Note that the data in the reference table mixes big and little endian. INFO string map
@@ -267,7 +269,7 @@ mod tests {
 "#;
 
         let header = raw_header.parse()?;
-        let string_map = raw_header.parse()?;
+        let string_maps: StringMaps = raw_header.parse()?;
 
         let mut reader = &data[..];
         let mut buf = Vec::new();
@@ -286,7 +288,9 @@ mod tests {
         // FIXME: alt
 
         assert_eq!(
-            record.filters().try_into_vcf_record_filters(&string_map)?,
+            record
+                .filters()
+                .try_into_vcf_record_filters(string_maps.strings())?,
             Some(VcfFilters::Pass),
         );
 
@@ -294,7 +298,7 @@ mod tests {
 
         let actual = record
             .info()
-            .try_into_vcf_record_info(&header, &string_map)?;
+            .try_into_vcf_record_info(&header, string_maps.strings())?;
 
         let expected = VcfInfo::try_from(vec![
             InfoField::new("HM3".parse()?, Some(InfoFieldValue::Flag)),
@@ -315,7 +319,7 @@ mod tests {
 
         let actual = record
             .genotypes()
-            .try_into_vcf_record_genotypes(&header, &string_map)?;
+            .try_into_vcf_record_genotypes(&header, string_maps.strings())?;
 
         let keys = Keys::try_from(vec![
             GenotypeFieldKey::Genotype,

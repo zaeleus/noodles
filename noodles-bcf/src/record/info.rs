@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_vcf as vcf;
 
-use crate::header::StringMap;
+use crate::header::string_maps::StringStringMap;
 
 /// BCF record info.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -23,20 +23,20 @@ impl Info {
     ///
     /// let bcf_info = bcf::record::Info::default();
     /// let header = vcf::Header::default();
-    /// let string_map = bcf::header::StringMap::default();
+    /// let string_maps = bcf::header::StringMaps::default();
     ///
-    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, &string_map)?;
+    /// let vcf_info = bcf_info.try_into_vcf_record_info(&header, string_maps.strings())?;
     /// assert!(vcf_info.is_empty());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn try_into_vcf_record_info(
         &self,
         header: &vcf::Header,
-        string_map: &StringMap,
+        string_string_map: &StringStringMap,
     ) -> io::Result<vcf::record::Info> {
         use crate::reader::record::read_info;
         let mut reader = &self.buf[..];
-        read_info(&mut reader, header.infos(), string_map, self.len())
+        read_info(&mut reader, header.infos(), string_string_map, self.len())
     }
 
     /// Creates an info map by wrapping the given buffer.
@@ -106,7 +106,7 @@ impl Info {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMap, record::Info};
+    /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
     ///
     /// let header = vcf::Header::builder()
@@ -114,7 +114,7 @@ impl Info {
     ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
     ///     .build();
     ///
-    /// let string_map = StringMap::from(&header);
+    /// let string_maps = StringMaps::from(&header);
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -124,20 +124,20 @@ impl Info {
     /// let info = Info::new(data, 2);
     ///
     /// assert_eq!(
-    ///     info.get(&header, &string_map, &Key::AlleleCount).transpose()?,
+    ///     info.get(&header, string_maps.strings(), &Key::AlleleCount).transpose()?,
     ///     Some(Field::new(Key::AlleleCount, Some(Value::Integer(5))))
     /// );
     ///
-    /// assert!(info.get(&header, &string_map, &Key::AncestralAllele).is_none());
+    /// assert!(info.get(&header, string_maps.strings(), &Key::AncestralAllele).is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn get(
         &self,
         header: &vcf::Header,
-        string_map: &StringMap,
+        string_string_map: &StringStringMap,
         key: &vcf::record::info::field::Key,
     ) -> Option<io::Result<vcf::record::info::Field>> {
-        for result in self.values(header, string_map) {
+        for result in self.values(header, string_string_map) {
             match result {
                 Ok(field) => {
                     if field.key() == key {
@@ -157,7 +157,7 @@ impl Info {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMap, record::Info};
+    /// use noodles_bcf::{header::StringMaps, record::Info};
     /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
     ///
     /// let header = vcf::Header::builder()
@@ -165,7 +165,7 @@ impl Info {
     ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
     ///     .build();
     ///
-    /// let string_map = StringMap::from(&header);
+    /// let string_maps = StringMaps::from(&header);
     ///
     /// let data = vec![
     ///     0x11, 0x01, 0x11, 0x05, // AC=5
@@ -173,7 +173,7 @@ impl Info {
     /// ];
     ///
     /// let info = Info::new(data, 2);
-    /// let mut fields = info.values(&header, &string_map);
+    /// let mut fields = info.values(&header, string_maps.strings());
     ///
     /// assert_eq!(
     ///     fields.next().transpose()?,
@@ -191,11 +191,12 @@ impl Info {
     pub fn values<'a>(
         &'a self,
         header: &'a vcf::Header,
-        string_map: &'a StringMap,
+        string_string_map: &'a StringStringMap,
     ) -> impl Iterator<Item = io::Result<vcf::record::info::Field>> + 'a {
         use crate::reader::record::info::read_info_field;
         let mut reader = &self.buf[..];
-        (0..self.len()).map(move |_| read_info_field(&mut reader, header.infos(), string_map))
+        (0..self.len())
+            .map(move |_| read_info_field(&mut reader, header.infos(), string_string_map))
     }
 
     pub(crate) fn set_field_count(&mut self, field_count: usize) {

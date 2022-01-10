@@ -1,115 +1,49 @@
-use std::{
-    collections::HashMap,
-    mem,
-    str::{FromStr, Lines},
-};
+//! An indexed map of VCF strings.
+
+mod string_map;
+
+use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
     header::{Filter, Format, Info, ParseError, Record},
 };
 
+pub use self::string_map::StringMap;
+
+/// An indexed map of VCF strings (FILTER, FORMAT, and INFO).
+pub type StringStringMap = StringMap;
+
 /// An indexed map of VCF strings.
-///
-/// This is also called a dictionary of strings.
-///
-/// See § 6.2.1 Dictionary of strings (2021-05-13).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StringMap {
-    indices: HashMap<String, usize>,
-    entries: Vec<Option<String>>,
-}
+pub struct StringMaps(StringStringMap);
 
-impl StringMap {
-    /// Returns an entry by index.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::header::StringMap;
-    /// let string_map = StringMap::default();
-    /// assert_eq!(string_map.get_index(0), Some("PASS"));
-    /// assert!(string_map.get_index(1).is_none());
-    /// ```
-    pub fn get_index(&self, i: usize) -> Option<&str> {
-        self.entries.get(i).and_then(|entry| entry.as_deref())
-    }
-
-    /// Returns the index of the entry of the given value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf::header::StringMap;
-    /// let string_map = StringMap::default();
-    /// assert_eq!(string_map.get_index_of("PASS"), Some(0));
-    /// assert!(string_map.get_index_of("DP").is_none());
-    /// ```
-    pub fn get_index_of(&self, value: &str) -> Option<usize> {
-        self.indices.get(value).copied()
-    }
-
-    fn get_full(&self, value: &str) -> Option<(usize, &str)> {
-        self.get_index_of(value)
-            .and_then(|i| self.get_index(i).map(|entry| (i, entry)))
-    }
-
-    fn insert(&mut self, value: String) -> Option<String> {
-        self.insert_full(value).1
-    }
-
-    fn insert_full(&mut self, value: String) -> (usize, Option<String>) {
-        match self.get_index_of(&value) {
-            Some(i) => {
-                let entry = mem::replace(&mut self.entries[i], Some(value));
-                (i, entry)
-            }
-            None => {
-                let i = self.push(value);
-                (i, None)
-            }
-        }
-    }
-
-    fn insert_at(&mut self, i: usize, value: String) -> Option<String> {
-        if i >= self.entries.len() {
-            self.entries.resize(i + 1, None);
-        }
-
-        self.indices.insert(value.clone(), i);
-        mem::replace(&mut self.entries[i], Some(value))
-    }
-
-    fn push(&mut self, value: String) -> usize {
-        let i = self.entries.len();
-
-        self.indices.insert(value.clone(), i);
-        self.entries.push(Some(value));
-
-        i
+impl StringMaps {
+    /// Returns an indexed map of VCF string (FILTER, FORMAT, and INFO).
+    pub fn strings(&self) -> &StringStringMap {
+        &self.0
     }
 }
 
-impl Default for StringMap {
+impl Default for StringMaps {
     fn default() -> Self {
         // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
         // encoded as the first entry in the header dictionary."
+        let mut string_string_map = StringMap::default();
         let pass = Filter::pass().id().to_string();
+        string_string_map.insert(pass);
 
-        Self {
-            indices: [(pass.clone(), 0)].into_iter().collect(),
-            entries: vec![Some(pass)],
-        }
+        Self(string_string_map)
     }
 }
 
-impl FromStr for StringMap {
+impl FromStr for StringMaps {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use vcf::header::record::Key;
 
-        let mut string_map = StringMap::default();
+        let mut string_maps = Self::default();
 
         let mut lines = s.lines();
         let file_format = parse_file_format(&mut lines)?;
@@ -140,7 +74,7 @@ impl FromStr for StringMap {
             };
 
             if let Some(i) = idx {
-                if let Some((j, entry)) = string_map.get_full(&id) {
+                if let Some((j, entry)) = string_maps.strings().get_full(&id) {
                     let actual = (i, id);
                     let expected = (j, entry.into());
 
@@ -148,14 +82,14 @@ impl FromStr for StringMap {
                         return Err(ParseError::StringMapPositionMismatch(actual, expected));
                     }
                 } else {
-                    string_map.insert_at(i, id);
+                    string_maps.0.insert_at(i, id);
                 }
             } else {
-                string_map.insert(id);
+                string_maps.0.insert(id);
             }
         }
 
-        Ok(string_map)
+        Ok(string_maps)
     }
 }
 
@@ -177,23 +111,23 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
     }
 }
 
-impl From<&vcf::Header> for StringMap {
+impl From<&vcf::Header> for StringMaps {
     fn from(header: &vcf::Header) -> Self {
-        let mut string_map = StringMap::default();
+        let mut string_maps = StringMaps::default();
 
         for info in header.infos().values() {
-            string_map.insert(info.id().as_ref().into());
+            string_maps.0.insert(info.id().as_ref().into());
         }
 
         for filter in header.filters().values() {
-            string_map.insert(filter.id().into());
+            string_maps.0.insert(filter.id().into());
         }
 
         for format in header.formats().values() {
-            string_map.insert(format.id().as_ref().into());
+            string_maps.0.insert(format.id().as_ref().into());
         }
 
-        string_map
+        string_maps
     }
 }
 
@@ -203,13 +137,13 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let string_map = StringMap::default();
+        let actual = StringMaps::default();
 
-        assert_eq!(string_map.indices.len(), 1);
-        assert_eq!(string_map.indices.get("PASS"), Some(&0));
+        let mut string_string_map = StringMap::default();
+        string_string_map.insert("PASS".into());
+        let expected = StringMaps(string_string_map);
 
-        assert_eq!(string_map.entries.len(), 1);
-        assert_eq!(string_map.entries[0], Some(String::from("PASS")));
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -245,7 +179,7 @@ mod tests {
             Some(String::from("q10")),
             Some(String::from("GT")),
         ];
-        let expected = StringMap { indices, entries };
+        let expected = StringMaps(StringMap { indices, entries });
 
         assert_eq!(s.parse(), Ok(expected));
     }
@@ -280,7 +214,7 @@ mod tests {
             Some(String::from("q15")),
             Some(String::from("q20")),
         ];
-        let expected = StringMap { indices, entries };
+        let expected = StringMaps(StringMap { indices, entries });
 
         assert_eq!(s.parse(), Ok(expected));
     }
@@ -293,7 +227,7 @@ mod tests {
 "#;
 
         assert_eq!(
-            s.parse::<StringMap>(),
+            s.parse::<StringMaps>(),
             Err(ParseError::StringMapPositionMismatch(
                 (8, String::from("PASS")),
                 (0, String::from("PASS"))
@@ -307,7 +241,7 @@ mod tests {
 "#;
 
         assert_eq!(
-            s.parse::<StringMap>(),
+            s.parse::<StringMaps>(),
             Err(ParseError::StringMapPositionMismatch(
                 (2, String::from("DP")),
                 (1, String::from("DP"))
@@ -345,7 +279,7 @@ mod tests {
             ))
             .build();
 
-        let actual = StringMap::from(&header);
+        let actual = StringMaps::from(&header);
 
         let indices = [
             (String::from("PASS"), 0),
@@ -363,7 +297,7 @@ mod tests {
             Some(String::from("q10")),
             Some(String::from("GT")),
         ];
-        let expected = StringMap { indices, entries };
+        let expected = StringMaps(StringMap { indices, entries });
 
         assert_eq!(actual, expected);
     }

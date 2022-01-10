@@ -6,7 +6,7 @@
 
 use std::io;
 
-use noodles_bcf::{self as bcf, header::StringMap};
+use noodles_bcf::{self as bcf, header::StringMaps};
 use noodles_vcf::{self as vcf, header::Contig, record::Position};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    let string_map = StringMap::from(&header);
+    let string_maps = StringMaps::from(&header);
 
     let record = vcf::Record::builder()
         .set_chromosome("sq0".parse()?)
@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_bases("A".parse()?)
         .build()?;
 
-    writer.write_vcf_record(&header, &string_map, &record)?;
+    writer.write_vcf_record(&header, &string_maps, &record)?;
 
     Ok(())
 }

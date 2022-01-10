@@ -14,11 +14,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let raw_header = reader.read_header()?;
     let header = raw_header.parse()?;
-    let string_map = raw_header.parse()?;
+    let string_maps = raw_header.parse()?;
 
     for result in reader.records() {
         let record = result?;
-        let vcf_record = record.try_into_vcf_record(&header, &string_map)?;
+        let vcf_record = record.try_into_vcf_record(&header, &string_maps)?;
         println!("{}", vcf_record);
     }
 

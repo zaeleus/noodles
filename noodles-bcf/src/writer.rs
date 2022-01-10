@@ -12,7 +12,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 
-use super::{header::StringMap, Record};
+use super::{header::StringMaps, Record};
 
 const MAJOR: u8 = 2;
 const MINOR: u8 = 2;
@@ -120,7 +120,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{self as bcf, header::StringMap};
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
     ///
     /// let mut writer = bcf::Writer::new(Vec::new());
@@ -131,7 +131,7 @@ where
     ///
     /// writer.write_header(&header)?;
     ///
-    /// let string_map = StringMap::from(&header);
+    /// let string_maps = StringMaps::from(&header);
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
@@ -139,16 +139,16 @@ where
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// writer.write_vcf_record(&header, &string_map, &record)?;
+    /// writer.write_vcf_record(&header, &string_maps, &record)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_vcf_record(
         &mut self,
         header: &vcf::Header,
-        string_map: &StringMap,
+        string_maps: &StringMaps,
         record: &vcf::Record,
     ) -> io::Result<()> {
-        vcf_record::write_vcf_record(&mut self.inner, header, string_map, record)
+        vcf_record::write_vcf_record(&mut self.inner, header, string_maps, record)
     }
 }
 

@@ -8,19 +8,45 @@
 
 ### Changed
 
-  * bcf/header/string_map: Parsing can now fail with
+  * bcf/header: Split `StringMap` from `StringMaps`.
+
+    Use `bcf::header::string_maps::StringStringMap` as a replacement to what
+    `StringMap` was used as. It can typically be accessed using
+    `StringMaps::strings`.
+
+  * bcf/header/string_maps: Parsing can now fail with
     `vcf::header::ParseError::StringMapPositionMismatch` if the string map
     position of an entry and record-defined IDX field value do not match.
 
-  * bcf/header/string_map: If present, the IDX field is used to determine the
+  * bcf/header/string_maps: If present, the IDX field is used to determine the
     position of the entry in the string map ([#64]).
+
+  * bcf/header/string_maps/string_map: The default implementation now creates
+    an empty map.
+
+    This used to create a default map with a `PASS` entry at position 0.
+
+  * bcf/record: `Record::try_into_vcf_record` now takes `StringMaps` instead of
+    `StringMap`.
+
+  * bcf/record: The following now take `StringStringMap` instead of
+    `StringMap`:
+
+    * `Filters::try_into_vcf_record_filters`
+    * `Info::try_into_vcf_record_info`
+    * `Info::get`
+    * `Info::values`
+    * `Info::try_into_vcf_record_genotypes`
+
+  * bcf/writer: `Writer::write_vcf_record` now takes `StringMaps` instead of
+    `StringMap`.
 
 [#64]: https://github.com/zaeleus/noodles/issues/64
 
 ### Removed
 
-  * bcf/header/string_map: Remove `Deref<Target = IndexSet<String>>` for
-    `StringMap`.
+  * bcf/header/string_maps/string_map: Remove `Deref<Target =
+    IndexSet<String>>` for `StringMap`.
 
     `StringMap` is no longer backed by an `IndexMap`.
 
