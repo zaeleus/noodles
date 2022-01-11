@@ -73,20 +73,7 @@ impl FromStr for StringMaps {
                 _ => continue,
             };
 
-            if let Some(i) = idx {
-                if let Some((j, entry)) = string_maps.strings().get_full(&id) {
-                    let actual = (i, id);
-                    let expected = (j, entry.into());
-
-                    if actual != expected {
-                        return Err(ParseError::StringMapPositionMismatch(actual, expected));
-                    }
-                } else {
-                    string_maps.0.insert_at(i, id);
-                }
-            } else {
-                string_maps.0.insert(id);
-            }
+            insert(&mut string_maps.0, id, idx)?;
         }
 
         Ok(string_maps)
@@ -109,6 +96,25 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
     } else {
         Err(ParseError::MissingFileFormat)
     }
+}
+
+fn insert(string_map: &mut StringMap, id: String, idx: Option<usize>) -> Result<(), ParseError> {
+    if let Some(i) = idx {
+        if let Some((j, entry)) = string_map.get_full(&id) {
+            let actual = (i, id);
+            let expected = (j, entry.into());
+
+            if actual != expected {
+                return Err(ParseError::StringMapPositionMismatch(actual, expected));
+            }
+        } else {
+            string_map.insert_at(i, id);
+        }
+    } else {
+        string_map.insert(id);
+    }
+
+    Ok(())
 }
 
 impl From<&vcf::Header> for StringMaps {
