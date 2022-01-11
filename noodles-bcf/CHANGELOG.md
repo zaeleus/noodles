@@ -47,6 +47,12 @@
   * bcf/writer: `Writer::write_vcf_record` now takes `StringMaps` instead of
     `StringMap`.
 
+  * bcf/writer/vcf_record: Use contig string map to find index of contig.
+
+    This previously used the position of the contig in the header, but BCF
+    allows records to override their positions using the `IDX` field, requiring
+    a contig string map.
+
 [#64]: https://github.com/zaeleus/noodles/issues/64
 
 ### Removed

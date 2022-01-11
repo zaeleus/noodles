@@ -6,7 +6,10 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
 
 use crate::{
-    header::{string_maps::StringStringMap, StringMaps},
+    header::{
+        string_maps::{ContigStringMap, StringStringMap},
+        StringMaps,
+    },
     record::value::{Float, Value},
     writer::value::write_value,
 };
@@ -24,7 +27,7 @@ pub fn write_site<W>(
 where
     W: Write,
 {
-    write_chrom(writer, header.contigs(), record.chromosome())?;
+    write_chrom(writer, string_maps.contigs(), record.chromosome())?;
     write_pos(writer, record.position())?;
 
     let end = record
@@ -56,7 +59,7 @@ where
 
 fn write_chrom<W>(
     writer: &mut W,
-    contigs: &vcf::header::Contigs,
+    contig_string_map: &ContigStringMap,
     chromosome: &vcf::record::Chromosome,
 ) -> io::Result<()>
 where
@@ -65,7 +68,7 @@ where
     use vcf::record::Chromosome;
 
     let chrom = match chromosome {
-        Chromosome::Name(name) => contigs
+        Chromosome::Name(name) => contig_string_map
             .get_index_of(name)
             .ok_or_else(|| {
                 io::Error::new(
