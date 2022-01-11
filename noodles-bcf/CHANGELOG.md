@@ -8,7 +8,7 @@
 
 ### Changed
 
-  * bcf/header: Split `StringMap` from `StringMaps`.
+  * bcf/header: Split `StringMap` from `StringMaps` (#64).
 
     Use `bcf::header::string_maps::StringStringMap` as a replacement to what
     `StringMap` was used as. It can typically be accessed using
@@ -23,7 +23,7 @@
 
   * bcf/header/string_maps: Parsing (`FromStr`) and conversion
     (`From<&vcf::Header>`) now builds a contig string map (also known as a
-    "dictionary of contigs").
+    "dictionary of contigs") (#64).
 
     It can be accessed using `StringMaps::contigs`.
 
@@ -33,10 +33,10 @@
     This used to create a default map with a `PASS` entry at position 0.
 
   * bcf/record: `Record::try_into_vcf_record` now takes `StringMaps` instead of
-    `StringMap`.
+    `StringMap` (#64).
 
   * bcf/record: The following now take `StringStringMap` instead of
-    `StringMap`:
+    `StringMap` (#64):
 
     * `Filters::try_into_vcf_record_filters`
     * `Info::try_into_vcf_record_info`
@@ -44,12 +44,12 @@
     * `Info::values`
     * `Info::try_into_vcf_record_genotypes`
 
-  * bcf/record/convert: Use contig string map to find chromosome name.
+  * bcf/record/convert: Use contig string map to find chromosome name (#64).
 
   * bcf/writer: `Writer::write_vcf_record` now takes `StringMaps` instead of
     `StringMap`.
 
-  * bcf/writer/vcf_record: Use contig string map to find index of contig.
+  * bcf/writer/vcf_record: Use contig string map to find index of contig (#64).
 
     This previously used the position of the contig in the header, but BCF
     allows records to override their positions using the `IDX` field, requiring
