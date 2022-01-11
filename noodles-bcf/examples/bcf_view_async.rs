@@ -1,6 +1,6 @@
 //! Prints a BCF file in the VCF format.
 //!
-//! The result matches the output of `bcftools view --no-header <src>`.
+//! The result matches the output of `bcftools view <src>`.
 
 use std::env;
 
@@ -18,6 +18,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_header = reader.read_header().await?;
     let header = raw_header.parse()?;
     let string_maps = raw_header.parse()?;
+
+    print!("{}", raw_header);
 
     let mut records = reader.records();
 
