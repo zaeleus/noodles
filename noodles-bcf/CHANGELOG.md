@@ -21,6 +21,12 @@
   * bcf/header/string_maps: If present, the IDX field is used to determine the
     position of the entry in the string map ([#64]).
 
+  * bcf/header/string_maps: Parsing (`FromStr`) and conversion
+    (`From<&vcf::Header>`) now builds a contig string map (also known as a
+    "dictionary of contigs").
+
+    It can be accessed using `StringMaps::contigs`.
+
   * bcf/header/string_maps/string_map: The default implementation now creates
     an empty map.
 

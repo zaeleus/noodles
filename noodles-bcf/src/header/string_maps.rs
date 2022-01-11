@@ -6,7 +6,7 @@ use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
-    header::{Filter, Format, Info, ParseError, Record},
+    header::{Contig, Filter, Format, Info, ParseError, Record},
 };
 
 pub use self::string_map::StringMap;
@@ -14,14 +14,33 @@ pub use self::string_map::StringMap;
 /// An indexed map of VCF strings (FILTER, FORMAT, and INFO).
 pub type StringStringMap = StringMap;
 
+/// An indexed map of VCF contig names.
+pub type ContigStringMap = StringMap;
+
 /// An indexed map of VCF strings.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StringMaps(StringStringMap);
+pub struct StringMaps {
+    string_string_map: StringStringMap,
+    contig_string_map: ContigStringMap,
+}
 
 impl StringMaps {
     /// Returns an indexed map of VCF string (FILTER, FORMAT, and INFO).
     pub fn strings(&self) -> &StringStringMap {
-        &self.0
+        &self.string_string_map
+    }
+
+    fn strings_mut(&mut self) -> &mut StringStringMap {
+        &mut self.string_string_map
+    }
+
+    /// Returns an indexed map of contig names.
+    pub fn contigs(&self) -> &ContigStringMap {
+        &self.contig_string_map
+    }
+
+    fn contigs_mut(&mut self) -> &mut ContigStringMap {
+        &mut self.contig_string_map
     }
 }
 
@@ -33,7 +52,12 @@ impl Default for StringMaps {
         let pass = Filter::pass().id().to_string();
         string_string_map.insert(pass);
 
-        Self(string_string_map)
+        let contig_string_map = StringMap::default();
+
+        Self {
+            string_string_map,
+            contig_string_map,
+        }
     }
 }
 
@@ -55,25 +79,32 @@ impl FromStr for StringMaps {
 
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            let (id, idx) = match record.key() {
+            match record.key() {
+                Key::Contig => {
+                    let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
+                    insert(string_maps.contigs_mut(), contig.id(), contig.idx())?;
+                }
                 Key::Filter => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
-                    (filter.id().to_string(), filter.idx())
+                    insert(string_maps.strings_mut(), filter.id(), filter.idx())?;
                 }
                 Key::Format => {
                     let format = Format::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidFormat)?;
-                    (format.id().as_ref().to_string(), format.idx())
+
+                    insert(
+                        string_maps.strings_mut(),
+                        format.id().as_ref(),
+                        format.idx(),
+                    )?;
                 }
                 Key::Info => {
                     let info = Info::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidInfo)?;
-                    (info.id().as_ref().to_string(), info.idx())
+                    insert(string_maps.strings_mut(), info.id().as_ref(), info.idx())?;
                 }
-                _ => continue,
-            };
-
-            insert(&mut string_maps.0, id, idx)?;
+                _ => {}
+            }
         }
 
         Ok(string_maps)
@@ -98,20 +129,20 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
     }
 }
 
-fn insert(string_map: &mut StringMap, id: String, idx: Option<usize>) -> Result<(), ParseError> {
+fn insert(string_map: &mut StringMap, id: &str, idx: Option<usize>) -> Result<(), ParseError> {
     if let Some(i) = idx {
-        if let Some((j, entry)) = string_map.get_full(&id) {
-            let actual = (i, id);
+        if let Some((j, entry)) = string_map.get_full(id) {
+            let actual = (i, id.into());
             let expected = (j, entry.into());
 
             if actual != expected {
                 return Err(ParseError::StringMapPositionMismatch(actual, expected));
             }
         } else {
-            string_map.insert_at(i, id);
+            string_map.insert_at(i, id.into());
         }
     } else {
-        string_map.insert(id);
+        string_map.insert(id.into());
     }
 
     Ok(())
@@ -121,16 +152,22 @@ impl From<&vcf::Header> for StringMaps {
     fn from(header: &vcf::Header) -> Self {
         let mut string_maps = StringMaps::default();
 
+        for contig in header.contigs().values() {
+            string_maps.contigs_mut().insert(contig.id().into());
+        }
+
         for info in header.infos().values() {
-            string_maps.0.insert(info.id().as_ref().into());
+            string_maps.strings_mut().insert(info.id().as_ref().into());
         }
 
         for filter in header.filters().values() {
-            string_maps.0.insert(filter.id().into());
+            string_maps.strings_mut().insert(filter.id().into());
         }
 
         for format in header.formats().values() {
-            string_maps.0.insert(format.id().as_ref().into());
+            string_maps
+                .strings_mut()
+                .insert(format.id().as_ref().into());
         }
 
         string_maps
@@ -147,7 +184,13 @@ mod tests {
 
         let mut string_string_map = StringMap::default();
         string_string_map.insert("PASS".into());
-        let expected = StringMaps(string_string_map);
+
+        let contig_string_map = StringMap::default();
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
 
         assert_eq!(actual, expected);
     }
@@ -169,23 +212,44 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        let indices = [
-            (String::from("PASS"), 0),
-            (String::from("NS"), 1),
-            (String::from("DP"), 2),
-            (String::from("q10"), 3),
-            (String::from("GT"), 4),
-        ]
-        .into_iter()
-        .collect();
-        let entries = vec![
-            Some(String::from("PASS")),
-            Some(String::from("NS")),
-            Some(String::from("DP")),
-            Some(String::from("q10")),
-            Some(String::from("GT")),
-        ];
-        let expected = StringMaps(StringMap { indices, entries });
+        let string_string_map = StringMap {
+            indices: [
+                (String::from("PASS"), 0),
+                (String::from("NS"), 1),
+                (String::from("DP"), 2),
+                (String::from("q10"), 3),
+                (String::from("GT"), 4),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("PASS")),
+                Some(String::from("NS")),
+                Some(String::from("DP")),
+                Some(String::from("q10")),
+                Some(String::from("GT")),
+            ],
+        };
+
+        let contig_string_map = StringMap {
+            indices: [
+                (String::from("sq0"), 0),
+                (String::from("sq1"), 1),
+                (String::from("sq2"), 2),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("sq0")),
+                Some(String::from("sq1")),
+                Some(String::from("sq2")),
+            ],
+        };
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
 
         assert_eq!(s.parse(), Ok(expected));
     }
@@ -203,24 +267,32 @@ mod tests {
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample0
 "#;
 
-        let indices = [
-            (String::from("PASS"), 0),
-            (String::from("NS"), 1),
-            (String::from("q10"), 3),
-            (String::from("q15"), 4),
-            (String::from("q20"), 5),
-        ]
-        .into_iter()
-        .collect();
-        let entries = vec![
-            Some(String::from("PASS")),
-            Some(String::from("NS")),
-            None,
-            Some(String::from("q10")),
-            Some(String::from("q15")),
-            Some(String::from("q20")),
-        ];
-        let expected = StringMaps(StringMap { indices, entries });
+        let string_string_map = StringMap {
+            indices: [
+                (String::from("PASS"), 0),
+                (String::from("NS"), 1),
+                (String::from("q10"), 3),
+                (String::from("q15"), 4),
+                (String::from("q20"), 5),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("PASS")),
+                Some(String::from("NS")),
+                None,
+                Some(String::from("q10")),
+                Some(String::from("q15")),
+                Some(String::from("q20")),
+            ],
+        };
+
+        let contig_string_map = StringMap::default();
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
 
         assert_eq!(s.parse(), Ok(expected));
     }
@@ -287,23 +359,44 @@ mod tests {
 
         let actual = StringMaps::from(&header);
 
-        let indices = [
-            (String::from("PASS"), 0),
-            (String::from("NS"), 1),
-            (String::from("DP"), 2),
-            (String::from("q10"), 3),
-            (String::from("GT"), 4),
-        ]
-        .into_iter()
-        .collect();
-        let entries = vec![
-            Some(String::from("PASS")),
-            Some(String::from("NS")),
-            Some(String::from("DP")),
-            Some(String::from("q10")),
-            Some(String::from("GT")),
-        ];
-        let expected = StringMaps(StringMap { indices, entries });
+        let string_string_map = StringMap {
+            indices: [
+                (String::from("PASS"), 0),
+                (String::from("NS"), 1),
+                (String::from("DP"), 2),
+                (String::from("q10"), 3),
+                (String::from("GT"), 4),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("PASS")),
+                Some(String::from("NS")),
+                Some(String::from("DP")),
+                Some(String::from("q10")),
+                Some(String::from("GT")),
+            ],
+        };
+
+        let contig_string_map = StringMap {
+            indices: [
+                (String::from("sq0"), 0),
+                (String::from("sq1"), 1),
+                (String::from("sq2"), 2),
+            ]
+            .into_iter()
+            .collect(),
+            entries: vec![
+                Some(String::from("sq0")),
+                Some(String::from("sq1")),
+                Some(String::from("sq2")),
+            ],
+        };
+
+        let expected = StringMaps {
+            string_string_map,
+            contig_string_map,
+        };
 
         assert_eq!(actual, expected);
     }
