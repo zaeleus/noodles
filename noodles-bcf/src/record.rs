@@ -34,7 +34,10 @@ pub struct Record {
 impl Record {
     /// Returns the chromosome ID of the record.
     ///
-    /// The chromosome ID is the index of the associated contig in the VCF header.
+    /// The chromosome ID represents an index in the contig string map, which assoiciates an ID (by
+    /// position) with a contig record in the VCF header (by name). That is, to get the associated
+    /// contig record in the VCF header, the contig string map must first be queried by position to
+    /// find the chromosome name, and then the contigs in the VCF header can be queried by name.
     ///
     /// # Examples
     ///
