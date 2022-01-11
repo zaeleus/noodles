@@ -25,7 +25,7 @@ pub struct StringMaps {
 }
 
 impl StringMaps {
-    /// Returns an indexed map of VCF string (FILTER, FORMAT, and INFO).
+    /// Returns an indexed map of VCF strings (FILTER, FORMAT, and INFO).
     pub fn strings(&self) -> &StringStringMap {
         &self.string_string_map
     }
