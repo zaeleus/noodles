@@ -88,7 +88,7 @@ impl Record {
         &mut self.pos
     }
 
-    fn rlen(&self) -> i32 {
+    pub(crate) fn rlen(&self) -> i32 {
         self.rlen
     }
 

@@ -278,14 +278,14 @@ mod tests {
 
         assert_eq!(record.chromosome_id(), 1);
         assert_eq!(record.position(), Position::try_from(101)?);
-        // FIXME: rlen
+        assert_eq!(record.rlen(), 1);
         assert_eq!(
             record.quality_score(),
             QualityScore::try_from(30.1).map(Some)?
         );
         assert_eq!(record.ids(), &"rs123".parse::<Ids>()?);
-        // FIXME: r#ref
-        // FIXME: alt
+        assert_eq!(record.reference_bases(), &"A".parse()?);
+        assert_eq!(record.alternate_bases(), &"C".parse()?);
 
         assert_eq!(
             record
