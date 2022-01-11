@@ -35,19 +35,19 @@ impl Record {
         header: &vcf::Header,
         string_maps: &StringMaps,
     ) -> io::Result<vcf::Record> {
-        let (_, contig) = usize::try_from(self.chromosome_id())
+        let chromosome = usize::try_from(self.chromosome_id())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             .and_then(|i| {
-                header
+                string_maps
                     .contigs()
                     .get_index(i)
                     .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid chrom"))
+            })
+            .and_then(|chrom| {
+                chrom
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             })?;
-
-        let chromosome = contig
-            .id()
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let filters = self
             .filters()

@@ -44,6 +44,8 @@
     * `Info::values`
     * `Info::try_into_vcf_record_genotypes`
 
+  * bcf/record/convert: Use contig string map to find chromosome name.
+
   * bcf/writer: `Writer::write_vcf_record` now takes `StringMaps` instead of
     `StringMap`.
 
