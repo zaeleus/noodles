@@ -5,7 +5,7 @@ use std::{error, fmt, num, str::FromStr};
 const MIN: i32 = 0;
 
 /// A VCF record position.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Position(i32);
 
 impl From<Position> for i32 {
