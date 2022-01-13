@@ -7,7 +7,7 @@ use super::value::parse_f32_case_insensitive_extended;
 const MIN: f32 = 0.0;
 
 /// A VCF record quality score.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct QualityScore(f32);
 
 impl fmt::Display for QualityScore {

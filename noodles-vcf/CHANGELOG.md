@@ -34,6 +34,8 @@
   
   * vcf/record/position: Derive `PartialOrd` and `Ord`.
 
+  * vcf/record/quality_score: Derive `PartialOrd`.
+
   * vcf/record/reference_bases: Implement `DerefMut` ([#67]).
 
 [#65]: https://github.com/zaeleus/noodles/issues/65
