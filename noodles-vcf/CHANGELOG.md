@@ -31,7 +31,7 @@
   * vcf/record/genotypes/genotype: Implement `DerefMut` ([#67]).
 
   * vcf/record/genotypes/keys: Implement `DerefMut` ([#67]).
-  
+
   * vcf/record/position: Derive `PartialOrd` and `Ord` ([#70]).
 
   * vcf/record/quality_score: Derive `PartialOrd` ([#70]).
