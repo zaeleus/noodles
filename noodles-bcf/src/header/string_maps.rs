@@ -18,6 +18,8 @@ pub type StringStringMap = StringMap;
 pub type ContigStringMap = StringMap;
 
 /// An indexed map of VCF strings.
+///
+/// This includes both the dictionary of strings and dictionary of contigs.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringMaps {
     string_string_map: StringStringMap,
@@ -26,6 +28,38 @@ pub struct StringMaps {
 
 impl StringMaps {
     /// Returns an indexed map of VCF strings (FILTER, FORMAT, and INFO).
+    ///
+    /// The filter ID "PASS" is always the first entry in the string string map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{Contig, Filter, Format, Info},
+    ///     record::{
+    ///         genotypes::genotype::field::Key as GenotypeKey,
+    ///         info::field::Key as InfoKey,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(Info::from(InfoKey::TotalDepth))
+    ///     .add_filter(Filter::new("q10", "Quality below 10"))
+    ///     .add_format(Format::from(GenotypeKey::ReadDepth))
+    ///     .add_contig(Contig::new("sq0"))
+    ///     .build();
+    ///
+    /// let string_maps = StringMaps::from(&header);
+    /// let string_string_map = string_maps.strings();
+    ///
+    /// assert_eq!(string_string_map.get_index(0), Some("PASS"));
+    /// assert_eq!(string_string_map.get_index(1), Some("DP"));
+    /// assert_eq!(string_string_map.get_index(2), Some("q10"));
+    /// assert!(string_string_map.get_index(3).is_none());
+    /// # Ok::<_, vcf::header::ParseError>(())
+    /// ```
     pub fn strings(&self) -> &StringStringMap {
         &self.string_string_map
     }
@@ -35,6 +69,34 @@ impl StringMaps {
     }
 
     /// Returns an indexed map of contig names.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{Contig, Filter, Format, Info},
+    ///     record::{
+    ///         genotypes::genotype::field::Key as GenotypeKey,
+    ///         info::field::Key as InfoKey,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_info(Info::from(InfoKey::TotalDepth))
+    ///     .add_filter(Filter::new("q10", "Quality below 10"))
+    ///     .add_format(Format::from(GenotypeKey::ReadDepth))
+    ///     .add_contig(Contig::new("sq0"))
+    ///     .build();
+    ///
+    /// let string_maps = StringMaps::from(&header);
+    /// let contig_string_map = string_maps.contigs();
+    ///
+    /// assert_eq!(contig_string_map.get_index(0), Some("sq0"));
+    /// assert!(contig_string_map.get_index(1).is_none());
+    /// # Ok::<_, vcf::header::ParseError>(())
+    /// ```
     pub fn contigs(&self) -> &ContigStringMap {
         &self.contig_string_map
     }
