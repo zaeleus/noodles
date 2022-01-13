@@ -32,15 +32,16 @@
 
   * vcf/record/genotypes/keys: Implement `DerefMut` ([#67]).
   
-  * vcf/record/position: Derive `PartialOrd` and `Ord`.
+  * vcf/record/position: Derive `PartialOrd` and `Ord` ([#70]).
 
-  * vcf/record/quality_score: Derive `PartialOrd`.
+  * vcf/record/quality_score: Derive `PartialOrd` ([#70]).
 
   * vcf/record/reference_bases: Implement `DerefMut` ([#67]).
 
 [#65]: https://github.com/zaeleus/noodles/issues/65
 [#67]: https://github.com/zaeleus/noodles/pull/67
 [#69]: https://github.com/zaeleus/noodles/pull/69
+[#70]: https://github.com/zaeleus/noodles/pull/70
 
 ### Changed
 
