@@ -114,20 +114,44 @@ where
             Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
         }
         Some(Value::Int8Array(values)) => Ok(Some(vcf::record::info::field::Value::IntegerArray(
-            values.into_iter().map(i32::from).collect(),
+            values
+                .into_iter()
+                .map(Int8::from)
+                .map(|value| match value {
+                    Int8::Value(n) => Some(i32::from(n)),
+                    Int8::Missing => None,
+                    _ => todo!("unhandled i8 array value: {:?}", value),
+                })
+                .collect(),
         ))),
         Some(Value::Int16(Some(Int16::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::Integer(i32::from(n))))
         }
         Some(Value::Int16Array(values)) => Ok(Some(vcf::record::info::field::Value::IntegerArray(
-            values.into_iter().map(i32::from).collect(),
+            values
+                .into_iter()
+                .map(Int16::from)
+                .map(|value| match value {
+                    Int16::Value(n) => Some(i32::from(n)),
+                    Int16::Missing => None,
+                    _ => todo!("unhandled i16 array value: {:?}", value),
+                })
+                .collect(),
         ))),
         Some(Value::Int32(Some(Int32::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::Integer(n)))
         }
-        Some(Value::Int32Array(values)) => {
-            Ok(Some(vcf::record::info::field::Value::IntegerArray(values)))
-        }
+        Some(Value::Int32Array(values)) => Ok(Some(vcf::record::info::field::Value::IntegerArray(
+            values
+                .into_iter()
+                .map(Int32::from)
+                .map(|value| match value {
+                    Int32::Value(n) => Some(n),
+                    Int32::Missing => None,
+                    _ => todo!("unhandled i32 array value: {:?}", value),
+                })
+                .collect(),
+        ))),
         v => Err(type_mismatch_error(v, Type::Integer)),
     }
 }
@@ -157,9 +181,17 @@ where
         Some(Value::Float(Some(Float::Value(n)))) => {
             Ok(Some(vcf::record::info::field::Value::Float(n)))
         }
-        Some(Value::FloatArray(values)) => {
-            Ok(Some(vcf::record::info::field::Value::FloatArray(values)))
-        }
+        Some(Value::FloatArray(values)) => Ok(Some(vcf::record::info::field::Value::FloatArray(
+            values
+                .into_iter()
+                .map(Float::from)
+                .map(|value| match value {
+                    Float::Value(n) => Some(n),
+                    Float::Missing => None,
+                    _ => todo!("unhandled float array value: {:?}", value),
+                })
+                .collect(),
+        ))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
 }
@@ -170,6 +202,8 @@ fn read_info_field_character_value<R>(
 where
     R: Read,
 {
+    const MISSING_VALUE: char = '.';
+
     match read_value(reader)? {
         None | Some(Value::String(None)) => Ok(None),
         Some(Value::String(Some(s))) => match s.len() {
@@ -182,7 +216,12 @@ where
                     io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
                 })?,
             _ => Ok(Some(vcf::record::info::field::Value::CharacterArray(
-                s.chars().collect(),
+                s.chars()
+                    .map(|c| match c {
+                        MISSING_VALUE => None,
+                        _ => Some(c),
+                    })
+                    .collect(),
             ))),
         },
         v => Err(type_mismatch_error(v, Type::Character)),
@@ -267,7 +306,7 @@ mod tests {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
-            expected_value: Option<Vec<i32>>,
+            expected_value: Option<Vec<Option<i32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
             let expected = expected_value.map(vcf::record::info::field::Value::IntegerArray);
@@ -282,15 +321,35 @@ mod tests {
             String::default(),
         ));
 
-        // Some(Value::IntegerArray([8, 13]))
-        t(&[0x21, 0x08, 0x0d], &info, Some(vec![8, 13]))?;
-        // Some(Value::IntegerArray([21, 34]))
-        t(&[0x22, 0x15, 0x00, 0x22, 0x00], &info, Some(vec![21, 34]))?;
-        // Some(Value::IntegerArray([55, 89]))
+        // Some(Value::IntegerArray([Some(8), Some(13)]))
+        t(&[0x21, 0x08, 0x0d], &info, Some(vec![Some(8), Some(13)]))?;
+        // Some(Value::IntegerArray([Some(8), None]))
+        t(&[0x21, 0x08, 0x80], &info, Some(vec![Some(8), None]))?;
+
+        // Some(Value::IntegerArray([Some(21), Some(34)]))
+        t(
+            &[0x22, 0x15, 0x00, 0x22, 0x00],
+            &info,
+            Some(vec![Some(21), Some(34)]),
+        )?;
+        // Some(Value::IntegerArray([Some(21), None]))
+        t(
+            &[0x22, 0x15, 0x00, 0x00, 0x80],
+            &info,
+            Some(vec![Some(21), None]),
+        )?;
+
+        // Some(Value::IntegerArray([Some(55), Some(89)]))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
             &info,
-            Some(vec![55, 89]),
+            Some(vec![Some(55), Some(89)]),
+        )?;
+        // Some(Value::IntegerArray([Some(55), None]))
+        t(
+            &[0x23, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80],
+            &info,
+            Some(vec![Some(55), None]),
         )?;
 
         Ok(())
@@ -358,7 +417,7 @@ mod tests {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
-            expected_value: Option<Vec<f32>>,
+            expected_value: Option<Vec<Option<f32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
             let expected = expected_value.map(vcf::record::info::field::Value::FloatArray);
@@ -377,7 +436,13 @@ mod tests {
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
             &info,
-            Some(vec![0.0, 1.0]),
+            Some(vec![Some(0.0), Some(1.0)]),
+        )?;
+        // Some(Value::FloatArray([0.0, None]))
+        t(
+            &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
+            &info,
+            Some(vec![Some(0.0), None]),
         )?;
 
         Ok(())
@@ -419,7 +484,7 @@ mod tests {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
-            expected_value: Option<Vec<char>>,
+            expected_value: Option<Vec<Option<char>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
             let expected = expected_value.map(vcf::record::info::field::Value::CharacterArray);
@@ -438,7 +503,7 @@ mod tests {
         t(&[0x00], &info, None)?;
 
         // Some(Value::String(Some(String::from("nd"))))
-        t(&[0x27, 0x6e, 0x64], &info, Some(vec!['n', 'd']))?;
+        t(&[0x27, 0x6e, 0x64], &info, Some(vec![Some('n'), Some('d')]))?;
 
         Ok(())
     }

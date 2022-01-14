@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/info/field/value: Allow missing values in arrays.
+
+    Array values (`Value::IntegerArray`, `Value::FloatArray`,
+    `Value::CharacterArray`, and `Value::StringArray`) now wrap a vector of
+    optional values, rather than values, e.g., `Vec<Option<i32>>` rather than
+    `Vec<i32>`.
+
 ## 0.12.0 - 2022-01-13
 
 ### Added

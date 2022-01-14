@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bcf/reader/record/info: Handle reading INFO array values with missing raw
+    values.
+
+  * bcf/writer/vcf_record/site/info: Handle writing INFO array values with
+    missing raw values.
+
+    This allows reading/writing INFO array values that have missing raw values,
+    e.g., `HQ=8,.`.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added

@@ -349,7 +349,7 @@ mod tests {
             ),
             Field::new(
                 field::Key::AlleleFrequencies,
-                Some(field::Value::FloatArray(vec![0.333, 0.667])),
+                Some(field::Value::FloatArray(vec![Some(0.333), Some(0.667)])),
             ),
         ])?;
         assert_eq!(info.to_string(), "NS=2;AF=0.333,0.667");
