@@ -438,7 +438,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_bam::record::data::field::Value;
-    /// assert_eq!(Value::Hex(String::from("cafe")).as_hex(), Some("cafe"));
+    /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
     /// assert_eq!(Value::Int32(0).as_hex(), None);
     /// ```
     pub fn as_hex(&self) -> Option<&str> {
@@ -454,7 +454,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_bam::record::data::field::Value;
-    /// assert!(Value::Hex(String::from("cafe")).is_hex());
+    /// assert!(Value::Hex(String::from("CAFE")).is_hex());
     /// assert!(!Value::Int32(0).is_hex());
     /// ```
     pub fn is_hex(&self) -> bool {
@@ -708,7 +708,7 @@ mod tests {
         assert_eq!(Value::UInt32(0).ty(), Type::UInt32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
-        assert_eq!(Value::Hex(String::from("cafe")).ty(), Type::Hex);
+        assert_eq!(Value::Hex(String::from("CAFE")).ty(), Type::Hex);
         assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
@@ -729,7 +729,7 @@ mod tests {
         assert_eq!(Value::UInt32(0).subtype(), None);
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
-        assert_eq!(Value::Hex(String::from("cafe")).subtype(), None);
+        assert_eq!(Value::Hex(String::from("CAFE")).subtype(), None);
         assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
         assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
         assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
@@ -750,7 +750,7 @@ mod tests {
         assert_eq!(Value::UInt32(0).as_int(), Some(0));
         assert_eq!(Value::Float(0.0).as_int(), None);
         assert_eq!(Value::String(String::from("noodles")).as_int(), None);
-        assert_eq!(Value::Hex(String::from("cafe")).as_int(), None);
+        assert_eq!(Value::Hex(String::from("CAFE")).as_int(), None);
         assert_eq!(Value::Int8Array(vec![0]).as_int(), None);
         assert_eq!(Value::UInt8Array(vec![0]).as_int(), None);
         assert_eq!(Value::Int16Array(vec![0]).as_int(), None);
@@ -771,7 +771,7 @@ mod tests {
         assert!(Value::UInt32(0).is_int());
         assert!(!Value::Float(0.0).is_int());
         assert!(!Value::String(String::from("noodles")).is_int());
-        assert!(!Value::Hex(String::from("cafe")).is_int());
+        assert!(!Value::Hex(String::from("CAFE")).is_int());
         assert!(!Value::Int8Array(vec![0]).is_int());
         assert!(!Value::UInt8Array(vec![0]).is_int());
         assert!(!Value::Int16Array(vec![0]).is_int());
@@ -800,8 +800,8 @@ mod tests {
         );
 
         assert_eq!(
-            SamValue::from(Value::Hex(String::from("cafe"))),
-            SamValue::Hex(String::from("cafe"))
+            SamValue::from(Value::Hex(String::from("CAFE"))),
+            SamValue::Hex(String::from("CAFE"))
         );
 
         assert_eq!(

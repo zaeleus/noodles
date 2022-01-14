@@ -213,7 +213,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Hex(String::from("cafe")).as_hex(), Some("cafe"));
+    /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
     /// assert_eq!(Value::Int(0).as_hex(), None);
     /// ```
     pub fn as_hex(&self) -> Option<&str> {
@@ -229,7 +229,7 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Hex(String::from("cafe")).is_hex());
+    /// assert!(Value::Hex(String::from("CAFE")).is_hex());
     /// assert!(!Value::Int(0).is_hex());
     /// ```
     pub fn is_hex(&self) -> bool {
@@ -709,7 +709,7 @@ mod tests {
         assert_eq!(Value::Int(0).ty(), Type::Int);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
-        assert_eq!(Value::Hex(String::from("cafe")).ty(), Type::Hex);
+        assert_eq!(Value::Hex(String::from("CAFE")).ty(), Type::Hex);
         assert_eq!(Value::Int8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::UInt8Array(vec![0]).ty(), Type::Array);
         assert_eq!(Value::Int16Array(vec![0]).ty(), Type::Array);
@@ -725,7 +725,7 @@ mod tests {
         assert_eq!(Value::Int(0).subtype(), None);
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
-        assert_eq!(Value::Hex(String::from("cafe")).subtype(), None);
+        assert_eq!(Value::Hex(String::from("CAFE")).subtype(), None);
         assert_eq!(Value::Int8Array(vec![0]).subtype(), Some(Subtype::Int8));
         assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
         assert_eq!(Value::Int16Array(vec![0]).subtype(), Some(Subtype::Int16));
@@ -746,7 +746,7 @@ mod tests {
             "noodles"
         );
 
-        assert_eq!(Value::Hex(String::from("cafe")).to_string(), "cafe");
+        assert_eq!(Value::Hex(String::from("CAFE")).to_string(), "CAFE");
         assert_eq!(Value::Int8Array(vec![1, -2]).to_string(), "c,1,-2");
         assert_eq!(Value::UInt8Array(vec![3, 5]).to_string(), "C,3,5");
         assert_eq!(Value::Int16Array(vec![8, -13]).to_string(), "s,8,-13");

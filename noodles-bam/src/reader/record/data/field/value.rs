@@ -138,9 +138,9 @@ mod tests {
             Value::String(String::from("ndls")),
         )?;
         t(
-            &[0x63, 0x61, 0x66, 0x65, 0x00],
+            &[0x43, 0x41, 0x46, 0x45, 0x00],
             Type::Hex,
-            Value::Hex(String::from("cafe")),
+            Value::Hex(String::from("CAFE")),
         )?;
 
         t(

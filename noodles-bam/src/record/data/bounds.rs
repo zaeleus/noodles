@@ -161,7 +161,7 @@ mod tests {
             b'Z', b'I', b'I', 0x00, 0x00, 0x00, 0x00, // ZI:I:0
             b'Z', b'f', b'f', 0x00, 0x00, 0x00, 0x00, // Zf:f:0
             b'Z', b'Z', b'Z', b'n', b'd', b'l', b's', 0x00, // ZZ:Z:ndls
-            b'Z', b'H', b'H', b'c', b'a', b'f', b'e', 0x00, // ZH:H:cafe
+            b'Z', b'H', b'H', b'C', b'A', b'F', b'E', 0x00, // ZH:H:CAFE
             b'b', b'c', b'B', b'c', 0x01, 0x00, 0x00, 0x00, 0x00, // bc:B:c,0
             b'b', b'C', b'B', b'C', 0x01, 0x00, 0x00, 0x00, 0x00, // bC:B:C,0
             b'b', b's', b'B', b's', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, // bs:B:s,0

@@ -638,7 +638,7 @@ mod tests {
         t(&mut buf, &Value::Int(13), &[b'i']).await?;
         t(&mut buf, &Value::Float(8.0), &[b'f']).await?;
         t(&mut buf, &Value::String(String::from("ndls")), &[b'Z']).await?;
-        t(&mut buf, &Value::Hex(String::from("cafe")), &[b'H']).await?;
+        t(&mut buf, &Value::Hex(String::from("CAFE")), &[b'H']).await?;
         t(&mut buf, &Value::Int8Array(vec![1, -2]), &[b'B', b'c']).await?;
         t(&mut buf, &Value::UInt8Array(vec![3, 5]), &[b'B', b'C']).await?;
         t(&mut buf, &Value::Int16Array(vec![8, -13]), &[b'B', b's']).await?;
@@ -675,8 +675,8 @@ mod tests {
 
         t(
             &mut buf,
-            &Value::Hex(String::from("cafe")),
-            &[b'c', b'a', b'f', b'e', 0x00],
+            &Value::Hex(String::from("CAFE")),
+            &[b'C', b'A', b'F', b'E', 0x00],
         )
         .await?;
 
