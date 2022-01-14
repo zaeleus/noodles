@@ -298,6 +298,9 @@ mod tests {
         let value = Value::FloatArray(vec![Some(0.333)]);
         assert_eq!(value.to_string(), "0.333");
 
+        let value = Value::FloatArray(vec![Some(0.333), Some(0.667)]);
+        assert_eq!(value.to_string(), "0.333,0.667");
+
         let value = Value::FloatArray(vec![Some(0.333), None]);
         assert_eq!(value.to_string(), "0.333,.");
 
