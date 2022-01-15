@@ -13,6 +13,10 @@
     This allows reading/writing INFO array values that have missing raw values,
     e.g., `HQ=8,.`.
 
+### Fixed
+
+  * bcf/reader/record/info: Split on delimiter when reading a character array.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added

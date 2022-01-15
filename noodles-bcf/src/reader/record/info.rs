@@ -202,6 +202,7 @@ fn read_info_field_character_value<R>(
 where
     R: Read,
 {
+    const DELIMITER: char = ',';
     const MISSING_VALUE: char = '.';
 
     match read_value(reader)? {
@@ -216,7 +217,8 @@ where
                     io::Error::new(io::ErrorKind::InvalidData, "INFO character value missing")
                 })?,
             _ => Ok(Some(vcf::record::info::field::Value::CharacterArray(
-                s.chars()
+                s.split(DELIMITER)
+                    .flat_map(|t| t.chars())
                     .map(|c| match c {
                         MISSING_VALUE => None,
                         _ => Some(c),
@@ -502,8 +504,18 @@ mod tests {
         // None
         t(&[0x00], &info, None)?;
 
-        // Some(Value::String(Some(String::from("nd"))))
-        t(&[0x27, 0x6e, 0x64], &info, Some(vec![Some('n'), Some('d')]))?;
+        // Some(Value::String(Some(String::from("n,d"))))
+        t(
+            &[0x37, 0x6e, 0x2c, 0x64],
+            &info,
+            Some(vec![Some('n'), Some('d')]),
+        )?;
+        // Some(Value::String(Some(String::from("n,."))))
+        t(
+            &[0x37, 0x6e, 0x2c, 0x2e],
+            &info,
+            Some(vec![Some('n'), None]),
+        )?;
 
         Ok(())
     }
