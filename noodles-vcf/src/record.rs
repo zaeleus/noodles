@@ -672,9 +672,9 @@ impl Record {
     pub fn end(&self) -> Result<Position, EndError> {
         use info::field::{Key, Value};
 
-        let end = if let Some(field) = self.info().get(&Key::EndPosition) {
-            match field.value() {
-                Some(Value::Integer(n)) => *n,
+        let end = if let Some(value) = self.info().get(&Key::EndPosition).and_then(|f| f.value()) {
+            match value {
+                Value::Integer(n) => *n,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
             }
         } else {
@@ -739,6 +739,18 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
+        let record = Record::builder()
+            .set_chromosome("sq0".parse()?)
+            .set_position(Position::try_from(1)?)
+            .set_reference_bases("A".parse()?)
+            .set_info(Info::try_from(vec![info::Field::new(
+                info::field::Key::EndPosition,
+                None,
+            )])?)
+            .build()?;
+
+        assert_eq!(record.end(), Ok(Position::try_from(1)?));
+
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::try_from(1)?)

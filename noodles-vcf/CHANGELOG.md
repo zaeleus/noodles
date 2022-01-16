@@ -11,6 +11,13 @@
     optional values, rather than values, e.g., `Vec<Option<i32>>` rather than
     `Vec<i32>`.
 
+### Fixed
+
+  * vcf/record: Handle missing INFO END field value as no field.
+
+    When a record has an INFO END field with a missing a value, i.e., `END=.`,
+    it is treated as missing rather than invalid.
+
 ## 0.12.0 - 2022-01-13
 
 ### Added
