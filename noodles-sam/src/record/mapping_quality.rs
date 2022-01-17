@@ -10,7 +10,7 @@ pub const MISSING: u8 = 255;
 /// Mapping quality ranges from 0 to 254 (inclusive), where higher is better.
 ///
 /// The value 255 is reserved as a marker for a missing mapping quality.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct MappingQuality(u8);
 
 /// An error returned when a raw SAM record mapping quality fails to parse.

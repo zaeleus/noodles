@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/mapping_quality: Implement `Ord` + `PartialOrd`.
+
 ## 0.10.0 - 2022-01-13
 
 ### Added
