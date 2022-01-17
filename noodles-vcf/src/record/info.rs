@@ -49,6 +49,28 @@ impl Info {
         self.0.is_empty()
     }
 
+    /// Removes all field from the info map.
+    ///
+    /// This does not affect the capacity of the map.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    ///
+    /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
+    /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
+    /// let mut info = Info::try_from(vec![ns, dp])?;
+    /// assert!(!info.is_empty());
+    ///
+    /// info.clear();
+    /// assert!(info.is_empty());
+    /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
     /// Returns a reference to the field with the given key.
     ///
     /// # Examples

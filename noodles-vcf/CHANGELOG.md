@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/record/info: Add `clear` method to remove all fields from the info
+    map.
+
 ### Changed
 
   * vcf/record/info/field/value: Allow missing values in arrays.
