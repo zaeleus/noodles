@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 
-//! **noodles-bed** handles the reading of the BED (Browser Extensible Data) format.
+//! **noodles-bed** handles the reading and writing of the BED (Browser Extensible Data) format.
 
 mod reader;
 pub mod record;
