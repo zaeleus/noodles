@@ -47,11 +47,45 @@ impl Genotypes {
     }
 
     /// Returns the genotypes keys.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{
+    ///     genotypes::{genotype::field::Key, Keys},
+    ///     Genotypes,
+    /// };
+    ///
+    /// let genotypes = Genotypes::default();
+    /// assert!(genotypes.keys().is_empty());
+    ///
+    /// let keys = Keys::try_from(vec![Key::Genotype])?;
+    /// let genotypes = Genotypes::new(keys.clone(), Vec::new());
+    /// assert_eq!(genotypes.keys(), &keys);
+    /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
+    /// ```
     pub fn keys(&self) -> &Keys {
         &self.keys
     }
 
     /// Returns a mutable reference to the genotypes keys.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::record::{
+    ///     genotypes::{genotype::field::Key, Keys},
+    ///     Genotypes,
+    /// };
+    ///
+    /// let keys = Keys::try_from(vec![Key::Genotype])?;
+    ///
+    /// let mut genotypes = Genotypes::default();
+    /// *genotypes.keys_mut() = keys.clone();
+    ///
+    /// assert_eq!(genotypes.keys(), &keys);
+    /// # Ok::<_, noodles_vcf::record::genotypes::keys::TryFromKeyVectorError>(())
+    /// ```
     pub fn keys_mut(&mut self) -> &mut Keys {
         &mut self.keys
     }
