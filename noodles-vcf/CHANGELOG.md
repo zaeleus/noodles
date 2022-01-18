@@ -16,6 +16,12 @@
     optional values, rather than values, e.g., `Vec<Option<i32>>` rather than
     `Vec<i32>`.
 
+### Deprecated
+
+  * vcf/record/genotypes/genotype: Deprecate `Genotype::from_str_format`.
+
+    Use `Genotype::from_str_keys` instead.
+
 ### Fixed
 
   * vcf/record: Handle missing INFO END field value as no field.

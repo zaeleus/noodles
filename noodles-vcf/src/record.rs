@@ -501,7 +501,7 @@ impl Record {
     /// };
     ///
     /// let keys = "GT:GQ".parse()?;
-    /// let genotypes = vec![Genotype::from_str_format("0|0:13", &keys)?];
+    /// let genotypes = vec![Genotype::from_str_keys("0|0:13", &keys)?];
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
@@ -795,7 +795,7 @@ mod tests {
         use genotypes::Genotype;
 
         let keys: genotypes::Keys = "GT:GQ".parse()?;
-        let genotypes = vec![Genotype::from_str_format("0|0:13", &keys)?];
+        let genotypes = vec![Genotype::from_str_keys("0|0:13", &keys)?];
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)

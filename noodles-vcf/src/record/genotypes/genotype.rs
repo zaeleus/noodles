@@ -66,7 +66,13 @@ impl fmt::Display for GenotypeError {
 }
 
 impl Genotype {
-    /// Parses a raw genotype for the given genotype format.
+    /// Parses a raw genotype for the given genotype keys.
+    #[deprecated(since = "0.13.0", note = "Use `Genotype::from_str_keys` instead.")]
+    pub fn from_str_format(s: &str, keys: &Keys) -> Result<Self, ParseError> {
+        Self::from_str_keys(s, keys)
+    }
+
+    /// Parses a raw genotype for the given genotype keys.
     ///
     /// # Examples
     ///
@@ -76,7 +82,7 @@ impl Genotype {
     /// let keys = "GT:GQ".parse()?;
     ///
     /// assert_eq!(
-    ///     Genotype::from_str_format("0|0:13", &keys),
+    ///     Genotype::from_str_keys("0|0:13", &keys),
     ///     Ok(Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
@@ -84,7 +90,7 @@ impl Genotype {
     /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn from_str_format(s: &str, keys: &Keys) -> Result<Self, ParseError> {
+    pub fn from_str_keys(s: &str, keys: &Keys) -> Result<Self, ParseError> {
         match s {
             "" => Err(ParseError::Empty),
             MISSING_FIELD => Ok(Self::default()),
@@ -110,7 +116,7 @@ impl Genotype {
     ///
     /// ```
     /// use noodles_vcf::record::{genotypes::{genotype::{field::{Key, Value}, Field}, Genotype}};
-    /// let genotype = Genotype::from_str_format("0|0:13", &"GT:GQ".parse()?)?;
+    /// let genotype = Genotype::from_str_keys("0|0:13", &"GT:GQ".parse()?)?;
     /// assert_eq!(genotype.genotype(), Some(Ok("0|0".parse()?)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -211,23 +217,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str_format() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_from_str_keys() -> Result<(), Box<dyn std::error::Error>> {
         let keys = "GT".parse()?;
-        assert_eq!(
-            Genotype::from_str_format(".", &keys),
-            Ok(Genotype::default())
-        );
+        assert_eq!(Genotype::from_str_keys(".", &keys), Ok(Genotype::default()));
 
         let keys = "GT".parse()?;
-        let actual = Genotype::from_str_format("0|0", &keys)?;
+        let actual = Genotype::from_str_keys("0|0", &keys)?;
         assert_eq!(actual.len(), 1);
 
         let keys = "GT:GQ".parse()?;
-        let actual = Genotype::from_str_format("0|0:13", &keys)?;
+        let actual = Genotype::from_str_keys("0|0:13", &keys)?;
         assert_eq!(actual.len(), 2);
 
         let keys = "GT".parse()?;
-        assert_eq!(Genotype::from_str_format("", &keys), Err(ParseError::Empty));
+        assert_eq!(Genotype::from_str_keys("", &keys), Err(ParseError::Empty));
 
         Ok(())
     }

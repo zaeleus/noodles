@@ -136,7 +136,7 @@ impl FromStr for Genotypes {
 
         let genotypes = t
             .split(FIELD_DELIMITER)
-            .map(|t| Genotype::from_str_format(t, &keys))
+            .map(|t| Genotype::from_str_keys(t, &keys))
             .collect::<Result<_, _>>()
             .map_err(ParseError::InvalidGenotype)?;
 
@@ -152,10 +152,10 @@ mod tests {
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
         let keys = "GT:GQ".parse()?;
         let genotypes = vec![
-            Genotype::from_str_format("0|0:7", &keys)?,
-            Genotype::from_str_format("./.:20", &keys)?,
-            Genotype::from_str_format("1/1:1", &keys)?,
-            Genotype::from_str_format(".", &keys)?,
+            Genotype::from_str_keys("0|0:7", &keys)?,
+            Genotype::from_str_keys("./.:20", &keys)?,
+            Genotype::from_str_keys("1/1:1", &keys)?,
+            Genotype::from_str_keys(".", &keys)?,
         ];
         let genotypes = Genotypes::new(keys, genotypes);
 
