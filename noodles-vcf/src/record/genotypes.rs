@@ -6,12 +6,14 @@ pub mod keys;
 pub use self::{genotype::Genotype, keys::Keys};
 
 use std::{
-    error, fmt,
+    error,
+    fmt::{self, Write},
     ops::{Deref, DerefMut},
     str::FromStr,
 };
 
 use self::genotype::field;
+use super::FIELD_DELIMITER;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -114,11 +116,11 @@ impl DerefMut for Genotypes {
 
 impl fmt::Display for Genotypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}\t", self.keys())?;
+        write!(f, "{}{}", self.keys(), FIELD_DELIMITER)?;
 
         for (i, genotype) in self.genotypes.iter().enumerate() {
             if i > 0 {
-                write!(f, "\t")?;
+                f.write_char(FIELD_DELIMITER)?;
             }
 
             write!(f, "{}", genotype)?;
@@ -158,8 +160,6 @@ impl FromStr for Genotypes {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use super::FIELD_DELIMITER;
-
         if s.is_empty() {
             return Err(ParseError::Empty);
         }
