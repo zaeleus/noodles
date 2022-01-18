@@ -42,6 +42,48 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
+    /// Returns a reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let reader = bcf::AsyncReader::from(&data[..]);
+    /// assert!(reader.get_ref().is_empty());
+    /// ```
+    pub fn get_ref(&self) -> &R {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let mut reader = bcf::AsyncReader::from(&data[..]);
+    /// assert!(reader.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut R {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// let data = [];
+    /// let reader = bcf::AsyncReader::from(&data[..]);
+    /// assert!(reader.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(self) -> R {
+        self.inner
+    }
+
     /// Reads the BCF file format.
     ///
     /// The BCF magic number is also checked.

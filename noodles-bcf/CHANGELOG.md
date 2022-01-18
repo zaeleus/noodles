@@ -4,6 +4,9 @@
 
 ### Added
 
+  * bcf/async/reader: Add common methods to access the underlying reader:
+    `get_ref`, `get_mut`, and `into_inner`.
+
   * bcf/reader/record/info: Handle reading INFO array values with missing raw
     values.
 
