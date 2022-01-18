@@ -18,7 +18,7 @@ use noodles_vcf::{
 const NUL: u8 = 0x00;
 
 use crate::{
-    header::StringMap,
+    header::string_maps::StringStringMap,
     reader::{string_map::read_string_map_index, value::read_type},
     record::value::{Float, Int16, Int32, Int8, Type},
 };
@@ -26,7 +26,7 @@ use crate::{
 pub fn read_genotypes<R>(
     reader: &mut R,
     formats: &vcf::header::Formats,
-    string_map: &StringMap,
+    string_map: &StringStringMap,
     sample_count: usize,
     format_count: usize,
 ) -> io::Result<Genotypes>
@@ -68,7 +68,7 @@ where
 fn read_genotype_field_key<R>(
     reader: &mut R,
     formats: &vcf::header::Formats,
-    string_map: &StringMap,
+    string_map: &StringStringMap,
 ) -> io::Result<Key>
 where
     R: Read,

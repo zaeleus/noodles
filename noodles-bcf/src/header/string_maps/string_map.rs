@@ -17,7 +17,7 @@ impl StringMap {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::StringMap;
+    /// use noodles_bcf::header::string_maps::StringMap;
     /// let string_map = StringMap::default();
     /// assert!(string_map.get_index(0).is_none());
     /// ```
@@ -30,7 +30,7 @@ impl StringMap {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::header::StringMap;
+    /// use noodles_bcf::header::string_maps::StringMap;
     /// let string_map = StringMap::default();
     /// assert!(string_map.get_index_of("PASS").is_none());
     /// ```

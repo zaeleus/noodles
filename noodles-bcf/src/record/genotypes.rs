@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_vcf as vcf;
 
-use crate::header::StringMap;
+use crate::header::string_maps::StringStringMap;
 
 /// BCF record genotypes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -19,7 +19,7 @@ impl Genotypes {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bcf::{header::StringMap, record::Genotypes};
+    /// use noodles_bcf::{header::string_maps::StringMap, record::Genotypes};
     /// use noodles_vcf as vcf;
     ///
     /// let bcf_genotypes = Genotypes::default();
@@ -34,7 +34,7 @@ impl Genotypes {
     pub fn try_into_vcf_record_genotypes(
         &self,
         header: &vcf::Header,
-        string_map: &StringMap,
+        string_map: &StringStringMap,
     ) -> io::Result<vcf::record::Genotypes> {
         use crate::reader::record::read_genotypes;
 
