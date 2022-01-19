@@ -33,6 +33,8 @@
 
   * bcf/writer/record: Write filters when present.
 
+  * bcf/writer/vcf_record/site: Skip writing alternate bases when empty.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added

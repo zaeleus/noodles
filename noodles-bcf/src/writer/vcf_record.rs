@@ -70,7 +70,7 @@ mod tests {
         write_vcf_record(&mut buf, &header, &string_maps, &record)?;
 
         let expected = [
-            0x1d, 0x00, 0x00, 0x00, // l_shared = 29
+            0x1c, 0x00, 0x00, 0x00, // l_shared = 28
             0x00, 0x00, 0x00, 0x00, // l_indiv = 0
             0x00, 0x00, 0x00, 0x00, // chrom = 0,
             0x00, 0x00, 0x00, 0x00, // pos = 0 (0-based)
@@ -81,8 +81,7 @@ mod tests {
             0x00, // n_fmt = 0
             0x00, 0x00, 0x00, // n_sample = 0
             0x07, // id = None
-            0x17, b'A', // ref = [A]
-            0x07, // alt = []
+            0x17, b'A', // ref = A, alt = []
             0x00, // filter = []
         ];
 

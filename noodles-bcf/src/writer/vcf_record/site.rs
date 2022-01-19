@@ -184,9 +184,7 @@ where
     let ref_value = Some(Value::String(Some(r#ref)));
     write_value(writer, ref_value)?;
 
-    if alternate_bases.is_empty() {
-        write_value(writer, Some(Value::String(None)))?;
-    } else {
+    if !alternate_bases.is_empty() {
         for allele in alternate_bases.iter() {
             let alt_value = Some(Value::String(Some(allele.to_string())));
             write_value(writer, alt_value)?;
@@ -232,5 +230,52 @@ where
     } else {
         let value = Some(Value::Int8Array(indices));
         write_value(writer, value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::{AlternateBases, ReferenceBases};
+
+        fn t(
+            buf: &mut Vec<u8>,
+            reference_bases: &ReferenceBases,
+            alternate_bases: &AlternateBases,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_ref_alt(buf, reference_bases, alternate_bases)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(
+            &mut buf,
+            &"A".parse()?,
+            &AlternateBases::default(),
+            &[0x17, b'A'],
+        )?;
+
+        t(
+            &mut buf,
+            &"A".parse()?,
+            &"G".parse()?,
+            &[0x17, b'A', 0x17, b'G'],
+        )?;
+
+        t(
+            &mut buf,
+            &"A".parse()?,
+            &"G,T".parse()?,
+            &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
+        )?;
+
+        Ok(())
     }
 }
