@@ -8,7 +8,7 @@ pub(crate) const UNMAPPED: i32 = 0;
 ///
 /// This represents a 1-based start position on the reference sequence. The value is guaranteed to
 /// be a positive, non-zero integer.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Position(i32);
 
 impl From<Position> for i32 {
