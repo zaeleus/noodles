@@ -14,9 +14,6 @@ use std::io;
 use noodles_vcf as vcf;
 
 /// A BCF record.
-///
-/// The fields of a `bcf::Record` are immutable. They can be read, but to make changes, it must
-/// first be converted to a [`vcf::Record`] (see [`Self::try_into_vcf_record`]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     chrom: usize,
