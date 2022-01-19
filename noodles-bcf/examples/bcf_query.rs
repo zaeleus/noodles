@@ -6,7 +6,7 @@
 
 use std::{env, fs::File, path::PathBuf};
 
-use noodles_bcf as bcf;
+use noodles_bcf::{self as bcf, header::StringMaps};
 use noodles_csi as csi;
 use noodles_vcf as vcf;
 
@@ -21,12 +21,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_header = reader.read_header()?;
 
     let header: vcf::Header = raw_header.parse()?;
-    let string_maps = raw_header.parse()?;
+    let string_maps: StringMaps = raw_header.parse()?;
 
     let index = csi::read(src.with_extension("bcf.csi"))?;
 
     let region = raw_region.parse()?;
-    let query = reader.query(header.contigs(), &index, &region)?;
+    let query = reader.query(string_maps.contigs(), &index, &region)?;
 
     for result in query {
         let record = result?;

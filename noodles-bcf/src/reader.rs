@@ -17,9 +17,9 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
-use noodles_vcf::header::Contigs;
 
 use super::Record;
+use crate::header::string_maps::ContigStringMap;
 
 /// A BCF reader.
 ///
@@ -240,19 +240,16 @@ where
     ///
     /// ```no_run
     /// # use std::fs::File;
-    /// use noodles_bcf as bcf;
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_core::Region;
     /// use noodles_csi as csi;
-    /// use noodles_vcf as vcf;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
-    ///
-    /// let header: vcf::Header = reader.read_header()?.parse()?;
-    /// let contigs = header.contigs();
+    /// let string_maps: StringMaps = reader.read_header()?.parse()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
     /// let region = Region::mapped("sq0", 8..=13);
-    /// let query = reader.query(&contigs, &index, &region)?;
+    /// let query = reader.query(string_maps.contigs(), &index, &region)?;
     ///
     /// for result in query {
     ///     let record = result?;
@@ -262,7 +259,7 @@ where
     /// ```
     pub fn query<I, RS>(
         &mut self,
-        contigs: &Contigs,
+        contig_string_map: &ContigStringMap,
         index: &I,
         region: &Region,
     ) -> io::Result<Query<'_, R>>
@@ -270,7 +267,7 @@ where
         I: BinningIndex<RS>,
         RS: ReferenceSequenceExt,
     {
-        let (reference_sequence_id, interval) = resolve_region(contigs, region)?;
+        let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
         let chunks = index.query(reference_sequence_id, interval)?;
         Ok(Query::new(self, chunks, reference_sequence_id, interval))
     }
@@ -335,9 +332,12 @@ where
         })
 }
 
-fn resolve_region(contigs: &Contigs, region: &Region) -> io::Result<(usize, Interval)> {
+fn resolve_region(
+    contig_string_map: &ContigStringMap,
+    region: &Region,
+) -> io::Result<(usize, Interval)> {
     if let Some(r) = region.as_mapped() {
-        let i = contigs.get_index_of(r.name()).ok_or_else(|| {
+        let i = contig_string_map.get_index_of(r.name()).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("region does not exist in contigs: {:?}", region),

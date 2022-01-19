@@ -22,6 +22,11 @@
 
     `CHROM` is used as an index.
 
+  * bcf/reader: Use contig string map to find contig index when querying.
+
+    The chromosome ID maps to a contig string map entry, not the header
+    contigs.
+
 ### Fixed
 
   * bcf/reader/record/info: Split on delimiter when reading a character array.
