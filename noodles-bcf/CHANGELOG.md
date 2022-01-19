@@ -14,7 +14,7 @@
     missing raw values.
 
     This allows reading/writing INFO array values that have missing raw values,
-    e.g., `HQ=8,.`.
+    e.g., `AC=8,.`.
 
 ### Fixed
 
