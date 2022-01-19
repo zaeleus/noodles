@@ -1,10 +1,6 @@
 //! SAM record position.
 
-use std::{
-    error, fmt,
-    num::{self, NonZeroI32},
-    str::FromStr,
-};
+use std::{error, fmt, num, str::FromStr};
 
 pub(crate) const UNMAPPED: i32 = 0;
 
@@ -13,11 +9,11 @@ pub(crate) const UNMAPPED: i32 = 0;
 /// This represents a 1-based start position on the reference sequence. The value is guaranteed to
 /// be a positive, non-zero integer.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Position(NonZeroI32);
+pub struct Position(i32);
 
 impl From<Position> for i32 {
     fn from(position: Position) -> Self {
-        Self::from(position.0)
+        position.0
     }
 }
 
@@ -66,10 +62,10 @@ impl TryFrom<i32> for Position {
     type Error = TryFromIntError;
 
     fn try_from(n: i32) -> Result<Self, Self::Error> {
-        if n < 0 {
+        if n <= UNMAPPED {
             Err(TryFromIntError(n))
         } else {
-            NonZeroI32::new(n).map(Self).ok_or(TryFromIntError(n))
+            Ok(Self(n))
         }
     }
 }
@@ -109,10 +105,7 @@ mod tests {
 
     #[test]
     fn test_try_from_i32_for_position() -> Result<(), num::TryFromIntError> {
-        assert_eq!(
-            Position::try_from(13),
-            Ok(Position(NonZeroI32::try_from(13)?))
-        );
+        assert_eq!(Position::try_from(13), Ok(Position(13)));
 
         assert_eq!(Position::try_from(0), Err(TryFromIntError(0)));
         assert_eq!(Position::try_from(-8), Err(TryFromIntError(-8)));
