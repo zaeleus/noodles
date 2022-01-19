@@ -35,6 +35,9 @@
 
   * bcf/writer/vcf_record/site: Skip writing alternate bases when empty.
 
+  * bcf/writer/vcf_record/site: Filters with indices larger than 127 are now
+    valid.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added

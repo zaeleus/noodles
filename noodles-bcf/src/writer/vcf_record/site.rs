@@ -204,33 +204,25 @@ where
 {
     use vcf::record::Filters;
 
+    use crate::writer::string_map::write_string_map_indices;
+
     let indices = match filters {
         None => Vec::new(),
         Some(Filters::Pass) => vec![0],
         Some(Filters::Fail(ids)) => ids
             .iter()
             .map(|id| {
-                string_string_map
-                    .get_index_of(id)
-                    .ok_or_else(|| {
-                        io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!("filter missing from string map: {}", id),
-                        )
-                    })
-                    .and_then(|i| {
-                        i8::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                    })
+                string_string_map.get_index_of(id).ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("filter missing from string map: {}", id),
+                    )
+                })
             })
             .collect::<Result<_, _>>()?,
     };
 
-    if indices.is_empty() {
-        write_value(writer, None)
-    } else {
-        let value = Some(Value::Int8Array(indices));
-        write_value(writer, value)
-    }
+    write_string_map_indices(writer, &indices)
 }
 
 #[cfg(test)]
@@ -274,6 +266,61 @@ mod tests {
             &"A".parse()?,
             &"G,T".parse()?,
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_filter() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::{header::Filter, record::Filters};
+
+        fn t(
+            buf: &mut Vec<u8>,
+            string_map: &StringStringMap,
+            filters: Option<&Filters>,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_filter(buf, string_map, filters)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let header = vcf::Header::builder()
+            .add_filter(Filter::pass())
+            .add_filter(Filter::new("s50", "Less than 50% of samples have data"))
+            .add_filter(Filter::new("q10", "Quality below 10"))
+            .build();
+
+        let string_maps = StringMaps::from(&header);
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, string_maps.strings(), None, &[0x00])?;
+
+        let filters = Filters::Pass;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x11, 0x00],
+        )?;
+
+        let filters = Filters::try_from_iter(["q10"])?;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x11, 0x02],
+        )?;
+
+        let filters = Filters::try_from_iter(["q10", "s50"])?;
+        t(
+            &mut buf,
+            string_maps.strings(),
+            Some(&filters),
+            &[0x21, 0x02, 0x01],
         )?;
 
         Ok(())
