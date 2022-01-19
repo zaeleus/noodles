@@ -13,7 +13,7 @@ use super::Reader;
 enum State {
     Seek,
     Read(bgzf::VirtualPosition),
-    End,
+    Done,
 }
 
 /// An iterator over records of a BCF reader that intersects a given region.
@@ -24,11 +24,14 @@ where
     R: Read + Seek,
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
+
     chunks: Vec<Chunk>,
+    i: usize,
+
     chromosome_id: usize,
     start: i32,
     end: i32,
-    i: usize,
+
     state: State,
     record: Record,
 }
@@ -46,44 +49,28 @@ where
     where
         B: RangeBounds<i32>,
     {
-        let (start, end) = match (interval.start_bound(), interval.end_bound()) {
-            (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-            (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-            (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-            _ => todo!(),
-        };
+        let (start, end) = resolve_interval(interval);
 
         Self {
             reader,
+
             chunks,
+            i: 0,
+
             chromosome_id,
             start,
             end,
-            i: 0,
+
             state: State::Seek,
             record: Record::default(),
         }
     }
 
-    fn next_chunk(&mut self) -> io::Result<Option<bgzf::VirtualPosition>> {
-        if self.i >= self.chunks.len() {
-            return Ok(None);
-        }
-
-        let chunk = self.chunks[self.i];
-        self.reader.seek(chunk.start())?;
-
-        self.i += 1;
-
-        Ok(Some(chunk.end()))
-    }
-
-    fn read_record(&mut self) -> Option<io::Result<Record>> {
-        match self.reader.read_record(&mut self.record) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(self.record.clone())),
-            Err(e) => Some(Err(e)),
-        }
+    fn read_record(&mut self) -> io::Result<Option<Record>> {
+        self.reader.read_record(&mut self.record).map(|n| match n {
+            0 => None,
+            _ => Some(self.record.clone()),
+        })
     }
 }
 
@@ -97,45 +84,68 @@ where
         loop {
             match self.state {
                 State::Seek => {
-                    self.state = match self.next_chunk() {
-                        Ok(Some(chunk_end)) => State::Read(chunk_end),
-                        Ok(None) => State::End,
-                        Err(e) => return Some(Err(e)),
+                    self.state = match next_chunk(&self.chunks, &mut self.i) {
+                        Some(chunk) => {
+                            if let Err(e) = self.reader.seek(chunk.start()) {
+                                return Some(Err(e));
+                            }
+
+                            State::Read(chunk.end())
+                        }
+                        None => State::Done,
                     }
                 }
                 State::Read(chunk_end) => match self.read_record() {
-                    Some(result) => {
+                    Ok(Some(record)) => {
                         if self.reader.virtual_position() >= chunk_end {
                             self.state = State::Seek;
                         }
 
-                        match result {
-                            Ok(record) => {
-                                let chromosome_id = record.chromosome_id();
-                                let start = i32::from(record.position());
-
-                                let end = match record.end() {
-                                    Ok(pos) => i32::from(pos),
-                                    Err(e) => return Some(Err(e)),
-                                };
-
-                                if chromosome_id == self.chromosome_id
-                                    && in_interval(start, end, self.start, self.end)
-                                {
-                                    return Some(Ok(record));
-                                }
-                            }
+                        match intersects(&record, self.chromosome_id, self.start, self.end) {
+                            Ok(true) => return Some(Ok(record)),
+                            Ok(false) => {}
                             Err(e) => return Some(Err(e)),
                         }
                     }
-                    None => {
-                        self.state = State::Seek;
-                    }
+                    Ok(None) => self.state = State::Seek,
+                    Err(e) => return Some(Err(e)),
                 },
-                State::End => return None,
+                State::Done => return None,
             }
         }
     }
+}
+
+fn resolve_interval<B>(interval: B) -> (i32, i32)
+where
+    B: RangeBounds<i32>,
+{
+    match (interval.start_bound(), interval.end_bound()) {
+        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
+        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
+        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
+        _ => todo!(),
+    }
+}
+
+fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
+    let chunk = chunks.get(*i).copied();
+    *i += 1;
+    chunk
+}
+
+fn intersects(
+    record: &Record,
+    chromosome_id: usize,
+    interval_start: i32,
+    interval_end: i32,
+) -> io::Result<bool> {
+    let id = record.chromosome_id();
+
+    let start = i32::from(record.position());
+    let end = record.end().map(i32::from)?;
+
+    Ok(id == chromosome_id && in_interval(start, end, interval_start, interval_end))
 }
 
 fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
