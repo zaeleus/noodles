@@ -34,9 +34,7 @@ where
         write_rlen,
     };
 
-    let chrom = record.chromosome_id();
-    writer.write_i32::<LittleEndian>(chrom)?;
-
+    write_chrom(writer, record.chromosome_id())?;
     write_pos(writer, record.position())?;
 
     let end = record.end()?;
@@ -59,6 +57,18 @@ where
     write_filter(writer, record.filters())?;
 
     writer.write_all(record.info().as_ref())?;
+
+    Ok(())
+}
+
+fn write_chrom<W>(writer: &mut W, chromosome_id: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let chrom =
+        i32::try_from(chromosome_id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    writer.write_i32::<LittleEndian>(chrom)?;
 
     Ok(())
 }

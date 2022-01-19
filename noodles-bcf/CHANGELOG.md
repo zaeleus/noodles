@@ -16,6 +16,12 @@
     This allows reading/writing INFO array values that have missing raw values,
     e.g., `AC=8,.`.
 
+### Changed
+
+  * bcf/record: Change chromosome ID to a `usize`.
+
+    `CHROM` is used as an index.
+
 ### Fixed
 
   * bcf/reader/record/info: Split on delimiter when reading a character array.

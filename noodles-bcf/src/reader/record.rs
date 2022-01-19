@@ -46,7 +46,7 @@ pub(crate) fn read_site<R>(reader: &mut R, record: &mut Record) -> io::Result<(u
 where
     R: Read,
 {
-    *record.chromosome_id_mut() = reader.read_i32::<LittleEndian>()?;
+    *record.chromosome_id_mut() = read_chrom(reader)?;
     *record.position_mut() = read_pos(reader)?;
 
     *record.rlen_mut() = reader.read_i32::<LittleEndian>()?;
@@ -75,6 +75,15 @@ where
     record.info_mut().set_field_count(n_info);
 
     Ok((n_fmt, n_sample))
+}
+
+pub fn read_chrom<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    reader
+        .read_i32::<LittleEndian>()
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 pub fn read_pos<R>(reader: &mut R) -> io::Result<Position>

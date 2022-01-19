@@ -19,7 +19,7 @@ use noodles_vcf as vcf;
 /// first be converted to a [`vcf::Record`] (see [`Self::try_into_vcf_record`]).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    chrom: i32,
+    chrom: usize,
     pos: vcf::record::Position,
     rlen: i32,
     qual: Option<vcf::record::QualityScore>,
@@ -46,11 +46,11 @@ impl Record {
     /// let record = bcf::Record::default();
     /// assert_eq!(record.chromosome_id(), 0);
     /// ```
-    pub fn chromosome_id(&self) -> i32 {
+    pub fn chromosome_id(&self) -> usize {
         self.chrom
     }
 
-    pub(crate) fn chromosome_id_mut(&mut self) -> &mut i32 {
+    pub(crate) fn chromosome_id_mut(&mut self) -> &mut usize {
         &mut self.chrom
     }
 
