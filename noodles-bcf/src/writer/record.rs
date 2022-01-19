@@ -77,15 +77,8 @@ fn write_filter<W>(writer: &mut W, filters: &Filters) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::writer::value::write_value;
-
-    if filters.is_empty() {
-        write_value(writer, None)?;
-    } else {
-        todo!();
-    }
-
-    Ok(())
+    use crate::writer::string_map::write_string_map_indices;
+    write_string_map_indices(writer, filters.as_ref())
 }
 
 #[cfg(test)]

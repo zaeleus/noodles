@@ -31,6 +31,8 @@
 
   * bcf/reader/record/info: Split on delimiter when reading a character array.
 
+  * bcf/writer/record: Write filters when present.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added
