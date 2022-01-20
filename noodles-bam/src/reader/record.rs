@@ -35,7 +35,7 @@ where
     Ok(block_size)
 }
 
-fn read_record_buf<B>(mut buf: B, record: &mut Record) -> io::Result<()>
+pub(crate) fn read_record_buf<B>(mut buf: B, record: &mut Record) -> io::Result<()>
 where
     B: Buf,
 {

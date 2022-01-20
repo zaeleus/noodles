@@ -2,15 +2,9 @@
 
 pub mod data;
 
-use std::mem;
-
-use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::{
-    record::{Cigar, Data, QualityScores, ReferenceSequenceId, Sequence},
-    Record,
-};
+use crate::Record;
 
 pub(super) async fn read_record<R>(
     reader: &mut R,
@@ -20,6 +14,8 @@ pub(super) async fn read_record<R>(
 where
     R: AsyncRead + Unpin,
 {
+    use crate::reader::record::read_record_buf;
+
     let block_size = match reader.read_u32_le().await {
         Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
@@ -29,167 +25,9 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    let mut reader = &buf[..];
-    let reader = &mut reader;
-
-    *record.reference_sequence_id_mut() = read_reference_sequence_id(reader).await?;
-    record.pos = reader.read_i32_le().await?;
-
-    let l_read_name = reader.read_u8().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.mapping_quality_mut() = read_mapping_quality(reader).await?;
-    *record.bin_mut() = reader.read_u16_le().await?;
-
-    let n_cigar_op = reader.read_u16_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.flags_mut() = read_flag(reader).await?;
-
-    let l_seq = reader.read_u32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(reader).await?;
-    record.next_pos = reader.read_i32_le().await?;
-
-    *record.template_length_mut() = reader.read_i32_le().await?;
-
-    read_read_name(reader, &mut record.read_name, l_read_name).await?;
-    read_cigar(reader, record.cigar_mut(), n_cigar_op).await?;
-    read_seq(reader, record.sequence_mut(), l_seq).await?;
-    read_qual(reader, record.quality_scores_mut(), l_seq).await?;
-    read_data(
-        reader,
-        record.data_mut(),
-        block_size,
-        l_read_name,
-        n_cigar_op,
-        l_seq,
-    )
-    .await?;
+    read_record_buf(&buf[..], record)?;
 
     Ok(block_size)
-}
-
-async fn read_reference_sequence_id<R>(reader: &mut R) -> io::Result<Option<ReferenceSequenceId>>
-where
-    R: AsyncRead + Unpin,
-{
-    use crate::record::reference_sequence_id::UNMAPPED;
-
-    match reader.read_i32_le().await? {
-        UNMAPPED => Ok(None),
-        n => ReferenceSequenceId::try_from(n)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
-}
-
-async fn read_mapping_quality<R>(reader: &mut R) -> io::Result<Option<sam::record::MappingQuality>>
-where
-    R: AsyncRead + Unpin,
-{
-    use sam::record::mapping_quality::MISSING;
-
-    match reader.read_u8().await? {
-        MISSING => Ok(None),
-        n => sam::record::MappingQuality::try_from(n)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-    }
-}
-
-async fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>
-where
-    R: AsyncRead + Unpin,
-{
-    reader.read_u16_le().await.map(sam::record::Flags::from)
-}
-
-async fn read_read_name<R>(
-    reader: &mut R,
-    read_name: &mut Vec<u8>,
-    l_read_name: usize,
-) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    read_name.resize(l_read_name, Default::default());
-    reader.read_exact(read_name).await?;
-    Ok(())
-}
-
-async fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    let cigar = cigar.as_mut();
-
-    cigar.resize(n_cigar_op, Default::default());
-    cigar.clear();
-
-    for _ in 0..n_cigar_op {
-        let op = reader.read_u32_le().await?;
-        cigar.push(op);
-    }
-
-    Ok(())
-}
-
-async fn read_seq<R>(reader: &mut R, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    sequence.set_len(l_seq);
-
-    let seq = sequence.as_mut();
-    let seq_len = (l_seq + 1) / 2;
-    seq.resize(seq_len, Default::default());
-    reader.read_exact(seq).await?;
-
-    Ok(())
-}
-
-async fn read_qual<R>(
-    reader: &mut R,
-    quality_scores: &mut QualityScores,
-    l_seq: usize,
-) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    let qual = quality_scores.as_mut();
-    qual.resize(l_seq, Default::default());
-    reader.read_exact(qual).await?;
-    Ok(())
-}
-
-async fn read_data<R>(
-    reader: &mut R,
-    data: &mut Data,
-    block_size: usize,
-    l_read_name: usize,
-    n_cigar_op: usize,
-    l_seq: usize,
-) -> io::Result<()>
-where
-    R: AsyncRead + Unpin,
-{
-    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
-    let seq_len = (l_seq + 1) / 2;
-    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
-    let data_len = block_size - data_offset;
-
-    let buf = data.as_mut();
-    buf.resize(data_len, Default::default());
-    reader.read_exact(buf).await?;
-
-    data.index()?;
-
-    Ok(())
 }
 
 #[cfg(test)]
