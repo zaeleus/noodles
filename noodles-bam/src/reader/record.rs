@@ -2,12 +2,10 @@
 
 pub mod data;
 
-use std::{
-    io::{self, Read},
-    mem,
-};
+use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use bytes::Buf;
 use noodles_sam as sam;
 
 use crate::{
@@ -32,57 +30,54 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf)?;
 
-    let mut reader = &buf[..];
-    let reader = &mut reader;
-
-    *record.reference_sequence_id_mut() = read_reference_sequence_id(reader)?;
-    record.pos = reader.read_i32::<LittleEndian>()?;
-
-    let l_read_name = reader.read_u8().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.mapping_quality_mut() = read_mapping_quality(reader)?;
-    *record.bin_mut() = reader.read_u16::<LittleEndian>()?;
-
-    let n_cigar_op = reader.read_u16::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.flags_mut() = read_flag(reader)?;
-
-    let l_seq = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(reader)?;
-    record.next_pos = reader.read_i32::<LittleEndian>()?;
-
-    *record.template_length_mut() = reader.read_i32::<LittleEndian>()?;
-
-    read_read_name(reader, &mut record.read_name, l_read_name)?;
-    read_cigar(reader, record.cigar_mut(), n_cigar_op)?;
-    read_seq(reader, record.sequence_mut(), l_seq)?;
-    read_qual(reader, record.quality_scores_mut(), l_seq)?;
-    read_data(
-        reader,
-        record.data_mut(),
-        block_size,
-        l_read_name,
-        n_cigar_op,
-        l_seq,
-    )?;
+    read_record_buf(&buf[..], record)?;
 
     Ok(block_size)
 }
 
-fn read_reference_sequence_id<R>(reader: &mut R) -> io::Result<Option<ReferenceSequenceId>>
+fn read_record_buf<B>(mut buf: B, record: &mut Record) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
+{
+    *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
+    record.pos = buf.get_i32_le();
+
+    let l_read_name =
+        usize::try_from(buf.get_u8()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    *record.mapping_quality_mut() = read_mapping_quality(&mut buf)?;
+    *record.bin_mut() = buf.get_u16_le();
+
+    let n_cigar_op = usize::try_from(buf.get_u16_le())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    *record.flags_mut() = read_flag(&mut buf)?;
+
+    let l_seq = usize::try_from(buf.get_u32_le())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
+    record.next_pos = buf.get_i32_le();
+
+    *record.template_length_mut() = buf.get_i32_le();
+
+    read_read_name(&mut buf, &mut record.read_name, l_read_name)?;
+    read_cigar(&mut buf, record.cigar_mut(), n_cigar_op)?;
+    read_seq(&mut buf, record.sequence_mut(), l_seq)?;
+    read_qual(&mut buf, record.quality_scores_mut(), l_seq)?;
+
+    read_data(&mut buf, record.data_mut())?;
+
+    Ok(())
+}
+
+fn read_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<ReferenceSequenceId>>
+where
+    B: Buf,
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
-    match reader.read_i32::<LittleEndian>()? {
+    match buf.get_i32_le() {
         UNMAPPED => Ok(None),
         n => ReferenceSequenceId::try_from(n)
             .map(Some)
@@ -90,13 +85,13 @@ where
     }
 }
 
-fn read_mapping_quality<R>(reader: &mut R) -> io::Result<Option<sam::record::MappingQuality>>
+fn read_mapping_quality<B>(buf: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
 where
-    R: Read,
+    B: Buf,
 {
     use sam::record::mapping_quality::MISSING;
 
-    match reader.read_u8()? {
+    match buf.get_u8() {
         MISSING => Ok(None),
         n => sam::record::MappingQuality::try_from(n)
             .map(Some)
@@ -104,77 +99,71 @@ where
     }
 }
 
-fn read_flag<R>(reader: &mut R) -> io::Result<sam::record::Flags>
+fn read_flag<B>(buf: &mut B) -> io::Result<sam::record::Flags>
 where
-    R: Read,
+    B: Buf,
 {
-    reader
-        .read_u16::<LittleEndian>()
-        .map(sam::record::Flags::from)
+    Ok(sam::record::Flags::from(buf.get_u16_le()))
 }
 
-fn read_read_name<R>(reader: &mut R, read_name: &mut Vec<u8>, l_read_name: usize) -> io::Result<()>
+fn read_read_name<B>(buf: &mut B, read_name: &mut Vec<u8>, l_read_name: usize) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
 {
     read_name.resize(l_read_name, Default::default());
-    reader.read_exact(read_name)?;
+    buf.copy_to_slice(read_name);
     Ok(())
 }
 
-fn read_cigar<R>(reader: &mut R, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
+fn read_cigar<B>(buf: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
 {
     let cigar = cigar.as_mut();
+
     cigar.resize(n_cigar_op, Default::default());
-    reader.read_u32_into::<LittleEndian>(cigar)?;
+    cigar.clear();
+
+    for _ in 0..n_cigar_op {
+        cigar.push(buf.get_u32_le());
+    }
+
     Ok(())
 }
 
-fn read_seq<R>(reader: &mut R, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
+fn read_seq<B>(buf: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
 {
     sequence.set_len(l_seq);
 
     let seq = sequence.as_mut();
     let seq_len = (l_seq + 1) / 2;
     seq.resize(seq_len, Default::default());
-    reader.read_exact(seq)?;
+    buf.copy_to_slice(seq);
 
     Ok(())
 }
 
-fn read_qual<R>(reader: &mut R, quality_scores: &mut QualityScores, l_seq: usize) -> io::Result<()>
+fn read_qual<B>(buf: &mut B, quality_scores: &mut QualityScores, l_seq: usize) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
 {
     let qual = quality_scores.as_mut();
     qual.resize(l_seq, Default::default());
-    reader.read_exact(qual)?;
+    buf.copy_to_slice(qual);
     Ok(())
 }
 
-fn read_data<R>(
-    reader: &mut R,
-    data: &mut Data,
-    block_size: usize,
-    l_read_name: usize,
-    n_cigar_op: usize,
-    l_seq: usize,
-) -> io::Result<()>
+fn read_data<B>(buf: &mut B, data: &mut Data) -> io::Result<()>
 where
-    R: Read,
+    B: Buf,
 {
-    let cigar_len = mem::size_of::<u32>() * n_cigar_op;
-    let seq_len = (l_seq + 1) / 2;
-    let data_offset = 32 + l_read_name + cigar_len + seq_len + l_seq;
-    let data_len = block_size - data_offset;
+    let data_len = buf.remaining();
 
-    let buf = data.as_mut();
-    buf.resize(data_len, Default::default());
-    reader.read_exact(buf)?;
+    let data_buf = data.as_mut();
+    data_buf.resize(data_len, Default::default());
+    buf.copy_to_slice(data_buf);
 
     data.index()?;
 
