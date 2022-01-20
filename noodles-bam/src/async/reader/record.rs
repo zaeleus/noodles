@@ -1,7 +1,5 @@
 //! Async BAM record field readers.
 
-pub mod data;
-
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::Record;
