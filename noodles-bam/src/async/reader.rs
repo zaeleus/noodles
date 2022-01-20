@@ -45,6 +45,7 @@ use crate::{
 /// ```
 pub struct Reader<R> {
     inner: R,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -188,7 +189,7 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, record).await
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -221,13 +222,13 @@ where
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, Record::default()),
-            |(mut reader, mut record)| async {
-                read_record(&mut reader, &mut record)
+            (&mut self.inner, &mut self.buf, Record::default()),
+            |(reader, buf, mut record)| async {
+                read_record(reader, buf, &mut record)
                     .await
                     .map(|n| match n {
                         0 => None,
-                        _ => Some((record.clone(), (reader, record))),
+                        _ => Some((record.clone(), (reader, buf, record))),
                     })
             },
         ))
@@ -359,7 +360,10 @@ where
 
 impl<R> From<R> for Reader<R> {
     fn from(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 
