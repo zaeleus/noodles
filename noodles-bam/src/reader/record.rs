@@ -45,14 +45,12 @@ where
     *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
     record.pos = read_position(&mut buf)?;
 
-    let l_read_name =
-        usize::try_from(buf.get_u8()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let l_read_name = usize::from(buf.get_u8());
 
     *record.mapping_quality_mut() = read_mapping_quality(&mut buf)?;
     *record.bin_mut() = buf.get_u16_le();
 
-    let n_cigar_op = usize::try_from(buf.get_u16_le())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let n_cigar_op = usize::from(buf.get_u16_le());
 
     *record.flags_mut() = read_flag(&mut buf)?;
 
