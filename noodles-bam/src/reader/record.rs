@@ -2,7 +2,10 @@
 
 pub mod data;
 
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    mem,
+};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::Buf;
@@ -77,6 +80,10 @@ where
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
+    if buf.remaining() < mem::size_of::<i32>() {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     match buf.get_i32_le() {
         UNMAPPED => Ok(None),
         n => ReferenceSequenceId::try_from(n)
@@ -89,6 +96,10 @@ fn read_position<B>(buf: &mut B) -> io::Result<i32>
 where
     B: Buf,
 {
+    if buf.remaining() < mem::size_of::<i32>() {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     Ok(buf.get_i32_le())
 }
 
@@ -97,6 +108,10 @@ where
     B: Buf,
 {
     use sam::record::mapping_quality::MISSING;
+
+    if buf.remaining() < mem::size_of::<u8>() {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
 
     match buf.get_u8() {
         MISSING => Ok(None),
@@ -110,6 +125,10 @@ fn read_flag<B>(buf: &mut B) -> io::Result<sam::record::Flags>
 where
     B: Buf,
 {
+    if buf.remaining() < mem::size_of::<u16>() {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     Ok(sam::record::Flags::from(buf.get_u16_le()))
 }
 
@@ -117,8 +136,13 @@ fn read_read_name<B>(buf: &mut B, read_name: &mut Vec<u8>, l_read_name: usize) -
 where
     B: Buf,
 {
+    if buf.remaining() < l_read_name {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     read_name.resize(l_read_name, Default::default());
     buf.copy_to_slice(read_name);
+
     Ok(())
 }
 
@@ -126,6 +150,10 @@ fn read_cigar<B>(buf: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> io::Resul
 where
     B: Buf,
 {
+    if buf.remaining() < mem::size_of::<u32>() * n_cigar_op {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     let cigar = cigar.as_mut();
 
     cigar.resize(n_cigar_op, Default::default());
@@ -146,6 +174,11 @@ where
 
     let seq = sequence.as_mut();
     let seq_len = (l_seq + 1) / 2;
+
+    if buf.remaining() < seq_len {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     seq.resize(seq_len, Default::default());
     buf.copy_to_slice(seq);
 
@@ -156,9 +189,14 @@ fn read_qual<B>(buf: &mut B, quality_scores: &mut QualityScores, l_seq: usize) -
 where
     B: Buf,
 {
+    if buf.remaining() < l_seq {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    }
+
     let qual = quality_scores.as_mut();
     qual.resize(l_seq, Default::default());
     buf.copy_to_slice(qual);
+
     Ok(())
 }
 
