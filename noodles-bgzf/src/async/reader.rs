@@ -1,4 +1,5 @@
 mod builder;
+mod inflate;
 mod inflater;
 
 pub use self::builder::Builder;

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/async/reader: Create future for inflating data.
+
 ## 0.7.0 - 2021-12-02
 
 ### Added
