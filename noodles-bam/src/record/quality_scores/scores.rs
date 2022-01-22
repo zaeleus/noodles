@@ -20,7 +20,7 @@ where
     type Item = Result<Score, score::TryFromUByteError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().cloned().map(Score::try_from)
+        self.iter.next().copied().map(Score::try_from)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
