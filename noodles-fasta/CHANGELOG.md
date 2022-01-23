@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * fasta/record/definition: Deprecate
+    `ParseError::MissingReferenceSequenceName`.
+
+    Use `ParseError::MissingName` instead.
+
 ## 0.5.2 - 2022-01-13
 
 ### Fixed

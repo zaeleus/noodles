@@ -97,7 +97,10 @@ pub enum ParseError {
     Empty,
     /// The prefix (`>`) is missing.
     MissingPrefix,
-    /// The reference sequence name is missing.
+    /// The sequence name is missing.
+    MissingName,
+    /// The sequence name is missing.
+    #[deprecated(since = "0.6.0", note = "Use `ParseError::MissingName` instead.")]
     MissingReferenceSequenceName,
 }
 
@@ -108,6 +111,8 @@ impl fmt::Display for ParseError {
         match self {
             Self::Empty => f.write_str("empty input"),
             Self::MissingPrefix => write!(f, "missing prefix ('{}')", PREFIX),
+            Self::MissingName => f.write_str("missing name"),
+            #[allow(deprecated)]
             Self::MissingReferenceSequenceName => f.write_str("missing name"),
         }
     }
@@ -129,7 +134,7 @@ impl FromStr for Definition {
         let name = components
             .next()
             .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
-            .ok_or(ParseError::MissingReferenceSequenceName)?;
+            .ok_or(ParseError::MissingName)?;
 
         let description = components.next().map(|s| s.trim().into());
 
@@ -161,9 +166,6 @@ mod tests {
 
         assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));
         assert_eq!("sq0".parse::<Definition>(), Err(ParseError::MissingPrefix));
-        assert_eq!(
-            ">".parse::<Definition>(),
-            Err(ParseError::MissingReferenceSequenceName)
-        );
+        assert_eq!(">".parse::<Definition>(), Err(ParseError::MissingName));
     }
 }
