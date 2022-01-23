@@ -106,9 +106,9 @@ impl error::Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => f.write_str("record header is empty"),
-            Self::MissingPrefix => f.write_str("the '>' prefix is missing"),
-            Self::MissingReferenceSequenceName => f.write_str("the reference sequence is missing"),
+            Self::Empty => f.write_str("empty input"),
+            Self::MissingPrefix => write!(f, "missing prefix ('{}')", PREFIX),
+            Self::MissingReferenceSequenceName => f.write_str("missing name"),
         }
     }
 }
