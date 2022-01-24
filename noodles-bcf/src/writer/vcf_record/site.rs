@@ -230,6 +230,212 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_write_chrom() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::Chromosome;
+
+        fn t(
+            buf: &mut Vec<u8>,
+            contig_string_map: &ContigStringMap,
+            chromosome: &Chromosome,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_chrom(buf, contig_string_map, chromosome)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        let mut contig_string_map = ContigStringMap::default();
+        contig_string_map.insert("sq0".into());
+        contig_string_map.insert("sq1".into());
+
+        t(
+            &mut buf,
+            &contig_string_map,
+            &"sq0".parse()?,
+            &[0x00, 0x00, 0x00, 0x00],
+        )?;
+
+        t(
+            &mut buf,
+            &contig_string_map,
+            &"sq1".parse()?,
+            &[0x01, 0x00, 0x00, 0x00],
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::Position;
+
+        fn t(buf: &mut Vec<u8>, position: Position, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_pos(buf, position)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        // TODO: Add test for telomere start (POS = 0).
+        t(&mut buf, Position::try_from(1)?, &[0x00, 0x00, 0x00, 0x00])?;
+        t(
+            &mut buf,
+            Position::try_from(i32::MAX)?,
+            &[0xfe, 0xff, 0xff, 0x7f],
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_rlen() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::Position;
+
+        fn t(buf: &mut Vec<u8>, start: Position, end: Position, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_rlen(buf, start, end)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(
+            &mut buf,
+            Position::try_from(13)?,
+            Position::try_from(8)?,
+            &[0x06, 0x00, 0x00, 0x00],
+        )?;
+        // TODO: Add test when start > end.
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_qual() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::QualityScore;
+
+        fn t(
+            buf: &mut Vec<u8>,
+            quality_score: Option<vcf::record::QualityScore>,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_qual(buf, quality_score)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, None, &[0x01, 0x00, 0x80, 0x7f])?;
+
+        t(
+            &mut buf,
+            QualityScore::try_from(0.0).map(Some)?,
+            &[0x00, 0x00, 0x00, 0x00],
+        )?;
+
+        t(
+            &mut buf,
+            QualityScore::try_from(8.0).map(Some)?,
+            &[0x00, 0x00, 0x00, 0x41],
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_n_allele() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, alternate_base_count: usize, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_n_allele(buf, alternate_base_count)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, 0, &[0x01, 0x00])?;
+        t(&mut buf, 1, &[0x02, 0x00])?;
+        t(&mut buf, usize::from(u16::MAX - 1), &[0xff, 0xff])?;
+
+        buf.clear();
+        assert!(matches!(
+            write_n_allele(&mut buf, usize::from(u16::MAX)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_n_fmt_sample() -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            sample_count: usize,
+            format_count: usize,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_n_fmt_sample(buf, sample_count, format_count)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, 0, 0, &[0x00, 0x00, 0x00, 0x00])?;
+        t(&mut buf, 1, 0, &[0x01, 0x00, 0x00, 0x00])?;
+        t(&mut buf, 0, 1, &[0x00, 0x00, 0x00, 0x01])?;
+
+        t(&mut buf, 8, 13, &[0x08, 0x00, 0x00, 0x0d])?;
+
+        buf.clear();
+        assert!(matches!(
+            write_n_fmt_sample(&mut buf, 1 << 24, 0),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            write_n_fmt_sample(&mut buf, 0, 1 << 8),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_id() -> Result<(), Box<dyn std::error::Error>> {
+        use vcf::record::Ids;
+
+        fn t(buf: &mut Vec<u8>, ids: &Ids, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_id(buf, ids)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, &Ids::default(), &[0x07])?;
+        t(&mut buf, &"nd0".parse()?, &[0x37, b'n', b'd', b'0'])?;
+        t(
+            &mut buf,
+            &"nd0;nd1".parse()?,
+            &[0x77, b'n', b'd', b'0', b';', b'n', b'd', b'1'],
+        )?;
+
+        Ok(())
+    }
+
+    #[test]
     fn test_write_ref_alt() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::record::{AlternateBases, ReferenceBases};
 

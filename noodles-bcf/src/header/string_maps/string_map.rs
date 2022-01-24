@@ -43,7 +43,7 @@ impl StringMap {
             .and_then(|i| self.get_index(i).map(|entry| (i, entry)))
     }
 
-    pub(super) fn insert(&mut self, value: String) -> Option<String> {
+    pub(crate) fn insert(&mut self, value: String) -> Option<String> {
         self.insert_full(value).1
     }
 
