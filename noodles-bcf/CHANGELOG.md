@@ -38,6 +38,8 @@
   * bcf/writer/vcf_record/site: Filters with indices larger than 127 are now
     valid.
 
+  * bcf/writer/vcf_record/site: Fix rlen calculation.
+
 ## 0.11.0 - 2022-01-13
 
 ### Added

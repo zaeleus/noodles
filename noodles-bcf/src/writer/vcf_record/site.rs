@@ -101,7 +101,7 @@ pub(crate) fn write_rlen<W>(
 where
     W: Write,
 {
-    let rlen = i32::from(start) - i32::from(end) + 1;
+    let rlen = i32::from(end) - i32::from(start) + 1;
     writer.write_i32::<LittleEndian>(rlen)
 }
 
@@ -307,8 +307,8 @@ mod tests {
 
         t(
             &mut buf,
-            Position::try_from(13)?,
             Position::try_from(8)?,
+            Position::try_from(13)?,
             &[0x06, 0x00, 0x00, 0x00],
         )?;
         // TODO: Add test when start > end.
