@@ -7,6 +7,8 @@
   * vcf/record/info: Add `clear` method to remove all fields from the info
     map.
 
+  * vcf/record/position: Implement `Display`.
+
 ### Changed
 
   * vcf/record/info/field/value: Allow missing values in arrays.

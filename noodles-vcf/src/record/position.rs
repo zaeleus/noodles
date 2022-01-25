@@ -8,6 +8,12 @@ const MIN: i32 = 0;
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Position(i32);
 
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl From<Position> for i32 {
     fn from(position: Position) -> Self {
         position.0
@@ -70,6 +76,12 @@ impl TryFrom<i32> for Position {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Position(8).to_string(), "8");
+        assert_eq!(Position(13).to_string(), "13");
+    }
 
     #[test]
     fn test_from_position_for_i32() -> Result<(), TryFromIntError> {

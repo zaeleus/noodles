@@ -697,7 +697,7 @@ impl fmt::Display for Record {
             f,
             "{chrom}\t{pos}\t{id}\t{ref}\t{alt}",
             chrom = self.chromosome(),
-            pos = i32::from(self.position()),
+            pos = self.position(),
             id = self.ids(),
             r#ref = self.reference_bases(),
             alt = self.alternate_bases(),
