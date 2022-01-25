@@ -163,13 +163,21 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_name() -> io::Result<()> {
+        let mut buf = Vec::new();
+
         let data = b"@r0\n";
         let mut reader = &data[..];
-
-        let mut buf = Vec::new();
+        buf.clear();
         read_name(&mut reader, &mut buf).await?;
-
         assert_eq!(buf, b"r0");
+
+        let data = b"r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        assert!(matches!(
+            read_name(&mut reader, &mut buf).await,
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
