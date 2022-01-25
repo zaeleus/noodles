@@ -59,7 +59,17 @@ impl Record {
         &self.name
     }
 
-    pub(crate) fn name_mut(&mut self) -> &mut Vec<u8> {
+    /// Returns a mutable reference to the name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// *record.name_mut() = b"r1".to_vec();
+    /// assert_eq!(record.name(), b"r1");
+    /// ```
+    pub fn name_mut(&mut self) -> &mut Vec<u8> {
         &mut self.name
     }
 
@@ -76,7 +86,17 @@ impl Record {
         &self.sequence
     }
 
-    pub(crate) fn sequence_mut(&mut self) -> &mut Vec<u8> {
+    /// Returns a mutable reference to the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// record.sequence_mut()[0] = b'C';
+    /// assert_eq!(record.sequence(), b"CGCT");
+    /// ```
+    pub fn sequence_mut(&mut self) -> &mut Vec<u8> {
         &mut self.sequence
     }
 
@@ -93,7 +113,17 @@ impl Record {
         &self.description
     }
 
-    pub(crate) fn description_mut(&mut self) -> &mut Vec<u8> {
+    /// Returns a mutable reference to the description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// *record.description_mut() = b"LN=4".to_vec();
+    /// assert_eq!(record.description(), b"LN=4");
+    /// ```
+    pub fn description_mut(&mut self) -> &mut Vec<u8> {
         &mut self.description
     }
 
@@ -110,7 +140,17 @@ impl Record {
         &self.quality_scores
     }
 
-    pub(crate) fn quality_scores_mut(&mut self) -> &mut Vec<u8> {
+    /// Returns a mutable reference to the quality scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let mut record = Record::new("r0", "AGCT", "NDLS");
+    /// *record.quality_scores_mut() = b"!!!!".to_vec();
+    /// assert_eq!(record.quality_scores(), b"!!!!");
+    /// ```
+    pub fn quality_scores_mut(&mut self) -> &mut Vec<u8> {
         &mut self.quality_scores
     }
 

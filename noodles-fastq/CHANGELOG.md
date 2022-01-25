@@ -6,6 +6,11 @@
 
    * fastq/record: Add description field (`Record::description`).
 
+   * fastq/record: Add mutable getters for name (`Record::name_mut`),
+     sequence (`Record::sequence_mut`), description
+     (`Record::description_mut`), and quality scores
+     (`Record::quality_scores_mut`).
+
 ### Changed
 
   * fastq/async/reader: Ensure the record description (line 3) is prefixed
