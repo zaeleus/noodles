@@ -99,7 +99,7 @@ where
     };
 
     len += read_line(reader, record.sequence_mut()).await?;
-    len += consume_line(reader).await?;
+    len += read_description(reader, &mut Vec::new()).await?;
     len += read_line(reader, record.quality_scores_mut()).await?;
 
     Ok(len)
@@ -122,34 +122,19 @@ where
     }
 }
 
-async fn consume_line<R>(reader: &mut R) -> io::Result<usize>
+async fn read_description<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
-    let mut n = 0;
-    let mut is_eol = false;
+    const DESCRIPTION_PREFIX: u8 = b'+';
 
-    while !is_eol {
-        let buf = reader.fill_buf().await?;
-
-        if buf.is_empty() {
-            break;
-        }
-
-        let len = match buf.iter().position(|&b| b == LINE_FEED) {
-            Some(i) => {
-                is_eol = true;
-                i + 1
-            }
-            None => buf.len(),
-        };
-
-        reader.consume(len);
-
-        n += len;
+    match reader.read_u8().await? {
+        DESCRIPTION_PREFIX => read_line(reader, buf).await.map(|n| n + 1),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid description prefix",
+        )),
     }
-
-    Ok(n)
 }
 
 async fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
@@ -190,16 +175,22 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_consume_line() -> io::Result<()> {
-        async fn t(mut data: &[u8], expected: &[u8]) -> io::Result<()> {
-            consume_line(&mut data).await?;
-            assert_eq!(data, expected);
-            Ok(())
-        }
+    async fn test_read_description() -> io::Result<()> {
+        let mut buf = Vec::new();
 
-        t(b"nd\nls\n", b"ls\n").await?;
-        t(b"\nls\n", b"ls\n").await?;
-        t(b"", b"").await?;
+        let data = b"+r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_description(&mut reader, &mut buf).await?;
+        assert_eq!(buf, b"r0");
+
+        let data = b"r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        assert!(matches!(
+            read_description(&mut reader, &mut buf).await,
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }

@@ -4,6 +4,9 @@
 
 ### Changed
 
+  * fastq/async/reader: Ensure the record description (line 3) is prefixed
+    with a plus sign (`+`).
+
   * fastq/reader: Ensure the record description (line 3) is prefixed with a
     plus sign (`+`).
 
