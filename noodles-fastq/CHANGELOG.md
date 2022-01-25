@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq/reader: Ensure the record description (line 3) is prefixed with a
+    plus sign (`+`).
+
 ## 0.3.0 - 2021-11-11
 
 ### Added

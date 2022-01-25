@@ -145,40 +145,10 @@ where
     };
 
     len += read_line(reader, record.sequence_mut())?;
-    len += consume_line(reader)?;
+    len += read_description(reader, &mut Vec::new())?;
     len += read_line(reader, record.quality_scores_mut())?;
 
     Ok(len)
-}
-
-fn consume_line<R>(reader: &mut R) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    let mut n = 0;
-    let mut is_eol = false;
-
-    while !is_eol {
-        let buf = reader.fill_buf()?;
-
-        if buf.is_empty() {
-            break;
-        }
-
-        let len = match buf.iter().position(|&b| b == LINE_FEED) {
-            Some(i) => {
-                is_eol = true;
-                i + 1
-            }
-            None => buf.len(),
-        };
-
-        reader.consume(len);
-
-        n += len;
-    }
-
-    Ok(n)
 }
 
 fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
@@ -216,6 +186,21 @@ where
         )),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
         Err(e) => Err(e),
+    }
+}
+
+fn read_description<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const DESCRIPTION_PREFIX: u8 = b'+';
+
+    match read_u8(reader)? {
+        DESCRIPTION_PREFIX => read_line(reader, buf).map(|n| n + 1),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid description prefix",
+        )),
     }
 }
 
@@ -261,21 +246,6 @@ dcba
     }
 
     #[test]
-    fn test_consume_line() -> io::Result<()> {
-        fn t(mut data: &[u8], expected: &[u8]) -> io::Result<()> {
-            consume_line(&mut data)?;
-            assert_eq!(data, expected);
-            Ok(())
-        }
-
-        t(b"nd\nls\n", b"ls\n")?;
-        t(b"\nls\n", b"ls\n")?;
-        t(b"", b"")?;
-
-        Ok(())
-    }
-
-    #[test]
     fn test_read_line() -> io::Result<()> {
         let mut buf = Vec::new();
 
@@ -315,6 +285,27 @@ dcba
         buf.clear();
         assert!(matches!(
             read_name(&mut reader, &mut buf),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_description() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let data = b"+r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        read_description(&mut reader, &mut buf)?;
+        assert_eq!(buf, b"r0");
+
+        let data = b"r0\n";
+        let mut reader = &data[..];
+        buf.clear();
+        assert!(matches!(
+            read_description(&mut reader, &mut buf),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
