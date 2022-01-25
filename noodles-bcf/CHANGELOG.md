@@ -27,6 +27,9 @@
     The chromosome ID maps to a contig string map entry, not the header
     contigs.
 
+  * bcf/writer/vcf_record/site: Ensure the record position is <= its end
+    position when writing `rlen`.
+
 ### Fixed
 
   * bcf/reader/record/info: Split on delimiter when reading a character array.
@@ -38,7 +41,7 @@
   * bcf/writer/vcf_record/site: Filters with indices larger than 127 are now
     valid.
 
-  * bcf/writer/vcf_record/site: Fix rlen calculation.
+  * bcf/writer/vcf_record/site: Fix `rlen` calculation.
 
 ## 0.11.0 - 2022-01-13
 

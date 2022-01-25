@@ -101,6 +101,13 @@ pub(crate) fn write_rlen<W>(
 where
     W: Write,
 {
+    if start > end {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("record start position ({}) > end position ({})", start, end),
+        ));
+    }
+
     let rlen = i32::from(end) - i32::from(start) + 1;
     writer.write_i32::<LittleEndian>(rlen)
 }
@@ -311,7 +318,12 @@ mod tests {
             Position::try_from(13)?,
             &[0x06, 0x00, 0x00, 0x00],
         )?;
-        // TODO: Add test when start > end.
+
+        buf.clear();
+        assert!(matches!(
+            write_rlen(&mut buf, Position::try_from(13)?, Position::try_from(8)?),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
 
         Ok(())
     }
