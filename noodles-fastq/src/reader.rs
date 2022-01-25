@@ -145,7 +145,7 @@ where
     };
 
     len += read_line(reader, record.sequence_mut())?;
-    len += read_description(reader, &mut Vec::new())?;
+    len += read_description(reader, record.description_mut())?;
     len += read_line(reader, record.quality_scores_mut())?;
 
     Ok(len)
@@ -226,7 +226,7 @@ AGCT
 abcd
 @noodles:2/1
 TCGA
-+
++noodles:2/1
 dcba
 ";
 
@@ -234,10 +234,13 @@ dcba
         let mut record = Record::default();
 
         read_record(&mut reader, &mut record)?;
-        assert_eq!(record, Record::new("noodles:1/1", "AGCT", "abcd"));
+        let expected = Record::new("noodles:1/1", "AGCT", "abcd");
+        assert_eq!(record, expected);
 
         read_record(&mut reader, &mut record)?;
-        assert_eq!(record, Record::new("noodles:2/1", "TCGA", "dcba"));
+        let mut expected = Record::new("noodles:2/1", "TCGA", "dcba");
+        expected.description_mut().extend_from_slice(b"noodles:2/1");
+        assert_eq!(record, expected);
 
         let n = read_record(&mut reader, &mut record)?;
         assert_eq!(n, 0);

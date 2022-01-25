@@ -5,6 +5,7 @@ use std::fmt;
 pub struct Record {
     name: Vec<u8>,
     sequence: Vec<u8>,
+    description: Vec<u8>,
     quality_scores: Vec<u8>,
 }
 
@@ -26,6 +27,7 @@ impl Record {
         Self {
             name: name.into(),
             sequence: sequence.into(),
+            description: Vec::new(),
             quality_scores: quality_scores.into(),
         }
     }
@@ -78,6 +80,23 @@ impl Record {
         &mut self.sequence
     }
 
+    /// Returns the description of the record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fastq::Record;
+    /// let record = Record::new("r0", "AGCT", "NDLS");
+    /// assert!(record.description().is_empty());
+    /// ```
+    pub fn description(&self) -> &[u8] {
+        &self.description
+    }
+
+    pub(crate) fn description_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.description
+    }
+
     /// Returns the quality scores of the record.
     ///
     /// # Examples
@@ -99,6 +118,7 @@ impl Record {
     pub(crate) fn clear(&mut self) {
         self.name.clear();
         self.sequence.clear();
+        self.description.clear();
         self.quality_scores.clear();
     }
 }
@@ -119,7 +139,13 @@ impl fmt::Display for Record {
 
         writeln!(f)?;
 
-        writeln!(f, "+")?;
+        f.write_str("+")?;
+
+        for &b in self.description() {
+            write!(f, "{}", b as char)?;
+        }
+
+        writeln!(f)?;
 
         for &b in self.quality_scores() {
             write!(f, "{}", b as char)?;
@@ -137,8 +163,11 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let record = Record::new("r0", "ATCG", "NDLS");
+        let mut record = Record::new("r0", "ATCG", "NDLS");
         assert_eq!(record.to_string(), "@r0\nATCG\n+\nNDLS\n");
+
+        record.description_mut().extend_from_slice(b"r0");
+        assert_eq!(record.to_string(), "@r0\nATCG\n+r0\nNDLS\n");
     }
 
     #[test]
@@ -148,6 +177,7 @@ mod tests {
 
         assert!(record.name().is_empty());
         assert!(record.sequence().is_empty());
+        assert!(record.description().is_empty());
         assert!(record.quality_scores().is_empty());
     }
 }

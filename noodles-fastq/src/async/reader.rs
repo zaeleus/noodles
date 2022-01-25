@@ -99,7 +99,7 @@ where
     };
 
     len += read_line(reader, record.sequence_mut()).await?;
-    len += read_description(reader, &mut Vec::new()).await?;
+    len += read_description(reader, record.description_mut()).await?;
     len += read_line(reader, record.quality_scores_mut()).await?;
 
     Ok(len)
@@ -160,6 +160,37 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn test_read_record() -> io::Result<()> {
+        let data = b"\
+@noodles:1/1
+AGCT
++
+abcd
+@noodles:2/1
+TCGA
++noodles:2/1
+dcba
+";
+
+        let mut reader = &data[..];
+        let mut record = Record::default();
+
+        read_record(&mut reader, &mut record).await?;
+        let expected = Record::new("noodles:1/1", "AGCT", "abcd");
+        assert_eq!(record, expected);
+
+        read_record(&mut reader, &mut record).await?;
+        let mut expected = Record::new("noodles:2/1", "TCGA", "dcba");
+        expected.description_mut().extend_from_slice(b"noodles:2/1");
+        assert_eq!(record, expected);
+
+        let n = read_record(&mut reader, &mut record).await?;
+        assert_eq!(n, 0);
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_read_name() -> io::Result<()> {

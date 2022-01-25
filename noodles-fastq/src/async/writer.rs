@@ -81,7 +81,11 @@ where
     writer.write_all(b"\n").await?;
 
     writer.write_all(record.sequence()).await?;
-    writer.write_all(b"\n+\n").await?;
+    writer.write_all(b"\n").await?;
+
+    writer.write_all(b"+").await?;
+    writer.write_all(record.description()).await?;
+    writer.write_all(b"\n").await?;
 
     writer.write_all(record.quality_scores()).await?;
     writer.write_all(b"\n").await?;
@@ -95,12 +99,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_record() -> io::Result<()> {
-        let record = Record::new("r0", "ACGT", "NDLS");
-
         let mut buf = Vec::new();
-        write_record(&mut buf, &record).await?;
 
+        let mut record = Record::new("r0", "ACGT", "NDLS");
+        write_record(&mut buf, &record).await?;
         let expected = b"@r0\nACGT\n+\nNDLS\n";
+        assert_eq!(buf, expected);
+
+        record.description_mut().extend_from_slice(b"r0");
+
+        buf.clear();
+        write_record(&mut buf, &record).await?;
+        let expected = b"@r0\nACGT\n+r0\nNDLS\n";
         assert_eq!(buf, expected);
 
         Ok(())

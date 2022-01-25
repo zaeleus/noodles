@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+   * fastq/record: Add description field (`Record::description`).
+
 ### Changed
 
   * fastq/async/reader: Ensure the record description (line 3) is prefixed

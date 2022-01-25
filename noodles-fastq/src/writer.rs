@@ -66,7 +66,11 @@ where
     writer.write_all(b"\n")?;
 
     writer.write_all(record.sequence())?;
-    writer.write_all(b"\n+\n")?;
+    writer.write_all(b"\n")?;
+
+    writer.write_all(b"+")?;
+    writer.write_all(record.description())?;
+    writer.write_all(b"\n")?;
 
     writer.write_all(record.quality_scores())?;
     writer.write_all(b"\n")?;
@@ -80,12 +84,18 @@ mod tests {
 
     #[test]
     fn test_write_record() -> io::Result<()> {
-        let record = Record::new("r0", "ACGT", "NDLS");
+        let mut record = Record::new("r0", "ACGT", "NDLS");
 
         let mut buf = Vec::new();
         write_record(&mut buf, &record)?;
-
         let expected = b"@r0\nACGT\n+\nNDLS\n";
+        assert_eq!(buf, expected);
+
+        record.description_mut().extend_from_slice(b"r0");
+
+        buf.clear();
+        write_record(&mut buf, &record)?;
+        let expected = b"@r0\nACGT\n+r0\nNDLS\n";
         assert_eq!(buf, expected);
 
         Ok(())
