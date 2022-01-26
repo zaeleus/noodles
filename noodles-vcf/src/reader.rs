@@ -1,6 +1,6 @@
 //! VCF reader and iterators.
 
-mod query;
+pub(crate) mod query;
 mod records;
 
 pub use self::{query::Query, records::Records};

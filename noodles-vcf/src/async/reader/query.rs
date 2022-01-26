@@ -1,4 +1,4 @@
-use std::ops::{Bound, RangeBounds};
+use std::ops::RangeBounds;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -6,7 +6,10 @@ use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{Header, Record};
+use crate::{
+    reader::query::{intersects, next_chunk, resolve_interval},
+    Header, Record,
+};
 
 enum State {
     Seek,
@@ -90,24 +93,6 @@ where
     }))
 }
 
-fn resolve_interval<B>(interval: B) -> (i32, i32)
-where
-    B: RangeBounds<i32>,
-{
-    match (interval.start_bound(), interval.end_bound()) {
-        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-        _ => todo!(),
-    }
-}
-
-fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
-    let chunk = chunks.get(*i).copied();
-    *i += 1;
-    chunk
-}
-
 async fn next_record<R>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     header: &Header,
@@ -123,30 +108,4 @@ where
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
-}
-
-fn intersects(
-    record: &Record,
-    reference_sequence_name: &str,
-    interval_start: i32,
-    interval_end: i32,
-) -> io::Result<bool> {
-    use crate::record::Chromosome;
-
-    let name = match record.chromosome() {
-        Chromosome::Name(s) => s.into(),
-        Chromosome::Symbol(s) => s.to_string(),
-    };
-
-    let start = i32::from(record.position());
-    let end = record
-        .end()
-        .map(i32::from)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    Ok(name == reference_sequence_name && in_interval(start, end, interval_start, interval_end))
-}
-
-fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
-    a_start <= b_end && b_start <= a_end
 }
