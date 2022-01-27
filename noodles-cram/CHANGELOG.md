@@ -4,6 +4,8 @@
 
 ### Fixed
 
+  * cram/async/reader/record: Read feature code as byte.
+
   * cram/reader/record: Read feature code as byte.
 
     This was incorrectly being read as an ITF-8 value.

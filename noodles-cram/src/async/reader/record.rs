@@ -610,13 +610,13 @@ where
                 )
             })?;
 
-        decode_itf8(
+        decode_byte(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
         .await
-        .map(|id| id as u8 as char)
+        .map(char::from)
         .and_then(|id| {
             feature::Code::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
