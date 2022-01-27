@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/async/reader: Parse record from buffer.
+
+    This previously used an async reader when parsing the record but now just
+    reads from the block buffer.
+
 ## 0.13.0 - 2022-01-13
 
 ### Added
