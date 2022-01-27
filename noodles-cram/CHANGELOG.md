@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/record/resolve: Add bases (`b`) base resolver.
+
 ### Fixed
 
   * cram/async/reader/record: Read feature code as byte.
