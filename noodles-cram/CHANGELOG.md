@@ -6,6 +6,11 @@
 
   * cram/record/resolve: Add read base (`B`) base resolver.
 
+### Fixed
+
+  * cram/data_container/slice: Fix template size calculation when resolving
+    mates.
+
 ## 0.11.0 - 2022-01-27
 
 ### Added

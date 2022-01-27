@@ -201,10 +201,32 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
     record.next_mate_alignment_start = mate.alignment_start();
 }
 
+// _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
-    let start = record.alignment_start().map(i32::from).unwrap_or_default();
-    let end = mate.alignment_end();
-    end - start + 1
+    let start = if record.bam_flags().is_reverse_complemented() {
+        record.alignment_end()
+    } else {
+        record.alignment_start().map(i32::from).unwrap_or_default()
+    };
+
+    let end = if mate.bam_flags().is_reverse_complemented() {
+        mate.alignment_end()
+    } else {
+        mate.alignment_start().map(i32::from).unwrap_or_default()
+    };
+
+    // "...the absolute value of TLEN equals the distance between the mapped end of the template
+    // and the mapped start of the template, inclusively..."
+    let len = (end - start).abs() + 1;
+
+    // "The TLEN field is positive for the leftmost segment of the template, negative for the
+    // rightmost, and the sign for any middle segment is undefined. If segments cover the same
+    // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
+    if start > end {
+        -len
+    } else {
+        len
+    }
 }
 
 #[cfg(test)]
@@ -279,6 +301,75 @@ mod tests {
             records[3].next_mate_alignment_start(),
             records[0].alignment_start(),
         ); */
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_calculate_template_size() -> Result<(), sam::record::position::TryFromIntError> {
+        use sam::record::{Flags, Position};
+
+        // --> -->
+        let record = Record::builder()
+            .set_alignment_start(Position::try_from(100)?)
+            .set_read_length(50)
+            .build();
+
+        let mate = Record::builder()
+            .set_alignment_start(Position::try_from(200)?)
+            .set_read_length(50)
+            .build();
+
+        assert_eq!(calculate_template_size(&record, &mate), 101);
+        assert_eq!(calculate_template_size(&mate, &record), -101);
+
+        // --> <--
+        // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
+        // § 1.4.9 "TLEN" (footnote 14).
+        let record = Record::builder()
+            .set_alignment_start(Position::try_from(100)?)
+            .set_read_length(50)
+            .build();
+
+        let mate = Record::builder()
+            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
+            .set_alignment_start(Position::try_from(200)?)
+            .set_read_length(50)
+            .build();
+
+        assert_eq!(calculate_template_size(&record, &mate), 150);
+        assert_eq!(calculate_template_size(&mate, &record), -150);
+
+        // <-- -->
+        let record = Record::builder()
+            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
+            .set_alignment_start(Position::try_from(100)?)
+            .set_read_length(50)
+            .build();
+
+        let mate = Record::builder()
+            .set_alignment_start(Position::try_from(200)?)
+            .set_read_length(50)
+            .build();
+
+        assert_eq!(calculate_template_size(&record, &mate), 52);
+        assert_eq!(calculate_template_size(&mate, &record), -52);
+
+        // <-- <--
+        let record = Record::builder()
+            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
+            .set_alignment_start(Position::try_from(100)?)
+            .set_read_length(50)
+            .build();
+
+        let mate = Record::builder()
+            .set_bam_flags(Flags::REVERSE_COMPLEMENTED)
+            .set_alignment_start(Position::try_from(200)?)
+            .set_read_length(50)
+            .build();
+
+        assert_eq!(calculate_template_size(&record, &mate), 101);
+        assert_eq!(calculate_template_size(&mate, &record), -101);
 
         Ok(())
     }
