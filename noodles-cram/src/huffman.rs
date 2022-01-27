@@ -40,7 +40,7 @@ impl CanonicalHuffmanDecoder {
         for &len in sorted_lens {
             input_code <<= len - prev_len;
 
-            let b = reader.read_u32(len)? as i32;
+            let b = reader.read_u32(len - prev_len)? as i32;
             input_code |= b;
 
             let entry = code_book_by_len[&len]
@@ -90,6 +90,23 @@ fn build_canonical_code_book(alphabet: &[Itf8], bit_lens: &[u32]) -> CodeBook {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_decode() -> io::Result<()> {
+        let symbols = [0x4e, 0x44, 0x4c];
+        let bit_lens = [1, 2, 2];
+        let decoder = CanonicalHuffmanDecoder::new(&symbols, &bit_lens);
+
+        let data = [0b01011000];
+        let mut reader = BitReader::new(&data[..]);
+
+        assert_eq!(decoder.decode(&mut reader)?, 0x4e);
+        assert_eq!(decoder.decode(&mut reader)?, 0x44);
+        assert_eq!(decoder.decode(&mut reader)?, 0x4c);
+        assert_eq!(decoder.decode(&mut reader)?, 0x4e);
+
+        Ok(())
+    }
 
     #[test]
     fn test_build_canonical_code_book() {

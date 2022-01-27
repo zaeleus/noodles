@@ -10,6 +10,8 @@
 
   * cram/async/reader/record: Read feature code as byte.
 
+  * cram/huffman: Fix read length from bit reader.
+
   * cram/reader/record: Read feature code as byte.
 
     This was incorrectly being read as an ITF-8 value.
