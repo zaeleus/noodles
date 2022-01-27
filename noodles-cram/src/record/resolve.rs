@@ -63,6 +63,11 @@ mod internal {
                         read_pos += 1;
                     }
                 }
+                Feature::ReadBase(_, base, _) => {
+                    buf[read_pos] = *base;
+                    ref_pos += 1;
+                    read_pos += 1;
+                }
                 Feature::Substitution(_, code) => {
                     let base = raw_reference_sequence[ref_pos] as char;
                     let reference_base = Base::try_from(base).unwrap_or_default();
@@ -174,6 +179,7 @@ mod tests {
 
         t(&[], b"ACGT");
         t(&[Feature::Bases(1, b"TGCA".to_vec())], b"TGCA");
+        t(&[Feature::ReadBase(2, b'Y', b'!')], b"AYGT");
         t(&[Feature::Substitution(2, 1)], b"AGGT");
         t(&[Feature::Insertion(2, b"GG".to_vec())], b"AGGC");
         t(&[Feature::Deletion(2, 2)], b"ATAC");

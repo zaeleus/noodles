@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/record/resolve: Add read base (`B`) base resolver.
+
 ## 0.11.0 - 2022-01-27
 
 ### Added
