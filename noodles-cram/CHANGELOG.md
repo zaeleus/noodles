@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/reader/record: Read feature code as byte.
+
+    This was incorrectly being read as an ITF-8 value.
+
 ## 0.10.0 - 2022-01-13
 
 ### Added
