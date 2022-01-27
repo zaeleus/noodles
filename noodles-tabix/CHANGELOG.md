@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3 - 2022-01-27
+
+### Fixed
+
+  * tabix: Sync dependencies.
+
 ## 0.7.2 - 2021-12-02
 
 ### Fixed
