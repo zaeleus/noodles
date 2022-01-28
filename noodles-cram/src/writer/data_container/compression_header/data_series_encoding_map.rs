@@ -18,7 +18,8 @@ where
 {
     let mut buf = Vec::new();
 
-    let map_len = count_data_series_encodings(data_series_encoding_map);
+    let map_len = Itf8::try_from(data_series_encoding_map.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
     write_encodings(&mut buf, data_series_encoding_map)?;
@@ -35,140 +36,6 @@ where
 {
     let data = <[u8; 2]>::from(key);
     writer.write_all(&data)
-}
-
-fn count_data_series_encodings(data_series_encoding_map: &DataSeriesEncodingMap) -> Itf8 {
-    // BAM bit flags, CRAM bit flags, read lengths, in-seq positions, read groups, tag IDs
-    let mut n = 6;
-
-    if data_series_encoding_map.reference_id_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.read_names_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .next_mate_bit_flags_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .next_fragment_reference_sequence_id_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .next_mate_alignment_start_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map.template_size_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .distance_to_next_fragment_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .number_of_read_features_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .read_features_codes_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .in_read_positions_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .deletion_lengths_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .stretches_of_bases_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .stretches_of_quality_scores_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .base_substitution_codes_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map.insertion_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .reference_skip_length_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map.padding_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.hard_clip_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.soft_clip_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map
-        .mapping_qualities_encoding()
-        .is_some()
-    {
-        n += 1;
-    }
-
-    if data_series_encoding_map.bases_encoding().is_some() {
-        n += 1;
-    }
-
-    if data_series_encoding_map.quality_scores_encoding().is_some() {
-        n += 1;
-    }
-
-    n
 }
 
 fn write_encodings<W>(

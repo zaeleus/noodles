@@ -43,6 +43,104 @@ impl DataSeriesEncodingMap {
         Builder::default()
     }
 
+    pub fn len(&self) -> usize {
+        // BAM bit flags, CRAM bit flags, read lengths, in-seq positions, read groups, tag IDs
+        let mut n = 6;
+
+        if self.reference_id_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.read_names_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.next_mate_bit_flags_encoding().is_some() {
+            n += 1;
+        }
+
+        if self
+            .next_fragment_reference_sequence_id_encoding()
+            .is_some()
+        {
+            n += 1;
+        }
+
+        if self.next_mate_alignment_start_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.template_size_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.distance_to_next_fragment_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.number_of_read_features_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.read_features_codes_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.in_read_positions_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.deletion_lengths_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.stretches_of_bases_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.stretches_of_quality_scores_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.base_substitution_codes_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.insertion_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.reference_skip_length_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.padding_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.hard_clip_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.soft_clip_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.mapping_qualities_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.bases_encoding().is_some() {
+            n += 1;
+        }
+
+        if self.quality_scores_encoding().is_some() {
+            n += 1;
+        }
+
+        n
+    }
+
     pub fn bam_bit_flags_encoding(&self) -> &Encoding {
         &self.bam_bit_flags_encoding
     }
@@ -191,5 +289,28 @@ impl Default for DataSeriesEncodingMap {
             bases_encoding: Some(Encoding::External(27)),
             quality_scores_encoding: Some(Encoding::External(28)),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_len() -> Result<(), builder::BuildError> {
+        let map = DataSeriesEncodingMap::default();
+        assert_eq!(map.len(), 28);
+
+        let map = DataSeriesEncodingMap::builder()
+            .set_bam_bit_flags_encoding(Encoding::External(1))
+            .set_cram_bit_flags_encoding(Encoding::External(2))
+            .set_read_lengths_encoding(Encoding::External(4))
+            .set_in_seq_positions_encoding(Encoding::External(5))
+            .set_read_groups_encoding(Encoding::External(6))
+            .set_tag_ids_encoding(Encoding::External(13))
+            .build()?;
+        assert_eq!(map.len(), 6);
+
+        Ok(())
     }
 }
