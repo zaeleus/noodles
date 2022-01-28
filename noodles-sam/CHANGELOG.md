@@ -7,6 +7,13 @@
   * sam/async/reader: Add common methods to access the underlying reader:
     `get_ref` and `get_mut`.
 
+### Deprecated
+
+  * sam/header/header/version: Deprecate `ParseError::MissingMajorVersion` and
+    `ParseError::MissingMinorVersion`.
+
+    Use `ParseError::Invalid` instead.
+
 ## 0.11.0 - 2022-01-27
 
 ### Added

@@ -6,7 +6,6 @@ const MAJOR_VERSION: u32 = 1;
 const MINOR_VERSION: u32 = 6;
 
 const DELIMITER: char = '.';
-const MAX_COMPONENT_COUNT: usize = 2;
 
 /// A SAM header header version (`VN`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -72,11 +71,15 @@ impl fmt::Display for Version {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
     /// The major version is missing.
+    #[deprecated(since = "0.12.0", note = "Use `ParseError::Invalid` instead.")]
     MissingMajorVersion,
     /// The major version is invalid.
     InvalidMajorVersion(num::ParseIntError),
     /// The minor version is missing.
+    #[deprecated(since = "0.12.0", note = "Use `ParseError::Invalid` instead.")]
     MissingMinorVersion,
     /// The minor version is invalid.
     InvalidMinorVersion(num::ParseIntError),
@@ -85,9 +88,11 @@ pub enum ParseError {
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
+    #[allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::MissingMajorVersion => f.write_str("missing major version"),
             Self::InvalidMajorVersion(e) => write!(f, "invalid major version: {}", e),
             Self::MissingMinorVersion => f.write_str("missing minor version"),
@@ -104,19 +109,14 @@ impl FromStr for Version {
             return Err(ParseError::Empty);
         }
 
-        let mut components = s.splitn(MAX_COMPONENT_COUNT, DELIMITER);
-
-        let major = components
-            .next()
-            .ok_or(ParseError::MissingMajorVersion)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidMajorVersion))?;
-
-        let minor = components
-            .next()
-            .ok_or(ParseError::MissingMinorVersion)
-            .and_then(|t| t.parse().map_err(ParseError::InvalidMinorVersion))?;
-
-        Ok(Self::new(major, minor))
+        match s.split_once(DELIMITER) {
+            Some((a, b)) => {
+                let major = a.parse().map_err(ParseError::InvalidMajorVersion)?;
+                let minor = b.parse().map_err(ParseError::InvalidMinorVersion)?;
+                Ok(Self::new(major, minor))
+            }
+            None => Err(ParseError::Invalid),
+        }
     }
 }
 
@@ -141,6 +141,7 @@ mod tests {
         assert_eq!("1.6".parse(), Ok(Version::new(1, 6)));
 
         assert_eq!("".parse::<Version>(), Err(ParseError::Empty));
+        assert_eq!("1".parse::<Version>(), Err(ParseError::Invalid));
 
         assert!(matches!(
             ".".parse::<Version>(),
@@ -152,10 +153,13 @@ mod tests {
             Err(ParseError::InvalidMajorVersion(_))
         ));
 
-        assert_eq!("1".parse::<Version>(), Err(ParseError::MissingMinorVersion));
-
         assert!(matches!(
             "1.x".parse::<Version>(),
+            Err(ParseError::InvalidMinorVersion(_))
+        ));
+
+        assert!(matches!(
+            "1.6.1".parse::<Version>(),
             Err(ParseError::InvalidMinorVersion(_))
         ));
     }
