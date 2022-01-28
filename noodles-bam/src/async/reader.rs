@@ -1,6 +1,5 @@
 mod builder;
 mod query;
-#[allow(dead_code)]
 mod record;
 
 pub use self::builder::Builder;
