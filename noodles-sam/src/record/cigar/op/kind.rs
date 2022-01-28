@@ -1,6 +1,10 @@
 //! SAM record CIGAR operation kind.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    error,
+    fmt::{self, Write},
+    str::FromStr,
+};
 
 /// A SAM record CIGAR operation kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -27,7 +31,7 @@ pub enum Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 

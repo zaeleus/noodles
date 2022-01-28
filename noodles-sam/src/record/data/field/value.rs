@@ -5,7 +5,12 @@ pub mod ty;
 
 pub use self::{subtype::Subtype, ty::Type};
 
-use std::{error, fmt, num, str::FromStr};
+use std::{
+    error,
+    fmt::{self, Write},
+    num,
+    str::FromStr,
+};
 
 use super::DELIMITER;
 
@@ -447,13 +452,13 @@ impl Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Char(c) => write!(f, "{}", c),
+            Self::Char(c) => f.write_char(*c),
             Self::Int(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => f.write_str(s),
             Self::Int8Array(values) => {
-                write!(f, "{}", char::from(Subtype::Int8))?;
+                f.write_char(char::from(Subtype::Int8))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -462,7 +467,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt8Array(values) => {
-                write!(f, "{}", char::from(Subtype::UInt8))?;
+                f.write_char(char::from(Subtype::UInt8))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -471,7 +476,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::Int16Array(values) => {
-                write!(f, "{}", char::from(Subtype::Int16))?;
+                f.write_char(char::from(Subtype::Int16))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -480,7 +485,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt16Array(values) => {
-                write!(f, "{}", char::from(Subtype::UInt16))?;
+                f.write_char(char::from(Subtype::UInt16))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -489,7 +494,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::Int32Array(values) => {
-                write!(f, "{}", char::from(Subtype::Int32))?;
+                f.write_char(char::from(Subtype::Int32))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -498,7 +503,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::UInt32Array(values) => {
-                write!(f, "{}", char::from(Subtype::UInt32))?;
+                f.write_char(char::from(Subtype::UInt32))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;
@@ -507,7 +512,7 @@ impl fmt::Display for Value {
                 Ok(())
             }
             Self::FloatArray(values) => {
-                write!(f, "{}", char::from(Subtype::Float))?;
+                f.write_char(char::from(Subtype::Float))?;
 
                 for value in values {
                     write!(f, ",{}", value)?;

@@ -1,4 +1,7 @@
-use std::{error, fmt};
+use std::{
+    error,
+    fmt::{self, Write},
+};
 
 /// A SAM record sequence base.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -61,7 +64,7 @@ pub enum Base {
 
 impl fmt::Display for Base {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 

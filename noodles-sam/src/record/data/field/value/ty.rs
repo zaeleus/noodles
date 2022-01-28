@@ -1,6 +1,10 @@
 //! SAM record data field value type.
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    error,
+    fmt::{self, Write},
+    str::FromStr,
+};
 
 /// A SAM record data field value type.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -21,7 +25,7 @@ pub enum Type {
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 

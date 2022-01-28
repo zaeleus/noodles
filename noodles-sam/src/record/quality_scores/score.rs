@@ -1,6 +1,9 @@
 //! SAM record quality scores score.
 
-use std::{error, fmt};
+use std::{
+    error,
+    fmt::{self, Write},
+};
 
 const START_CHAR: char = '!';
 const END_CHAR: char = '~';
@@ -19,7 +22,7 @@ pub struct Score(u8);
 
 impl fmt::Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 
