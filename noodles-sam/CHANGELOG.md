@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/async/reader: Add common methods to access the underlying reader:
+    `get_ref` and `get_mut`.
+
 ## 0.11.0 - 2022-01-27
 
 ### Added
