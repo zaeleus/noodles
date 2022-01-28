@@ -4,7 +4,7 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::{info::Type, Number},
-    record::value::{parse_f32_case_insensitive_extended, percent_decode},
+    record::value::{self, percent_decode},
 };
 
 use super::{Key, MISSING_VALUE};
@@ -196,7 +196,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_f32(s: &str) -> Result<Value, ParseError> {
-    parse_f32_case_insensitive_extended(s)
+    value::parse_f32(s)
         .map(Value::Float)
         .map_err(ParseError::InvalidFloat)
 }
@@ -205,7 +205,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING_VALUE => Ok(None),
-            _ => parse_f32_case_insensitive_extended(t)
+            _ => value::parse_f32(t)
                 .map(Some)
                 .map_err(ParseError::InvalidFloat),
         })

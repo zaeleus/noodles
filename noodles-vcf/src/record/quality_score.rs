@@ -2,8 +2,6 @@
 
 use std::{error, fmt, num, str::FromStr};
 
-use super::value::parse_f32_case_insensitive_extended;
-
 const MIN: f32 = 0.0;
 
 /// A VCF record quality score.
@@ -72,9 +70,11 @@ impl FromStr for QualityScore {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use super::value::parse_f32;
+
         match s {
             "" => Err(ParseError::Empty),
-            _ => parse_f32_case_insensitive_extended(s)
+            _ => parse_f32(s)
                 .map_err(ParseError::Invalid)
                 .and_then(|value| Self::try_from(value).map_err(ParseError::InvalidValue)),
         }
