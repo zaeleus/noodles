@@ -110,7 +110,7 @@ impl FromStr for Record {
                 let kind = k.parse().map_err(ParseError::InvalidKind)?;
 
                 let value = match kind {
-                    Kind::Comment => parse_comment(v)?,
+                    Kind::Comment => parse_comment(v),
                     _ => parse_map(v)?,
                 };
 
@@ -121,8 +121,8 @@ impl FromStr for Record {
     }
 }
 
-fn parse_comment(s: &str) -> Result<Value, ParseError> {
-    Ok(Value::String(s.into()))
+fn parse_comment(s: &str) -> Value {
+    Value::String(s.into())
 }
 
 fn parse_map(s: &str) -> Result<Value, ParseError> {
