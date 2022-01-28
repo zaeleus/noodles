@@ -11,6 +11,9 @@
   * cram/data_container/slice: Fix template size calculation when resolving
     mates.
 
+  * cram/writer/data_container/compression_header/data_series_encoding_map:
+    Avoid truncating data length.
+
 ## 0.11.0 - 2022-01-27
 
 ### Added

@@ -24,7 +24,8 @@ where
 
     write_encodings(&mut buf, data_series_encoding_map)?;
 
-    let data_len = buf.len() as Itf8;
+    let data_len =
+        Itf8::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)
