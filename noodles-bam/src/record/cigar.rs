@@ -55,6 +55,25 @@ impl Cigar {
         self.0.is_empty()
     }
 
+    /// Removes all CIGAR operations.
+    ///
+    /// This does not affect the capacity of the list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Cigar;
+    ///
+    /// let mut cigar = Cigar::from(vec![0x00000240, 0x00000084]); // 36M8S
+    /// assert!(!cigar.is_empty());
+    ///
+    /// cigar.clear();
+    /// assert!(cigar.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
     /// Returns an iterator over the operations in the CIGAR.
     ///
     /// # Examples

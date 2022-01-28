@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record/cigar: Add `clear` method to remove all CIGAR operations.
+
 ## 0.14.0 - 2022-01-27
 
 ### Changed
