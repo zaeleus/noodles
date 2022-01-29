@@ -4,6 +4,9 @@
 
 ### Added
 
+  * cram: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
   * cram/record/resolve: Add read base (`B`) base resolver.
 
 ### Fixed

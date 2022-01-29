@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
 ## 0.3.4 - 2022-01-27
 
 ### Fixed

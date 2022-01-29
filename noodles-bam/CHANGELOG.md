@@ -4,6 +4,9 @@
 
 ### Added
 
+  * bam: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
   * bam/record/cigar: Add `clear` method to remove all CIGAR operations.
 
 ## 0.14.0 - 2022-01-27

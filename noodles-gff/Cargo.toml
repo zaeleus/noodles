@@ -4,6 +4,7 @@ version = "0.4.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
+rust-version = "1.56.0"
 description = "Generic Feature Format (GFF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"

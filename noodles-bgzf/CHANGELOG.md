@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
 ## 0.8.0 - 2022-01-27
 
 ### Changed

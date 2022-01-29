@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * tabix: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
 ## 0.7.3 - 2022-01-27
 
 ### Fixed

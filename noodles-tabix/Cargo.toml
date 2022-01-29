@@ -4,6 +4,7 @@ version = "0.7.3"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
+rust-version = "1.56.0"
 description = "Tabix (TBI) format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"

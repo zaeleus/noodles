@@ -4,6 +4,9 @@
 
 ### Added
 
+  * sam: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
   * sam/async/reader: Add common methods to access the underlying reader:
     `get_ref` and `get_mut`.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
 ## 0.6.0 - 2022-01-27
 
 ### Deprecated

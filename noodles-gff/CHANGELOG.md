@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff: Set minimum supported Rust version (MSRV) to 1.56.0 in package
+    manifest.
+
 ## 0.4.0 - 2021-11-11
 
 ### Changed
