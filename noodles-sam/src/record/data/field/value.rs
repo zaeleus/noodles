@@ -746,18 +746,34 @@ mod tests {
         assert_eq!(Value::Int(13).to_string(), "13");
         assert_eq!(Value::Float(0.0).to_string(), "0");
 
+        assert_eq!(Value::String(String::new()).to_string(), "");
         assert_eq!(
             Value::String(String::from("noodles")).to_string(),
             "noodles"
         );
 
+        assert_eq!(Value::Hex(String::new()).to_string(), "");
         assert_eq!(Value::Hex(String::from("CAFE")).to_string(), "CAFE");
+
+        assert_eq!(Value::Int8Array(Vec::new()).to_string(), "c");
         assert_eq!(Value::Int8Array(vec![1, -2]).to_string(), "c,1,-2");
+
+        assert_eq!(Value::UInt8Array(Vec::new()).to_string(), "C");
         assert_eq!(Value::UInt8Array(vec![3, 5]).to_string(), "C,3,5");
+
+        assert_eq!(Value::Int16Array(Vec::new()).to_string(), "s");
         assert_eq!(Value::Int16Array(vec![8, -13]).to_string(), "s,8,-13");
+
+        assert_eq!(Value::UInt16Array(Vec::new()).to_string(), "S");
         assert_eq!(Value::UInt16Array(vec![21, 34]).to_string(), "S,21,34");
+
+        assert_eq!(Value::Int32Array(Vec::new()).to_string(), "i");
         assert_eq!(Value::Int32Array(vec![55, -89]).to_string(), "i,55,-89");
+
+        assert_eq!(Value::UInt32Array(Vec::new()).to_string(), "I");
         assert_eq!(Value::UInt32Array(vec![144, 233]).to_string(), "I,144,233");
+
+        assert_eq!(Value::FloatArray(Vec::new()).to_string(), "f");
         assert_eq!(Value::FloatArray(vec![0.0, 1.0]).to_string(), "f,0,1");
     }
 
@@ -800,6 +816,7 @@ mod tests {
         assert_eq!("H:CAFE0".parse::<Value>(), Err(ParseError::InvalidHexValue));
         assert_eq!("H:NDLS".parse::<Value>(), Err(ParseError::InvalidHexValue));
 
+        assert_eq!("B:c".parse(), Ok(Value::Int8Array(Vec::new())));
         assert_eq!("B:c,1,-2".parse(), Ok(Value::Int8Array(vec![1, -2])));
         assert!(matches!(
             "B:c,".parse::<Value>(),
@@ -810,6 +827,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:C".parse(), Ok(Value::UInt8Array(Vec::new())));
         assert_eq!("B:C,3,5".parse(), Ok(Value::UInt8Array(vec![3, 5])));
         assert!(matches!(
             "B:C,".parse::<Value>(),
@@ -820,6 +838,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:s".parse(), Ok(Value::Int16Array(Vec::new())));
         assert_eq!("B:s,8,-13".parse(), Ok(Value::Int16Array(vec![8, -13])));
         assert!(matches!(
             "B:s,".parse::<Value>(),
@@ -830,6 +849,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:S".parse(), Ok(Value::UInt16Array(Vec::new())));
         assert_eq!("B:S,21,34".parse(), Ok(Value::UInt16Array(vec![21, 34])));
         assert!(matches!(
             "B:S,".parse::<Value>(),
@@ -840,6 +860,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:i".parse(), Ok(Value::Int32Array(Vec::new())));
         assert_eq!("B:i,55,-89".parse(), Ok(Value::Int32Array(vec![55, -89])));
         assert!(matches!(
             "B:i,".parse::<Value>(),
@@ -850,6 +871,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:I".parse(), Ok(Value::UInt32Array(Vec::new())));
         assert_eq!(
             "B:I,144,233".parse(),
             Ok(Value::UInt32Array(vec![144, 233]))
@@ -863,6 +885,7 @@ mod tests {
             Err(ParseError::InvalidIntValue(_))
         ));
 
+        assert_eq!("B:f".parse(), Ok(Value::FloatArray(Vec::new())));
         assert_eq!("B:f,0,1".parse(), Ok(Value::FloatArray(vec![0.0, 1.0])));
         assert!(matches!(
             "B:f,".parse::<Value>(),
