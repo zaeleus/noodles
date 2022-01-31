@@ -10,11 +10,35 @@ where
     R: BufRead,
 {
     /// Creates a BED reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// let data = [];
+    /// let reader = bed::Reader::new(&data[..]);
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
     /// Reads a single raw BED record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    ///
+    /// let data = b"sq0\t8\t13\n";
+    /// let mut reader = bed::Reader::new(&data[..]);
+    ///
+    /// let mut buf = String::new();
+    /// reader.read_record(&mut buf)?;
+    ///
+    /// assert_eq!(buf, "sq0\t8\t13");
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
     }
