@@ -434,6 +434,27 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.id.is_none());
+        assert!(builder.barcode.is_none());
+        assert!(builder.sequencing_center.is_none());
+        assert!(builder.description.is_none());
+        assert!(builder.produced_at.is_none());
+        assert!(builder.flow_order.is_none());
+        assert!(builder.key_sequence.is_none());
+        assert!(builder.library.is_none());
+        assert!(builder.program.is_none());
+        assert!(builder.predicted_median_insert_size.is_none());
+        assert!(builder.platform.is_none());
+        assert!(builder.platform_model.is_none());
+        assert!(builder.platform_unit.is_none());
+        assert!(builder.sample.is_none());
+        assert!(builder.fields.is_empty());
+    }
+
+    #[test]
     fn test_build() {
         assert_eq!(Builder::default().build(), Err(BuildError::MissingId));
     }
