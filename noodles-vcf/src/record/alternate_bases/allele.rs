@@ -4,7 +4,11 @@ pub mod symbol;
 
 pub use self::symbol::Symbol;
 
-use std::{error, fmt, str::FromStr};
+use std::{
+    error,
+    fmt::{self, Write},
+    str::FromStr,
+};
 
 use crate::record::reference_bases::{base, Base};
 
@@ -26,7 +30,7 @@ impl fmt::Display for Allele {
         match self {
             Self::Bases(bases) => {
                 for base in bases {
-                    write!(f, "{}", char::from(*base))?;
+                    f.write_char(char::from(*base))?;
                 }
 
                 Ok(())

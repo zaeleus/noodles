@@ -5,7 +5,8 @@ pub mod base;
 pub use self::base::Base;
 
 use std::{
-    error, fmt,
+    error,
+    fmt::{self, Write},
     ops::{Deref, DerefMut},
     str::FromStr,
 };
@@ -33,7 +34,7 @@ impl DerefMut for ReferenceBases {
 impl fmt::Display for ReferenceBases {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for base in self.iter() {
-            write!(f, "{}", char::from(*base))?;
+            f.write_char(char::from(*base))?;
         }
 
         Ok(())
