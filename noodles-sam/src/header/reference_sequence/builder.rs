@@ -353,6 +353,23 @@ mod tests {
     use crate::header::reference_sequence::name;
 
     #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.name.is_none());
+        assert!(builder.len.is_none());
+        assert!(builder.alternative_locus.is_none());
+        assert!(builder.alternative_names.is_none());
+        assert!(builder.assembly_id.is_none());
+        assert!(builder.description.is_none());
+        assert!(builder.md5_checksum.is_none());
+        assert!(builder.species.is_none());
+        assert!(builder.molecule_topology.is_none());
+        assert!(builder.uri.is_none());
+        assert!(builder.fields.is_empty());
+    }
+
+    #[test]
     fn test_build() -> Result<(), name::ParseError> {
         assert_eq!(
             Builder::default().set_length(13).build(),
