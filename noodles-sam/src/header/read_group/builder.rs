@@ -379,7 +379,7 @@ impl Builder {
     ///
     /// let read_group = ReadGroup::builder()
     ///     .set_id("rg0")
-    ///     .insert(zn, String::from("noodles"))
+    ///     .insert(zn, "noodles")
     ///     .build()?;
     ///
     /// assert_eq!(
