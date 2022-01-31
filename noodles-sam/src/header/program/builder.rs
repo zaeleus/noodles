@@ -229,6 +229,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.id.is_none());
+        assert!(builder.name.is_none());
+        assert!(builder.command_line.is_none());
+        assert!(builder.previous_id.is_none());
+        assert!(builder.description.is_none());
+        assert!(builder.version.is_none());
+        assert!(builder.fields.is_empty());
+    }
+
+    #[test]
     fn test_build() {
         assert_eq!(Builder::default().build(), Err(BuildError::MissingId));
     }
