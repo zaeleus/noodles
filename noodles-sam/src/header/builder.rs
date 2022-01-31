@@ -23,6 +23,7 @@ impl Builder {
     /// use noodles_sam as sam;
     /// let builder = sam::Header::builder();
     /// ```
+    #[deprecated(since = "0.12.0", note = "Use `sam::Header::builder` instead.")]
     pub fn new() -> Self {
         Self::default()
     }
@@ -192,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        let header = Builder::new()
+        let header = Builder::default()
             .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
             .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)

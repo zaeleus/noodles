@@ -12,6 +12,10 @@
 
 ### Deprecated
 
+  * sam/header/builder: Deprecate `Builder::new`.
+
+    Use `sam::Header::builder` instead.
+
   * sam/header/header/version: Deprecate `ParseError::MissingMajorVersion` and
     `ParseError::MissingMinorVersion`.
 

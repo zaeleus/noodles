@@ -112,7 +112,7 @@ impl Header {
     /// let builder = sam::Header::builder();
     /// ```
     pub fn builder() -> Builder {
-        Builder::new()
+        Builder::default()
     }
 
     /// Returns the SAM header header if it is set.
