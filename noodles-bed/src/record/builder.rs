@@ -2,7 +2,7 @@
 
 use std::{error, fmt};
 
-use super::{BedN, OptionalFields, Record, Score, StandardFields, Strand};
+use super::{BedN, Name, OptionalFields, Record, Score, StandardFields, Strand};
 
 /// A BED record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -10,7 +10,7 @@ pub struct Builder<const N: u8> {
     reference_sequence_name: Option<String>,
     start_position: Option<u64>,
     end_position: Option<u64>,
-    name: Option<String>,
+    name: Option<Name>,
     score: Option<Score>,
     strand: Option<Strand>,
     optional_fields: OptionalFields,
@@ -167,23 +167,22 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed as bed;
+    /// use noodles_bed::{self as bed, record::Name};
+    ///
+    /// let name: Name = "ndls1".parse()?;
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(8)
     ///     .set_end_position(13)
-    ///     .set_name("ndls1")
+    ///     .set_name(name.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(record.name(), Some("ndls1"));
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.name(), Some(&name));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_name<M>(mut self, name: M) -> Self
-    where
-        M: Into<String>,
-    {
-        self.name = Some(name.into());
+    pub fn set_name(mut self, name: Name) -> Self {
+        self.name = Some(name);
         self
     }
 }

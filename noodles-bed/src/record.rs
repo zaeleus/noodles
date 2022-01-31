@@ -1,10 +1,11 @@
 //! BED record and fields.
 
 pub mod builder;
+pub mod name;
 pub mod score;
 pub mod strand;
 
-pub use self::{builder::Builder, score::Score, strand::Strand};
+pub use self::{builder::Builder, name::Name, score::Score, strand::Strand};
 
 use std::{
     error,
@@ -23,7 +24,7 @@ struct StandardFields {
     reference_sequence_name: String,
     start_position: u64,
     end_position: u64,
-    name: Option<String>,
+    name: Option<Name>,
     score: Option<Score>,
     strand: Option<Strand>,
 }
@@ -223,20 +224,22 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bed as bed;
+    /// use noodles_bed::{self as bed, record::Name};
+    ///
+    /// let name: Name = "ndls1".parse()?;
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .set_start_position(8)
     ///     .set_end_position(13)
-    ///     .set_name("ndls1")
+    ///     .set_name(name.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(record.name(), Some("ndls1"));
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.name(), Some(&name));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn name(&self) -> Option<&str> {
-        self.standard_fields.name.as_deref()
+    pub fn name(&self) -> Option<&Name> {
+        self.standard_fields.name.as_ref()
     }
 }
 
@@ -345,12 +348,13 @@ where
 {
     format_bed_3_fields(f, record)?;
 
-    write!(
-        f,
-        "{}{}",
-        DELIMITER,
-        record.name().unwrap_or(MISSING_STRING)
-    )
+    f.write_char(DELIMITER)?;
+
+    if let Some(name) = record.name() {
+        write!(f, "{}", name)
+    } else {
+        f.write_str(MISSING_STRING)
+    }
 }
 
 fn format_bed_5_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
@@ -407,6 +411,8 @@ pub enum ParseError {
     InvalidEndPosition(num::ParseIntError),
     /// The name is missing.
     MissingName,
+    /// The name is invalid.
+    InvalidName(name::ParseError),
     /// The score is missing.
     MissingScore,
     /// The score is invalid.
@@ -428,6 +434,7 @@ impl fmt::Display for ParseError {
             Self::MissingEndPosition => f.write_str("missing end position"),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
             Self::MissingName => f.write_str("missing name"),
+            Self::InvalidName(e) => write!(f, "invalid name: {}", e),
             Self::MissingScore => f.write_str("missing score"),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
             Self::MissingStrand => f.write_str("missing strand"),
@@ -539,16 +546,16 @@ where
     ))
 }
 
-fn parse_name<'a, I>(fields: &mut I) -> Result<Option<String>, ParseError>
+fn parse_name<'a, I>(fields: &mut I) -> Result<Option<Name>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
     fields
         .next()
         .ok_or(ParseError::MissingName)
-        .map(|s| match s {
-            MISSING_STRING => None,
-            _ => Some(s.into()),
+        .and_then(|s| match s {
+            MISSING_STRING => Ok(None),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidName),
         })
 }
 
@@ -605,13 +612,13 @@ mod tests {
     }
 
     #[test]
-    fn test_fmt_for_record_4() {
+    fn test_fmt_for_record_4() -> Result<(), name::ParseError> {
         let standard_fields = StandardFields::new("sq0", 8, 13);
         let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t8\t13\t.");
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
-        standard_fields.name = Some(String::from("ndls1"));
+        standard_fields.name = "ndls1".parse().map(Some)?;
         let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
         assert_eq!(record.to_string(), "sq0\t8\t13\tndls1");
 
@@ -621,6 +628,8 @@ mod tests {
             OptionalFields::from(vec![String::from("ndls")]),
         );
         assert_eq!(record.to_string(), "sq0\t8\t13\t.\tndls");
+
+        Ok(())
     }
 
     #[test]
@@ -676,15 +685,17 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_for_record_4() {
+    fn test_from_str_for_record_4() -> Result<(), name::ParseError> {
         let actual = "sq0\t8\t13\tndls1".parse::<Record<4>>();
 
         let mut standard_fields = StandardFields::new("sq0", 8, 13);
-        standard_fields.name = Some(String::from("ndls1"));
+        standard_fields.name = "ndls1".parse().map(Some)?;
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]
