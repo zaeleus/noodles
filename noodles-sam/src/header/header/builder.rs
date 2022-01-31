@@ -114,3 +114,19 @@ impl Builder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default() {
+        let builder = Builder::default();
+
+        assert!(builder.version.is_none());
+        assert!(builder.sort_order.is_none());
+        assert!(builder.group_order.is_none());
+        assert!(builder.subsort_order.is_none());
+        assert!(builder.fields.is_empty());
+    }
+}
