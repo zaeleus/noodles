@@ -79,13 +79,8 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam::header::header::{Header, Tag};
-    ///
     /// let zn = Tag::Other([b'z', b'n']);
-    ///
-    /// let header = Header::builder()
-    ///     .insert(zn, String::from("noodles"))
-    ///     .build();
-    ///
+    /// let header = Header::builder().insert(zn, "noodles").build();
     /// assert_eq!(header.fields().get(&zn), Some(&String::from("noodles")));
     /// ```
     pub fn insert<I>(mut self, tag: Tag, value: I) -> Self
