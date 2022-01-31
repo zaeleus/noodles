@@ -293,7 +293,7 @@ impl Builder {
     /// let reference_sequence = ReferenceSequence::builder()
     ///     .set_name("sq0".parse()?)
     ///     .set_length(13)
-    ///     .insert(zn, String::from("noodles"))
+    ///     .insert(zn, "noodles")
     ///     .build()?;
     ///
     /// assert_eq!(
