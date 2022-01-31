@@ -87,7 +87,7 @@ mod tests {
         assert_eq!("r 0".parse::<ReadName>(), Err(ParseError::Invalid));
         assert_eq!("@r0".parse::<ReadName>(), Err(ParseError::Invalid));
 
-        let s: String = (0..MAX_LENGTH + 1).map(|_| 'N').collect();
+        let s = "n".repeat(MAX_LENGTH + 1);
         assert_eq!(s.parse::<ReadName>(), Err(ParseError::Invalid));
     }
 }
