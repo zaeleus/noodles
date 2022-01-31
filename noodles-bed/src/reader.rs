@@ -1,4 +1,10 @@
-use std::io::{self, BufRead};
+use std::{
+    io::{self, BufRead},
+    iter,
+    str::FromStr,
+};
+
+use super::Record;
 
 /// A BED reader.
 pub struct Reader<R> {
@@ -83,6 +89,46 @@ where
     /// ```
     pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
+    }
+
+    /// Returns an iterator over records starting from the current stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bed as bed;
+    ///
+    /// let data = b"sq0\t8\t13\n";
+    /// let mut reader = bed::Reader::new(&data[..]);
+    ///
+    /// let mut records = reader.records::<3>();
+    ///
+    /// let record = records.next().transpose()?;
+    /// assert_eq!(record.map(|r| r.start_position()), Some(8));
+    /// // ...
+    ///
+    /// assert!(records.next().is_none());
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn records<const N: u8>(&mut self) -> impl Iterator<Item = io::Result<Record<N>>> + '_
+    where
+        Record<N>: FromStr<Err = super::record::ParseError>,
+    {
+        let mut buf = String::new();
+
+        iter::from_fn(move || {
+            buf.clear();
+
+            match self.read_record(&mut buf) {
+                Ok(0) => None,
+                Ok(_) => Some(
+                    buf.parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                ),
+                Err(e) => Some(Err(e)),
+            }
+        })
     }
 }
 

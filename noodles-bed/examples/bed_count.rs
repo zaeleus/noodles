@@ -12,14 +12,10 @@ fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(bed::Reader::new)?;
-
-    let mut buf = String::new();
     let mut n = 0;
 
-    while reader.read_record(&mut buf)? != 0 {
-        buf.parse::<bed::Record<3>>()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        buf.clear();
+    for result in reader.records::<3>() {
+        let _ = result?;
         n += 1;
     }
 

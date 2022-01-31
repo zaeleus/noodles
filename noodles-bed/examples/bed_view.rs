@@ -8,12 +8,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(bed::Reader::new)?;
-    let mut buf = String::new();
 
-    while reader.read_record(&mut buf)? != 0 {
-        let record: bed::Record<3> = buf.parse()?;
+    for result in reader.records::<3>() {
+        let record = result?;
         println!("{}", record);
-        buf.clear();
     }
 
     Ok(())
