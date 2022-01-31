@@ -1,6 +1,9 @@
 //! BAM record data field value type.
 
-use std::{error, fmt};
+use std::{
+    error,
+    fmt::{self, Write},
+};
 
 /// A BAM record data field value type.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -31,7 +34,7 @@ pub enum Type {
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 

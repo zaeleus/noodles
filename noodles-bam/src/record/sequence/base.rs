@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self, Write};
 
 use noodles_sam as sam;
 
@@ -77,7 +77,7 @@ impl Base {
 
 impl fmt::Display for Base {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 

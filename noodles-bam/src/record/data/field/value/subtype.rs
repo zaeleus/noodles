@@ -1,6 +1,9 @@
 //! BAM record data field value subtype.
 
-use std::{error, fmt};
+use std::{
+    error,
+    fmt::{self, Write},
+};
 
 /// A BAM record data field value subtype.
 ///
@@ -25,7 +28,7 @@ pub enum Subtype {
 
 impl fmt::Display for Subtype {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", char::from(*self))
+        f.write_char(char::from(*self))
     }
 }
 
