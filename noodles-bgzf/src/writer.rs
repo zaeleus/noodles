@@ -40,6 +40,11 @@ pub(crate) static BGZF_EOF: &[u8] = &[
     0x00, 0x00, 0x00, 0x00, // ISIZE = 0
 ];
 
+#[cfg(feature = "libdeflate")]
+type CompressionLevelImpl = libdeflater::CompressionLvl;
+#[cfg(not(feature = "libdeflate"))]
+type CompressionLevelImpl = flate2::Compression;
+
 /// A BZGF writer.
 ///
 /// This implements [`std::io::Write`], consuming uncompressed data and emitting compressed data.
@@ -63,6 +68,7 @@ where
 {
     inner: Option<W>,
     buf: Vec<u8>,
+    compression_level: CompressionLevelImpl,
 }
 
 impl<W> Writer<W>
@@ -108,7 +114,7 @@ where
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
-        let (cdata, crc32, r#isize) = deflate_data(&self.buf, Default::default())?;
+        let (cdata, crc32, r#isize) = deflate_data(&self.buf, self.compression_level)?;
 
         let inner = self.inner.as_mut().unwrap();
 

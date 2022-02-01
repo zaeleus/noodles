@@ -9,6 +9,8 @@
 
   * bgzf/writer: Add builder (`Writer::builder`).
 
+    This allows setting a compression level.
+
 ## 0.8.0 - 2022-01-27
 
 ### Changed
