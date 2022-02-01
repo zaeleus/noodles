@@ -7,6 +7,8 @@
   * bgzf: Set minimum supported Rust version (MSRV) to 1.56.0 in package
     manifest.
 
+  * bgzf/writer: Add builder (`Writer::builder`).
+
 ## 0.8.0 - 2022-01-27
 
 ### Changed

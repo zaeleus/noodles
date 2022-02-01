@@ -1,8 +1,9 @@
 //! BGZF writer.
 
+mod builder;
 mod compression_level;
 
-pub use self::compression_level::CompressionLevel;
+pub use self::{builder::Builder, compression_level::CompressionLevel};
 
 use std::{
     cmp,
@@ -68,6 +69,19 @@ impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a BGZF writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let builder = bgzf::Writer::builder(Vec::new());
+    /// let writer = builder.build();
+    /// ```
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
+    }
+
     /// Creates a writer with a default compression level.
     ///
     /// # Examples
@@ -77,10 +91,7 @@ where
     /// let writer = bgzf::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self {
-            inner: Some(inner),
-            buf: Vec::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
-        }
+        Self::builder(inner).build()
     }
 
     /// Returns a reference to the underlying writer.
