@@ -49,17 +49,13 @@ impl Region {
             return Ok(Self::All);
         }
 
-        if let Some(i) = s.rfind(':') {
-            let suffix = &s[i + 1..];
-
+        if let Some((name, suffix)) = s.rsplit_once(':') {
             if let Ok(interval) = parse_interval(suffix) {
-                let prefix = &s[0..i];
-
-                if reference_sequences.get(prefix).is_some() {
+                if reference_sequences.get(name).is_some() {
                     if reference_sequences.contains_key(s) {
                         return Err(ParseError::Ambiguous);
                     } else {
-                        return Ok(Self::mapped(prefix, interval));
+                        return Ok(Self::mapped(name, interval));
                     }
                 }
             }
@@ -197,12 +193,9 @@ impl FromStr for Region {
             return Ok(Self::All);
         }
 
-        if let Some(i) = s.find(':') {
-            let reference_sequence_name = &s[..i];
-            let suffix = &s[i + 1..];
-
+        if let Some((name, suffix)) = s.rsplit_once(':') {
             if let Ok(interval) = parse_interval(suffix) {
-                Ok(Self::mapped(reference_sequence_name, interval))
+                Ok(Self::mapped(name, interval))
             } else {
                 Err(ParseError::Invalid)
             }
