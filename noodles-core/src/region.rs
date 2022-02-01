@@ -18,14 +18,14 @@ static ALL_NAME: &str = ".";
 /// A genomic region.
 ///
 /// Genomic regions can either be mapped to a reference sequence, unmapped (*), or an inclusion of
-/// all reads (.).
+/// all records (.).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Region {
     /// A mapped region.
     Mapped(Mapped),
     /// An unmapped region.
     Unmapped,
-    /// All reads.
+    /// All records.
     All,
 }
 
