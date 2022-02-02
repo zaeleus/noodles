@@ -1,0 +1,22 @@
+[package]
+name = "noodles-htsget"
+version = "0.1.0"
+authors = ["Michael Macias <zaeleus@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.56.0"
+description = "An htsget client"
+homepage = "https://github.com/zaeleus/noodles"
+repository = "https://github.com/zaeleus/noodles"
+documentation = "https://docs.rs/noodles-htsget"
+
+[dependencies]
+base64 = "0.13.0"
+bytes = "1.0.1"
+futures = { version = "0.3.15", default-features = false, features = ["std"] }
+reqwest = { version = "0.11.9", features = ["json", "stream"] }
+serde = { version = "1.0.136", features = ["derive"] }
+url = { version = "2.2.2", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1.10.0", features = ["io-std", "macros", "rt-multi-thread"] }

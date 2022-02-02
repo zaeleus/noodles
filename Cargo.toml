@@ -12,6 +12,7 @@ members = [
   "noodles-fastq",
   "noodles-gff",
   "noodles-gtf",
+  "noodles-htsget",
   "noodles-sam",
   "noodles-tabix",
   "noodles-vcf",
