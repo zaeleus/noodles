@@ -117,4 +117,27 @@ mod tests {
         let field = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
         assert_eq!(field.to_string(), "RG:Z:rg0");
     }
+
+    #[test]
+    fn test_from_str() {
+        assert_eq!(
+            "RG:Z:rg0".parse(),
+            Ok(Field::new(
+                Tag::ReadGroup,
+                Value::String(String::from("rg0"))
+            ))
+        );
+
+        assert_eq!("".parse::<Field>(), Err(ParseError::Invalid));
+
+        assert!(matches!(
+            "_:Z:rg0".parse::<Field>(),
+            Err(ParseError::InvalidTag(_))
+        ));
+
+        assert!(matches!(
+            "RG:_:rg0".parse::<Field>(),
+            Err(ParseError::InvalidValue(_))
+        ));
+    }
 }
