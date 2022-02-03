@@ -2,7 +2,7 @@
 
 mod flags;
 
-use std::io::{self, Read};
+use std::io::{self, Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -31,10 +31,14 @@ where
         todo!("decode_pack_meta");
     }
 
-    let _rle_len = len;
+    let mut l = None;
+    let mut rle_meta = None;
+    let rle_len = len;
 
     if flags.contains(Flags::RLE) {
-        let (_l, _meta, new_len) = decode_rle_meta(reader, n)?;
+        let (m, meta, new_len) = decode_rle_meta(reader, n)?;
+        l = Some(m);
+        rle_meta = Some(meta);
         len = new_len;
     }
 
@@ -49,7 +53,9 @@ where
     };
 
     if flags.contains(Flags::RLE) {
-        todo!("decode_rle");
+        let l = l.unwrap();
+        let mut rle_meta = rle_meta.unwrap();
+        data = decode_rle(&data, &l, &mut rle_meta, rle_len)?;
     }
 
     if flags.contains(Flags::PACK) {
@@ -204,7 +210,7 @@ where
     Ok(())
 }
 
-fn decode_rle_meta<R>(reader: &mut R, n: u32) -> io::Result<([bool; 256], Vec<u8>, usize)>
+fn decode_rle_meta<R>(reader: &mut R, n: u32) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
 where
     R: Read,
 {
@@ -235,7 +241,7 @@ where
         dst
     };
 
-    let mut rle_meta_reader = &rle_meta[..];
+    let mut rle_meta_reader = Cursor::new(rle_meta);
 
     let mut m = rle_meta_reader.read_u8().map(u16::from)?;
 
@@ -250,7 +256,41 @@ where
         l[usize::from(s)] = true;
     }
 
-    Ok((l, rle_meta, len))
+    Ok((l, rle_meta_reader, len))
+}
+
+fn decode_rle<R>(
+    mut src: &[u8],
+    l: &[bool; 256],
+    rle_meta: &mut R,
+    len: usize,
+) -> io::Result<Vec<u8>>
+where
+    R: Read,
+{
+    let mut dst = vec![0; len];
+    let mut j = 0;
+
+    while j < dst.len() {
+        let sym = src.read_u8()?;
+
+        if l[usize::from(sym)] {
+            let run = read_uint7(rle_meta).and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })?;
+
+            for k in 0..=run {
+                dst[j + k] = sym;
+            }
+
+            j += run + 1;
+        } else {
+            dst[j] = sym;
+            j += 1;
+        }
+    }
+
+    Ok(dst)
 }
 
 #[cfg(test)]
@@ -288,18 +328,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "not yet implemented: decode_rle")]
-    fn test_rans_decode_nx16_rle() {
+    fn test_rans_decode_nx16_rle() -> io::Result<()> {
         let data = [
             0x40, // flags = RLE
-            0x07, // uncompressed len = 7
-            0x04, 0x07, 0x16, 0x00, 0x01, 0x00, 0x00, 0x01, 0x01, 0x00, 0x08, 0x01, 0x00, 0x00,
-            0x00, 0x01, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x64, 0x65, 0x00,
-            0x6c, 0x6e, 0x6f, 0x00, 0x73, 0x00, 0x01, 0x01, 0x01, 0x01, 0x03, 0x01, 0x00, 0x26,
-            0x20, 0x00, 0x00, 0xb8, 0x0a, 0x00, 0x00, 0xd8, 0x0a, 0x00, 0x00, 0x00, 0x04, 0x00,
+            0x0d, // uncompressed len = 13
+            0x06, 0x06, 0x17, 0x01, 0x07, 0x6f, 0x00, 0x02, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00,
+            0x00, 0x0c, 0x02, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x80, 0x00, 0x00, 0x64, 0x65,
+            0x00, 0x6c, 0x6e, 0x6f, 0x00, 0x73, 0x00, 0x03, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00,
+            0x3a, 0x20, 0x00, 0x00, 0x7c, 0x20, 0x00, 0x00, 0x52, 0x01, 0x00, 0x00, 0x08, 0x04,
+            0x00,
         ];
 
         let mut reader = &data[..];
-        let _ = rans_decode_nx16(&mut reader, 0);
+        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noooooooodles");
+
+        Ok(())
     }
 }
