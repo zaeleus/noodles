@@ -74,49 +74,31 @@ mod tests {
 
     #[test]
     fn test_read_ltf8() -> io::Result<()> {
-        let data = [0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 0);
+        fn t(mut data: &[u8], expected: i64) -> io::Result<()> {
+            assert_eq!(read_ltf8(&mut data)?, expected);
+            Ok(())
+        }
 
-        let data = [0x55];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 85);
-
-        let data = [0x80, 0xaa];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 170);
-
-        let data = [0xc0, 0x55, 0xaa];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 21930);
-
-        let data = [0xe0, 0x55, 0xaa, 0xcc];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 5614284);
-
-        let data = [0xf0, 0x55, 0xaa, 0xcc, 0x33];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 1437256755);
-
-        let data = [0xf8, 0x55, 0xaa, 0xcc, 0x33, 0xe3];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 367937729507);
-
-        let data = [0xfc, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 94192058753820);
-
-        let data = [0xfe, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 24113167040978160);
-
-        let data = [0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, 6172970762490408975);
-
-        let data = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56];
-        let mut reader = &data[..];
-        assert_eq!(read_ltf8(&mut reader)?, -170);
+        t(&[0x00], 0)?;
+        t(&[0x55], 85)?;
+        t(&[0x80, 0xaa], 170)?;
+        t(&[0xc0, 0x55, 0xaa], 21930)?;
+        t(&[0xe0, 0x55, 0xaa, 0xcc], 5614284)?;
+        t(&[0xf0, 0x55, 0xaa, 0xcc, 0x33], 1437256755)?;
+        t(&[0xf8, 0x55, 0xaa, 0xcc, 0x33, 0xe3], 367937729507)?;
+        t(&[0xfc, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c], 94192058753820)?;
+        t(
+            &[0xfe, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0],
+            24113167040978160,
+        )?;
+        t(
+            &[0xff, 0x55, 0xaa, 0xcc, 0x33, 0xe3, 0x1c, 0xf0, 0x0f],
+            6172970762490408975,
+        )?;
+        t(
+            &[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x56],
+            -170,
+        )?;
 
         Ok(())
     }
