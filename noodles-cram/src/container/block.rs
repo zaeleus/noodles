@@ -17,8 +17,8 @@ use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
 
 use crate::{
+    codecs::rans::rans_decode,
     num::{itf8, Itf8},
-    rans::rans_decode,
 };
 
 // § 9 End of file container (2020-06-22)
