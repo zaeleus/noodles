@@ -27,8 +27,11 @@ where
 
     let n = if flags.contains(Flags::N32) { 32 } else { 4 };
 
+    let _pack_len = len;
+
     if flags.contains(Flags::PACK) {
-        todo!("decode_pack_meta");
+        let (_p, _n_sym, new_len) = decode_pack_meta(reader)?;
+        len = new_len;
     }
 
     let mut l = None;
@@ -293,6 +296,22 @@ where
     Ok(dst)
 }
 
+fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, u8, usize)>
+where
+    R: Read,
+{
+    let n_sym = reader.read_u8()?;
+
+    let mut p = vec![0; usize::from(n_sym)];
+    reader.read_exact(&mut p)?;
+
+    let len = read_uint7(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    Ok((p, n_sym, len))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -343,5 +362,20 @@ mod tests {
         assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noooooooodles");
 
         Ok(())
+    }
+
+    #[test]
+    #[should_panic(expected = "not yet implemented: decode_pack")]
+    fn test_rans_decode_nx16_bit_packing() {
+        let data = [
+            0x80, // flags = PACK
+            0x07, // uncompressed len = 7
+            0x06, 0x64, 0x65, 0x6c, 0x6e, 0x6f, 0x73, 0x04, 0x04, 0x05, 0x00, 0x12, 0x43, 0x00,
+            0x01, 0x01, 0x01, 0x01, 0x00, 0x0c, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x08,
+            0x02, 0x00, 0x00, 0x04, 0x02, 0x00,
+        ];
+
+        let mut reader = &data[..];
+        let _ = rans_decode_nx16(&mut reader, 0);
     }
 }
