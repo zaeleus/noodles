@@ -27,10 +27,14 @@ where
 
     let n = if flags.contains(Flags::N32) { 32 } else { 4 };
 
-    let _pack_len = len;
+    let mut p = None;
+    let mut n_sym = None;
+    let pack_len = len;
 
     if flags.contains(Flags::PACK) {
-        let (_p, _n_sym, new_len) = decode_pack_meta(reader)?;
+        let (q, n, new_len) = decode_pack_meta(reader)?;
+        p = Some(q);
+        n_sym = Some(n);
         len = new_len;
     }
 
@@ -62,7 +66,9 @@ where
     }
 
     if flags.contains(Flags::PACK) {
-        todo!("decode_pack");
+        let p = p.unwrap();
+        let n_sym = n_sym.unwrap();
+        data = decode_pack(&data, &p, n_sym, pack_len)?;
     }
 
     Ok(data)
@@ -312,6 +318,58 @@ where
     Ok((p, n_sym, len))
 }
 
+fn decode_pack(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>> {
+    let mut dst = vec![0; len];
+    let mut j = 0;
+
+    if n_sym <= 1 {
+        dst.fill(p[0]);
+    } else if n_sym <= 2 {
+        let mut v = 0;
+
+        for (i, b) in dst.iter_mut().enumerate() {
+            if i % 8 == 0 {
+                v = src[j];
+                j += 1;
+            }
+
+            *b = p[usize::from(v & 0x01)];
+            v >>= 1;
+        }
+    } else if n_sym <= 4 {
+        let mut v = 0;
+
+        for (i, b) in dst.iter_mut().enumerate() {
+            if i % 4 == 0 {
+                v = src[j];
+                j += 1;
+            }
+
+            *b = p[usize::from(v & 0x03)];
+            v >>= 2;
+        }
+    } else if n_sym <= 16 {
+        let mut v = 0;
+
+        for (i, b) in dst.iter_mut().enumerate() {
+            if i % 2 == 0 {
+                v = src[j];
+                j += 1;
+            }
+
+            *b = p[usize::from(v & 0x0f)];
+            v >>= 4;
+        }
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("expected n_sym to be <= 16, got {}", n_sym),
+        ));
+    }
+
+    Ok(dst)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -365,8 +423,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "not yet implemented: decode_pack")]
-    fn test_rans_decode_nx16_bit_packing() {
+    fn test_rans_decode_nx16_bit_packing_with_6_symbols() -> io::Result<()> {
         let data = [
             0x80, // flags = PACK
             0x07, // uncompressed len = 7
@@ -376,6 +433,8 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let _ = rans_decode_nx16(&mut reader, 0);
+        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+
+        Ok(())
     }
 }
