@@ -48,45 +48,21 @@ mod tests {
 
     #[test]
     fn test_read_itf8() -> io::Result<()> {
-        let data = [0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 0);
+        fn t(mut data: &[u8], expected: i32) -> io::Result<()> {
+            assert_eq!(read_itf8(&mut data)?, expected);
+            Ok(())
+        }
 
-        let data = [0x87, 0x55];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1877);
-
-        let data = [0xc7, 0x55, 0x99];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 480665);
-
-        let data = [0xe7, 0x55, 0x99, 0x66];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 123050342);
-
-        let data = [0xf7, 0x55, 0x99, 0x66, 0x02];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1968805474);
-
-        let data = [0xf7, 0x55, 0x99, 0x66, 0x12];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1968805474);
-
-        let data = [0xf7, 0x55, 0x99, 0x66, 0x22];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1968805474);
-
-        let data = [0xf7, 0x55, 0x99, 0x66, 0x42];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1968805474);
-
-        let data = [0xf7, 0x55, 0x99, 0x66, 0x82];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, 1968805474);
-
-        let data = [0xff, 0xff, 0xff, 0xff, 0x0f];
-        let mut reader = &data[..];
-        assert_eq!(read_itf8(&mut reader)?, -1);
+        t(&[0x00], 0)?;
+        t(&[0x87, 0x55], 1877)?;
+        t(&[0xc7, 0x55, 0x99], 480665)?;
+        t(&[0xe7, 0x55, 0x99, 0x66], 123050342)?;
+        t(&[0xf7, 0x55, 0x99, 0x66, 0x02], 1968805474)?;
+        t(&[0xf7, 0x55, 0x99, 0x66, 0x12], 1968805474)?;
+        t(&[0xf7, 0x55, 0x99, 0x66, 0x22], 1968805474)?;
+        t(&[0xf7, 0x55, 0x99, 0x66, 0x42], 1968805474)?;
+        t(&[0xf7, 0x55, 0x99, 0x66, 0x82], 1968805474)?;
+        t(&[0xff, 0xff, 0xff, 0xff, 0x0f], -1)?;
 
         Ok(())
     }
