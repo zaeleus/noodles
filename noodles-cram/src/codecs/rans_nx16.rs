@@ -31,8 +31,11 @@ where
         todo!("decode_pack_meta");
     }
 
+    let _rle_len = len;
+
     if flags.contains(Flags::RLE) {
-        todo!("decode_rle_meta");
+        let (_l, _meta, new_len) = decode_rle_meta(reader, n)?;
+        len = new_len;
     }
 
     let mut data = vec![0; len];
@@ -201,6 +204,55 @@ where
     Ok(())
 }
 
+fn decode_rle_meta<R>(reader: &mut R, n: u32) -> io::Result<([bool; 256], Vec<u8>, usize)>
+where
+    R: Read,
+{
+    let rle_meta_len = read_uint7(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let len = read_uint7(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let rle_meta = if rle_meta_len & 1 == 1 {
+        let mut buf = vec![0; rle_meta_len / 2];
+        reader.read_exact(&mut buf)?;
+        buf
+    } else {
+        let comp_meta_len = read_uint7(reader).and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        let mut buf = vec![0; comp_meta_len];
+        reader.read_exact(&mut buf)?;
+
+        let mut buf_reader = &buf[..];
+        let mut dst = vec![0; rle_meta_len / 2];
+        rans_decode_nx16_0(&mut buf_reader, &mut dst, n)?;
+
+        dst
+    };
+
+    let mut rle_meta_reader = &rle_meta[..];
+
+    let mut m = rle_meta_reader.read_u8().map(u16::from)?;
+
+    if m == 0 {
+        m = 256;
+    }
+
+    let mut l = [false; 256];
+
+    for _ in 0..m {
+        let s = rle_meta_reader.read_u8()?;
+        l[usize::from(s)] = true;
+    }
+
+    Ok((l, rle_meta, len))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,5 +285,21 @@ mod tests {
         assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
 
         Ok(())
+    }
+
+    #[test]
+    #[should_panic(expected = "not yet implemented: decode_rle")]
+    fn test_rans_decode_nx16_rle() {
+        let data = [
+            0x40, // flags = RLE
+            0x07, // uncompressed len = 7
+            0x04, 0x07, 0x16, 0x00, 0x01, 0x00, 0x00, 0x01, 0x01, 0x00, 0x08, 0x01, 0x00, 0x00,
+            0x00, 0x01, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x64, 0x65, 0x00,
+            0x6c, 0x6e, 0x6f, 0x00, 0x73, 0x00, 0x01, 0x01, 0x01, 0x01, 0x03, 0x01, 0x00, 0x26,
+            0x20, 0x00, 0x00, 0xb8, 0x0a, 0x00, 0x00, 0xd8, 0x0a, 0x00, 0x00, 0x00, 0x04, 0x00,
+        ];
+
+        let mut reader = &data[..];
+        let _ = rans_decode_nx16(&mut reader, 0);
     }
 }
