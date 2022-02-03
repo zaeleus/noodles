@@ -1,0 +1,24 @@
+[package]
+name = "noodles-fastx"
+version = "0.1.0"
+authors = ["Pierre Marijon <pierre@marijon.fr>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.56.0"
+description = "FASTX format reader and writer"
+homepage = "https://github.com/zaeleus/noodles"
+repository = "https://github.com/zaeleus/noodles"
+documentation = "https://docs.rs/noodles-fastx"
+
+[dependencies]
+bstr = "0.2"
+
+[dev-dependencies]
+criterion     = "0.3"
+rand          = "0.8"
+noodles-fasta = {path = "../noodles-fasta", version = "0.6.0"}
+noodles-fastq = {path = "../noodles-fastq", version = "0.4.0"}
+
+[[bench]]
+name = "short_reads"
+harness = false
