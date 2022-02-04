@@ -21,11 +21,11 @@ where
         })?;
     }
 
-    if flags.contains(Flags::STRIPE) {
-        todo!("rans_decode_stripe");
-    }
-
     let n = if flags.contains(Flags::N32) { 32 } else { 4 };
+
+    if flags.contains(Flags::STRIPE) {
+        return rans_decode_stripe(reader, len, n);
+    }
 
     let mut p = None;
     let mut n_sym = None;
@@ -219,6 +219,48 @@ where
     Ok(())
 }
 
+fn rans_decode_stripe<R>(reader: &mut R, len: usize, n: u32) -> io::Result<Vec<u8>>
+where
+    R: Read,
+{
+    let x = reader.read_u8().map(usize::from)?;
+    let mut clens = Vec::with_capacity(x);
+
+    for _ in 0..x {
+        let clen = read_uint7(reader).and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        clens.push(clen);
+    }
+
+    let mut ulens = Vec::with_capacity(x);
+    let mut t = Vec::with_capacity(x);
+
+    for j in 0..x {
+        let mut ulen = len / x;
+
+        if len % (n as usize) > j {
+            ulen += 1;
+        }
+
+        let chunk = rans_decode_nx16(reader, ulen)?;
+
+        ulens.push(ulen);
+        t.push(chunk);
+    }
+
+    let mut dst = vec![0; len];
+
+    for j in 0..x {
+        for i in 0..ulens[j] {
+            dst[i * (n as usize) + j] = t[j][i];
+        }
+    }
+
+    Ok(dst)
+}
+
 fn decode_rle_meta<R>(reader: &mut R, n: u32) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
 where
     R: Read,
@@ -385,6 +427,27 @@ mod tests {
         ];
         let mut reader = &data[..];
 
+        assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_rans_decode_nx16_stripe() -> io::Result<()> {
+        let data = [
+            0x08, // flags = STRIPE
+            0x07, // uncompressed len = 7
+            0x04, 0x17, 0x17, 0x17, 0x15, 0x00, 0x02, 0x6c, 0x6e, 0x00, 0x01, 0x01, 0x00, 0x08,
+            0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
+            0x00, 0x02, 0x65, 0x6f, 0x00, 0x01, 0x01, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x02, 0x6f, 0x73, 0x00,
+            0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x08, 0x01, 0x00, 0x00, 0x80, 0x00, 0x00,
+            0x00, 0x80, 0x00, 0x00, 0x00, 0x01, 0x64, 0x00, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00,
+            0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x02, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x00, 0x81, 0x11, 0x01, 0x7f, 0x00,
+        ];
+
+        let mut reader = &data[..];
         assert_eq!(rans_decode_nx16(&mut reader, 0)?, b"noodles");
 
         Ok(())
