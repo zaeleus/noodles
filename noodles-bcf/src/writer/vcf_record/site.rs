@@ -132,8 +132,13 @@ where
 {
     const REFERENCE_BASE_COUNT: usize = 1;
 
-    let n = REFERENCE_BASE_COUNT + alternate_base_count;
-    let n_allele = u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let n_allele = alternate_base_count
+        .checked_add(REFERENCE_BASE_COUNT)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "attempt to add with overflow"))
+        .and_then(|n| {
+            u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
+
     writer.write_u16::<LittleEndian>(n_allele)?;
 
     Ok(())
@@ -380,6 +385,12 @@ mod tests {
         buf.clear();
         assert!(matches!(
             write_n_allele(&mut buf, usize::from(u16::MAX)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            write_n_allele(&mut buf, usize::MAX),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
