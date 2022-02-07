@@ -39,6 +39,19 @@ where
         &self.inner
     }
 
+    /// Returns a mutable reference to the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam as sam;
+    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    /// assert!(writer.get_mut().is_empty());
+    /// ```
+    pub fn get_mut(&mut self) -> &mut W {
+        &mut self.inner
+    }
+
     /// Returns the underlying writer.
     ///
     /// # Examples

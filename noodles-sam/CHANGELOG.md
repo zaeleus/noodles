@@ -10,6 +10,8 @@
   * sam/async/reader: Add common methods to access the underlying reader:
     `get_ref` and `get_mut`.
 
+  * sam/async/writer: Add missing `get_mut` method.
+
 ### Deprecated
 
   * sam/header/builder: Deprecate `Builder::new`.
