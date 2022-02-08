@@ -20,7 +20,7 @@ pub struct Parameter {
     pub s_loc: u8,
     pub p_loc: u8,
     pub d_loc: u8,
-    q_map: Vec<u8>,
+    pub q_map: Vec<u8>,
     pub q_tab: Vec<u8>,
     pub p_tab: Vec<u8>,
     pub d_tab: Vec<u8>,

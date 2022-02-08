@@ -10,8 +10,74 @@ use std::{
 
 use byteorder::ReadBytesExt;
 
-use self::{parameter::Parameter, parameters::Parameters};
+use self::{
+    parameter::Parameter,
+    parameters::{fqz_decode_params, Parameters},
+};
 use super::aac::{Model, RangeCoder};
+use crate::reader::num::read_uint7;
+
+pub fn fqz_decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
+where
+    R: Read,
+{
+    let buf_len = read_uint7(reader).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    let mut params = fqz_decode_params(reader)?;
+    let (mut range_coder, mut models) = fqz_create_models(&params);
+
+    let mut i = 0;
+    let mut pos = 0;
+
+    let mut record = Record::default();
+    let mut dst = vec![0; buf_len];
+
+    let mut x = 0;
+    let mut ctx = 0;
+
+    while i < buf_len {
+        if pos == 0 {
+            x = fqz_new_record(
+                reader,
+                &mut params,
+                &mut range_coder,
+                &mut models,
+                &mut record,
+            )?;
+
+            if record.is_dup {
+                for j in 0..record.rec_len {
+                    dst[i + j] = dst[i + j - record.rec_len];
+                }
+
+                i += record.rec_len;
+                pos = 0;
+
+                continue;
+            }
+
+            ctx = params.params[x].context;
+        }
+
+        let param = &mut params.params[x];
+        let q = models.qual[usize::from(ctx)].decode(reader, &mut range_coder)?;
+
+        dst[i] = if param.flags.contains(parameter::Flags::HAVE_QMAP) {
+            param.q_map[usize::from(q)]
+        } else {
+            q
+        };
+
+        ctx = fqz_update_context(param, q, &mut record);
+
+        i += 1;
+        pos -= 1;
+    }
+
+    Ok(dst)
+}
 
 struct Models {
     len: Vec<Model>,
@@ -33,6 +99,7 @@ fn fqz_create_models(parameters: &Parameters) -> (RangeCoder, Models) {
     (RangeCoder::default(), models)
 }
 
+#[derive(Debug, Default)]
 struct Record {
     rec: usize,
     sel: u8,
