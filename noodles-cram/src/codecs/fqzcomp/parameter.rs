@@ -7,10 +7,10 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use self::flags::Flags;
 use super::read_array;
 
-struct Parameter {
+pub struct Parameter {
     context: u16,
     flags: Flags,
-    max_sym: u8,
+    pub max_sym: u8,
     first_len: usize,
     q_bits: u8,
     q_shift: u8,
@@ -24,7 +24,7 @@ struct Parameter {
     d_tab: Vec<u8>,
 }
 
-fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>
+pub fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>
 where
     R: Read,
 {
