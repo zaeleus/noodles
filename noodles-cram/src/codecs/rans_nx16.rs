@@ -494,7 +494,7 @@ where
     Ok(dst)
 }
 
-fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, u8, usize)>
+pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, u8, usize)>
 where
     R: Read,
 {
@@ -510,7 +510,7 @@ where
     Ok((p, n_sym, len))
 }
 
-fn decode_pack(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>> {
+pub fn decode_pack(src: &[u8], p: &[u8], n_sym: u8, len: usize) -> io::Result<Vec<u8>> {
     let mut dst = vec![0; len];
     let mut j = 0;
 
