@@ -1,3 +1,4 @@
+pub mod aac;
 pub mod fqzcomp;
 pub mod name_tokenizer;
 pub mod rans;
