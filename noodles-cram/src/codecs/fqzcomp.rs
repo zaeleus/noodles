@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+mod parameter;
+
 use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
