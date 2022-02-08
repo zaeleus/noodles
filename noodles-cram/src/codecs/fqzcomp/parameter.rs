@@ -1,17 +1,19 @@
 mod flags;
 
+pub use self::flags::Flags;
+
 use std::io::{self, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use self::flags::Flags;
 use super::read_array;
 
 pub struct Parameter {
     context: u16,
-    flags: Flags,
+    pub flags: Flags,
     pub max_sym: u8,
-    first_len: usize,
+    pub first_len: usize,
+    pub last_len: usize,
     q_bits: u8,
     q_shift: u8,
     q_loc: u8,
@@ -80,6 +82,7 @@ where
         flags,
         max_sym,
         first_len,
+        last_len: 0,
         q_bits,
         q_shift,
         q_loc,

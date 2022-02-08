@@ -1,10 +1,11 @@
 mod flags;
 
+pub use self::flags::Flags;
+
 use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use self::flags::Flags;
 use super::{
     parameter::{fqz_decode_single_param, Parameter},
     read_array,
@@ -13,10 +14,10 @@ use super::{
 const VERSION: u8 = 5;
 
 pub struct Parameters {
-    gflags: Flags,
+    pub gflags: Flags,
     pub max_sel: u8,
-    s_tab: Vec<u8>,
-    params: Vec<Parameter>,
+    pub s_tab: Vec<u8>,
+    pub params: Vec<Parameter>,
     pub max_sym: u8,
 }
 

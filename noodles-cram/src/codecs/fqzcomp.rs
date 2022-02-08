@@ -30,6 +30,85 @@ fn fqz_create_models(parameters: &Parameters) -> (RangeCoder, Models) {
     (RangeCoder::default(), models)
 }
 
+struct Record {
+    rec: usize,
+    sel: u8,
+    rec_len: usize,
+    is_dup: bool,
+    qctx: u32,
+    delta: u32,
+    prevq: u32,
+}
+
+fn fqz_new_record<R>(
+    reader: &mut R,
+    parameters: &mut Parameters,
+    range_coder: &mut RangeCoder,
+    models: &mut Models,
+    record: &mut Record,
+) -> io::Result<usize>
+where
+    R: Read,
+{
+    let mut sel = 0;
+    let mut x = 0;
+
+    if parameters.max_sel > 0 {
+        sel = models.sel.decode(reader, range_coder)?;
+
+        if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
+            x = usize::from(parameters.s_tab[usize::from(sel)]);
+        }
+    }
+
+    record.sel = sel;
+
+    let param = &mut parameters.params[x];
+
+    if param.flags.contains(parameter::Flags::DO_LEN) || param.first_len > 0 {
+        let len = decode_length(reader, range_coder, models)?;
+        param.last_len = len as usize;
+
+        if !param.flags.contains(parameter::Flags::DO_LEN) {
+            param.first_len = 0;
+        }
+    }
+
+    record.rec_len = param.last_len;
+
+    if parameters.gflags.contains(parameters::Flags::DO_REV) {
+        todo!("fqz_new_record: do_rev");
+    }
+
+    record.rec += 1;
+
+    if param.flags.contains(parameter::Flags::DO_DEDUP) {
+        record.is_dup = models.dup.decode(reader, range_coder)? == 1;
+    }
+
+    record.qctx = 0;
+    record.delta = 0;
+    record.prevq = 0;
+
+    Ok(x)
+}
+
+fn decode_length<R>(
+    reader: &mut R,
+    range_coder: &mut RangeCoder,
+    models: &mut Models,
+) -> io::Result<u32>
+where
+    R: Read,
+{
+    let b0 = models.len[0].decode(reader, range_coder).map(u32::from)?;
+    let b1 = models.len[1].decode(reader, range_coder).map(u32::from)?;
+    let b2 = models.len[2].decode(reader, range_coder).map(u32::from)?;
+    let b3 = models.len[3].decode(reader, range_coder).map(u32::from)?;
+
+    Ok(b3 << 24 | b2 << 16 | b1 << 8 | b0)
+}
+
 fn read_array<R>(reader: &mut R, n: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
