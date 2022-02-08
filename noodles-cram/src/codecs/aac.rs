@@ -50,7 +50,7 @@ where
     } else if flags.contains(Flags::ORDER) {
         todo!("arith_decode: decode_order_1");
     } else {
-        todo!("arith_decode: decode_order_0");
+        decode_order_0(reader, &mut data)?;
     }
 
     if flags.contains(Flags::PACK) {
@@ -60,4 +60,21 @@ where
     }
 
     Ok(data)
+}
+
+fn decode_order_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+where
+    R: Read,
+{
+    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
+    let mut model = Model::new(max_sym);
+
+    let mut range_coder = RangeCoder::default();
+    range_coder.range_decode_create(reader)?;
+
+    for b in dst {
+        *b = model.decode(reader, &mut range_coder)?;
+    }
+
+    Ok(())
 }
