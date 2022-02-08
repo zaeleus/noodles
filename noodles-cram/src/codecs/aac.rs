@@ -1,3 +1,4 @@
+mod flags;
 mod model;
 mod range_coder;
 
