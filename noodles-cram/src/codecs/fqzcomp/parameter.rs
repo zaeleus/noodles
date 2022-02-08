@@ -9,21 +9,21 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use super::read_array;
 
 pub struct Parameter {
-    context: u16,
+    pub context: u16,
     pub flags: Flags,
     pub max_sym: u8,
     pub first_len: usize,
     pub last_len: usize,
-    q_bits: u8,
-    q_shift: u8,
-    q_loc: u8,
-    s_loc: u8,
-    p_loc: u8,
-    d_loc: u8,
+    pub q_bits: u8,
+    pub q_shift: u8,
+    pub q_loc: u8,
+    pub s_loc: u8,
+    pub p_loc: u8,
+    pub d_loc: u8,
     q_map: Vec<u8>,
-    q_tab: Vec<u8>,
-    p_tab: Vec<u8>,
-    d_tab: Vec<u8>,
+    pub q_tab: Vec<u8>,
+    pub p_tab: Vec<u8>,
+    pub d_tab: Vec<u8>,
 }
 
 pub fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>

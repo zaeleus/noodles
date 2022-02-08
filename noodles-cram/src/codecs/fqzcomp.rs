@@ -3,11 +3,14 @@
 mod parameter;
 mod parameters;
 
-use std::io::{self, Read};
+use std::{
+    cmp,
+    io::{self, Read},
+};
 
 use byteorder::ReadBytesExt;
 
-use self::parameters::Parameters;
+use self::{parameter::Parameter, parameters::Parameters};
 use super::aac::{Model, RangeCoder};
 
 struct Models {
@@ -37,7 +40,7 @@ struct Record {
     is_dup: bool,
     qctx: u32,
     delta: u32,
-    prevq: u32,
+    prevq: u8,
 }
 
 fn fqz_new_record<R>(
@@ -91,6 +94,39 @@ where
     record.prevq = 0;
 
     Ok(x)
+}
+
+fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 {
+    use parameter::Flags;
+
+    let mut ctx = u32::from(param.context);
+
+    record.qctx =
+        (record.qctx << u32::from(param.q_shift)) + u32::from(param.q_tab[usize::from(q)]);
+
+    ctx += record.qctx & ((1 << param.q_bits) - 1) << param.q_loc;
+
+    if param.flags.contains(Flags::HAVE_PTAB) {
+        let p = cmp::min(record.rec_len, 1023) as usize;
+        ctx += u32::from(param.p_tab[p] << param.p_loc);
+    }
+
+    if param.flags.contains(Flags::HAVE_DTAB) {
+        let d = cmp::min(record.delta, 255) as usize;
+        ctx += u32::from(param.d_tab[d] << param.d_loc);
+
+        if record.prevq != q {
+            record.delta += 1;
+        }
+
+        record.prevq = q;
+    }
+
+    if param.flags.contains(Flags::DO_SEL) {
+        ctx += u32::from(record.sel) << u32::from(param.s_loc);
+    }
+
+    (ctx & 0xffff) as u16
 }
 
 fn decode_length<R>(
