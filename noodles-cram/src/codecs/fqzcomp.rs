@@ -7,6 +7,29 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
+use self::parameters::Parameters;
+use super::aac::{Model, RangeCoder};
+
+struct Models {
+    len: Vec<Model>,
+    qual: Vec<Model>,
+    dup: Model,
+    rev: Model,
+    sel: Model,
+}
+
+fn fqz_create_models(parameters: &Parameters) -> (RangeCoder, Models) {
+    let models = Models {
+        len: vec![Model::new(u8::MAX); 4],
+        qual: vec![Model::new(parameters.max_sym + 1); 1 << 16],
+        dup: Model::new(2),
+        rev: Model::new(2),
+        sel: Model::new(parameters.max_sel + 1),
+    };
+
+    (RangeCoder::default(), models)
+}
+
 fn read_array<R>(reader: &mut R, n: usize) -> io::Result<Vec<u8>>
 where
     R: Read,

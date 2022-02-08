@@ -14,10 +14,10 @@ const VERSION: u8 = 5;
 
 pub struct Parameters {
     gflags: Flags,
-    max_sel: u8,
+    pub max_sel: u8,
     s_tab: Vec<u8>,
     params: Vec<Parameter>,
-    max_sym: u8,
+    pub max_sym: u8,
 }
 
 pub fn fqz_decode_params<R>(reader: &mut R) -> io::Result<Parameters>
