@@ -48,7 +48,7 @@ where
             todo!("arith_decode: decode_rle_0");
         }
     } else if flags.contains(Flags::ORDER) {
-        todo!("arith_decode: decode_order_1");
+        decode_order_1(reader, &mut data)?;
     } else {
         decode_order_0(reader, &mut data)?;
     }
@@ -74,6 +74,26 @@ where
 
     for b in dst {
         *b = model.decode(reader, &mut range_coder)?;
+    }
+
+    Ok(())
+}
+
+fn decode_order_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+where
+    R: Read,
+{
+    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
+    let mut models = vec![Model::new(max_sym); usize::from(max_sym)];
+
+    let mut range_coder = RangeCoder::default();
+    range_coder.range_decode_create(reader)?;
+
+    let mut last = 0;
+
+    for b in dst {
+        *b = models[last].decode(reader, &mut range_coder)?;
+        last = usize::from(*b);
     }
 
     Ok(())
