@@ -11,8 +11,8 @@ use std::io::{self, Read};
 use byteorder::ReadBytesExt;
 
 use self::flags::Flags;
-
 use super::rans_nx16::{decode_pack, decode_pack_meta};
+use crate::reader::num::read_uint7;
 
 fn arith_decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
@@ -21,7 +21,7 @@ where
     let flags = reader.read_u8().map(Flags::from)?;
 
     if flags.contains(Flags::STRIPE) {
-        todo!("arith_decode: decode_stripe");
+        return decode_stripe(reader, len);
     }
 
     let mut p = None;
@@ -60,6 +60,48 @@ where
     }
 
     Ok(data)
+}
+
+fn decode_stripe<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
+where
+    R: Read,
+{
+    let n = reader.read_u8().map(usize::from)?;
+    let mut clens = Vec::with_capacity(n);
+
+    for _ in 0..n {
+        let clen = read_uint7(reader).and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        clens.push(clen);
+    }
+
+    let mut ulens = Vec::with_capacity(n);
+    let mut t = Vec::with_capacity(n);
+
+    for j in 0..n {
+        let mut ulen = len / n;
+
+        if len % n > j {
+            ulen += 1;
+        }
+
+        let chunk = arith_decode(reader, ulen)?;
+
+        ulens.push(ulen);
+        t.push(chunk);
+    }
+
+    let mut dst = vec![0; len];
+
+    for j in 0..n {
+        for i in 0..ulens[j] {
+            dst[i * n + j] = t[j][i];
+        }
+    }
+
+    Ok(dst)
 }
 
 fn decode_ext<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
