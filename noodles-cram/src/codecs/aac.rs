@@ -43,7 +43,7 @@ where
         todo!("arith_decode: decode_ext");
     } else if flags.contains(Flags::RLE) {
         if flags.contains(Flags::ORDER) {
-            todo!("arith_decode: decode_rle_1");
+            decode_rle_1(reader, &mut data)?;
         } else {
             decode_rle_0(reader, &mut data)?;
         }
@@ -80,6 +80,45 @@ where
         dst[i] = b;
 
         let mut part = model_run[usize::from(b)].decode(reader, &mut range_coder)?;
+        let mut run = usize::from(part);
+        let mut rctx = 256;
+
+        while part == 3 {
+            part = model_run[rctx].decode(reader, &mut range_coder)?;
+            rctx = 257;
+            run += usize::from(part);
+        }
+
+        for j in 1..=run {
+            dst[i + j] = b;
+        }
+
+        i += run + 1;
+    }
+
+    Ok(())
+}
+
+fn decode_rle_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+where
+    R: Read,
+{
+    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
+    let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym)];
+    let mut model_run = vec![Model::new(4); 258];
+
+    let mut range_coder = RangeCoder::default();
+    range_coder.range_decode_create(reader)?;
+
+    let mut i = 0;
+    let mut last = 0;
+
+    while i < dst.len() {
+        let b = model_lit[last].decode(reader, &mut range_coder)?;
+        dst[i] = b;
+        last = usize::from(b);
+
+        let mut part = model_run[last].decode(reader, &mut range_coder)?;
         let mut run = usize::from(part);
         let mut rctx = 256;
 
