@@ -36,7 +36,97 @@ where
 
     /// Writes a FASTX record.
     pub fn write_record(&mut self, record: &Record) -> std::io::Result<usize> {
-        record.to_writer(&mut self.inner)
+        let mut buffer = Vec::new();
+
+        match (
+            record.description(),
+            record.second_description(),
+            record.quality(),
+        ) {
+            (None, None, None) => {
+                buffer.push(b'>');
+                buffer.extend(record.name());
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+            }
+            (None, None, Some(qual)) => {
+                buffer.push(b'@');
+                buffer.extend(record.name());
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+                buffer.extend(b"+\n");
+                buffer.extend(qual);
+                buffer.push(b'\n');
+            }
+            (None, Some(_), None) => {
+                buffer.push(b'>');
+                buffer.extend(record.name());
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+            }
+            (None, Some(second_desc), Some(qual)) => {
+                buffer.push(b'@');
+                buffer.extend(record.name());
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+                buffer.push(b'+');
+                buffer.extend(second_desc);
+                buffer.push(b'\n');
+                buffer.extend(qual);
+                buffer.push(b'\n')
+            }
+            (Some(desc), None, None) => {
+                buffer.push(b'>');
+                buffer.extend(record.name());
+                buffer.push(b' ');
+                buffer.extend(desc);
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+            }
+            (Some(desc), None, Some(qual)) => {
+                buffer.push(b'@');
+                buffer.extend(record.name());
+                buffer.push(b' ');
+                buffer.extend(desc);
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.extend(b"\n+\n");
+                buffer.extend(qual);
+                buffer.push(b'\n');
+            }
+            (Some(desc), Some(_), None) => {
+                buffer.push(b'>');
+                buffer.extend(record.name());
+                buffer.push(b' ');
+                buffer.extend(desc);
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+            }
+            (Some(desc), Some(second_desc), Some(qual)) => {
+                buffer.push(b'@');
+                buffer.extend(record.name());
+                buffer.push(b' ');
+                buffer.extend(desc);
+                buffer.push(b'\n');
+                buffer.extend(record.sequence());
+                buffer.push(b'\n');
+                buffer.push(b'+');
+                buffer.extend(second_desc);
+                buffer.push(b'\n');
+                buffer.extend(qual);
+                buffer.push(b'\n');
+            }
+        }
+
+        self.inner.write_all(&buffer[..])?;
+
+        Ok(buffer.len())
     }
 }
 

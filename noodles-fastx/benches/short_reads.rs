@@ -10,7 +10,7 @@ fn generate_fasta(nb_reads: usize, nb_base: usize) -> Vec<u8> {
     let mut rng = rand::thread_rng();
     let nucs = [b'A', b'C', b'T', b'G', b'a', b'c', b't', b'g'];
 
-    let mut writer = Vec::new();
+    let mut writer = noodles_fastx::Writer::new(Vec::new());
 
     for i in 0..nb_reads {
         let mut record = noodles_fastx::Record::default();
@@ -22,10 +22,10 @@ fn generate_fasta(nb_reads: usize, nb_base: usize) -> Vec<u8> {
             .sequence_mut()
             .extend((0..nb_base).map(|_| *nucs.choose(&mut rng).unwrap()));
 
-        record.to_writer(&mut writer).unwrap();
+        writer.write_record(&record).unwrap();
     }
 
-    return writer;
+    return writer.get_ref().to_vec();
 }
 
 fn generate_fastq(nb_reads: usize, nb_base: usize) -> Vec<u8> {
@@ -34,7 +34,7 @@ fn generate_fastq(nb_reads: usize, nb_base: usize) -> Vec<u8> {
     let nucs = [b'A', b'C', b'T', b'G', b'a', b'c', b't', b'g'];
     let qual: Vec<u8> = (33..126).collect();
 
-    let mut writer = Vec::new();
+    let mut writer = noodles_fastx::Writer::new(Vec::new());
 
     for i in 0..nb_reads {
         let mut record = noodles_fastx::Record::default();
@@ -53,10 +53,10 @@ fn generate_fastq(nb_reads: usize, nb_base: usize) -> Vec<u8> {
                 .collect(),
         );
 
-        record.to_writer(&mut writer).unwrap();
+        writer.write_record(&record).unwrap();
     }
 
-    return writer;
+    return writer.get_ref().to_vec();
 }
 
 fn fasta(c: &mut Criterion) {
@@ -66,7 +66,7 @@ fn fasta(c: &mut Criterion) {
 
     g.bench_function("fastx", |b| {
         b.iter(|| {
-            let mut reader = noodles_fastx::Reader::new(&input[..]);
+            let mut reader = noodles_fastx::Reader::new(&input[..]).unwrap();
             for result in reader.records() {
                 let record = result.unwrap();
                 black_box(record);
@@ -92,7 +92,7 @@ fn fastq(c: &mut Criterion) {
 
     g.bench_function("fastx", |b| {
         b.iter(|| {
-            let mut reader = noodles_fastx::Reader::new(&input[..]);
+            let mut reader = noodles_fastx::Reader::new(&input[..]).unwrap();
             for result in reader.records() {
                 let record = result.unwrap();
                 black_box(record);
