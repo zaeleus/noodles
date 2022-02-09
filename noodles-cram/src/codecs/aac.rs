@@ -40,7 +40,7 @@ where
     if flags.contains(Flags::CAT) {
         reader.read_exact(&mut data)?;
     } else if flags.contains(Flags::EXT) {
-        todo!("arith_decode: decode_ext");
+        decode_ext(reader, &mut data)?;
     } else if flags.contains(Flags::RLE) {
         if flags.contains(Flags::ORDER) {
             decode_rle_1(reader, &mut data)?;
@@ -60,6 +60,16 @@ where
     }
 
     Ok(data)
+}
+
+fn decode_ext<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+where
+    R: Read,
+{
+    use bzip2::read::BzDecoder;
+
+    let mut decoder = BzDecoder::new(reader);
+    decoder.read_exact(dst)
 }
 
 fn decode_rle_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
