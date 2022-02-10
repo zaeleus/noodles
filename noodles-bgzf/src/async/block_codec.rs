@@ -1,6 +1,6 @@
 use std::io;
 
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::{gz, BGZF_HEADER_SIZE};
@@ -10,7 +10,7 @@ use super::writer::deflate::GzData;
 pub struct BlockCodec;
 
 impl Decoder for BlockCodec {
-    type Item = BytesMut;
+    type Item = Bytes;
     type Error = io::Error;
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
@@ -30,7 +30,7 @@ impl Decoder for BlockCodec {
             return Ok(None);
         }
 
-        Ok(Some(src.split_to(block_size)))
+        Ok(Some(src.split_to(block_size).freeze()))
     }
 }
 

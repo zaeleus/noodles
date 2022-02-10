@@ -5,7 +5,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use bytes::{Buf, BytesMut};
+use bytes::{Buf, Bytes};
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
@@ -19,7 +19,7 @@ pin_project! {
 }
 
 impl Inflate {
-    pub(super) fn new(buf: BytesMut) -> Self {
+    pub(super) fn new(buf: Bytes) -> Self {
         Self {
             handle: tokio::task::spawn_blocking(move || inflate(buf)),
         }
@@ -34,7 +34,7 @@ impl Future for Inflate {
     }
 }
 
-fn inflate(mut src: BytesMut) -> io::Result<Block> {
+fn inflate(mut src: Bytes) -> io::Result<Block> {
     use crate::reader::inflate_data;
 
     let mut header = src.split_to(BGZF_HEADER_SIZE);
