@@ -21,9 +21,7 @@ where
     // pos
     write_position(writer, record.pos).await?;
 
-    let l_read_name = u8::try_from(record.read_name.len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u8(l_read_name).await?;
+    write_l_read_name(writer, &record.read_name).await?;
 
     // mapq
     write_mapping_quality(writer, record.mapping_quality()).await?;
@@ -49,7 +47,7 @@ where
 
     writer.write_i32_le(record.template_length()).await?;
 
-    writer.write_all(&record.read_name).await?;
+    write_read_name(writer, &record.read_name).await?;
 
     write_cigar(writer, record.cigar()).await?;
 
@@ -101,6 +99,15 @@ where
     writer.write_i32_le(pos).await
 }
 
+async fn write_l_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let l_read_name = u8::try_from(read_name.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u8(l_read_name).await
+}
+
 async fn write_mapping_quality<W>(
     writer: &mut W,
     mapping_quality: Option<sam::record::MappingQuality>,
@@ -111,6 +118,13 @@ where
     use sam::record::mapping_quality::MISSING;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
     writer.write_u8(mapq).await
+}
+
+async fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer.write_all(read_name).await
 }
 
 async fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
