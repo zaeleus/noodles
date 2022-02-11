@@ -23,9 +23,7 @@ where
     // pos
     write_position(writer, record.pos)?;
 
-    let l_read_name = u8::try_from(record.read_name.len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u8(l_read_name)?;
+    write_l_read_name(writer, &record.read_name)?;
 
     // mapq
     write_mapping_quality(writer, record.mapping_quality())?;
@@ -51,7 +49,7 @@ where
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
 
-    writer.write_all(&record.read_name)?;
+    write_read_name(writer, &record.read_name)?;
 
     write_cigar(writer, record.cigar())?;
 
@@ -103,6 +101,15 @@ where
     writer.write_i32::<LittleEndian>(pos)
 }
 
+fn write_l_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+where
+    W: Write,
+{
+    let l_read_name = u8::try_from(read_name.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u8(l_read_name)
+}
+
 fn write_mapping_quality<W>(
     writer: &mut W,
     mapping_quality: Option<sam::record::MappingQuality>,
@@ -113,6 +120,13 @@ where
     use sam::record::mapping_quality::MISSING;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
     writer.write_u8(mapq)
+}
+
+fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(read_name)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
