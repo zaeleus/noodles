@@ -9,6 +9,13 @@
 
   * bam/record/cigar: Add `clear` method to remove all CIGAR operations.
 
+### Changed
+
+  * bam/reader/record: Ensure `l_read_name` is > 0.
+
+    The raw read name will always be at least length 1 because the NUL
+    terminator must exist.
+
 ## 0.14.0 - 2022-01-27
 
 ### Changed

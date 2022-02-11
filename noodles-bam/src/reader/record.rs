@@ -5,6 +5,7 @@ pub mod data;
 use std::{
     io::{self, Read},
     mem,
+    num::NonZeroUsize,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -45,7 +46,8 @@ where
     *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
     record.pos = read_position(&mut buf)?;
 
-    let l_read_name = usize::from(buf.get_u8());
+    let l_read_name = NonZeroUsize::new(usize::from(buf.get_u8()))
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
     *record.mapping_quality_mut() = read_mapping_quality(&mut buf)?;
     *record.bin_mut() = buf.get_u16_le();
@@ -130,15 +132,21 @@ where
     Ok(sam::record::Flags::from(buf.get_u16_le()))
 }
 
-fn read_read_name<B>(buf: &mut B, read_name: &mut Vec<u8>, l_read_name: usize) -> io::Result<()>
+fn read_read_name<B>(
+    buf: &mut B,
+    read_name: &mut Vec<u8>,
+    l_read_name: NonZeroUsize,
+) -> io::Result<()>
 where
     B: Buf,
 {
-    if buf.remaining() < l_read_name {
+    let len = usize::from(l_read_name);
+
+    if buf.remaining() < len {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     }
 
-    read_name.resize(l_read_name, Default::default());
+    read_name.resize(len, Default::default());
     buf.copy_to_slice(read_name);
 
     Ok(())
@@ -243,5 +251,22 @@ mod tests {
         assert_eq!(record, Record::default());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_read_record_buf_with_invalid_l_read_name() {
+        let data = [
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x00, // l_read_name = 0
+        ];
+
+        let mut reader = &data[..];
+        let mut record = Record::default();
+
+        assert!(matches!(
+            read_record_buf(&mut reader, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 }
