@@ -169,12 +169,8 @@ impl Builder {
     /// ```
     /// # use std::ffi;
     /// use noodles_bam as bam;
-    ///
-    /// let record = bam::Record::builder()
-    ///     .set_read_name(b"r0\x00".to_vec())
-    ///     .build()?;
-    ///
-    /// assert_eq!(record.read_name()?.to_bytes(), b"r0");
+    /// let record = bam::Record::builder().set_read_name(b"r0".to_vec()).build()?;
+    /// assert_eq!(record.read_name(), b"r0");
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_read_name(mut self, read_name: Vec<u8>) -> Self {

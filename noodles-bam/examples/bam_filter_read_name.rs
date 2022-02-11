@@ -27,7 +27,7 @@ use std::{
 use noodles_bam as bam;
 use noodles_sam as sam;
 
-fn read_read_names<P>(src: P) -> io::Result<HashSet<String>>
+fn read_read_names<P>(src: P) -> io::Result<HashSet<Vec<u8>>>
 where
     P: AsRef<Path>,
 {
@@ -36,21 +36,10 @@ where
 
     for result in reader.lines() {
         let read_name = result?;
-        read_names.insert(read_name);
+        read_names.insert(read_name.into_bytes());
     }
 
     Ok(read_names)
-}
-
-fn read_read_name(record: &bam::Record) -> io::Result<&str> {
-    record
-        .read_name()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|c_read_name| {
-            c_read_name
-                .to_str()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -74,9 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in reader.records() {
         let record = result?;
 
-        let read_name = read_read_name(&record)?;
-
-        if read_names.contains(read_name) {
+        if read_names.contains(record.read_name()) {
             writer.write_record(&record)?;
         }
     }

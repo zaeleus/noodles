@@ -13,10 +13,7 @@ pub use self::{
     reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
-use std::{
-    ffi::{self, CStr},
-    fmt, io, mem,
-};
+use std::{fmt, io, mem};
 
 use noodles_sam::{
     self as sam,
@@ -90,7 +87,7 @@ impl Record {
             + mem::size_of::<i32>() // next_ref_id
             + mem::size_of::<i32>() // next_pos
             + mem::size_of::<i32>() // tlen
-            + self.read_name.len()
+            + self.read_name.len() + mem::size_of::<u8>() // read_name + NUL terminator
             + (mem::size_of::<u32>() * self.cigar.len())
             + self.seq.as_ref().len()
             + self.qual.len()
@@ -308,14 +305,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi;
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.read_name()?.to_bytes(), b"*");
-    /// # Ok::<(), ffi::FromBytesWithNulError>(())
+    /// assert_eq!(record.read_name(), b"*");
     /// ```
-    pub fn read_name(&self) -> Result<&CStr, ffi::FromBytesWithNulError> {
-        CStr::from_bytes_with_nul(&self.read_name)
+    pub fn read_name(&self) -> &[u8] {
+        &self.read_name
     }
 
     /// Returns the CIGAR operations that describe how the read was mapped.
@@ -553,7 +548,7 @@ impl Default for Record {
             next_ref_id: None,
             next_pos: UNMAPPED_POSITION,
             tlen: 0,
-            read_name: b"*\x00".to_vec(),
+            read_name: b"*".to_vec(),
             cigar: Cigar::default(),
             seq: Sequence::default(),
             qual: QualityScores::default(),
@@ -564,6 +559,8 @@ impl Default for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use std::str;
+
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
             .field("ref_id", &self.reference_sequence_id())
@@ -574,7 +571,7 @@ impl fmt::Debug for Record {
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.template_length())
-            .field("read_name", &self.read_name())
+            .field("read_name", &str::from_utf8(self.read_name()))
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
             .field("data", &self.data())
@@ -608,7 +605,7 @@ mod tests {
             next_ref_id: ref_id,
             next_pos: 61152,
             tlen: 166,
-            read_name: b"r0\x00".to_vec(),
+            read_name: b"r0".to_vec(),
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
             qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
@@ -686,12 +683,7 @@ mod tests {
     #[test]
     fn test_read_name() -> io::Result<()> {
         let record = build_record()?;
-
-        assert_eq!(
-            record.read_name().map(|name| name.to_bytes()),
-            Ok("r0".as_bytes())
-        );
-
+        assert_eq!(record.read_name(), b"r0");
         Ok(())
     }
 

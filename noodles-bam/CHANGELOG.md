@@ -16,6 +16,11 @@
     The raw read name will always be at least length 1 because the NUL
     terminator must exist.
 
+  * bam/record: `Record::read_name` now returns a byte string sans the NUL
+    terminator.
+
+    This is no longer treated as a `CStr`.
+
 ## 0.14.0 - 2022-01-27
 
 ### Changed

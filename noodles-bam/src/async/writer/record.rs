@@ -103,8 +103,13 @@ async fn write_l_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()
 where
     W: AsyncWrite + Unpin,
 {
-    let l_read_name = u8::try_from(read_name.len())
+    let len = u8::try_from(read_name.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let l_read_name = len
+        .checked_add(1)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid l_read_name"))?;
+
     writer.write_u8(l_read_name).await
 }
 
@@ -124,7 +129,12 @@ async fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(read_name).await
+    const NUL: u8 = 0x00;
+
+    writer.write_all(read_name).await?;
+    writer.write_all(&[NUL]).await?;
+
+    Ok(())
 }
 
 async fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
@@ -193,7 +203,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
-            .set_read_name(b"r0\x00".to_vec())
+            .set_read_name(b"r0".to_vec())
             .set_cigar(Cigar::from(vec![
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,

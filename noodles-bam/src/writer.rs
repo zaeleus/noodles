@@ -345,7 +345,7 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        assert_eq!(record.read_name()?.to_bytes(), b"*");
+        assert_eq!(record.read_name(), b"*");
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.position().is_none());

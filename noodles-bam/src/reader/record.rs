@@ -146,8 +146,12 @@ where
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     }
 
-    read_name.resize(len, Default::default());
+    // SAFETY: len is guaranteed to be > 0.
+    read_name.resize(len - 1, Default::default());
     buf.copy_to_slice(read_name);
+
+    // Discard the NUL terminator.
+    buf.advance(1);
 
     Ok(())
 }

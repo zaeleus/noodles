@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, str};
 
 use noodles_sam::{self as sam, RecordExt};
 
@@ -60,14 +60,8 @@ impl Record {
     ) -> io::Result<sam::Record> {
         let mut builder = sam::Record::builder();
 
-        let raw_read_name = self
-            .read_name()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|c_read_name| {
-                c_read_name
-                    .to_str()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
+        let raw_read_name = str::from_utf8(self.read_name())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         if raw_read_name != "*" {
             let read_name = raw_read_name
@@ -188,7 +182,7 @@ mod tests {
             .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
-            .set_read_name(b"r0\x00".to_vec())
+            .set_read_name(b"r0".to_vec())
             .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
             .set_sequence(Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]))
             .set_quality_scores(QualityScores::from(vec![
