@@ -15,7 +15,7 @@ impl RangeCoder {
     where
         R: Read,
     {
-        for _ in 0..4 {
+        for _ in 0..=4 {
             let b = reader.read_u8().map(u32::from)?;
             self.code = (self.code << 8) | b;
         }
