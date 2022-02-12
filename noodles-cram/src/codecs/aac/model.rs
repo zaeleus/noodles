@@ -14,13 +14,14 @@ pub struct Model {
 impl Model {
     pub fn new(num_sym: u8) -> Self {
         let len = usize::from(num_sym);
+
         let mut symbols = Vec::with_capacity(len);
-        let mut frequencies = Vec::with_capacity(len);
 
         for i in 0..num_sym {
             symbols.push(i);
-            frequencies.push(u32::from(i));
         }
+
+        let frequencies = vec![1; len];
 
         Self {
             total_freq: u32::from(num_sym),
