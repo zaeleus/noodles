@@ -20,6 +20,12 @@ where
 {
     let flags = reader.read_u8().map(Flags::from)?;
 
+    if !flags.contains(Flags::NO_SIZE) {
+        len = read_uint7(reader).and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+    }
+
     if flags.contains(Flags::STRIPE) {
         return decode_stripe(reader, len);
     }
