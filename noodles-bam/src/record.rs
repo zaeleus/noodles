@@ -53,7 +53,7 @@ pub struct Record {
     next_ref_id: Option<ReferenceSequenceId>,
     pub(crate) next_pos: i32,
     tlen: i32,
-    pub(crate) read_name: Vec<u8>,
+    read_name: Vec<u8>,
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
@@ -311,6 +311,20 @@ impl Record {
     /// ```
     pub fn read_name(&self) -> &[u8] {
         &self.read_name
+    }
+
+    /// Returns a mutable reference to the read name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let mut record = bam::Record::default();
+    /// *record.read_name_mut() = b"r1".to_vec();
+    /// assert_eq!(record.read_name(), b"r1");
+    /// ```
+    pub fn read_name_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.read_name
     }
 
     /// Returns the CIGAR operations that describe how the read was mapped.

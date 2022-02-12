@@ -64,7 +64,7 @@ where
 
     *record.template_length_mut() = buf.get_i32_le();
 
-    read_read_name(&mut buf, &mut record.read_name, l_read_name)?;
+    read_read_name(&mut buf, record.read_name_mut(), l_read_name)?;
     read_cigar(&mut buf, record.cigar_mut(), n_cigar_op)?;
     read_seq(&mut buf, record.sequence_mut(), l_seq)?;
     read_qual(&mut buf, record.quality_scores_mut(), l_seq)?;

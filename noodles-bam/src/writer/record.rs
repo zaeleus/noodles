@@ -23,7 +23,7 @@ where
     // pos
     write_position(writer, record.pos)?;
 
-    write_l_read_name(writer, &record.read_name)?;
+    write_l_read_name(writer, record.read_name())?;
 
     // mapq
     write_mapping_quality(writer, record.mapping_quality())?;
@@ -49,7 +49,7 @@ where
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
 
-    write_read_name(writer, &record.read_name)?;
+    write_read_name(writer, record.read_name())?;
 
     write_cigar(writer, record.cigar())?;
 

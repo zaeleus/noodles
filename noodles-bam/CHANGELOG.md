@@ -7,6 +7,8 @@
   * bam: Set minimum supported Rust version (MSRV) to 1.56.0 in package
     manifest.
 
+  * bam/record: Add mutable getter for read name (`Record::read_name_mut`).
+
   * bam/record/cigar: Add `clear` method to remove all CIGAR operations.
 
 ### Changed

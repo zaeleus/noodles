@@ -21,7 +21,7 @@ where
     // pos
     write_position(writer, record.pos).await?;
 
-    write_l_read_name(writer, &record.read_name).await?;
+    write_l_read_name(writer, record.read_name()).await?;
 
     // mapq
     write_mapping_quality(writer, record.mapping_quality()).await?;
@@ -47,7 +47,7 @@ where
 
     writer.write_i32_le(record.template_length()).await?;
 
-    write_read_name(writer, &record.read_name).await?;
+    write_read_name(writer, record.read_name()).await?;
 
     write_cigar(writer, record.cigar()).await?;
 
