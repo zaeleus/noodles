@@ -92,7 +92,7 @@ impl Block {
                 reader.read_to_end(&mut buf)?;
                 Ok(Cow::from(buf))
             }
-            CompressionMethod::Rans => {
+            CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
                 rans_decode(&mut buf).map(Cow::from)
             }

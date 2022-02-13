@@ -16,8 +16,8 @@ pub enum CompressionMethod {
     Bzip2,
     /// Lempel-Ziv-Markov chain algorithm (LZMA).
     Lzma,
-    /// Ranged asymmetric numeral systems (rANS).
-    Rans,
+    /// Ranged asymmetric numeral systems (4 states, 8-bit renormalization; rANS 4x8).
+    Rans4x8,
 }
 
 impl Default for CompressionMethod {
@@ -50,7 +50,7 @@ impl TryFrom<u8> for CompressionMethod {
             1 => Ok(Self::Gzip),
             2 => Ok(Self::Bzip2),
             3 => Ok(Self::Lzma),
-            4 => Ok(Self::Rans),
+            4 => Ok(Self::Rans4x8),
             _ => Err(TryFromByteError(b)),
         }
     }
@@ -63,7 +63,7 @@ impl From<CompressionMethod> for u8 {
             CompressionMethod::Gzip => 1,
             CompressionMethod::Bzip2 => 2,
             CompressionMethod::Lzma => 3,
-            CompressionMethod::Rans => 4,
+            CompressionMethod::Rans4x8 => 4,
         }
     }
 }
@@ -83,7 +83,10 @@ mod tests {
         assert_eq!(CompressionMethod::try_from(1), Ok(CompressionMethod::Gzip));
         assert_eq!(CompressionMethod::try_from(2), Ok(CompressionMethod::Bzip2));
         assert_eq!(CompressionMethod::try_from(3), Ok(CompressionMethod::Lzma));
-        assert_eq!(CompressionMethod::try_from(4), Ok(CompressionMethod::Rans));
+        assert_eq!(
+            CompressionMethod::try_from(4),
+            Ok(CompressionMethod::Rans4x8)
+        );
         assert_eq!(CompressionMethod::try_from(5), Err(TryFromByteError(5)));
     }
 
@@ -93,6 +96,6 @@ mod tests {
         assert_eq!(u8::from(CompressionMethod::Gzip), 1);
         assert_eq!(u8::from(CompressionMethod::Bzip2), 2);
         assert_eq!(u8::from(CompressionMethod::Lzma), 3);
-        assert_eq!(u8::from(CompressionMethod::Rans), 4);
+        assert_eq!(u8::from(CompressionMethod::Rans4x8), 4);
     }
 }
