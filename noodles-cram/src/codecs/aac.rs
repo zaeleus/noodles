@@ -14,7 +14,7 @@ use self::flags::Flags;
 use super::rans_nx16::{decode_pack, decode_pack_meta};
 use crate::reader::num::read_uint7;
 
-fn arith_decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
+pub fn arith_decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
