@@ -116,7 +116,7 @@ where
     }
 }
 
-fn resolve_interval<B>(interval: B) -> (i32, i32)
+pub(crate) fn resolve_interval<B>(interval: B) -> (i32, i32)
 where
     B: RangeBounds<i32>,
 {
@@ -128,13 +128,13 @@ where
     }
 }
 
-fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
+pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     let chunk = chunks.get(*i).copied();
     *i += 1;
     chunk
 }
 
-fn intersects(
+pub(crate) fn intersects(
     record: &Record,
     chromosome_id: usize,
     interval_start: i32,

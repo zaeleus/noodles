@@ -1,12 +1,16 @@
 mod builder;
+mod query;
 
 pub use self::builder::Builder;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use crate::Record;
+use self::query::query;
+use crate::{header::string_maps::ContigStringMap, Record};
 
 /// An async BCF reader.
 ///
@@ -291,6 +295,51 @@ where
     /// ```
     pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos).await
+    }
+
+    /// Returns a stream over records that intersect the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_core::Region;
+    /// use noodles_csi as csi;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bcf").await.map(bcf::AsyncReader::new)?;
+    /// reader.read_file_format().await?;
+    ///
+    /// let string_maps: StringMaps = reader.read_header().await?.parse()?;
+    ///
+    /// let index = csi::r#async::read("sample.bcf.csi").await?;
+    /// let region = Region::mapped("sq0", 8..=13);
+    /// let mut query = reader.query(string_maps.contigs(), &index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<I, RS>(
+        &mut self,
+        contig_string_map: &ContigStringMap,
+        index: &I,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    where
+        I: BinningIndex<RS>,
+        RS: ReferenceSequenceExt,
+    {
+        use crate::reader::resolve_region;
+
+        let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
+        let chunks = index.query(reference_sequence_id, interval)?;
+        Ok(query(self, chunks, reference_sequence_id, interval))
     }
 }
 

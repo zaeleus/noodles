@@ -7,6 +7,8 @@
   * bcf: Set minimum supported Rust version (MSRV) to 1.56.0 in package
     manifest.
 
+  * bcf/async/reader: Add query stream.
+
 ### Fixed
 
   * bcf/writer/vcf_record/site: Avoid overflow when the alternate allele count

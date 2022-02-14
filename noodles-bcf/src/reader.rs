@@ -1,6 +1,6 @@
 //! BCF reader and iterators.
 
-mod query;
+pub(crate) mod query;
 pub(crate) mod record;
 mod records;
 pub(crate) mod string_map;
@@ -332,7 +332,7 @@ where
         })
 }
 
-fn resolve_region(
+pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
 ) -> io::Result<(usize, Interval)> {
