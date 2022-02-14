@@ -178,7 +178,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     record.qctx =
         (record.qctx << u32::from(param.q_shift)) + u32::from(param.q_tab[usize::from(q)]);
 
-    ctx += record.qctx & ((1 << param.q_bits) - 1) << param.q_loc;
+    ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
     if param.flags.contains(Flags::HAVE_PTAB) {
         let p = cmp::min(record.pos, 1023) as usize;
