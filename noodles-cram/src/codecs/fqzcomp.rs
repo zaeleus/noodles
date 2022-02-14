@@ -179,12 +179,12 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
 
     if param.flags.contains(Flags::HAVE_PTAB) {
         let p = cmp::min(record.rec_len, 1023) as usize;
-        ctx += u32::from(param.p_tab[p] << param.p_loc);
+        ctx += u32::from(param.p_tab[p]) << param.p_loc;
     }
 
     if param.flags.contains(Flags::HAVE_DTAB) {
         let d = cmp::min(record.delta, 255) as usize;
-        ctx += u32::from(param.d_tab[d] << param.d_loc);
+        ctx += u32::from(param.d_tab[d]) << param.d_loc;
 
         if record.prevq != q {
             record.delta += 1;
@@ -194,7 +194,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     }
 
     if param.flags.contains(Flags::DO_SEL) {
-        ctx += u32::from(record.sel) << u32::from(param.s_loc);
+        ctx += u32::from(record.sel) << param.s_loc;
     }
 
     (ctx & 0xffff) as u16
