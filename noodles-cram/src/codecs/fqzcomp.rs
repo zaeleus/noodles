@@ -26,7 +26,9 @@ where
     })?;
 
     let mut params = fqz_decode_params(reader)?;
+
     let (mut range_coder, mut models) = fqz_create_models(&params);
+    range_coder.range_decode_create(reader)?;
 
     let mut i = 0;
     let mut pos = 0;
