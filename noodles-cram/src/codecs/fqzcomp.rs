@@ -76,6 +76,10 @@ where
         pos -= 1;
     }
 
+    if params.gflags.contains(parameters::Flags::DO_REV) {
+        todo!("fqz_decode: reverse_qualities");
+    }
+
     Ok(dst)
 }
 
