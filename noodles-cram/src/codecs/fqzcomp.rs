@@ -31,7 +31,6 @@ where
     range_coder.range_decode_create(reader)?;
 
     let mut i = 0;
-    let mut pos = 0;
 
     let mut record = Record::default();
     let mut dst = vec![0; buf_len];
@@ -40,7 +39,7 @@ where
     let mut ctx = 0;
 
     while i < buf_len {
-        if pos == 0 {
+        if record.pos == 0 {
             x = fqz_new_record(
                 reader,
                 &mut params,
@@ -55,7 +54,7 @@ where
                 }
 
                 i += record.rec_len;
-                pos = 0;
+                record.pos = 0;
 
                 continue;
             }
@@ -75,7 +74,7 @@ where
         ctx = fqz_update_context(param, q, &mut record);
 
         i += 1;
-        pos -= 1;
+        record.pos -= 1;
     }
 
     if params.gflags.contains(parameters::Flags::DO_REV) {
@@ -110,6 +109,7 @@ struct Record {
     rec: usize,
     sel: u8,
     rec_len: usize,
+    pos: usize,
     is_dup: bool,
     qctx: u32,
     delta: u32,
@@ -151,6 +151,7 @@ where
     }
 
     record.rec_len = param.last_len;
+    record.pos = record.rec_len;
 
     if parameters.gflags.contains(parameters::Flags::DO_REV) {
         todo!("fqz_new_record: do_rev");
@@ -180,7 +181,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     ctx += record.qctx & ((1 << param.q_bits) - 1) << param.q_loc;
 
     if param.flags.contains(Flags::HAVE_PTAB) {
-        let p = cmp::min(record.rec_len, 1023) as usize;
+        let p = cmp::min(record.pos, 1023) as usize;
         ctx += u32::from(param.p_tab[p]) << param.p_loc;
     }
 
