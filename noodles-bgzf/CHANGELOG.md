@@ -11,6 +11,10 @@
 
     This allows setting a compression level.
 
+### Changed
+
+  * bgzf: Update to tokio-util 0.7.0.
+
 ## 0.8.0 - 2022-01-27
 
 ### Changed
