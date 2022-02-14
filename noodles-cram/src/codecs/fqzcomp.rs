@@ -258,7 +258,7 @@ where
         loop {
             let part = runs[j];
             j += 1;
-            run_len += part;
+            run_len += usize::from(part);
 
             if part != 255 {
                 break;
