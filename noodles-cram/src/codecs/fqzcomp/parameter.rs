@@ -49,7 +49,7 @@ where
 
     let mut q_map = vec![0; usize::from(max_sym)];
 
-    if flags.contains(Flags::DO_DEDUP) {
+    if flags.contains(Flags::HAVE_QMAP) {
         reader.read_exact(&mut q_map)?;
     }
 
