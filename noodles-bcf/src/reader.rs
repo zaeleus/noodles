@@ -245,6 +245,8 @@ where
     /// use noodles_csi as csi;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
+    /// reader.read_file_format()?;
+    ///
     /// let string_maps: StringMaps = reader.read_header()?.parse()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
