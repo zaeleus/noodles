@@ -96,10 +96,10 @@ struct Models {
 fn fqz_create_models(parameters: &Parameters) -> (RangeCoder, Models) {
     let models = Models {
         len: vec![Model::new(u8::MAX); 4],
-        qual: vec![Model::new(parameters.max_sym + 1); 1 << 16],
-        dup: Model::new(2),
-        rev: Model::new(2),
-        sel: Model::new(parameters.max_sel + 1),
+        qual: vec![Model::new(parameters.max_sym); 1 << 16],
+        dup: Model::new(1),
+        rev: Model::new(1),
+        sel: Model::new(parameters.max_sel),
     };
 
     (RangeCoder::default(), models)

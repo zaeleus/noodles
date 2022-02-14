@@ -12,19 +12,19 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(num_sym: u8) -> Self {
-        let len = usize::from(num_sym);
+    pub fn new(max_sym: u8) -> Self {
+        let num_sym = usize::from(max_sym) + 1;
 
-        let mut symbols = Vec::with_capacity(len);
+        let mut symbols = Vec::with_capacity(num_sym);
 
-        for i in 0..num_sym {
+        for i in 0..=max_sym {
             symbols.push(i);
         }
 
-        let frequencies = vec![1; len];
+        let frequencies = vec![1; num_sym];
 
         Self {
-            total_freq: u32::from(num_sym),
+            total_freq: u32::from(max_sym) + 1,
             symbols,
             frequencies,
         }

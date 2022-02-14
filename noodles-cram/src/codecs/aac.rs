@@ -124,9 +124,12 @@ fn decode_rle_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
+    let max_sym = reader
+        .read_u8()
+        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+
     let mut model_lit = Model::new(max_sym);
-    let mut model_run = vec![Model::new(4); 258];
+    let mut model_run = vec![Model::new(3); 258];
 
     let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(reader)?;
@@ -161,9 +164,12 @@ fn decode_rle_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
-    let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym)];
-    let mut model_run = vec![Model::new(4); 258];
+    let max_sym = reader
+        .read_u8()
+        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+
+    let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym) + 1];
+    let mut model_run = vec![Model::new(3); 258];
 
     let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(reader)?;
@@ -200,7 +206,10 @@ fn decode_order_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
+    let max_sym = reader
+        .read_u8()
+        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+
     let mut model = Model::new(max_sym);
 
     let mut range_coder = RangeCoder::default();
@@ -217,8 +226,11 @@ fn decode_order_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| if n == 0 { u8::MAX } else { n })?;
-    let mut models = vec![Model::new(max_sym); usize::from(max_sym)];
+    let max_sym = reader
+        .read_u8()
+        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+
+    let mut models = vec![Model::new(max_sym); usize::from(max_sym) + 1];
 
     let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(reader)?;
