@@ -22,6 +22,8 @@ pub enum CompressionMethod {
     RansNx16,
     /// Adaptive arithmetic coding.
     AdaptiveArithmeticCoding,
+    /// fqzcomp.
+    Fqzcomp,
 }
 
 impl Default for CompressionMethod {
@@ -39,7 +41,7 @@ impl fmt::Display for TryFromByteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid compression method: expected 0..=6, got {}",
+            "invalid compression method: expected 0..=7, got {}",
             self.0
         )
     }
@@ -57,6 +59,7 @@ impl TryFrom<u8> for CompressionMethod {
             4 => Ok(Self::Rans4x8),
             5 => Ok(Self::RansNx16),
             6 => Ok(Self::AdaptiveArithmeticCoding),
+            7 => Ok(Self::Fqzcomp),
             _ => Err(TryFromByteError(b)),
         }
     }
@@ -72,6 +75,7 @@ impl From<CompressionMethod> for u8 {
             CompressionMethod::Rans4x8 => 4,
             CompressionMethod::RansNx16 => 5,
             CompressionMethod::AdaptiveArithmeticCoding => 6,
+            CompressionMethod::Fqzcomp => 7,
         }
     }
 }
@@ -103,7 +107,11 @@ mod tests {
             CompressionMethod::try_from(6),
             Ok(CompressionMethod::AdaptiveArithmeticCoding)
         );
-        assert_eq!(CompressionMethod::try_from(7), Err(TryFromByteError(7)));
+        assert_eq!(
+            CompressionMethod::try_from(7),
+            Ok(CompressionMethod::Fqzcomp)
+        );
+        assert_eq!(CompressionMethod::try_from(8), Err(TryFromByteError(8)));
     }
 
     #[test]
@@ -115,5 +123,6 @@ mod tests {
         assert_eq!(u8::from(CompressionMethod::Rans4x8), 4);
         assert_eq!(u8::from(CompressionMethod::RansNx16), 5);
         assert_eq!(u8::from(CompressionMethod::AdaptiveArithmeticCoding), 6);
+        assert_eq!(u8::from(CompressionMethod::Fqzcomp), 7);
     }
 }

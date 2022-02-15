@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod parameter;
 mod parameters;
 
@@ -88,6 +86,7 @@ struct Models {
     len: Vec<Model>,
     qual: Vec<Model>,
     dup: Model,
+    #[allow(dead_code)]
     rev: Model,
     sel: Model,
 }

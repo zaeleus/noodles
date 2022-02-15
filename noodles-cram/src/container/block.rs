@@ -17,7 +17,9 @@ use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
 
 use crate::{
-    codecs::{aac::arith_decode, rans::rans_decode, rans_nx16::rans_decode_nx16},
+    codecs::{
+        aac::arith_decode, fqzcomp::fqz_decode, rans::rans_decode, rans_nx16::rans_decode_nx16,
+    },
     num::{itf8, Itf8},
 };
 
@@ -103,6 +105,10 @@ impl Block {
             CompressionMethod::AdaptiveArithmeticCoding => {
                 let mut reader = self.data();
                 arith_decode(&mut reader, self.uncompressed_len()).map(Cow::from)
+            }
+            CompressionMethod::Fqzcomp => {
+                let mut reader = self.data();
+                fqz_decode(&mut reader).map(Cow::from)
             }
         }
     }
