@@ -17,7 +17,7 @@ use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
 
 use crate::{
-    codecs::rans::rans_decode,
+    codecs::{rans::rans_decode, rans_nx16::rans_decode_nx16},
     num::{itf8, Itf8},
 };
 
@@ -95,6 +95,10 @@ impl Block {
             CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
                 rans_decode(&mut buf).map(Cow::from)
+            }
+            CompressionMethod::RansNx16 => {
+                let mut reader = self.data();
+                rans_decode_nx16(&mut reader, self.uncompressed_len()).map(Cow::from)
             }
         }
     }

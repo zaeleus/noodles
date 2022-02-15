@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod flags;
 
 use std::io::{self, Cursor, Read};
