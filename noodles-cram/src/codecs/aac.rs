@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod flags;
 mod model;
 mod range_coder;
