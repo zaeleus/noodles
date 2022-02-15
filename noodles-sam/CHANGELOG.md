@@ -12,6 +12,8 @@
 
   * sam/async/writer: Add missing `get_mut` method.
 
+  * sam/record/position: Implement `Hash` for `Position`.
+
 ### Deprecated
 
   * sam/header/builder: Deprecate `Builder::new`.
