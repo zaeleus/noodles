@@ -9,6 +9,9 @@
 
   * bam/record: Add mutable getter for read name (`Record::read_name_mut`).
 
+  * bam/record/reference_sequence_id: Implement `Hash` for
+    `ReferenceSequenceId`.
+
   * bam/record/cigar: Add `clear` method to remove all CIGAR operations.
 
 ### Changed

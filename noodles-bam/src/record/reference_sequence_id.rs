@@ -13,7 +13,7 @@ const MIN: i32 = 0;
 /// sequence dictionary.
 ///
 /// A value of -1 is used for an unmapped record.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ReferenceSequenceId(i32);
 
 /// An error returned when a raw SAM record position fails to convert.
