@@ -70,7 +70,7 @@ where
         Self { inner }
     }
 
-    /// Reads a single raw BED record.
+    /// Reads a raw BED line.
     ///
     /// # Examples
     ///
@@ -82,12 +82,12 @@ where
     /// let mut reader = bed::Reader::new(&data[..]);
     ///
     /// let mut buf = String::new();
-    /// reader.read_record(&mut buf)?;
+    /// reader.read_line(&mut buf)?;
     ///
     /// assert_eq!(buf, "sq0\t8\t13");
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
+    pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
         read_line(&mut self.inner, buf)
     }
 
@@ -120,7 +120,7 @@ where
         iter::from_fn(move || {
             buf.clear();
 
-            match self.read_record(&mut buf) {
+            match self.read_line(&mut buf) {
                 Ok(0) => None,
                 Ok(_) => Some(
                     buf.parse()
