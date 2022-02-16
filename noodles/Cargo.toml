@@ -14,6 +14,7 @@ readme = "../README.md"
 [dependencies]
 noodles-bam = { path = "../noodles-bam", version = "0.14.0", optional = true }
 noodles-bcf = { path = "../noodles-bcf", version = "0.12.0", optional = true }
+noodles-bed = { path = "../noodles-bed", version = "0.1.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.8.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.3.4", optional = true }
 noodles-cram = { path = "../noodles-cram", version = "0.11.0", optional = true }
@@ -31,6 +32,7 @@ default = []
 
 bam = ["noodles-bam"]
 bcf = ["noodles-bcf"]
+bed = ["noodles-bed"]
 bgzf = ["noodles-bgzf"]
 core = ["noodles-core"]
 cram = ["noodles-cram"]
