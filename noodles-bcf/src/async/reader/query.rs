@@ -26,7 +26,7 @@ where
     chunks: Vec<Chunk>,
     i: usize,
 
-    reference_sequence_id: usize,
+    chromosome_id: usize,
     start: i32,
     end: i32,
 
@@ -36,7 +36,7 @@ where
 pub fn query<R, B>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
-    reference_sequence_id: usize,
+    chromosome_id: usize,
     interval: B,
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where
@@ -51,7 +51,7 @@ where
         chunks,
         i: 0,
 
-        reference_sequence_id,
+        chromosome_id,
         start,
         end,
 
@@ -76,7 +76,7 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, ctx.reference_sequence_id, ctx.start, ctx.end)? {
+                        if intersects(&record, ctx.chromosome_id, ctx.start, ctx.end)? {
                             return Ok(Some((record, ctx)));
                         }
                     }
