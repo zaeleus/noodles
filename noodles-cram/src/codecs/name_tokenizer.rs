@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::io::{self, BufRead, Cursor, Read};
 
 use byteorder::{LittleEndian, ReadBytesExt};
