@@ -3,7 +3,6 @@
 //! **noodles-cram** handles the reading and writing of the CRAM format.
 
 #[cfg(feature = "async")]
-#[allow(dead_code)]
 mod r#async;
 
 mod bit_reader;
