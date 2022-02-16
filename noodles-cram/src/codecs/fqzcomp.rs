@@ -36,6 +36,8 @@ where
     let mut x = 0;
     let mut ctx = 0;
 
+    let mut rev_len = Vec::new();
+
     while i < buf_len {
         if record.pos == 0 {
             x = fqz_new_record(
@@ -44,6 +46,7 @@ where
                 &mut range_coder,
                 &mut models,
                 &mut record,
+                &mut rev_len,
             )?;
 
             if record.is_dup {
@@ -76,7 +79,7 @@ where
     }
 
     if params.gflags.contains(parameters::Flags::DO_REV) {
-        todo!("fqz_decode: reverse_qualities");
+        reverse_qualities(&mut dst, buf_len, &rev_len);
     }
 
     Ok(dst)
@@ -86,7 +89,6 @@ struct Models {
     len: Vec<Model>,
     qual: Vec<Model>,
     dup: Model,
-    #[allow(dead_code)]
     rev: Model,
     sel: Model,
 }
@@ -121,6 +123,7 @@ fn fqz_new_record<R>(
     range_coder: &mut RangeCoder,
     models: &mut Models,
     record: &mut Record,
+    rev_len: &mut Vec<(bool, usize)>,
 ) -> io::Result<usize>
 where
     R: Read,
@@ -153,7 +156,9 @@ where
     record.pos = record.rec_len;
 
     if parameters.gflags.contains(parameters::Flags::DO_REV) {
-        todo!("fqz_new_record: do_rev");
+        let rev = models.rev.decode(reader, range_coder).map(|n| n == 1)?;
+        let len = record.rec_len;
+        rev_len.push((rev, len));
     }
 
     record.rec += 1;
@@ -278,6 +283,29 @@ where
     Ok(a)
 }
 
+fn reverse_qualities(qual: &mut [u8], qual_len: usize, rev_len: &[(bool, usize)]) {
+    let mut rec = 0;
+    let mut i = 0;
+
+    while i < qual_len {
+        let (rev, len) = rev_len[rec];
+
+        if rev {
+            let mut j = 0;
+            let mut k = len - 1;
+
+            while j < k {
+                qual.swap(i + j, i + k);
+                j += 1;
+                k -= 1;
+            }
+        }
+
+        i += len;
+        rec += 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -298,5 +326,16 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_reverse_qualities() {
+        let mut data = b"ndlsndlsndls".to_vec();
+        let len = data.len();
+        let rev_len = vec![(false, 4), (true, 4), (false, 4)];
+
+        reverse_qualities(&mut data, len, &rev_len);
+
+        assert_eq!(data, b"ndlssldnndls");
     }
 }
