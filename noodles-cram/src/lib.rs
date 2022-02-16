@@ -140,19 +140,16 @@ fn push_index_records_for_multi_reference_slice(
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
-    let mut raw_reference_sequence_ids: HashMap<
-        i32,
+    let mut reference_sequence_ids: HashMap<
+        Option<bam::record::ReferenceSequenceId>,
         SliceReferenceSequenceAlignmentRangeInclusive,
     > = HashMap::new();
 
     for record in slice.records(compression_header)? {
-        let raw_reference_sequence_id = record
-            .reference_sequence_id()
-            .map(i32::from)
-            .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+        let reference_sequence_id = record.reference_sequence_id();
 
-        let range = raw_reference_sequence_ids
-            .entry(raw_reference_sequence_id)
+        let range = reference_sequence_ids
+            .entry(reference_sequence_id)
             .or_default();
 
         let alignment_start = record.alignment_start().map(i32::from).unwrap_or_default();
@@ -167,30 +164,26 @@ fn push_index_records_for_multi_reference_slice(
         range.end = cmp::max(range.end, alignment_end);
     }
 
-    let mut raw_sorted_reference_sequence_ids: Vec<_> =
-        raw_reference_sequence_ids.keys().copied().collect();
-    raw_sorted_reference_sequence_ids.sort_unstable();
+    let mut sorted_reference_sequence_ids: Vec<_> =
+        reference_sequence_ids.keys().copied().collect();
+    sorted_reference_sequence_ids.sort_unstable();
 
-    let reference_sequence_ids = raw_sorted_reference_sequence_ids
+    let reference_sequence_ids: Vec<_> = sorted_reference_sequence_ids
         .iter()
-        .map(|&id| {
-            let range = &raw_reference_sequence_ids[&id];
+        .map(|&reference_sequence_id| {
+            let range = &reference_sequence_ids[&reference_sequence_id];
 
-            let alignment_start = range.start;
-            let alignment_span = range.end - alignment_start + 1;
-
-            if id == bam::record::reference_sequence_id::UNMAPPED {
-                Ok((None, alignment_start, alignment_span))
+            let (alignment_start, alignment_span) = if reference_sequence_id.is_some() {
+                let alignment_start = range.start;
+                let alignment_span = range.end - alignment_start + 1;
+                (alignment_start, alignment_span)
             } else {
-                bam::record::ReferenceSequenceId::try_from(id)
-                    .map(Some)
-                    .map(|reference_sequence_id| {
-                        (reference_sequence_id, alignment_start, alignment_span)
-                    })
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }
+                (0, 0)
+            };
+
+            (reference_sequence_id, alignment_start, alignment_span)
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect();
 
     for (reference_sequence_id, alignment_start, alignment_span) in reference_sequence_ids {
         let record = crai::Record::new(
@@ -217,21 +210,29 @@ fn push_index_record_for_single_reference_slice(
 ) -> io::Result<()> {
     let slice_reference_sequence_id = slice_header.reference_sequence_id();
 
-    let reference_sequence_id = if slice_reference_sequence_id.is_none() {
-        None
-    } else {
-        bam::record::ReferenceSequenceId::try_from(i32::from(slice_reference_sequence_id))
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-    };
+    let (reference_sequence_id, alignment_start, alignment_span) =
+        if slice_reference_sequence_id.is_none() {
+            (None, 0, 0)
+        } else {
+            let reference_sequence_id =
+                bam::record::ReferenceSequenceId::try_from(i32::from(slice_reference_sequence_id))
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let alignment_start = slice_header
+                .alignment_start()
+                .map(i32::from)
+                .unwrap_or_default();
+
+            let alignment_span = slice_header.alignment_span();
+
+            (reference_sequence_id, alignment_start, alignment_span)
+        };
 
     let record = crai::Record::new(
         reference_sequence_id,
-        slice_header
-            .alignment_start()
-            .map(i32::from)
-            .unwrap_or_default(),
-        slice_header.alignment_span(),
+        alignment_start,
+        alignment_span,
         container_position,
         landmark,
         slice_length,

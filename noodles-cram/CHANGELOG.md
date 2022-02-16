@@ -15,6 +15,9 @@
 
 ### Changed
 
+  * cram: Write 0 for alignment start and alignment span for slices with
+    unmapped records when indexing.
+
   * cram/data_container/slice: The mate resolver (`Slice::resolve_mates`) is
     now fallible.
 
