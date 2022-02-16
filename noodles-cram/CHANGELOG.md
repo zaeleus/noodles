@@ -7,6 +7,10 @@
   * cram: Set minimum supported Rust version (MSRV) to 1.56.0 in package
     manifest.
 
+  * cram/container/block/compression_method: Add decoder support for CRAM 3.1
+    (draft) block compression methods: rANS Nx16, adaptive arithmetic coder,
+    fqzcomp, and name tokenizer.
+
   * cram/record/resolve: Add read base (`B`) base resolver.
 
 ### Fixed
