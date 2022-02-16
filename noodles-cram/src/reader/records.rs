@@ -41,7 +41,7 @@ where
             .map(|slice| {
                 slice
                     .records(container.compression_header())
-                    .map(|r| slice.resolve_mates(r))
+                    .and_then(|r| slice.resolve_mates(r))
             })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()

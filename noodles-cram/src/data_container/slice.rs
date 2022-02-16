@@ -122,18 +122,18 @@ impl Slice {
     /// while let Some(container) = reader.read_data_container()? {
     ///     for slice in container.slices() {
     ///         let records = slice.records(container.compression_header())?;
-    ///         let records = slice.resolve_mates(records);
+    ///         let records = slice.resolve_mates(records)?;
     ///         // ...
     ///     }
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn resolve_mates(&self, records: Vec<Record>) -> Vec<Record> {
+    pub fn resolve_mates(&self, records: Vec<Record>) -> io::Result<Vec<Record>> {
         resolve_mates(records)
     }
 }
 
-fn resolve_mates(records: Vec<Record>) -> Vec<Record> {
+fn resolve_mates(records: Vec<Record>) -> io::Result<Vec<Record>> {
     use std::cell::RefCell;
 
     let mut mate_indices = vec![None; records.len()];
@@ -174,12 +174,12 @@ fn resolve_mates(records: Vec<Record>) -> Vec<Record> {
         let mut mate = record_cell.borrow_mut();
         set_mate(&mut record, &mut mate);
 
-        let template_size = calculate_template_size(&record, &mate);
+        let template_size = calculate_template_size(&record, &mate)?;
         record.template_size = template_size;
         mate.template_size = -template_size;
     }
 
-    records.into_iter().map(|r| r.into_inner()).collect()
+    Ok(records.into_iter().map(|r| r.into_inner()).collect())
 }
 
 fn set_mate(mut record: &mut Record, mate: &mut Record) {
@@ -202,15 +202,22 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
-fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
+fn calculate_template_size(record: &Record, mate: &Record) -> io::Result<i32> {
     let start = if record.bam_flags().is_reverse_complemented() {
-        record.alignment_end()
+        record
+            .alignment_end()
+            .transpose()?
+            .map(i32::from)
+            .unwrap_or_default()
     } else {
         record.alignment_start().map(i32::from).unwrap_or_default()
     };
 
     let end = if mate.bam_flags().is_reverse_complemented() {
         mate.alignment_end()
+            .transpose()?
+            .map(i32::from)
+            .unwrap_or_default()
     } else {
         mate.alignment_start().map(i32::from).unwrap_or_default()
     };
@@ -223,9 +230,9 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
     // rightmost, and the sign for any middle segment is undefined. If segments cover the same
     // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
     if start > end {
-        -len
+        Ok(-len)
     } else {
-        len
+        Ok(len)
     }
 }
 
@@ -266,7 +273,7 @@ mod tests {
                 .build(),
         ];
 
-        let records = resolve_mates(records);
+        let records = resolve_mates(records)?;
 
         assert_eq!(records[0].read_name(), b"1");
         assert_eq!(
@@ -306,7 +313,7 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_template_size() -> Result<(), sam::record::position::TryFromIntError> {
+    fn test_calculate_template_size() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{Flags, Position};
 
         // --> -->
@@ -320,8 +327,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 101);
-        assert_eq!(calculate_template_size(&mate, &record), -101);
+        assert_eq!(calculate_template_size(&record, &mate)?, 101);
+        assert_eq!(calculate_template_size(&mate, &record)?, -101);
 
         // --> <--
         // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
@@ -337,8 +344,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), -150);
+        assert_eq!(calculate_template_size(&record, &mate)?, 150);
+        assert_eq!(calculate_template_size(&mate, &record)?, -150);
 
         // <-- -->
         let record = Record::builder()
@@ -352,8 +359,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 52);
-        assert_eq!(calculate_template_size(&mate, &record), -52);
+        assert_eq!(calculate_template_size(&record, &mate)?, 52);
+        assert_eq!(calculate_template_size(&mate, &record)?, -52);
 
         // <-- <--
         let record = Record::builder()
@@ -368,8 +375,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 101);
-        assert_eq!(calculate_template_size(&mate, &record), -101);
+        assert_eq!(calculate_template_size(&record, &mate)?, 101);
+        assert_eq!(calculate_template_size(&mate, &record)?, -101);
 
         Ok(())
     }

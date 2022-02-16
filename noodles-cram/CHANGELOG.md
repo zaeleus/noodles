@@ -13,6 +13,14 @@
 
   * cram/record/resolve: Add read base (`B`) base resolver.
 
+### Changed
+
+  * cram/data_container/slice: The mate resolver (`Slice::resolve_mates`) is
+    now fallible.
+
+  * cram/record: `Record::alignment_end` now returns
+    `Option<io::Result<sam::record::Position>>`.
+
 ### Fixed
 
   * cram/data_container/slice: Fix template size calculation when resolving

@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(container) = reader.read_data_container()? {
         for slice in container.slices() {
             let records = slice.records(container.compression_header())?;
-            let records = slice.resolve_mates(records);
+            let records = slice.resolve_mates(records)?;
 
             for record in records {
                 let sam_record = record.try_into_sam_record(

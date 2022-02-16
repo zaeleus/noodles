@@ -127,7 +127,7 @@ impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
     fn default() -> Self {
         Self {
             start: i32::MAX,
-            end: 1,
+            end: 0,
         }
     }
 }
@@ -157,7 +157,14 @@ fn push_index_records_for_multi_reference_slice(
 
         let alignment_start = record.alignment_start().map(i32::from).unwrap_or_default();
         range.start = cmp::min(range.start, alignment_start);
-        range.end = cmp::max(range.end, record.alignment_end());
+
+        let alignment_end = record
+            .alignment_end()
+            .transpose()?
+            .map(i32::from)
+            .unwrap_or_default();
+
+        range.end = cmp::max(range.end, alignment_end);
     }
 
     let mut raw_sorted_reference_sequence_ids: Vec<_> =

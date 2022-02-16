@@ -111,13 +111,21 @@ impl Builder {
         );
 
         let mut slice_alignment_start = i32::MAX;
-        let mut slice_alignment_end = 1;
+        let mut slice_alignment_end = 0;
 
         for record in &self.records {
             let record_alignment_start =
                 record.alignment_start().map(i32::from).unwrap_or_default();
+
             slice_alignment_start = cmp::min(slice_alignment_start, record_alignment_start);
-            slice_alignment_end = cmp::max(slice_alignment_end, record.alignment_end());
+
+            let record_alignment_end = record
+                .alignment_end()
+                .transpose()?
+                .map(i32::from)
+                .unwrap_or_default();
+
+            slice_alignment_end = cmp::max(slice_alignment_end, record_alignment_end);
 
             record_writer.write_record(record)?;
         }

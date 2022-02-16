@@ -14,7 +14,7 @@ pub use self::{
     read_group_id::ReadGroupId, tag::Tag,
 };
 
-use std::{fmt, str};
+use std::{fmt, io, str};
 
 use noodles_bam as bam;
 use noodles_sam as sam;
@@ -89,12 +89,10 @@ impl Record {
     /// Returns the alignment end position.
     ///
     /// This value is 1-based.
-    pub fn alignment_end(&self) -> i32 {
-        calculate_alignment_end(
-            self.alignment_start().map(i32::from).unwrap_or_default(),
-            self.read_length() as i32,
-            self.features(),
-        )
+    pub fn alignment_end(&self) -> Option<io::Result<sam::record::Position>> {
+        self.alignment_start().map(|start| {
+            calculate_alignment_end(i32::from(start), self.read_length() as i32, self.features())
+        })
     }
 
     /// Returns the read group ID.
@@ -224,9 +222,15 @@ fn calculate_alignment_span(read_length: i32, features: &[Feature]) -> i32 {
         })
 }
 
-fn calculate_alignment_end(alignment_start: i32, read_length: i32, features: &[Feature]) -> i32 {
+fn calculate_alignment_end(
+    alignment_start: i32,
+    read_length: i32,
+    features: &[Feature],
+) -> io::Result<sam::record::Position> {
     let alignment_span = calculate_alignment_span(read_length, features);
-    alignment_start + alignment_span - 1
+    let alignment_end = alignment_start + alignment_span - 1;
+    sam::record::Position::try_from(alignment_end)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
@@ -252,8 +256,13 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_alignment_end() {
+    fn test_calculate_alignment_end() -> Result<(), Box<dyn std::error::Error>> {
         let features = [];
-        assert_eq!(calculate_alignment_end(1, 4, &features), 4);
+        assert_eq!(
+            calculate_alignment_end(1, 4, &features)?,
+            sam::record::Position::try_from(4)?
+        );
+
+        Ok(())
     }
 }
