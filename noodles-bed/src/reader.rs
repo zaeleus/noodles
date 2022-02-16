@@ -99,7 +99,7 @@ where
     /// # use std::io;
     /// use noodles_bed as bed;
     ///
-    /// let data = b"sq0\t8\t13\n";
+    /// let data = b"sq0\t8\t13\n# sq0\t21\t34\n";
     /// let mut reader = bed::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records::<3>();
@@ -115,18 +115,26 @@ where
     where
         Record<N>: FromStr<Err = super::record::ParseError>,
     {
+        const COMMENT_PREFIX: &str = "#";
+
         let mut buf = String::new();
 
-        iter::from_fn(move || {
+        iter::from_fn(move || loop {
             buf.clear();
 
             match self.read_line(&mut buf) {
-                Ok(0) => None,
-                Ok(_) => Some(
-                    buf.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                ),
-                Err(e) => Some(Err(e)),
+                Ok(0) => return None,
+                Ok(_) => {
+                    if buf.starts_with(COMMENT_PREFIX) {
+                        continue;
+                    } else {
+                        return Some(
+                            buf.parse()
+                                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                        );
+                    }
+                }
+                Err(e) => return Some(Err(e)),
             }
         })
     }
