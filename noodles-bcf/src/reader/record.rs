@@ -10,7 +10,7 @@ use noodles_vcf::record::{AlternateBases, Ids, Position, QualityScore, Reference
 
 use super::value::read_value;
 use crate::{
-    record::{Filters, Value},
+    record::{ChromosomeId, Filters, Value},
     Record,
 };
 
@@ -77,13 +77,13 @@ where
     Ok((n_fmt, n_sample))
 }
 
-pub fn read_chrom<R>(reader: &mut R) -> io::Result<usize>
+pub fn read_chrom<R>(reader: &mut R) -> io::Result<ChromosomeId>
 where
     R: Read,
 {
-    reader
-        .read_i32::<LittleEndian>()
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+    reader.read_i32::<LittleEndian>().and_then(|n| {
+        ChromosomeId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 pub fn read_pos<R>(reader: &mut R) -> io::Result<Position>

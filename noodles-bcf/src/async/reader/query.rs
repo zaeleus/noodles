@@ -8,6 +8,7 @@ use tokio::io::{self, AsyncRead, AsyncSeek};
 use super::Reader;
 use crate::{
     reader::query::{intersects, next_chunk, resolve_interval},
+    record::ChromosomeId,
     Record,
 };
 
@@ -26,7 +27,7 @@ where
     chunks: Vec<Chunk>,
     i: usize,
 
-    chromosome_id: usize,
+    chromosome_id: ChromosomeId,
     start: i32,
     end: i32,
 
@@ -36,7 +37,7 @@ where
 pub fn query<R, B>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
-    chromosome_id: usize,
+    chromosome_id: ChromosomeId,
     interval: B,
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where

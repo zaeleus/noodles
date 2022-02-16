@@ -9,6 +9,8 @@
 
   * bcf/async/reader: Add query stream.
 
+  * bcf/record: Add type alias for chromosome ID: `ChromosomeId`.
+
 ### Fixed
 
   * bcf/writer/vcf_record/site: Avoid overflow when the alternate allele count

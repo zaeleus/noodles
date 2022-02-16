@@ -2,7 +2,10 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::{record::Filters, Record};
+use crate::{
+    record::{ChromosomeId, Filters},
+    Record,
+};
 
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -61,7 +64,7 @@ where
     Ok(())
 }
 
-fn write_chrom<W>(writer: &mut W, chromosome_id: usize) -> io::Result<()>
+fn write_chrom<W>(writer: &mut W, chromosome_id: ChromosomeId) -> io::Result<()>
 where
     W: Write,
 {

@@ -13,10 +13,13 @@ use std::io;
 
 use noodles_vcf as vcf;
 
+/// A chromosome ID.
+pub type ChromosomeId = usize;
+
 /// A BCF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    chrom: usize,
+    chrom: ChromosomeId,
     pos: vcf::record::Position,
     rlen: i32,
     qual: Option<vcf::record::QualityScore>,
@@ -43,11 +46,11 @@ impl Record {
     /// let record = bcf::Record::default();
     /// assert_eq!(record.chromosome_id(), 0);
     /// ```
-    pub fn chromosome_id(&self) -> usize {
+    pub fn chromosome_id(&self) -> ChromosomeId {
         self.chrom
     }
 
-    pub(crate) fn chromosome_id_mut(&mut self) -> &mut usize {
+    pub(crate) fn chromosome_id_mut(&mut self) -> &mut ChromosomeId {
         &mut self.chrom
     }
 
