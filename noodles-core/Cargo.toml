@@ -1,6 +1,6 @@
 [package]
 name = "noodles-core"
-version = "0.3.4"
+version = "0.4.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
@@ -11,4 +11,4 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-core"
 
 [dependencies]
-noodles-sam = { path = "../noodles-sam", version = "0.11.0" }
+noodles-sam = { path = "../noodles-sam", version = "0.12.0" }
