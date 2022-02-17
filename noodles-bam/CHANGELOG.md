@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/async/writer: Add common methods to access the underlying writer:
+    `get_ref`, `get_mut`, and `into_inner`.
+
 ## 0.15.0 - 2022-02-17
 
 ### Added
