@@ -231,8 +231,8 @@ impl From<Vec<Base>> for Sequence {
 
 impl From<&Sequence> for sam::record::Sequence {
     fn from(sequence: &Sequence) -> Self {
-        let sam_bases: Vec<_> = sequence.bases().map(|b| b.into()).collect();
-        Self::from(sam_bases)
+        let bases: Vec<_> = sequence.bases().map(|b| b.into()).collect();
+        Self::from(bases)
     }
 }
 
