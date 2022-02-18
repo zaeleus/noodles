@@ -7,6 +7,11 @@
   * bam/async/writer: Add common methods to access the underlying writer:
     `get_ref`, `get_mut`, and `into_inner`.
 
+  * bam/record/sequence: Add fallible conversion from `&[u8]`
+    (`TryFrom<&[u8]>`) ([#76]).
+
+[#76]: https://github.com/zaeleus/noodles/issues/76
+
 ## 0.15.0 - 2022-02-17
 
 ### Added

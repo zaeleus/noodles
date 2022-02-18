@@ -5,7 +5,7 @@ mod bases;
 
 pub use self::{base::Base, bases::Bases};
 
-use std::fmt;
+use std::{error, fmt};
 
 use noodles_sam as sam;
 
@@ -229,6 +229,38 @@ impl From<Vec<Base>> for Sequence {
     }
 }
 
+/// An error returned when a raw BAM record sequence fails to parse.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ParseError {
+    /// A base is invalid.
+    InvalidBase(sam::record::sequence::base::TryFromCharError),
+}
+
+impl error::Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidBase(e) => write!(f, "invalid base: {}", e),
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for Sequence {
+    type Error = ParseError;
+
+    fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
+        data.iter()
+            .map(|&b| {
+                sam::record::sequence::Base::try_from(char::from(b))
+                    .map(Base::from)
+                    .map_err(ParseError::InvalidBase)
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(Self::from)
+    }
+}
+
 impl From<&Sequence> for sam::record::Sequence {
     fn from(sequence: &Sequence) -> Self {
         let bases: Vec<_> = sequence.bases().map(|b| b.into()).collect();
@@ -285,6 +317,19 @@ mod tests {
         let actual = Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]);
         let expected = Sequence::new(vec![0x18, 0x42], 4);
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_try_from_byte_slice_for_sequence() {
+        assert_eq!(
+            Sequence::try_from(&b"ATCG"[..]),
+            Ok(Sequence::from(vec![Base::A, Base::T, Base::C, Base::G]))
+        );
+
+        assert!(matches!(
+            Sequence::try_from(&b"AT!G"[..]),
+            Err(ParseError::InvalidBase(_))
+        ));
     }
 
     #[test]
