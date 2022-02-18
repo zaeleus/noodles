@@ -1,6 +1,6 @@
 //! SAM record sequence and bases.
 
-mod base;
+pub mod base;
 
 pub use self::base::Base;
 

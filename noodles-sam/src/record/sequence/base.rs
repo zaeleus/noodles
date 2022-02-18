@@ -1,3 +1,5 @@
+//! SAM record sequence base.
+
 use std::{
     error,
     fmt::{self, Write},

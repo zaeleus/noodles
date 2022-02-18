@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/sequence: Increase the visibility of the `base` module.
+
 ## 0.12.0 - 2022-02-17
 
 ### Added
