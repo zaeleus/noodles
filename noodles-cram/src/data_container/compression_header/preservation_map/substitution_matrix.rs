@@ -23,6 +23,16 @@ impl SubstitutionMatrix {
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
         self.substitutions[reference_base as usize][substitution_code as usize]
     }
+
+    pub fn find_code(&self, reference_base: Base, read_base: Base) -> u8 {
+        for code in [0b00, 0b01, 0b10, 0b11] {
+            if self.get(reference_base, code) == read_base {
+                return code;
+            }
+        }
+
+        unreachable!();
+    }
 }
 
 impl Default for SubstitutionMatrix {
@@ -166,6 +176,24 @@ impl From<&SubstitutionMatrix> for [u8; 5] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_find_code() {
+        let matrix = SubstitutionMatrix {
+            substitutions: [
+                [Base::T, Base::G, Base::C, Base::N],
+                [Base::A, Base::G, Base::T, Base::N],
+                [Base::N, Base::A, Base::C, Base::T],
+                [Base::G, Base::N, Base::A, Base::C],
+                [Base::C, Base::G, Base::T, Base::A],
+            ],
+        };
+
+        assert_eq!(matrix.find_code(Base::A, Base::T), 0b00);
+        assert_eq!(matrix.find_code(Base::C, Base::G), 0b01);
+        assert_eq!(matrix.find_code(Base::G, Base::C), 0b10);
+        assert_eq!(matrix.find_code(Base::T, Base::C), 0b11);
+    }
 
     #[test]
     fn test_try_from_u8_slice() -> Result<(), TryFromByteArrayError> {
