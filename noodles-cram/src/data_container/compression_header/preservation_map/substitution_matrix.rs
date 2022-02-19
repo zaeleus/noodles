@@ -4,7 +4,7 @@ mod histogram;
 
 pub use self::{base::Base, builder::Builder};
 
-use std::{error, fmt};
+use std::{cmp, error, fmt};
 
 use self::histogram::Histogram;
 
@@ -51,7 +51,10 @@ impl From<Histogram> for SubstitutionMatrix {
                 .filter(|(&read_base, _)| read_base != reference_base)
                 .collect();
 
-            base_frequency_pairs.sort_by_key(|(_, &frequency)| -(frequency as i64));
+            // § 10.6 "Mapped reads" (2021-10-15): "the substitutions for each reference base may
+            // optionally be sorted by their frequencies, in descending order, with same-frequency
+            // ties broken using the fixed order ACGTN."
+            base_frequency_pairs.sort_by_key(|(&base, &frequency)| (cmp::Reverse(frequency), base));
 
             for (code, (&read_base, _)) in base_frequency_pairs.iter().enumerate() {
                 let i = reference_base as usize;
@@ -203,7 +206,7 @@ mod tests {
     fn test_from_histogram() {
         let histogram = Histogram::new([
             [0, 3, 8, 5, 0],
-            [0, 0, 0, 0, 0],
+            [2, 0, 5, 5, 2],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0],
@@ -213,7 +216,7 @@ mod tests {
 
         let expected = [
             [Base::G, Base::T, Base::C, Base::N],
-            [Base::A, Base::G, Base::T, Base::N],
+            [Base::G, Base::T, Base::A, Base::N],
             [Base::A, Base::C, Base::T, Base::N],
             [Base::A, Base::C, Base::G, Base::N],
             [Base::A, Base::C, Base::G, Base::T],
