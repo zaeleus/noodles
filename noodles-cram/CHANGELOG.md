@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * cram/data_container/builder: Decrease max slice count to 1.
+
   * cram/data_container/slice/builder: Increase max record count to 10240.
 
 ## 0.12.0 - 2022-02-17

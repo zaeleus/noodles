@@ -5,7 +5,7 @@ use noodles_fasta as fasta;
 use super::{compression_header, slice, CompressionHeader, DataContainer, Slice};
 use crate::Record;
 
-const MAX_SLICE_COUNT: usize = 4;
+const MAX_SLICE_COUNT: usize = 1;
 
 #[derive(Debug)]
 pub struct Builder {
