@@ -9,7 +9,11 @@ use crate::{
         block::{self, CompressionMethod},
         Block, ReferenceSequenceId,
     },
-    data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
+    data_container::{
+        compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
+        CompressionHeader,
+    },
+    record::Feature,
     writer, BitWriter, Record,
 };
 
@@ -73,7 +77,7 @@ impl Builder {
     }
 
     pub fn build(
-        self,
+        mut self,
         reference_sequences: &[fasta::Record],
         compression_header: &CompressionHeader,
         record_counter: i64,
@@ -113,7 +117,29 @@ impl Builder {
         let mut slice_alignment_start = i32::MAX;
         let mut slice_alignment_end = 0;
 
-        for record in &self.records {
+        for record in &mut self.records {
+            if let ReferenceSequenceId::Some(id) = reference_sequence_id {
+                if let Some(alignment_start) = record.alignment_start() {
+                    let reference_sequence = reference_sequences
+                        .get(id as usize)
+                        .map(|record| record.sequence())
+                        .ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidInput,
+                                "missing reference sequence",
+                            )
+                        })?;
+
+                    update_substitution_codes(
+                        reference_sequence.as_ref(),
+                        compression_header.preservation_map().substitution_matrix(),
+                        alignment_start,
+                        &record.bases,
+                        &mut record.features,
+                    );
+                }
+            }
+
             let record_alignment_start =
                 record.alignment_start().map(i32::from).unwrap_or_default();
 
@@ -191,5 +217,33 @@ impl Builder {
             .build();
 
         Ok(Slice::new(header, core_data_block, external_blocks))
+    }
+}
+
+fn update_substitution_codes(
+    reference_sequence: &[u8],
+    substitution_matrix: &SubstitutionMatrix,
+    alignment_start: sam::record::Position,
+    read_bases: &[u8],
+    features: &mut Vec<Feature>,
+) {
+    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
+
+    let alignment_start = i32::from(alignment_start) - 1;
+
+    for feature in features {
+        if let Feature::Substitution(pos, _) = feature {
+            let read_pos = (*pos - 1) as usize;
+            let reference_pos = alignment_start as usize + read_pos;
+
+            let base = char::from(reference_sequence[reference_pos]);
+            let reference_base = Base::try_from(base).unwrap_or_default();
+
+            let base = char::from(read_bases[read_pos]);
+            let read_base = Base::try_from(base).unwrap_or_default();
+
+            let code = substitution_matrix.find_code(reference_base, read_base);
+            *feature = Feature::Substitution(*pos, code);
+        }
     }
 }
