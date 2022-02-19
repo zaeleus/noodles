@@ -18,7 +18,7 @@ use super::{Header, Slice};
 use noodles_bam as bam;
 
 const CORE_DATA_BLOCK_CONTENT_ID: i32 = 0;
-const MAX_RECORD_COUNT: usize = 2560;
+const MAX_RECORD_COUNT: usize = 10240;
 
 #[derive(Debug, Default)]
 pub struct Builder {

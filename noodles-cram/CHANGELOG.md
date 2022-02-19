@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/data_container/slice/builder: Increase max record count to 10240.
+
 ## 0.12.0 - 2022-02-17
 
 ### Added
