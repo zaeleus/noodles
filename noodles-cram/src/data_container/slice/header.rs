@@ -1,10 +1,6 @@
 mod builder;
-mod embedded_reference_bases_block_content_id;
 
-pub use {
-    builder::Builder,
-    embedded_reference_bases_block_content_id::EmbeddedReferenceBasesBlockContentId,
-};
+pub use builder::Builder;
 
 use noodles_sam as sam;
 
@@ -22,7 +18,7 @@ pub struct Header {
     record_counter: Ltf8,
     block_count: usize,
     block_content_ids: Vec<Itf8>,
-    embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
+    embedded_reference_bases_block_content_id: Option<Itf8>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -60,9 +56,7 @@ impl Header {
         &self.block_content_ids
     }
 
-    pub fn embedded_reference_bases_block_content_id(
-        &self,
-    ) -> EmbeddedReferenceBasesBlockContentId {
+    pub fn embedded_reference_bases_block_content_id(&self) -> Option<Itf8> {
         self.embedded_reference_bases_block_content_id
     }
 

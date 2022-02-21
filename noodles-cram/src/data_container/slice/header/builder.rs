@@ -5,7 +5,7 @@ use crate::{
     num::{Itf8, Ltf8},
 };
 
-use super::{EmbeddedReferenceBasesBlockContentId, Header};
+use super::Header;
 
 #[derive(Default)]
 pub struct Builder {
@@ -16,7 +16,7 @@ pub struct Builder {
     record_counter: Ltf8,
     block_count: usize,
     block_content_ids: Vec<Itf8>,
-    embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
+    embedded_reference_bases_block_content_id: Option<Itf8>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -57,11 +57,8 @@ impl Builder {
         self
     }
 
-    pub fn set_embedded_reference_bases_block_content_id(
-        mut self,
-        embedded_reference_bases_block_content_id: EmbeddedReferenceBasesBlockContentId,
-    ) -> Self {
-        self.embedded_reference_bases_block_content_id = embedded_reference_bases_block_content_id;
+    pub fn set_embedded_reference_bases_block_content_id(mut self, id: Itf8) -> Self {
+        self.embedded_reference_bases_block_content_id = Some(id);
         self
     }
 

@@ -3,7 +3,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     container::ReferenceSequenceId,
-    data_container::slice::{self, header::EmbeddedReferenceBasesBlockContentId},
+    data_container::slice,
     num::Itf8,
     r#async::reader::num::{read_itf8, read_ltf8},
 };
@@ -40,9 +40,8 @@ where
 
     let block_content_ids = read_block_content_ids(reader).await?;
 
-    let embedded_reference_bases_block_content_id = read_itf8(reader)
-        .await
-        .map(EmbeddedReferenceBasesBlockContentId::from)?;
+    let embedded_reference_bases_block_content_id =
+        read_embedded_reference_bases_block_content_id(reader).await?;
 
     let reference_md5 = read_reference_md5(reader).await?;
     let optional_tags = read_optional_tags(reader).await?;
@@ -54,12 +53,15 @@ where
         .set_record_counter(record_counter)
         .set_block_count(block_count)
         .set_block_content_ids(block_content_ids)
-        .set_embedded_reference_bases_block_content_id(embedded_reference_bases_block_content_id)
         .set_reference_md5(reference_md5)
         .set_optional_tags(optional_tags);
 
     if let Some(position) = alignment_start {
         builder = builder.set_alignment_start(position);
+    }
+
+    if let Some(id) = embedded_reference_bases_block_content_id {
+        builder = builder.set_embedded_reference_bases_block_content_id(id);
     }
 
     Ok(builder.build())
@@ -81,6 +83,18 @@ where
     }
 
     Ok(buf)
+}
+
+async fn read_embedded_reference_bases_block_content_id<R>(
+    reader: &mut R,
+) -> io::Result<Option<Itf8>>
+where
+    R: AsyncRead + Unpin,
+{
+    read_itf8(reader).await.map(|n| match n {
+        -1 => None,
+        _ => Some(n),
+    })
 }
 
 async fn read_reference_md5<R>(reader: &mut R) -> io::Result<[u8; 16]>
@@ -132,9 +146,6 @@ mod tests {
             .set_record_counter(13)
             .set_block_count(1)
             .set_block_content_ids(vec![21])
-            .set_embedded_reference_bases_block_content_id(
-                EmbeddedReferenceBasesBlockContentId::try_from(-1)?,
-            )
             .set_reference_md5([
                 0x57, 0xb2, 0x96, 0xa3, 0x16, 0x0a, 0x2c, 0xac, 0x9c, 0x83, 0x33, 0x12, 0x6f, 0xf2,
                 0x7e, 0xf7,

@@ -30,9 +30,10 @@ where
 
     write_block_content_ids(writer, header.block_content_ids())?;
 
-    let embedded_reference_bases_block_content_id =
-        i32::from(header.embedded_reference_bases_block_content_id());
-    write_itf8(writer, embedded_reference_bases_block_content_id)?;
+    write_embedded_reference_bases_block_content_id(
+        writer,
+        header.embedded_reference_bases_block_content_id(),
+    )?;
 
     write_reference_md5(writer, header.reference_md5())?;
 
@@ -55,6 +56,19 @@ where
     }
 
     Ok(())
+}
+
+fn write_embedded_reference_bases_block_content_id<W>(
+    writer: &mut W,
+    id: Option<Itf8>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    const MISSING: Itf8 = -1;
+
+    let embedded_reference_bases_block_content_id = id.map(i32::from).unwrap_or(MISSING);
+    write_itf8(writer, embedded_reference_bases_block_content_id)
 }
 
 fn write_reference_md5<W>(writer: &mut W, reference_md5: &[u8]) -> io::Result<()>
