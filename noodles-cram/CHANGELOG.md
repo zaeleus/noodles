@@ -16,6 +16,9 @@
 
   * cram/data_container/slice/builder: Increase max record count to 10240.
 
+  * cram/record/convert: `Record::try_into_sam_record` now assumes the record
+    is fully resolved before conversion.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Update substitution codes before writing

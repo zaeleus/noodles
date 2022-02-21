@@ -39,15 +39,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(container) = reader.read_data_container()? {
         for slice in container.slices() {
             let records = slice.records(container.compression_header())?;
-            let records = slice.resolve_mates(records)?;
+
+            let records = slice.resolve_records(
+                &reference_assembly,
+                container.compression_header(),
+                records,
+            )?;
 
             for record in records {
-                let sam_record = record.try_into_sam_record(
-                    &reference_assembly,
-                    header.reference_sequences(),
-                    container.compression_header(),
-                )?;
-
+                let sam_record = record.try_into_sam_record(header.reference_sequences())?;
                 println!("{}", sam_record);
             }
         }
