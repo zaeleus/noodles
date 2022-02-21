@@ -16,6 +16,10 @@
 
   * cram/data_container/slice/builder: Increase max record count to 10240.
 
+  * cram/reader/records: Resolve bases and quality scores when reading records.
+
+    This previously only resolved mates and read names.
+
   * cram/record/convert: `Record::try_into_sam_record` now assumes the record
     is fully resolved before conversion.
 

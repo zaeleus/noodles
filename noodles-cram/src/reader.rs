@@ -6,8 +6,6 @@ pub(crate) mod num;
 pub(crate) mod record;
 mod records;
 
-use crate::data_container::DataContainer;
-
 pub use self::records::Records;
 
 use std::{
@@ -16,9 +14,11 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use noodles_fasta as fasta;
 
 use self::container::read_container;
 use super::{container::Block, file_definition::Version, FileDefinition, MAGIC_NUMBER};
+use crate::data_container::DataContainer;
 
 /// A CRAM reader.
 ///
@@ -35,7 +35,7 @@ use super::{container::Block, file_definition::Version, FileDefinition, MAGIC_NU
 /// reader.read_file_definition()?;
 /// reader.read_file_header()?;
 ///
-/// for result in reader.records() {
+/// for result in reader.records(&[]) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
@@ -213,14 +213,17 @@ where
     /// reader.read_file_definition()?;
     /// reader.read_file_header()?;
     ///
-    /// for result in reader.records() {
+    /// for result in reader.records(&[]) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+    pub fn records<'a, 'b>(
+        &'a mut self,
+        reference_sequences: &'b [fasta::Record],
+    ) -> Records<'a, 'b, R> {
+        Records::new(self, reference_sequences)
     }
 }
 

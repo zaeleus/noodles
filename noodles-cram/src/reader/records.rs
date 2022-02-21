@@ -3,28 +3,31 @@ use std::{
     vec,
 };
 
-use crate::Record;
+use noodles_fasta as fasta;
 
 use super::Reader;
+use crate::Record;
 
 /// An iterator over records of a CRAM reader.
 ///
 /// This is created by calling [`Reader::records`].
-pub struct Records<'a, R>
+pub struct Records<'a, 'b, R>
 where
     R: Read,
 {
     reader: &'a mut Reader<R>,
+    reference_sequences: &'b [fasta::Record],
     records: vec::IntoIter<Record>,
 }
 
-impl<'a, R> Records<'a, R>
+impl<'a, 'b, R> Records<'a, 'b, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<R>) -> Records<'_, R> {
+    pub(crate) fn new(reader: &'a mut Reader<R>, reference_sequences: &'b [fasta::Record]) -> Self {
         Self {
             reader,
+            reference_sequences,
             records: Vec::new().into_iter(),
         }
     }
@@ -39,9 +42,11 @@ where
             .slices()
             .iter()
             .map(|slice| {
-                slice
-                    .records(container.compression_header())
-                    .and_then(|r| slice.resolve_mates(r))
+                let compression_header = container.compression_header();
+
+                slice.records(compression_header).and_then(|records| {
+                    slice.resolve_records(self.reference_sequences, compression_header, records)
+                })
             })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()
@@ -53,7 +58,7 @@ where
     }
 }
 
-impl<'a, R> Iterator for Records<'a, R>
+impl<'a, 'b, R> Iterator for Records<'a, 'b, R>
 where
     R: Read,
 {
