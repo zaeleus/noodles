@@ -12,6 +12,14 @@
 
   * cram/data_container/slice/builder: Increase max record count to 10240.
 
+### Fixed
+
+  * cram/data_container/slice/builder: Update substitution codes before writing
+    records.
+
+  * cram/data_container/compression_header/preservation_map/substitution_matrix/builder:
+    Read read base from read bases.
+
 ## 0.12.0 - 2022-02-17
 
 ### Added
