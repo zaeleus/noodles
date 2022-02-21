@@ -16,7 +16,7 @@ impl Builder {
 
         let read_bases = record.bases();
 
-        for feature in record.features() {
+        for feature in record.features().iter() {
             if let Feature::Substitution(pos, _) = feature {
                 let read_pos = (pos - 1) as usize;
                 let reference_pos = alignment_start as usize + read_pos;

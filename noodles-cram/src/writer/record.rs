@@ -469,7 +469,7 @@ where
 
         let mut prev_position = 0;
 
-        for feature in record.features() {
+        for feature in record.features().iter() {
             let position = feature.position() - prev_position;
             self.write_feature(feature, position)?;
             prev_position = feature.position();

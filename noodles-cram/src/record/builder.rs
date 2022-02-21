@@ -1,7 +1,7 @@
 use noodles_bam as bam;
 use noodles_sam as sam;
 
-use super::{Feature, Flags, NextMateFlags, ReadGroupId, Record, Tag};
+use super::{Feature, Features, Flags, NextMateFlags, ReadGroupId, Record, Tag};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -20,7 +20,7 @@ pub struct Builder {
     distance_to_next_fragment: i32,
     tags: Vec<Tag>,
     bases: Vec<u8>,
-    features: Vec<Feature>,
+    features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
     quality_scores: Vec<u8>,
 }
@@ -138,7 +138,7 @@ impl Builder {
     }
 
     /// Sets the read features.
-    pub fn set_features(mut self, features: Vec<Feature>) -> Self {
+    pub fn set_features(mut self, features: Features) -> Self {
         self.features = features;
         self
     }
@@ -210,7 +210,7 @@ impl Default for Builder {
             distance_to_next_fragment: 0,
             tags: Vec::new(),
             bases: Vec::new(),
-            features: Vec::new(),
+            features: Features::default(),
             mapping_quality: None,
             quality_scores: Vec::new(),
         }

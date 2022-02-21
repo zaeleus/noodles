@@ -3,14 +3,14 @@
 use noodles_fasta as fasta;
 use noodles_sam::record::Cigar;
 
-use super::Feature;
+use super::{Feature, Features};
 use crate::data_container::CompressionHeader;
 
 /// Resolves the read bases.
 pub fn resolve_bases(
     reference_sequence_record: &fasta::Record,
     compression_header: &CompressionHeader,
-    features: &[Feature],
+    features: &Features,
     alignment_start: i32,
     read_len: usize,
 ) -> Vec<u8> {
@@ -34,7 +34,7 @@ mod internal {
     pub(super) fn resolve_bases(
         reference_sequence: &fasta::record::Sequence,
         substitution_matrix: &SubstitutionMatrix,
-        features: &[Feature],
+        features: &Features,
         alignment_start: i32,
         read_length: usize,
     ) -> Vec<u8> {
@@ -47,7 +47,7 @@ mod internal {
         let mut ref_pos = (alignment_start - 1) as usize;
         let mut read_pos = 0;
 
-        for feature in features {
+        for feature in features.iter() {
             let feature_pos = feature.position() as usize;
 
             while read_pos < feature_pos - 1 {
@@ -115,13 +115,13 @@ mod internal {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
+pub fn resolve_features(features: &Features, read_len: i32) -> Cigar {
     use noodles_sam::record::cigar::{op::Kind, Op};
 
     let mut ops = Vec::new();
     let mut i = 1;
 
-    for feature in features {
+    for feature in features.iter() {
         if feature.position() > i {
             let len = feature.position() - i;
             let op = Op::new(Kind::Match, len as u32);
@@ -188,57 +188,69 @@ mod tests {
         let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
 
-        let t = |features: &[Feature], expected: &[u8]| {
+        let t = |features: &Features, expected: &[u8]| {
             let actual =
                 internal::resolve_bases(&reference_sequence, &substitution_matrix, features, 1, 4);
             assert_eq!(actual, expected);
         };
 
-        t(&[], b"ACGT");
-        t(&[Feature::Bases(1, b"TGCA".to_vec())], b"TGCA");
-        t(&[Feature::ReadBase(2, b'Y', b'!')], b"AYGT");
-        t(&[Feature::Substitution(2, 1)], b"AGGT");
-        t(&[Feature::Insertion(2, b"GG".to_vec())], b"AGGC");
-        t(&[Feature::Deletion(2, 2)], b"ATAC");
-        t(&[Feature::InsertBase(2, b'G')], b"AGCG");
-        t(&[Feature::ReferenceSkip(2, 2)], b"ATAC");
-        t(&[Feature::SoftClip(3, b"GG".to_vec())], b"ACGG");
-        t(&[Feature::HardClip(1, 2)], b"ACGT");
+        t(&Features::default(), b"ACGT");
+        t(
+            &Features::from(vec![Feature::Bases(1, b"TGCA".to_vec())]),
+            b"TGCA",
+        );
+        t(
+            &Features::from(vec![Feature::ReadBase(2, b'Y', b'!')]),
+            b"AYGT",
+        );
+        t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT");
+        t(
+            &Features::from(vec![Feature::Insertion(2, b"GG".to_vec())]),
+            b"AGGC",
+        );
+        t(&Features::from(vec![Feature::Deletion(2, 2)]), b"ATAC");
+        t(&Features::from(vec![Feature::InsertBase(2, b'G')]), b"AGCG");
+        t(&Features::from(vec![Feature::ReferenceSkip(2, 2)]), b"ATAC");
+        t(
+            &Features::from(vec![Feature::SoftClip(3, b"GG".to_vec())]),
+            b"ACGG",
+        );
+        t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT");
     }
 
     #[test]
     fn test_resolve_features() {
         use noodles_sam::record::cigar::{op::Kind, Op};
 
-        let features = [];
+        let features = Features::default();
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::Match, 4)])
         );
 
-        let features = [Feature::SoftClip(1, b"AT".to_vec())];
+        let features = Features::from(vec![Feature::SoftClip(1, b"AT".to_vec())]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])
         );
 
-        let features = [Feature::SoftClip(4, b"G".to_vec())];
+        let features = Features::from(vec![Feature::SoftClip(4, b"G".to_vec())]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
         );
 
-        let features = [Feature::HardClip(1, 2)];
+        let features = Features::from(vec![Feature::HardClip(1, 2)]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]),
         );
 
         // FIXME
-        let features = [
+        let features = Features::from(vec![
             Feature::SoftClip(1, b"A".to_vec()),
             Feature::Substitution(3, 0),
-        ];
+        ]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![
@@ -250,7 +262,7 @@ mod tests {
         );
 
         // FIXME
-        let features = [Feature::Substitution(2, 0)];
+        let features = Features::from(vec![Feature::Substitution(2, 0)]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![

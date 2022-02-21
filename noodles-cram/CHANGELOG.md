@@ -8,6 +8,8 @@
 
     This resolves mates, read names, bases, and quality scores.
 
+  * cram/record: Add features wrapper (`Features`).
+
   * cram/record/resolve: Add quality scores resolver.
 
 ### Changed

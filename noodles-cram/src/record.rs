@@ -3,6 +3,7 @@
 mod builder;
 mod convert;
 pub mod feature;
+mod features;
 mod flags;
 mod next_mate_flags;
 mod read_group_id;
@@ -10,8 +11,8 @@ pub mod resolve;
 pub mod tag;
 
 pub use self::{
-    builder::Builder, feature::Feature, flags::Flags, next_mate_flags::NextMateFlags,
-    read_group_id::ReadGroupId, tag::Tag,
+    builder::Builder, feature::Feature, features::Features, flags::Flags,
+    next_mate_flags::NextMateFlags, read_group_id::ReadGroupId, tag::Tag,
 };
 
 use std::{fmt, io, str};
@@ -37,7 +38,7 @@ pub struct Record {
     pub(crate) distance_to_next_fragment: i32,
     pub(crate) tags: Vec<Tag>,
     pub(crate) bases: Vec<u8>,
-    pub(crate) features: Vec<Feature>,
+    pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: Vec<u8>,
 }
@@ -154,7 +155,7 @@ impl Record {
     }
 
     /// Returns the read features.
-    pub fn features(&self) -> &[Feature] {
+    pub fn features(&self) -> &Features {
         &self.features
     }
 
@@ -209,7 +210,7 @@ impl fmt::Debug for Record {
     }
 }
 
-fn calculate_alignment_span(read_length: i32, features: &[Feature]) -> i32 {
+fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {
     features
         .iter()
         .fold(read_length, |alignment_span, feature| match feature {
@@ -225,7 +226,7 @@ fn calculate_alignment_span(read_length: i32, features: &[Feature]) -> i32 {
 fn calculate_alignment_end(
     alignment_start: i32,
     read_length: i32,
-    features: &[Feature],
+    features: &Features,
 ) -> io::Result<sam::record::Position> {
     let alignment_span = calculate_alignment_span(read_length, features);
     let alignment_end = alignment_start + alignment_span - 1;
@@ -239,25 +240,25 @@ mod tests {
 
     #[test]
     fn test_calculate_alignment_span() {
-        let features = [];
+        let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = [Feature::HardClip(1, 4)];
+        let features = Features::from(vec![Feature::HardClip(1, 4)]);
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = [
+        let features = Features::from(vec![
             Feature::Insertion(1, vec![b'A', b'C']),
             Feature::InsertBase(4, b'G'),
             Feature::Deletion(6, 3),
             Feature::ReferenceSkip(10, 5),
             Feature::SoftClip(16, vec![b'A', b'C', b'G', b'T']),
-        ];
+        ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
     }
 
     #[test]
     fn test_calculate_alignment_end() -> Result<(), Box<dyn std::error::Error>> {
-        let features = [];
+        let features = Features::default();
         assert_eq!(
             calculate_alignment_end(1, 4, &features)?,
             sam::record::Position::try_from(4)?
