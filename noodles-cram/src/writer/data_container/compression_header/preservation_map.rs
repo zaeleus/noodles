@@ -36,7 +36,7 @@ where
     write_bool(&mut buf, preservation_map.ap_data_series_delta())?;
 
     write_key(&mut buf, Key::ReferenceRequired)?;
-    write_bool(&mut buf, preservation_map.reference_required())?;
+    write_bool(&mut buf, preservation_map.is_reference_required())?;
 
     write_key(&mut buf, Key::SubstitutionMatrix)?;
     write_substitution_matrix(&mut buf, preservation_map.substitution_matrix())?;

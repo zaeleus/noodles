@@ -12,7 +12,7 @@ pub use {
 pub struct PreservationMap {
     read_names_included: bool,
     ap_data_series_delta: bool,
-    reference_required: bool,
+    is_reference_required: bool,
     substitution_matrix: SubstitutionMatrix,
     tag_ids_dictionary: TagIdsDictionary,
 }
@@ -21,14 +21,14 @@ impl PreservationMap {
     pub fn new(
         read_names_included: bool,
         ap_data_series_delta: bool,
-        reference_required: bool,
+        is_reference_required: bool,
         substitution_matrix: SubstitutionMatrix,
         tag_ids_dictionary: TagIdsDictionary,
     ) -> Self {
         Self {
             read_names_included,
             ap_data_series_delta,
-            reference_required,
+            is_reference_required,
             substitution_matrix,
             tag_ids_dictionary,
         }
@@ -42,8 +42,8 @@ impl PreservationMap {
         self.ap_data_series_delta
     }
 
-    pub fn reference_required(&self) -> bool {
-        self.reference_required
+    pub fn is_reference_required(&self) -> bool {
+        self.is_reference_required
     }
 
     pub fn substitution_matrix(&self) -> &SubstitutionMatrix {
