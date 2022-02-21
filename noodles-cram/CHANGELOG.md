@@ -4,6 +4,10 @@
 
 ### Added
 
+  * cram/data_container/slice: Add slice records resolver.
+
+    This resolves mates, read names, bases, and quality scores.
+
   * cram/record/resolve: Add quality scores resolver.
 
 ### Changed

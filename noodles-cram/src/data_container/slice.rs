@@ -5,10 +5,15 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io::{self, Cursor};
 
+use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::CompressionHeader;
-use crate::{container::Block, BitReader, Record};
+use crate::{
+    container::Block,
+    record::resolve::{resolve_bases, resolve_quality_scores},
+    BitReader, Record,
+};
 
 /// A CRAM data container slice.
 ///
@@ -106,6 +111,21 @@ impl Slice {
         Ok(records)
     }
 
+    /// Resolves records.
+    ///
+    /// This resolves mates, read names, bases, and quality scores.
+    pub fn resolve_records(
+        &self,
+        reference_sequences: &[fasta::Record],
+        compression_header: &CompressionHeader,
+        records: Vec<Record>,
+    ) -> io::Result<Vec<Record>> {
+        let mut records = self.resolve_mates(records)?;
+        self.resolve_bases(reference_sequences, compression_header, &mut records)?;
+        self.resolve_quality_scores(&mut records);
+        Ok(records)
+    }
+
     /// Resolves mate records.
     ///
     /// # Examples
@@ -130,6 +150,84 @@ impl Slice {
     /// ```
     pub fn resolve_mates(&self, records: Vec<Record>) -> io::Result<Vec<Record>> {
         resolve_mates(records)
+    }
+
+    fn resolve_bases(
+        &self,
+        reference_sequences: &[fasta::Record],
+        compression_header: &CompressionHeader,
+        records: &mut [Record],
+    ) -> io::Result<()> {
+        let embedded_reference_sequence_record = if let Some(block_content_id) =
+            self.header().embedded_reference_bases_block_content_id()
+        {
+            let block = self
+                .external_blocks()
+                .iter()
+                .find(|block| block.content_id() == block_content_id)
+                .expect("invalid block content ID");
+
+            let definition = fasta::record::Definition::new("", None);
+
+            let sequence = block.decompressed_data()?;
+            let sequence = fasta::record::Sequence::from(Vec::from(sequence));
+
+            Some(fasta::Record::new(definition, sequence))
+        } else {
+            None
+        };
+
+        for record in records {
+            if record.bam_flags().is_unmapped() {
+                continue;
+            }
+
+            let reference_sequence_record = if compression_header
+                .preservation_map()
+                .is_reference_required()
+            {
+                let raw_reference_sequence_id = record
+                    .reference_sequence_id()
+                    .map(i32::from)
+                    .expect("invalid reference sequence ID");
+
+                let reference_sequence_id = usize::try_from(raw_reference_sequence_id)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                &reference_sequences[reference_sequence_id]
+            } else {
+                embedded_reference_sequence_record
+                    .as_ref()
+                    .expect("missing embedded reference sequence record")
+            };
+
+            let alignment_start = record
+                .alignment_start()
+                .map(i32::from)
+                .expect("invalid alignment start");
+
+            let bases = resolve_bases(
+                reference_sequence_record,
+                compression_header,
+                record.features(),
+                alignment_start,
+                record.read_length(),
+            );
+
+            record.bases = bases;
+        }
+
+        Ok(())
+    }
+
+    fn resolve_quality_scores(&self, records: &mut [Record]) {
+        for record in records {
+            if !record.flags().are_quality_scores_stored_as_array() {
+                let quality_scores =
+                    resolve_quality_scores(record.features(), record.read_length());
+
+                record.quality_scores = quality_scores;
+            }
+        }
     }
 }
 
