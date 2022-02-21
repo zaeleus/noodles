@@ -162,6 +162,23 @@ pub fn resolve_features(features: &[Feature], read_len: i32) -> Cigar {
     Cigar::from(ops)
 }
 
+/// Resolves the quality scores.
+pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> Vec<u8> {
+    let mut quality_scores = vec![0; read_len];
+
+    for feature in features {
+        let read_pos = (feature.position() - 1) as usize;
+
+        quality_scores[read_pos] = match feature {
+            Feature::ReadBase(_, _, quality_score) => *quality_score,
+            Feature::QualityScore(_, quality_score) => *quality_score,
+            _ => continue,
+        }
+    }
+
+    quality_scores
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,5 +259,11 @@ mod tests {
                 Op::new(Kind::Match, 2)
             ])
         );
+    }
+
+    #[test]
+    fn test_resolve_quality_scores() {
+        let features = [Feature::ReadBase(1, b'A', 5), Feature::QualityScore(3, 8)];
+        assert_eq!(resolve_quality_scores(&features, 4), [5, 0, 8, 0]);
     }
 }
