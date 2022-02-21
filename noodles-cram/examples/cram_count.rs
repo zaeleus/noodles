@@ -18,9 +18,11 @@ fn main() -> io::Result<()> {
 
     let mut n = 0;
 
-    for result in reader.records() {
-        let _ = result?;
-        n += 1;
+    while let Some(container) = reader.read_data_container()? {
+        for slice in container.slices() {
+            let records = slice.records(container.compression_header())?;
+            n += records.len();
+        }
     }
 
     println!("{}", n);
