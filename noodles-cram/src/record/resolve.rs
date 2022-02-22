@@ -1,7 +1,7 @@
 //! CRAM record field resolvers.
 
 use noodles_fasta as fasta;
-use noodles_sam::record::Cigar;
+use noodles_sam as sam;
 
 use super::{Feature, Features};
 use crate::data_container::CompressionHeader;
@@ -115,7 +115,7 @@ mod internal {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &Features, read_len: i32) -> Cigar {
+pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Cigar {
     use noodles_sam::record::cigar::{op::Kind, Op};
 
     let mut ops = Vec::new();
@@ -159,7 +159,7 @@ pub fn resolve_features(features: &Features, read_len: i32) -> Cigar {
         ops.push(op);
     }
 
-    Cigar::from(ops)
+    sam::record::Cigar::from(ops)
 }
 
 /// Resolves the quality scores.
@@ -220,7 +220,10 @@ mod tests {
 
     #[test]
     fn test_resolve_features() {
-        use noodles_sam::record::cigar::{op::Kind, Op};
+        use noodles_sam::record::{
+            cigar::{op::Kind, Op},
+            Cigar,
+        };
 
         let features = Features::default();
         assert_eq!(
