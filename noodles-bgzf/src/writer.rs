@@ -114,6 +114,19 @@ where
         self.inner.as_ref().unwrap()
     }
 
+    /// Returns the underlying writer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::Writer::new(Vec::new());
+    /// assert!(writer.into_inner().is_empty());
+    /// ```
+    pub fn into_inner(mut self) -> W {
+        self.inner.take().unwrap()
+    }
+
     /// Returns the current position of the stream.
     ///
     /// # Examples

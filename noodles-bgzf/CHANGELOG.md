@@ -9,6 +9,8 @@
   * bgzf/writer: Track position (`Writer::position`) and virtual position
     (`Writer::virtual_position`).
 
+  * bgzf/writer: Add `into_inner` to return the underlying writer.
+
 ## 0.9.0 - 2022-02-17
 
 ### Added
