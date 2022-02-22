@@ -32,11 +32,14 @@ impl Builder {
     /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
     ///
     /// let record = bam::Record::builder()
-    ///     .set_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+    ///     .set_reference_sequence_id(ReferenceSequenceId::from(1))
     ///     .build()?;
     ///
-    /// assert_eq!(record.reference_sequence_id().map(i32::from), Some(1));
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// assert_eq!(
+    ///     record.reference_sequence_id(),
+    ///     Some(ReferenceSequenceId::from(1))
+    /// );
+    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_reference_sequence_id(mut self, reference_sequence_id: ReferenceSequenceId) -> Self {
         self.ref_id = Some(reference_sequence_id);
@@ -113,11 +116,14 @@ impl Builder {
     /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
     ///
     /// let record = bam::Record::builder()
-    ///     .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+    ///     .set_mate_reference_sequence_id(ReferenceSequenceId::from(1))
     ///     .build()?;
     ///
-    /// assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(1));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(
+    ///     record.mate_reference_sequence_id(),
+    ///     Some(ReferenceSequenceId::from(1))
+    /// );
+    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_mate_reference_sequence_id(
         mut self,

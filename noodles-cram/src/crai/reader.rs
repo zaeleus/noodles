@@ -107,7 +107,7 @@ mod tests {
 
         let expected = vec![
             Record::new(
-                bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+                Some(bam::record::ReferenceSequenceId::from(0)),
                 10946,
                 6765,
                 17711,
@@ -115,7 +115,7 @@ mod tests {
                 317811,
             ),
             Record::new(
-                bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+                Some(bam::record::ReferenceSequenceId::from(0)),
                 17711,
                 121393,
                 317811,

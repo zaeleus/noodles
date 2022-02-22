@@ -136,11 +136,7 @@ where
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
         if self.reference_sequence_id.is_many() {
-            let reference_id = record
-                .reference_sequence_id()
-                .map(i32::from)
-                .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
-            self.write_reference_id(reference_id)?;
+            self.write_reference_id(record.reference_sequence_id())?;
         }
 
         self.write_read_length(record.read_length())?;
@@ -179,8 +175,14 @@ where
         Ok(())
     }
 
-    fn write_reference_id(&mut self, reference_id: Itf8) -> io::Result<()> {
-        self.compression_header
+    fn write_reference_id(
+        &mut self,
+        reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    ) -> io::Result<()> {
+        use bam::record::reference_sequence_id::UNMAPPED;
+
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
             .ok_or_else(|| {
@@ -188,15 +190,21 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    reference_id,
-                )
-            })
+            })?;
+
+        let reference_id = if let Some(id) = reference_sequence_id {
+            i32::try_from(usize::from(id))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        } else {
+            UNMAPPED
+        };
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            reference_id,
+        )
     }
 
     fn write_read_length(&mut self, read_length: usize) -> io::Result<()> {
@@ -276,11 +284,9 @@ where
                 self.write_read_name(record.read_name())?;
             }
 
-            let next_fragment_reference_sequence_id = record
-                .next_fragment_reference_sequence_id()
-                .map(i32::from)
-                .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
-            self.write_next_fragment_reference_sequence_id(next_fragment_reference_sequence_id)?;
+            self.write_next_fragment_reference_sequence_id(
+                record.next_fragment_reference_sequence_id(),
+            )?;
 
             self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;
             self.write_template_size(record.template_size())?;
@@ -315,9 +321,12 @@ where
 
     fn write_next_fragment_reference_sequence_id(
         &mut self,
-        next_fragment_reference_sequence_id: Itf8,
+        next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     ) -> io::Result<()> {
-        self.compression_header
+        use bam::record::reference_sequence_id::UNMAPPED;
+
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .next_fragment_reference_sequence_id_encoding()
             .ok_or_else(|| {
@@ -327,15 +336,22 @@ where
                         DataSeries::NextFragmentReferenceSequenceId,
                     ),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    next_fragment_reference_sequence_id,
-                )
-            })
+            })?;
+
+        let raw_next_fragment_reference_sequence_id =
+            if let Some(id) = next_fragment_reference_sequence_id {
+                i32::try_from(usize::from(id))
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+            } else {
+                UNMAPPED
+            };
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            raw_next_fragment_reference_sequence_id,
+        )
     }
 
     fn write_next_mate_alignment_start(

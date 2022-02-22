@@ -86,7 +86,8 @@ where
 
     match buf.get_i32_le() {
         UNMAPPED => Ok(None),
-        n => ReferenceSequenceId::try_from(n)
+        n => usize::try_from(n)
+            .map(ReferenceSequenceId::from)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }

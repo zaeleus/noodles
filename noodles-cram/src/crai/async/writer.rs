@@ -63,15 +63,17 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
+    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use noodles_bam as bam;
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let mut writer = crai::AsyncWriter::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -121,7 +123,7 @@ mod tests {
         let mut buf = Vec::new();
 
         let record = Record::new(
-            bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+            Some(bam::record::ReferenceSequenceId::from(0)),
             10946,
             6765,
             17711,

@@ -58,10 +58,11 @@ impl Builder {
         &mut self,
         reference_sequence_id: ReferenceSequenceId,
     ) {
-        let id = i32::from(reference_sequence_id);
+        // FIXME
+        let id = usize::from(reference_sequence_id) as i32;
         let mut current_id = self
             .current_reference_sequence_id
-            .map(i32::from)
+            .map(|id| usize::from(id) as i32)
             .unwrap_or(crate::record::reference_sequence_id::UNMAPPED);
 
         while current_id < id {
@@ -82,9 +83,7 @@ impl Builder {
     /// let index = bai::Index::builder().build(1);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index {
-        let last_reference_sequence_id =
-            ReferenceSequenceId::try_from((reference_sequence_count - 1) as i32)
-                .expect("invalid reference sequence count");
+        let last_reference_sequence_id = ReferenceSequenceId::from(reference_sequence_count - 1);
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
         let reference_sequences = self

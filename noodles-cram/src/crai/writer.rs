@@ -73,7 +73,7 @@ where
     /// let mut writer = crai::Writer::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(bam::record::ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -116,7 +116,7 @@ mod tests {
         use noodles_bam as bam;
 
         let index = vec![Record::new(
-            bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+            Some(bam::record::ReferenceSequenceId::from(0)),
             10946,
             6765,
             17711,

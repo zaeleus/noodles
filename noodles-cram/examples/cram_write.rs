@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let record = cram::Record::builder()
         .set_bam_flags(sam::record::Flags::empty())
         .set_flags(cram::record::Flags::QUALITY_SCORES_STORED_AS_ARRAY)
-        .set_reference_sequence_id(bam::record::ReferenceSequenceId::try_from(0)?)
+        .set_reference_sequence_id(bam::record::ReferenceSequenceId::from(0))
         .set_alignment_start(sam::record::Position::try_from(1)?)
         .set_read_length(4)
         .set_bases(b"TTCA".to_vec())

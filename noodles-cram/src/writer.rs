@@ -242,8 +242,8 @@ fn add_record(
 ) -> Result<(), crate::data_container::builder::AddRecordError> {
     let reference_sequence = record
         .reference_sequence_id()
-        .map(i32::from)
-        .and_then(|id| reference_sequences.get(id as usize))
+        .map(usize::from)
+        .and_then(|id| reference_sequences.get(id))
         .map(|rs| rs.sequence().as_ref())
         .unwrap_or_default();
 

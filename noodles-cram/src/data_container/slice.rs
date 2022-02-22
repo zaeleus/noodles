@@ -186,13 +186,11 @@ impl Slice {
                 .preservation_map()
                 .is_reference_required()
             {
-                let raw_reference_sequence_id = record
+                let reference_sequence_id = record
                     .reference_sequence_id()
-                    .map(i32::from)
+                    .map(usize::from)
                     .expect("invalid reference sequence ID");
 
-                let reference_sequence_id = usize::try_from(raw_reference_sequence_id)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
                 &reference_sequences[reference_sequence_id]
             } else {
                 embedded_reference_sequence_record

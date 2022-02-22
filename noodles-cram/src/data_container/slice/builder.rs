@@ -53,19 +53,17 @@ impl Builder {
         }
 
         match self.reference_sequence_id.unwrap() {
-            Some(slice_reference_sequence_id) => {
-                match record_reference_sequence_id.map(i32::from) {
-                    Some(id) => {
-                        if i32::from(slice_reference_sequence_id) == id {
-                            self.records.push(record);
-                            Ok(self.records.last().unwrap())
-                        } else {
-                            Err(AddRecordError::ReferenceSequenceIdMismatch(record))
-                        }
+            Some(slice_reference_sequence_id) => match record_reference_sequence_id {
+                Some(id) => {
+                    if slice_reference_sequence_id == id {
+                        self.records.push(record);
+                        Ok(self.records.last().unwrap())
+                    } else {
+                        Err(AddRecordError::ReferenceSequenceIdMismatch(record))
                     }
-                    None => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
                 }
-            }
+                None => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
+            },
             None => match record_reference_sequence_id {
                 Some(_) => Err(AddRecordError::ReferenceSequenceIdMismatch(record)),
                 None => {
@@ -83,7 +81,10 @@ impl Builder {
         record_counter: i64,
     ) -> io::Result<Slice> {
         let reference_sequence_id = match self.reference_sequence_id.unwrap() {
-            Some(id) => ReferenceSequenceId::Some(i32::from(id)),
+            Some(id) => {
+                // FIXME
+                ReferenceSequenceId::Some(usize::from(id) as i32)
+            }
             None => ReferenceSequenceId::None,
         };
 

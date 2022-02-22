@@ -133,10 +133,10 @@ fn get_reference_sequence_name(
     reference_sequence_id: Option<ReferenceSequenceId>,
 ) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
     reference_sequence_id
-        .map(i32::from)
+        .map(usize::from)
         .map(|id| {
             reference_sequences
-                .get_index(id as usize)
+                .get_index(id)
                 .and_then(|(_, rs)| rs.name().parse().ok())
                 .ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence ID")
@@ -174,12 +174,14 @@ mod tests {
 
         use crate::record::{cigar::Op, sequence::Base, Cigar, Data, QualityScores, Sequence};
 
+        let reference_sequence_id = ReferenceSequenceId::from(1);
+
         let record = Record::builder()
-            .set_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+            .set_reference_sequence_id(reference_sequence_id)
             .set_position(Position::try_from(61062)?)
             .set_mapping_quality(MappingQuality::try_from(12)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
-            .set_mate_reference_sequence_id(ReferenceSequenceId::try_from(1)?)
+            .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
             .set_read_name(b"r0".to_vec())

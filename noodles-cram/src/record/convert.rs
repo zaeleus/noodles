@@ -87,10 +87,10 @@ fn get_reference_sequence_name(
     reference_sequence_id: Option<ReferenceSequenceId>,
 ) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
     reference_sequence_id
-        .map(i32::from)
+        .map(usize::from)
         .map(|id| {
             reference_sequences
-                .get_index(id as usize)
+                .get_index(id)
                 .and_then(|(_, rs)| rs.name().parse().ok())
                 .ok_or_else(|| {
                     io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence ID")

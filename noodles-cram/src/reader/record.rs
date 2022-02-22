@@ -149,7 +149,8 @@ where
             if reference_id == bam::record::reference_sequence_id::UNMAPPED {
                 None
             } else {
-                bam::record::ReferenceSequenceId::try_from(reference_id)
+                usize::try_from(reference_id)
+                    .map(bam::record::ReferenceSequenceId::from)
                     .map(Some)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
             };
@@ -357,7 +358,8 @@ where
             if id == bam::record::reference_sequence_id::UNMAPPED {
                 Ok(None)
             } else {
-                bam::record::ReferenceSequenceId::try_from(id)
+                usize::try_from(id)
+                    .map(bam::record::ReferenceSequenceId::from)
                     .map(Some)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             }

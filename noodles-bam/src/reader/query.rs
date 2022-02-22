@@ -142,7 +142,7 @@ pub(crate) fn intersects(
     interval_end: i32,
 ) -> io::Result<bool> {
     let id = match record.reference_sequence_id() {
-        Some(i) => i32::from(i) as usize,
+        Some(reference_sequence_id) => usize::from(reference_sequence_id),
         None => return Ok(false),
     };
 

@@ -4,7 +4,7 @@ mod field;
 
 pub use self::field::Field;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, num, str::FromStr};
 
 use noodles_bam as bam;
 
@@ -28,18 +28,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
     ///     233,
     ///     317811,
     /// );
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn new(
         reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
@@ -64,11 +63,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -76,8 +75,10 @@ impl Record {
     ///     317811,
     /// );
     ///
-    /// assert_eq!(record.reference_sequence_id().map(i32::from), Some(0));
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
+    /// assert_eq!(
+    ///     record.reference_sequence_id(),
+    ///     Some(ReferenceSequenceId::from(0))
+    /// );
     /// ```
     pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
         self.reference_sequence_id
@@ -88,11 +89,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -101,7 +102,6 @@ impl Record {
     /// );
     ///
     /// assert_eq!(record.alignment_start(), 10946);
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn alignment_start(&self) -> i32 {
         self.alignment_start
@@ -112,11 +112,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -125,7 +125,6 @@ impl Record {
     /// );
     ///
     /// assert_eq!(record.alignment_span(), 6765);
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn alignment_span(&self) -> i32 {
         self.alignment_span
@@ -136,11 +135,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -149,7 +148,6 @@ impl Record {
     /// );
     ///
     /// assert_eq!(record.offset(), 17711);
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn offset(&self) -> u64 {
         self.offset
@@ -160,11 +158,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -173,7 +171,6 @@ impl Record {
     /// );
     ///
     /// assert_eq!(record.landmark(), 233);
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn landmark(&self) -> u64 {
         self.landmark
@@ -184,11 +181,11 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
-    ///     bam::record::ReferenceSequenceId::try_from(0).map(Some)?,
+    ///     Some(ReferenceSequenceId::from(0)),
     ///     10946,
     ///     6765,
     ///     17711,
@@ -197,7 +194,6 @@ impl Record {
     /// );
     ///
     /// assert_eq!(record.slice_length(), 317811);
-    /// # Ok::<(), bam::record::reference_sequence_id::TryFromIntError>(())
     /// ```
     pub fn slice_length(&self) -> u64 {
         self.slice_length
@@ -206,15 +202,17 @@ impl Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let reference_sequence_id = self
-            .reference_sequence_id()
-            .map(i32::from)
-            .unwrap_or(bam::record::reference_sequence_id::UNMAPPED);
+        use bam::record::reference_sequence_id::UNMAPPED;
+
+        if let Some(id) = self.reference_sequence_id() {
+            write!(f, "{}\t", usize::from(id))?;
+        } else {
+            write!(f, "{}\t", UNMAPPED)?;
+        };
 
         write!(
             f,
-            "{}\t{}\t{}\t{}\t{}\t{}",
-            reference_sequence_id,
+            "{}\t{}\t{}\t{}\t{}",
             self.alignment_start,
             self.alignment_span,
             self.offset,
@@ -232,7 +230,7 @@ pub enum ParseError {
     /// A field is invalid.
     Invalid(Field, std::num::ParseIntError),
     /// The reference sequence ID is invalid.
-    InvalidReferenceSequenceId(bam::record::reference_sequence_id::TryFromIntError),
+    InvalidReferenceSequenceId(num::TryFromIntError),
 }
 
 impl error::Error for ParseError {}
@@ -256,11 +254,12 @@ impl FromStr for Record {
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
         let reference_sequence_id =
-            parse_i32(&mut fields, Field::ReferenceSequenceId).and_then(|id| {
-                if id == bam::record::reference_sequence_id::UNMAPPED {
+            parse_i32(&mut fields, Field::ReferenceSequenceId).and_then(|n| {
+                if n == bam::record::reference_sequence_id::UNMAPPED {
                     Ok(None)
                 } else {
-                    bam::record::ReferenceSequenceId::try_from(id)
+                    usize::try_from(n)
+                        .map(bam::record::ReferenceSequenceId::from)
                         .map(Some)
                         .map_err(ParseError::InvalidReferenceSequenceId)
                 }
@@ -320,7 +319,7 @@ mod tests {
         let actual: Record = "0\t10946\t6765\t17711\t233\t317811".parse()?;
 
         let expected = Record {
-            reference_sequence_id: Some(bam::record::ReferenceSequenceId::try_from(0)?),
+            reference_sequence_id: Some(bam::record::ReferenceSequenceId::from(0)),
             alignment_start: 10946,
             alignment_span: 6765,
             offset: 17711,

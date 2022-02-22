@@ -183,10 +183,10 @@ fn push_index_record_for_single_reference_slice(
         if slice_reference_sequence_id.is_none() {
             (None, 0, 0)
         } else {
-            let reference_sequence_id =
-                bam::record::ReferenceSequenceId::try_from(i32::from(slice_reference_sequence_id))
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let reference_sequence_id = usize::try_from(i32::from(slice_reference_sequence_id))
+                .map(bam::record::ReferenceSequenceId::from)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             let alignment_start = slice_header
                 .alignment_start()

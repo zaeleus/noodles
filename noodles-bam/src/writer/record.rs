@@ -89,7 +89,13 @@ where
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
-    let ref_id = reference_sequence_id.map(i32::from).unwrap_or(UNMAPPED);
+    let ref_id = if let Some(id) = reference_sequence_id {
+        i32::try_from(usize::from(id))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    } else {
+        UNMAPPED
+    };
+
     writer.write_i32::<LittleEndian>(ref_id)
 }
 
@@ -195,7 +201,7 @@ mod tests {
             Cigar, Data, QualityScores, ReferenceSequenceId, Sequence,
         };
 
-        let reference_sequence_id = ReferenceSequenceId::try_from(1)?;
+        let reference_sequence_id = ReferenceSequenceId::from(1);
 
         let record = Record::builder()
             .set_reference_sequence_id(reference_sequence_id)

@@ -118,10 +118,12 @@ impl Record {
     /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
     ///
     /// let mut record = bam::Record::default();
-    /// *record.reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
+    /// *record.reference_sequence_id_mut() = Some(ReferenceSequenceId::from(1));
     ///
-    /// assert_eq!(record.reference_sequence_id().map(i32::from), Some(1));
-    /// # Ok::<_, bam::record::reference_sequence_id::TryFromIntError>(())
+    /// assert_eq!(
+    ///     record.reference_sequence_id(),
+    ///     Some(ReferenceSequenceId::from(1))
+    /// );
     /// ```
     pub fn reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
         &mut self.ref_id
@@ -250,10 +252,12 @@ impl Record {
     /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
     ///
     /// let mut record = bam::Record::default();
-    /// *record.mate_reference_sequence_id_mut() = ReferenceSequenceId::try_from(1).map(Some)?;
+    /// *record.mate_reference_sequence_id_mut() = Some(ReferenceSequenceId::from(1));
     ///
-    /// assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(1));
-    /// # Ok::<_, bam::record::reference_sequence_id::TryFromIntError>(())
+    /// assert_eq!(
+    ///     record.mate_reference_sequence_id(),
+    ///     Some(ReferenceSequenceId::from(1))
+    /// );
     /// ```
     pub fn mate_reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
         &mut self.next_ref_id
@@ -536,15 +540,13 @@ fn get_reference_sequence(
     reference_sequence_id: Option<ReferenceSequenceId>,
 ) -> Option<io::Result<&ReferenceSequence>> {
     reference_sequence_id.map(|reference_sequence_id| {
-        usize::try_from(i32::from(reference_sequence_id))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|i| {
-                reference_sequences
-                    .get_index(i)
-                    .map(|(_, rs)| rs)
-                    .ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
-                    })
+        let id = usize::from(reference_sequence_id);
+
+        reference_sequences
+            .get_index(id)
+            .map(|(_, rs)| rs)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
             })
     })
 }
@@ -602,9 +604,7 @@ mod tests {
     fn build_record() -> io::Result<Record> {
         use sam::record::{Flags, MappingQuality};
 
-        let ref_id = ReferenceSequenceId::try_from(10)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let ref_id = Some(ReferenceSequenceId::from(10));
 
         let mapq = MappingQuality::try_from(12)
             .map(Some)
@@ -640,7 +640,12 @@ mod tests {
     #[test]
     fn test_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.reference_sequence_id().map(i32::from), Some(10));
+
+        assert_eq!(
+            record.reference_sequence_id(),
+            Some(ReferenceSequenceId::from(10))
+        );
+
         Ok(())
     }
 
@@ -676,7 +681,12 @@ mod tests {
     #[test]
     fn test_mate_reference_sequence_id() -> io::Result<()> {
         let record = build_record()?;
-        assert_eq!(record.mate_reference_sequence_id().map(i32::from), Some(10));
+
+        assert_eq!(
+            record.mate_reference_sequence_id(),
+            Some(ReferenceSequenceId::from(10))
+        );
+
         Ok(())
     }
 

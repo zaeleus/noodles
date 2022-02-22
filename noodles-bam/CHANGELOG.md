@@ -12,6 +12,19 @@
 
 [#76]: https://github.com/zaeleus/noodles/issues/76
 
+### Changed
+
+  * bam/record/reference_sequence_id: Change underlying type to a `usize`.
+
+    Use `From<usize>` instead of `From<i32>`.
+
+### Deprecated
+
+  * bam/record/reference_sequence_id: Deprecate conversion from `i32`.
+
+    Convert the raw reference sequence ID to a `usize` first, and use
+    `ReferenceSequenceId::from` instead.
+
 ## 0.15.0 - 2022-02-17
 
 ### Added
