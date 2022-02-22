@@ -114,6 +114,19 @@ where
         self.inner.as_ref().unwrap()
     }
 
+    /// Returns the current position of the stream.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::Writer::new(Vec::new());
+    /// assert_eq!(writer.position(), 0);
+    /// ```
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
     /// Returns the current virtual position of the stream.
     ///
     /// # Panics
