@@ -11,7 +11,7 @@ pub fn resolve_bases(
     reference_sequence_record: &fasta::Record,
     compression_header: &CompressionHeader,
     features: &Features,
-    alignment_start: i32,
+    alignment_start: sam::record::Position,
     read_len: usize,
 ) -> Vec<u8> {
     let reference_sequence = reference_sequence_record.sequence();
@@ -35,7 +35,7 @@ mod internal {
         reference_sequence: &fasta::record::Sequence,
         substitution_matrix: &SubstitutionMatrix,
         features: &Features,
-        alignment_start: i32,
+        alignment_start: sam::record::Position,
         read_length: usize,
     ) -> Vec<u8> {
         use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
@@ -44,7 +44,7 @@ mod internal {
 
         let mut buf = vec![b'-'; read_length];
 
-        let mut ref_pos = (alignment_start - 1) as usize;
+        let mut ref_pos = (i32::from(alignment_start) - 1) as usize;
         let mut read_pos = 0;
 
         for feature in features.iter() {
@@ -184,13 +184,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_resolve_bases() {
+    fn test_resolve_bases() -> Result<(), sam::record::position::TryFromIntError> {
         let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
+        let alignment_start = sam::record::Position::try_from(1)?;
 
         let t = |features: &Features, expected: &[u8]| {
-            let actual =
-                internal::resolve_bases(&reference_sequence, &substitution_matrix, features, 1, 4);
+            let actual = internal::resolve_bases(
+                &reference_sequence,
+                &substitution_matrix,
+                features,
+                alignment_start,
+                4,
+            );
+
             assert_eq!(actual, expected);
         };
 
@@ -216,6 +223,8 @@ mod tests {
             b"ACGG",
         );
         t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT");
+
+        Ok(())
     }
 
     #[test]

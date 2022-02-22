@@ -200,10 +200,7 @@ impl Slice {
                     .expect("missing embedded reference sequence record")
             };
 
-            let alignment_start = record
-                .alignment_start()
-                .map(i32::from)
-                .expect("invalid alignment start");
+            let alignment_start = record.alignment_start().expect("invalid alignment start");
 
             let bases = resolve_bases(
                 reference_sequence_record,

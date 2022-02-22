@@ -25,6 +25,9 @@
   * cram/record/convert: `Record::try_into_sam_record` now assumes the record
     is fully resolved before conversion.
 
+  * cram/record/resolve: `resolve_bases` takes a `sam::record::Position`
+    instead of an `i32` for `alignment_start`.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Update substitution codes before writing
