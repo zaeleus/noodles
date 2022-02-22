@@ -13,7 +13,7 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::Crc;
 
-use super::{block, gz, BGZF_HEADER_SIZE};
+use super::{block, gz, VirtualPosition, BGZF_HEADER_SIZE};
 
 const BGZF_FLG: u8 = 0x04; // FEXTRA
 const BGZF_XFL: u8 = 0x00; // none
@@ -112,6 +112,25 @@ where
     /// ```
     pub fn get_ref(&self) -> &W {
         self.inner.as_ref().unwrap()
+    }
+
+    /// Returns the current virtual position of the stream.
+    ///
+    /// # Panics
+    ///
+    /// This panics if the stream flushed >= 256 TiB of compressed data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::Writer::new(Vec::new());
+    /// assert_eq!(writer.virtual_position(), bgzf::VirtualPosition::from(0));
+    /// ```
+    pub fn virtual_position(&self) -> VirtualPosition {
+        // SAFETY: The uncompressed buffer is guaranteed to be <= `MAX_UNCOMPRESSED_POSITION`.
+        let uncompressed_position = self.buf.len() as u16;
+        VirtualPosition::try_from((self.position, uncompressed_position)).unwrap()
     }
 
     fn flush_block(&mut self) -> io::Result<()> {
@@ -297,6 +316,29 @@ pub(crate) fn deflate_data(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_virtual_position() -> Result<(), Box<dyn std::error::Error>> {
+        let mut writer = Writer::new(Vec::new());
+
+        assert_eq!(writer.virtual_position(), VirtualPosition::from(0));
+
+        writer.write_all(b"noodles")?;
+
+        assert_eq!(
+            writer.virtual_position(),
+            VirtualPosition::try_from((0, 7))?
+        );
+
+        writer.flush()?;
+
+        assert_eq!(
+            writer.virtual_position(),
+            VirtualPosition::try_from((writer.get_ref().len() as u64, 0))?
+        );
+
+        Ok(())
+    }
 
     #[test]
     fn test_finish() -> io::Result<()> {
