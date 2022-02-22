@@ -13,7 +13,7 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
         CompressionHeader,
     },
-    record::Feature,
+    record::{Feature, Features},
     writer, BitWriter, Record,
 };
 
@@ -225,25 +225,36 @@ fn update_substitution_codes(
     substitution_matrix: &SubstitutionMatrix,
     alignment_start: sam::record::Position,
     read_bases: &[u8],
-    features: &mut Vec<Feature>,
+    features: &mut Features,
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    let alignment_start = i32::from(alignment_start) - 1;
+    let mut codes = Vec::new();
 
-    for feature in features {
-        if let Feature::Substitution(pos, _) = feature {
-            let read_pos = (*pos - 1) as usize;
-            let reference_pos = alignment_start as usize + read_pos;
+    for ((mut reference_position, mut read_position), feature) in
+        features.with_positions(alignment_start)
+    {
+        reference_position -= 1;
+        read_position -= 1;
 
-            let base = char::from(reference_sequence[reference_pos]);
+        if let Feature::Substitution(..) = feature {
+            let base = char::from(reference_sequence[reference_position]);
             let reference_base = Base::try_from(base).unwrap_or_default();
 
-            let base = char::from(read_bases[read_pos]);
+            let base = char::from(read_bases[read_position]);
             let read_base = Base::try_from(base).unwrap_or_default();
 
             let code = substitution_matrix.find_code(reference_base, read_base);
-            *feature = Feature::Substitution(*pos, code);
+            codes.push(code);
+        }
+    }
+
+    let mut i = 0;
+
+    for feature in features.iter_mut() {
+        if let Feature::Substitution(pos, _) = feature {
+            *feature = Feature::Substitution(*pos, codes[i]);
+            i += 1;
         }
     }
 }
