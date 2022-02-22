@@ -10,21 +10,23 @@ pub struct Builder {
 impl Builder {
     pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
         let alignment_start = match record.alignment_start() {
-            Some(position) => i32::from(position) - 1,
+            Some(position) => position,
             None => return,
         };
 
         let read_bases = record.bases();
 
-        for feature in record.features().iter() {
-            if let Feature::Substitution(pos, _) = feature {
-                let read_pos = (pos - 1) as usize;
-                let reference_pos = alignment_start as usize + read_pos;
+        for ((mut reference_position, mut read_position), feature) in
+            record.features().with_positions(alignment_start)
+        {
+            reference_position -= 1;
+            read_position -= 1;
 
-                let base = char::from(reference_sequence[reference_pos]);
+            if let Feature::Substitution(..) = feature {
+                let base = char::from(reference_sequence[reference_position]);
                 let reference_base = Base::try_from(base).unwrap_or_default();
 
-                let base = char::from(read_bases[read_pos]);
+                let base = char::from(read_bases[read_position]);
                 let read_base = Base::try_from(base).unwrap_or_default();
 
                 self.histogram.hit(reference_base, read_base);
