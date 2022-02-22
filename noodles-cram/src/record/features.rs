@@ -1,10 +1,28 @@
-use std::ops::{Deref, DerefMut};
+mod with_positions;
+
+pub use self::with_positions::WithPositions;
+
+use std::{
+    ops::{Deref, DerefMut},
+    slice,
+};
+
+use noodles_sam as sam;
 
 use super::Feature;
 
 /// CRAM record features.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Features(Vec<Feature>);
+
+impl Features {
+    pub(crate) fn with_positions(
+        &self,
+        alignment_start: sam::record::Position,
+    ) -> WithPositions<'_, slice::Iter<'_, Feature>> {
+        WithPositions::new(self.iter(), alignment_start)
+    }
+}
 
 impl Deref for Features {
     type Target = Vec<Feature>;
