@@ -1,37 +1,19 @@
-use std::ops::Deref;
-
 // § 8.4 Compression header block (2020-06-22): "Special value '-1' stands for no group."
-const NULL: i32 = -1;
-const MIN: i32 = 0;
+pub(crate) const MISSING: i32 = -1;
 
 /// A CRAM record read group ID.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct ReadGroupId(Option<i32>);
+pub struct ReadGroupId(usize);
 
-impl Deref for ReadGroupId {
-    type Target = Option<i32>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl From<usize> for ReadGroupId {
+    fn from(n: usize) -> Self {
+        Self(n)
     }
 }
 
-impl From<i32> for ReadGroupId {
-    fn from(n: i32) -> Self {
-        if n < MIN {
-            Self(None)
-        } else {
-            Self(Some(n))
-        }
-    }
-}
-
-impl From<ReadGroupId> for i32 {
-    fn from(read_group: ReadGroupId) -> Self {
-        match *read_group {
-            Some(id) => id,
-            None => NULL,
-        }
+impl From<ReadGroupId> for usize {
+    fn from(read_group_id: ReadGroupId) -> Self {
+        read_group_id.0
     }
 }
 
@@ -40,14 +22,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_i32_for_read_group() {
-        assert_eq!(*ReadGroupId::from(-1), None);
-        assert_eq!(*ReadGroupId::from(13), Some(13));
+    fn test_from_usize_for_read_group_id() {
+        assert_eq!(ReadGroupId::from(0), ReadGroupId(0));
+        assert_eq!(ReadGroupId::from(13), ReadGroupId(13));
     }
 
     #[test]
-    fn test_from_read_group_for_i32() {
-        assert_eq!(i32::from(ReadGroupId(None)), -1);
-        assert_eq!(i32::from(ReadGroupId(Some(13))), 13);
+    fn test_from_read_group_id_for_usize() {
+        assert_eq!(usize::from(ReadGroupId(0)), 0);
+        assert_eq!(usize::from(ReadGroupId(13)), 13);
     }
 }

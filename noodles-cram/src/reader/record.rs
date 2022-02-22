@@ -229,7 +229,7 @@ where
         }
     }
 
-    fn read_read_group(&mut self) -> io::Result<ReadGroupId> {
+    fn read_read_group(&mut self) -> io::Result<Option<ReadGroupId>> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -240,7 +240,16 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .map(ReadGroupId::from)
+        .and_then(|n| {
+            if n == crate::record::read_group_id::MISSING {
+                Ok(None)
+            } else {
+                usize::try_from(n)
+                    .map(ReadGroupId::from)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
     }
 
     fn read_read_names(&mut self, record: &mut Record) -> io::Result<()> {

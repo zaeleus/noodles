@@ -19,7 +19,7 @@ use crate::{
         CompressionHeader,
     },
     num::Itf8,
-    record::{self, feature, Feature, Flags, NextMateFlags},
+    record::{self, feature, Feature, Flags, NextMateFlags, ReadGroupId},
     BitWriter, Record,
 };
 
@@ -168,9 +168,7 @@ where
         };
 
         self.write_alignment_start(alignment_start)?;
-
-        let read_group = i32::from(record.read_group_id());
-        self.write_read_group(read_group)?;
+        self.write_read_group(record.read_group_id())?;
 
         Ok(())
     }
@@ -238,11 +236,18 @@ where
         )
     }
 
-    fn write_read_group(&mut self, read_group: Itf8) -> io::Result<()> {
+    fn write_read_group(&mut self, read_group_id: Option<ReadGroupId>) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .read_groups_encoding();
+
+        let read_group = if let Some(id) = read_group_id {
+            i32::try_from(usize::from(id))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        } else {
+            crate::record::read_group_id::MISSING
+        };
 
         encode_itf8(
             encoding,

@@ -25,6 +25,10 @@
   * cram/record/convert: `Record::try_into_sam_record` now assumes the record
     is fully resolved before conversion.
 
+  * cram/record/read_group_id: Change underlying type to a `usize`.
+
+    Use `From<usize>` instead of `From<i32>`.
+
   * cram/record/resolve: `resolve_bases` takes a `sam::record::Position`
     instead of an `i32` for `alignment_start`.
 
@@ -35,6 +39,12 @@
 
   * cram/data_container/compression_header/preservation_map/substitution_matrix/builder:
     Read read base from read bases.
+
+### Removed
+
+  * cram/record/read_group_id: Remove conversion to and from `i32`.
+
+    Convert from `usize` instead.
 
 ## 0.12.0 - 2022-02-17
 

@@ -142,8 +142,9 @@ where
             builder = builder.set_alignment_start(alignment_start);
         }
 
-        let read_group = self.read_read_group().await?;
-        builder = builder.set_read_group_id(read_group);
+        if let Some(read_group) = self.read_read_group().await? {
+            builder = builder.set_read_group_id(read_group);
+        }
 
         Ok((builder, read_length))
     }
@@ -216,7 +217,7 @@ where
         }
     }
 
-    async fn read_read_group(&mut self) -> io::Result<ReadGroupId> {
+    async fn read_read_group(&mut self) -> io::Result<Option<ReadGroupId>> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -228,7 +229,16 @@ where
             &mut self.external_data_readers,
         )
         .await
-        .map(ReadGroupId::from)
+        .and_then(|n| {
+            if n == crate::record::read_group_id::MISSING {
+                Ok(None)
+            } else {
+                usize::try_from(n)
+                    .map(ReadGroupId::from)
+                    .map(Some)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        })
     }
 
     async fn read_read_names(&mut self, mut builder: Builder) -> io::Result<Builder> {
