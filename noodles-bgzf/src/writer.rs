@@ -67,6 +67,7 @@ where
     W: Write,
 {
     inner: Option<W>,
+    position: u64,
     buf: Vec<u8>,
     compression_level: CompressionLevelImpl,
 }
@@ -122,6 +123,9 @@ where
         inner.write_all(&cdata[..])?;
         write_trailer(inner, crc32, r#isize)?;
 
+        let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
+        self.position += block_size as u64;
+
         self.buf.clear();
 
         Ok(())
@@ -145,8 +149,13 @@ where
     /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
         self.flush()?;
+
         let inner = self.inner.as_mut().unwrap();
-        inner.write_all(BGZF_EOF)
+        let result = inner.write_all(BGZF_EOF);
+
+        self.position += BGZF_EOF.len() as u64;
+
+        result
     }
 
     /// Returns the underlying writer after finishing the output stream.

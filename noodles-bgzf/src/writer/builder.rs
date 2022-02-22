@@ -51,6 +51,7 @@ where
 
         Writer {
             inner: Some(self.inner),
+            position: 0,
             buf: Vec::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
             compression_level: compression_level.into(),
         }
