@@ -188,17 +188,16 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        if self.buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
-            self.flush()?;
-            return Err(io::Error::from(io::ErrorKind::Interrupted));
-        }
-
         let max_write_len = cmp::min(
             block::MAX_UNCOMPRESSED_DATA_LENGTH - self.buf.len(),
             buf.len(),
         );
 
         self.buf.extend_from_slice(&buf[..max_write_len]);
+
+        if self.buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+            self.flush()?;
+        }
 
         Ok(max_write_len)
     }

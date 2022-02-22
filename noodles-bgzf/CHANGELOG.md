@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/writer: Immediately flush block upon reaching the max block size.
+
 ## 0.9.0 - 2022-02-17
 
 ### Added
