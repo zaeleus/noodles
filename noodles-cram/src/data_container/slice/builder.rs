@@ -1,4 +1,8 @@
-use std::{cmp, collections::HashMap, io};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+    io,
+};
 
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
@@ -64,13 +68,7 @@ impl Builder {
         compression_header: &CompressionHeader,
         record_counter: i64,
     ) -> io::Result<Slice> {
-        let reference_sequence_id = match self.slice_reference_sequence_id {
-            Some(id) => {
-                // FIXME
-                ReferenceSequenceId::Some(usize::from(id) as i32)
-            }
-            None => ReferenceSequenceId::None,
-        };
+        let slice_reference_sequence_id = find_slice_reference_sequence_id(&self.records);
 
         let alignment_start = self
             .records
@@ -95,7 +93,7 @@ impl Builder {
             compression_header,
             &mut core_data_writer,
             &mut external_data_writers,
-            reference_sequence_id,
+            slice_reference_sequence_id,
             alignment_start,
         );
 
@@ -103,7 +101,7 @@ impl Builder {
         let mut slice_alignment_end = 0;
 
         for record in &mut self.records {
-            if let ReferenceSequenceId::Some(id) = reference_sequence_id {
+            if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
                 if let Some(alignment_start) = record.alignment_start() {
                     let reference_sequence = reference_sequences
                         .get(id as usize)
@@ -167,7 +165,7 @@ impl Builder {
             block_content_ids.push(block.content_id());
         }
 
-        let reference_md5 = if let ReferenceSequenceId::Some(id) = reference_sequence_id {
+        let reference_md5 = if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
             let reference_sequence = reference_sequences
                 .get(id as usize)
                 .map(|record| record.sequence())
@@ -186,7 +184,7 @@ impl Builder {
         };
 
         let mut builder = Header::builder()
-            .set_reference_sequence_id(reference_sequence_id)
+            .set_reference_sequence_id(slice_reference_sequence_id)
             .set_record_count(self.records.len())
             .set_record_counter(record_counter)
             // external blocks + core data block
@@ -194,7 +192,7 @@ impl Builder {
             .set_block_content_ids(block_content_ids)
             .set_reference_md5(reference_md5);
 
-        if reference_sequence_id.is_some() {
+        if slice_reference_sequence_id.is_some() {
             let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
 
             let slice_alignment_start = sam::record::Position::try_from(slice_alignment_start)
@@ -208,6 +206,28 @@ impl Builder {
         let header = builder.build();
 
         Ok(Slice::new(header, core_data_block, external_blocks))
+    }
+}
+
+fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
+    assert!(!records.is_empty());
+
+    let reference_sequence_ids: HashSet<_> = records
+        .iter()
+        .map(|record| record.reference_sequence_id())
+        .collect();
+
+    match reference_sequence_ids.len() {
+        0 => unreachable!(),
+        1 => reference_sequence_ids
+            .into_iter()
+            .next()
+            .map(|reference_sequence_id| match reference_sequence_id {
+                Some(id) => ReferenceSequenceId::Some(usize::from(id) as i32),
+                None => ReferenceSequenceId::None,
+            })
+            .expect("reference sequence IDs cannot be empty"),
+        _ => ReferenceSequenceId::Many,
     }
 }
 
