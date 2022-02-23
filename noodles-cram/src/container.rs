@@ -106,23 +106,31 @@ impl Container {
 
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
-        let container_alignment_span = container_alignment_end - container_alignment_start + 1;
-        let container_alignment_start = sam::record::Position::try_from(container_alignment_start)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let container_reference_sequence_id =
+            container_reference_sequence_id.expect("no slices in builder");
 
-        let header = Header::builder()
+        let mut builder = Header::builder()
             .set_length(len)
-            .set_reference_sequence_id(
-                container_reference_sequence_id.expect("no slices in builder"),
-            )
-            .set_start_position(container_alignment_start)
-            .set_alignment_span(container_alignment_span)
+            .set_reference_sequence_id(container_reference_sequence_id)
             .set_record_count(container_record_count)
             .set_record_counter(container_record_counter)
             .set_base_count(base_count)
             .set_block_count(blocks.len())
-            .set_landmarks(landmarks)
-            .build();
+            .set_landmarks(landmarks);
+
+        if container_reference_sequence_id.is_some() {
+            let container_alignment_span = container_alignment_end - container_alignment_start + 1;
+
+            let container_alignment_start =
+                sam::record::Position::try_from(container_alignment_start)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            builder = builder
+                .set_start_position(container_alignment_start)
+                .set_alignment_span(container_alignment_span);
+        }
+
+        let header = builder.build();
 
         Ok(Self::new(header, blocks))
     }

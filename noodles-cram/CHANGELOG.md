@@ -36,6 +36,9 @@
 
 ### Fixed
 
+  * cram/container: Only set alignment start and span when the container has
+    single-reference slices of the same reference.
+
   * cram/data_container/slice/builder: Update substitution codes before writing
     records.
 
