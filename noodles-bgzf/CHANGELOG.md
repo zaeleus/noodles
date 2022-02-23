@@ -7,9 +7,11 @@
   * bgzf/writer: Immediately flush block upon reaching the max block size.
 
   * bgzf/writer: Track position (`Writer::position`) and virtual position
-    (`Writer::virtual_position`).
+    (`Writer::virtual_position`) ([#77]).
 
   * bgzf/writer: Add `into_inner` to return the underlying writer.
+
+[#77]: https://github.com/zaeleus/noodles/issues/77
 
 ## 0.9.0 - 2022-02-17
 
