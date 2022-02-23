@@ -1,7 +1,10 @@
+mod builder;
 mod container;
 pub(crate) mod data_container;
 pub(crate) mod num;
 pub(crate) mod record;
+
+pub use self::builder::Builder;
 
 use std::{
     io::{self, Write},
@@ -16,8 +19,6 @@ use super::{
     container::Container, file_definition::Version, DataContainer, FileDefinition, Record,
     MAGIC_NUMBER,
 };
-
-const RECORD_COUNTER_START: i64 = 0;
 
 /// A CRAM writer.
 ///
@@ -53,7 +54,20 @@ impl<W> Writer<W>
 where
     W: Write,
 {
-    /// Creates a new CRAM writer.
+    /// Creates a CRAM writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram as cram;
+    /// let builder = cram::Writer::builder(Vec::new(), Vec::new());
+    /// let writer = builder.build();
+    /// ```
+    pub fn builder(inner: W, reference_sequences: Vec<fasta::Record>) -> Builder<W> {
+        Builder::new(inner, reference_sequences)
+    }
+
+    /// Creates a new CRAM writer with default options.
     ///
     /// # Examples
     ///
@@ -62,12 +76,7 @@ where
     /// let writer = cram::Writer::new(Vec::new(), Vec::new());
     /// ```
     pub fn new(inner: W, reference_sequences: Vec<fasta::Record>) -> Self {
-        Self {
-            inner,
-            reference_sequences,
-            data_container_builder: DataContainer::builder(RECORD_COUNTER_START),
-            record_counter: RECORD_COUNTER_START,
-        }
+        Builder::new(inner, reference_sequences).build()
     }
 
     /// Returns a reference to the underlying writer.

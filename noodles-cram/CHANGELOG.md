@@ -12,6 +12,8 @@
 
   * cram/record/resolve: Add quality scores resolver.
 
+  * cram/writer: Add builder.
+
 ### Changed
 
   * cram/data_container/builder: Decrease max slice count to 1.
