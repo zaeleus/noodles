@@ -70,11 +70,12 @@ impl Builder {
     ) -> io::Result<Slice> {
         let slice_reference_sequence_id = find_slice_reference_sequence_id(&self.records);
 
-        let alignment_start = self
-            .records
-            .first()
-            .map(|r| r.alignment_start())
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "no records in builder"))?;
+        let (slice_alignment_start, slice_alignment_end) = if slice_reference_sequence_id.is_some()
+        {
+            find_slice_alignment_positions(&self.records)?
+        } else {
+            (None, None)
+        };
 
         let mut core_data_writer = BitWriter::new(Vec::new());
 
@@ -94,11 +95,8 @@ impl Builder {
             &mut core_data_writer,
             &mut external_data_writers,
             slice_reference_sequence_id,
-            alignment_start,
+            slice_alignment_start,
         );
-
-        let mut slice_alignment_start = i32::MAX;
-        let mut slice_alignment_end = 0;
 
         for record in &mut self.records {
             if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
@@ -122,19 +120,6 @@ impl Builder {
                     );
                 }
             }
-
-            let record_alignment_start =
-                record.alignment_start().map(i32::from).unwrap_or_default();
-
-            slice_alignment_start = cmp::min(slice_alignment_start, record_alignment_start);
-
-            let record_alignment_end = record
-                .alignment_end()
-                .transpose()?
-                .map(i32::from)
-                .unwrap_or_default();
-
-            slice_alignment_end = cmp::max(slice_alignment_end, record_alignment_end);
 
             record_writer.write_record(record)?;
         }
@@ -165,22 +150,27 @@ impl Builder {
             block_content_ids.push(block.content_id());
         }
 
-        let reference_md5 = if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
-            let reference_sequence = reference_sequences
-                .get(id as usize)
-                .map(|record| record.sequence())
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
-                })?;
+        let reference_md5 = match (
+            slice_reference_sequence_id,
+            slice_alignment_start,
+            slice_alignment_end,
+        ) {
+            (ReferenceSequenceId::Some(id), Some(alignment_start), Some(alignment_end)) => {
+                let reference_sequence = reference_sequences
+                    .get(id as usize)
+                    .map(|record| record.sequence())
+                    .ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
+                    })?;
 
-            let start = (slice_alignment_start - 1) as usize;
-            let end = (slice_alignment_end - 1) as usize;
+                let start = (i32::from(alignment_start) - 1) as usize;
+                let end = (i32::from(alignment_end) - 1) as usize;
 
-            let mut hasher = Md5::new();
-            hasher.update(&reference_sequence.as_ref()[start..=end]);
-            <[u8; 16]>::from(hasher.finalize())
-        } else {
-            [0; 16]
+                let mut hasher = Md5::new();
+                hasher.update(&reference_sequence.as_ref()[start..=end]);
+                <[u8; 16]>::from(hasher.finalize())
+            }
+            _ => [0; 16],
         };
 
         let mut builder = Header::builder()
@@ -192,15 +182,14 @@ impl Builder {
             .set_block_content_ids(block_content_ids)
             .set_reference_md5(reference_md5);
 
-        if slice_reference_sequence_id.is_some() {
-            let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
-
-            let slice_alignment_start = sam::record::Position::try_from(slice_alignment_start)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        if let (Some(alignment_start), Some(alignment_end)) =
+            (slice_alignment_start, slice_alignment_end)
+        {
+            let alignment_span = i32::from(alignment_end) - i32::from(alignment_start) + 1;
 
             builder = builder
-                .set_alignment_start(slice_alignment_start)
-                .set_alignment_span(slice_alignment_span);
+                .set_alignment_start(alignment_start)
+                .set_alignment_span(alignment_span);
         }
 
         let header = builder.build();
@@ -229,6 +218,27 @@ fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
             .expect("reference sequence IDs cannot be empty"),
         _ => ReferenceSequenceId::Many,
     }
+}
+
+fn find_slice_alignment_positions(
+    records: &[Record],
+) -> io::Result<(Option<sam::record::Position>, Option<sam::record::Position>)> {
+    assert!(!records.is_empty());
+
+    let mut slice_alignment_start = sam::record::Position::try_from(i32::MAX)
+        .map(Some)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let mut slice_alignment_end = None;
+
+    for record in records {
+        slice_alignment_start = cmp::min(record.alignment_start(), slice_alignment_start);
+
+        let record_alignment_end = record.alignment_end().transpose()?;
+        slice_alignment_end = cmp::max(record_alignment_end, slice_alignment_end);
+    }
+
+    Ok((slice_alignment_start, slice_alignment_end))
 }
 
 fn update_substitution_codes(
