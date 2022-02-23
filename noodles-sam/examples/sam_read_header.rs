@@ -1,6 +1,6 @@
 //! Prints the header of a SAM file.
 //!
-//! The result matches the output of `samtools view --no-PG --header-only <src>`.
+//! The result matches the output of `samtools head <src>`.
 
 use std::{
     env,
