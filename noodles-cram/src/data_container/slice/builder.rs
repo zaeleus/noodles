@@ -17,6 +17,7 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
         CompressionHeader,
     },
+    num::Itf8,
     record::{Feature, Features},
     writer, BitWriter, Record,
 };
@@ -77,78 +78,13 @@ impl Builder {
             (None, None)
         };
 
-        let mut core_data_writer = BitWriter::new(Vec::new());
-
-        let mut external_data_writers = HashMap::new();
-
-        for i in 0..DataSeries::LEN {
-            let block_content_id = (i + 1) as i32;
-            external_data_writers.insert(block_content_id, Vec::new());
-        }
-
-        for &block_content_id in compression_header.tag_encoding_map().keys() {
-            external_data_writers.insert(block_content_id, Vec::new());
-        }
-
-        let mut record_writer = writer::record::Writer::new(
+        let (block_content_ids, core_data_block, external_blocks) = write_records(
+            reference_sequences,
             compression_header,
-            &mut core_data_writer,
-            &mut external_data_writers,
             slice_reference_sequence_id,
             slice_alignment_start,
-        );
-
-        for record in &mut self.records {
-            if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
-                if let Some(alignment_start) = record.alignment_start() {
-                    let reference_sequence = reference_sequences
-                        .get(id as usize)
-                        .map(|record| record.sequence())
-                        .ok_or_else(|| {
-                            io::Error::new(
-                                io::ErrorKind::InvalidInput,
-                                "missing reference sequence",
-                            )
-                        })?;
-
-                    update_substitution_codes(
-                        reference_sequence.as_ref(),
-                        compression_header.preservation_map().substitution_matrix(),
-                        alignment_start,
-                        &record.bases,
-                        &mut record.features,
-                    );
-                }
-            }
-
-            record_writer.write_record(record)?;
-        }
-
-        let core_data_block = core_data_writer.finish().and_then(|buf| {
-            Block::builder()
-                .set_content_type(block::ContentType::CoreData)
-                .set_content_id(CORE_DATA_BLOCK_CONTENT_ID)
-                .compress_and_set_data(buf, CompressionMethod::Gzip)
-                .map(|builder| builder.build())
-        })?;
-
-        let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
-
-        let external_blocks: Vec<_> = external_data_writers
-            .into_iter()
-            .filter(|(_, buf)| !buf.is_empty())
-            .map(|(block_content_id, buf)| {
-                Block::builder()
-                    .set_content_type(block::ContentType::ExternalData)
-                    .set_content_id(block_content_id)
-                    .compress_and_set_data(buf, CompressionMethod::Gzip)
-                    .map(|builder| builder.build())
-            })
-            .collect::<Result<_, _>>()?;
-
-        for block in &external_blocks {
-            block_content_ids.push(block.content_id());
-        }
+            &mut self.records,
+        )?;
 
         let reference_md5 = match (
             slice_reference_sequence_id,
@@ -239,6 +175,86 @@ fn find_slice_alignment_positions(
     }
 
     Ok((slice_alignment_start, slice_alignment_end))
+}
+
+fn write_records(
+    reference_sequences: &[fasta::Record],
+    compression_header: &CompressionHeader,
+    slice_reference_sequence_id: ReferenceSequenceId,
+    slice_alignment_start: Option<sam::record::Position>,
+    records: &mut [Record],
+) -> io::Result<(Vec<Itf8>, Block, Vec<Block>)> {
+    let mut core_data_writer = BitWriter::new(Vec::new());
+
+    let mut external_data_writers = HashMap::new();
+
+    for i in 0..DataSeries::LEN {
+        let block_content_id = (i + 1) as i32;
+        external_data_writers.insert(block_content_id, Vec::new());
+    }
+
+    for &block_content_id in compression_header.tag_encoding_map().keys() {
+        external_data_writers.insert(block_content_id, Vec::new());
+    }
+
+    let mut record_writer = writer::record::Writer::new(
+        compression_header,
+        &mut core_data_writer,
+        &mut external_data_writers,
+        slice_reference_sequence_id,
+        slice_alignment_start,
+    );
+
+    for record in records {
+        if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
+            if let Some(alignment_start) = record.alignment_start() {
+                let reference_sequence = reference_sequences
+                    .get(id as usize)
+                    .map(|record| record.sequence())
+                    .ok_or_else(|| {
+                        io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
+                    })?;
+
+                update_substitution_codes(
+                    reference_sequence.as_ref(),
+                    compression_header.preservation_map().substitution_matrix(),
+                    alignment_start,
+                    &record.bases,
+                    &mut record.features,
+                );
+            }
+        }
+
+        record_writer.write_record(record)?;
+    }
+
+    let core_data_block = core_data_writer.finish().and_then(|buf| {
+        Block::builder()
+            .set_content_type(block::ContentType::CoreData)
+            .set_content_id(CORE_DATA_BLOCK_CONTENT_ID)
+            .compress_and_set_data(buf, CompressionMethod::Gzip)
+            .map(|builder| builder.build())
+    })?;
+
+    let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
+
+    let external_blocks: Vec<_> = external_data_writers
+        .into_iter()
+        .filter(|(_, buf)| !buf.is_empty())
+        .map(|(block_content_id, buf)| {
+            Block::builder()
+                .set_content_type(block::ContentType::ExternalData)
+                .set_content_id(block_content_id)
+                .compress_and_set_data(buf, CompressionMethod::Gzip)
+                .map(|builder| builder.build())
+        })
+        .collect::<Result<_, _>>()?;
+
+    for block in &external_blocks {
+        block_content_ids.push(block.content_id());
+    }
+
+    Ok((block_content_ids, core_data_block, external_blocks))
 }
 
 fn update_substitution_codes(
