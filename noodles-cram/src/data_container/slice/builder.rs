@@ -201,21 +201,27 @@ impl Builder {
             [0; 16]
         };
 
-        let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
-        let slice_alignment_start = sam::record::Position::try_from(slice_alignment_start)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let header = Header::builder()
+        let mut builder = Header::builder()
             .set_reference_sequence_id(reference_sequence_id)
-            .set_alignment_start(slice_alignment_start)
-            .set_alignment_span(slice_alignment_span)
             .set_record_count(self.records.len())
             .set_record_counter(record_counter)
             // external blocks + core data block
             .set_block_count(external_blocks.len() + 1)
             .set_block_content_ids(block_content_ids)
-            .set_reference_md5(reference_md5)
-            .build();
+            .set_reference_md5(reference_md5);
+
+        if reference_sequence_id.is_some() {
+            let slice_alignment_span = slice_alignment_end - slice_alignment_start + 1;
+
+            let slice_alignment_start = sam::record::Position::try_from(slice_alignment_start)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+            builder = builder
+                .set_alignment_start(slice_alignment_start)
+                .set_alignment_span(slice_alignment_span);
+        }
+
+        let header = builder.build();
 
         Ok(Slice::new(header, core_data_block, external_blocks))
     }

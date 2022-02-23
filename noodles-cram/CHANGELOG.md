@@ -39,6 +39,9 @@
   * cram/data_container/slice/builder: Update substitution codes before writing
     records.
 
+  * cram/data_container/slice/builder: Only set alignment start and span when
+    the slice is a single-reference slice.
+
   * cram/data_container/compression_header/preservation_map/substitution_matrix/builder:
     Read read base from read bases.
 
