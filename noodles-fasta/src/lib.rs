@@ -52,6 +52,9 @@
 //! # Ok::<(), io::Error>(())
 //! ```
 
+#[cfg(feature = "async")]
+pub(crate) mod r#async;
+
 pub mod fai;
 mod indexer;
 pub mod reader;
@@ -59,6 +62,9 @@ pub mod record;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{
     fs::File,

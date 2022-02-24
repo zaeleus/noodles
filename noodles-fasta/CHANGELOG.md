@@ -4,6 +4,8 @@
 
 ### Added
 
+  * fasta: Add async reader (`fasta::AsyncReader`).
+
   * fasta/fai: Add async reader (`fai::AsyncReader`).
 
 ## 0.7.0 - 2022-02-17
