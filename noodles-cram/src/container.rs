@@ -8,7 +8,7 @@ use std::{cmp, error, fmt, io};
 
 use noodles_sam as sam;
 
-use super::{num::Itf8, writer, DataContainer};
+use super::{data_container::Slice, num::Itf8, writer, DataContainer};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Container {
@@ -40,7 +40,8 @@ impl Container {
         let mut blocks = vec![block];
         let mut landmarks = Vec::new();
 
-        let mut container_reference_sequence_id: Option<ReferenceSequenceId> = None;
+        let container_reference_sequence_id =
+            find_container_reference_sequence_id(data_container.slices())?;
 
         let mut container_alignment_start = i32::MAX;
         let mut container_alignment_end = 1;
@@ -54,16 +55,6 @@ impl Container {
 
         for slice in data_container.slices() {
             let slice_header = slice.header();
-
-            if let Some(reference_sequence_id) = container_reference_sequence_id {
-                if !reference_sequence_id.is_many()
-                    && reference_sequence_id != slice.header().reference_sequence_id()
-                {
-                    container_reference_sequence_id = Some(ReferenceSequenceId::Many);
-                }
-            } else {
-                container_reference_sequence_id = Some(slice.header().reference_sequence_id());
-            }
 
             let slice_alignment_start = slice_header
                 .alignment_start()
@@ -106,9 +97,6 @@ impl Container {
 
         let len = blocks.iter().map(|b| b.len() as i32).sum();
 
-        let container_reference_sequence_id =
-            container_reference_sequence_id.expect("no slices in builder");
-
         let mut builder = Header::builder()
             .set_length(len)
             .set_reference_sequence_id(container_reference_sequence_id)
@@ -146,6 +134,29 @@ impl Container {
     pub fn blocks(&self) -> &[Block] {
         &self.blocks
     }
+}
+
+fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<ReferenceSequenceId> {
+    assert!(!slices.is_empty());
+
+    let first_slice = slices.first().expect("slices cannot be empty");
+    let container_reference_sequence_id = first_slice.header().reference_sequence_id();
+
+    for slice in slices.iter().skip(1) {
+        let slice_reference_sequence_id = slice.header().reference_sequence_id();
+
+        if slice_reference_sequence_id != container_reference_sequence_id {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "invalid slice reference sequence ID: expected {:?}, got {:?}",
+                    container_reference_sequence_id, slice_reference_sequence_id
+                ),
+            ));
+        }
+    }
+
+    Ok(container_reference_sequence_id)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
