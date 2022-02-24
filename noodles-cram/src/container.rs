@@ -99,7 +99,7 @@ impl Container {
                 slice_len += external_block.len() as Itf8;
             }
 
-            let last_landmark = landmarks.last().unwrap_or(&0);
+            let last_landmark = landmarks.last().copied().unwrap_or(0);
             let landmark = last_landmark + slice_len;
             landmarks.push(landmark);
         }
