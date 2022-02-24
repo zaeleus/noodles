@@ -37,7 +37,7 @@ Individual crates may have optional features that can be enabled using feature
 flags.
 
   * `async`: Enables asynchronous I/O with [Tokio]. (BAM, BCF, BGZF, CRAM, CSI,
-    FASTQ, SAM, tabix, and VCF)
+    FASTA, FASTQ, SAM, tabix, and VCF)
   * `libdeflate`: Use [libdeflate] to encode and decode DEFLATE streams. (BGZF)
 
 [Tokio]: https://tokio.rs/

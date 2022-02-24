@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/fai: Add async reader (`fai::AsyncReader`).
+
 ## 0.7.0 - 2022-02-17
 
 ### Added

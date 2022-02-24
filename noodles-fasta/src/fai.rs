@@ -1,10 +1,16 @@
 //! FASTA index (FAI) and fields.
 
+#[cfg(feature = "async")]
+mod r#async;
+
 mod reader;
 mod record;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
+
+#[cfg(feature = "async")]
+pub use self::r#async::Reader as AsyncReader;
 
 use std::{
     fs::File,
