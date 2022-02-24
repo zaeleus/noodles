@@ -2,6 +2,8 @@ mod builder;
 
 pub use builder::Builder;
 
+use std::io;
+
 use noodles_sam as sam;
 
 use crate::{
@@ -38,6 +40,15 @@ impl Header {
 
     pub fn alignment_span(&self) -> Itf8 {
         self.alignment_span
+    }
+
+    pub fn alignment_end(&self) -> Option<io::Result<sam::record::Position>> {
+        self.alignment_start().map(|alignment_start| {
+            let alignment_end = i32::from(alignment_start) + self.alignment_span() + 1;
+
+            sam::record::Position::try_from(alignment_end)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
     }
 
     pub fn record_count(&self) -> usize {

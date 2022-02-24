@@ -43,8 +43,12 @@ impl Container {
         let container_reference_sequence_id =
             find_container_reference_sequence_id(data_container.slices())?;
 
-        let mut container_alignment_start = i32::MAX;
-        let mut container_alignment_end = 1;
+        let (container_alignment_start, container_alignment_end) =
+            if container_reference_sequence_id.is_some() {
+                find_container_alignment_positions(data_container.slices())?
+            } else {
+                (None, None)
+            };
 
         let mut container_record_count = 0;
         let container_record_counter = data_container
@@ -55,16 +59,6 @@ impl Container {
 
         for slice in data_container.slices() {
             let slice_header = slice.header();
-
-            let slice_alignment_start = slice_header
-                .alignment_start()
-                .map(i32::from)
-                .unwrap_or_default();
-
-            container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
-
-            let slice_alignment_end = slice_alignment_start + slice_header.alignment_span() - 1;
-            container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
 
             container_record_count += slice_header.record_count() as Itf8;
 
@@ -106,16 +100,14 @@ impl Container {
             .set_block_count(blocks.len())
             .set_landmarks(landmarks);
 
-        if container_reference_sequence_id.is_some() {
-            let container_alignment_span = container_alignment_end - container_alignment_start + 1;
-
-            let container_alignment_start =
-                sam::record::Position::try_from(container_alignment_start)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        if let (Some(alignment_start), Some(alignment_end)) =
+            (container_alignment_start, container_alignment_end)
+        {
+            let alignment_span = i32::from(alignment_end) - i32::from(alignment_start) + 1;
 
             builder = builder
-                .set_start_position(container_alignment_start)
-                .set_alignment_span(container_alignment_span);
+                .set_start_position(alignment_start)
+                .set_alignment_span(alignment_span);
         }
 
         let header = builder.build();
@@ -157,6 +149,30 @@ fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<Referenc
     }
 
     Ok(container_reference_sequence_id)
+}
+
+fn find_container_alignment_positions(
+    slices: &[Slice],
+) -> io::Result<(Option<sam::record::Position>, Option<sam::record::Position>)> {
+    assert!(!slices.is_empty());
+
+    let mut container_alignment_start = sam::record::Position::try_from(i32::MAX)
+        .map(Some)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    let mut container_alignment_end = None;
+
+    for slice in slices {
+        let slice_header = slice.header();
+
+        let slice_alignment_start = slice_header.alignment_start();
+        container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
+
+        let slice_alignment_end = slice_header.alignment_end().transpose()?;
+        container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
+    }
+
+    Ok((container_alignment_start, container_alignment_end))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
