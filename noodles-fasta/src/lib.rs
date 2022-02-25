@@ -59,9 +59,10 @@ pub mod fai;
 mod indexer;
 pub mod reader;
 pub mod record;
+mod repository;
 mod writer;
 
-pub use self::{reader::Reader, record::Record, writer::Writer};
+pub use self::{reader::Reader, record::Record, repository::Repository, writer::Writer};
 
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
