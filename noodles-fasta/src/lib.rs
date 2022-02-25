@@ -59,7 +59,7 @@ pub mod fai;
 mod indexer;
 pub mod reader;
 pub mod record;
-mod repository;
+pub mod repository;
 mod writer;
 
 pub use self::{reader::Reader, record::Record, repository::Repository, writer::Writer};

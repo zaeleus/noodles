@@ -1,4 +1,7 @@
+//! Sequence repository and adapters.
+
 mod adapter;
+pub mod adapters;
 
 pub use self::adapter::Adapter;
 
