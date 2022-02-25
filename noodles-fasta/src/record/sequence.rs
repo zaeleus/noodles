@@ -1,6 +1,8 @@
+use bytes::Bytes;
+
 /// A FASTA record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Sequence(Vec<u8>);
+pub struct Sequence(Bytes);
 
 impl Sequence {
     /// Returns the length of the sequence.
@@ -38,6 +40,6 @@ impl AsRef<[u8]> for Sequence {
 
 impl From<Vec<u8>> for Sequence {
     fn from(data: Vec<u8>) -> Self {
-        Self(data)
+        Self(Bytes::from(data))
     }
 }

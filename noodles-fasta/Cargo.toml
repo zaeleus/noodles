@@ -14,6 +14,7 @@ documentation = "https://docs.rs/noodles-fasta"
 async = ["tokio"]
 
 [dependencies]
+bytes = "1.0.1"
 memchr = "2.3.3"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.9.0" }
 noodles-core = { path = "../noodles-core", version = "0.4.0" }
