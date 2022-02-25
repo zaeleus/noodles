@@ -14,6 +14,8 @@
 
   * cram/writer: Add builder.
 
+  * cram/writer/builder: Add options to change preservation map values.
+
 ### Changed
 
   * cram/data_container/builder: Decrease max slice count to 1.

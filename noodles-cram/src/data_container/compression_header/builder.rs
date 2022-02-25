@@ -1,4 +1,4 @@
-use crate::Record;
+use crate::{writer::Options, Record};
 
 use super::{
     data_series_encoding_map::DataSeriesEncodingMap, preservation_map, tag_encoding_map,
@@ -12,6 +12,10 @@ pub struct Builder {
 }
 
 impl Builder {
+    pub fn apply_options(&mut self, options: &Options) {
+        self.preservation_map_builder.apply_options(options);
+    }
+
     pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
         self.preservation_map_builder
             .update(reference_sequence, record);

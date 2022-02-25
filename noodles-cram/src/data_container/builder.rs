@@ -3,7 +3,7 @@ use std::{io, mem};
 use noodles_fasta as fasta;
 
 use super::{compression_header, slice, CompressionHeader, DataContainer, Slice};
-use crate::Record;
+use crate::{writer::Options, Record};
 
 const MAX_SLICE_COUNT: usize = 1;
 
@@ -72,10 +72,16 @@ impl Builder {
         }
     }
 
-    pub fn build(mut self, reference_sequences: &[fasta::Record]) -> io::Result<DataContainer> {
+    pub fn build(
+        mut self,
+        options: &Options,
+        reference_sequences: &[fasta::Record],
+    ) -> io::Result<DataContainer> {
         if !self.slice_builder.is_empty() {
             self.slice_builders.push(self.slice_builder);
         }
+
+        self.compression_header_builder.apply_options(options);
 
         let compression_header = self.compression_header_builder.build();
 

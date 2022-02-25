@@ -2,9 +2,11 @@ mod builder;
 mod container;
 pub(crate) mod data_container;
 pub(crate) mod num;
+mod options;
 pub(crate) mod record;
 
 pub use self::builder::Builder;
+pub(crate) use self::options::Options;
 
 use std::{
     io::{self, Write},
@@ -46,6 +48,7 @@ where
 {
     inner: W,
     reference_sequences: Vec<fasta::Record>,
+    options: Options,
     data_container_builder: crate::data_container::Builder,
     record_counter: i64,
 }
@@ -226,12 +229,13 @@ where
 
         let base_count = data_container_builder.base_count();
 
-        data_container_builder
-            .build(&self.reference_sequences)
-            .and_then(|data_container| {
-                Container::try_from_data_container(&data_container, base_count)
-            })
-            .and_then(|container| write_container(&mut self.inner, &container))
+        let data_container =
+            data_container_builder.build(&self.options, &self.reference_sequences)?;
+
+        let container = Container::try_from_data_container(&data_container, base_count)?;
+        write_container(&mut self.inner, &container)?;
+
+        Ok(())
     }
 }
 
