@@ -589,9 +589,9 @@ where
                 )
             })
             .and_then(|encoding| {
-                let feature_code = char::from(code) as Itf8;
+                let feature_code = u8::from(code);
 
-                encode_itf8(
+                encode_byte(
                     encoding,
                     self.core_data_writer,
                     self.external_data_writers,

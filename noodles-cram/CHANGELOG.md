@@ -12,6 +12,8 @@
 
   * cram/record/feature/code: Add fallible conversion from `u8`.
 
+  * cram/record/feature/code: Add conversion to `u8`.
+
   * cram/record/resolve: Add quality scores resolver.
 
   * cram/writer: Add builder.
@@ -43,6 +45,10 @@
   * cram/record/feature/code: Deprecate fallible conversion from `char`.
 
     This also deprecates `TryFromCharError`. Use `TryFrom<u8>` instead.
+
+  * cram/record/feature/code: Deprecate conversion to `char`.
+
+    Convert to a `u8` instead.
 
 ### Fixed
 
