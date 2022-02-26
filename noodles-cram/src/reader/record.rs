@@ -623,7 +623,6 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .map(char::from)
         .and_then(|id| {
             feature::Code::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })

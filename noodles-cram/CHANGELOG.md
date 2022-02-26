@@ -10,6 +10,8 @@
 
   * cram/record: Add features wrapper (`Features`).
 
+  * cram/record/feature/code: Add fallible conversion from `u8`.
+
   * cram/record/resolve: Add quality scores resolver.
 
   * cram/writer: Add builder.
@@ -35,6 +37,12 @@
 
   * cram/record/resolve: `resolve_bases` takes a `sam::record::Position`
     instead of an `i32` for `alignment_start`.
+
+### Deprecated
+
+  * cram/record/feature/code: Deprecate fallible conversion from `char`.
+
+    This also deprecates `TryFromCharError`. Use `TryFrom<u8>` instead.
 
 ### Fixed
 
