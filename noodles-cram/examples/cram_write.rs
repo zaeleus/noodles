@@ -17,14 +17,24 @@ use noodles_sam::{
     header::{self, reference_sequence::Md5Checksum, Program, ReferenceSequence},
 };
 
-static FASTA_DATA: &[u8] = b"\
->sq0
-TTCACCCA
->sq1
-GATCTTACTTTTT
->sq2
-GGCGCCCCGCTGTGCAAAAAT
-";
+fn build_reference_sequences() -> Vec<fasta::Record> {
+    use fasta::record::{Definition, Sequence};
+
+    vec![
+        fasta::Record::new(
+            Definition::new("sq0", None),
+            Sequence::from(b"TTCACCCA".to_vec()),
+        ),
+        fasta::Record::new(
+            Definition::new("sq1", None),
+            Sequence::from(b"GATCTTACTTTTT".to_vec()),
+        ),
+        fasta::Record::new(
+            Definition::new("sq2", None),
+            Sequence::from(b"GGCGCCCCGCTGTGCAAAAAT".to_vec()),
+        ),
+    ]
+}
 
 fn build_header(
     reference_sequence_records: &[fasta::Record],
@@ -37,13 +47,17 @@ fn build_header(
     for record in reference_sequence_records {
         let sequence = record.sequence();
 
+        let name = record.name().parse()?;
+        let len = i32::try_from(sequence.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let mut hasher = Md5::new();
         hasher.update(&sequence);
         let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
 
         let reference_sequence = ReferenceSequence::builder()
-            .set_name(record.name().parse()?)
-            .set_length(sequence.len() as i32)
+            .set_name(name)
+            .set_length(len)
             .set_md5_checksum(md5_checksum)
             .build()?;
 
@@ -54,16 +68,13 @@ fn build_header(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let reference_sequence_records: Vec<_> = fasta::Reader::new(FASTA_DATA)
-        .records()
-        .collect::<Result<_, _>>()?;
-
-    let header = build_header(&reference_sequence_records)?;
+    let reference_sequences = build_reference_sequences();
+    let header = build_header(&reference_sequences)?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();
 
-    let mut writer = cram::Writer::new(handle, reference_sequence_records);
+    let mut writer = cram::Writer::new(handle, reference_sequences);
     writer.write_file_definition()?;
     writer.write_file_header(&header)?;
 
