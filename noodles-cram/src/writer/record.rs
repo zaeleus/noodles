@@ -585,7 +585,7 @@ where
             .ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
+                    WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadFeaturesCodes),
                 )
             })
             .and_then(|encoding| {

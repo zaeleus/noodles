@@ -61,6 +61,9 @@
   * cram/data_container/compression_header/preservation_map/substitution_matrix/builder:
     Read read base from read bases.
 
+  * cram/writer/record: Fix data series type when the features code encoding is
+    missing.
+
 ### Removed
 
   * cram/record/read_group_id: Remove conversion to and from `i32`.
