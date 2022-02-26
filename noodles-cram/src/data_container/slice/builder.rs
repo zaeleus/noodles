@@ -119,8 +119,7 @@ impl Builder {
             .set_reference_sequence_id(slice_reference_sequence_id)
             .set_record_count(self.records.len())
             .set_record_counter(record_counter)
-            // external blocks + core data block
-            .set_block_count(external_blocks.len() + 1)
+            .set_block_count(block_content_ids.len())
             .set_block_content_ids(block_content_ids)
             .set_reference_md5(reference_md5);
 
