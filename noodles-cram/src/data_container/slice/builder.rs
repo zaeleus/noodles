@@ -17,7 +17,6 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
         CompressionHeader,
     },
-    num::Itf8,
     record::{Feature, Features},
     writer, BitWriter, Record,
 };
@@ -78,13 +77,20 @@ impl Builder {
             (None, None)
         };
 
-        let (block_content_ids, core_data_block, external_blocks) = write_records(
+        let (core_data_block, external_blocks) = write_records(
             reference_sequences,
             compression_header,
             slice_reference_sequence_id,
             slice_alignment_start,
             &mut self.records,
         )?;
+
+        let mut block_content_ids = Vec::with_capacity(external_blocks.len() + 1);
+        block_content_ids.push(core_data_block.content_id());
+
+        for block in &external_blocks {
+            block_content_ids.push(block.content_id());
+        }
 
         let reference_md5 = match (
             slice_reference_sequence_id,
@@ -183,7 +189,7 @@ fn write_records(
     slice_reference_sequence_id: ReferenceSequenceId,
     slice_alignment_start: Option<sam::record::Position>,
     records: &mut [Record],
-) -> io::Result<(Vec<Itf8>, Block, Vec<Block>)> {
+) -> io::Result<(Block, Vec<Block>)> {
     let mut core_data_writer = BitWriter::new(Vec::new());
 
     let mut external_data_writers = HashMap::new();
@@ -236,8 +242,6 @@ fn write_records(
             .map(|builder| builder.build())
     })?;
 
-    let mut block_content_ids = vec![CORE_DATA_BLOCK_CONTENT_ID];
-
     let external_blocks: Vec<_> = external_data_writers
         .into_iter()
         .filter(|(_, buf)| !buf.is_empty())
@@ -250,11 +254,7 @@ fn write_records(
         })
         .collect::<Result<_, _>>()?;
 
-    for block in &external_blocks {
-        block_content_ids.push(block.content_id());
-    }
-
-    Ok((block_content_ids, core_data_block, external_blocks))
+    Ok((core_data_block, external_blocks))
 }
 
 fn update_substitution_codes(
