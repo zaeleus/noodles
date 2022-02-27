@@ -44,16 +44,6 @@ where
         self
     }
 
-    /// Sets whether an external reference sequence is required to fully decode the record.
-    ///
-    /// If `false`, the sequence is embedded in the slice.
-    ///
-    /// The default is `true`.
-    pub fn require_reference_sequence(mut self, value: bool) -> Self {
-        self.options.require_reference_sequence = value;
-        self
-    }
-
     /// Builds a CRAM writer.
     ///
     /// # Examples

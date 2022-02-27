@@ -18,7 +18,9 @@
 
   * cram/writer: Add builder.
 
-  * cram/writer/builder: Add options to change preservation map values.
+  * cram/writer/builder: Add options to change applicable preservation map
+    values, i.e., whether to preserve read names and whether to encode record
+    alignment start positions as deltas.
 
 ### Changed
 

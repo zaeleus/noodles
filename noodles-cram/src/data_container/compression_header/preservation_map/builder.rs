@@ -15,7 +15,6 @@ impl Builder {
     pub fn apply_options(&mut self, options: &Options) {
         self.read_names_included = options.preserve_read_names;
         self.ap_data_series_delta = options.encode_alignment_start_positions_as_deltas;
-        self.reference_required = options.require_reference_sequence;
     }
 
     pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
