@@ -6,8 +6,7 @@ use noodles_sam as sam;
 use super::{Feature, Features};
 use crate::data_container::CompressionHeader;
 
-/// Resolves the read bases.
-pub fn resolve_bases(
+pub(crate) fn resolve_bases(
     reference_sequence_record: &fasta::Record,
     compression_header: &CompressionHeader,
     features: &Features,

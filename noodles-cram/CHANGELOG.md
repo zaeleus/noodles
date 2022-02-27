@@ -78,6 +78,13 @@
 
     Convert from `usize` instead.
 
+  * cram/record/resolve: Remove `resolve_bases`.
+
+    Base resolution can only be guaranteed when the slice is available, as it
+    may contain an embedded reference sequence.
+
+    Use `Slice::resolve_records` instead.
+
 ## 0.12.0 - 2022-02-17
 
 ### Added
