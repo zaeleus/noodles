@@ -195,9 +195,6 @@ impl Slice {
                 embedded_reference_sequence.as_ref().cloned()
             };
 
-            let reference_sequence = reference_sequence
-                .as_ref()
-                .expect("invalid reference sequence");
             let substitution_matrix = compression_header.preservation_map().substitution_matrix();
             let alignment_start = record.alignment_start().expect("invalid alignment start");
 
@@ -207,7 +204,7 @@ impl Slice {
                 record.features(),
                 alignment_start,
                 record.read_length(),
-            );
+            )?;
 
             record.bases = bases;
         }

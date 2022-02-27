@@ -16,6 +16,12 @@
 
   * cram/record/resolve: Add quality scores resolver.
 
+  * cram/record/resolve: Allow base resolution when there is no reference
+    sequence available.
+
+    Even when both an external reference sequence and embedded reference
+    sequence are missing, it is still possible to resolve bases.
+
   * cram/writer: Add builder.
 
   * cram/writer/builder: Add options to change applicable preservation map

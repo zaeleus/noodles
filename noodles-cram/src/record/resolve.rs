@@ -1,5 +1,7 @@
 //! CRAM record field resolvers.
 
+use std::io;
+
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -8,15 +10,15 @@ use crate::data_container::compression_header::SubstitutionMatrix;
 use super::{Feature, Features};
 
 pub(crate) fn resolve_bases(
-    reference_sequence: &fasta::record::Sequence,
+    reference_sequence: Option<fasta::record::Sequence>,
     substitution_matrix: &SubstitutionMatrix,
     features: &Features,
     alignment_start: sam::record::Position,
     read_length: usize,
-) -> Vec<u8> {
+) -> io::Result<Vec<u8>> {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    let reference_sequence = reference_sequence.as_ref();
+    let reference_sequence = reference_sequence.as_ref().map(|rs| rs.as_ref());
 
     let mut buf = vec![b'-'; read_length];
 
@@ -30,9 +32,16 @@ pub(crate) fn resolve_bases(
         reference_position -= 1;
         read_position -= 1;
 
-        let dst = &mut buf[last_read_position..read_position];
-        let src = &reference_sequence[last_reference_position..reference_position];
-        dst.copy_from_slice(src);
+        if let Some(reference_sequence) = reference_sequence {
+            let dst = &mut buf[last_read_position..read_position];
+            let src = &reference_sequence[last_reference_position..reference_position];
+            dst.copy_from_slice(src);
+        } else if read_position != last_read_position {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "cannot resolve bases without reference sequence",
+            ));
+        }
 
         match feature {
             Feature::Bases(_, bases) => {
@@ -43,10 +52,17 @@ pub(crate) fn resolve_bases(
                 buf[read_position] = *base;
             }
             Feature::Substitution(_, code) => {
-                let base = char::from(reference_sequence[reference_position]);
-                let reference_base = Base::try_from(base).unwrap_or_default();
-                let read_base = substitution_matrix.get(reference_base, *code);
-                buf[read_position] = char::from(read_base) as u8;
+                if let Some(reference_sequence) = reference_sequence {
+                    let base = char::from(reference_sequence[reference_position]);
+                    let reference_base = Base::try_from(base).unwrap_or_default();
+                    let read_base = substitution_matrix.get(reference_base, *code);
+                    buf[read_position] = char::from(read_base) as u8;
+                } else {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "cannot resolve base substitution without reference sequence",
+                    ));
+                }
             }
             Feature::Insertion(_, bases) => {
                 let dst = &mut buf[read_position..read_position + bases.len()];
@@ -70,11 +86,18 @@ pub(crate) fn resolve_bases(
         last_read_position = next_read_position - 1;
     }
 
-    let dst = &mut buf[last_read_position..];
-    let src = &reference_sequence[last_reference_position..last_reference_position + dst.len()];
-    dst.copy_from_slice(src);
+    if let Some(reference_sequence) = reference_sequence {
+        let dst = &mut buf[last_read_position..];
+        let src = &reference_sequence[last_reference_position..last_reference_position + dst.len()];
+        dst.copy_from_slice(src);
+    } else if last_read_position != buf.len() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "cannot resolve bases without reference sequence",
+        ));
+    }
 
-    buf
+    Ok(buf)
 }
 
 /// Resolves the read features as CIGAR operations.
@@ -147,45 +170,47 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_resolve_bases() -> Result<(), sam::record::position::TryFromIntError> {
+    fn test_resolve_bases() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
         let alignment_start = sam::record::Position::try_from(1)?;
 
         let t = |features: &Features, expected: &[u8]| {
             let actual = resolve_bases(
-                &reference_sequence,
+                Some(reference_sequence.clone()),
                 &substitution_matrix,
                 features,
                 alignment_start,
                 4,
-            );
+            )?;
 
             assert_eq!(actual, expected);
+
+            Ok::<_, io::Error>(())
         };
 
-        t(&Features::default(), b"ACGT");
+        t(&Features::default(), b"ACGT")?;
         t(
             &Features::from(vec![Feature::Bases(1, b"TGCA".to_vec())]),
             b"TGCA",
-        );
+        )?;
         t(
             &Features::from(vec![Feature::ReadBase(2, b'Y', b'!')]),
             b"AYGT",
-        );
-        t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT");
+        )?;
+        t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT")?;
         t(
             &Features::from(vec![Feature::Insertion(2, b"GG".to_vec())]),
             b"AGGC",
-        );
-        t(&Features::from(vec![Feature::Deletion(2, 2)]), b"ATAC");
-        t(&Features::from(vec![Feature::InsertBase(2, b'G')]), b"AGCG");
-        t(&Features::from(vec![Feature::ReferenceSkip(2, 2)]), b"ATAC");
+        )?;
+        t(&Features::from(vec![Feature::Deletion(2, 2)]), b"ATAC")?;
+        t(&Features::from(vec![Feature::InsertBase(2, b'G')]), b"AGCG")?;
+        t(&Features::from(vec![Feature::ReferenceSkip(2, 2)]), b"ATAC")?;
         t(
             &Features::from(vec![Feature::SoftClip(3, b"GG".to_vec())]),
             b"ACGG",
-        );
-        t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT");
+        )?;
+        t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT")?;
 
         Ok(())
     }
