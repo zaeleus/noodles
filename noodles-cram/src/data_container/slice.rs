@@ -178,7 +178,7 @@ impl Slice {
         };
 
         for record in records {
-            if record.bam_flags().is_unmapped() {
+            if record.bam_flags().is_unmapped() || record.flags().decode_sequence_as_unknown() {
                 continue;
             }
 
