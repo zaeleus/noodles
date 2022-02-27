@@ -3,100 +3,78 @@
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
+use crate::data_container::compression_header::SubstitutionMatrix;
+
 use super::{Feature, Features};
-use crate::data_container::CompressionHeader;
 
 pub(crate) fn resolve_bases(
-    reference_sequence_record: &fasta::Record,
-    compression_header: &CompressionHeader,
+    reference_sequence: &fasta::record::Sequence,
+    substitution_matrix: &SubstitutionMatrix,
     features: &Features,
     alignment_start: sam::record::Position,
-    read_len: usize,
+    read_length: usize,
 ) -> Vec<u8> {
-    let reference_sequence = reference_sequence_record.sequence();
-    let substitution_matrix = compression_header.preservation_map().substitution_matrix();
+    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    internal::resolve_bases(
-        reference_sequence.as_ref(),
-        substitution_matrix,
-        features,
-        alignment_start,
-        read_len,
-    )
-}
+    let reference_sequence = reference_sequence.as_ref();
 
-mod internal {
-    use crate::data_container::compression_header::preservation_map::SubstitutionMatrix;
+    let mut buf = vec![b'-'; read_length];
 
-    use super::*;
+    let mut it = features.with_positions(alignment_start);
 
-    pub(super) fn resolve_bases(
-        reference_sequence: &[u8],
-        substitution_matrix: &SubstitutionMatrix,
-        features: &Features,
-        alignment_start: sam::record::Position,
-        read_length: usize,
-    ) -> Vec<u8> {
-        use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
+    let (mut last_reference_position, mut last_read_position) = it.positions();
+    last_reference_position -= 1;
+    last_read_position -= 1;
 
-        let mut buf = vec![b'-'; read_length];
+    while let Some(((mut reference_position, mut read_position), feature)) = it.next() {
+        reference_position -= 1;
+        read_position -= 1;
 
-        let mut it = features.with_positions(alignment_start);
-
-        let (mut last_reference_position, mut last_read_position) = it.positions();
-        last_reference_position -= 1;
-        last_read_position -= 1;
-
-        while let Some(((mut reference_position, mut read_position), feature)) = it.next() {
-            reference_position -= 1;
-            read_position -= 1;
-
-            let dst = &mut buf[last_read_position..read_position];
-            let src = &reference_sequence[last_reference_position..reference_position];
-            dst.copy_from_slice(src);
-
-            match feature {
-                Feature::Bases(_, bases) => {
-                    let dst = &mut buf[read_position..read_position + bases.len()];
-                    dst.copy_from_slice(bases);
-                }
-                Feature::ReadBase(_, base, _) => {
-                    buf[read_position] = *base;
-                }
-                Feature::Substitution(_, code) => {
-                    let base = char::from(reference_sequence[reference_position]);
-                    let reference_base = Base::try_from(base).unwrap_or_default();
-                    let read_base = substitution_matrix.get(reference_base, *code);
-                    buf[read_position] = char::from(read_base) as u8;
-                }
-                Feature::Insertion(_, bases) => {
-                    let dst = &mut buf[read_position..read_position + bases.len()];
-                    dst.copy_from_slice(bases);
-                }
-                Feature::Deletion(..) => {}
-                Feature::InsertBase(_, base) => {
-                    buf[read_position] = *base;
-                }
-                Feature::ReferenceSkip(..) => {}
-                Feature::SoftClip(_, bases) => {
-                    let dst = &mut buf[read_position..read_position + bases.len()];
-                    dst.copy_from_slice(bases);
-                }
-                Feature::HardClip(..) => {}
-                _ => todo!("resolve_bases: {:?}", feature),
-            }
-
-            let (next_reference_position, next_read_position) = it.positions();
-            last_reference_position = next_reference_position - 1;
-            last_read_position = next_read_position - 1;
-        }
-
-        let dst = &mut buf[last_read_position..];
-        let src = &reference_sequence[last_reference_position..last_reference_position + dst.len()];
+        let dst = &mut buf[last_read_position..read_position];
+        let src = &reference_sequence[last_reference_position..reference_position];
         dst.copy_from_slice(src);
 
-        buf
+        match feature {
+            Feature::Bases(_, bases) => {
+                let dst = &mut buf[read_position..read_position + bases.len()];
+                dst.copy_from_slice(bases);
+            }
+            Feature::ReadBase(_, base, _) => {
+                buf[read_position] = *base;
+            }
+            Feature::Substitution(_, code) => {
+                let base = char::from(reference_sequence[reference_position]);
+                let reference_base = Base::try_from(base).unwrap_or_default();
+                let read_base = substitution_matrix.get(reference_base, *code);
+                buf[read_position] = char::from(read_base) as u8;
+            }
+            Feature::Insertion(_, bases) => {
+                let dst = &mut buf[read_position..read_position + bases.len()];
+                dst.copy_from_slice(bases);
+            }
+            Feature::Deletion(..) => {}
+            Feature::InsertBase(_, base) => {
+                buf[read_position] = *base;
+            }
+            Feature::ReferenceSkip(..) => {}
+            Feature::SoftClip(_, bases) => {
+                let dst = &mut buf[read_position..read_position + bases.len()];
+                dst.copy_from_slice(bases);
+            }
+            Feature::HardClip(..) => {}
+            _ => todo!("resolve_bases: {:?}", feature),
+        }
+
+        let (next_reference_position, next_read_position) = it.positions();
+        last_reference_position = next_reference_position - 1;
+        last_read_position = next_read_position - 1;
     }
+
+    let dst = &mut buf[last_read_position..];
+    let src = &reference_sequence[last_reference_position..last_reference_position + dst.len()];
+    dst.copy_from_slice(src);
+
+    buf
 }
 
 /// Resolves the read features as CIGAR operations.
@@ -170,13 +148,13 @@ mod tests {
 
     #[test]
     fn test_resolve_bases() -> Result<(), sam::record::position::TryFromIntError> {
-        let reference_sequence = b"ACGTACGT";
+        let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
         let alignment_start = sam::record::Position::try_from(1)?;
 
         let t = |features: &Features, expected: &[u8]| {
-            let actual = internal::resolve_bases(
-                reference_sequence,
+            let actual = resolve_bases(
+                &reference_sequence,
                 &substitution_matrix,
                 features,
                 alignment_start,

@@ -158,7 +158,7 @@ impl Slice {
         compression_header: &CompressionHeader,
         records: &mut [Record],
     ) -> io::Result<()> {
-        let embedded_reference_sequence_record = if let Some(block_content_id) =
+        let embedded_reference_sequence = if let Some(block_content_id) =
             self.header().embedded_reference_bases_block_content_id()
         {
             let block = self
@@ -167,12 +167,10 @@ impl Slice {
                 .find(|block| block.content_id() == block_content_id)
                 .expect("invalid block content ID");
 
-            let definition = fasta::record::Definition::new("", None);
+            let data = block.decompressed_data()?;
+            let sequence = fasta::record::Sequence::from(Vec::from(data));
 
-            let sequence = block.decompressed_data()?;
-            let sequence = fasta::record::Sequence::from(Vec::from(sequence));
-
-            Some(fasta::Record::new(definition, sequence))
+            Some(sequence)
         } else {
             None
         };
@@ -182,7 +180,7 @@ impl Slice {
                 continue;
             }
 
-            let reference_sequence_record = if compression_header
+            let reference_sequence = if compression_header
                 .preservation_map()
                 .is_reference_required()
             {
@@ -191,18 +189,21 @@ impl Slice {
                     .map(usize::from)
                     .expect("invalid reference sequence ID");
 
-                &reference_sequences[reference_sequence_id]
+                let record = &reference_sequences[reference_sequence_id];
+                Some(record.sequence().clone())
             } else {
-                embedded_reference_sequence_record
-                    .as_ref()
-                    .expect("missing embedded reference sequence record")
+                embedded_reference_sequence.as_ref().cloned()
             };
 
+            let reference_sequence = reference_sequence
+                .as_ref()
+                .expect("invalid reference sequence");
+            let substitution_matrix = compression_header.preservation_map().substitution_matrix();
             let alignment_start = record.alignment_start().expect("invalid alignment start");
 
             let bases = resolve_bases(
-                reference_sequence_record,
-                compression_header,
+                reference_sequence,
+                substitution_matrix,
                 record.features(),
                 alignment_start,
                 record.read_length(),
