@@ -6,7 +6,19 @@
 
   * fasta: Add async reader (`fasta::AsyncReader`).
 
+  * fasta: Add sequence repository (`fasta::Repository`).
+
+    A repository is a concurrent cache that uses a storage adapter to lookup
+    and load sequence data.
+
   * fasta/fai: Add async reader (`fai::AsyncReader`).
+
+### Changed
+
+  * fasta/record/sequence: `Sequence` is now backed by a `Bytes` buffer.
+
+    This allows for zero-copy cloning of the sequence or slices of the
+    sequence.
 
 ## 0.7.0 - 2022-02-17
 
