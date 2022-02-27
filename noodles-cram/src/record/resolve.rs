@@ -191,8 +191,8 @@ mod tests {
 
         t(&Features::default(), b"ACGT")?;
         t(
-            &Features::from(vec![Feature::Bases(1, b"TGCA".to_vec())]),
-            b"TGCA",
+            &Features::from(vec![Feature::Bases(1, b"TG".to_vec())]),
+            b"TGGT",
         )?;
         t(
             &Features::from(vec![Feature::ReadBase(2, b'Y', b'!')]),

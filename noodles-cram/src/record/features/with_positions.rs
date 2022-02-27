@@ -46,7 +46,7 @@ where
         self.read_position += match_len;
 
         let (reference_position_delta, read_position_delta) = match feature {
-            Feature::Bases(_, bases) => (0, bases.len()),
+            Feature::Bases(_, bases) => (bases.len(), bases.len()),
             Feature::ReadBase(..) => (1, 1),
             Feature::Substitution(..) => (1, 1),
             Feature::Insertion(_, bases) => (0, bases.len()),
