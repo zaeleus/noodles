@@ -45,8 +45,10 @@ impl Record {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
-        let cigar = resolve_features(self.features(), self.read_length() as i32);
-        builder = builder.set_cigar(cigar);
+        if !self.bam_flags().is_unmapped() {
+            let cigar = resolve_features(self.features(), self.read_length() as i32);
+            builder = builder.set_cigar(cigar);
+        }
 
         if let Some(mate_reference_sequence_name) = get_reference_sequence_name(
             reference_sequences,

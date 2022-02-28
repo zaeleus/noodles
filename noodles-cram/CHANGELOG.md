@@ -75,6 +75,8 @@
   * cram/data_container/compression_header/preservation_map/substitution_matrix/builder:
     Read read base from read bases.
 
+  * cram/record/convert: Only resolve features when the record is mapped.
+
   * cram/writer/record: Fix data series type when the features code encoding is
     missing.
 
