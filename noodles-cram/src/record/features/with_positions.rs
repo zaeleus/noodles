@@ -54,6 +54,7 @@ where
             Feature::InsertBase(..) => (0, 1),
             Feature::ReferenceSkip(_, len) => (*len as usize, 0),
             Feature::SoftClip(_, bases) => (0, bases.len()),
+            Feature::Padding(..) => (0, 0),
             Feature::HardClip(..) => (0, 0),
             _ => todo!("unhandled feature: {:?}", feature),
         };

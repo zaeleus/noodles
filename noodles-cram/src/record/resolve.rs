@@ -77,6 +77,7 @@ pub(crate) fn resolve_bases(
                 let dst = &mut buf[read_position..read_position + bases.len()];
                 dst.copy_from_slice(bases);
             }
+            Feature::Padding(..) => {}
             Feature::HardClip(..) => {}
             _ => todo!("resolve_bases: {:?}", feature),
         }
@@ -210,6 +211,7 @@ mod tests {
             &Features::from(vec![Feature::SoftClip(3, b"GG".to_vec())]),
             b"ACGG",
         )?;
+        t(&Features::from(vec![Feature::Padding(1, 2)]), b"ACGT")?;
         t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT")?;
 
         Ok(())
