@@ -48,6 +48,7 @@ pub(crate) fn resolve_bases(
                 let dst = &mut buf[read_position..read_position + bases.len()];
                 dst.copy_from_slice(bases);
             }
+            Feature::Scores(..) => {}
             Feature::ReadBase(_, base, _) => {
                 buf[read_position] = *base;
             }
@@ -72,6 +73,7 @@ pub(crate) fn resolve_bases(
             Feature::InsertBase(_, base) => {
                 buf[read_position] = *base;
             }
+            Feature::QualityScore(..) => {}
             Feature::ReferenceSkip(..) => {}
             Feature::SoftClip(_, bases) => {
                 let dst = &mut buf[read_position..read_position + bases.len()];
@@ -79,7 +81,6 @@ pub(crate) fn resolve_bases(
             }
             Feature::Padding(..) => {}
             Feature::HardClip(..) => {}
-            _ => todo!("resolve_bases: {:?}", feature),
         }
 
         let (next_reference_position, next_read_position) = it.positions();
