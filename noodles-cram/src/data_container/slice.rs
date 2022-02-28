@@ -180,7 +180,7 @@ impl Slice {
                 continue;
             }
 
-            let reference_sequence = if compression_header
+            let (reference_sequence, reference_sequence_offset) = if compression_header
                 .preservation_map()
                 .is_reference_required()
             {
@@ -190,9 +190,17 @@ impl Slice {
                     .expect("invalid reference sequence ID");
 
                 let record = &reference_sequences[reference_sequence_id];
-                Some(record.sequence().clone())
+                (Some(record.sequence().clone()), 0)
+            } else if let Some(ref sequence) = embedded_reference_sequence {
+                let offset = self
+                    .header()
+                    .alignment_start()
+                    .map(|alignment_start| (i32::from(alignment_start) - 1) as usize)
+                    .expect("invalid slice alignment start");
+
+                (Some(sequence.clone()), offset)
             } else {
-                embedded_reference_sequence.as_ref().cloned()
+                (None, 0)
             };
 
             let substitution_matrix = compression_header.preservation_map().substitution_matrix();
@@ -200,6 +208,7 @@ impl Slice {
 
             let bases = resolve_bases(
                 reference_sequence,
+                reference_sequence_offset,
                 substitution_matrix,
                 record.features(),
                 alignment_start,

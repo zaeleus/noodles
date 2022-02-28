@@ -11,6 +11,7 @@ use super::{Feature, Features};
 
 pub(crate) fn resolve_bases(
     reference_sequence: Option<fasta::record::Sequence>,
+    reference_sequence_offset: usize,
     substitution_matrix: &SubstitutionMatrix,
     features: &Features,
     alignment_start: sam::record::Position,
@@ -25,11 +26,11 @@ pub(crate) fn resolve_bases(
     let mut it = features.with_positions(alignment_start);
 
     let (mut last_reference_position, mut last_read_position) = it.positions();
-    last_reference_position -= 1;
+    last_reference_position -= 1 + reference_sequence_offset;
     last_read_position -= 1;
 
     while let Some(((mut reference_position, mut read_position), feature)) = it.next() {
-        reference_position -= 1;
+        reference_position -= 1 + reference_sequence_offset;
         read_position -= 1;
 
         if let Some(reference_sequence) = reference_sequence {
@@ -84,7 +85,7 @@ pub(crate) fn resolve_bases(
         }
 
         let (next_reference_position, next_read_position) = it.positions();
-        last_reference_position = next_reference_position - 1;
+        last_reference_position = next_reference_position - (reference_sequence_offset + 1);
         last_read_position = next_read_position - 1;
     }
 
@@ -180,6 +181,7 @@ mod tests {
         let t = |features: &Features, expected: &[u8]| {
             let actual = resolve_bases(
                 Some(reference_sequence.clone()),
+                0,
                 &substitution_matrix,
                 features,
                 alignment_start,
