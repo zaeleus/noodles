@@ -1,9 +1,6 @@
 use noodles_sam as sam;
 
-use crate::{
-    container::ReferenceSequenceId,
-    num::{Itf8, Ltf8},
-};
+use crate::container::ReferenceSequenceId;
 
 use super::Header;
 
@@ -11,12 +8,12 @@ use super::Header;
 pub struct Builder {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Option<sam::record::Position>,
-    alignment_span: Itf8,
+    alignment_span: i32,
     record_count: usize,
-    record_counter: Ltf8,
+    record_counter: i64,
     block_count: usize,
-    block_content_ids: Vec<Itf8>,
-    embedded_reference_bases_block_content_id: Option<Itf8>,
+    block_content_ids: Vec<i32>,
+    embedded_reference_bases_block_content_id: Option<i32>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -32,7 +29,7 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_span(mut self, alignment_span: Itf8) -> Self {
+    pub fn set_alignment_span(mut self, alignment_span: i32) -> Self {
         self.alignment_span = alignment_span;
         self
     }
@@ -42,7 +39,7 @@ impl Builder {
         self
     }
 
-    pub fn set_record_counter(mut self, record_counter: Ltf8) -> Self {
+    pub fn set_record_counter(mut self, record_counter: i64) -> Self {
         self.record_counter = record_counter;
         self
     }
@@ -52,12 +49,12 @@ impl Builder {
         self
     }
 
-    pub fn set_block_content_ids(mut self, block_content_ids: Vec<Itf8>) -> Self {
+    pub fn set_block_content_ids(mut self, block_content_ids: Vec<i32>) -> Self {
         self.block_content_ids = block_content_ids;
         self
     }
 
-    pub fn set_embedded_reference_bases_block_content_id(mut self, id: Itf8) -> Self {
+    pub fn set_embedded_reference_bases_block_content_id(mut self, id: i32) -> Self {
         self.embedded_reference_bases_block_content_id = Some(id);
         self
     }

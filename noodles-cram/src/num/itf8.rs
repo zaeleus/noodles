@@ -1,6 +1,4 @@
-use super::Itf8;
-
-pub fn size_of(value: Itf8) -> usize {
+pub fn size_of(value: i32) -> usize {
     if value >> (8 - 1) == 0 {
         1
     } else if value >> (16 - 2) == 0 {

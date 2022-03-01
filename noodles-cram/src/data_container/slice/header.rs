@@ -6,21 +6,18 @@ use std::io;
 
 use noodles_sam as sam;
 
-use crate::{
-    container::ReferenceSequenceId,
-    num::{Itf8, Ltf8},
-};
+use crate::container::ReferenceSequenceId;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Option<sam::record::Position>,
-    alignment_span: Itf8,
+    alignment_span: i32,
     record_count: usize,
-    record_counter: Ltf8,
+    record_counter: i64,
     block_count: usize,
-    block_content_ids: Vec<Itf8>,
-    embedded_reference_bases_block_content_id: Option<Itf8>,
+    block_content_ids: Vec<i32>,
+    embedded_reference_bases_block_content_id: Option<i32>,
     reference_md5: [u8; 16],
     optional_tags: Vec<u8>,
 }
@@ -38,7 +35,7 @@ impl Header {
         self.alignment_start
     }
 
-    pub fn alignment_span(&self) -> Itf8 {
+    pub fn alignment_span(&self) -> i32 {
         self.alignment_span
     }
 
@@ -55,7 +52,7 @@ impl Header {
         self.record_count
     }
 
-    pub fn record_counter(&self) -> Ltf8 {
+    pub fn record_counter(&self) -> i64 {
         self.record_counter
     }
 
@@ -63,11 +60,11 @@ impl Header {
         self.block_count
     }
 
-    pub fn block_content_ids(&self) -> &[Itf8] {
+    pub fn block_content_ids(&self) -> &[i32] {
         &self.block_content_ids
     }
 
-    pub fn embedded_reference_bases_block_content_id(&self) -> Option<Itf8> {
+    pub fn embedded_reference_bases_block_content_id(&self) -> Option<i32> {
         self.embedded_reference_bases_block_content_id
     }
 

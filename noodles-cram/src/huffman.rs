@@ -3,21 +3,21 @@ use std::{
     io::{self, Read},
 };
 
-use crate::{num::Itf8, BitReader};
+use crate::BitReader;
 
-type CodeBook = HashMap<Itf8, (Itf8, u32)>;
+type CodeBook = HashMap<i32, (i32, u32)>;
 
 pub struct CanonicalHuffmanDecoder {
     code_book: CodeBook,
 }
 
 impl CanonicalHuffmanDecoder {
-    pub fn new(alphabet: &[Itf8], bit_lens: &[u32]) -> Self {
+    pub fn new(alphabet: &[i32], bit_lens: &[u32]) -> Self {
         let code_book = build_canonical_code_book(alphabet, bit_lens);
         Self { code_book }
     }
 
-    pub fn decode<R>(&self, reader: &mut BitReader<R>) -> io::Result<Itf8>
+    pub fn decode<R>(&self, reader: &mut BitReader<R>) -> io::Result<i32>
     where
         R: Read,
     {
@@ -61,7 +61,7 @@ impl CanonicalHuffmanDecoder {
     }
 }
 
-fn build_canonical_code_book(alphabet: &[Itf8], bit_lens: &[u32]) -> CodeBook {
+fn build_canonical_code_book(alphabet: &[i32], bit_lens: &[u32]) -> CodeBook {
     let sorted_alphabet = {
         let mut pairs: Vec<_> = alphabet.iter().zip(bit_lens.iter()).collect();
         pairs.sort_by_key(|&(symbol, bit_len)| (bit_len, symbol));

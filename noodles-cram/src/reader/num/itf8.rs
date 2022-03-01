@@ -2,9 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::num::Itf8;
-
-pub fn read_itf8<R>(reader: &mut R) -> io::Result<Itf8>
+pub fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
 {

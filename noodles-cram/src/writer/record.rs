@@ -18,7 +18,6 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, Encoding},
         CompressionHeader,
     },
-    num::Itf8,
     record::{self, feature, Feature, Flags, NextMateFlags, ReadGroupId},
     BitWriter, Record,
 };
@@ -50,7 +49,7 @@ impl fmt::Display for WriteRecordError {
 pub struct Writer<'a, W, X> {
     compression_header: &'a CompressionHeader,
     core_data_writer: &'a mut BitWriter<W>,
-    external_data_writers: &'a mut HashMap<Itf8, X>,
+    external_data_writers: &'a mut HashMap<i32, X>,
     reference_sequence_id: ReferenceSequenceId,
     prev_alignment_start: Option<sam::record::Position>,
 }
@@ -63,7 +62,7 @@ where
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_writer: &'a mut BitWriter<W>,
-        external_data_writers: &'a mut HashMap<Itf8, X>,
+        external_data_writers: &'a mut HashMap<i32, X>,
         reference_sequence_id: ReferenceSequenceId,
         initial_alignment_start: Option<sam::record::Position>,
     ) -> Self {
@@ -211,7 +210,7 @@ where
             .data_series_encoding_map()
             .read_lengths_encoding();
 
-        let len = Itf8::try_from(read_length)
+        let len = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         encode_itf8(
@@ -222,7 +221,7 @@ where
         )
     }
 
-    fn write_alignment_start(&mut self, alignment_start: Itf8) -> io::Result<()> {
+    fn write_alignment_start(&mut self, alignment_start: i32) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -384,7 +383,7 @@ where
         )
     }
 
-    fn write_template_size(&mut self, template_size: Itf8) -> io::Result<()> {
+    fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .template_size_encoding()
@@ -406,7 +405,7 @@ where
 
     fn write_distance_to_next_fragment(
         &mut self,
-        distance_to_next_fragment: Itf8,
+        distance_to_next_fragment: i32,
     ) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
@@ -444,7 +443,7 @@ where
                 )
             })?;
 
-        self.write_tag_line(tag_line as Itf8)?;
+        self.write_tag_line(tag_line as i32)?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
 
@@ -471,7 +470,7 @@ where
         Ok(())
     }
 
-    fn write_tag_line(&mut self, tag_line: Itf8) -> io::Result<()> {
+    fn write_tag_line(&mut self, tag_line: i32) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -520,7 +519,7 @@ where
                 )
             })
             .and_then(|encoding| {
-                let number_of_read_features = feature_count as Itf8;
+                let number_of_read_features = feature_count as i32;
 
                 encode_itf8(
                     encoding,
@@ -531,7 +530,7 @@ where
             })
     }
 
-    fn write_feature(&mut self, feature: &Feature, position: Itf8) -> io::Result<()> {
+    fn write_feature(&mut self, feature: &Feature, position: i32) -> io::Result<()> {
         self.write_feature_code(feature.code())?;
         self.write_feature_position(position)?;
 
@@ -600,7 +599,7 @@ where
             })
     }
 
-    fn write_feature_position(&mut self, position: Itf8) -> io::Result<()> {
+    fn write_feature_position(&mut self, position: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
@@ -742,7 +741,7 @@ where
             })
     }
 
-    fn write_deletion_length(&mut self, len: Itf8) -> io::Result<()> {
+    fn write_deletion_length(&mut self, len: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
@@ -762,7 +761,7 @@ where
             })
     }
 
-    fn write_reference_skip_length(&mut self, len: Itf8) -> io::Result<()> {
+    fn write_reference_skip_length(&mut self, len: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
@@ -802,7 +801,7 @@ where
             })
     }
 
-    fn write_padding(&mut self, len: Itf8) -> io::Result<()> {
+    fn write_padding(&mut self, len: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .padding_encoding()
@@ -822,7 +821,7 @@ where
             })
     }
 
-    fn write_hard_clip(&mut self, len: Itf8) -> io::Result<()> {
+    fn write_hard_clip(&mut self, len: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
@@ -891,7 +890,7 @@ where
 fn encode_byte<W, X>(
     encoding: &Encoding,
     _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<Itf8, X>,
+    external_data_writers: &mut HashMap<i32, X>,
     value: u8,
 ) -> io::Result<()>
 where
@@ -918,8 +917,8 @@ where
 fn encode_itf8<W, X>(
     encoding: &Encoding,
     _core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<Itf8, X>,
-    value: Itf8,
+    external_data_writers: &mut HashMap<i32, X>,
+    value: i32,
 ) -> io::Result<()>
 where
     W: Write,
@@ -945,7 +944,7 @@ where
 fn encode_byte_array<W, X>(
     encoding: &Encoding,
     core_data_writer: &mut BitWriter<W>,
-    external_data_writers: &mut HashMap<Itf8, X>,
+    external_data_writers: &mut HashMap<i32, X>,
     data: &[u8],
 ) -> io::Result<()>
 where
@@ -966,7 +965,7 @@ where
             writer.write_all(data)
         }
         Encoding::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = data.len() as Itf8;
+            let len = data.len() as i32;
             encode_itf8(len_encoding, core_data_writer, external_data_writers, len)?;
 
             encode_byte_array(

@@ -2,9 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{BigEndian, WriteBytesExt};
 
-use crate::num::Ltf8;
-
-pub fn write_ltf8<W>(writer: &mut W, value: Ltf8) -> io::Result<()>
+pub fn write_ltf8<W>(writer: &mut W, value: i64) -> io::Result<()>
 where
     W: Write,
 {

@@ -19,7 +19,6 @@ use crate::{
         CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
-    num::Itf8,
     record::{feature, tag, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
     BitReader, Record,
 };
@@ -164,7 +163,7 @@ where
         Ok(read_length)
     }
 
-    fn read_reference_id(&mut self) -> io::Result<Itf8> {
+    fn read_reference_id(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
@@ -403,7 +402,7 @@ where
         })
     }
 
-    fn read_template_size(&mut self) -> io::Result<Itf8> {
+    fn read_template_size(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .template_size_encoding()
@@ -422,7 +421,7 @@ where
             })
     }
 
-    fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
+    fn read_distance_to_next_fragment(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
@@ -485,7 +484,7 @@ where
         Ok(tags)
     }
 
-    fn read_tag_line(&mut self) -> io::Result<Itf8> {
+    fn read_tag_line(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -526,7 +525,7 @@ where
         Ok(())
     }
 
-    fn read_number_of_read_features(&mut self) -> io::Result<Itf8> {
+    fn read_number_of_read_features(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
@@ -628,7 +627,7 @@ where
         })
     }
 
-    fn read_feature_position(&mut self) -> io::Result<Itf8> {
+    fn read_feature_position(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
@@ -766,7 +765,7 @@ where
             })
     }
 
-    fn read_deletion_length(&mut self) -> io::Result<Itf8> {
+    fn read_deletion_length(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
@@ -785,7 +784,7 @@ where
             })
     }
 
-    fn read_reference_skip_length(&mut self) -> io::Result<Itf8> {
+    fn read_reference_skip_length(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
@@ -824,7 +823,7 @@ where
             })
     }
 
-    fn read_padding(&mut self) -> io::Result<Itf8> {
+    fn read_padding(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .padding_encoding()
@@ -843,7 +842,7 @@ where
             })
     }
 
-    fn read_hard_clip(&mut self) -> io::Result<Itf8> {
+    fn read_hard_clip(&mut self) -> io::Result<i32> {
         self.compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
@@ -954,7 +953,7 @@ fn decode_itf8<CDR, EDR>(
     encoding: &Encoding,
     core_data_reader: &mut BitReader<CDR>,
     external_data_readers: &mut ExternalDataReaders<EDR>,
-) -> io::Result<Itf8>
+) -> io::Result<i32>
 where
     CDR: Read,
     EDR: Read,
@@ -1076,7 +1075,7 @@ mod tests {
 
     #[test]
     fn test_decode_itf8() -> io::Result<()> {
-        fn t(encoding: &Encoding, expected: Itf8) -> io::Result<()> {
+        fn t(encoding: &Encoding, expected: i32) -> io::Result<()> {
             let core_data = [0b10000000];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 

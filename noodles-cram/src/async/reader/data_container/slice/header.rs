@@ -4,7 +4,6 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 use crate::{
     container::ReferenceSequenceId,
     data_container::slice,
-    num::Itf8,
     r#async::reader::num::{read_itf8, read_ltf8},
 };
 
@@ -67,7 +66,7 @@ where
     Ok(builder.build())
 }
 
-async fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
+async fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<i32>>
 where
     R: AsyncRead + Unpin,
 {
@@ -87,7 +86,7 @@ where
 
 async fn read_embedded_reference_bases_block_content_id<R>(
     reader: &mut R,
-) -> io::Result<Option<Itf8>>
+) -> io::Result<Option<i32>>
 where
     R: AsyncRead + Unpin,
 {

@@ -7,11 +7,10 @@ use crate::{
         preservation_map::{Key, SubstitutionMatrix, TagIdsDictionary},
         PreservationMap,
     },
-    num::Itf8,
     writer::num::write_itf8,
 };
 
-const MAP_LENGTH: Itf8 = 5;
+const MAP_LENGTH: i32 = 5;
 
 const FALSE: u8 = 0x00;
 const TRUE: u8 = 0x01;
@@ -44,7 +43,7 @@ where
     write_key(&mut buf, Key::TagIdsDictionary)?;
     write_tag_ids_dictionary(&mut buf, preservation_map.tag_ids_dictionary())?;
 
-    let data_len = buf.len() as Itf8;
+    let data_len = buf.len() as i32;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)
@@ -100,7 +99,7 @@ where
         buf.push(NUL);
     }
 
-    let data_len = buf.len() as Itf8;
+    let data_len = buf.len() as i32;
     write_itf8(writer, data_len)?;
     writer.write_all(&buf)?;
 

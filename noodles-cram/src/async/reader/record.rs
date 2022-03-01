@@ -15,7 +15,6 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, Encoding},
         CompressionHeader,
     },
-    num::Itf8,
     r#async::reader::num::read_itf8,
     reader::record::ReadRecordError,
     record::{feature, Builder, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
@@ -29,7 +28,7 @@ where
 {
     compression_header: &'a CompressionHeader,
     core_data_reader: BitReader<CDR>,
-    external_data_readers: HashMap<Itf8, EDR>,
+    external_data_readers: HashMap<i32, EDR>,
     reference_sequence_id: ReferenceSequenceId,
     prev_alignment_start: Option<sam::record::Position>,
 }
@@ -42,7 +41,7 @@ where
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_reader: BitReader<CDR>,
-        external_data_readers: HashMap<Itf8, EDR>,
+        external_data_readers: HashMap<i32, EDR>,
         reference_sequence_id: ReferenceSequenceId,
         initial_alignment_start: Option<sam::record::Position>,
     ) -> Self {
@@ -149,7 +148,7 @@ where
         Ok((builder, read_length))
     }
 
-    async fn read_reference_id(&mut self) -> io::Result<Itf8> {
+    async fn read_reference_id(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -404,7 +403,7 @@ where
         })
     }
 
-    async fn read_template_size(&mut self) -> io::Result<Itf8> {
+    async fn read_template_size(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -424,7 +423,7 @@ where
         .await
     }
 
-    async fn read_distance_to_next_fragment(&mut self) -> io::Result<Itf8> {
+    async fn read_distance_to_next_fragment(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -488,7 +487,7 @@ where
         Ok(tags)
     }
 
-    async fn read_tag_line(&mut self) -> io::Result<Itf8> {
+    async fn read_tag_line(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -532,7 +531,7 @@ where
         Ok(builder)
     }
 
-    async fn read_number_of_read_features(&mut self) -> io::Result<Itf8> {
+    async fn read_number_of_read_features(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -636,7 +635,7 @@ where
         })
     }
 
-    async fn read_feature_position(&mut self) -> io::Result<Itf8> {
+    async fn read_feature_position(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -778,7 +777,7 @@ where
         .await
     }
 
-    async fn read_deletion_length(&mut self) -> io::Result<Itf8> {
+    async fn read_deletion_length(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -798,7 +797,7 @@ where
         .await
     }
 
-    async fn read_reference_skip_length(&mut self) -> io::Result<Itf8> {
+    async fn read_reference_skip_length(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -838,7 +837,7 @@ where
         .await
     }
 
-    async fn read_padding(&mut self) -> io::Result<Itf8> {
+    async fn read_padding(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -858,7 +857,7 @@ where
         .await
     }
 
-    async fn read_hard_clip(&mut self) -> io::Result<Itf8> {
+    async fn read_hard_clip(&mut self) -> io::Result<i32> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -933,7 +932,7 @@ where
 async fn decode_byte<CDR, EDR>(
     encoding: &Encoding,
     _core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut HashMap<Itf8, EDR>,
+    external_data_readers: &mut HashMap<i32, EDR>,
 ) -> io::Result<u8>
 where
     CDR: Read,
@@ -959,8 +958,8 @@ where
 async fn decode_itf8<CDR, EDR>(
     encoding: &Encoding,
     _core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut HashMap<Itf8, EDR>,
-) -> io::Result<Itf8>
+    external_data_readers: &mut HashMap<i32, EDR>,
+) -> io::Result<i32>
 where
     CDR: Read,
     EDR: AsyncRead + Unpin,
@@ -985,7 +984,7 @@ where
 async fn decode_byte_array<CDR, EDR>(
     encoding: &Encoding,
     core_data_reader: &mut BitReader<CDR>,
-    external_data_readers: &mut HashMap<Itf8, EDR>,
+    external_data_readers: &mut HashMap<i32, EDR>,
 ) -> io::Result<Vec<u8>>
 where
     CDR: Read,
@@ -1068,7 +1067,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_decode_itf8() -> io::Result<()> {
-        async fn t(encoding: &Encoding, expected: Itf8) -> io::Result<()> {
+        async fn t(encoding: &Encoding, expected: i32) -> io::Result<()> {
             let core_data = [0b10000000];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 

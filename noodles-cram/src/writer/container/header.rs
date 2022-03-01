@@ -5,7 +5,6 @@ use flate2::CrcWriter;
 
 use crate::{
     container,
-    num::Itf8,
     writer::num::{write_itf8, write_ltf8},
 };
 
@@ -22,7 +21,7 @@ where
     write_itf8(&mut crc_writer, reference_sequence_id)?;
 
     let starting_position_on_the_reference =
-        header.start_position().map(Itf8::from).unwrap_or_default();
+        header.start_position().map(i32::from).unwrap_or_default();
     write_itf8(&mut crc_writer, starting_position_on_the_reference)?;
 
     let alignment_span = header.alignment_span();
@@ -37,7 +36,7 @@ where
     let bases = header.base_count();
     write_ltf8(&mut crc_writer, bases)?;
 
-    let number_of_blocks = Itf8::try_from(header.block_count())
+    let number_of_blocks = i32::try_from(header.block_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, number_of_blocks)?;
 

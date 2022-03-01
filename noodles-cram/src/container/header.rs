@@ -4,13 +4,11 @@ pub use self::builder::Builder;
 
 use noodles_sam as sam;
 
-use crate::num::{Itf8, Ltf8};
-
 use super::ReferenceSequenceId;
 
 // § 9 End of file container (2020-06-22)
 const EOF_LEN: i32 = 15;
-const EOF_START_POSITION: Itf8 = 4_542_278;
+const EOF_START_POSITION: i32 = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
@@ -19,12 +17,12 @@ pub struct Header {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<sam::record::Position>,
-    alignment_span: Itf8,
-    record_count: Itf8,
-    record_counter: Ltf8,
-    base_count: Ltf8,
+    alignment_span: i32,
+    record_count: i32,
+    record_counter: i64,
+    base_count: i64,
     block_count: usize,
-    landmarks: Vec<Itf8>,
+    landmarks: Vec<i32>,
     crc32: u32,
 }
 
@@ -57,19 +55,19 @@ impl Header {
         self.start_position
     }
 
-    pub fn alignment_span(&self) -> Itf8 {
+    pub fn alignment_span(&self) -> i32 {
         self.alignment_span
     }
 
-    pub fn record_count(&self) -> Itf8 {
+    pub fn record_count(&self) -> i32 {
         self.record_count
     }
 
-    pub fn record_counter(&self) -> Ltf8 {
+    pub fn record_counter(&self) -> i64 {
         self.record_counter
     }
 
-    pub fn base_count(&self) -> Ltf8 {
+    pub fn base_count(&self) -> i64 {
         self.base_count
     }
 
@@ -77,7 +75,7 @@ impl Header {
         self.block_count
     }
 
-    pub fn landmarks(&self) -> &[Itf8] {
+    pub fn landmarks(&self) -> &[i32] {
         &self.landmarks
     }
 

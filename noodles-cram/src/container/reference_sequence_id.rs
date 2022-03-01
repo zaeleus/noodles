@@ -1,15 +1,13 @@
 use std::{error, fmt};
 
-use crate::num::Itf8;
-
-const MIN: Itf8 = 0;
-const UNMAPPED: Itf8 = -1;
-const MULTIPLE_REFERENCE_SEQUENCES: Itf8 = -2;
+const MIN: i32 = 0;
+const UNMAPPED: i32 = -1;
+const MULTIPLE_REFERENCE_SEQUENCES: i32 = -2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReferenceSequenceId {
     /// A reference sequence ID.
-    Some(Itf8),
+    Some(i32),
     /// Unmapped (-1).
     None,
     /// Multiple reference sequence IDs (-2).
@@ -37,20 +35,20 @@ impl Default for ReferenceSequenceId {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromItf8Error(Itf8);
+pub struct TryFromIntError(i32);
 
-impl error::Error for TryFromItf8Error {}
+impl error::Error for TryFromIntError {}
 
-impl fmt::Display for TryFromItf8Error {
+impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "invalid value: {}", self.0)
     }
 }
 
-impl TryFrom<Itf8> for ReferenceSequenceId {
-    type Error = TryFromItf8Error;
+impl TryFrom<i32> for ReferenceSequenceId {
+    type Error = TryFromIntError;
 
-    fn try_from(n: Itf8) -> Result<Self, Self::Error> {
+    fn try_from(n: i32) -> Result<Self, Self::Error> {
         if n >= MIN {
             Ok(Self::Some(n))
         } else if n == UNMAPPED {
@@ -58,7 +56,7 @@ impl TryFrom<Itf8> for ReferenceSequenceId {
         } else if n == MULTIPLE_REFERENCE_SEQUENCES {
             Ok(Self::Many)
         } else {
-            Err(TryFromItf8Error(n))
+            Err(TryFromIntError(n))
         }
     }
 }
@@ -104,7 +102,7 @@ mod tests {
             Ok(ReferenceSequenceId::Many)
         );
 
-        assert_eq!(ReferenceSequenceId::try_from(-3), Err(TryFromItf8Error(-3)));
+        assert_eq!(ReferenceSequenceId::try_from(-3), Err(TryFromIntError(-3)));
     }
 
     #[test]

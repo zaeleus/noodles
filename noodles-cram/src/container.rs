@@ -8,7 +8,7 @@ use std::{cmp, error, fmt, io};
 
 use noodles_sam as sam;
 
-use super::{data_container::Slice, num::Itf8, writer, DataContainer};
+use super::{data_container::Slice, writer, DataContainer};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Container {
@@ -60,7 +60,7 @@ impl Container {
         for slice in data_container.slices() {
             let slice_header = slice.header();
 
-            container_record_count += slice_header.record_count() as Itf8;
+            container_record_count += slice_header.record_count() as i32;
 
             let mut slice_len = 0;
 
@@ -73,15 +73,15 @@ impl Container {
                 .set_data(slice_header_buf)
                 .build();
 
-            slice_len += slice_header_block.len() as Itf8;
+            slice_len += slice_header_block.len() as i32;
             blocks.push(slice_header_block);
 
             blocks.push(slice.core_data_block().clone());
-            slice_len += slice.core_data_block().len() as Itf8;
+            slice_len += slice.core_data_block().len() as i32;
 
             for external_block in slice.external_blocks() {
                 blocks.push(external_block.clone());
-                slice_len += external_block.len() as Itf8;
+                slice_len += external_block.len() as i32;
             }
 
             let last_landmark = landmarks.last().copied().unwrap_or(0);

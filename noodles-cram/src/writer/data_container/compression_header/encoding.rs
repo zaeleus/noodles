@@ -4,7 +4,6 @@ use byteorder::WriteBytesExt;
 
 use crate::{
     data_container::compression_header::{encoding, Encoding},
-    num::Itf8,
     writer::num::write_itf8,
 };
 
@@ -34,7 +33,7 @@ fn write_args<W>(writer: &mut W, buf: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    let len = buf.len() as Itf8;
+    let len = buf.len() as i32;
     write_itf8(writer, len)?;
     writer.write_all(buf)
 }
@@ -46,7 +45,7 @@ where
     write_itf8(writer, i32::from(encoding::Kind::Null))
 }
 
-fn write_external_encoding<W>(writer: &mut W, block_content_id: Itf8) -> io::Result<()>
+fn write_external_encoding<W>(writer: &mut W, block_content_id: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -65,19 +64,18 @@ where
 {
     let mut args = Vec::new();
 
-    let alphabet_len = alphabet.len() as Itf8;
+    let alphabet_len = alphabet.len() as i32;
     write_itf8(&mut args, alphabet_len)?;
 
     for &symbol in alphabet {
         write_itf8(&mut args, symbol)?;
     }
 
-    let bit_lens_len = bit_lens.len() as Itf8;
+    let bit_lens_len = bit_lens.len() as i32;
     write_itf8(&mut args, bit_lens_len)?;
 
     for &len in bit_lens {
-        let len =
-            Itf8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let len = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         write_itf8(&mut args, len)?;
     }
 
@@ -109,7 +107,7 @@ where
 fn write_byte_array_stop_encoding<W>(
     writer: &mut W,
     stop_byte: u8,
-    block_content_id: Itf8,
+    block_content_id: i32,
 ) -> io::Result<()>
 where
     W: Write,
@@ -124,14 +122,14 @@ where
     Ok(())
 }
 
-fn write_beta_encoding<W>(writer: &mut W, offset: Itf8, len: u32) -> io::Result<()>
+fn write_beta_encoding<W>(writer: &mut W, offset: i32, len: u32) -> io::Result<()>
 where
     W: Write,
 {
     let mut args = Vec::new();
     write_itf8(&mut args, offset)?;
 
-    let len = Itf8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let len = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut args, len)?;
 
     write_itf8(writer, i32::from(encoding::Kind::Beta))?;
@@ -140,7 +138,7 @@ where
     Ok(())
 }
 
-fn write_subexp_encoding<W>(writer: &mut W, offset: Itf8, k: Itf8) -> io::Result<()>
+fn write_subexp_encoding<W>(writer: &mut W, offset: i32, k: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -154,7 +152,7 @@ where
     Ok(())
 }
 
-fn write_gamma_encoding<W>(writer: &mut W, offset: Itf8) -> io::Result<()>
+fn write_gamma_encoding<W>(writer: &mut W, offset: i32) -> io::Result<()>
 where
     W: Write,
 {

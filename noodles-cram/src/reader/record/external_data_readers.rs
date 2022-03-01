@@ -1,10 +1,8 @@
 use std::{collections::HashMap, io::Read};
 
-use crate::num::Itf8;
-
 pub struct ExternalDataReaders<R> {
     low_readers: [Option<R>; 64],
-    high_readers: HashMap<Itf8, R>,
+    high_readers: HashMap<i32, R>,
 }
 
 impl<R> ExternalDataReaders<R>
@@ -18,7 +16,7 @@ where
         }
     }
 
-    pub fn insert(&mut self, id: Itf8, reader: R) {
+    pub fn insert(&mut self, id: i32, reader: R) {
         match id {
             0..=63 => {
                 self.low_readers[id as usize] = Some(reader);
@@ -29,7 +27,7 @@ where
         }
     }
 
-    pub fn get_mut(&mut self, id: &Itf8) -> Option<&mut R> {
+    pub fn get_mut(&mut self, id: &i32) -> Option<&mut R> {
         match *id {
             0..=63 => self.low_readers[*id as usize].as_mut(),
             _ => self.high_readers.get_mut(id),

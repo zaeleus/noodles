@@ -1,8 +1,6 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::num::Itf8;
-
-pub async fn read_itf8<R>(reader: &mut R) -> io::Result<Itf8>
+pub async fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
 where
     R: AsyncRead + Unpin,
 {
@@ -44,7 +42,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_itf8() -> io::Result<()> {
-        async fn t(mut reader: &[u8], expected: Itf8) -> io::Result<()> {
+        async fn t(mut reader: &[u8], expected: i32) -> io::Result<()> {
             let actual = read_itf8(&mut reader).await?;
             assert_eq!(actual, expected);
             Ok(())

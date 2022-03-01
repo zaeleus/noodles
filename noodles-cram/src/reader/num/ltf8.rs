@@ -2,9 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::num::Ltf8;
-
-pub fn read_ltf8<R>(reader: &mut R) -> io::Result<Ltf8>
+pub fn read_ltf8<R>(reader: &mut R) -> io::Result<i64>
 where
     R: Read,
 {

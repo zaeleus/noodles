@@ -5,7 +5,6 @@ use crate::{
     data_container::compression_header::{
         data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
     },
-    num::Itf8,
     writer::num::write_itf8,
 };
 
@@ -18,14 +17,14 @@ where
 {
     let mut buf = Vec::new();
 
-    let map_len = Itf8::try_from(data_series_encoding_map.len())
+    let map_len = i32::try_from(data_series_encoding_map.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
     write_encodings(&mut buf, data_series_encoding_map)?;
 
     let data_len =
-        Itf8::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)

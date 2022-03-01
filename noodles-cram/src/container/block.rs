@@ -21,7 +21,7 @@ use crate::{
         aac::arith_decode, fqzcomp::fqz_decode, name_tokenizer::decode_names, rans::rans_decode,
         rans_nx16::rans_decode_nx16,
     },
-    num::{itf8, Itf8},
+    num::itf8,
 };
 
 // § 9 End of file container (2020-06-22)
@@ -32,7 +32,7 @@ const EOF_CRC32: u32 = 0x4b_01_63_ee;
 pub struct Block {
     compression_method: CompressionMethod,
     content_type: ContentType,
-    content_id: Itf8,
+    content_id: i32,
     uncompressed_len: usize,
     data: Vec<u8>,
     crc32: u32,
@@ -62,7 +62,7 @@ impl Block {
         self.content_type
     }
 
-    pub fn content_id(&self) -> Itf8 {
+    pub fn content_id(&self) -> i32 {
         self.content_id
     }
 
@@ -126,8 +126,8 @@ impl Block {
             // block content type ID
             + mem::size_of::<u8>()
             + itf8::size_of(self.content_id())
-            + itf8::size_of(self.data.len() as Itf8)
-            + itf8::size_of(self.uncompressed_len() as Itf8)
+            + itf8::size_of(self.data.len() as i32)
+            + itf8::size_of(self.uncompressed_len() as i32)
             + self.data.len()
             // crc32
             + mem::size_of::<u32>()

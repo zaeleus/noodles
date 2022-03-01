@@ -3,7 +3,6 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     container::{self, ReferenceSequenceId},
-    num::Itf8,
     r#async::reader::num::{read_itf8, read_ltf8},
 };
 
@@ -57,7 +56,7 @@ where
     Ok(builder.build())
 }
 
-async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
+async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<i32>>
 where
     R: AsyncRead + Unpin,
 {

@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use crate::num::Itf8;
-
 use super::{Block, CompressionMethod, ContentType};
 
 use bzip2::write::BzEncoder;
@@ -14,7 +12,7 @@ const DEFAULT_LZMA_COMPRESSION_LEVEL: u32 = 6;
 pub struct Builder {
     compression_method: CompressionMethod,
     content_type: Option<ContentType>,
-    content_id: Itf8,
+    content_id: i32,
     uncompressed_len: usize,
     data: Vec<u8>,
     crc32: u32,
@@ -31,7 +29,7 @@ impl Builder {
         self
     }
 
-    pub fn set_content_id(mut self, content_id: Itf8) -> Self {
+    pub fn set_content_id(mut self, content_id: i32) -> Self {
         self.content_id = content_id;
         self
     }

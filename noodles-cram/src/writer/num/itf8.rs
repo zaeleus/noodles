@@ -2,9 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use crate::num::Itf8;
-
-pub fn write_itf8<W>(writer: &mut W, value: Itf8) -> io::Result<()>
+pub fn write_itf8<W>(writer: &mut W, value: i32) -> io::Result<()>
 where
     W: Write,
 {

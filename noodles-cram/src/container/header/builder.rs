@@ -1,9 +1,6 @@
 use noodles_sam as sam;
 
-use crate::{
-    container::ReferenceSequenceId,
-    num::{Itf8, Ltf8},
-};
+use crate::container::ReferenceSequenceId;
 
 use super::Header;
 
@@ -12,12 +9,12 @@ pub struct Builder {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<sam::record::Position>,
-    alignment_span: Itf8,
-    record_count: Itf8,
-    record_counter: Ltf8,
-    base_count: Ltf8,
+    alignment_span: i32,
+    record_count: i32,
+    record_counter: i64,
+    base_count: i64,
     block_count: usize,
-    landmarks: Vec<Itf8>,
+    landmarks: Vec<i32>,
     crc32: u32,
 }
 
@@ -37,22 +34,22 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_span(mut self, alignment_span: Itf8) -> Self {
+    pub fn set_alignment_span(mut self, alignment_span: i32) -> Self {
         self.alignment_span = alignment_span;
         self
     }
 
-    pub fn set_record_count(mut self, record_count: Itf8) -> Self {
+    pub fn set_record_count(mut self, record_count: i32) -> Self {
         self.record_count = record_count;
         self
     }
 
-    pub fn set_record_counter(mut self, record_counter: Ltf8) -> Self {
+    pub fn set_record_counter(mut self, record_counter: i64) -> Self {
         self.record_counter = record_counter;
         self
     }
 
-    pub fn set_base_count(mut self, base_count: Ltf8) -> Self {
+    pub fn set_base_count(mut self, base_count: i64) -> Self {
         self.base_count = base_count;
         self
     }
@@ -62,7 +59,7 @@ impl Builder {
         self
     }
 
-    pub fn set_landmarks(mut self, landmarks: Vec<Itf8>) -> Self {
+    pub fn set_landmarks(mut self, landmarks: Vec<i32>) -> Self {
         self.landmarks = landmarks;
         self
     }

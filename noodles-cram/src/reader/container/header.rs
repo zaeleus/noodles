@@ -6,7 +6,6 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
     container::{Header, ReferenceSequenceId},
-    num::Itf8,
     reader::num::{read_itf8, read_ltf8},
 };
 
@@ -60,7 +59,7 @@ where
     Ok(builder.build())
 }
 
-fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<Itf8>>
+fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<i32>>
 where
     R: Read,
 {

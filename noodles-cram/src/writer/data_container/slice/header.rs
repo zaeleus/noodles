@@ -2,7 +2,6 @@ use std::io::{self, Write};
 
 use crate::{
     data_container::slice,
-    num::Itf8,
     writer::num::{write_itf8, write_ltf8},
 };
 
@@ -13,18 +12,18 @@ where
     let reference_sequence_id = i32::from(header.reference_sequence_id());
     write_itf8(writer, reference_sequence_id)?;
 
-    let alignment_start = header.alignment_start().map(Itf8::from).unwrap_or_default();
+    let alignment_start = header.alignment_start().map(i32::from).unwrap_or_default();
     write_itf8(writer, alignment_start)?;
 
     write_itf8(writer, header.alignment_span())?;
 
-    let record_count = Itf8::try_from(header.record_count())
+    let record_count = i32::try_from(header.record_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, record_count)?;
 
     write_ltf8(writer, header.record_counter())?;
 
-    let block_count = Itf8::try_from(header.block_count())
+    let block_count = i32::try_from(header.block_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, block_count)?;
 
@@ -44,11 +43,11 @@ where
     Ok(())
 }
 
-fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[Itf8]) -> io::Result<()>
+fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[i32]) -> io::Result<()>
 where
     W: Write,
 {
-    let len = block_content_ids.len() as Itf8;
+    let len = block_content_ids.len() as i32;
     write_itf8(writer, len)?;
 
     for &block_content_id in block_content_ids {
@@ -60,12 +59,12 @@ where
 
 fn write_embedded_reference_bases_block_content_id<W>(
     writer: &mut W,
-    id: Option<Itf8>,
+    id: Option<i32>,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    const MISSING: Itf8 = -1;
+    const MISSING: i32 = -1;
 
     let embedded_reference_bases_block_content_id = id.map(i32::from).unwrap_or(MISSING);
     write_itf8(writer, embedded_reference_bases_block_content_id)
@@ -82,7 +81,7 @@ fn write_optional_tags<W>(writer: &mut W, optional_tags: &[u8]) -> io::Result<()
 where
     W: Write,
 {
-    let len = optional_tags.len() as Itf8;
+    let len = optional_tags.len() as i32;
     write_itf8(writer, len)?;
 
     writer.write_all(optional_tags)

@@ -4,7 +4,6 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     data_container::compression_header::{Encoding, TagEncodingMap},
-    num::Itf8,
     r#async::reader::num::read_itf8,
 };
 
@@ -27,7 +26,7 @@ where
         .map(TagEncodingMap::from)
 }
 
-async fn read_tag_encoding_map_map<R>(reader: &mut R) -> io::Result<HashMap<Itf8, Encoding>>
+async fn read_tag_encoding_map_map<R>(reader: &mut R) -> io::Result<HashMap<i32, Encoding>>
 where
     R: AsyncRead + Unpin,
 {
