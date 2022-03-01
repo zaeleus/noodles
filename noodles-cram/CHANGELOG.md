@@ -82,6 +82,10 @@
 
 ### Removed
 
+  * cram/data_container/slice: Remove `resolve_mates`.
+
+    Use `Slice::resolve_records` instead.
+
   * cram/record/read_group_id: Remove conversion to and from `i32`.
 
     Convert from `usize` instead.

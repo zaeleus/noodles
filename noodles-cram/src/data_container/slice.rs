@@ -120,36 +120,10 @@ impl Slice {
         compression_header: &CompressionHeader,
         records: Vec<Record>,
     ) -> io::Result<Vec<Record>> {
-        let mut records = self.resolve_mates(records)?;
+        let mut records = resolve_mates(records)?;
         self.resolve_bases(reference_sequences, compression_header, &mut records)?;
         self.resolve_quality_scores(&mut records);
         Ok(records)
-    }
-
-    /// Resolves mate records.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use std::io;
-    /// use noodles_cram as cram;
-    ///
-    /// let data = [];
-    /// let mut reader = cram::Reader::new(&data[..]);
-    /// reader.read_file_definition()?;
-    /// reader.read_file_header()?;
-    ///
-    /// while let Some(container) = reader.read_data_container()? {
-    ///     for slice in container.slices() {
-    ///         let records = slice.records(container.compression_header())?;
-    ///         let records = slice.resolve_mates(records)?;
-    ///         // ...
-    ///     }
-    /// }
-    /// # Ok::<_, io::Error>(())
-    /// ```
-    pub fn resolve_mates(&self, records: Vec<Record>) -> io::Result<Vec<Record>> {
-        resolve_mates(records)
     }
 
     fn resolve_bases(
