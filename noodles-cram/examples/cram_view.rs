@@ -13,7 +13,7 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-fn read_reference_assembly<P>(src: P) -> io::Result<Vec<fasta::Record>>
+fn read_reference_sequences<P>(src: P) -> io::Result<Vec<fasta::Record>>
 where
     P: AsRef<Path>,
 {
@@ -29,28 +29,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fasta_src = args.next().expect("missing fasta_src");
     let src = args.next().expect("missing src");
 
-    let reference_assembly = read_reference_assembly(fasta_src)?;
+    let reference_sequences = read_reference_sequences(fasta_src)?;
 
     let mut reader = File::open(src).map(cram::Reader::new)?;
     reader.read_file_definition()?;
 
     let header: sam::Header = reader.read_file_header()?.parse()?;
 
-    while let Some(container) = reader.read_data_container()? {
-        for slice in container.slices() {
-            let records = slice.records(container.compression_header())?;
-
-            let records = slice.resolve_records(
-                &reference_assembly,
-                container.compression_header(),
-                records,
-            )?;
-
-            for record in records {
-                let sam_record = record.try_into_sam_record(header.reference_sequences())?;
-                println!("{}", sam_record);
-            }
-        }
+    for result in reader.records(&reference_sequences) {
+        let record = result?;
+        let sam_record = record.try_into_sam_record(header.reference_sequences())?;
+        println!("{}", sam_record);
     }
 
     Ok(())
