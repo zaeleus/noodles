@@ -118,9 +118,9 @@ impl Slice {
         &self,
         reference_sequences: &[fasta::Record],
         compression_header: &CompressionHeader,
-        records: Vec<Record>,
+        mut records: Vec<Record>,
     ) -> io::Result<Vec<Record>> {
-        let mut records = resolve_mates(records)?;
+        resolve_mates(&mut records)?;
         self.resolve_bases(reference_sequences, compression_header, &mut records)?;
         self.resolve_quality_scores(&mut records);
         Ok(records)
@@ -207,9 +207,7 @@ impl Slice {
     }
 }
 
-fn resolve_mates(records: Vec<Record>) -> io::Result<Vec<Record>> {
-    use std::cell::RefCell;
-
+fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut mate_indices = vec![None; records.len()];
 
     for (i, record) in records.iter().enumerate() {
@@ -222,16 +220,17 @@ fn resolve_mates(records: Vec<Record>) -> io::Result<Vec<Record>> {
         }
     }
 
-    let records: Vec<_> = records.into_iter().map(RefCell::new).collect();
+    let mut i = 0;
 
-    for (i, record_cell) in records.iter().enumerate() {
+    while i < records.len() - 1 {
         if mate_indices[i].is_none() {
+            i += 1;
             continue;
         }
 
-        let mut record = record_cell.borrow_mut();
+        let record = &mut records[i];
 
-        if record.read_name.is_empty() {
+        if record.read_name().is_empty() {
             let read_name = record.id().to_string().into_bytes();
             record.read_name.extend(read_name);
         }
@@ -239,21 +238,30 @@ fn resolve_mates(records: Vec<Record>) -> io::Result<Vec<Record>> {
         let mut j = i;
 
         while let Some(mate_index) = mate_indices[j] {
-            let mut mate = records[mate_index].borrow_mut();
-            set_mate(&mut record, &mut mate);
-            record = mate;
+            let mid = j + 1;
+            let (left, right) = records.split_at_mut(mid);
+
+            let record = &mut left[j];
+            let mate = &mut right[mate_index - mid];
+            set_mate(record, mate);
+
+            mate_indices[j] = None;
             j = mate_index;
         }
 
-        let mut mate = record_cell.borrow_mut();
-        set_mate(&mut record, &mut mate);
+        let (left, right) = records.split_at_mut(j);
+        let record = &mut right[0];
+        let mate = &mut left[i];
+        set_mate(record, mate);
 
-        let template_size = calculate_template_size(&record, &mate)?;
+        let template_size = calculate_template_size(record, mate)?;
         record.template_size = template_size;
         mate.template_size = -template_size;
+
+        i += 1;
     }
 
-    Ok(records.into_iter().map(|r| r.into_inner()).collect())
+    Ok(())
 }
 
 fn set_mate(mut record: &mut Record, mate: &mut Record) {
@@ -321,7 +329,7 @@ mod tests {
         use crate::record::Flags;
         use bam::record::ReferenceSequenceId;
 
-        let records = vec![
+        let mut records = vec![
             Record::builder()
                 .set_id(1)
                 .set_flags(Flags::HAS_MATE_DOWNSTREAM)
@@ -347,7 +355,7 @@ mod tests {
                 .build(),
         ];
 
-        let records = resolve_mates(records)?;
+        resolve_mates(&mut records)?;
 
         assert_eq!(records[0].read_name(), b"1");
         assert_eq!(
