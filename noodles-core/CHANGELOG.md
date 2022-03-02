@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * core: Remove dependency on noodles-sam in manifest.
+
 ## 0.5.0 - 2022-03-02
 
 ### Removed
