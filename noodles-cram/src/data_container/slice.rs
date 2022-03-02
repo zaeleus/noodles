@@ -119,23 +119,23 @@ impl Slice {
         reference_sequence_repository: &fasta::Repository<A>,
         header: &sam::Header,
         compression_header: &CompressionHeader,
-        mut records: Vec<Record>,
-    ) -> io::Result<Vec<Record>>
+        records: &mut [Record],
+    ) -> io::Result<()>
     where
         A: fasta::repository::Adapter,
     {
-        resolve_mates(&mut records)?;
+        resolve_mates(records)?;
 
         self.resolve_bases(
             reference_sequence_repository,
             header,
             compression_header,
-            &mut records,
+            records,
         )?;
 
-        self.resolve_quality_scores(&mut records);
+        self.resolve_quality_scores(records);
 
-        Ok(records)
+        Ok(())
     }
 
     fn resolve_bases<A>(

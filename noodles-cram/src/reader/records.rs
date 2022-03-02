@@ -52,13 +52,15 @@ where
             .map(|slice| {
                 let compression_header = container.compression_header();
 
-                slice.records(compression_header).and_then(|records| {
+                slice.records(compression_header).and_then(|mut records| {
                     slice.resolve_records(
                         self.reference_sequence_repository,
                         self.header,
                         compression_header,
-                        records,
-                    )
+                        &mut records,
+                    )?;
+
+                    Ok(records)
                 })
             })
             .collect::<Result<Vec<_>, _>>()?
