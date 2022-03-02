@@ -1,6 +1,7 @@
 use std::{io, mem};
 
 use noodles_fasta as fasta;
+use noodles_sam as sam;
 
 use super::{compression_header, slice, CompressionHeader, DataContainer, Slice};
 use crate::{writer::Options, Record};
@@ -72,11 +73,15 @@ impl Builder {
         }
     }
 
-    pub fn build(
+    pub fn build<A>(
         mut self,
         options: &Options,
-        reference_sequences: &[fasta::Record],
-    ) -> io::Result<DataContainer> {
+        reference_sequence_repository: &fasta::Repository<A>,
+        header: &sam::Header,
+    ) -> io::Result<DataContainer>
+    where
+        A: fasta::repository::Adapter,
+    {
         if !self.slice_builder.is_empty() {
             self.slice_builders.push(self.slice_builder);
         }
@@ -89,7 +94,14 @@ impl Builder {
         let slices = self
             .slice_builders
             .into_iter()
-            .map(|builder| builder.build(reference_sequences, &compression_header, record_counter))
+            .map(|builder| {
+                builder.build(
+                    reference_sequence_repository,
+                    header,
+                    &compression_header,
+                    record_counter,
+                )
+            })
             .collect::<Result<_, _>>()?;
 
         Ok(DataContainer {

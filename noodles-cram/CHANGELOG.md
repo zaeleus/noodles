@@ -56,6 +56,9 @@
   * cram/record/resolve: `resolve_bases` takes a `sam::record::Position`
     instead of an `i32` for `alignment_start`.
 
+  * cram/writer: Use reference sequence repository (`fasta::Repository`) and
+    SAM header (`sam::Header`) when writing records.
+
 ### Deprecated
 
   * cram/record/feature/code: Deprecate fallible conversion from `char`.

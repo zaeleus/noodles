@@ -62,12 +62,16 @@ impl Builder {
         }
     }
 
-    pub fn build(
+    pub fn build<A>(
         mut self,
-        reference_sequences: &[fasta::Record],
+        reference_sequence_repostitory: &fasta::repository::Repository<A>,
+        header: &sam::Header,
         compression_header: &CompressionHeader,
         record_counter: i64,
-    ) -> io::Result<Slice> {
+    ) -> io::Result<Slice>
+    where
+        A: fasta::repository::Adapter,
+    {
         let slice_reference_sequence_id = find_slice_reference_sequence_id(&self.records);
 
         let (slice_alignment_start, slice_alignment_end) = if slice_reference_sequence_id.is_some()
@@ -78,7 +82,8 @@ impl Builder {
         };
 
         let (core_data_block, external_blocks) = write_records(
-            reference_sequences,
+            reference_sequence_repostitory,
+            header,
             compression_header,
             slice_reference_sequence_id,
             slice_alignment_start,
@@ -98,12 +103,16 @@ impl Builder {
             slice_alignment_end,
         ) {
             (ReferenceSequenceId::Some(id), Some(alignment_start), Some(alignment_end)) => {
-                let reference_sequence = reference_sequences
-                    .get(id as usize)
-                    .map(|record| record.sequence())
-                    .ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
-                    })?;
+                let reference_sequence_name = header
+                    .reference_sequences()
+                    .get_index(id as usize)
+                    .map(|(_, rs)| rs.name())
+                    .expect("invalid reference sequence ID");
+
+                let reference_sequence = reference_sequence_repostitory
+                    .get(reference_sequence_name)
+                    .expect("missing reference sequence")
+                    .expect("invalid reference sequence");
 
                 let start = (i32::from(alignment_start) - 1) as usize;
                 let end = (i32::from(alignment_end) - 1) as usize;
@@ -182,13 +191,17 @@ fn find_slice_alignment_positions(
     Ok((slice_alignment_start, slice_alignment_end))
 }
 
-fn write_records(
-    reference_sequences: &[fasta::Record],
+fn write_records<A>(
+    reference_sequence_repository: &fasta::Repository<A>,
+    header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_reference_sequence_id: ReferenceSequenceId,
     slice_alignment_start: Option<sam::record::Position>,
     records: &mut [Record],
-) -> io::Result<(Block, Vec<Block>)> {
+) -> io::Result<(Block, Vec<Block>)>
+where
+    A: fasta::repository::Adapter,
+{
     let mut core_data_writer = BitWriter::new(Vec::new());
 
     let mut external_data_writers = HashMap::new();
@@ -213,12 +226,15 @@ fn write_records(
     for record in records {
         if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
             if let Some(alignment_start) = record.alignment_start() {
-                let reference_sequence = reference_sequences
-                    .get(id as usize)
-                    .map(|record| record.sequence())
-                    .ok_or_else(|| {
-                        io::Error::new(io::ErrorKind::InvalidInput, "missing reference sequence")
-                    })?;
+                let reference_sequence_name = header
+                    .reference_sequences()
+                    .get_index(id as usize)
+                    .map(|(_, rs)| rs.name())
+                    .expect("invalid reference sequence ID");
+
+                let reference_sequence = reference_sequence_repository
+                    .get(reference_sequence_name)
+                    .expect("missing reference sequence")?;
 
                 update_substitution_codes(
                     reference_sequence.as_ref(),

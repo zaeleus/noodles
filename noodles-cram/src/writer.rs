@@ -15,6 +15,7 @@ use std::{
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
+use sam::RecordExt;
 
 use self::container::write_container;
 use super::{
@@ -29,9 +30,12 @@ use super::{
 /// ```
 /// # use std::io;
 /// use noodles_cram as cram;
+/// use noodles_fasta as fasta;
 /// use noodles_sam as sam;
 ///
-/// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+/// let repository = fasta::Repository::new(Vec::new());
+/// let header = sam::Header::default();
+/// let mut writer = cram::Writer::builder(Vec::new(), repository, &header).build();
 /// writer.write_file_definition()?;
 ///
 /// let header = sam::Header::builder().add_comment("noodles-cram").build();
@@ -42,20 +46,23 @@ use super::{
 /// # Ok::<(), io::Error>(())
 /// ```
 #[derive(Debug)]
-pub struct Writer<W>
+pub struct Writer<'a, W, A>
 where
     W: Write,
+    A: fasta::repository::Adapter,
 {
     inner: W,
-    reference_sequences: Vec<fasta::Record>,
+    reference_sequence_repository: fasta::Repository<A>,
+    header: &'a sam::Header,
     options: Options,
     data_container_builder: crate::data_container::Builder,
     record_counter: i64,
 }
 
-impl<W> Writer<W>
+impl<'a, W, A> Writer<'a, W, A>
 where
     W: Write,
+    A: fasta::repository::Adapter,
 {
     /// Creates a CRAM writer builder.
     ///
@@ -63,11 +70,20 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let builder = cram::Writer::builder(Vec::new(), Vec::new());
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let builder = cram::Writer::builder(Vec::new(), repository, &header);
     /// let writer = builder.build();
     /// ```
-    pub fn builder(inner: W, reference_sequences: Vec<fasta::Record>) -> Builder<W> {
-        Builder::new(inner, reference_sequences)
+    pub fn builder(
+        inner: W,
+        reference_sequence_repository: fasta::Repository<A>,
+        header: &'a sam::Header,
+    ) -> Builder<'a, W, A> {
+        Builder::new(inner, reference_sequence_repository, header)
     }
 
     /// Creates a new CRAM writer with default options.
@@ -76,10 +92,19 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let writer = cram::Writer::new(Vec::new(), repository, &header);
     /// ```
-    pub fn new(inner: W, reference_sequences: Vec<fasta::Record>) -> Self {
-        Builder::new(inner, reference_sequences).build()
+    pub fn new(
+        inner: W,
+        reference_sequence_repository: fasta::Repository<A>,
+        header: &'a sam::Header,
+    ) -> Self {
+        Builder::new(inner, reference_sequence_repository, header).build()
     }
 
     /// Returns a reference to the underlying writer.
@@ -88,7 +113,13 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// let writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let writer = cram::Writer::new(Vec::new(), repository, &header);
+    ///
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -106,7 +137,13 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    ///
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -125,8 +162,13 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    ///
     /// writer.write_file_definition()?;
     ///
     /// assert_eq!(writer.get_ref(), &[
@@ -164,12 +206,14 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
-    /// writer.write_file_definition()?;
-    ///
+    /// let repository = fasta::Repository::new(Vec::new());
     /// let header = sam::Header::default();
+    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    ///
+    /// writer.write_file_definition()?;
     /// writer.write_file_header(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -186,7 +230,13 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// let mut writer = cram::Writer::new(Vec::new(), Vec::new());
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let repository = fasta::Repository::new(Vec::new());
+    /// let header = sam::Header::default();
+    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    ///
     /// let record = cram::Record::default();
     /// writer.write_record(record)?;
     /// # Ok::<(), io::Error>(())
@@ -197,7 +247,8 @@ where
         loop {
             match add_record(
                 &mut self.data_container_builder,
-                &self.reference_sequences,
+                &self.reference_sequence_repository,
+                self.header,
                 record,
             ) {
                 Ok(_) => {
@@ -229,8 +280,11 @@ where
 
         let base_count = data_container_builder.base_count();
 
-        let data_container =
-            data_container_builder.build(&self.options, &self.reference_sequences)?;
+        let data_container = data_container_builder.build(
+            &self.options,
+            &self.reference_sequence_repository,
+            self.header,
+        )?;
 
         let container = Container::try_from_data_container(&data_container, base_count)?;
         write_container(&mut self.inner, &container)?;
@@ -239,28 +293,39 @@ where
     }
 }
 
-impl<W> Drop for Writer<W>
+impl<'a, W, A> Drop for Writer<'a, W, A>
 where
     W: Write,
+    A: fasta::repository::Adapter,
 {
     fn drop(&mut self) {
         let _ = self.try_finish();
     }
 }
 
-fn add_record(
+fn add_record<A>(
     data_container_builder: &mut crate::data_container::Builder,
-    reference_sequences: &[fasta::Record],
+    reference_sequence_repository: &fasta::Repository<A>,
+    header: &sam::Header,
     record: Record,
-) -> Result<(), crate::data_container::builder::AddRecordError> {
+) -> Result<(), crate::data_container::builder::AddRecordError>
+where
+    A: fasta::repository::Adapter,
+{
     let reference_sequence = record
-        .reference_sequence_id()
-        .map(usize::from)
-        .and_then(|id| reference_sequences.get(id))
-        .map(|rs| rs.sequence().as_ref())
+        .reference_sequence(header.reference_sequences())
+        .transpose()
+        .expect("invalid reference sequence ID")
+        .map(|rs| rs.name())
+        .and_then(|name| {
+            reference_sequence_repository
+                .get(name)
+                .transpose()
+                .expect("invalid reference sequence")
+        })
         .unwrap_or_default();
 
-    data_container_builder.add_record(reference_sequence, record)
+    data_container_builder.add_record(reference_sequence.as_ref(), record)
 }
 
 fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
