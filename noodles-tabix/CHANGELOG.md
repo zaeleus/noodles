@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 - 2022-03-02
+
+### Fixed
+
+  * tabix: Sync dependencies.
+
 ## 0.8.0 - 2022-02-17
 
 ### Added
