@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * core/region: Remove `from_str_reference_sequences`.
+
+    This is to remove the dependency on noodles-sam. Use `FromStr` instead,
+    although it is a less strict parser.
+
 ## 0.4.0 - 2022-02-17
 
 ### Added

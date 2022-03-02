@@ -10,8 +10,6 @@ use std::{
     str::FromStr,
 };
 
-use noodles_sam::header::ReferenceSequences;
-
 static UNMAPPED_NAME: &str = "*";
 static ALL_NAME: &str = ".";
 
@@ -30,44 +28,6 @@ pub enum Region {
 }
 
 impl Region {
-    /// Parses a string to a region.
-    ///
-    /// A region string is specified as
-    /// `<reference-sequence-name>[:<start-position>[-<end-position>]]`.
-    ///
-    /// The reference sequence name can be "*" to represent unmapped records; or ".", all records.
-    /// Otherwise, the reference sequence name must exist in the reference sequence dictionary.
-    pub fn from_str_reference_sequences(
-        s: &str,
-        reference_sequences: &ReferenceSequences,
-    ) -> Result<Self, ParseError> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        } else if s == UNMAPPED_NAME {
-            return Ok(Self::Unmapped);
-        } else if s == ALL_NAME {
-            return Ok(Self::All);
-        }
-
-        if let Some((name, suffix)) = s.rsplit_once(':') {
-            if let Ok(interval) = parse_interval(suffix) {
-                if reference_sequences.get(name).is_some() {
-                    if reference_sequences.contains_key(s) {
-                        return Err(ParseError::Ambiguous);
-                    } else {
-                        return Ok(Self::mapped(name, interval));
-                    }
-                }
-            }
-        }
-
-        if reference_sequences.get(s).is_some() {
-            Ok(Self::mapped(s, ..))
-        } else {
-            Err(ParseError::Invalid)
-        }
-    }
-
     /// Creates a new mapped region.
     ///
     /// Positions are assumed to be 1-based.
@@ -234,77 +194,6 @@ fn parse_interval(s: &str) -> Result<Interval, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_from_str_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::header::{reference_sequence, ReferenceSequence};
-
-        let reference_sequences = [
-            ("sq0".parse()?, 8),
-            ("sq1:".parse()?, 13),
-            ("sq2:5".parse()?, 21),
-            ("sq3".parse()?, 34),
-            ("sq3:5-8".parse()?, 55),
-        ]
-        .into_iter()
-        .map(|(name, len): (reference_sequence::Name, i32)| {
-            let sn = name.to_string();
-            ReferenceSequence::new(name, len).map(|rs| (sn, rs))
-        })
-        .collect::<Result<_, _>>()?;
-
-        assert_eq!(
-            Region::from_str_reference_sequences("*", &reference_sequences),
-            Ok(Region::Unmapped)
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences(".", &reference_sequences),
-            Ok(Region::All)
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq0:3-5", &reference_sequences),
-            Ok(Region::mapped("sq0", 3..=5))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq0:3", &reference_sequences),
-            Ok(Region::mapped("sq0", 3..))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq0", &reference_sequences),
-            Ok(Region::mapped("sq0", ..))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq1:", &reference_sequences),
-            Ok(Region::mapped("sq1:", ..))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq2:5", &reference_sequences),
-            Ok(Region::mapped("sq2:5", ..))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq3:8-13", &reference_sequences),
-            Ok(Region::mapped("sq3", 8..=13))
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("sq3:5-8", &reference_sequences),
-            Err(ParseError::Ambiguous)
-        );
-
-        assert_eq!(
-            Region::from_str_reference_sequences("", &reference_sequences),
-            Err(ParseError::Empty)
-        );
-
-        Ok(())
-    }
 
     #[test]
     fn test_fmt() {
