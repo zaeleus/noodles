@@ -20,7 +20,7 @@ struct AdapterCache<A> {
 }
 
 /// A caching sequence repository.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Repository<A>(Arc<RwLock<AdapterCache<A>>>);
 
 impl<A> Repository<A>
@@ -72,6 +72,15 @@ where
     /// Clears the sequence cache.
     pub fn clear(&self) {
         self.0.write().unwrap().cache.clear();
+    }
+}
+
+impl<A> Clone for Repository<A>
+where
+    A: Adapter,
+{
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }
 
