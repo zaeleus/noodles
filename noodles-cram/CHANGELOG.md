@@ -10,6 +10,8 @@
 
   * cram/record: Add features wrapper (`Features`).
 
+  * cram/record: Implement `sam::RecordExt`.
+
   * cram/record/feature/code: Add fallible conversion from `u8`.
 
   * cram/record/feature/code: Add conversion to `u8`.

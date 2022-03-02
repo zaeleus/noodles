@@ -4,6 +4,7 @@ use noodles_bam::record::ReferenceSequenceId;
 use noodles_sam::{
     self as sam,
     record::{Data, QualityScores, Sequence},
+    RecordExt,
 };
 
 use super::{resolve::resolve_features, Record, Tag};

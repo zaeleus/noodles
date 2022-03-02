@@ -6,7 +6,7 @@ use std::{
 
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, RecordExt};
 
 use crate::{
     container::{

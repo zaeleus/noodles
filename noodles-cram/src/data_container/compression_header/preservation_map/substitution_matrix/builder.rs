@@ -1,3 +1,5 @@
+use noodles_sam::RecordExt;
+
 use crate::{record::Feature, Record};
 
 use super::{Base, Histogram, SubstitutionMatrix};

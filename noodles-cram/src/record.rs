@@ -80,22 +80,6 @@ impl Record {
         self.read_length
     }
 
-    /// Returns the alignment start position.
-    ///
-    /// This value is 1-based.
-    pub fn alignment_start(&self) -> Option<sam::record::Position> {
-        self.alignment_start
-    }
-
-    /// Returns the alignment end position.
-    ///
-    /// This value is 1-based.
-    pub fn alignment_end(&self) -> Option<io::Result<sam::record::Position>> {
-        self.alignment_start().map(|start| {
-            calculate_alignment_end(i32::from(start), self.read_length() as i32, self.features())
-        })
-    }
-
     /// Returns the read group ID.
     ///
     /// This is also simply called the read group. It is the position of the read group in the SAM
@@ -210,6 +194,33 @@ impl fmt::Debug for Record {
     }
 }
 
+impl sam::RecordExt for Record {
+    fn reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs sam::header::ReferenceSequences,
+    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
+        get_reference_sequence(reference_sequences, self.reference_sequence_id())
+    }
+
+    fn alignment_start(&self) -> Option<sam::record::Position> {
+        self.alignment_start
+    }
+
+    fn alignment_span(&self) -> io::Result<u32> {
+        Ok(calculate_alignment_span(self.read_length() as i32, self.features()) as u32)
+    }
+
+    fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs sam::header::ReferenceSequences,
+    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
+        get_reference_sequence(
+            reference_sequences,
+            self.next_fragment_reference_sequence_id(),
+        )
+    }
+}
+
 fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {
     features
         .iter()
@@ -223,15 +234,18 @@ fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {
         })
 }
 
-fn calculate_alignment_end(
-    alignment_start: i32,
-    read_length: i32,
-    features: &Features,
-) -> io::Result<sam::record::Position> {
-    let alignment_span = calculate_alignment_span(read_length, features);
-    let alignment_end = alignment_start + alignment_span - 1;
-    sam::record::Position::try_from(alignment_end)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+fn get_reference_sequence(
+    reference_sequences: &sam::header::ReferenceSequences,
+    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+) -> Option<io::Result<&sam::header::ReferenceSequence>> {
+    reference_sequence_id.map(|id| {
+        reference_sequences
+            .get_index(usize::from(id))
+            .map(|(_, rs)| rs)
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")
+            })
+    })
 }
 
 #[cfg(test)]
@@ -254,16 +268,5 @@ mod tests {
             Feature::SoftClip(16, vec![b'A', b'C', b'G', b'T']),
         ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
-    }
-
-    #[test]
-    fn test_calculate_alignment_end() -> Result<(), Box<dyn std::error::Error>> {
-        let features = Features::default();
-        assert_eq!(
-            calculate_alignment_end(1, 4, &features)?,
-            sam::record::Position::try_from(4)?
-        );
-
-        Ok(())
     }
 }
