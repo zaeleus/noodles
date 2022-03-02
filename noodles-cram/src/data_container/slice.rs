@@ -114,24 +114,40 @@ impl Slice {
     /// Resolves records.
     ///
     /// This resolves mates, read names, bases, and quality scores.
-    pub fn resolve_records(
+    pub fn resolve_records<A>(
         &self,
-        reference_sequences: &[fasta::Record],
+        reference_sequence_repository: &fasta::Repository<A>,
+        header: &sam::Header,
         compression_header: &CompressionHeader,
         mut records: Vec<Record>,
-    ) -> io::Result<Vec<Record>> {
+    ) -> io::Result<Vec<Record>>
+    where
+        A: fasta::repository::Adapter,
+    {
         resolve_mates(&mut records)?;
-        self.resolve_bases(reference_sequences, compression_header, &mut records)?;
+
+        self.resolve_bases(
+            reference_sequence_repository,
+            header,
+            compression_header,
+            &mut records,
+        )?;
+
         self.resolve_quality_scores(&mut records);
+
         Ok(records)
     }
 
-    fn resolve_bases(
+    fn resolve_bases<A>(
         &self,
-        reference_sequences: &[fasta::Record],
+        reference_sequence_repository: &fasta::Repository<A>,
+        header: &sam::Header,
         compression_header: &CompressionHeader,
         records: &mut [Record],
-    ) -> io::Result<()> {
+    ) -> io::Result<()>
+    where
+        A: fasta::repository::Adapter,
+    {
         let embedded_reference_sequence = if let Some(block_content_id) =
             self.header().embedded_reference_bases_block_content_id()
         {
@@ -158,13 +174,17 @@ impl Slice {
                 .preservation_map()
                 .is_reference_required()
             {
-                let reference_sequence_id = record
-                    .reference_sequence_id()
-                    .map(usize::from)
+                let rs = record
+                    .reference_sequence(header.reference_sequences())
+                    .transpose()?
                     .expect("invalid reference sequence ID");
 
-                let record = &reference_sequences[reference_sequence_id];
-                (Some(record.sequence().clone()), 0)
+                let sequence = reference_sequence_repository
+                    .get(rs.name())
+                    .transpose()?
+                    .expect("invalid reference sequence name");
+
+                (Some(sequence), 0)
             } else if let Some(ref sequence) = embedded_reference_sequence {
                 let offset = self
                     .header()

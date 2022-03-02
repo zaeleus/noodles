@@ -15,6 +15,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_fasta as fasta;
+use noodles_sam as sam;
 
 use self::container::read_container;
 use super::{container::Block, file_definition::Version, FileDefinition, MAGIC_NUMBER};
@@ -30,17 +31,21 @@ use crate::data_container::DataContainer;
 /// ```no_run
 /// # use std::{fs::File, io};
 /// use noodles_cram as cram;
+/// use noodles_fasta as fasta;
+///
+/// let reference_sequence_repository = fasta::Repository::new(Vec::new());
 ///
 /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
 /// reader.read_file_definition()?;
-/// reader.read_file_header()?;
 ///
-/// for result in reader.records(&[]) {
+/// let header = reader.read_file_header()?.parse()?;
+///
+/// for result in reader.records(&reference_sequence_repository, &header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
 ///
-/// # Ok::<(), io::Error>(())
+/// # Ok::<_, Box<dyn std::error::Error>>(())
 /// ```
 pub struct Reader<R>
 where
@@ -208,22 +213,30 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    ///
+    /// let reference_sequence_repository = fasta::Repository::new(Vec::new());
     ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
     /// reader.read_file_definition()?;
-    /// reader.read_file_header()?;
     ///
-    /// for result in reader.records(&[]) {
+    /// let header = reader.read_file_header()?.parse()?;
+    ///
+    /// for result in reader.records(&reference_sequence_repository, &header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records<'a, 'b>(
+    pub fn records<'a, A>(
         &'a mut self,
-        reference_sequences: &'b [fasta::Record],
-    ) -> Records<'a, 'b, R> {
-        Records::new(self, reference_sequences)
+        reference_sequence_repository: &'a fasta::Repository<A>,
+        header: &'a sam::Header,
+    ) -> Records<'a, R, A>
+    where
+        A: fasta::repository::Adapter,
+    {
+        Records::new(self, reference_sequence_repository, header)
     }
 }
 

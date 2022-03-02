@@ -36,6 +36,12 @@
 
   * cram/data_container/slice/builder: Increase max record count to 10240.
 
+  * cram/reader: `records` uses a `fasta::Repository` instead of
+    `&[fasta::Record]`.
+
+    This avoids having to do an initial read of all reference sequences. It
+    also now requires the SAM header.
+
   * cram/reader/records: Resolve bases and quality scores when reading records.
 
     This previously only resolved mates and read names.
