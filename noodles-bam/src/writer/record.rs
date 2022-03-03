@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
 use crate::{

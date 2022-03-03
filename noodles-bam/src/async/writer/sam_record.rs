@@ -1,6 +1,6 @@
 use std::{ffi::CString, num};
 
-use noodles_sam::{self as sam, header::ReferenceSequences};
+use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the

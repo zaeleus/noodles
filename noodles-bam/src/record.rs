@@ -151,26 +151,13 @@ impl Record {
         }
     }
 
-    /// Returns the mapping quality of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.mapping_quality().is_none());
-    /// ```
-    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
-        self.mapq
-    }
-
     /// Returns a mutable reference to the mapping quality.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::MappingQuality;
+    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = bam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::try_from(13).map(Some)?;
@@ -514,6 +501,10 @@ impl sam::AlignmentRecord for Record {
         self.cigar().reference_len()
     }
 
+    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+        self.mapq
+    }
+
     /// Returns the associated reference sequence of the mate.
     ///
     /// # Examples
@@ -585,7 +576,7 @@ impl fmt::Debug for Record {
             .field("block_size", &self.block_size())
             .field("ref_id", &self.reference_sequence_id())
             .field("pos", &self.position())
-            .field("mapq", &self.mapping_quality())
+            .field("mapq", &self.mapq)
             .field("bin", &self.bin())
             .field("flag", &self.flags())
             .field("next_ref_id", &self.mate_reference_sequence_id())
@@ -602,6 +593,8 @@ impl fmt::Debug for Record {
 #[cfg(test)]
 mod tests {
     use std::io;
+
+    use noodles_sam::AlignmentRecord;
 
     use super::*;
 

@@ -254,34 +254,12 @@ impl Record {
         &mut self.position
     }
 
-    /// Returns the mapping quality of this record.
-    ///
-    /// Mapping quality ranges from 0 to 254, inclusive.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.mapping_quality().is_none());
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_mapping_quality(MappingQuality::try_from(8)?)
-    ///     .build()?;
-    /// assert_eq!(record.mapping_quality().map(u8::from), Some(8));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn mapping_quality(&self) -> Option<MappingQuality> {
-        self.mapping_quality
-    }
-
     /// Returns a mutable reference to the mapping quality.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
+    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::try_from(8).map(Some)?;
@@ -648,6 +626,10 @@ impl AlignmentRecord for Record {
     /// ```
     fn alignment_span(&self) -> io::Result<u32> {
         Ok(self.cigar().reference_len())
+    }
+
+    fn mapping_quality(&self) -> Option<MappingQuality> {
+        self.mapping_quality
     }
 
     /// Returns the associated reference sequence of the mate.

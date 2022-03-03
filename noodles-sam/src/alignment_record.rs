@@ -2,7 +2,7 @@ use std::io;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::Position,
+    record::{MappingQuality, Position},
 };
 
 /// An alignment record.
@@ -54,6 +54,9 @@ pub trait AlignmentRecord {
 
         Some(Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
+
+    /// Returns the mapping quality.
+    fn mapping_quality(&self) -> Option<MappingQuality>;
 
     /// Returns the associated reference sequence of the mate.
     fn mate_reference_sequence<'rs>(

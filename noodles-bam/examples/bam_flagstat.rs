@@ -5,7 +5,7 @@
 use std::{env, fmt, fs::File, io};
 
 use noodles_bam as bam;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentRecord};
 
 #[derive(Debug, Default)]
 struct Counts {

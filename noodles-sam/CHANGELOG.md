@@ -8,7 +8,8 @@
 
     This is a generalization over SAM-like alignment formats.
 
-  * sam/alignment_record: Add mate position
+  * sam/alignment_record: Add mapping quality
+    (`AlignmentRecord::mapping_quality`) and mate position
     (`AlignmentRecord::mate_alignment_start`).
 
   * sam/reader: Implement `AlignmentReader`.
@@ -16,6 +17,9 @@
 ### Changed
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
+
+  * sam/record: Move `mapping_quality` to the implementation of
+    `AlignmentRecord`.
 
 ## 0.13.0 - 2022-03-02
 

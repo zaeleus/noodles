@@ -6,6 +6,11 @@
 
   * bam/reader: Implement `sam::AlignmentReader`.
 
+### Changed
+
+  * bam/record: Move `mapping_quality` to the implementation of
+    `sam::AlignmentReader`.
+
 ## 0.16.0 - 2022-03-02
 
 ### Added

@@ -147,11 +147,6 @@ impl Record {
         self.features.push(feature);
     }
 
-    /// Returns the mapping quality.
-    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
-        self.mapping_quality
-    }
-
     /// Returns the per-base quality scores.
     pub fn quality_scores(&self) -> &[u8] {
         &self.quality_scores
@@ -208,6 +203,10 @@ impl sam::AlignmentRecord for Record {
 
     fn alignment_span(&self) -> io::Result<u32> {
         Ok(calculate_alignment_span(self.read_length() as i32, self.features()) as u32)
+    }
+
+    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+        self.mapping_quality
     }
 
     fn mate_reference_sequence<'rs>(

@@ -276,7 +276,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::Data;
+    use noodles_sam::{record::Data, AlignmentRecord};
 
     use crate::{record::sequence::Base, Reader, Record};
 

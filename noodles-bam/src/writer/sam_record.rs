@@ -9,6 +9,7 @@ use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
     record::{Cigar, Data, QualityScores, Sequence},
+    AlignmentRecord,
 };
 
 use crate::record::sequence::Base;

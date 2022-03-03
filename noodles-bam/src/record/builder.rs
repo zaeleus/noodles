@@ -74,7 +74,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::MappingQuality;
+    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)

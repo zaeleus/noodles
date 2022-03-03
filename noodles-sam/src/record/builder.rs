@@ -154,7 +154,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
+    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
@@ -389,9 +389,11 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{cigar, data};
-
     use super::*;
+    use crate::{
+        record::{cigar, data},
+        AlignmentRecord,
+    };
 
     #[test]
     fn test_default() {

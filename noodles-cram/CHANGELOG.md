@@ -6,6 +6,11 @@
 
   * cram/reader: Implement `sam::AlignmentReader`.
 
+### Changed
+
+  * cram/record: Move `mapping_quality` to the implementation of
+    `sam::AlignmentReader`.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added

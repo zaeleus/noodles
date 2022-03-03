@@ -1,4 +1,4 @@
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
