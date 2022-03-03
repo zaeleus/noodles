@@ -17,6 +17,7 @@ async = ["futures", "noodles-bgzf/async", "tokio"]
 bitflags = "1.2.1"
 indexmap = "1.4.0"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.10.0" }
+noodles-fasta = { path = "../noodles-fasta", version = "0.8.0" }
 rustc-hash = "1.1.0"
 
 futures = { version = "0.3.15", optional = true, default-features = false, features = ["std"] }

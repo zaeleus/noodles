@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam: Add an alignment reader trait (`AlignmentReader`).
+
+    This is a generalization over SAM-like alignment formats.
+
+  * sam/reader: Implement `AlignmentReader`.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added

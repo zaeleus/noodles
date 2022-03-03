@@ -7,6 +7,9 @@ pub use self::records::Records;
 use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
+use noodles_fasta as fasta;
+
+use super::{AlignmentReader, Header, Record};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -230,6 +233,26 @@ where
     /// ```
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos)
+    }
+}
+
+impl<R> AlignmentReader for Reader<R>
+where
+    R: BufRead,
+{
+    fn read_alignment_header(&mut self) -> io::Result<Header> {
+        read_header(&mut self.inner).and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
+    fn alignment_records<'a>(
+        &'a mut self,
+        _: &'a fasta::Repository,
+        _: &'a Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Record>> + 'a> {
+        Box::new(self.records())
     }
 }
 
