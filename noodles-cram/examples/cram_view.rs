@@ -1,6 +1,8 @@
 //! Prints a CRAM file in the SAM format.
 //!
-//! The result matches the output of `samtools view <src>`.
+//! Reference sequences in the FASTA format are only required for inputs that require them.
+//!
+//! The result matches the output of `samtools view [--reference <fasta-src>] <src>`.
 
 use std::{
     env,
@@ -45,17 +47,21 @@ where
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
-    let fasta_src = args.next().expect("missing fasta_src");
     let src = args.next().expect("missing src");
+    let fasta_src = args.next();
 
-    let reference_sequence_repository = create_reference_sequence_repository(fasta_src)?;
+    let repository = if let Some(src) = fasta_src {
+        create_reference_sequence_repository(src)?
+    } else {
+        fasta::Repository::default()
+    };
 
     let mut reader = File::open(src).map(cram::Reader::new)?;
     reader.read_file_definition()?;
 
     let header: sam::Header = reader.read_file_header()?.parse()?;
 
-    for result in reader.records(&reference_sequence_repository, &header) {
+    for result in reader.records(&repository, &header) {
         let record = result?;
         let sam_record = record.try_into_sam_record(header.reference_sequences())?;
         println!("{}", sam_record);
