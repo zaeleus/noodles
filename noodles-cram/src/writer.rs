@@ -33,7 +33,7 @@ use super::{
 /// use noodles_fasta as fasta;
 /// use noodles_sam as sam;
 ///
-/// let repository = fasta::Repository::new(Vec::new());
+/// let repository = fasta::Repository::default();
 /// let header = sam::Header::default();
 /// let mut writer = cram::Writer::builder(Vec::new(), repository, &header).build();
 /// writer.write_file_definition()?;
@@ -71,7 +71,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let builder = cram::Writer::builder(Vec::new(), repository, &header);
     /// let writer = builder.build();
@@ -93,7 +93,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let writer = cram::Writer::new(Vec::new(), repository, &header);
     /// ```
@@ -114,7 +114,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let writer = cram::Writer::new(Vec::new(), repository, &header);
     ///
@@ -138,7 +138,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
     ///
@@ -163,7 +163,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
     ///
@@ -207,7 +207,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
     ///
@@ -231,7 +231,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
     ///

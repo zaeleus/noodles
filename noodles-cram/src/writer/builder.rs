@@ -60,7 +60,7 @@ where
     /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
     /// let writer = cram::Writer::builder(Vec::new(), repository, &header).build();
     /// ```

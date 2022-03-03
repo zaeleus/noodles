@@ -33,14 +33,14 @@ use crate::data_container::DataContainer;
 /// use noodles_cram as cram;
 /// use noodles_fasta as fasta;
 ///
-/// let reference_sequence_repository = fasta::Repository::new(Vec::new());
+/// let repository = fasta::Repository::default();
 ///
 /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
 /// reader.read_file_definition()?;
 ///
 /// let header = reader.read_file_header()?.parse()?;
 ///
-/// for result in reader.records(&reference_sequence_repository, &header) {
+/// for result in reader.records(&repository, &header) {
 ///     let record = result?;
 ///     println!("{:?}", record);
 /// }
@@ -215,14 +215,14 @@ where
     /// use noodles_cram as cram;
     /// use noodles_fasta as fasta;
     ///
-    /// let reference_sequence_repository = fasta::Repository::new(Vec::new());
+    /// let repository = fasta::Repository::default();
     ///
     /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
     /// reader.read_file_definition()?;
     ///
     /// let header = reader.read_file_header()?.parse()?;
     ///
-    /// for result in reader.records(&reference_sequence_repository, &header) {
+    /// for result in reader.records(&repository, &header) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
