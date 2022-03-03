@@ -16,5 +16,6 @@ members = [
   "noodles-refget",
   "noodles-sam",
   "noodles-tabix",
+  "noodles-util",
   "noodles-vcf",
 ]
