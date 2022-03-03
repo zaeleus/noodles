@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * core: Add a 1-based position wrapper (`Position`).
+
 ### Fixed
 
   * core: Remove dependency on noodles-sam in manifest.
