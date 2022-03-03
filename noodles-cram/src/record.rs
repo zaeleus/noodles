@@ -194,7 +194,7 @@ impl fmt::Debug for Record {
     }
 }
 
-impl sam::RecordExt for Record {
+impl sam::AlignmentRecord for Record {
     fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs sam::header::ReferenceSequences,

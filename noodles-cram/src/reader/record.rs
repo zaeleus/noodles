@@ -9,7 +9,7 @@ use std::{
 
 use byteorder::ReadBytesExt;
 use noodles_bam as bam;
-use noodles_sam::{self as sam, RecordExt};
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::num::read_itf8;
 use crate::{

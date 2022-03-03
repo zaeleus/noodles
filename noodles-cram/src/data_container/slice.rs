@@ -6,7 +6,7 @@ pub use self::{builder::Builder, header::Header};
 use std::io::{self, Cursor};
 
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, RecordExt};
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::CompressionHeader;
 use crate::{

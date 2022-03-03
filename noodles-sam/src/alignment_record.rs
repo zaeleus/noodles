@@ -5,8 +5,8 @@ use super::{
     record::Position,
 };
 
-/// SAM(-like) record extensions.
-pub trait RecordExt {
+/// An alignment record.
+pub trait AlignmentRecord {
     /// Returns the associated reference sequence.
     fn reference_sequence<'rs>(
         &self,
@@ -27,7 +27,7 @@ pub trait RecordExt {
     /// use noodles_sam::{
     ///     self as sam,
     ///     record::{cigar::{op::Kind, Op}, Cigar, Position},
-    ///     RecordExt,
+    ///     AlignmentRecord,
     /// };
     ///
     /// let record = sam::Record::builder()

@@ -6,7 +6,7 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, RecordExt};
+use noodles_sam::{self as sam, AlignmentRecord};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use crate::{

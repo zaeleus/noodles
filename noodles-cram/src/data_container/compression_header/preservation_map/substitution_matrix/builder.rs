@@ -1,4 +1,4 @@
-use noodles_sam::RecordExt;
+use noodles_sam::AlignmentRecord;
 
 use crate::{record::Feature, Record};
 

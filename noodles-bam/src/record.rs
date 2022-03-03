@@ -463,14 +463,14 @@ impl Record {
     }
 }
 
-impl sam::RecordExt for Record {
+impl sam::AlignmentRecord for Record {
     /// Returns the associated reference sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{header::ReferenceSequences, RecordExt};
+    /// use noodles_sam::{header::ReferenceSequences, AlignmentRecord};
     ///
     /// let record = bam::Record::default();
     /// let reference_sequences = ReferenceSequences::default();
@@ -490,7 +490,7 @@ impl sam::RecordExt for Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::RecordExt;
+    /// use noodles_sam::AlignmentRecord;
     /// let record = bam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
@@ -505,7 +505,7 @@ impl sam::RecordExt for Record {
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam::RecordExt;
+    /// use noodles_sam::AlignmentRecord;
     /// let record = bam::Record::default();
     /// assert_eq!(record.alignment_span()?, 0);
     /// # Ok::<_, io::Error>(())
@@ -520,7 +520,7 @@ impl sam::RecordExt for Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{header::ReferenceSequences, RecordExt};
+    /// use noodles_sam::{header::ReferenceSequences, AlignmentRecord};
     ///
     /// let record = bam::Record::default();
     /// let reference_sequences = ReferenceSequences::default();

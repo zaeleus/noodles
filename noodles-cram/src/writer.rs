@@ -15,7 +15,7 @@ use std::{
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use sam::RecordExt;
+use sam::AlignmentRecord;
 
 use self::container::write_container;
 use super::{

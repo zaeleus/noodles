@@ -24,7 +24,7 @@ use std::{fmt, io, str::FromStr};
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    RecordExt,
+    AlignmentRecord,
 };
 
 pub(crate) const NULL_FIELD: &str = "*";
@@ -604,13 +604,13 @@ impl Record {
     }
 }
 
-impl RecordExt for Record {
+impl AlignmentRecord for Record {
     /// Returns the associated reference sequence.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequences, RecordExt};
+    /// use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
     /// let record = sam::Record::default();
     /// let reference_sequences = ReferenceSequences::default();
     /// assert!(record.reference_sequence(&reference_sequences).is_none());
@@ -627,7 +627,7 @@ impl RecordExt for Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, RecordExt};
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     /// let record = sam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
@@ -641,7 +641,7 @@ impl RecordExt for Record {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam::{self as sam, RecordExt};
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     /// let record = sam::Record::default();
     /// assert_eq!(record.alignment_span()?, 0);
     /// # Ok::<_, io::Error>(())
@@ -655,7 +655,7 @@ impl RecordExt for Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequences, RecordExt};
+    /// use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
     /// let record = sam::Record::default();
     /// let reference_sequences = ReferenceSequences::default();
     /// assert!(record.mate_reference_sequence(&reference_sequences).is_none());

@@ -10,6 +10,10 @@
 
   * sam/reader: Implement `AlignmentReader`.
 
+### Changed
+
+  * sam: Rename `RecordExt` to `AlignmentRecord`.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added
