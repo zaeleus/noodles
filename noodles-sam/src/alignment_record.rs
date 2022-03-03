@@ -60,4 +60,7 @@ pub trait AlignmentRecord {
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>>;
+
+    /// Returns the start position of the mate.
+    fn mate_alignment_start(&self) -> Option<Position>;
 }

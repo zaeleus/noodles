@@ -8,6 +8,9 @@
 
     This is a generalization over SAM-like alignment formats.
 
+  * sam/alignment_record: Add mate position
+    (`AlignmentRecord::mate_alignment_start`).
+
   * sam/reader: Implement `AlignmentReader`.
 
 ### Changed

@@ -533,6 +533,10 @@ impl sam::AlignmentRecord for Record {
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
         get_reference_sequence(reference_sequences, self.mate_reference_sequence_id())
     }
+
+    fn mate_alignment_start(&self) -> Option<sam::record::Position> {
+        self.mate_position()
+    }
 }
 
 fn get_reference_sequence(

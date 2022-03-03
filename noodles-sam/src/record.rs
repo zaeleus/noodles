@@ -666,6 +666,10 @@ impl AlignmentRecord for Record {
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
         get_reference_sequence(reference_sequences, self.mate_reference_sequence_name())
     }
+
+    fn mate_alignment_start(&self) -> Option<Position> {
+        self.mate_position()
+    }
 }
 
 fn get_reference_sequence<'rs>(

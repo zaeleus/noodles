@@ -219,6 +219,10 @@ impl sam::AlignmentRecord for Record {
             self.next_fragment_reference_sequence_id(),
         )
     }
+
+    fn mate_alignment_start(&self) -> Option<sam::record::Position> {
+        self.next_mate_alignment_start
+    }
 }
 
 fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {
