@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/reader: Implement `sam::AlignmentReader`.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added

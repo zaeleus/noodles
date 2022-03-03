@@ -278,6 +278,34 @@ where
     }
 }
 
+impl<R> sam::AlignmentReader for Reader<R>
+where
+    R: Read,
+{
+    fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
+        self.read_file_definition()?;
+
+        self.read_file_header().and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
+    }
+
+    fn alignment_records<'a>(
+        &'a mut self,
+        reference_sequence_repository: &'a fasta::Repository,
+        header: &'a sam::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<sam::Record>> + 'a> {
+        Box::new(
+            self.records(reference_sequence_repository, header)
+                .map(|result| {
+                    result
+                        .and_then(|record| record.try_into_sam_record(header.reference_sequences()))
+                }),
+        )
+    }
+}
+
 fn read_magic_number<R>(reader: &mut R) -> io::Result<()>
 where
     R: Read,
