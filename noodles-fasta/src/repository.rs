@@ -7,30 +7,28 @@ pub use self::adapter::Adapter;
 
 use std::{
     collections::HashMap,
-    io,
+    fmt, io,
     sync::{Arc, RwLock},
 };
 
 use super::record::Sequence;
 
-#[derive(Debug)]
-struct AdapterCache<A> {
-    adapter: A,
+struct AdapterCache {
+    adapter: Box<dyn Adapter>,
     cache: HashMap<String, Sequence>,
 }
 
 /// A caching sequence repository.
-#[derive(Debug)]
-pub struct Repository<A>(Arc<RwLock<AdapterCache<A>>>);
+pub struct Repository(Arc<RwLock<AdapterCache>>);
 
-impl<A> Repository<A>
-where
-    A: Adapter,
-{
+impl Repository {
     /// Creates a sequence repository.
-    pub fn new(adapter: A) -> Self {
+    pub fn new<A>(adapter: A) -> Self
+    where
+        A: Adapter + 'static,
+    {
         Self(Arc::new(RwLock::new(AdapterCache {
-            adapter,
+            adapter: Box::new(adapter),
             cache: HashMap::new(),
         })))
     }
@@ -75,12 +73,17 @@ where
     }
 }
 
-impl<A> Clone for Repository<A>
-where
-    A: Adapter,
-{
+impl Clone for Repository {
     fn clone(&self) -> Self {
         Self(self.0.clone())
+    }
+}
+
+impl fmt::Debug for Repository {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Repository")
+            .field("cache", &self.0.read().unwrap().cache)
+            .finish()
     }
 }
 

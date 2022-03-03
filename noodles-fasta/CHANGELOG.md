@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/repository: Box the adapter.
+
+    `fasta::Repository` no longer carries an adapter generic.
+
 ## 0.8.0 - 2022-03-02
 
 ### Added

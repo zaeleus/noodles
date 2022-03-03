@@ -228,14 +228,11 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records<'a, A>(
+    pub fn records<'a>(
         &'a mut self,
-        reference_sequence_repository: &'a fasta::Repository<A>,
+        reference_sequence_repository: &'a fasta::Repository,
         header: &'a sam::Header,
-    ) -> Records<'a, R, A>
-    where
-        A: fasta::repository::Adapter,
-    {
+    ) -> Records<'a, R> {
         Records::new(self, reference_sequence_repository, header)
     }
 }

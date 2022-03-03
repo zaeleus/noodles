@@ -114,16 +114,13 @@ impl Slice {
     /// Resolves records.
     ///
     /// This resolves mates, read names, bases, and quality scores.
-    pub fn resolve_records<A>(
+    pub fn resolve_records(
         &self,
-        reference_sequence_repository: &fasta::Repository<A>,
+        reference_sequence_repository: &fasta::Repository,
         header: &sam::Header,
         compression_header: &CompressionHeader,
         records: &mut [Record],
-    ) -> io::Result<()>
-    where
-        A: fasta::repository::Adapter,
-    {
+    ) -> io::Result<()> {
         resolve_mates(records)?;
 
         self.resolve_bases(
@@ -138,16 +135,13 @@ impl Slice {
         Ok(())
     }
 
-    fn resolve_bases<A>(
+    fn resolve_bases(
         &self,
-        reference_sequence_repository: &fasta::Repository<A>,
+        reference_sequence_repository: &fasta::Repository,
         header: &sam::Header,
         compression_header: &CompressionHeader,
         records: &mut [Record],
-    ) -> io::Result<()>
-    where
-        A: fasta::repository::Adapter,
-    {
+    ) -> io::Result<()> {
         let embedded_reference_sequence = if let Some(block_content_id) =
             self.header().embedded_reference_bases_block_content_id()
         {

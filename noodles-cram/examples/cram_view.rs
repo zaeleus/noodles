@@ -24,9 +24,7 @@ where
     PathBuf::from(s)
 }
 
-fn create_reference_sequence_repository<P>(
-    src: P,
-) -> io::Result<fasta::Repository<IndexedReader<BufReader<File>>>>
+fn create_reference_sequence_repository<P>(src: P) -> io::Result<fasta::Repository>
 where
     P: AsRef<Path>,
 {

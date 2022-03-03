@@ -73,15 +73,12 @@ impl Builder {
         }
     }
 
-    pub fn build<A>(
+    pub fn build(
         mut self,
         options: &Options,
-        reference_sequence_repository: &fasta::Repository<A>,
+        reference_sequence_repository: &fasta::Repository,
         header: &sam::Header,
-    ) -> io::Result<DataContainer>
-    where
-        A: fasta::repository::Adapter,
-    {
+    ) -> io::Result<DataContainer> {
         if !self.slice_builder.is_empty() {
             self.slice_builders.push(self.slice_builder);
         }

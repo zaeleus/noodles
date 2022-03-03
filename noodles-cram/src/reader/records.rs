@@ -12,24 +12,23 @@ use crate::Record;
 /// An iterator over records of a CRAM reader.
 ///
 /// This is created by calling [`Reader::records`].
-pub struct Records<'a, R, A>
+pub struct Records<'a, R>
 where
     R: Read,
 {
     reader: &'a mut Reader<R>,
-    reference_sequence_repository: &'a fasta::Repository<A>,
+    reference_sequence_repository: &'a fasta::Repository,
     header: &'a sam::Header,
     records: vec::IntoIter<Record>,
 }
 
-impl<'a, R, A> Records<'a, R, A>
+impl<'a, R> Records<'a, R>
 where
     R: Read,
-    A: fasta::repository::Adapter,
 {
     pub(crate) fn new(
         reader: &'a mut Reader<R>,
-        reference_sequence_repository: &'a fasta::Repository<A>,
+        reference_sequence_repository: &'a fasta::Repository,
         header: &'a sam::Header,
     ) -> Self {
         Self {
@@ -73,10 +72,9 @@ where
     }
 }
 
-impl<'a, R, A> Iterator for Records<'a, R, A>
+impl<'a, R> Iterator for Records<'a, R>
 where
     R: Read,
-    A: fasta::repository::Adapter,
 {
     type Item = io::Result<Record>;
 

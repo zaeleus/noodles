@@ -46,23 +46,21 @@ use super::{
 /// # Ok::<(), io::Error>(())
 /// ```
 #[derive(Debug)]
-pub struct Writer<'a, W, A>
+pub struct Writer<'a, W>
 where
     W: Write,
-    A: fasta::repository::Adapter,
 {
     inner: W,
-    reference_sequence_repository: fasta::Repository<A>,
+    reference_sequence_repository: fasta::Repository,
     header: &'a sam::Header,
     options: Options,
     data_container_builder: crate::data_container::Builder,
     record_counter: i64,
 }
 
-impl<'a, W, A> Writer<'a, W, A>
+impl<'a, W> Writer<'a, W>
 where
     W: Write,
-    A: fasta::repository::Adapter,
 {
     /// Creates a CRAM writer builder.
     ///
@@ -80,9 +78,9 @@ where
     /// ```
     pub fn builder(
         inner: W,
-        reference_sequence_repository: fasta::Repository<A>,
+        reference_sequence_repository: fasta::Repository,
         header: &'a sam::Header,
-    ) -> Builder<'a, W, A> {
+    ) -> Builder<'a, W> {
         Builder::new(inner, reference_sequence_repository, header)
     }
 
@@ -101,7 +99,7 @@ where
     /// ```
     pub fn new(
         inner: W,
-        reference_sequence_repository: fasta::Repository<A>,
+        reference_sequence_repository: fasta::Repository,
         header: &'a sam::Header,
     ) -> Self {
         Builder::new(inner, reference_sequence_repository, header).build()
@@ -293,25 +291,21 @@ where
     }
 }
 
-impl<'a, W, A> Drop for Writer<'a, W, A>
+impl<'a, W> Drop for Writer<'a, W>
 where
     W: Write,
-    A: fasta::repository::Adapter,
 {
     fn drop(&mut self) {
         let _ = self.try_finish();
     }
 }
 
-fn add_record<A>(
+fn add_record(
     data_container_builder: &mut crate::data_container::Builder,
-    reference_sequence_repository: &fasta::Repository<A>,
+    reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
     record: Record,
-) -> Result<(), crate::data_container::builder::AddRecordError>
-where
-    A: fasta::repository::Adapter,
-{
+) -> Result<(), crate::data_container::builder::AddRecordError> {
     let reference_sequence = record
         .reference_sequence(header.reference_sequences())
         .transpose()

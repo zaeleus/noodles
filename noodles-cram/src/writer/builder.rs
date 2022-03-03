@@ -7,21 +7,20 @@ use super::{Options, Writer};
 use crate::DataContainer;
 
 /// A CRAM writer builder.
-pub struct Builder<'a, W, A> {
+pub struct Builder<'a, W> {
     inner: W,
-    reference_sequence_repository: fasta::Repository<A>,
+    reference_sequence_repository: fasta::Repository,
     header: &'a sam::Header,
     options: Options,
 }
 
-impl<'a, W, A> Builder<'a, W, A>
+impl<'a, W> Builder<'a, W>
 where
     W: Write,
-    A: fasta::repository::Adapter,
 {
     pub(crate) fn new(
         inner: W,
-        reference_sequence_repository: fasta::Repository<A>,
+        reference_sequence_repository: fasta::Repository,
         header: &'a sam::Header,
     ) -> Self {
         Self {
@@ -65,7 +64,7 @@ where
     /// let header = sam::Header::default();
     /// let writer = cram::Writer::builder(Vec::new(), repository, &header).build();
     /// ```
-    pub fn build(self) -> Writer<'a, W, A> {
+    pub fn build(self) -> Writer<'a, W> {
         Writer {
             inner: self.inner,
             reference_sequence_repository: self.reference_sequence_repository,

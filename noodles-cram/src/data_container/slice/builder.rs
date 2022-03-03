@@ -62,16 +62,13 @@ impl Builder {
         }
     }
 
-    pub fn build<A>(
+    pub fn build(
         mut self,
-        reference_sequence_repostitory: &fasta::repository::Repository<A>,
+        reference_sequence_repostitory: &fasta::repository::Repository,
         header: &sam::Header,
         compression_header: &CompressionHeader,
         record_counter: i64,
-    ) -> io::Result<Slice>
-    where
-        A: fasta::repository::Adapter,
-    {
+    ) -> io::Result<Slice> {
         let slice_reference_sequence_id = find_slice_reference_sequence_id(&self.records);
 
         let (slice_alignment_start, slice_alignment_end) = if slice_reference_sequence_id.is_some()
@@ -191,17 +188,14 @@ fn find_slice_alignment_positions(
     Ok((slice_alignment_start, slice_alignment_end))
 }
 
-fn write_records<A>(
-    reference_sequence_repository: &fasta::Repository<A>,
+fn write_records(
+    reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_reference_sequence_id: ReferenceSequenceId,
     slice_alignment_start: Option<sam::record::Position>,
     records: &mut [Record],
-) -> io::Result<(Block, Vec<Block>)>
-where
-    A: fasta::repository::Adapter,
-{
+) -> io::Result<(Block, Vec<Block>)> {
     let mut core_data_writer = BitWriter::new(Vec::new());
 
     let mut external_data_writers = HashMap::new();
