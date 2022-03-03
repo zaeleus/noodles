@@ -87,6 +87,12 @@ impl fmt::Debug for Repository {
     }
 }
 
+impl Default for Repository {
+    fn default() -> Self {
+        Self::new(adapters::Empty::new())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
