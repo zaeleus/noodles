@@ -16,7 +16,11 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
-use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
+use noodles_fasta as fasta;
+use noodles_sam::{
+    self as sam,
+    header::{ReferenceSequence, ReferenceSequences},
+};
 
 use self::record::read_record;
 use super::{bai, Record, MAGIC_NUMBER};
@@ -355,6 +359,34 @@ impl<R> From<R> for Reader<R> {
             inner,
             buf: Vec::new(),
         }
+    }
+}
+
+impl<R> sam::AlignmentReader for Reader<R>
+where
+    R: Read,
+{
+    fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
+        read_magic(&mut self.inner)?;
+
+        let header = read_header(&mut self.inner).and_then(|s| {
+            s.parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        self.read_reference_sequences()?;
+
+        Ok(header)
+    }
+
+    fn alignment_records<'a>(
+        &'a mut self,
+        _: &'a fasta::Repository,
+        header: &'a sam::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<sam::Record>> + 'a> {
+        Box::new(self.records().map(|result| {
+            result.and_then(|record| record.try_into_sam_record(header.reference_sequences()))
+        }))
     }
 }
 

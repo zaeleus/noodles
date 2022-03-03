@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/reader: Implement `sam::AlignmentReader`.
+
 ## 0.16.0 - 2022-03-02
 
 ### Added
