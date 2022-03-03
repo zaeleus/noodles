@@ -8,6 +8,10 @@
 
     `fasta::Repository` no longer carries an adapter generic.
 
+  * fasta/repository/adapters: Add an empty adapter.
+
+    This may be useful to create a repository that is never used.
+
 ## 0.8.0 - 2022-03-02
 
 ### Added
