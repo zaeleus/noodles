@@ -51,7 +51,7 @@ impl Key {
 
     pub(crate) fn id(self) -> i32 {
         let [l, r] = self.tag;
-        let ty = char::from(self.ty) as u8;
+        let ty = u8::from(self.ty);
         i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
     }
 }
