@@ -11,6 +11,8 @@
   * cram/record: Move `mapping_quality` to the implementation of
     `sam::AlignmentReader`.
 
+  * cram/record: Rename `flags` to `cram_flags`.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added

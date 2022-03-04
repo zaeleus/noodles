@@ -77,7 +77,7 @@ where
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         self.write_bam_bit_flags(record.bam_flags())?;
-        self.write_cram_bit_flags(record.flags())?;
+        self.write_cram_bit_flags(record.cram_flags())?;
 
         self.write_positional_data(record)?;
 
@@ -277,9 +277,7 @@ where
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
-        let flags = record.flags();
-
-        if flags.is_detached() {
+        if record.cram_flags().is_detached() {
             self.write_next_mate_bit_flags(record.next_mate_flags())?;
 
             let preservation_map = self.compression_header.preservation_map();
@@ -497,9 +495,7 @@ where
 
         self.write_mapping_quality(record.mapping_quality())?;
 
-        let flags = record.flags();
-
-        if flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags().are_quality_scores_stored_as_array() {
             for &score in record.quality_scores() {
                 self.write_quality_score(score)?;
             }
@@ -875,9 +871,7 @@ where
             self.write_base(base)?;
         }
 
-        let flags = record.flags();
-
-        if flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags().are_quality_scores_stored_as_array() {
             for &score in record.quality_scores() {
                 self.write_quality_score(score)?;
             }

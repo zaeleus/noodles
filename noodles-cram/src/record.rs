@@ -63,7 +63,7 @@ impl Record {
     /// Returns the CRAM flags.
     ///
     /// This is also called the CRAM bit flags or compression bit flags.
-    pub fn flags(&self) -> Flags {
+    pub fn cram_flags(&self) -> Flags {
         self.cram_bit_flags
     }
 
@@ -166,7 +166,7 @@ impl fmt::Debug for Record {
         fmt.debug_struct("Record")
             .field("id", &self.id)
             .field("bam_bit_flags", &self.bam_flags())
-            .field("cram_bit_flags", &self.flags())
+            .field("cram_bit_flags", &self.cram_flags())
             .field("reference_id", &self.reference_sequence_id)
             .field("read_length", &self.read_length)
             .field("alignment_start", &self.alignment_start)

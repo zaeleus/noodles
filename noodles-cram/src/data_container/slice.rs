@@ -160,7 +160,8 @@ impl Slice {
         };
 
         for record in records {
-            if record.bam_flags().is_unmapped() || record.flags().decode_sequence_as_unknown() {
+            if record.bam_flags().is_unmapped() || record.cram_flags().decode_sequence_as_unknown()
+            {
                 continue;
             }
 
@@ -211,7 +212,7 @@ impl Slice {
 
     fn resolve_quality_scores(&self, records: &mut [Record]) {
         for record in records {
-            if !record.flags().are_quality_scores_stored_as_array() {
+            if !record.cram_flags().are_quality_scores_stored_as_array() {
                 let quality_scores =
                     resolve_quality_scores(record.features(), record.read_length());
 
@@ -225,9 +226,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut mate_indices = vec![None; records.len()];
 
     for (i, record) in records.iter().enumerate() {
-        let flags = record.flags();
-
-        if flags.has_mate_downstream() {
+        if record.cram_flags().has_mate_downstream() {
             let distance_to_next_fragment = record.distance_to_next_fragment() as usize;
             let mate_index = i + distance_to_next_fragment + 1;
             mate_indices[i] = Some(mate_index);
