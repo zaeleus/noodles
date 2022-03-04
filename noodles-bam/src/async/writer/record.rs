@@ -19,7 +19,7 @@ where
     write_reference_sequence_id(writer, record.reference_sequence_id()).await?;
 
     // pos
-    write_position(writer, record.pos).await?;
+    write_position(writer, record.position()).await?;
 
     write_l_read_name(writer, record.read_name()).await?;
 

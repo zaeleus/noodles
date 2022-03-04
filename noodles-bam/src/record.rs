@@ -46,7 +46,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
-    pub(crate) pos: Option<sam::record::Position>,
+    pos: Option<sam::record::Position>,
     mapq: Option<sam::record::MappingQuality>,
     bin: u16,
     flag: sam::record::Flags,
@@ -143,6 +143,26 @@ impl Record {
     /// ```
     pub fn position(&self) -> Option<sam::record::Position> {
         self.pos
+    }
+
+    /// Returns a mutable reference to the start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let position = sam::record::Position::try_from(8).map(Some)?;
+    ///
+    /// let mut record = bam::Record::default();
+    /// *record.position_mut() = position;
+    ///
+    /// assert_eq!(record.position(), position);
+    /// Ok::<_, sam::record::position::TryFromIntError>(())
+    /// ```
+    pub fn position_mut(&mut self) -> &mut Option<sam::record::Position> {
+        &mut self.pos
     }
 
     /// Returns a mutable reference to the mapping quality.

@@ -44,7 +44,7 @@ where
     B: Buf,
 {
     *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    record.pos = read_position(&mut buf)?;
+    *record.position_mut() = read_position(&mut buf)?;
 
     let l_read_name = NonZeroUsize::new(usize::from(buf.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
