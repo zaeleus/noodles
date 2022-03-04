@@ -106,7 +106,10 @@ where
     writer.write_i32::<LittleEndian>(ref_id)
 }
 
-fn write_position<W>(writer: &mut W, position: Option<sam::record::Position>) -> io::Result<()>
+pub(super) fn write_position<W>(
+    writer: &mut W,
+    position: Option<sam::record::Position>,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -133,7 +136,7 @@ where
     writer.write_u8(l_read_name)
 }
 
-fn write_mapping_quality<W>(
+pub(super) fn write_mapping_quality<W>(
     writer: &mut W,
     mapping_quality: Option<sam::record::MappingQuality>,
 ) -> io::Result<()>
@@ -145,7 +148,7 @@ where
     writer.write_u8(mapq)
 }
 
-fn write_bin<W>(
+pub(super) fn write_bin<W>(
     writer: &mut W,
     alignment_start: Option<sam::record::Position>,
     alignment_end: Option<sam::record::Position>,
@@ -161,7 +164,7 @@ where
     writer.write_u16::<LittleEndian>(bin)
 }
 
-fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+pub(super) fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
 where
     W: Write,
 {
@@ -169,7 +172,7 @@ where
     writer.write_u16::<LittleEndian>(flag)
 }
 
-fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+pub(super) fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
 where
     W: Write,
 {

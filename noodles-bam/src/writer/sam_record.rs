@@ -12,6 +12,9 @@ use noodles_sam::{
     AlignmentRecord,
 };
 
+use super::record::{
+    write_bin, write_flags, write_mapping_quality, write_position, write_template_length,
+};
 use crate::record::sequence::Base;
 
 // § 4.2 The BAM format (2021-06-03)
@@ -73,7 +76,8 @@ where
     write_mapping_quality(writer, record.mapping_quality())?;
 
     // bin
-    write_bin(writer, record)?;
+    let alignment_end = record.alignment_end().transpose()?;
+    write_bin(writer, record.position(), alignment_end)?;
 
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
 
@@ -153,67 +157,6 @@ where
     };
 
     writer.write_i32::<LittleEndian>(id)
-}
-
-fn write_position<W>(writer: &mut W, position: Option<sam::record::Position>) -> io::Result<()>
-where
-    W: Write,
-{
-    use crate::record::UNMAPPED_POSITION;
-
-    let pos = position
-        .map(|p| i32::from(p) - 1)
-        .unwrap_or(UNMAPPED_POSITION);
-
-    writer.write_i32::<LittleEndian>(pos)
-}
-
-fn write_mapping_quality<W>(
-    writer: &mut W,
-    mapping_quality: Option<sam::record::MappingQuality>,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    use sam::record::mapping_quality::MISSING;
-    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
-    writer.write_u8(mapq)
-}
-
-fn write_bin<W>(writer: &mut W, record: &sam::Record) -> io::Result<()>
-where
-    W: Write,
-{
-    // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
-    // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
-    const UNMAPPED_BIN: u16 = 4680;
-
-    let bin = record
-        .position()
-        .map(|p| i32::from(p) - 1)
-        .map(|start| {
-            let reference_len = record.cigar().reference_len() as i32;
-            let end = start + reference_len;
-            region_to_bin(start, end) as u16
-        })
-        .unwrap_or(UNMAPPED_BIN);
-
-    writer.write_u16::<LittleEndian>(bin)
-}
-
-fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
-where
-    W: Write,
-{
-    let flag = u16::from(flags);
-    writer.write_u16::<LittleEndian>(flag)
-}
-
-fn write_template_length<W>(writer: &mut W, tlen: i32) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_i32::<LittleEndian>(tlen)
 }
 
 fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
@@ -794,22 +737,6 @@ mod tests {
             write_reference_sequence_id(&mut buf, &reference_sequences, Some(&reference_sequence_name)),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_position() -> Result<(), Box<dyn std::error::Error>> {
-        let mut buf = Vec::new();
-
-        buf.clear();
-        let position = sam::record::Position::try_from(8)?;
-        write_position(&mut buf, Some(position))?;
-        assert_eq!(buf, [0x07, 0x00, 0x00, 0x00]); // pos = 7
-
-        buf.clear();
-        write_position(&mut buf, None)?;
-        assert_eq!(buf, [0xff, 0xff, 0xff, 0xff]); // pos = -1
 
         Ok(())
     }
