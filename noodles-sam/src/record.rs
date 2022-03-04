@@ -640,15 +640,15 @@ fn get_reference_sequence<'rs>(
 impl Default for Record {
     fn default() -> Self {
         Self {
-            read_name: Default::default(),
+            read_name: None,
             flags: Flags::UNMAPPED,
-            reference_sequence_name: Default::default(),
-            position: Default::default(),
-            mapping_quality: Default::default(),
+            reference_sequence_name: None,
+            position: None,
+            mapping_quality: None,
             cigar: Cigar::default(),
-            mate_reference_sequence_name: Default::default(),
-            mate_position: Default::default(),
-            template_length: Default::default(),
+            mate_reference_sequence_name: None,
+            mate_position: None,
+            template_length: 0,
             sequence: Sequence::default(),
             quality_scores: QualityScores::default(),
             data: Data::default(),
