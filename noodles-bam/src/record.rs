@@ -646,4 +646,22 @@ mod tests {
         assert_eq!(record.block_size(), 57);
         Ok(())
     }
+
+    #[test]
+    fn test_default() {
+        let record = Record::default();
+
+        assert!(record.ref_id.is_none());
+        assert!(record.pos.is_none());
+        assert!(record.mapq.is_none());
+        assert_eq!(record.flag, sam::record::Flags::UNMAPPED);
+        assert!(record.next_ref_id.is_none());
+        assert!(record.next_pos.is_none());
+        assert_eq!(record.tlen, 0);
+        assert_eq!(record.read_name, b"*");
+        assert!(record.cigar.is_empty());
+        assert!(record.seq.is_empty());
+        assert!(record.qual.is_empty());
+        assert!(record.data.is_empty());
+    }
 }
