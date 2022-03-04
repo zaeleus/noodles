@@ -1,6 +1,6 @@
 //! CRAM record tag and fields.
 
-use std::{error, fmt, str};
+use std::{error, fmt};
 
 mod key;
 
@@ -92,16 +92,15 @@ impl TryFrom<Tag> for sam::record::data::Field {
     type Error = TryFromTagError;
 
     fn try_from(tag: Tag) -> Result<Self, Self::Error> {
-        use sam::record::data::Field;
-
-        let raw_tag = tag.key().tag();
-        let sam_tag = str::from_utf8(&raw_tag)
-            .map_err(|_| TryFromTagError::InvalidTag)
-            .and_then(|s| s.parse().map_err(|_| TryFromTagError::InvalidTag))?;
+        let sam_tag = tag
+            .key()
+            .tag()
+            .try_into()
+            .map_err(|_| TryFromTagError::InvalidTag)?;
 
         let sam_value = tag.value.into();
 
-        Ok(Field::new(sam_tag, sam_value))
+        Ok(Self::new(sam_tag, sam_value))
     }
 }
 
