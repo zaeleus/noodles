@@ -28,7 +28,9 @@ where
     // mapq
     write_mapping_quality(writer, record.mapping_quality())?;
 
-    writer.write_u16::<LittleEndian>(record.bin())?;
+    // bin
+    let alignment_end = record.alignment_end().transpose()?;
+    write_bin(writer, record.position(), alignment_end)?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -138,6 +140,26 @@ where
     writer.write_u8(mapq)
 }
 
+fn write_bin<W>(
+    writer: &mut W,
+    alignment_start: Option<sam::record::Position>,
+    alignment_end: Option<sam::record::Position>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
+    // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
+    const UNMAPPED_BIN: u16 = 4680;
+
+    let bin = match (alignment_start, alignment_end) {
+        (Some(start), Some(end)) => region_to_bin(start, end)?,
+        _ => UNMAPPED_BIN,
+    };
+
+    writer.write_u16::<LittleEndian>(bin)
+}
+
 fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
 where
     W: Write,
@@ -159,6 +181,32 @@ where
     }
 
     Ok(())
+}
+
+// § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
+#[allow(clippy::eq_op)]
+fn region_to_bin(
+    alignment_start: sam::record::Position,
+    alignment_end: sam::record::Position,
+) -> io::Result<u16> {
+    let start = i32::from(alignment_start) - 1;
+    let end = i32::from(alignment_end) - 1;
+
+    let bin = if start >> 14 == end >> 14 {
+        ((1 << 15) - 1) / 7 + (start >> 14)
+    } else if start >> 17 == end >> 17 {
+        ((1 << 12) - 1) / 7 + (start >> 17)
+    } else if start >> 20 == end >> 20 {
+        ((1 << 9) - 1) / 7 + (start >> 20)
+    } else if start >> 23 == end >> 23 {
+        ((1 << 6) - 1) / 7 + (start >> 23)
+    } else if start >> 26 == end >> 26 {
+        ((1 << 3) - 1) / 7 + (start >> 26)
+    } else {
+        0
+    };
+
+    u16::try_from(bin).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
 }
 
 #[cfg(test)]
@@ -259,6 +307,19 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_region_to_bin() -> Result<(), Box<dyn std::error::Error>> {
+        let start = sam::record::Position::try_from(8)?;
+        let end = sam::record::Position::try_from(13)?;
+        assert_eq!(region_to_bin(start, end)?, 4681);
+
+        let start = sam::record::Position::try_from(63245986)?;
+        let end = sam::record::Position::try_from(63245986)?;
+        assert_eq!(region_to_bin(start, end)?, 8541);
 
         Ok(())
     }

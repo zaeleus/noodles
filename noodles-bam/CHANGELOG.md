@@ -18,6 +18,11 @@
 
   * bam/record/builder: Fix default read name to have no NUL terminator.
 
+  * bam/writer/record: Calculate bin number for record.
+
+    If the start position or CIGAR is changed, the bin number in the record may
+    be incorrect.
+
 ## 0.16.0 - 2022-03-02
 
 ### Added
