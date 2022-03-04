@@ -6,7 +6,8 @@
 
   * bam/reader: Implement `sam::AlignmentReader`.
 
-  * bam/record: Add mutable getter for position (`Record::position_mut`).
+  * bam/record: Add mutable getter for position (`Record::position_mut`) and
+    mate position (`Record::mate_position`).
 
 ### Changed
 

@@ -51,7 +51,7 @@ pub struct Record {
     bin: u16,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
-    pub(crate) next_pos: Option<sam::record::Position>,
+    next_pos: Option<sam::record::Position>,
     tlen: i32,
     read_name: Vec<u8>,
     cigar: Cigar,
@@ -278,6 +278,26 @@ impl Record {
     /// ```
     pub fn mate_position(&self) -> Option<sam::record::Position> {
         self.next_pos
+    }
+
+    /// Returns a mutable reference to the position of the mate.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let position = sam::record::Position::try_from(13).map(Some)?;
+    ///
+    /// let mut record = bam::Record::default();
+    /// *record.mate_position_mut() = position;
+    ///
+    /// assert_eq!(record.mate_position(), position);
+    /// Ok::<_, sam::record::position::TryFromIntError>(())
+    /// ```
+    pub fn mate_position_mut(&mut self) -> &mut Option<sam::record::Position> {
+        &mut self.next_pos
     }
 
     /// Returns the template length of this record.
