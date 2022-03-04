@@ -312,11 +312,6 @@ impl Builder {
             region_to_bin(pos, end) as u16
         };
 
-        let next_pos = self
-            .next_pos
-            .map(|p| i32::from(p) - 1)
-            .unwrap_or(UNMAPPED_POSITION);
-
         let read_name = if self.read_name.is_empty() {
             b"*".to_vec()
         } else {
@@ -330,7 +325,7 @@ impl Builder {
             bin,
             flag: self.flag,
             next_ref_id: self.next_ref_id,
-            next_pos,
+            next_pos: self.next_pos,
             tlen: self.tlen,
             read_name,
             cigar: self.cigar,

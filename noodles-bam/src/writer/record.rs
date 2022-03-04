@@ -45,7 +45,7 @@ where
     write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
 
     // next_pos
-    write_mate_position(writer, record.next_pos)?;
+    write_position(writer, record.mate_position())?;
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
 
@@ -109,14 +109,6 @@ where
         .map(|p| i32::from(p) - 1)
         .unwrap_or(UNMAPPED_POSITION);
 
-    writer.write_i32::<LittleEndian>(pos)
-}
-
-// pos is 0-based.
-fn write_mate_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
-where
-    W: Write,
-{
     writer.write_i32::<LittleEndian>(pos)
 }
 

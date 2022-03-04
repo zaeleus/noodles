@@ -51,7 +51,7 @@ pub struct Record {
     bin: u16,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
-    pub(crate) next_pos: i32,
+    pub(crate) next_pos: Option<sam::record::Position>,
     tlen: i32,
     read_name: Vec<u8>,
     cigar: Cigar,
@@ -257,13 +257,7 @@ impl Record {
     /// assert!(record.mate_position().is_none());
     /// ```
     pub fn mate_position(&self) -> Option<sam::record::Position> {
-        let pos = self.next_pos;
-
-        if pos == UNMAPPED_POSITION {
-            None
-        } else {
-            sam::record::Position::try_from(pos + 1).ok()
-        }
+        self.next_pos
     }
 
     /// Returns the template length of this record.
@@ -551,7 +545,7 @@ impl Default for Record {
             bin: 4680,
             flag: Flags::UNMAPPED,
             next_ref_id: None,
-            next_pos: UNMAPPED_POSITION,
+            next_pos: None,
             tlen: 0,
             read_name: b"*".to_vec(),
             cigar: Cigar::default(),
@@ -605,6 +599,10 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let next_pos = sam::record::Position::try_from(61153)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         Ok(Record {
             ref_id,
             pos,
@@ -612,7 +610,7 @@ mod tests {
             bin: 4684,
             flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
             next_ref_id: ref_id,
-            next_pos: 61152,
+            next_pos,
             tlen: 166,
             read_name: b"r0".to_vec(),
             cigar: Cigar::from(vec![0x00000040]),    // 4M

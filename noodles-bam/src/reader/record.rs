@@ -60,7 +60,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    record.next_pos = read_mate_position(&mut buf)?;
+    record.next_pos = read_position(&mut buf)?;
 
     *record.template_length_mut() = buf.get_i32_le();
 
@@ -109,17 +109,6 @@ where
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
-}
-
-fn read_mate_position<B>(buf: &mut B) -> io::Result<i32>
-where
-    B: Buf,
-{
-    if buf.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
-    }
-
-    Ok(buf.get_i32_le())
 }
 
 fn read_mapping_quality<B>(buf: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
