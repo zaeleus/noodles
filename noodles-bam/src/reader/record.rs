@@ -50,7 +50,9 @@ where
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
     *record.mapping_quality_mut() = read_mapping_quality(&mut buf)?;
-    *record.bin_mut() = buf.get_u16_le();
+
+    // Discard bin.
+    buf.advance(mem::size_of::<u16>());
 
     let n_cigar_op = usize::from(buf.get_u16_le());
 

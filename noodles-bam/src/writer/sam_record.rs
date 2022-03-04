@@ -459,27 +459,6 @@ where
     Ok(())
 }
 
-// § 5.3 C source code for computing bin number and overlapping bins (2021-06-03)
-// 0-based, [start, end)
-#[allow(clippy::eq_op)]
-pub(crate) fn region_to_bin(start: i32, mut end: i32) -> i32 {
-    end -= 1;
-
-    if start >> 14 == end >> 14 {
-        ((1 << 15) - 1) / 7 + (start >> 14)
-    } else if start >> 17 == end >> 17 {
-        ((1 << 12) - 1) / 7 + (start >> 17)
-    } else if start >> 20 == end >> 20 {
-        ((1 << 9) - 1) / 7 + (start >> 20)
-    } else if start >> 23 == end >> 23 {
-        ((1 << 6) - 1) / 7 + (start >> 23)
-    } else if start >> 26 == end >> 26 {
-        ((1 << 3) - 1) / 7 + (start >> 26)
-    } else {
-        0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -739,16 +718,5 @@ mod tests {
         ));
 
         Ok(())
-    }
-
-    #[test]
-    fn test_region_to_bin() {
-        // § 5.3 C source code for computing bin number and overlapping bins (2021-01-07)
-        // [-1, 0]
-        assert_eq!(region_to_bin(-1, 0), 4680);
-        // [8, 13]
-        assert_eq!(region_to_bin(7, 13), 4681);
-        // [63245986, 63245986]
-        assert_eq!(region_to_bin(63245985, 63255986), 8541);
     }
 }

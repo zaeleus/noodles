@@ -288,30 +288,6 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
-        use super::UNMAPPED_POSITION;
-        use crate::writer::sam_record::region_to_bin;
-
-        // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
-        // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
-        const UNMAPPED_BIN: u16 = 4680;
-
-        let pos = self
-            .pos
-            .map(|p| i32::from(p) - 1)
-            .unwrap_or(UNMAPPED_POSITION);
-
-        let bin = if pos == UNMAPPED_POSITION {
-            UNMAPPED_BIN
-        } else {
-            let len = self
-                .cigar
-                .reference_len()
-                .map(|n| n as i32)
-                .map_err(|_| BuildError::InvalidCigar)? as i32;
-            let end = pos + len;
-            region_to_bin(pos, end) as u16
-        };
-
         let read_name = if self.read_name.is_empty() {
             b"*".to_vec()
         } else {
@@ -322,7 +298,6 @@ impl Builder {
             ref_id: self.ref_id,
             pos: self.pos,
             mapq: self.mapq,
-            bin,
             flag: self.flag,
             next_ref_id: self.next_ref_id,
             next_pos: self.next_pos,

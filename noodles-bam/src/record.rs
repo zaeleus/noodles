@@ -48,7 +48,6 @@ pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
     pos: Option<sam::record::Position>,
     mapq: Option<sam::record::MappingQuality>,
-    bin: u16,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
@@ -181,23 +180,6 @@ impl Record {
     /// ```
     pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
         &mut self.mapq
-    }
-
-    /// Returns the index bin that includes this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert_eq!(record.bin(), 4680);
-    /// ```
-    pub fn bin(&self) -> u16 {
-        self.bin
-    }
-
-    pub(crate) fn bin_mut(&mut self) -> &mut u16 {
-        &mut self.bin
     }
 
     /// Returns the SAM flags of this record.
@@ -582,7 +564,6 @@ impl Default for Record {
             ref_id: None,
             pos: None,
             mapq: None,
-            bin: 4680,
             flag: Flags::UNMAPPED,
             next_ref_id: None,
             next_pos: None,
@@ -605,7 +586,6 @@ impl fmt::Debug for Record {
             .field("ref_id", &self.reference_sequence_id())
             .field("pos", &self.position())
             .field("mapq", &self.mapq)
-            .field("bin", &self.bin())
             .field("flag", &self.flags())
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
@@ -647,7 +627,6 @@ mod tests {
             ref_id,
             pos,
             mapq,
-            bin: 4684,
             flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
             next_ref_id: ref_id,
             next_pos,
@@ -693,13 +672,6 @@ mod tests {
     fn test_mapping_quality() -> io::Result<()> {
         let record = build_record()?;
         assert_eq!(record.mapping_quality().map(u8::from), Some(12));
-        Ok(())
-    }
-
-    #[test]
-    fn test_bin() -> io::Result<()> {
-        let record = build_record()?;
-        assert_eq!(record.bin(), 4684);
         Ok(())
     }
 
