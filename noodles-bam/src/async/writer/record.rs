@@ -47,7 +47,8 @@ where
     // next_pos
     write_position(writer, record.mate_position()).await?;
 
-    writer.write_i32_le(record.template_length()).await?;
+    // tlen
+    write_template_length(writer, record.template_length()).await?;
 
     write_read_name(writer, record.read_name()).await?;
 
@@ -165,6 +166,13 @@ where
 {
     let flag = u16::from(flags);
     writer.write_u16_le(flag).await
+}
+
+async fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer.write_i32_le(template_length).await
 }
 
 async fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
