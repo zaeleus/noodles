@@ -34,8 +34,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16_le(n_cigar_op).await?;
 
-    let flag = u16::from(record.flags());
-    writer.write_u16_le(flag).await?;
+    // flag
+    write_flags(writer, record.flags()).await?;
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -157,6 +157,14 @@ where
     };
 
     writer.write_u16_le(bin).await
+}
+
+async fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let flag = u16::from(flags);
+    writer.write_u16_le(flag).await
 }
 
 async fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
