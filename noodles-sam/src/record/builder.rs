@@ -92,7 +92,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)

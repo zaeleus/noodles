@@ -11,7 +11,7 @@
 
 ### Changed
 
-  * bam/record: Move `mapping_quality` and `template_length` to the
+  * bam/record: Move `flags`, `mapping_quality` and `template_length` to the
     implementation of `sam::AlignmentReader`.
 
 ### Fixed

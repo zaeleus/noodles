@@ -69,7 +69,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
@@ -129,33 +129,12 @@ impl Record {
         &mut self.read_name
     }
 
-    /// Returns the SAM flags of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
-    ///
-    /// let record = sam::Record::default();
-    /// assert_eq!(record.flags(), Flags::UNMAPPED);
-    /// assert_eq!(u16::from(record.flags()), 4);
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_flags(Flags::PAIRED | Flags::READ_1)
-    ///     .build()?;
-    /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
-    /// # Ok::<(), sam::record::builder::BuildError>(())
-    /// ```
-    pub fn flags(&self) -> Flags {
-        self.flags
-    }
-
     /// Returns a mutable reference to the SAM flags.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags};
+    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
     ///
     /// let mut record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
@@ -580,6 +559,10 @@ impl AlignmentRecord for Record {
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
         get_reference_sequence(reference_sequences, self.reference_sequence_name())
+    }
+
+    fn flags(&self) -> Flags {
+        self.flags
     }
 
     /// Returns the start position.

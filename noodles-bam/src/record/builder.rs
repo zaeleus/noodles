@@ -94,7 +94,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::{record::Flags, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)

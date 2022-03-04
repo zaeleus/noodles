@@ -2,7 +2,7 @@ use std::io;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{MappingQuality, Position},
+    record::{Flags, MappingQuality, Position},
 };
 
 /// An alignment record.
@@ -12,6 +12,9 @@ pub trait AlignmentRecord {
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>>;
+
+    /// Returns the flags.
+    fn flags(&self) -> Flags;
 
     /// Returns the start position.
     fn alignment_start(&self) -> Option<Position>;

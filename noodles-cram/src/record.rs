@@ -197,6 +197,10 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
+    fn flags(&self) -> sam::record::Flags {
+        self.bam_bit_flags
+    }
+
     fn alignment_start(&self) -> Option<sam::record::Position> {
         self.alignment_start
     }

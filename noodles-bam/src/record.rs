@@ -182,27 +182,13 @@ impl Record {
         &mut self.mapq
     }
 
-    /// Returns the SAM flags of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
-    /// let record = bam::Record::default();
-    /// assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
-    /// ```
-    pub fn flags(&self) -> sam::record::Flags {
-        self.flag
-    }
-
     /// Returns a mutable reference to the flags.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::{record::Flags, AlignmentRecord};
     /// let mut record = bam::Record::default();
     /// *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
@@ -468,6 +454,10 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
+    fn flags(&self) -> sam::record::Flags {
+        self.flag
+    }
+
     /// Returns the start position.
     ///
     /// # Examples
@@ -577,7 +567,7 @@ impl fmt::Debug for Record {
             .field("ref_id", &self.reference_sequence_id())
             .field("pos", &self.position())
             .field("mapq", &self.mapq)
-            .field("flag", &self.flags())
+            .field("flag", &self.flag)
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.tlen)
