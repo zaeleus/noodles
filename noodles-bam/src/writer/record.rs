@@ -40,8 +40,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
 
-    let flag = u16::from(record.flags());
-    writer.write_u16::<LittleEndian>(flag)?;
+    // flag
+    write_flags(writer, record.flags())?;
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -158,6 +158,14 @@ where
     };
 
     writer.write_u16::<LittleEndian>(bin)
+}
+
+fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+where
+    W: Write,
+{
+    let flag = u16::from(flags);
+    writer.write_u16::<LittleEndian>(flag)
 }
 
 fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
