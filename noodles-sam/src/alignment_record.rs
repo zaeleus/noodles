@@ -66,4 +66,7 @@ pub trait AlignmentRecord {
 
     /// Returns the start position of the mate.
     fn mate_alignment_start(&self) -> Option<Position>;
+
+    /// Returns the template length.
+    fn template_length(&self) -> i32;
 }

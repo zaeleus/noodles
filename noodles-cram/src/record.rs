@@ -222,6 +222,10 @@ impl sam::AlignmentRecord for Record {
     fn mate_alignment_start(&self) -> Option<sam::record::Position> {
         self.next_mate_alignment_start
     }
+
+    fn template_length(&self) -> i32 {
+        self.template_size
+    }
 }
 
 fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {

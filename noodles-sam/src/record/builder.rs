@@ -235,7 +235,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     /// let record = sam::Record::builder().set_template_length(36).build()?;
     /// assert_eq!(record.template_length(), 36);
     /// # Ok::<(), sam::record::builder::BuildError>(())

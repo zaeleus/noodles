@@ -159,6 +159,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
+    /// use noodles_sam::AlignmentRecord;
     /// let record = bam::Record::builder().set_template_length(144).build()?;
     /// assert_eq!(record.template_length(), 144);
     /// # Ok::<_, bam::record::builder::BuildError>(())

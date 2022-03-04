@@ -405,30 +405,12 @@ impl Record {
         &mut self.mate_position
     }
 
-    /// Returns the template length of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam as sam;
-    ///
-    /// let record = sam::Record::default();
-    /// assert_eq!(record.template_length(), 0);
-    ///
-    /// let record = sam::Record::builder().set_template_length(101).build()?;
-    /// assert_eq!(record.template_length(), 101);
-    /// # Ok::<(), sam::record::builder::BuildError>(())
-    /// ```
-    pub fn template_length(&self) -> i32 {
-        self.template_length
-    }
-
     /// Returns a mutable reference to the template length.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality};
+    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.template_length_mut() = 101;
@@ -651,6 +633,10 @@ impl AlignmentRecord for Record {
 
     fn mate_alignment_start(&self) -> Option<Position> {
         self.mate_position()
+    }
+
+    fn template_length(&self) -> i32 {
+        self.template_length
     }
 }
 

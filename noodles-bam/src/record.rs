@@ -282,19 +282,6 @@ impl Record {
         &mut self.next_pos
     }
 
-    /// Returns the template length of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert_eq!(record.template_length(), 0);
-    /// ```
-    pub fn template_length(&self) -> i32 {
-        self.tlen
-    }
-
     pub(crate) fn template_length_mut(&mut self) -> &mut i32 {
         &mut self.tlen
     }
@@ -538,6 +525,10 @@ impl sam::AlignmentRecord for Record {
     fn mate_alignment_start(&self) -> Option<sam::record::Position> {
         self.mate_position()
     }
+
+    fn template_length(&self) -> i32 {
+        self.tlen
+    }
 }
 
 fn get_reference_sequence(
@@ -589,7 +580,7 @@ impl fmt::Debug for Record {
             .field("flag", &self.flags())
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
-            .field("tlen", &self.template_length())
+            .field("tlen", &self.tlen)
             .field("read_name", &str::from_utf8(self.read_name()))
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
