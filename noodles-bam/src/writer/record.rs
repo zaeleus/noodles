@@ -53,7 +53,8 @@ where
     // next_pos
     write_position(writer, record.mate_position())?;
 
-    writer.write_i32::<LittleEndian>(record.template_length())?;
+    // tlen
+    write_template_length(writer, record.template_length())?;
 
     write_read_name(writer, record.read_name())?;
 
@@ -166,6 +167,13 @@ where
 {
     let flag = u16::from(flags);
     writer.write_u16::<LittleEndian>(flag)
+}
+
+fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_i32::<LittleEndian>(template_length)
 }
 
 fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
