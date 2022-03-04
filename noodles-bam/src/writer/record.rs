@@ -21,7 +21,7 @@ where
     write_reference_sequence_id(writer, record.reference_sequence_id())?;
 
     // pos
-    write_position(writer, record.pos)?;
+    write_position(writer, record.position())?;
 
     write_l_read_name(writer, record.read_name())?;
 
@@ -45,7 +45,7 @@ where
     write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
 
     // next_pos
-    write_position(writer, record.next_pos)?;
+    write_mate_position(writer, record.next_pos)?;
 
     writer.write_i32::<LittleEndian>(record.template_length())?;
 
@@ -99,8 +99,21 @@ where
     writer.write_i32::<LittleEndian>(ref_id)
 }
 
+fn write_position<W>(writer: &mut W, position: Option<sam::record::Position>) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::UNMAPPED_POSITION;
+
+    let pos = position
+        .map(|p| i32::from(p) - 1)
+        .unwrap_or(UNMAPPED_POSITION);
+
+    writer.write_i32::<LittleEndian>(pos)
+}
+
 // pos is 0-based.
-fn write_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
+fn write_mate_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
 where
     W: Write,
 {

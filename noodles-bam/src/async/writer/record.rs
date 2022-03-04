@@ -43,7 +43,7 @@ where
     write_reference_sequence_id(writer, record.mate_reference_sequence_id()).await?;
 
     // next_pos
-    write_position(writer, record.next_pos).await?;
+    write_mate_position(writer, record.next_pos).await?;
 
     writer.write_i32_le(record.template_length()).await?;
 
@@ -97,8 +97,24 @@ where
     writer.write_i32_le(ref_id).await
 }
 
+async fn write_position<W>(
+    writer: &mut W,
+    position: Option<sam::record::Position>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::record::UNMAPPED_POSITION;
+
+    let pos = position
+        .map(|p| i32::from(p) - 1)
+        .unwrap_or(UNMAPPED_POSITION);
+
+    writer.write_i32_le(pos).await
+}
+
 // pos is 0-based.
-async fn write_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
+async fn write_mate_position<W>(writer: &mut W, pos: i32) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {

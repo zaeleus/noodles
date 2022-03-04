@@ -325,7 +325,7 @@ impl Builder {
 
         Ok(Record {
             ref_id: self.ref_id,
-            pos,
+            pos: self.pos,
             mapq: self.mapq,
             bin,
             flag: self.flag,

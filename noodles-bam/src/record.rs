@@ -46,7 +46,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
-    pub(crate) pos: i32,
+    pub(crate) pos: Option<sam::record::Position>,
     mapq: Option<sam::record::MappingQuality>,
     bin: u16,
     flag: sam::record::Flags,
@@ -142,13 +142,7 @@ impl Record {
     /// assert!(record.position().is_none());
     /// ```
     pub fn position(&self) -> Option<sam::record::Position> {
-        let pos = self.pos;
-
-        if pos == UNMAPPED_POSITION {
-            None
-        } else {
-            sam::record::Position::try_from(pos + 1).ok()
-        }
+        self.pos
     }
 
     /// Returns a mutable reference to the mapping quality.
@@ -552,7 +546,7 @@ impl Default for Record {
 
         Self {
             ref_id: None,
-            pos: UNMAPPED_POSITION,
+            pos: None,
             mapq: None,
             bin: 4680,
             flag: Flags::UNMAPPED,
@@ -603,13 +597,17 @@ mod tests {
 
         let ref_id = Some(ReferenceSequenceId::from(10));
 
+        let pos = sam::record::Position::try_from(61062)
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let mapq = MappingQuality::try_from(12)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         Ok(Record {
             ref_id,
-            pos: 61061,
+            pos,
             mapq,
             bin: 4684,
             flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
