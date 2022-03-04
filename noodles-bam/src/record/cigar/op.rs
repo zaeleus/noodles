@@ -200,7 +200,7 @@ impl From<Op> for u32 {
 
 impl From<Op> for sam::record::cigar::Op {
     fn from(op: Op) -> Self {
-        sam::record::cigar::Op::new(op.kind(), op.len())
+        Self::new(op.kind(), op.len())
     }
 }
 
