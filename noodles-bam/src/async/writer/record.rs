@@ -100,7 +100,7 @@ where
     writer.write_i32_le(ref_id).await
 }
 
-async fn write_position<W>(
+pub(super) async fn write_position<W>(
     writer: &mut W,
     position: Option<sam::record::Position>,
 ) -> io::Result<()>
@@ -130,7 +130,7 @@ where
     writer.write_u8(l_read_name).await
 }
 
-async fn write_mapping_quality<W>(
+pub(super) async fn write_mapping_quality<W>(
     writer: &mut W,
     mapping_quality: Option<sam::record::MappingQuality>,
 ) -> io::Result<()>
@@ -142,7 +142,7 @@ where
     writer.write_u8(mapq).await
 }
 
-async fn write_bin<W>(
+pub(super) async fn write_bin<W>(
     writer: &mut W,
     alignment_start: Option<sam::record::Position>,
     alignment_end: Option<sam::record::Position>,
@@ -160,7 +160,7 @@ where
     writer.write_u16_le(bin).await
 }
 
-async fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+pub(super) async fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
@@ -168,7 +168,7 @@ where
     writer.write_u16_le(flag).await
 }
 
-async fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+pub(super) async fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
