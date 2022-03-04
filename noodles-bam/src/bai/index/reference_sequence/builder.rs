@@ -2,8 +2,12 @@ use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
 use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_sam::AlignmentRecord;
 
-use crate::Record;
+use crate::{
+    writer::record::{region_to_bin, UNMAPPED_BIN},
+    Record,
+};
 
 use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
 
@@ -22,7 +26,7 @@ pub struct Builder {
 
 impl Builder {
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        self.update_bins(record, chunk);
+        self.update_bins(record, chunk)?;
         self.update_linear_index(record, chunk)?;
         self.update_metadata(record, chunk);
         Ok(())
@@ -55,8 +59,14 @@ impl Builder {
         ReferenceSequence::new(bins, intervals, Some(metadata))
     }
 
-    fn update_bins(&mut self, record: &Record, chunk: Chunk) {
-        let bin_id = u32::from(record.bin());
+    fn update_bins(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
+        let alignment_start = record.alignment_start();
+        let alignment_end = record.alignment_end().transpose()?;
+
+        let bin_id = match (alignment_start, alignment_end) {
+            (Some(start), Some(end)) => region_to_bin(start, end).map(u32::from)?,
+            _ => u32::from(UNMAPPED_BIN),
+        };
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
@@ -65,6 +75,8 @@ impl Builder {
         });
 
         builder.add_chunk(chunk);
+
+        Ok(())
     }
 
     fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
