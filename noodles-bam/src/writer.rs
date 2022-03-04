@@ -1,4 +1,4 @@
-mod record;
+pub(crate) mod record;
 pub(crate) mod sam_record;
 
 use std::{

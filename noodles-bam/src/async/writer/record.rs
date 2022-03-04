@@ -26,7 +26,9 @@ where
     // mapq
     write_mapping_quality(writer, record.mapping_quality()).await?;
 
-    writer.write_u16_le(record.bin()).await?;
+    // bin
+    let alignment_end = record.alignment_end().transpose()?;
+    write_bin(writer, record.position(), alignment_end).await?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -137,6 +139,24 @@ where
     use sam::record::mapping_quality::MISSING;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
     writer.write_u8(mapq).await
+}
+
+async fn write_bin<W>(
+    writer: &mut W,
+    alignment_start: Option<sam::record::Position>,
+    alignment_end: Option<sam::record::Position>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::writer::record::{region_to_bin, UNMAPPED_BIN};
+
+    let bin = match (alignment_start, alignment_end) {
+        (Some(start), Some(end)) => region_to_bin(start, end)?,
+        _ => UNMAPPED_BIN,
+    };
+
+    writer.write_u16_le(bin).await
 }
 
 async fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>

@@ -9,6 +9,10 @@ use crate::{
     Record,
 };
 
+// § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
+// becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
+pub(crate) const UNMAPPED_BIN: u16 = 4680;
+
 pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
@@ -148,10 +152,6 @@ fn write_bin<W>(
 where
     W: Write,
 {
-    // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
-    // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
-    const UNMAPPED_BIN: u16 = 4680;
-
     let bin = match (alignment_start, alignment_end) {
         (Some(start), Some(end)) => region_to_bin(start, end)?,
         _ => UNMAPPED_BIN,
@@ -185,7 +185,7 @@ where
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
 #[allow(clippy::eq_op)]
-fn region_to_bin(
+pub(crate) fn region_to_bin(
     alignment_start: sam::record::Position,
     alignment_end: sam::record::Position,
 ) -> io::Result<u16> {

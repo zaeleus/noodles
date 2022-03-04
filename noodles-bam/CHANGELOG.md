@@ -16,6 +16,8 @@
 
 ### Fixed
 
+  * bam/async/writer/record: Calculate bin number for record.
+
   * bam/record/builder: Fix default read name to have no NUL terminator.
 
   * bam/writer/record: Calculate bin number for record.
