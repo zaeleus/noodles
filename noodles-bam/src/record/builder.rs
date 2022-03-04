@@ -318,7 +318,7 @@ impl Builder {
             .unwrap_or(UNMAPPED_POSITION);
 
         let read_name = if self.read_name.is_empty() {
-            b"*\x00".to_vec()
+            b"*".to_vec()
         } else {
             self.read_name
         };

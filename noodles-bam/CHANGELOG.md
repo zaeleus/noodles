@@ -11,6 +11,10 @@
   * bam/record: Move `mapping_quality` to the implementation of
     `sam::AlignmentReader`.
 
+### Fixed
+
+  * bam/record/builder: Fix default read name to have no NUL terminator.
+
 ## 0.16.0 - 2022-03-02
 
 ### Added
