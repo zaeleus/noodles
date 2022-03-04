@@ -273,7 +273,7 @@ impl Record {
         &mut self.mapping_quality
     }
 
-    /// Returns the CIGAR operations that describe how the read as mapped.
+    /// Returns the CIGAR operations that describe how the read was mapped.
     ///
     /// # Examples
     ///
