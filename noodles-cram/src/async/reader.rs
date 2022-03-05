@@ -1,7 +1,6 @@
 mod container;
 mod data_container;
 mod num;
-mod record;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
