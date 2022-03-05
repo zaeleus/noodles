@@ -3,6 +3,7 @@
 use std::{
     fmt,
     num::{self, NonZeroUsize},
+    str::FromStr,
 };
 
 /// A 1-based position.
@@ -27,6 +28,17 @@ impl Position {
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+/// An error returned when a position fails to parse.
+pub type ParseError = num::ParseIntError;
+
+impl FromStr for Position {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse().map(Self)
     }
 }
 
