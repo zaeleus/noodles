@@ -1,4 +1,4 @@
-use std::num::NonZeroUsize;
+use std::{fmt, num::NonZeroUsize};
 
 /// A 1-based position.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -16,6 +16,12 @@ impl Position {
     /// ```
     pub fn new(n: usize) -> Option<Self> {
         NonZeroUsize::new(n).map(Self)
+    }
+}
+
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
     }
 }
 
