@@ -1,4 +1,9 @@
-use std::{fmt, num::NonZeroUsize};
+//! 1-based position.
+
+use std::{
+    fmt,
+    num::{self, NonZeroUsize},
+};
 
 /// A 1-based position.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -22,6 +27,17 @@ impl Position {
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+/// An error returned when a raw position fails to convert.
+pub type TryFromIntError = num::TryFromIntError;
+
+impl TryFrom<usize> for Position {
+    type Error = TryFromIntError;
+
+    fn try_from(n: usize) -> Result<Self, Self::Error> {
+        NonZeroUsize::try_from(n).map(Position)
     }
 }
 
