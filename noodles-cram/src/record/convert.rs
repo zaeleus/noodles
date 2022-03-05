@@ -130,16 +130,13 @@ fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {
     let mut fields = Vec::with_capacity(tags.len());
 
     for tag in tags {
-        let raw_tag = tag.key().tag();
-        let sam_tag = str::from_utf8(&raw_tag)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?;
+        let sam_tag = tag
+            .key()
+            .tag()
+            .try_into()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let bam_value = tag.value();
-        let sam_value = bam_value.clone().into();
+        let sam_value = tag.value().clone().into();
 
         let field = Field::new(sam_tag, sam_value);
         fields.push(field);
