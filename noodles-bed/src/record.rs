@@ -15,6 +15,8 @@ use std::{
     str::FromStr,
 };
 
+use noodles_core::Position;
+
 const DELIMITER: char = '\t';
 const MISSING_STRING: &str = ".";
 const MISSING_NUMBER: &str = "0";
@@ -22,15 +24,15 @@ const MISSING_NUMBER: &str = "0";
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields {
     reference_sequence_name: String,
-    start_position: u64,
-    end_position: u64,
+    start_position: Position,
+    end_position: Position,
     name: Option<Name>,
     score: Option<Score>,
     strand: Option<Strand>,
 }
 
 impl StandardFields {
-    fn new<N>(reference_sequence_name: N, start_position: u64, end_position: u64) -> Self
+    fn new<N>(reference_sequence_name: N, start_position: Position, end_position: Position) -> Self
     where
         N: Into<String>,
     {
@@ -140,15 +142,16 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
         &self.standard_fields.reference_sequence_name
@@ -160,17 +163,20 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let start_position = Position::try_from(8)?;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(start_position)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.start_position(), 8);
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.start_position(), start_position);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn start_position(&self) -> u64 {
+    pub fn start_position(&self) -> Position {
         self.standard_fields.start_position
     }
 
@@ -180,17 +186,20 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let end_position = Position::try_from(13)?;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(end_position)
     ///     .build()?;
     ///
-    /// assert_eq!(record.end_position(), 13);
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.end_position(), end_position);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn end_position(&self) -> u64 {
+    pub fn end_position(&self) -> Position {
         self.standard_fields.end_position
     }
 
@@ -200,15 +209,16 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
     /// assert!(record.optional_fields().is_empty());
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn optional_fields(&self) -> &OptionalFields {
         &self.optional_fields
@@ -225,13 +235,14 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Name};
+    /// use noodles_core::Position;
     ///
     /// let name: Name = "ndls1".parse()?;
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_name(name.clone())
     ///     .build()?;
     ///
@@ -253,11 +264,12 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Score};
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_score(Score::try_from(21)?)
     ///     .build()?;
     ///
@@ -279,16 +291,17 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Strand};
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_strand(Strand::Forward)
     ///     .build()?;
     ///
     /// assert_eq!(record.strand(), Some(Strand::Forward));
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn strand(&self) -> Option<Strand> {
         self.standard_fields.strand
@@ -336,7 +349,7 @@ where
         "{}{}{}{}{}",
         record.reference_sequence_name(),
         DELIMITER,
-        record.start_position(),
+        usize::from(record.start_position()) - 1,
         DELIMITER,
         record.end_position()
     )
@@ -404,7 +417,7 @@ pub enum ParseError {
     /// The start position is missing.
     MissingStartPosition,
     /// The start position is invalid.
-    InvalidStartPosition(num::ParseIntError),
+    InvalidStartPosition,
     /// The end position is missing.
     MissingEndPosition,
     /// The end position is invalid.
@@ -430,7 +443,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::MissingReferenceSequenceName => f.write_str("missing reference sequence name"),
             Self::MissingStartPosition => f.write_str("missing start position"),
-            Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
+            Self::InvalidStartPosition => f.write_str("invalid start position"),
             Self::MissingEndPosition => f.write_str("missing end position"),
             Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
             Self::MissingName => f.write_str("missing name"),
@@ -532,7 +545,17 @@ where
     let start_position = fields
         .next()
         .ok_or(ParseError::MissingStartPosition)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidStartPosition))?;
+        .and_then(|s| {
+            s.parse()
+                .map_err(|_| ParseError::InvalidStartPosition)
+                .and_then(|n: usize| {
+                    n.checked_add(1)
+                        .ok_or(ParseError::InvalidStartPosition)
+                        .and_then(|m| {
+                            Position::try_from(m).map_err(|_| ParseError::InvalidStartPosition)
+                        })
+                })
+        })?;
 
     let end_position = fields
         .next()
@@ -598,97 +621,117 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt_for_record_3() {
-        let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record: Record<3> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13");
+    fn test_fmt_for_record_3() -> Result<(), noodles_core::position::TryFromIntError> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
 
-        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
+        let record: Record<3> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t7\t13");
+
+        let standard_fields = StandardFields::new("sq0", start, end);
         let record: Record<3> = Record::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
-        assert_eq!(record.to_string(), "sq0\t8\t13\tndls");
+        assert_eq!(record.to_string(), "sq0\t7\t13\tndls");
+
+        Ok(())
     }
 
     #[test]
-    fn test_fmt_for_record_4() -> Result<(), name::ParseError> {
-        let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.");
+    fn test_fmt_for_record_4() -> Result<(), Box<dyn std::error::Error>> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
+        let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.");
+
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.name = "ndls1".parse().map(Some)?;
         let record: Record<4> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\tndls1");
+        assert_eq!(record.to_string(), "sq0\t7\t13\tndls1");
 
-        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
         let record: Record<4> = Record::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\tndls");
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\tndls");
 
         Ok(())
     }
 
     #[test]
-    fn test_fmt_for_record_5() -> Result<(), score::TryFromIntError> {
-        let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0");
+    fn test_fmt_for_record_5() -> Result<(), Box<dyn std::error::Error>> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
+        let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0");
+
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.score = Score::try_from(21).map(Some)?;
         let record: Record<5> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t21");
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t21");
 
-        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
         let record: Record<5> = Record::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0\tndls");
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\tndls");
 
         Ok(())
     }
 
     #[test]
-    fn test_fmt_for_record_6() -> Result<(), score::TryFromIntError> {
-        let standard_fields = StandardFields::new("sq0", 8, 13);
-        let record: Record<6> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0\t.");
+    fn test_fmt_for_record_6() -> Result<(), noodles_core::position::TryFromIntError> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
+        let record: Record<6> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.");
+
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.strand = Some(Strand::Forward);
         let record: Record<6> = Record::new(standard_fields, OptionalFields::default());
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0\t+");
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t+");
 
-        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let standard_fields = StandardFields::new("sq0", start, end);
         let record: Record<6> = Record::new(
             standard_fields,
             OptionalFields::from(vec![String::from("ndls")]),
         );
-        assert_eq!(record.to_string(), "sq0\t8\t13\t.\t0\t.\tndls");
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\tndls");
 
         Ok(())
     }
 
     #[test]
-    fn test_from_str_for_record_3() {
-        let actual = "sq0\t8\t13".parse::<Record<3>>();
+    fn test_from_str_for_record_3() -> Result<(), noodles_core::position::TryFromIntError> {
+        let actual = "sq0\t7\t13".parse::<Record<3>>();
 
-        let standard_fields = StandardFields::new("sq0", 8, 13);
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let standard_fields = StandardFields::new("sq0", start, end);
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str_for_record_4() -> Result<(), name::ParseError> {
-        let actual = "sq0\t8\t13\tndls1".parse::<Record<4>>();
+    fn test_from_str_for_record_4() -> Result<(), Box<dyn std::error::Error>> {
+        let actual = "sq0\t7\t13\tndls1".parse::<Record<4>>();
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.name = "ndls1".parse().map(Some)?;
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
@@ -699,10 +742,12 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_for_record_5() -> Result<(), score::TryFromIntError> {
-        let actual = "sq0\t8\t13\t.\t21".parse::<Record<5>>();
+    fn test_from_str_for_record_5() -> Result<(), Box<dyn std::error::Error>> {
+        let actual = "sq0\t7\t13\t.\t21".parse::<Record<5>>();
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.score = Score::try_from(21).map(Some)?;
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
@@ -713,14 +758,18 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_for_record_6() {
-        let actual = "sq0\t8\t13\t.\t0\t+".parse::<Record<6>>();
+    fn test_from_str_for_record_6() -> Result<(), noodles_core::position::TryFromIntError> {
+        let actual = "sq0\t7\t13\t.\t0\t+".parse::<Record<6>>();
 
-        let mut standard_fields = StandardFields::new("sq0", 8, 13);
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.strand = Some(Strand::Forward);
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 }

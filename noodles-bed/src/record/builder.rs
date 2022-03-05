@@ -2,14 +2,16 @@
 
 use std::{error, fmt};
 
+use noodles_core::Position;
+
 use super::{BedN, Name, OptionalFields, Record, Score, StandardFields, Strand};
 
 /// A BED record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Builder<const N: u8> {
     reference_sequence_name: Option<String>,
-    start_position: Option<u64>,
-    end_position: Option<u64>,
+    start_position: Option<Position>,
+    end_position: Option<Position>,
     name: Option<Name>,
     score: Option<Score>,
     strand: Option<Strand>,
@@ -40,15 +42,16 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
     /// assert_eq!(record.reference_sequence_name(), "sq0");
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_reference_sequence_name<M>(mut self, reference_sequence_name: M) -> Self
     where
@@ -64,17 +67,20 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let start_position = Position::try_from(8)?;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(start_position)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.start_position(), 8);
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.start_position(), start_position);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_start_position(mut self, start_position: u64) -> Self {
+    pub fn set_start_position(mut self, start_position: Position) -> Self {
         self.start_position = Some(start_position);
         self
     }
@@ -85,17 +91,20 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let end_position = Position::try_from(13)?;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(end_position)
     ///     .build()?;
     ///
-    /// assert_eq!(record.end_position(), 13);
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// assert_eq!(record.end_position(), end_position);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_end_position(mut self, end_position: u64) -> Self {
+    pub fn set_end_position(mut self, end_position: Position) -> Self {
         self.end_position = Some(end_position);
         self
     }
@@ -106,18 +115,19 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::OptionalFields};
+    /// use noodles_core::Position;
     ///
     /// let optional_fields = OptionalFields::from(vec![String::from("n")]);
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_optional_fields(optional_fields.clone())
     ///     .build()?;
     ///
     /// assert_eq!(record.optional_fields(), &optional_fields);
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_optional_fields(mut self, optional_fields: OptionalFields) -> Self {
         self.optional_fields = optional_fields;
@@ -132,13 +142,14 @@ impl Builder<3> {
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn build(self) -> Result<Record<3>, BuildError> {
         let reference_sequence_name = self
@@ -168,13 +179,14 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Name};
+    /// use noodles_core::Position;
     ///
     /// let name: Name = "ndls1".parse()?;
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_name(name.clone())
     ///     .build()?;
     ///
@@ -194,13 +206,14 @@ impl Builder<4> {
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<4>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn build(self) -> Result<Record<4>, BuildError> {
         let reference_sequence_name = self
@@ -231,11 +244,12 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Score};
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_score(Score::try_from(21)?)
     ///     .build()?;
     ///
@@ -255,13 +269,14 @@ impl Builder<5> {
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<5>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn build(self) -> Result<Record<5>, BuildError> {
         let reference_sequence_name = self
@@ -293,16 +308,17 @@ where
     ///
     /// ```
     /// use noodles_bed::{self as bed, record::Strand};
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .set_strand(Strand::Forward)
     ///     .build()?;
     ///
     /// assert_eq!(record.strand(), Some(Strand::Forward));
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_strand(mut self, strand: Strand) -> Self {
         self.strand = Some(strand);
@@ -317,13 +333,14 @@ impl Builder<6> {
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let record = bed::Record::<6>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
-    /// # Ok::<_, bed::record::builder::BuildError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn build(self) -> Result<Record<6>, BuildError> {
         let reference_sequence_name = self

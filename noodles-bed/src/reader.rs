@@ -98,14 +98,15 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
-    /// let data = b"sq0\t8\t13\n# sq0\t21\t34\n";
+    /// let data = b"sq0\t7\t13\n# sq0\t20\t34\n";
     /// let mut reader = bed::Reader::new(&data[..]);
     ///
     /// let mut records = reader.records::<3>();
     ///
     /// let record = records.next().transpose()?;
-    /// assert_eq!(record.map(|r| r.start_position()), Some(8));
+    /// assert_eq!(record.map(|r| r.start_position()), Position::new(8));
     /// // ...
     ///
     /// assert!(records.next().is_none());

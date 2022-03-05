@@ -71,18 +71,19 @@ where
     ///
     /// ```
     /// use noodles_bed as bed;
+    /// use noodles_core::Position;
     ///
     /// let mut writer = bed::Writer::new(Vec::new());
     ///
     /// let record = bed::Record::<3>::builder()
     ///     .set_reference_sequence_name("sq0")
-    ///     .set_start_position(8)
-    ///     .set_end_position(13)
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
     ///     .build()?;
     ///
     /// writer.write_record(&record)?;
     ///
-    /// assert_eq!(writer.get_ref(), b"sq0\t8\t13\n");
+    /// assert_eq!(writer.get_ref(), b"sq0\t7\t13\n");
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn write_record<const N: u8>(&mut self, record: &Record<N>) -> io::Result<()>
