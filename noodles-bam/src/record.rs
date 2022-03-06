@@ -5,11 +5,12 @@ pub mod cigar;
 mod convert;
 pub mod data;
 pub mod quality_scores;
+pub mod read_name;
 pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores,
+    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
     reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
@@ -52,7 +53,7 @@ pub struct Record {
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
     tlen: i32,
-    read_name: Vec<u8>,
+    read_name: Option<ReadName>,
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
@@ -75,6 +76,12 @@ impl Record {
     }
 
     pub(crate) fn block_size(&self) -> usize {
+        let read_name_len = self
+            .read_name()
+            .map(|name| name.len())
+            .unwrap_or(read_name::MISSING.len());
+        let l_read_name = read_name_len + mem::size_of::<u8>(); // read_name + NUL terminator
+
         mem::size_of::<i32>() // ref_id
             + mem::size_of::<i32>() // pos
             + mem::size_of::<u8>() // l_read_name
@@ -86,7 +93,7 @@ impl Record {
             + mem::size_of::<i32>() // next_ref_id
             + mem::size_of::<i32>() // next_pos
             + mem::size_of::<i32>() // tlen
-            + self.read_name.len() + mem::size_of::<u8>() // read_name + NUL terminator
+            + l_read_name
             + (mem::size_of::<u32>() * self.cigar.len())
             + self.seq.as_ref().len()
             + self.qual.len()
@@ -281,10 +288,10 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.read_name(), b"*");
+    /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> &[u8] {
-        &self.read_name
+    pub fn read_name(&self) -> Option<&ReadName> {
+        self.read_name.as_ref()
     }
 
     /// Returns a mutable reference to the read name.
@@ -292,12 +299,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
+    /// use noodles_bam::{self as bam, record::ReadName};
+    ///
+    /// let read_name = ReadName::try_from(b"r1".to_vec())?;
+    ///
     /// let mut record = bam::Record::default();
-    /// *record.read_name_mut() = b"r1".to_vec();
-    /// assert_eq!(record.read_name(), b"r1");
+    /// *record.read_name_mut() = Some(read_name.clone());
+    ///
+    /// assert_eq!(record.read_name(), Some(&read_name));
+    /// # Ok::<_, bam::record::read_name::TryFromBytesError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Vec<u8> {
+    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
         &mut self.read_name
     }
 
@@ -549,7 +561,7 @@ impl Default for Record {
             next_ref_id: None,
             next_pos: None,
             tlen: 0,
-            read_name: b"*".to_vec(),
+            read_name: None,
             cigar: Cigar::default(),
             seq: Sequence::default(),
             qual: QualityScores::default(),
@@ -560,8 +572,6 @@ impl Default for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use std::str;
-
         fmt.debug_struct("Record")
             .field("block_size", &self.block_size())
             .field("ref_id", &self.reference_sequence_id())
@@ -571,7 +581,7 @@ impl fmt::Debug for Record {
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.tlen)
-            .field("read_name", &str::from_utf8(self.read_name()))
+            .field("read_name", &self.read_name())
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
             .field("data", &self.data())
@@ -602,6 +612,10 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let read_name = ReadName::try_from(b"r0".to_vec())
+            .map(Some)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         Ok(Record {
             ref_id,
             pos,
@@ -610,7 +624,7 @@ mod tests {
             next_ref_id: ref_id,
             next_pos,
             tlen: 166,
-            read_name: b"r0".to_vec(),
+            read_name,
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
             qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
@@ -639,7 +653,7 @@ mod tests {
         assert!(record.next_ref_id.is_none());
         assert!(record.next_pos.is_none());
         assert_eq!(record.tlen, 0);
-        assert_eq!(record.read_name, b"*");
+        assert!(record.read_name.is_none());
         assert!(record.cigar.is_empty());
         assert!(record.seq.is_empty());
         assert!(record.qual.is_empty());

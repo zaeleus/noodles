@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use noodles_sam as sam;
 
-use super::{Cigar, Data, QualityScores, Record, ReferenceSequenceId, Sequence};
+use super::{Cigar, Data, QualityScores, ReadName, Record, ReferenceSequenceId, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct Builder {
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
     tlen: i32,
-    read_name: Vec<u8>,
+    read_name: Option<ReadName>,
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
@@ -174,14 +174,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::ffi;
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::builder().set_read_name(b"r0".to_vec()).build()?;
-    /// assert_eq!(record.read_name(), b"r0");
+    /// use noodles_bam::{self as bam, record::ReadName};
+    ///
+    /// let read_name = ReadName::try_from(b"r0".to_vec())?;
+    ///
+    /// let record = bam::Record::builder()
+    ///     .set_read_name(read_name.clone())
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.read_name(), Some(&read_name));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: Vec<u8>) -> Self {
-        self.read_name = read_name;
+    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
+        self.read_name = Some(read_name);
         self
     }
 
@@ -289,12 +294,6 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
-        let read_name = if self.read_name.is_empty() {
-            b"*".to_vec()
-        } else {
-            self.read_name
-        };
-
         Ok(Record {
             ref_id: self.ref_id,
             pos: self.pos,
@@ -303,7 +302,7 @@ impl Builder {
             next_ref_id: self.next_ref_id,
             next_pos: self.next_pos,
             tlen: self.tlen,
-            read_name,
+            read_name: self.read_name,
             cigar: self.cigar,
             seq: self.seq,
             qual: self.qual,
@@ -324,7 +323,7 @@ impl Default for Builder {
             next_ref_id: None,
             next_pos: None,
             tlen: 0,
-            read_name: Vec::new(),
+            read_name: None,
             cigar: Cigar::default(),
             seq: Sequence::default(),
             qual: QualityScores::default(),
@@ -365,7 +364,7 @@ mod tests {
         assert!(builder.next_ref_id.is_none());
         assert!(builder.next_pos.is_none());
         assert_eq!(builder.tlen, 0);
-        assert!(builder.read_name.is_empty());
+        assert!(builder.read_name.is_none());
         assert!(builder.cigar.is_empty());
         assert!(builder.seq.is_empty());
         assert!(builder.qual.is_empty());

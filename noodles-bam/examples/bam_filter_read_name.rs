@@ -24,10 +24,10 @@ use std::{
     path::Path,
 };
 
-use noodles_bam as bam;
+use noodles_bam::{self as bam, record::ReadName};
 use noodles_sam as sam;
 
-fn read_read_names<P>(src: P) -> io::Result<HashSet<Vec<u8>>>
+fn read_read_names<P>(src: P) -> io::Result<HashSet<ReadName>>
 where
     P: AsRef<Path>,
 {
@@ -35,8 +35,12 @@ where
     let mut read_names = HashSet::new();
 
     for result in reader.lines() {
-        let read_name = result?;
-        read_names.insert(read_name.into_bytes());
+        let read_name = result.and_then(|s| {
+            ReadName::try_from(s.into_bytes())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
+        read_names.insert(read_name);
     }
 
     Ok(read_names)
@@ -63,8 +67,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for result in reader.records() {
         let record = result?;
 
-        if read_names.contains(record.read_name()) {
-            writer.write_record(&record)?;
+        if let Some(read_name) = record.read_name() {
+            if read_names.contains(read_name) {
+                writer.write_record(&record)?;
+            }
         }
     }
 

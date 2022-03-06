@@ -5,7 +5,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
 use crate::{
-    record::{Cigar, ReferenceSequenceId},
+    record::{Cigar, ReadName, ReferenceSequenceId},
     Record,
 };
 
@@ -122,16 +122,21 @@ where
     writer.write_i32::<LittleEndian>(pos)
 }
 
-fn write_l_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+fn write_l_read_name<W>(writer: &mut W, read_name: Option<&ReadName>) -> io::Result<()>
 where
     W: Write,
 {
-    let len = u8::try_from(read_name.len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    use std::mem;
 
-    let l_read_name = len
-        .checked_add(1)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid l_read_name"))?;
+    let mut read_name_len = read_name
+        .map(|name| name.len())
+        .unwrap_or(crate::record::read_name::MISSING.len());
+
+    // + NUL terminator
+    read_name_len += mem::size_of::<u8>();
+
+    let l_read_name =
+        u8::try_from(read_name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_u8(l_read_name)
 }
@@ -179,13 +184,20 @@ where
     writer.write_i32::<LittleEndian>(template_length)
 }
 
-fn write_read_name<W>(writer: &mut W, read_name: &[u8]) -> io::Result<()>
+fn write_read_name<W>(writer: &mut W, read_name: Option<&ReadName>) -> io::Result<()>
 where
     W: Write,
 {
+    use crate::record::read_name::MISSING;
+
     const NUL: u8 = 0x00;
 
-    writer.write_all(read_name)?;
+    if let Some(read_name) = read_name {
+        writer.write_all(read_name)?;
+    } else {
+        writer.write_all(MISSING)?;
+    }
+
     writer.write_all(&[NUL])?;
 
     Ok(())
@@ -283,7 +295,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
-            .set_read_name(b"r0".to_vec())
+            .set_read_name(ReadName::try_from(b"r0".to_vec())?)
             .set_cigar(Cigar::from(vec![
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,

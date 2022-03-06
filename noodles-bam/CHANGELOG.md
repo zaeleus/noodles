@@ -14,6 +14,11 @@
   * bam/record: Move `flags`, `mapping_quality` and `template_length` to the
     implementation of `sam::AlignmentReader`.
 
+  * bam/record: Wrap read name.
+
+    Read names are now guaranteed to be valid. The read name "*" is now
+    considered missing (`None`).
+
 ### Fixed
 
   * bam/async/writer/record: Calculate bin number for record.

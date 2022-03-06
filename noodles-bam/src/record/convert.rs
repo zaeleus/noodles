@@ -60,15 +60,15 @@ impl Record {
     ) -> io::Result<sam::Record> {
         let mut builder = sam::Record::builder();
 
-        let raw_read_name = str::from_utf8(self.read_name())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        if let Some(read_name) = self.read_name() {
+            let sam_read_name = str::from_utf8(read_name)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+                .and_then(|s| {
+                    s.parse()
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+                })?;
 
-        if raw_read_name != "*" {
-            let read_name = raw_read_name
-                .parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            builder = builder.set_read_name(read_name);
+            builder = builder.set_read_name(sam_read_name);
         }
 
         builder = builder.set_flags(self.flags());
@@ -172,7 +172,9 @@ mod tests {
             cigar::op::Kind, quality_scores::Score, Flags, MappingQuality, Position,
         };
 
-        use crate::record::{cigar::Op, sequence::Base, Cigar, Data, QualityScores, Sequence};
+        use crate::record::{
+            cigar::Op, sequence::Base, Cigar, Data, QualityScores, ReadName, Sequence,
+        };
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 
@@ -184,7 +186,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
-            .set_read_name(b"r0".to_vec())
+            .set_read_name(ReadName::try_from(b"r0".to_vec())?)
             .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
             .set_sequence(Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]))
             .set_quality_scores(QualityScores::from(vec![
