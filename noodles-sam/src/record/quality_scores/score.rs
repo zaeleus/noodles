@@ -17,7 +17,7 @@ const MAX: u8 = b'~' - MIN;
 ///
 /// Quality scores can be represented as ASCII characters. Each score is offset by 33 (`!`) to only
 /// use the set of printable characters (`!`-`~`, excluding the space character).
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Score(u8);
 
 impl fmt::Display for Score {
