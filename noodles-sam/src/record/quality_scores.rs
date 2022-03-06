@@ -32,6 +32,24 @@ impl QualityScores {
     pub fn clear(&mut self) {
         self.0.clear();
     }
+
+    /// Appends a score.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let mut quality_scores = QualityScores::from(vec![Score::try_from('N')?]);
+    /// quality_scores.push(Score::try_from('D')?);
+    ///
+    /// let expected = "ND".parse()?;
+    /// assert_eq!(quality_scores, expected);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn push(&mut self, score: Score) {
+        self.0.push(score);
+    }
 }
 
 impl Deref for QualityScores {
