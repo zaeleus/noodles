@@ -12,6 +12,28 @@ use super::NULL_FIELD;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QualityScores(Vec<Score>);
 
+impl QualityScores {
+    /// Removes all scores.
+    ///
+    /// This does not affect the capacity of the list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let mut quality_scores = QualityScores::from(vec![Score::try_from('!')?]);
+    /// assert!(!quality_scores.is_empty());
+    ///
+    /// quality_scores.clear();
+    /// assert!(quality_scores.is_empty());
+    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromCharError>(())
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+}
+
 impl Deref for QualityScores {
     type Target = [Score];
 
