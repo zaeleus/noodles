@@ -5,6 +5,7 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io::{self, Cursor};
 
+use noodles_bam as bam;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
@@ -243,9 +244,12 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
 
         let record = &mut records[i];
 
-        if record.read_name().is_empty() {
-            let read_name = record.id().to_string().into_bytes();
-            record.read_name.extend(read_name);
+        if record.read_name().is_none() {
+            let read_name = bam::record::ReadName::try_from(record.id().to_string().into_bytes())
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            record.read_name = read_name;
         }
 
         let mut j = i;
@@ -288,8 +292,8 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
         record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
     }
 
-    if mate.read_name().is_empty() {
-        mate.read_name.extend(record.read_name.iter());
+    if mate.read_name().is_none() {
+        mate.read_name = record.read_name().cloned();
     }
 
     record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
@@ -333,14 +337,13 @@ fn calculate_template_size(record: &Record, mate: &Record) -> io::Result<i32> {
 
 #[cfg(test)]
 mod tests {
-    use noodles_bam as bam;
-
     use super::*;
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
+        use bam::record::{ReadName, ReferenceSequenceId};
+
         use crate::record::Flags;
-        use bam::record::ReferenceSequenceId;
 
         let mut records = vec![
             Record::builder()
@@ -370,7 +373,9 @@ mod tests {
 
         resolve_mates(&mut records)?;
 
-        assert_eq!(records[0].read_name(), b"1");
+        let read_name_1 = ReadName::try_from(b"1".to_vec())?;
+
+        assert_eq!(records[0].read_name(), Some(&read_name_1));
         assert_eq!(
             records[0].next_fragment_reference_sequence_id(),
             records[1].reference_sequence_id()
@@ -380,7 +385,7 @@ mod tests {
             records[1].alignment_start(),
         );
 
-        assert_eq!(records[1].read_name(), b"1");
+        assert_eq!(records[1].read_name(), Some(&read_name_1));
         assert_eq!(
             records[1].next_fragment_reference_sequence_id(),
             records[3].reference_sequence_id()
@@ -393,7 +398,7 @@ mod tests {
         // FIXME
         // assert_eq!(records[2].read_name(), b"3");
 
-        assert_eq!(records[3].read_name(), b"1");
+        assert_eq!(records[3].read_name(), Some(&read_name_1));
         // FIXME
         /* assert_eq!(
             records[3].next_fragment_reference_sequence_id(),

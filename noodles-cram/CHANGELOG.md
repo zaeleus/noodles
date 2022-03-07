@@ -13,6 +13,8 @@
 
   * cram/record: Rename `flags` to `cram_flags`.
 
+  * cram/record: Wrap read name.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added

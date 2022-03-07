@@ -15,7 +15,7 @@ pub use self::{
     next_mate_flags::NextMateFlags, read_group_id::ReadGroupId, tag::Tag,
 };
 
-use std::{fmt, io, str};
+use std::{fmt, io};
 
 use noodles_bam as bam;
 use noodles_sam as sam;
@@ -30,7 +30,7 @@ pub struct Record {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<sam::record::Position>,
     pub(crate) read_group: Option<ReadGroupId>,
-    pub(crate) read_name: Vec<u8>,
+    pub(crate) read_name: Option<bam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub(crate) next_mate_alignment_start: Option<sam::record::Position>,
@@ -91,8 +91,8 @@ impl Record {
     /// Returns the read name.
     ///
     /// This may be the original read name or a generated one.
-    pub fn read_name(&self) -> &[u8] {
-        &self.read_name
+    pub fn read_name(&self) -> Option<&bam::record::ReadName> {
+        self.read_name.as_ref()
     }
 
     /// Returns the next mate flags.
@@ -161,8 +161,6 @@ impl Default for Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let read_name = str::from_utf8(self.read_name());
-
         fmt.debug_struct("Record")
             .field("id", &self.id)
             .field("bam_bit_flags", &self.bam_flags())
@@ -171,7 +169,7 @@ impl fmt::Debug for Record {
             .field("read_length", &self.read_length)
             .field("alignment_start", &self.alignment_start)
             .field("read_group", &self.read_group)
-            .field("read_name", &read_name)
+            .field("read_name", &self.read_name)
             .field("next_mate_bit_flags", &self.next_mate_flags())
             .field(
                 "next_fragment_reference_sequence_id",

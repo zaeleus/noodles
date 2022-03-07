@@ -12,7 +12,7 @@ pub struct Builder {
     read_length: usize,
     alignment_start: Option<sam::record::Position>,
     read_group_id: Option<ReadGroupId>,
-    read_name: Vec<u8>,
+    read_name: Option<bam::record::ReadName>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     next_mate_alignment_start: Option<sam::record::Position>,
@@ -72,8 +72,8 @@ impl Builder {
     }
 
     /// Sets the read name.
-    pub fn set_read_name(mut self, read_name: Vec<u8>) -> Self {
-        self.read_name = read_name;
+    pub fn set_read_name(mut self, read_name: bam::record::ReadName) -> Self {
+        self.read_name = Some(read_name);
         self
     }
 
@@ -202,7 +202,7 @@ impl Default for Builder {
             read_length: 0,
             alignment_start: None,
             read_group_id: None,
-            read_name: Vec::new(),
+            read_name: None,
             next_mate_flags: NextMateFlags::default(),
             next_fragment_reference_sequence_id: None,
             next_mate_alignment_start: None,
@@ -232,7 +232,7 @@ mod tests {
         assert_eq!(builder.read_length, 0);
         assert!(builder.alignment_start.is_none());
         assert!(builder.read_group_id.is_none());
-        assert!(builder.read_name.is_empty());
+        assert!(builder.read_name.is_none());
         assert_eq!(builder.next_mate_flags, NextMateFlags::default());
         assert!(builder.next_fragment_reference_sequence_id.is_none());
         assert!(builder.next_mate_alignment_start.is_none());

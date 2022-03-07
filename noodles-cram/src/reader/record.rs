@@ -262,8 +262,11 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Vec<u8>> {
-        self.compression_header
+    fn read_read_name(&mut self) -> io::Result<Option<bam::record::ReadName>> {
+        const MISSING: &[u8] = b"*";
+
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .read_names_encoding()
             .ok_or_else(|| {
@@ -271,15 +274,22 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte_array(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                    None,
-                )
-            })
+            })?;
+
+        let raw_read_name = decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )?;
+
+        if raw_read_name == MISSING {
+            Ok(None)
+        } else {
+            bam::record::ReadName::try_from(raw_read_name)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        }
     }
 
     fn read_mate_data(

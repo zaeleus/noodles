@@ -256,8 +256,9 @@ where
         )
     }
 
-    fn write_read_name(&mut self, read_name: &[u8]) -> io::Result<()> {
-        self.compression_header
+    fn write_read_name(&mut self, read_name: Option<&bam::record::ReadName>) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .read_names_encoding()
             .ok_or_else(|| {
@@ -265,15 +266,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReadNames),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte_array(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    read_name,
-                )
-            })
+            })?;
+
+        let read_name = read_name.map(|name| name.as_ref()).unwrap_or_default();
+
+        encode_byte_array(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            read_name,
+        )
     }
 
     fn write_mate_data(&mut self, record: &Record) -> io::Result<()> {
