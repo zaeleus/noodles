@@ -21,7 +21,8 @@
 
   * sam/record/quality_scores/score: Add `clear` and `push` methods.
 
-  * sam/record/read_name: Implement `AsRef<[u8]>` and `TryFrom<Vec<u8>>`.
+  * sam/record/read_name: Implement `AsRef<[u8]>`, `Hash`, `Ord`, `PartialOrd`,
+    and `TryFrom<Vec<u8>>`.
 
   * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
     (`ReadName::try_new`) and to `Vec<u8>`.
