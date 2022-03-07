@@ -1,5 +1,6 @@
 mod builder;
 mod query;
+mod record;
 
 pub use self::builder::Builder;
 
@@ -9,7 +10,7 @@ use noodles_core::Region;
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use self::query::query;
+use self::{query::query, record::read_record};
 use crate::{header::string_maps::ContigStringMap, Record};
 
 /// An async BCF reader.
@@ -393,36 +394,6 @@ where
     reader.read_exact(&mut buf).await?;
 
     c_str_to_string(&buf)
-}
-
-async fn read_record<R>(reader: &mut R, buf: &mut Vec<u8>, record: &mut Record) -> io::Result<usize>
-where
-    R: AsyncRead + Unpin,
-{
-    use crate::reader::record::read_site;
-
-    let l_shared = match reader.read_u32_le().await {
-        Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
-        Err(e) => return Err(e),
-    };
-
-    let l_indiv = reader.read_u32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    buf.resize(l_shared, Default::default());
-    reader.read_exact(buf).await?;
-    let mut reader = &buf[..];
-    let (n_fmt, n_sample) = read_site(&mut reader, record)?;
-
-    let genotypes = record.genotypes_mut().as_mut();
-    genotypes.resize(l_indiv, Default::default());
-    reader.read_exact(genotypes).await?;
-    record.genotypes_mut().set_format_count(n_fmt);
-    record.genotypes_mut().set_sample_count(n_sample);
-
-    Ok(l_shared + l_indiv)
 }
 
 fn c_str_to_string(buf: &[u8]) -> io::Result<String> {
