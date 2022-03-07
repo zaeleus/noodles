@@ -76,7 +76,7 @@ impl Record {
     ///     .set_flags(Flags::UNMAPPED)
     ///     .build()?;
     ///
-    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
+    /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
     /// assert!(record.reference_sequence_name().is_none());
     /// assert!(record.position().is_none());
@@ -101,7 +101,7 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
     ///     .build()?;
-    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
+    /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn read_name(&self) -> Option<&ReadName> {
@@ -119,7 +119,7 @@ impl Record {
     ///
     /// let mut record = sam::Record::default();
     /// record.read_name_mut().insert("r0".parse()?);
-    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
+    /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
     ///
     /// *record.read_name_mut() = None;
     /// assert!(record.read_name().is_none());
@@ -660,7 +660,7 @@ impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let qname = self
             .read_name()
-            .map(|name| name.as_str())
+            .map(|name| name.as_ref())
             .unwrap_or(NULL_FIELD);
 
         let rname = self

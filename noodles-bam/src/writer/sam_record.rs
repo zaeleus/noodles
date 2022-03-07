@@ -34,7 +34,7 @@ pub fn write_sam_record<W>(
 where
     W: Write,
 {
-    let name = record.read_name().map(|name| name.as_str()).unwrap_or("*");
+    let name = record.read_name().map(|name| name.as_ref()).unwrap_or("*");
     let c_read_name =
         CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 

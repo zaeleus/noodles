@@ -1,6 +1,6 @@
 //! SAM record read name.
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{convert::AsRef, error, fmt, str::FromStr};
 
 // § 1.4 The alignment section: mandatory fields (2020-07-19)
 const MAX_LENGTH: usize = 254;
@@ -13,10 +13,8 @@ const MISSING: &str = "*";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReadName(String);
 
-impl Deref for ReadName {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<str> for ReadName {
+    fn as_ref(&self) -> &str {
         &self.0
     }
 }

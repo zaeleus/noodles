@@ -23,7 +23,7 @@ where
 
     let name = record
         .read_name()
-        .map(|name| name.as_str())
+        .map(|name| name.as_ref())
         .unwrap_or(MISSING_READ_NAME);
     let c_read_name =
         CString::new(name).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

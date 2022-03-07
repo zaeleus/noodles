@@ -79,7 +79,7 @@ impl Builder {
     ///     .set_read_name("r0".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.read_name().map(|name| name.as_str()), Some("r0"));
+    /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
     /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_read_name(mut self, read_name: ReadName) -> Self {

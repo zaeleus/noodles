@@ -32,6 +32,12 @@
 
     This is already treated as missing (`None`).
 
+### Removed
+
+  * sam/record/read_name: Remove `Deref<Target = String>`.
+
+    Use `AsRef<str>` instead.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added
