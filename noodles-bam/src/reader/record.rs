@@ -13,7 +13,7 @@ use bytes::Buf;
 use noodles_sam as sam;
 
 use crate::{
-    record::{Cigar, Data, QualityScores, ReadName, ReferenceSequenceId, Sequence},
+    record::{Cigar, Data, QualityScores, ReferenceSequenceId, Sequence},
     Record,
 };
 
@@ -144,7 +144,7 @@ where
 
 fn read_read_name<B>(
     buf: &mut B,
-    read_name: &mut Option<ReadName>,
+    read_name: &mut Option<sam::record::ReadName>,
     l_read_name: NonZeroUsize,
 ) -> io::Result<()>
 where
@@ -171,7 +171,7 @@ where
         // Discard the NUL terminator.
         buf.advance(1);
 
-        ReadName::try_from(read_name_buf)
+        sam::record::ReadName::try_from(read_name_buf)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
     };

@@ -24,8 +24,8 @@ use std::{
     path::Path,
 };
 
-use noodles_bam::{self as bam, record::ReadName};
-use noodles_sam as sam;
+use noodles_bam as bam;
+use noodles_sam::{self as sam, record::ReadName};
 
 fn read_read_names<P>(src: P) -> io::Result<HashSet<ReadName>>
 where

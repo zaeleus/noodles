@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use noodles_sam as sam;
 
-use super::{Cigar, Data, QualityScores, ReadName, Record, ReferenceSequenceId, Sequence};
+use super::{Cigar, Data, QualityScores, Record, ReferenceSequenceId, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct Builder {
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
     tlen: i32,
-    read_name: Option<ReadName>,
+    read_name: Option<sam::record::ReadName>,
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
@@ -174,9 +174,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReadName};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::ReadName;
     ///
-    /// let read_name = ReadName::try_from(b"r0".to_vec())?;
+    /// let read_name = ReadName::try_new("r0")?;
     ///
     /// let record = bam::Record::builder()
     ///     .set_read_name(read_name.clone())
@@ -185,7 +186,7 @@ impl Builder {
     /// assert_eq!(record.read_name(), Some(&read_name));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }

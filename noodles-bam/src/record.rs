@@ -5,12 +5,11 @@ pub mod cigar;
 mod convert;
 pub mod data;
 pub mod quality_scores;
-pub mod read_name;
 pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
+    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores,
     reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
 };
 
@@ -53,7 +52,7 @@ pub struct Record {
     next_ref_id: Option<ReferenceSequenceId>,
     next_pos: Option<sam::record::Position>,
     tlen: i32,
-    read_name: Option<ReadName>,
+    read_name: Option<sam::record::ReadName>,
     cigar: Cigar,
     seq: Sequence,
     qual: QualityScores,
@@ -79,7 +78,7 @@ impl Record {
         let read_name_len = self
             .read_name()
             .map(|name| name.len())
-            .unwrap_or(read_name::MISSING.len());
+            .unwrap_or(sam::record::read_name::MISSING.len());
         let l_read_name = read_name_len + mem::size_of::<u8>(); // read_name + NUL terminator
 
         mem::size_of::<i32>() // ref_id
@@ -290,7 +289,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.read_name().is_none());
     /// ```
-    pub fn read_name(&self) -> Option<&ReadName> {
+    pub fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
     }
 
@@ -299,17 +298,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReadName};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::ReadName;
     ///
-    /// let read_name = ReadName::try_from(b"r1".to_vec())?;
+    /// let read_name = ReadName::try_new("r1")?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.read_name_mut() = Some(read_name.clone());
     ///
     /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<_, bam::record::read_name::TryFromBytesError>(())
+    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<sam::record::ReadName> {
         &mut self.read_name
     }
 
@@ -596,7 +596,7 @@ mod tests {
     use super::*;
 
     fn build_record() -> io::Result<Record> {
-        use sam::record::{Flags, MappingQuality};
+        use sam::record::{Flags, MappingQuality, ReadName};
 
         let ref_id = Some(ReferenceSequenceId::from(10));
 
@@ -612,7 +612,7 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let read_name = ReadName::try_from(b"r0".to_vec())
+        let read_name = ReadName::try_new("r0")
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 

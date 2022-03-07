@@ -2,7 +2,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    record::{Cigar, ReadName, ReferenceSequenceId},
+    record::{Cigar, ReferenceSequenceId},
     writer::sam_record::NULL_QUALITY_SCORE,
     Record,
 };
@@ -116,7 +116,10 @@ where
     writer.write_i32_le(pos).await
 }
 
-async fn write_l_read_name<W>(writer: &mut W, read_name: Option<&ReadName>) -> io::Result<()>
+async fn write_l_read_name<W>(
+    writer: &mut W,
+    read_name: Option<&sam::record::ReadName>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
@@ -124,7 +127,7 @@ where
 
     let mut read_name_len = read_name
         .map(|name| name.len())
-        .unwrap_or(crate::record::read_name::MISSING.len());
+        .unwrap_or(sam::record::read_name::MISSING.len());
 
     // + NUL terminator
     read_name_len += mem::size_of::<u8>();
@@ -180,16 +183,19 @@ where
     writer.write_i32_le(template_length).await
 }
 
-async fn write_read_name<W>(writer: &mut W, read_name: Option<&ReadName>) -> io::Result<()>
+async fn write_read_name<W>(
+    writer: &mut W,
+    read_name: Option<&sam::record::ReadName>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::record::read_name::MISSING;
+    use sam::record::read_name::MISSING;
 
     const NUL: u8 = 0x00;
 
     if let Some(read_name) = read_name {
-        writer.write_all(read_name).await?;
+        writer.write_all(read_name.as_ref()).await?;
     } else {
         writer.write_all(MISSING).await?;
     }
@@ -265,7 +271,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
-            .set_read_name(ReadName::try_from(b"r0".to_vec())?)
+            .set_read_name(sam::record::ReadName::try_new("r0")?)
             .set_cigar(Cigar::from(vec![
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,
