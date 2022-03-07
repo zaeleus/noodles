@@ -32,6 +32,11 @@
 
     This is already treated as missing (`None`).
 
+  * sam/record/read_name: Implement `AsRef<[u8]` and `TryFrom<Vec<u8>>`.
+
+  * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
+    (`ReadName::try_new`) and to `Vec<u8>`.
+
 ### Removed
 
   * sam/record/read_name: Remove `Deref<Target = String>`.

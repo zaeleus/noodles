@@ -17,6 +17,30 @@ const MISSING: &[u8] = b"*";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReadName(Vec<u8>);
 
+impl ReadName {
+    /// Creates a read name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::ReadName;
+    /// let read_name = ReadName::try_new("r1")?;
+    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
+    /// ```
+    pub fn try_new<I>(data: I) -> Result<Self, ParseError>
+    where
+        I: Into<Vec<u8>>,
+    {
+        Self::try_from(data.into())
+    }
+}
+
+impl AsRef<[u8]> for ReadName {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl AsRef<str> for ReadName {
     fn as_ref(&self) -> &str {
         // SAFETY: The internal buffer is limited to ASCII graphic characters (i.e., '!'-'~').
@@ -54,13 +78,27 @@ impl FromStr for ReadName {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
+        Self::try_new(s)
+    }
+}
+
+impl TryFrom<Vec<u8>> for ReadName {
+    type Error = ParseError;
+
+    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
+        if buf.is_empty() {
             Err(ParseError::Empty)
-        } else if !is_valid_name(s.as_bytes()) {
+        } else if !is_valid_name(&buf) {
             Err(ParseError::Invalid)
         } else {
-            Ok(Self(s.into()))
+            Ok(Self(buf))
         }
+    }
+}
+
+impl From<ReadName> for Vec<u8> {
+    fn from(read_name: ReadName) -> Self {
+        read_name.0
     }
 }
 
@@ -85,15 +123,15 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!("r0".parse(), Ok(ReadName(b"r0".to_vec())));
+    fn test_try_new() {
+        assert_eq!(ReadName::try_new("r0"), Ok(ReadName(b"r0".to_vec())));
 
-        assert_eq!("".parse::<ReadName>(), Err(ParseError::Empty));
-        assert_eq!("*".parse::<ReadName>(), Err(ParseError::Invalid));
-        assert_eq!("r 0".parse::<ReadName>(), Err(ParseError::Invalid));
-        assert_eq!("@r0".parse::<ReadName>(), Err(ParseError::Invalid));
+        assert_eq!(ReadName::try_new(""), Err(ParseError::Empty));
+        assert_eq!(ReadName::try_new("*"), Err(ParseError::Invalid));
+        assert_eq!(ReadName::try_new("r 0"), Err(ParseError::Invalid));
+        assert_eq!(ReadName::try_new("@r0"), Err(ParseError::Invalid));
 
         let s = "n".repeat(MAX_LENGTH + 1);
-        assert_eq!(s.parse::<ReadName>(), Err(ParseError::Invalid));
+        assert_eq!(ReadName::try_new(s), Err(ParseError::Invalid));
     }
 }
