@@ -2,11 +2,16 @@ use std::io;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Flags, MappingQuality, Position},
+    record::{Flags, MappingQuality, Position, ReadName},
 };
 
 /// An alignment record.
 pub trait AlignmentRecord {
+    /// Returns the read name.
+    ///
+    /// This is also called the query name.
+    fn read_name(&self) -> Option<&ReadName>;
+
     /// Returns the associated reference sequence.
     fn reference_sequence<'rs>(
         &self,

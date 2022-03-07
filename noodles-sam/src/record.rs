@@ -86,28 +86,6 @@ impl Record {
         Builder::default()
     }
 
-    /// Returns the read name of this record.
-    ///
-    /// This is also called the query name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam as sam;
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.read_name().is_none());
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_read_name("r0".parse()?)
-    ///     .build()?;
-    /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn read_name(&self) -> Option<&ReadName> {
-        self.read_name.as_ref()
-    }
-
     /// Returns a mutable reference to the read name.
     ///
     /// This is also called the query name.
@@ -115,7 +93,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// record.read_name_mut().insert("r0".parse()?);
@@ -544,6 +522,10 @@ impl Record {
 }
 
 impl AlignmentRecord for Record {
+    fn read_name(&self) -> Option<&ReadName> {
+        self.read_name.as_ref()
+    }
+
     /// Returns the associated reference sequence.
     ///
     /// # Examples

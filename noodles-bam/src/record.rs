@@ -76,7 +76,8 @@ impl Record {
 
     pub(crate) fn block_size(&self) -> usize {
         let read_name_len = self
-            .read_name()
+            .read_name
+            .as_ref()
             .map(|name| name.len())
             .unwrap_or(sam::record::read_name::MISSING.len());
         let l_read_name = read_name_len + mem::size_of::<u8>(); // read_name + NUL terminator
@@ -278,28 +279,13 @@ impl Record {
         &mut self.tlen
     }
 
-    /// Returns the read name of this record.
-    ///
-    /// This is also called the query name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.read_name().is_none());
-    /// ```
-    pub fn read_name(&self) -> Option<&sam::record::ReadName> {
-        self.read_name.as_ref()
-    }
-
     /// Returns a mutable reference to the read name.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::ReadName;
+    /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
     /// let read_name = ReadName::try_new("r1")?;
     ///
@@ -446,6 +432,10 @@ impl Record {
 }
 
 impl sam::AlignmentRecord for Record {
+    fn read_name(&self) -> Option<&sam::record::ReadName> {
+        self.read_name.as_ref()
+    }
+
     /// Returns the associated reference sequence.
     ///
     /// # Examples
@@ -581,7 +571,7 @@ impl fmt::Debug for Record {
             .field("next_ref_id", &self.mate_reference_sequence_id())
             .field("next_pos", &self.mate_position())
             .field("tlen", &self.tlen)
-            .field("read_name", &self.read_name())
+            .field("read_name", &self.read_name)
             .field("cigar", &self.cigar())
             .field("seq", &self.sequence())
             .field("data", &self.data())

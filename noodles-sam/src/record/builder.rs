@@ -73,7 +73,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)

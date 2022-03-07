@@ -88,13 +88,6 @@ impl Record {
         self.read_group
     }
 
-    /// Returns the read name.
-    ///
-    /// This may be the original read name or a generated one.
-    pub fn read_name(&self) -> Option<&sam::record::ReadName> {
-        self.read_name.as_ref()
-    }
-
     /// Returns the next mate flags.
     ///
     /// This is also call the next mate bit flags.
@@ -188,6 +181,10 @@ impl fmt::Debug for Record {
 }
 
 impl sam::AlignmentRecord for Record {
+    fn read_name(&self) -> Option<&sam::record::ReadName> {
+        self.read_name.as_ref()
+    }
+
     fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs sam::header::ReferenceSequences,

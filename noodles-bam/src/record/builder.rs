@@ -175,7 +175,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::ReadName;
+    /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
     /// let read_name = ReadName::try_new("r0")?;
     ///

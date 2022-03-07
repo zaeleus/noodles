@@ -11,8 +11,8 @@
 
 ### Changed
 
-  * bam/record: Move `flags`, `mapping_quality` and `template_length` to the
-    implementation of `sam::AlignmentReader`.
+  * bam/record: Move `flags`, `mapping_quality`, `read_name`, and
+    `template_length` to the implementation of `sam::AlignmentReader`.
 
   * bam/record: Wrap read name as `sam::record::ReadName`.
 
