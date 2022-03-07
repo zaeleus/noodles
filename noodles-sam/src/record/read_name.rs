@@ -6,10 +6,12 @@ use std::{
     str::{self, FromStr},
 };
 
+/// § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
+/// information is unavailable".
+pub const MISSING: &[u8] = b"*";
+
 // § 1.4 The alignment section: mandatory fields (2020-07-19)
 const MAX_LENGTH: usize = 254;
-
-const MISSING: &[u8] = b"*";
 
 /// A SAM record read name.
 ///
