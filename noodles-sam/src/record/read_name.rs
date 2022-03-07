@@ -35,6 +35,21 @@ impl ReadName {
     {
         Self::try_from(data.into())
     }
+
+    /// Returns the length of the read name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::ReadName;
+    /// let read_name = ReadName::try_new("r1")?;
+    /// assert_eq!(read_name.len(), 2);
+    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
+    /// ```
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 impl AsRef<[u8]> for ReadName {
