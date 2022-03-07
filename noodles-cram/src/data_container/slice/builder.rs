@@ -17,7 +17,7 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
         CompressionHeader,
     },
-    record::{Feature, Features},
+    record::{Feature, Features, Flags},
     writer, BitWriter, Record,
 };
 
@@ -239,6 +239,11 @@ fn write_records(
                 );
             }
         }
+
+        // FIXME: For simplicity, all records are written as detached.
+        record.cram_bit_flags.insert(Flags::DETACHED);
+        record.cram_bit_flags.remove(Flags::HAS_MATE_DOWNSTREAM);
+        record.distance_to_next_fragment = -1;
 
         record_writer.write_record(record)?;
     }

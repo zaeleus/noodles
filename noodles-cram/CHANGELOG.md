@@ -15,6 +15,10 @@
 
   * cram/record: Wrap read name.
 
+### Fixed
+
+  * cram/data_container/slice/builder: Detach all records before writing.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added
