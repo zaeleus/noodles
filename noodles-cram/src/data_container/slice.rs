@@ -5,7 +5,6 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io::{self, Cursor};
 
-use noodles_bam as bam;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
@@ -245,7 +244,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         let record = &mut records[i];
 
         if record.read_name().is_none() {
-            let read_name = bam::record::ReadName::try_from(record.id().to_string().into_bytes())
+            let read_name = sam::record::ReadName::try_new(record.id().to_string())
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
@@ -341,7 +340,8 @@ mod tests {
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
-        use bam::record::{ReadName, ReferenceSequenceId};
+        use noodles_bam::record::ReferenceSequenceId;
+        use sam::record::ReadName;
 
         use crate::record::Flags;
 

@@ -256,7 +256,7 @@ where
         )
     }
 
-    fn write_read_name(&mut self, read_name: Option<&bam::record::ReadName>) -> io::Result<()> {
+    fn write_read_name(&mut self, read_name: Option<&sam::record::ReadName>) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()

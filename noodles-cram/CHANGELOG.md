@@ -13,7 +13,7 @@
 
   * cram/record: Rename `flags` to `cram_flags`.
 
-  * cram/record: Wrap read name.
+  * cram/record: Wrap read name as `sam::record::ReadName`.
 
 ### Fixed
 

@@ -1,4 +1,4 @@
-use std::{io, str};
+use std::io;
 
 use noodles_bam::record::ReferenceSequenceId;
 use noodles_sam::{
@@ -20,14 +20,7 @@ impl Record {
         let mut builder = sam::Record::builder();
 
         if let Some(read_name) = self.read_name() {
-            let sam_read_name = str::from_utf8(read_name)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                .and_then(|s| {
-                    s.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                })?;
-
-            builder = builder.set_read_name(sam_read_name);
+            builder = builder.set_read_name(read_name.clone());
         }
 
         builder = builder.set_flags(self.bam_flags());

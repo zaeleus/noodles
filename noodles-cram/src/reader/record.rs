@@ -262,7 +262,7 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<bam::record::ReadName>> {
+    fn read_read_name(&mut self) -> io::Result<Option<sam::record::ReadName>> {
         const MISSING: &[u8] = b"*";
 
         let encoding = self
@@ -286,7 +286,7 @@ where
         if raw_read_name == MISSING {
             Ok(None)
         } else {
-            bam::record::ReadName::try_from(raw_read_name)
+            sam::record::ReadName::try_from(raw_read_name)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         }
