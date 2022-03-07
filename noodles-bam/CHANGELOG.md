@@ -19,6 +19,11 @@
     Read names are now guaranteed to be valid. The read name "*" is now
     considered missing (`None`).
 
+  * bam/reader/record: Clear quality scores if all scores are missing.
+
+    This previously filled the quality scores with scores of 255, but this just
+    signals that the quality scores are missing.
+
 ### Fixed
 
   * bam/async/writer/record: Calculate bin number for record.

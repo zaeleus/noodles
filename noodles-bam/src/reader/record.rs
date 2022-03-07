@@ -222,15 +222,28 @@ fn read_qual<B>(buf: &mut B, quality_scores: &mut QualityScores, l_seq: usize) -
 where
     B: Buf,
 {
+    let qual = quality_scores.as_mut();
+
+    qual.clear();
+
     if buf.remaining() < l_seq {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     }
 
-    let qual = quality_scores.as_mut();
-    qual.resize(l_seq, Default::default());
-    buf.copy_to_slice(qual);
+    if is_missing_quality_scores(buf.take(l_seq).chunk()) {
+        buf.advance(l_seq);
+    } else {
+        qual.resize(l_seq, Default::default());
+        buf.copy_to_slice(qual);
+    }
 
     Ok(())
+}
+
+fn is_missing_quality_scores(buf: &[u8]) -> bool {
+    use crate::writer::sam_record::NULL_QUALITY_SCORE;
+
+    buf.iter().all(|&b| b == NULL_QUALITY_SCORE)
 }
 
 fn read_data<B>(buf: &mut B, data: &mut Data) -> io::Result<()>
@@ -295,5 +308,18 @@ mod tests {
             read_record_buf(&mut reader, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
+    }
+
+    #[test]
+    fn test_read_qual_with_sequence_and_no_quality_scores() -> io::Result<()> {
+        let data = [0xff, 0xff, 0xff, 0xff];
+        let mut buf = &data[..];
+
+        let mut quality_scores = QualityScores::default();
+        read_qual(&mut buf, &mut quality_scores, 4)?;
+
+        assert!(quality_scores.is_empty());
+
+        Ok(())
     }
 }
