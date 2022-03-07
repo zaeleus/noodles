@@ -257,6 +257,8 @@ where
     }
 
     fn write_read_name(&mut self, read_name: Option<&sam::record::ReadName>) -> io::Result<()> {
+        use sam::record::read_name::MISSING;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -268,7 +270,7 @@ where
                 )
             })?;
 
-        let read_name = read_name.map(|name| name.as_ref()).unwrap_or_default();
+        let read_name = read_name.map(|name| name.as_ref()).unwrap_or(MISSING);
 
         encode_byte_array(
             encoding,
