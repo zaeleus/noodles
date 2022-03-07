@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * fasta/record/sequence: Add indexing by `Position`.
+
 ### Changed
 
   * fasta/repository: Box the adapter.

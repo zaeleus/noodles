@@ -1,3 +1,7 @@
+mod sequence_index;
+
+use self::sequence_index::SequenceIndex;
+
 use bytes::Bytes;
 
 /// A FASTA record sequence.
@@ -29,6 +33,32 @@ impl Sequence {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Returns a reference to a base at or slice of bases between the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_fasta::record::Sequence;
+    ///
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    ///
+    /// let start = Position::try_from(2)?;
+    /// assert_eq!(sequence.get(start), Some(&b'C'));
+    ///
+    /// assert_eq!(sequence.get(start..), Some(&b"CGT"[..]));
+    ///
+    /// let end = Position::try_from(3)?;
+    /// assert_eq!(sequence.get(start..=end), Some(&b"CG"[..]));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn get<I>(&self, index: I) -> Option<&I::Output>
+    where
+        I: SequenceIndex,
+    {
+        index.get(self.as_ref())
     }
 }
 
