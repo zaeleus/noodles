@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/async/reader/record: Read site from buffer ([#79]).
+
+[#79]: https://github.com/zaeleus/noodles/issues/79
+
 ## 0.13.1 - 2022-03-02
 
 ### Fixed
