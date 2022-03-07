@@ -5,6 +5,8 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 // § 1.4 The alignment section: mandatory fields (2020-07-19)
 const MAX_LENGTH: usize = 254;
 
+const MISSING: &str = "*";
+
 /// A SAM record read name.
 ///
 /// This is also called a query name.
@@ -65,7 +67,7 @@ fn is_valid_name_char(c: char) -> bool {
 }
 
 fn is_valid_name(s: &str) -> bool {
-    s.len() <= MAX_LENGTH && s.chars().all(is_valid_name_char)
+    s != MISSING && s.len() <= MAX_LENGTH && s.chars().all(is_valid_name_char)
 }
 
 #[cfg(test)]
@@ -84,6 +86,7 @@ mod tests {
         assert_eq!("r0".parse(), Ok(ReadName(String::from("r0"))));
 
         assert_eq!("".parse::<ReadName>(), Err(ParseError::Empty));
+        assert_eq!("*".parse::<ReadName>(), Err(ParseError::Invalid));
         assert_eq!("r 0".parse::<ReadName>(), Err(ParseError::Invalid));
         assert_eq!("@r0".parse::<ReadName>(), Err(ParseError::Invalid));
 

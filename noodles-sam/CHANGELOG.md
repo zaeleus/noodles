@@ -28,6 +28,10 @@
   * sam/record: Move `flags`, `mapping_quality` and `template_length` to the
     implementation of `AlignmentRecord`.
 
+  * sam/record/read_name: Disallow "`*`" as a read name.
+
+    This is already treated as missing (`None`).
+
 ## 0.13.0 - 2022-03-02
 
 ### Added
