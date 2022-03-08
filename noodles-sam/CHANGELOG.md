@@ -36,7 +36,8 @@
 
   * sam/record/sequence: Add conversion from `Vec<u8>`.
 
-  * sam/record/sequence: Add indexing by `Position`.
+  * sam/record/sequence: Add getting (`Sequence::get`) and setting
+    (`Sequence::get_mut`) a base by `Position`.
 
   * sam/record/sequence/base: Implement `TryFrom<u8>`.
 

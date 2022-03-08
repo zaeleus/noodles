@@ -40,6 +40,29 @@ impl Sequence {
         let i = usize::from(index) - 1;
         self.0.get(i)
     }
+
+    /// Returns a mutable reference to the base at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let mut sequence: Sequence = "ATCG".parse()?;
+    ///
+    /// let i = Position::try_from(2)?;
+    /// if let Some(base) = sequence.get_mut(i) {
+    ///     *base = Base::N;
+    /// }
+    ///
+    /// assert_eq!(sequence.get(i), Some(&Base::N));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_mut(&mut self, index: Position) -> Option<&mut Base> {
+        let i = usize::from(index) - 1;
+        self.0.get_mut(i)
+    }
 }
 
 impl Deref for Sequence {
