@@ -5,7 +5,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
 use crate::{
-    record::{Cigar, ReferenceSequenceId},
+    record::{Cigar, ReferenceSequenceId, Sequence},
     Record,
 };
 
@@ -63,7 +63,8 @@ where
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
-    writer.write_all(sequence.as_ref())?;
+    // seq
+    write_sequence(writer, sequence)?;
 
     if sequence.len() == quality_scores.len() {
         for &score in quality_scores.iter() {
@@ -216,6 +217,13 @@ where
     Ok(())
 }
 
+fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(sequence.as_ref())
+}
+
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
 #[allow(clippy::eq_op)]
 pub(crate) fn region_to_bin(
@@ -283,7 +291,7 @@ mod tests {
             cigar::Op,
             data::{field::Value, Field},
             sequence::Base,
-            Cigar, Data, ReferenceSequenceId, Sequence,
+            Cigar, Data, ReferenceSequenceId,
         };
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
