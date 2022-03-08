@@ -177,7 +177,7 @@ impl Builder {
     /// use noodles_bam as bam;
     /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
-    /// let read_name = ReadName::try_new("r0")?;
+    /// let read_name: ReadName = "r0".parse()?;
     ///
     /// let record = bam::Record::builder()
     ///     .set_read_name(read_name.clone())

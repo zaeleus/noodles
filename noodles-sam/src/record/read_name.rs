@@ -42,7 +42,7 @@ impl ReadName {
     ///
     /// ```
     /// use noodles_sam::record::ReadName;
-    /// let read_name = ReadName::try_new("r1")?;
+    /// let read_name: ReadName = "r1".parse()?;
     /// assert_eq!(read_name.len(), 2);
     /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
     /// ```

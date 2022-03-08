@@ -301,7 +301,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
-            .set_read_name(sam::record::ReadName::try_new("r0")?)
+            .set_read_name("r0".parse()?)
             .set_cigar(Cigar::from(vec![
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,

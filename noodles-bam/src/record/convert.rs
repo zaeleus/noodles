@@ -156,7 +156,7 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::record::{cigar::op::Kind, Flags, MappingQuality, Position, ReadName};
+        use sam::record::{cigar::op::Kind, Flags, MappingQuality, Position};
 
         use crate::record::{cigar::Op, Cigar, Data};
 
@@ -170,7 +170,7 @@ mod tests {
             .set_mate_reference_sequence_id(reference_sequence_id)
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
-            .set_read_name(ReadName::try_new("r0")?)
+            .set_read_name("r0".parse()?)
             .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)

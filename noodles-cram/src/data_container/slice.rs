@@ -244,7 +244,10 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         let record = &mut records[i];
 
         if record.read_name().is_none() {
-            let read_name = sam::record::ReadName::try_new(record.id().to_string())
+            let read_name = record
+                .id()
+                .to_string()
+                .parse()
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 

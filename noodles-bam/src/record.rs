@@ -286,7 +286,7 @@ impl Record {
     /// use noodles_bam as bam;
     /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
-    /// let read_name = ReadName::try_new("r1")?;
+    /// let read_name: ReadName = "r1".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.read_name_mut() = Some(read_name.clone());
@@ -576,7 +576,7 @@ mod tests {
     use super::*;
 
     fn build_record() -> io::Result<Record> {
-        use sam::record::{Flags, MappingQuality, ReadName};
+        use sam::record::{Flags, MappingQuality};
 
         let ref_id = Some(ReferenceSequenceId::from(10));
 
@@ -592,7 +592,8 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let read_name = ReadName::try_new("r0")
+        let read_name = "r0"
+            .parse()
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
