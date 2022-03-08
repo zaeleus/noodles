@@ -60,7 +60,7 @@ impl Cigar {
                 | Kind::Deletion
                 | Kind::Skip
                 | Kind::SequenceMatch
-                | Kind::SeqMismatch => Some(op.len()),
+                | Kind::SequenceMismatch => Some(op.len()),
                 _ => None,
             })
             .sum()
@@ -92,7 +92,7 @@ impl Cigar {
                 | Kind::Insertion
                 | Kind::SoftClip
                 | Kind::SequenceMatch
-                | Kind::SeqMismatch => Some(op.len()),
+                | Kind::SequenceMismatch => Some(op.len()),
                 _ => None,
             })
             .sum()

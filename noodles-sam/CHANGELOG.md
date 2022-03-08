@@ -42,7 +42,8 @@
     `template_length`, and `quality_scores` to the implementation of
     `AlignmentRecord`.
 
-  * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch`.
+  * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch` and
+    `SeqMismatch` to `SequenceMismatch`.
 
   * sam/record/read_name: Disallow "`*`" as a read name.
 

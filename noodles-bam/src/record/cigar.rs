@@ -127,7 +127,7 @@ impl Cigar {
                 | Kind::Deletion
                 | Kind::Skip
                 | Kind::SequenceMatch
-                | Kind::SeqMismatch => {
+                | Kind::SequenceMismatch => {
                     len += op.len();
                 }
                 _ => {}
@@ -167,7 +167,7 @@ impl Cigar {
                 | Kind::Insertion
                 | Kind::SoftClip
                 | Kind::SequenceMatch
-                | Kind::SeqMismatch => {
+                | Kind::SequenceMismatch => {
                     len += op.len();
                 }
                 _ => {}

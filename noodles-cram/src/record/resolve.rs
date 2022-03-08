@@ -140,7 +140,7 @@ pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Ciga
                 | Kind::Insertion
                 | Kind::SoftClip
                 | Kind::SequenceMatch
-                | Kind::SeqMismatch
+                | Kind::SequenceMismatch
         ) {
             i += len;
         }

@@ -142,7 +142,7 @@ impl TryFrom<u32> for Op {
             5 => Kind::HardClip,
             6 => Kind::Pad,
             7 => Kind::SequenceMatch,
-            8 => Kind::SeqMismatch,
+            8 => Kind::SequenceMismatch,
             n => return Err(TryFromUIntError::InvalidOp(n)),
         };
 
@@ -221,7 +221,10 @@ mod tests {
             Op::try_from(8 << 4 | 7),
             Ok(Op::new(Kind::SequenceMatch, 8)?)
         );
-        assert_eq!(Op::try_from(9 << 4 | 8), Ok(Op::new(Kind::SeqMismatch, 9)?));
+        assert_eq!(
+            Op::try_from(9 << 4 | 8),
+            Ok(Op::new(Kind::SequenceMismatch, 9)?)
+        );
 
         assert_eq!(
             Op::try_from(10 << 4 | 9),
@@ -275,7 +278,7 @@ mod tests {
         assert_eq!(u32::from(Op::new(Kind::HardClip, 6)?), 6 << 4 | 5);
         assert_eq!(u32::from(Op::new(Kind::Pad, 7)?), 7 << 4 | 6);
         assert_eq!(u32::from(Op::new(Kind::SequenceMatch, 8)?), 8 << 4 | 7);
-        assert_eq!(u32::from(Op::new(Kind::SeqMismatch, 9)?), 9 << 4 | 8);
+        assert_eq!(u32::from(Op::new(Kind::SequenceMismatch, 9)?), 9 << 4 | 8);
         Ok(())
     }
 
