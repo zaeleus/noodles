@@ -2,7 +2,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    record::{Cigar, ReferenceSequenceId},
+    record::{Cigar, ReferenceSequenceId, Sequence},
     writer::sam_record::NULL_QUALITY_SCORE,
     Record,
 };
@@ -57,7 +57,8 @@ where
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
-    writer.write_all(sequence.as_ref()).await?;
+    // seq
+    write_sequence(writer, sequence).await?;
 
     if sequence.len() == quality_scores.len() {
         for &score in quality_scores.iter() {
@@ -218,6 +219,13 @@ where
     Ok(())
 }
 
+async fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer.write_all(sequence.as_ref()).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,7 +265,7 @@ mod tests {
             cigar::Op,
             data::{field::Value, Field},
             sequence::Base,
-            Data, ReferenceSequenceId, Sequence,
+            Data, ReferenceSequenceId,
         };
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
