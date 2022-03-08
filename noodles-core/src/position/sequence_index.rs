@@ -1,12 +1,13 @@
 use std::ops;
 
-use noodles_core::Position;
+use super::Position;
 
 /// A 1-based index for sequences.
 pub trait SequenceIndex {
+    /// The output returned.
     type Output: ?Sized;
 
-    /// Returns a reference to output of the given index.
+    /// Returns a reference to the output of the given index.
     fn get(self, sequence: &[u8]) -> Option<&Self::Output>;
 }
 

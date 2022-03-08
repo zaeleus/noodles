@@ -1,8 +1,5 @@
-mod sequence_index;
-
-use self::sequence_index::SequenceIndex;
-
 use bytes::Bytes;
+use noodles_core::position::SequenceIndex;
 
 /// A FASTA record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

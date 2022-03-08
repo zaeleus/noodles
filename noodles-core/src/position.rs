@@ -1,5 +1,9 @@
 //! 1-based position.
 
+mod sequence_index;
+
+pub use self::sequence_index::SequenceIndex;
+
 use std::{
     fmt,
     num::{self, NonZeroUsize},
