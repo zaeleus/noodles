@@ -10,7 +10,7 @@ use std::{
     str::FromStr,
 };
 
-use noodles_core::Position;
+use noodles_core::position::SequenceIndex;
 
 use super::NULL_FIELD;
 
@@ -36,9 +36,11 @@ impl Sequence {
     /// assert!(sequence.get(i).is_none());
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn get(&self, index: Position) -> Option<&Base> {
-        let i = usize::from(index) - 1;
-        self.0.get(i)
+    pub fn get<I>(&self, index: I) -> Option<&I::Output>
+    where
+        I: SequenceIndex<Base>,
+    {
+        index.get(self.0.as_ref())
     }
 
     /// Returns a mutable reference to the base at the given index.
@@ -59,9 +61,11 @@ impl Sequence {
     /// assert_eq!(sequence.get(i), Some(&Base::N));
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn get_mut(&mut self, index: Position) -> Option<&mut Base> {
-        let i = usize::from(index) - 1;
-        self.0.get_mut(i)
+    pub fn get_mut<I>(&mut self, index: I) -> Option<&mut I::Output>
+    where
+        I: SequenceIndex<Base>,
+    {
+        index.get_mut(self.0.as_mut())
     }
 }
 
