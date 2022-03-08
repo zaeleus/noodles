@@ -18,7 +18,8 @@
 
   * sam/reader: Implement `AlignmentReader`.
 
-  * sam/record/quality_scores/score: Implement `Ord` + `PartialOrd`.
+  * sam/record/quality_scores/score: Implement `Default` + `Ord` +
+    `PartialOrd`.
 
   * sam/record/quality_scores/score: Add `clear` and `push` methods.
 
