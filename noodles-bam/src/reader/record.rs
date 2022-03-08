@@ -272,10 +272,10 @@ where
 
     quality_scores.clear();
 
-    let raw_quality_scores = buf.take(l_seq);
+    let qual = buf.take(l_seq);
 
-    if !is_missing_quality_scores(raw_quality_scores.chunk()) {
-        for &b in raw_quality_scores.chunk() {
+    if !is_missing_quality_scores(qual.chunk()) {
+        for &b in qual.chunk() {
             let score =
                 Score::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
