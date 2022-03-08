@@ -23,6 +23,22 @@ impl Position {
     pub fn new(n: usize) -> Option<Self> {
         NonZeroUsize::new(n).map(Self)
     }
+
+    /// Adds an unsigned integer to a 1-based position.
+    ///
+    /// This returns `None` if the operation overflowed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// let position = Position::try_from(8)?;
+    /// assert_eq!(position.checked_add(5), Position::new(13));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn checked_add(self, other: usize) -> Option<Self> {
+        usize::from(self).checked_add(other).and_then(Self::new)
+    }
 }
 
 impl fmt::Display for Position {
