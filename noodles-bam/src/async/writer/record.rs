@@ -1,8 +1,8 @@
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    record::{Cigar, ReferenceSequenceId, Sequence},
+    record::{Cigar, ReferenceSequenceId},
     writer::sam_record::NULL_QUALITY_SCORE,
     Record,
 };
@@ -219,11 +219,23 @@ where
     Ok(())
 }
 
-async fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
+pub(super) async fn write_sequence<W>(
+    writer: &mut W,
+    sequence: &sam::record::Sequence,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_all(sequence.as_ref()).await
+    use crate::writer::record::encode_base;
+
+    for chunk in sequence.chunks(2) {
+        let l = chunk[0];
+        let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+        let b = encode_base(l) << 4 | encode_base(r);
+        writer.write_u8(b).await?;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -264,7 +276,6 @@ mod tests {
         use crate::record::{
             cigar::Op,
             data::{field::Value, Field},
-            sequence::Base,
             Data, ReferenceSequenceId,
         };
 
@@ -283,7 +294,7 @@ mod tests {
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,
             ]))
-            .set_sequence(Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]))
+            .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .set_data(Data::try_from(vec![Field::new(
                 Tag::AlignmentHitCount,

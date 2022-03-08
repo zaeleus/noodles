@@ -278,7 +278,7 @@ where
 mod tests {
     use noodles_sam::{record::Data, AlignmentRecord};
 
-    use crate::{record::sequence::Base, Reader, Record};
+    use crate::{Reader, Record};
 
     use super::*;
 
@@ -431,9 +431,8 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        let actual: Vec<_> = record.sequence().bases().collect();
-        let expected = [Base::A, Base::T, Base::C, Base::G];
-        assert_eq!(actual, expected);
+        let expected = "ATCG".parse()?;
+        assert_eq!(record.sequence(), &expected);
 
         assert!(record.quality_scores().is_empty());
 
@@ -459,9 +458,8 @@ mod tests {
         let mut record = Record::default();
         reader.read_record(&mut record)?;
 
-        let actual: Vec<_> = record.sequence().bases().collect();
-        let expected = [Base::A, Base::T, Base::C, Base::G];
-        assert_eq!(actual, expected);
+        let expected = "ATCG".parse()?;
+        assert_eq!(record.sequence(), &expected);
 
         assert_eq!(record.quality_scores(), sam_record.quality_scores());
 

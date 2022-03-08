@@ -8,14 +8,14 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
-    record::{Cigar, Data, QualityScores, Sequence},
+    record::{Cigar, Data, QualityScores},
     AlignmentRecord,
 };
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_template_length,
+    write_bin, write_flags, write_mapping_quality, write_position, write_sequence,
+    write_template_length,
 };
-use crate::record::sequence::Base;
 
 // § 4.2 The BAM format (2021-06-03)
 //
@@ -107,7 +107,7 @@ where
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
-    write_seq(writer, sequence)?;
+    write_sequence(writer, sequence)?;
 
     if sequence.len() == quality_scores.len() {
         write_qual(writer, quality_scores)?;
@@ -168,20 +168,6 @@ where
         let kind = op.kind() as u32;
         let value = len << 4 | kind;
         writer.write_u32::<LittleEndian>(value)?;
-    }
-
-    Ok(())
-}
-
-fn write_seq<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
-where
-    W: Write,
-{
-    for chunk in sequence.chunks(2) {
-        let l = Base::from(chunk[0]);
-        let r = chunk.get(1).copied().map(Base::from).unwrap_or(Base::Eq);
-        let value = u8::from(l) << 4 | u8::from(r);
-        writer.write_u8(value)?;
     }
 
     Ok(())

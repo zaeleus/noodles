@@ -1,11 +1,11 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
 use crate::{
-    record::{Cigar, ReferenceSequenceId, Sequence},
+    record::{Cigar, ReferenceSequenceId},
     Record,
 };
 
@@ -217,11 +217,41 @@ where
     Ok(())
 }
 
-fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
+pub(super) fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(sequence.as_ref())
+    for chunk in sequence.chunks(2) {
+        let l = chunk[0];
+        let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+        let b = encode_base(l) << 4 | encode_base(r);
+        writer.write_u8(b)?;
+    }
+
+    Ok(())
+}
+
+pub(crate) fn encode_base(base: Base) -> u8 {
+    match base {
+        Base::Eq => 0,
+        Base::A => 1,
+        Base::C => 2,
+        Base::M => 3,
+        Base::G => 4,
+        Base::R => 5,
+        Base::S => 6,
+        Base::V => 7,
+        Base::T => 8,
+        Base::W => 9,
+        Base::Y => 10,
+        Base::H => 11,
+        Base::K => 12,
+        Base::D => 13,
+        Base::B => 14,
+        // § 4.2.3 SEQ and QUAL encoding (2021-06-03): "The case-insensitive base codes ... are
+        // mapped to [0, 15] respectively with all other characters mapping to 'N' (value 15)".
+        _ => 15,
+    }
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
@@ -290,7 +320,6 @@ mod tests {
         use crate::record::{
             cigar::Op,
             data::{field::Value, Field},
-            sequence::Base,
             Cigar, Data, ReferenceSequenceId,
         };
 
@@ -309,7 +338,7 @@ mod tests {
                 Op::new(Kind::Match, 36)?,
                 Op::new(Kind::SoftClip, 8)?,
             ]))
-            .set_sequence(Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]))
+            .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .set_data(Data::try_from(vec![Field::new(
                 Tag::AlignmentHitCount,

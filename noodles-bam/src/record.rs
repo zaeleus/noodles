@@ -5,11 +5,9 @@ pub mod cigar;
 mod convert;
 pub mod data;
 pub mod reference_sequence_id;
-pub mod sequence;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, reference_sequence_id::ReferenceSequenceId,
-    sequence::Sequence,
 };
 
 use std::{fmt, io, mem};
@@ -53,7 +51,7 @@ pub struct Record {
     tlen: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: Cigar,
-    seq: Sequence,
+    seq: sam::record::Sequence,
     qual: sam::record::QualityScores,
     data: Data,
 }
@@ -74,6 +72,8 @@ impl Record {
     }
 
     pub(crate) fn block_size(&self) -> usize {
+        let l_seq = self.seq.len();
+
         let read_name_len = self
             .read_name
             .as_ref()
@@ -94,8 +94,8 @@ impl Record {
             + mem::size_of::<i32>() // tlen
             + l_read_name
             + (mem::size_of::<u32>() * self.cigar.len())
-            + self.seq.as_ref().len()
-            + self.qual.len()
+            + ((l_seq + 1) / 2) // seq
+            + l_seq // qual
             + self.data.as_ref().len()
     }
 
@@ -340,7 +340,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> &Sequence {
+    pub fn sequence(&self) -> &sam::record::Sequence {
         &self.seq
     }
 
@@ -349,18 +349,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::sequence::Base};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::Sequence;
+    ///
+    /// let sequence: Sequence = "ACGT".parse()?;
     ///
     /// let mut record = bam::Record::default();
+    /// *record.sequence_mut() = sequence.clone();
     ///
-    /// let sequence = record.sequence_mut();
-    /// sequence.push(Base::A);
-    /// sequence.set_len(1);
-    ///
-    /// assert_eq!(record.sequence().as_ref(), [0x10]); // A
-    /// assert_eq!(record.sequence().len(), 1);
+    /// assert_eq!(record.sequence(), &sequence);
+    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut Sequence {
+    pub fn sequence_mut(&mut self) -> &mut sam::record::Sequence {
         &mut self.seq
     }
 
@@ -543,7 +543,7 @@ impl Default for Record {
             tlen: 0,
             read_name: None,
             cigar: Cigar::default(),
-            seq: Sequence::default(),
+            seq: sam::record::Sequence::default(),
             qual: sam::record::QualityScores::default(),
             data: Data::default(),
         }
@@ -596,6 +596,10 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let seq = "ATGC"
+            .parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let qual = "@>?A"
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -609,8 +613,8 @@ mod tests {
             next_pos,
             tlen: 166,
             read_name,
-            cigar: Cigar::from(vec![0x00000040]),    // 4M
-            seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
+            cigar: Cigar::from(vec![0x00000040]), // 4M
+            seq,
             qual,
             data: Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0

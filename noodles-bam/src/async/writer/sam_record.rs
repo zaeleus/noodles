@@ -4,7 +4,8 @@ use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_template_length,
+    write_bin, write_flags, write_mapping_quality, write_position, write_sequence,
+    write_template_length,
 };
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
@@ -167,26 +168,6 @@ where
         let kind = op.kind() as u32;
         let value = len << 4 | kind;
         writer.write_u32_le(value).await?;
-    }
-
-    Ok(())
-}
-
-async fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    use crate::record::sequence::Base;
-
-    for chunk in sequence.chunks(2) {
-        let l = Base::from(chunk[0]);
-
-        // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of
-        // the last byte are undefined, but we recommend writing these are zero."
-        let r = chunk.get(1).copied().map(Base::from).unwrap_or(Base::Eq);
-
-        let value = u8::from(l) << 4 | u8::from(r);
-        writer.write_u8(value).await?;
     }
 
     Ok(())

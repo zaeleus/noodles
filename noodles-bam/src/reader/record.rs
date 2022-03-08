@@ -13,7 +13,7 @@ use bytes::Buf;
 use noodles_sam as sam;
 
 use crate::{
-    record::{Cigar, Data, ReferenceSequenceId, Sequence},
+    record::{Cigar, Data, ReferenceSequenceId},
     Record,
 };
 
@@ -199,21 +199,59 @@ where
     Ok(())
 }
 
-fn read_seq<B>(buf: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
+fn read_seq<B>(buf: &mut B, sequence: &mut sam::record::Sequence, l_seq: usize) -> io::Result<()>
 where
     B: Buf,
 {
-    sequence.set_len(l_seq);
+    use sam::record::sequence::Base;
 
-    let seq = sequence.as_mut();
+    fn decode_bases(n: u8) -> [Base; 2] {
+        static BASES: [Base; 16] = [
+            Base::Eq,
+            Base::A,
+            Base::C,
+            Base::M,
+            Base::G,
+            Base::R,
+            Base::S,
+            Base::V,
+            Base::T,
+            Base::W,
+            Base::Y,
+            Base::H,
+            Base::K,
+            Base::D,
+            Base::B,
+            Base::N,
+        ];
+
+        let l = n >> 4;
+        let r = n & 0x0f;
+
+        [BASES[usize::from(l)], BASES[usize::from(r)]]
+    }
+
     let seq_len = (l_seq + 1) / 2;
 
     if buf.remaining() < seq_len {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     }
 
-    seq.resize(seq_len, Default::default());
-    buf.copy_to_slice(seq);
+    let seq = buf.take(seq_len);
+    let bases = seq
+        .chunk()
+        .iter()
+        .copied()
+        .flat_map(decode_bases)
+        .take(l_seq);
+
+    sequence.clear();
+
+    for base in bases {
+        sequence.push(base);
+    }
+
+    buf.advance(seq_len);
 
     Ok(())
 }

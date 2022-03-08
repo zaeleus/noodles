@@ -96,7 +96,7 @@ impl Record {
         builder = builder.set_template_length(self.template_length());
 
         if !self.sequence().is_empty() {
-            builder = builder.set_sequence(self.sequence().into());
+            builder = builder.set_sequence(self.sequence().clone());
         }
 
         if !self.quality_scores().is_empty() {
@@ -158,7 +158,7 @@ mod tests {
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
         use sam::record::{cigar::op::Kind, Flags, MappingQuality, Position, ReadName};
 
-        use crate::record::{cigar::Op, sequence::Base, Cigar, Data, Sequence};
+        use crate::record::{cigar::Op, Cigar, Data};
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 
@@ -172,7 +172,7 @@ mod tests {
             .set_template_length(166)
             .set_read_name(ReadName::try_new("r0")?)
             .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
-            .set_sequence(Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]))
+            .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data(Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
