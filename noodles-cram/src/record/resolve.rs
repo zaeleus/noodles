@@ -152,20 +152,22 @@ pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Ciga
 }
 
 /// Resolves the quality scores.
-pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> Vec<u8> {
-    let mut quality_scores = vec![0; read_len];
+pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
+    use sam::record::quality_scores::Score;
+
+    let mut scores = vec![Score::default(); read_len];
 
     for feature in features {
         let read_pos = (feature.position() - 1) as usize;
 
-        quality_scores[read_pos] = match feature {
-            Feature::ReadBase(_, _, quality_score) => u8::from(*quality_score),
-            Feature::QualityScore(_, quality_score) => u8::from(*quality_score),
+        scores[read_pos] = match feature {
+            Feature::ReadBase(_, _, quality_score) => *quality_score,
+            Feature::QualityScore(_, quality_score) => *quality_score,
             _ => continue,
         }
     }
 
-    quality_scores
+    sam::record::QualityScores::from(scores)
 }
 
 #[cfg(test)]
@@ -283,12 +285,22 @@ mod tests {
     #[test]
     fn test_resolve_quality_scores(
     ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
+        use sam::record::{quality_scores::Score, QualityScores};
+
         let features = [
             Feature::ReadBase(1, b'A', Score::try_from(5)?),
             Feature::QualityScore(3, Score::try_from(8)?),
         ];
 
-        assert_eq!(resolve_quality_scores(&features, 4), [5, 0, 8, 0]);
+        let actual = resolve_quality_scores(&features, 4);
+
+        let expected = [5, 0, 8, 0]
+            .into_iter()
+            .map(Score::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .map(QualityScores::from)?;
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }

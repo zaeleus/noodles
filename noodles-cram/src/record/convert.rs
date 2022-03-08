@@ -3,7 +3,7 @@ use std::io;
 use noodles_bam::record::ReferenceSequenceId;
 use noodles_sam::{
     self as sam,
-    record::{Data, QualityScores, Sequence},
+    record::{Data, Sequence},
     AlignmentRecord,
 };
 
@@ -63,8 +63,7 @@ impl Record {
         }
 
         if !self.quality_scores().is_empty() {
-            let quality_scores = bytes_to_quality_scores(self.quality_scores())?;
-            builder = builder.set_quality_scores(quality_scores);
+            builder = builder.set_quality_scores(self.quality_scores().clone());
         }
 
         if !self.tags().is_empty() {
@@ -104,17 +103,6 @@ fn bytes_to_sequence(data: &[u8]) -> io::Result<Sequence> {
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
         .map(Sequence::from)
-}
-
-fn bytes_to_quality_scores(data: &[u8]) -> io::Result<QualityScores> {
-    use sam::record::quality_scores::Score;
-
-    data.iter()
-        .copied()
-        .map(Score::try_from)
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        .map(QualityScores::from)
 }
 
 fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {

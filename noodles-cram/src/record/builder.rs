@@ -1,5 +1,5 @@
 use noodles_bam as bam;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::quality_scores::Score};
 
 use super::{Feature, Features, Flags, NextMateFlags, ReadGroupId, Record, Tag};
 
@@ -22,7 +22,7 @@ pub struct Builder {
     bases: Vec<u8>,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
-    quality_scores: Vec<u8>,
+    quality_scores: sam::record::QualityScores,
 }
 
 impl Builder {
@@ -156,13 +156,13 @@ impl Builder {
     }
 
     /// Sets the per-base quality scores.
-    pub fn set_quality_scores(mut self, quality_scores: Vec<u8>) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
         self.quality_scores = quality_scores;
         self
     }
 
     /// Adds a quality score.
-    pub fn add_quality_score(mut self, quality_score: u8) -> Self {
+    pub fn add_quality_score(mut self, quality_score: Score) -> Self {
         self.quality_scores.push(quality_score);
         self
     }
@@ -212,7 +212,7 @@ impl Default for Builder {
             bases: Vec::new(),
             features: Features::default(),
             mapping_quality: None,
-            quality_scores: Vec::new(),
+            quality_scores: sam::record::QualityScores::default(),
         }
     }
 }

@@ -527,7 +527,7 @@ where
 
         if flags.are_quality_scores_stored_as_array() {
             for _ in 0..read_length {
-                let score = self.read_quality_score().map(u8::from)?;
+                let score = self.read_quality_score()?;
                 record.quality_scores.push(score);
             }
         }
@@ -919,7 +919,7 @@ where
 
         if flags.are_quality_scores_stored_as_array() {
             for _ in 0..read_length {
-                let score = self.read_quality_score().map(u8::from)?;
+                let score = self.read_quality_score()?;
                 record.quality_scores.push(score);
             }
         }

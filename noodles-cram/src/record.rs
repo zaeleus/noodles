@@ -40,7 +40,7 @@ pub struct Record {
     pub(crate) bases: Vec<u8>,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
-    pub(crate) quality_scores: Vec<u8>,
+    pub(crate) quality_scores: sam::record::QualityScores,
 }
 
 impl Record {
@@ -141,7 +141,7 @@ impl Record {
     }
 
     /// Returns the per-base quality scores.
-    pub fn quality_scores(&self) -> &[u8] {
+    pub fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.quality_scores
     }
 }

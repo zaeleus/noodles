@@ -500,10 +500,7 @@ where
         self.write_mapping_quality(record.mapping_quality())?;
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &raw_score in record.quality_scores() {
-                let score = Score::try_from(raw_score)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+            for &score in record.quality_scores().iter() {
                 self.write_quality_score(score)?;
             }
         }
@@ -883,10 +880,7 @@ where
         }
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &raw_score in record.quality_scores() {
-                let score = Score::try_from(raw_score)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+            for &score in record.quality_scores().iter() {
                 self.write_quality_score(score)?;
             }
         }

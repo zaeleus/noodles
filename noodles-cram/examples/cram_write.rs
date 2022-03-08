@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_alignment_start(sam::record::Position::try_from(1)?)
         .set_read_length(4)
         .set_bases(b"TTCA".to_vec())
-        .set_quality_scores(vec![45, 35, 43, 50])
+        .set_quality_scores("NDLS".parse()?)
         .build();
 
     writer.write_record(record)?;
