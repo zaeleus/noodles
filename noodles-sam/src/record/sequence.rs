@@ -77,14 +77,21 @@ impl FromStr for Sequence {
         match s {
             "" => Err(ParseError::Empty),
             NULL_FIELD => Ok(Self::default()),
-            _ => s
-                .chars()
-                .map(|c| c.to_ascii_uppercase())
-                .map(Base::try_from)
-                .collect::<Result<Vec<_>, _>>()
-                .map(Self::from)
-                .map_err(ParseError::InvalidBase),
+            _ => Self::try_from(s.as_bytes().to_vec()),
         }
+    }
+}
+
+impl TryFrom<Vec<u8>> for Sequence {
+    type Error = ParseError;
+
+    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
+        buf.into_iter()
+            .map(|b| b.to_ascii_uppercase())
+            .map(Base::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .map(Self::from)
+            .map_err(ParseError::InvalidBase)
     }
 }
 

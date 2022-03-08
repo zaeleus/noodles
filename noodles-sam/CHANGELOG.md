@@ -34,6 +34,8 @@
 
   * sam/record/sequence: Implement `DerefMut`.
 
+  * sam/record/sequence: Add conversion from `Vec<u8>`.
+
   * sam/record/sequence/base: Implement `TryFrom<u8>`.
 
 ### Changed
