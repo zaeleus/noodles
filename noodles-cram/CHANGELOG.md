@@ -8,8 +8,8 @@
 
 ### Changed
 
-  * cram/record: Move `mapping_quality` and `read_name` to the implementation
-    of `sam::AlignmentReader`.
+  * cram/record: Move `mapping_quality`, `read_name`, and `quality_scores` to
+    the implementation of `sam::AlignmentReader`.
 
   * cram/record: Rename `flags` to `cram_flags`.
 

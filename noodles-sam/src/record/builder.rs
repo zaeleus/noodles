@@ -271,7 +271,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::quality_scores::Score};
+    /// use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_cigar("2M".parse()?)

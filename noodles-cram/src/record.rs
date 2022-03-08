@@ -139,11 +139,6 @@ impl Record {
     pub(crate) fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
     }
-
-    /// Returns the per-base quality scores.
-    pub fn quality_scores(&self) -> &sam::record::QualityScores {
-        &self.quality_scores
-    }
 }
 
 impl Default for Record {
@@ -224,6 +219,10 @@ impl sam::AlignmentRecord for Record {
 
     fn template_length(&self) -> i32 {
         self.template_size
+    }
+
+    fn quality_scores(&self) -> &sam::record::QualityScores {
+        &self.quality_scores
     }
 }
 

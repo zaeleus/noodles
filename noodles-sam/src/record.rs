@@ -424,40 +424,16 @@ impl Record {
         &mut self.sequence
     }
 
-    /// Returns the quality score for each base in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::quality_scores::Score};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.quality_scores().is_empty());
-    /// assert_eq!(record.quality_scores().to_string(), "*");
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_sequence("AC".parse()?)
-    ///     .set_quality_scores("ND".parse()?)
-    ///     .build()?;
-    ///
-    /// assert_eq!(record.quality_scores().to_string(), "ND");
-    ///
-    /// let mut scores = record.quality_scores().iter().copied().map(u8::from);
-    /// assert_eq!(scores.next(), Some(45));
-    /// assert_eq!(scores.next(), Some(35));
-    /// assert_eq!(scores.next(), None);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn quality_scores(&self) -> &QualityScores {
-        &self.quality_scores
-    }
-
     /// Returns a mutable reference to the quality scores.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::{quality_scores, QualityScores}};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{quality_scores, QualityScores},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.quality_scores().is_empty());
@@ -602,6 +578,10 @@ impl AlignmentRecord for Record {
 
     fn template_length(&self) -> i32 {
         self.template_length
+    }
+
+    fn quality_scores(&self) -> &QualityScores {
+        &self.quality_scores
     }
 }
 

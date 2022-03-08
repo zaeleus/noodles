@@ -13,8 +13,9 @@
       * flags (`AlignmentRecord::flags`),
       * mapping quality (`AlignmentRecord::mapping_quality`),
       * mate position (`AlignmentRecord::mate_alignment_start`),
-      * read name (`AlignmentRecord::read_name`), and
-      * template length (`AlignmentRecord::template_length`).
+      * read name (`AlignmentRecord::read_name`),
+      * template length (`AlignmentRecord::template_length`), and
+      * quality scores (`AlignmentRecord::quality_scores`).
 
   * sam/reader: Implement `AlignmentReader`.
 
@@ -33,8 +34,9 @@
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
 
-  * sam/record: Move `flags`, `mapping_quality`, `read_name`, and
-    `template_length` to the implementation of `AlignmentRecord`.
+  * sam/record: Move `flags`, `mapping_quality`, `read_name`,
+    `template_length`, and `quality_scores` to the implementation of
+    `AlignmentRecord`.
 
   * sam/record/read_name: Disallow "`*`" as a read name.
 

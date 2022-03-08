@@ -240,7 +240,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::{record::{quality_scores::Score, QualityScores}, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///

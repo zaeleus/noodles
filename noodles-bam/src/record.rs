@@ -364,26 +364,13 @@ impl Record {
         &mut self.seq
     }
 
-    /// Returns the quality score for each base in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.quality_scores().is_empty());
-    /// ```
-    pub fn quality_scores(&self) -> &sam::record::QualityScores {
-        &self.qual
-    }
-
     /// Returns a mutable reference to the quality scores.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::{record::{quality_scores::Score, QualityScores}, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -521,6 +508,10 @@ impl sam::AlignmentRecord for Record {
 
     fn template_length(&self) -> i32 {
         self.tlen
+    }
+
+    fn quality_scores(&self) -> &sam::record::QualityScores {
+        &self.qual
     }
 }
 
