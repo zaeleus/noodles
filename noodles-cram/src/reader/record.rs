@@ -9,7 +9,7 @@ use std::{
 
 use byteorder::ReadBytesExt;
 use noodles_bam as bam;
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
 
 use super::num::read_itf8;
 use crate::{
@@ -527,7 +527,7 @@ where
 
         if flags.are_quality_scores_stored_as_array() {
             for _ in 0..read_length {
-                let score = self.read_quality_score()?;
+                let score = self.read_quality_score().map(u8::from)?;
                 record.quality_scores.push(score);
             }
         }
@@ -676,8 +676,9 @@ where
             })
     }
 
-    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<u8>> {
-        self.compression_header
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<Score>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
             .ok_or_else(|| {
@@ -687,15 +688,19 @@ where
                         DataSeries::StretchesOfQualityScores,
                     ),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte_array(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                    None,
-                )
-            })
+            })?;
+
+        let scores = decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )?;
+
+        scores
+            .into_iter()
+            .map(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect()
     }
 
     fn read_base(&mut self) -> io::Result<u8> {
@@ -717,8 +722,9 @@ where
             })
     }
 
-    fn read_quality_score(&mut self) -> io::Result<u8> {
-        self.compression_header
+    fn read_quality_score(&mut self) -> io::Result<Score> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
             .ok_or_else(|| {
@@ -726,14 +732,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_base_substitution_code(&mut self) -> io::Result<u8> {
@@ -913,7 +919,7 @@ where
 
         if flags.are_quality_scores_stored_as_array() {
             for _ in 0..read_length {
-                let score = self.read_quality_score()?;
+                let score = self.read_quality_score().map(u8::from)?;
                 record.quality_scores.push(score);
             }
         }

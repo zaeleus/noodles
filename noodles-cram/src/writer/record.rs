@@ -9,7 +9,7 @@ use std::{
 use byteorder::WriteBytesExt;
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
 
 use super::num::write_itf8;
 use crate::{
@@ -500,7 +500,10 @@ where
         self.write_mapping_quality(record.mapping_quality())?;
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores() {
+            for &raw_score in record.quality_scores() {
+                let score = Score::try_from(raw_score)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
                 self.write_quality_score(score)?;
             }
         }
@@ -639,8 +642,9 @@ where
             })
     }
 
-    fn write_stretches_of_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
-        self.compression_header
+    fn write_stretches_of_quality_scores(&mut self, quality_scores: &[Score]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .stretches_of_quality_scores_encoding()
             .ok_or_else(|| {
@@ -650,15 +654,16 @@ where
                         DataSeries::StretchesOfQualityScores,
                     ),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte_array(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    quality_scores,
-                )
-            })
+            })?;
+
+        let scores: Vec<_> = quality_scores.iter().copied().map(u8::from).collect();
+
+        encode_byte_array(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            &scores,
+        )
     }
 
     fn write_base(&mut self, base: u8) -> io::Result<()> {
@@ -681,8 +686,9 @@ where
             })
     }
 
-    fn write_quality_score(&mut self, quality_score: u8) -> io::Result<()> {
-        self.compression_header
+    fn write_quality_score(&mut self, quality_score: Score) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .quality_scores_encoding()
             .ok_or_else(|| {
@@ -690,15 +696,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::QualityScores),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    quality_score,
-                )
-            })
+            })?;
+
+        let score = u8::from(quality_score);
+
+        encode_byte(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            score,
+        )
     }
 
     fn write_base_substitution_code(&mut self, code: u8) -> io::Result<()> {
@@ -876,7 +883,10 @@ where
         }
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores() {
+            for &raw_score in record.quality_scores() {
+                let score = Score::try_from(raw_score)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
                 self.write_quality_score(score)?;
             }
         }

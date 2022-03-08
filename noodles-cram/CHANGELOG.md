@@ -15,6 +15,9 @@
 
   * cram/record: Wrap read name as `sam::record::ReadName`.
 
+  * cram/record/feature: Store each quality score as a
+    `sam::record::quality_scores::Score`.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Detach all records before writing.

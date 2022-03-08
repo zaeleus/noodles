@@ -159,8 +159,8 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> Vec<u8> 
         let read_pos = (feature.position() - 1) as usize;
 
         quality_scores[read_pos] = match feature {
-            Feature::ReadBase(_, _, quality_score) => *quality_score,
-            Feature::QualityScore(_, quality_score) => *quality_score,
+            Feature::ReadBase(_, _, quality_score) => u8::from(*quality_score),
+            Feature::QualityScore(_, quality_score) => u8::from(*quality_score),
             _ => continue,
         }
     }
@@ -170,6 +170,8 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> Vec<u8> 
 
 #[cfg(test)]
 mod tests {
+    use sam::record::quality_scores::Score;
+
     use super::*;
 
     #[test]
@@ -199,7 +201,7 @@ mod tests {
             b"TGGT",
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase(2, b'Y', b'!')]),
+            &Features::from(vec![Feature::ReadBase(2, b'Y', Score::default())]),
             b"AYGT",
         )?;
         t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT")?;
@@ -279,8 +281,15 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_quality_scores() {
-        let features = [Feature::ReadBase(1, b'A', 5), Feature::QualityScore(3, 8)];
+    fn test_resolve_quality_scores(
+    ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
+        let features = [
+            Feature::ReadBase(1, b'A', Score::try_from(5)?),
+            Feature::QualityScore(3, Score::try_from(8)?),
+        ];
+
         assert_eq!(resolve_quality_scores(&features, 4), [5, 0, 8, 0]);
+
+        Ok(())
     }
 }
