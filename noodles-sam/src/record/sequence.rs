@@ -10,11 +10,37 @@ use std::{
     str::FromStr,
 };
 
+use noodles_core::Position;
+
 use super::NULL_FIELD;
 
 /// A SAM record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<Base>);
+
+impl Sequence {
+    /// Returns a reference to the base at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let sequence: Sequence = "ATCG".parse()?;
+    ///
+    /// let i = Position::try_from(2)?;
+    /// assert_eq!(sequence.get(i), Some(&Base::T));
+    ///
+    /// let i = Position::try_from(8)?;
+    /// assert!(sequence.get(i).is_none());
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get(&self, index: Position) -> Option<&Base> {
+        let i = usize::from(index) - 1;
+        self.0.get(i)
+    }
+}
 
 impl Deref for Sequence {
     type Target = Vec<Base>;
