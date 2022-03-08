@@ -19,6 +19,8 @@
 
   * sam/reader: Implement `AlignmentReader`.
 
+  * sam/record/cigar: Add `clear` method.
+
   * sam/record/quality_scores/score: Implement `Default` + `Ord` +
     `PartialOrd`.
 

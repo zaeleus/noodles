@@ -15,6 +15,25 @@ use self::op::Kind;
 pub struct Cigar(Vec<Op>);
 
 impl Cigar {
+    /// Removes all operations from the CIGAR.
+    ///
+    /// This does not affect its capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    ///
+    /// let mut cigar = Cigar::from(vec![Op::new(Kind::Match, 5)]);
+    /// assert!(!cigar.is_empty());
+    ///
+    /// cigar.clear();
+    /// assert!(cigar.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
     /// Calculates the alignment span over the reference sequence.
     ///
     /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
