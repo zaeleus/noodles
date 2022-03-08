@@ -53,7 +53,7 @@ impl Sequence {
     /// ```
     pub fn get<I>(&self, index: I) -> Option<&I::Output>
     where
-        I: SequenceIndex,
+        I: SequenceIndex<u8>,
     {
         index.get(self.as_ref())
     }
