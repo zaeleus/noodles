@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use noodles_sam as sam;
 
-use super::{Cigar, Data, QualityScores, Record, ReferenceSequenceId, Sequence};
+use super::{Cigar, Data, Record, ReferenceSequenceId, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -19,7 +19,7 @@ pub struct Builder {
     read_name: Option<sam::record::ReadName>,
     cigar: Cigar,
     seq: Sequence,
-    qual: QualityScores,
+    qual: sam::record::QualityScores,
     data: Data,
 }
 
@@ -239,15 +239,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::QualityScores};
-    /// use noodles_sam::record::quality_scores::Score;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
-    /// let quality_scores = QualityScores::from(vec![
-    ///     Score::try_from('N')?,
-    ///     Score::try_from('D')?,
-    ///     Score::try_from('L')?,
-    ///     Score::try_from('S')?,
-    /// ]);
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
     /// let record = bam::Record::builder()
     ///     .set_quality_scores(quality_scores.clone())
@@ -256,7 +251,7 @@ impl Builder {
     /// assert_eq!(record.quality_scores(), &quality_scores);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
         self.qual = quality_scores;
         self
     }
@@ -314,20 +309,18 @@ impl Builder {
 
 impl Default for Builder {
     fn default() -> Self {
-        use sam::record::Flags;
-
         Self {
             ref_id: None,
             pos: None,
             mapq: None,
-            flag: Flags::UNMAPPED,
+            flag: sam::record::Flags::UNMAPPED,
             next_ref_id: None,
             next_pos: None,
             tlen: 0,
             read_name: None,
             cigar: Cigar::default(),
             seq: Sequence::default(),
-            qual: QualityScores::default(),
+            qual: sam::record::QualityScores::default(),
             data: Data::default(),
         }
     }

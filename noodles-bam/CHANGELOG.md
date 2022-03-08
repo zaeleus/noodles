@@ -19,6 +19,8 @@
     Read names are now guaranteed to be valid. The read name "*" is now
     considered missing (`None`).
 
+  * bam/record: Replace `QualityScores` with `sam::record::QualityScores`.
+
   * bam/reader/record: Clear quality scores if all scores are missing.
 
     This previously filled the quality scores with scores of 255, but this just
@@ -42,6 +44,10 @@
   * bam/record: Remove bin number (`Record::bin`).
 
     This can be calculated from the alignment start and end instead.
+
+  * bam/record: Remove `QualityScores`.
+
+    Use `sam::record::QualityScores` instead.
 
 ## 0.16.0 - 2022-03-02
 

@@ -463,7 +463,7 @@ mod tests {
         let expected = [Base::A, Base::T, Base::C, Base::G];
         assert_eq!(actual, expected);
 
-        assert_eq!(record.quality_scores().as_ref(), [45, 35, 43, 50]);
+        assert_eq!(record.quality_scores(), sam_record.quality_scores());
 
         Ok(())
     }

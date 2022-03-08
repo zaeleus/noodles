@@ -100,12 +100,7 @@ impl Record {
         }
 
         if !self.quality_scores().is_empty() {
-            let quality_scores = self
-                .quality_scores()
-                .try_into()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            builder = builder.set_quality_scores(quality_scores);
+            builder = builder.set_quality_scores(self.quality_scores().clone());
         }
 
         let data = self
@@ -161,11 +156,9 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::record::{
-            cigar::op::Kind, quality_scores::Score, Flags, MappingQuality, Position, ReadName,
-        };
+        use sam::record::{cigar::op::Kind, Flags, MappingQuality, Position, ReadName};
 
-        use crate::record::{cigar::Op, sequence::Base, Cigar, Data, QualityScores, Sequence};
+        use crate::record::{cigar::Op, sequence::Base, Cigar, Data, Sequence};
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 
@@ -180,12 +173,7 @@ mod tests {
             .set_read_name(ReadName::try_new("r0")?)
             .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
             .set_sequence(Sequence::from(vec![Base::A, Base::T, Base::G, Base::C]))
-            .set_quality_scores(QualityScores::from(vec![
-                Score::try_from('@')?,
-                Score::try_from('>')?,
-                Score::try_from('?')?,
-                Score::try_from('A')?,
-            ]))
+            .set_quality_scores("@>?A".parse()?)
             .set_data(Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP

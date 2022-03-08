@@ -66,7 +66,9 @@ where
     writer.write_all(sequence.as_ref())?;
 
     if sequence.len() == quality_scores.len() {
-        writer.write_all(record.quality_scores().as_ref())?;
+        for &score in quality_scores.iter() {
+            writer.write_u8(u8::from(score))?;
+        }
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
             writer.write_u8(NULL_QUALITY_SCORE)?;
@@ -274,15 +276,14 @@ mod tests {
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
-            cigar::op::Kind, data::field::Tag, quality_scores::Score, Flags, MappingQuality,
-            Position, ReadName,
+            cigar::op::Kind, data::field::Tag, Flags, MappingQuality, Position, ReadName,
         };
 
         use crate::record::{
             cigar::Op,
             data::{field::Value, Field},
             sequence::Base,
-            Cigar, Data, QualityScores, ReferenceSequenceId, Sequence,
+            Cigar, Data, ReferenceSequenceId, Sequence,
         };
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
@@ -301,12 +302,7 @@ mod tests {
                 Op::new(Kind::SoftClip, 8)?,
             ]))
             .set_sequence(Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]))
-            .set_quality_scores(QualityScores::from(vec![
-                Score::try_from('N')?,
-                Score::try_from('D')?,
-                Score::try_from('L')?,
-                Score::try_from('S')?,
-            ]))
+            .set_quality_scores("NDLS".parse()?)
             .set_data(Data::try_from(vec![Field::new(
                 Tag::AlignmentHitCount,
                 Value::UInt8(1),

@@ -4,13 +4,12 @@ pub mod builder;
 pub mod cigar;
 mod convert;
 pub mod data;
-pub mod quality_scores;
 pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores,
-    reference_sequence_id::ReferenceSequenceId, sequence::Sequence,
+    builder::Builder, cigar::Cigar, data::Data, reference_sequence_id::ReferenceSequenceId,
+    sequence::Sequence,
 };
 
 use std::{fmt, io, mem};
@@ -55,7 +54,7 @@ pub struct Record {
     read_name: Option<sam::record::ReadName>,
     cigar: Cigar,
     seq: Sequence,
-    qual: QualityScores,
+    qual: sam::record::QualityScores,
     data: Data,
 }
 
@@ -374,7 +373,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> &QualityScores {
+    pub fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.qual
     }
 
@@ -384,15 +383,17 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::quality_scores::Score;
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
     /// let mut record = bam::Record::default();
-    /// record.quality_scores_mut().push(Score::try_from(8)?);
+    /// *record.quality_scores_mut() = quality_scores.clone();
     ///
-    /// assert_eq!(record.quality_scores().as_ref(), [8]);
-    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromUByteError>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores);
+    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut sam::record::QualityScores {
         &mut self.qual
     }
 
@@ -541,20 +542,18 @@ fn get_reference_sequence(
 
 impl Default for Record {
     fn default() -> Self {
-        use sam::record::Flags;
-
         Self {
             ref_id: None,
             pos: None,
             mapq: None,
-            flag: Flags::UNMAPPED,
+            flag: sam::record::Flags::UNMAPPED,
             next_ref_id: None,
             next_pos: None,
             tlen: 0,
             read_name: None,
             cigar: Cigar::default(),
             seq: Sequence::default(),
-            qual: QualityScores::default(),
+            qual: sam::record::QualityScores::default(),
             data: Data::default(),
         }
     }
@@ -606,6 +605,10 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let qual = "@>?A"
+            .parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         Ok(Record {
             ref_id,
             pos,
@@ -617,7 +620,7 @@ mod tests {
             read_name,
             cigar: Cigar::from(vec![0x00000040]),    // 4M
             seq: Sequence::new(vec![0x18, 0x42], 4), // ATGC
-            qual: QualityScores::from(vec![0x1f, 0x1d, 0x1e, 0x20]), // @>?A
+            qual,
             data: Data::try_from(vec![
                 0x4e, 0x4d, 0x43, 0x00, // NM:i:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP

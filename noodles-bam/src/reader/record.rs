@@ -13,7 +13,7 @@ use bytes::Buf;
 use noodles_sam as sam;
 
 use crate::{
-    record::{Cigar, Data, QualityScores, ReferenceSequenceId, Sequence},
+    record::{Cigar, Data, ReferenceSequenceId, Sequence},
     Record,
 };
 
@@ -218,24 +218,34 @@ where
     Ok(())
 }
 
-fn read_qual<B>(buf: &mut B, quality_scores: &mut QualityScores, l_seq: usize) -> io::Result<()>
+fn read_qual<B>(
+    buf: &mut B,
+    quality_scores: &mut sam::record::QualityScores,
+    l_seq: usize,
+) -> io::Result<()>
 where
     B: Buf,
 {
-    let qual = quality_scores.as_mut();
-
-    qual.clear();
+    use sam::record::quality_scores::Score;
 
     if buf.remaining() < l_seq {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     }
 
-    if is_missing_quality_scores(buf.take(l_seq).chunk()) {
-        buf.advance(l_seq);
-    } else {
-        qual.resize(l_seq, Default::default());
-        buf.copy_to_slice(qual);
+    quality_scores.clear();
+
+    let raw_quality_scores = buf.take(l_seq);
+
+    if !is_missing_quality_scores(raw_quality_scores.chunk()) {
+        for &b in raw_quality_scores.chunk() {
+            let score =
+                Score::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            quality_scores.push(score);
+        }
     }
+
+    buf.advance(l_seq);
 
     Ok(())
 }
@@ -315,7 +325,7 @@ mod tests {
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut buf = &data[..];
 
-        let mut quality_scores = QualityScores::default();
+        let mut quality_scores = sam::record::QualityScores::default();
         read_qual(&mut buf, &mut quality_scores, 4)?;
 
         assert!(quality_scores.is_empty());
