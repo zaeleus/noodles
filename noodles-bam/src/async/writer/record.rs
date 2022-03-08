@@ -61,9 +61,7 @@ where
     write_sequence(writer, sequence).await?;
 
     if sequence.len() == quality_scores.len() {
-        for &score in quality_scores.iter() {
-            writer.write_u8(u8::from(score)).await?;
-        }
+        write_quality_scores(writer, quality_scores).await?;
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
             writer.write_u8(NULL_QUALITY_SCORE).await?;
@@ -233,6 +231,20 @@ where
         let r = chunk.get(1).copied().unwrap_or(Base::Eq);
         let b = encode_base(l) << 4 | encode_base(r);
         writer.write_u8(b).await?;
+    }
+
+    Ok(())
+}
+
+pub(super) async fn write_quality_scores<W>(
+    writer: &mut W,
+    quality_scores: &sam::record::QualityScores,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    for &score in quality_scores.iter() {
+        writer.write_u8(u8::from(score)).await?;
     }
 
     Ok(())

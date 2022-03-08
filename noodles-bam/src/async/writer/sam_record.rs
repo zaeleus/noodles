@@ -4,8 +4,8 @@ use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_sequence,
-    write_template_length,
+    write_bin, write_flags, write_mapping_quality, write_position, write_quality_scores,
+    write_sequence, write_template_length,
 };
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
@@ -168,21 +168,6 @@ where
         let kind = op.kind() as u32;
         let value = len << 4 | kind;
         writer.write_u32_le(value).await?;
-    }
-
-    Ok(())
-}
-
-async fn write_quality_scores<W>(
-    writer: &mut W,
-    quality_scores: &sam::record::QualityScores,
-) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    for &score in quality_scores.iter() {
-        let value = u8::from(score);
-        writer.write_u8(value).await?;
     }
 
     Ok(())
