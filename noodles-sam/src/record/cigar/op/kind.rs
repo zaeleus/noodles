@@ -24,7 +24,7 @@ pub enum Kind {
     /// Padding (`P`).
     Pad,
     /// A sequence match (`=`).
-    SeqMatch,
+    SequenceMatch,
     /// A sequence mismatch (`X`).
     SeqMismatch,
 }
@@ -59,7 +59,7 @@ impl FromStr for Kind {
             "S" => Ok(Self::SoftClip),
             "H" => Ok(Self::HardClip),
             "P" => Ok(Self::Pad),
-            "=" => Ok(Self::SeqMatch),
+            "=" => Ok(Self::SequenceMatch),
             "X" => Ok(Self::SeqMismatch),
             _ => Err(ParseError(s.into())),
         }
@@ -76,7 +76,7 @@ impl From<Kind> for char {
             Kind::SoftClip => 'S',
             Kind::HardClip => 'H',
             Kind::Pad => 'P',
-            Kind::SeqMatch => '=',
+            Kind::SequenceMatch => '=',
             Kind::SeqMismatch => 'X',
         }
     }
@@ -95,7 +95,7 @@ mod tests {
         assert_eq!(Kind::SoftClip.to_string(), "S");
         assert_eq!(Kind::HardClip.to_string(), "H");
         assert_eq!(Kind::Pad.to_string(), "P");
-        assert_eq!(Kind::SeqMatch.to_string(), "=");
+        assert_eq!(Kind::SequenceMatch.to_string(), "=");
         assert_eq!(Kind::SeqMismatch.to_string(), "X");
     }
 
@@ -108,7 +108,7 @@ mod tests {
         assert_eq!("S".parse(), Ok(Kind::SoftClip));
         assert_eq!("H".parse(), Ok(Kind::HardClip));
         assert_eq!("P".parse(), Ok(Kind::Pad));
-        assert_eq!("=".parse(), Ok(Kind::SeqMatch));
+        assert_eq!("=".parse(), Ok(Kind::SequenceMatch));
         assert_eq!("X".parse(), Ok(Kind::SeqMismatch));
 
         assert_eq!("".parse::<Kind>(), Err(ParseError(String::from(""))));
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(char::from(Kind::SoftClip), 'S');
         assert_eq!(char::from(Kind::HardClip), 'H');
         assert_eq!(char::from(Kind::Pad), 'P');
-        assert_eq!(char::from(Kind::SeqMatch), '=');
+        assert_eq!(char::from(Kind::SequenceMatch), '=');
         assert_eq!(char::from(Kind::SeqMismatch), 'X');
     }
 }

@@ -123,7 +123,11 @@ impl Cigar {
             let op = result?;
 
             match op.kind() {
-                Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
+                Kind::Match
+                | Kind::Deletion
+                | Kind::Skip
+                | Kind::SequenceMatch
+                | Kind::SeqMismatch => {
                     len += op.len();
                 }
                 _ => {}
@@ -162,7 +166,7 @@ impl Cigar {
                 Kind::Match
                 | Kind::Insertion
                 | Kind::SoftClip
-                | Kind::SeqMatch
+                | Kind::SequenceMatch
                 | Kind::SeqMismatch => {
                     len += op.len();
                 }

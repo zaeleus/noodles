@@ -136,7 +136,11 @@ pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Ciga
 
         if matches!(
             kind,
-            Kind::Match | Kind::Insertion | Kind::SoftClip | Kind::SeqMatch | Kind::SeqMismatch
+            Kind::Match
+                | Kind::Insertion
+                | Kind::SoftClip
+                | Kind::SequenceMatch
+                | Kind::SeqMismatch
         ) {
             i += len;
         }

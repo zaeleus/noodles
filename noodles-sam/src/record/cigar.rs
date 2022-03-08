@@ -56,9 +56,11 @@ impl Cigar {
     pub fn reference_len(&self) -> u32 {
         self.iter()
             .filter_map(|op| match op.kind() {
-                Kind::Match | Kind::Deletion | Kind::Skip | Kind::SeqMatch | Kind::SeqMismatch => {
-                    Some(op.len())
-                }
+                Kind::Match
+                | Kind::Deletion
+                | Kind::Skip
+                | Kind::SequenceMatch
+                | Kind::SeqMismatch => Some(op.len()),
                 _ => None,
             })
             .sum()
@@ -89,7 +91,7 @@ impl Cigar {
                 Kind::Match
                 | Kind::Insertion
                 | Kind::SoftClip
-                | Kind::SeqMatch
+                | Kind::SequenceMatch
                 | Kind::SeqMismatch => Some(op.len()),
                 _ => None,
             })
