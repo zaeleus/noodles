@@ -107,6 +107,26 @@ impl Sequence {
         self.len = len;
     }
 
+    /// Removes all bases in the sequence.
+    ///
+    /// This does not affect the capacity of the underlying list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::Sequence;
+    ///
+    /// let mut sequence = Sequence::new(vec![0x12, 0x48], 4); // ACGT
+    /// assert!(!sequence.is_empty());
+    ///
+    /// sequence.clear();
+    /// assert!(sequence.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.seq.clear();
+        self.len = 0;
+    }
+
     /// Returns a reference to the base at the given index.
     ///
     /// If the index is out of bounds, this returns `None`.

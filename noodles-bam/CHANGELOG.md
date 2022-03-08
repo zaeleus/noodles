@@ -9,6 +9,8 @@
   * bam/record: Add mutable getter for position (`Record::position_mut`) and
     mate position (`Record::mate_position`).
 
+  * bam/record/sequence: Add `clear` method.
+
 ### Changed
 
   * bam/record: Move `flags`, `mapping_quality`, `read_name`,
