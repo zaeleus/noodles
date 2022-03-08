@@ -4,7 +4,11 @@ pub mod base;
 
 pub use self::base::Base;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{
+    error, fmt,
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 use super::NULL_FIELD;
 
@@ -13,10 +17,16 @@ use super::NULL_FIELD;
 pub struct Sequence(Vec<Base>);
 
 impl Deref for Sequence {
-    type Target = [Base];
+    type Target = Vec<Base>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for Sequence {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

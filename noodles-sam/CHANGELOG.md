@@ -30,6 +30,8 @@
   * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
     (`ReadName::try_new`) and to `Vec<u8>`.
 
+  * sam/record/sequence: Implement `DerefMut`.
+
 ### Changed
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
