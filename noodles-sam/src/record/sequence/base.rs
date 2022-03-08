@@ -86,35 +86,45 @@ impl TryFrom<char> for Base {
     type Error = TryFromCharError;
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
-        match c {
-            'A' => Ok(Self::A),
-            'B' => Ok(Self::B),
-            'C' => Ok(Self::C),
-            'D' => Ok(Self::D),
-            'E' => Ok(Self::E),
-            'F' => Ok(Self::F),
-            'G' => Ok(Self::G),
-            'H' => Ok(Self::H),
-            'I' => Ok(Self::I),
-            'J' => Ok(Self::J),
-            'K' => Ok(Self::K),
-            'L' => Ok(Self::L),
-            'M' => Ok(Self::M),
-            'N' => Ok(Self::N),
-            'O' => Ok(Self::O),
-            'P' => Ok(Self::P),
-            'Q' => Ok(Self::Q),
-            'R' => Ok(Self::R),
-            'S' => Ok(Self::S),
-            'T' => Ok(Self::T),
-            'U' => Ok(Self::U),
-            'V' => Ok(Self::V),
-            'W' => Ok(Self::W),
-            'X' => Ok(Self::X),
-            'Y' => Ok(Self::Y),
-            'Z' => Ok(Self::Z),
-            '=' => Ok(Self::Eq),
-            _ => Err(TryFromCharError(c)),
+        u8::try_from(c)
+            .map_err(|_| TryFromCharError(c))
+            .and_then(Self::try_from)
+    }
+}
+
+impl TryFrom<u8> for Base {
+    type Error = TryFromCharError;
+
+    fn try_from(n: u8) -> Result<Self, Self::Error> {
+        match n {
+            b'A' => Ok(Self::A),
+            b'B' => Ok(Self::B),
+            b'C' => Ok(Self::C),
+            b'D' => Ok(Self::D),
+            b'E' => Ok(Self::E),
+            b'F' => Ok(Self::F),
+            b'G' => Ok(Self::G),
+            b'H' => Ok(Self::H),
+            b'I' => Ok(Self::I),
+            b'J' => Ok(Self::J),
+            b'K' => Ok(Self::K),
+            b'L' => Ok(Self::L),
+            b'M' => Ok(Self::M),
+            b'N' => Ok(Self::N),
+            b'O' => Ok(Self::O),
+            b'P' => Ok(Self::P),
+            b'Q' => Ok(Self::Q),
+            b'R' => Ok(Self::R),
+            b'S' => Ok(Self::S),
+            b'T' => Ok(Self::T),
+            b'U' => Ok(Self::U),
+            b'V' => Ok(Self::V),
+            b'W' => Ok(Self::W),
+            b'X' => Ok(Self::X),
+            b'Y' => Ok(Self::Y),
+            b'Z' => Ok(Self::Z),
+            b'=' => Ok(Self::Eq),
+            _ => Err(TryFromCharError(char::from(n))),
         }
     }
 }
@@ -188,5 +198,38 @@ mod tests {
         assert_eq!(Base::try_from('='), Ok(Base::Eq));
 
         assert_eq!(Base::try_from('*'), Err(TryFromCharError('*')));
+    }
+
+    #[test]
+    fn test_try_from_u8_for_base() {
+        assert_eq!(Base::try_from(b'A'), Ok(Base::A));
+        assert_eq!(Base::try_from(b'B'), Ok(Base::B));
+        assert_eq!(Base::try_from(b'C'), Ok(Base::C));
+        assert_eq!(Base::try_from(b'D'), Ok(Base::D));
+        assert_eq!(Base::try_from(b'E'), Ok(Base::E));
+        assert_eq!(Base::try_from(b'F'), Ok(Base::F));
+        assert_eq!(Base::try_from(b'G'), Ok(Base::G));
+        assert_eq!(Base::try_from(b'H'), Ok(Base::H));
+        assert_eq!(Base::try_from(b'I'), Ok(Base::I));
+        assert_eq!(Base::try_from(b'J'), Ok(Base::J));
+        assert_eq!(Base::try_from(b'K'), Ok(Base::K));
+        assert_eq!(Base::try_from(b'L'), Ok(Base::L));
+        assert_eq!(Base::try_from(b'M'), Ok(Base::M));
+        assert_eq!(Base::try_from(b'N'), Ok(Base::N));
+        assert_eq!(Base::try_from(b'O'), Ok(Base::O));
+        assert_eq!(Base::try_from(b'P'), Ok(Base::P));
+        assert_eq!(Base::try_from(b'Q'), Ok(Base::Q));
+        assert_eq!(Base::try_from(b'R'), Ok(Base::R));
+        assert_eq!(Base::try_from(b'S'), Ok(Base::S));
+        assert_eq!(Base::try_from(b'T'), Ok(Base::T));
+        assert_eq!(Base::try_from(b'U'), Ok(Base::U));
+        assert_eq!(Base::try_from(b'V'), Ok(Base::V));
+        assert_eq!(Base::try_from(b'W'), Ok(Base::W));
+        assert_eq!(Base::try_from(b'X'), Ok(Base::X));
+        assert_eq!(Base::try_from(b'Y'), Ok(Base::Y));
+        assert_eq!(Base::try_from(b'Z'), Ok(Base::Z));
+        assert_eq!(Base::try_from(b'='), Ok(Base::Eq));
+
+        assert_eq!(Base::try_from(b'*'), Err(TryFromCharError('*')));
     }
 }
