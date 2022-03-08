@@ -16,43 +16,43 @@ impl Default for Base {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct TryFromCharError(char);
+pub struct TryFromIntError(u8);
 
-impl fmt::Display for TryFromCharError {
+impl fmt::Display for TryFromIntError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invalid substitution matrix base: expected {{A, C, G, T, N}}, got {}",
+            "invalid substitution matrix base: expected {{A, C, G, T, N}}, got {:#04x}",
             self.0
         )
     }
 }
 
-impl error::Error for TryFromCharError {}
+impl error::Error for TryFromIntError {}
 
-impl TryFrom<char> for Base {
-    type Error = TryFromCharError;
+impl TryFrom<u8> for Base {
+    type Error = TryFromIntError;
 
-    fn try_from(c: char) -> Result<Self, Self::Error> {
-        match c {
-            'A' => Ok(Self::A),
-            'C' => Ok(Self::C),
-            'G' => Ok(Self::G),
-            'T' => Ok(Self::T),
-            'N' => Ok(Self::N),
-            _ => Err(TryFromCharError(c)),
+    fn try_from(n: u8) -> Result<Self, Self::Error> {
+        match n {
+            b'A' => Ok(Self::A),
+            b'C' => Ok(Self::C),
+            b'G' => Ok(Self::G),
+            b'T' => Ok(Self::T),
+            b'N' => Ok(Self::N),
+            _ => Err(TryFromIntError(n)),
         }
     }
 }
 
-impl From<Base> for char {
-    fn from(base: Base) -> char {
+impl From<Base> for u8 {
+    fn from(base: Base) -> Self {
         match base {
-            Base::A => 'A',
-            Base::C => 'C',
-            Base::G => 'G',
-            Base::T => 'T',
-            Base::N => 'N',
+            Base::A => b'A',
+            Base::C => b'C',
+            Base::G => b'G',
+            Base::T => b'T',
+            Base::N => b'N',
         }
     }
 }
@@ -67,21 +67,21 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_char() {
-        assert_eq!(Base::try_from('A'), Ok(Base::A));
-        assert_eq!(Base::try_from('C'), Ok(Base::C));
-        assert_eq!(Base::try_from('G'), Ok(Base::G));
-        assert_eq!(Base::try_from('T'), Ok(Base::T));
-        assert_eq!(Base::try_from('N'), Ok(Base::N));
-        assert_eq!(Base::try_from('U'), Err(TryFromCharError('U')));
+    fn test_try_from_u8_for_base() {
+        assert_eq!(Base::try_from(b'A'), Ok(Base::A));
+        assert_eq!(Base::try_from(b'C'), Ok(Base::C));
+        assert_eq!(Base::try_from(b'G'), Ok(Base::G));
+        assert_eq!(Base::try_from(b'T'), Ok(Base::T));
+        assert_eq!(Base::try_from(b'N'), Ok(Base::N));
+        assert_eq!(Base::try_from(b'U'), Err(TryFromIntError(b'U')));
     }
 
     #[test]
     fn test_from_base_for_char() {
-        assert_eq!(char::from(Base::A), 'A');
-        assert_eq!(char::from(Base::C), 'C');
-        assert_eq!(char::from(Base::G), 'G');
-        assert_eq!(char::from(Base::T), 'T');
-        assert_eq!(char::from(Base::N), 'N');
+        assert_eq!(u8::from(Base::A), b'A');
+        assert_eq!(u8::from(Base::C), b'C');
+        assert_eq!(u8::from(Base::G), b'G');
+        assert_eq!(u8::from(Base::T), b'T');
+        assert_eq!(u8::from(Base::N), b'N');
     }
 }

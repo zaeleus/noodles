@@ -55,10 +55,10 @@ pub(crate) fn resolve_bases(
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
-                    let base = char::from(reference_sequence[reference_position]);
+                    let base = reference_sequence[reference_position];
                     let reference_base = Base::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
-                    buf[read_position] = char::from(read_base) as u8;
+                    buf[read_position] = u8::from(read_base);
                 } else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,

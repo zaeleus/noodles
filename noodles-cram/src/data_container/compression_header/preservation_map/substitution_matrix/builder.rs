@@ -25,10 +25,10 @@ impl Builder {
             read_position -= 1;
 
             if let Feature::Substitution(..) = feature {
-                let base = char::from(reference_sequence[reference_position]);
+                let base = reference_sequence[reference_position];
                 let reference_base = Base::try_from(base).unwrap_or_default();
 
-                let base = char::from(read_bases[read_position]);
+                let base = read_bases[read_position];
                 let read_base = Base::try_from(base).unwrap_or_default();
 
                 self.histogram.hit(reference_base, read_base);
