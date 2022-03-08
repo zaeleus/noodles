@@ -67,9 +67,7 @@ where
     write_sequence(writer, sequence)?;
 
     if sequence.len() == quality_scores.len() {
-        for &score in quality_scores.iter() {
-            writer.write_u8(u8::from(score))?;
-        }
+        write_quality_scores(writer, quality_scores)?;
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
             writer.write_u8(NULL_QUALITY_SCORE)?;
@@ -252,6 +250,20 @@ pub(crate) fn encode_base(base: Base) -> u8 {
         // mapped to [0, 15] respectively with all other characters mapping to 'N' (value 15)".
         _ => 15,
     }
+}
+
+pub(super) fn write_quality_scores<W>(
+    writer: &mut W,
+    quality_scores: &sam::record::QualityScores,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    for &score in quality_scores.iter() {
+        writer.write_u8(u8::from(score))?;
+    }
+
+    Ok(())
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)

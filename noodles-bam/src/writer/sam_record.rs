@@ -8,13 +8,13 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{
     self as sam,
     header::ReferenceSequences,
-    record::{Cigar, Data, QualityScores},
+    record::{Cigar, Data},
     AlignmentRecord,
 };
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_sequence,
-    write_template_length,
+    write_bin, write_flags, write_mapping_quality, write_position, write_quality_scores,
+    write_sequence, write_template_length,
 };
 
 // § 4.2 The BAM format (2021-06-03)
@@ -110,7 +110,7 @@ where
     write_sequence(writer, sequence)?;
 
     if sequence.len() == quality_scores.len() {
-        write_qual(writer, quality_scores)?;
+        write_quality_scores(writer, quality_scores)?;
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
             writer.write_u8(NULL_QUALITY_SCORE)?;
@@ -168,18 +168,6 @@ where
         let kind = op.kind() as u32;
         let value = len << 4 | kind;
         writer.write_u32::<LittleEndian>(value)?;
-    }
-
-    Ok(())
-}
-
-fn write_qual<W>(writer: &mut W, quality_scores: &QualityScores) -> io::Result<()>
-where
-    W: Write,
-{
-    for score in quality_scores.iter() {
-        let value = u8::from(*score);
-        writer.write_u8(value)?;
     }
 
     Ok(())
