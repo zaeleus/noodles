@@ -41,7 +41,7 @@
   * sam/record/sequence: Add getting (`Sequence::get`) and setting
     (`Sequence::get_mut`) a base by `Position`.
 
-  * sam/record/sequence: Add `is_empty`, `len`, and `push` methods.
+  * sam/record/sequence: Add `clear`, `is_empty`, `len`, and `push` methods.
 
   * sam/record/sequence/base: Implement `TryFrom<u8>`.
 

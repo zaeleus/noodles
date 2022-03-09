@@ -45,6 +45,25 @@ impl Sequence {
         self.0.len()
     }
 
+    /// Removes all bases from the sequence.
+    ///
+    /// This does not affect the capacity of this sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let mut sequence = Sequence::from(vec![Base::N]);
+    /// assert!(!sequence.is_empty());
+    ///
+    /// sequence.clear();
+    /// assert!(sequence.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
     /// Returns a reference to the base at the given index.
     ///
     /// # Examples
