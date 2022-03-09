@@ -19,6 +19,19 @@ use super::NULL_FIELD;
 pub struct Sequence(Vec<Base>);
 
 impl Sequence {
+    /// Returns whether the sequence is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Sequence;
+    /// let sequence = Sequence::default();
+    /// assert!(sequence.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     /// Returns a reference to the base at the given index.
     ///
     /// # Examples
