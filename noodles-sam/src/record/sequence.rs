@@ -6,7 +6,7 @@ pub use self::base::Base;
 
 use std::{
     error, fmt,
-    ops::{Deref, DerefMut, Index, IndexMut},
+    ops::{Deref, Index, IndexMut},
     str::FromStr,
 };
 
@@ -137,12 +137,6 @@ impl Deref for Sequence {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl DerefMut for Sequence {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

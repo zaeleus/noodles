@@ -35,8 +35,7 @@
   * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
     (`ReadName::try_new`) and to `Vec<u8>`.
 
-  * sam/record/sequence: Implement `DerefMut` and `Index` and `IndexMut` with
-    `Position`.
+  * sam/record/sequence: Implement `Index` and `IndexMut` with `Position`.
 
   * sam/record/sequence: Add conversion from `Vec<u8>`.
 
