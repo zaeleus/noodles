@@ -45,6 +45,10 @@ impl Builder {
         self.records.is_empty()
     }
 
+    pub fn records(&self) -> &[Record] {
+        &self.records
+    }
+
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
         if self.records.len() >= MAX_RECORD_COUNT {
             return Err(AddRecordError::SliceFull(record));

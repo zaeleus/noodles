@@ -1,16 +1,15 @@
 use std::{io, mem};
 
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{compression_header, slice, CompressionHeader, DataContainer, Slice};
+use super::{slice, CompressionHeader, DataContainer, Slice};
 use crate::{writer::Options, Record};
 
 const MAX_SLICE_COUNT: usize = 1;
 
 #[derive(Debug)]
 pub struct Builder {
-    compression_header_builder: compression_header::Builder,
     slice_builder: slice::Builder,
     slice_builders: Vec<slice::Builder>,
     record_counter: i64,
@@ -26,7 +25,6 @@ pub enum AddRecordError {
 impl Builder {
     pub fn new(record_counter: i64) -> Self {
         Self {
-            compression_header_builder: CompressionHeader::builder(),
             slice_builder: Slice::builder(),
             slice_builders: Vec::new(),
             record_counter,
@@ -42,22 +40,14 @@ impl Builder {
         self.base_count
     }
 
-    pub fn add_record(
-        &mut self,
-        reference_sequence: &fasta::record::Sequence,
-        record: Record,
-    ) -> Result<(), AddRecordError> {
+    pub fn add_record(&mut self, record: Record) -> Result<(), AddRecordError> {
         if self.slice_builders.len() >= MAX_SLICE_COUNT {
             return Err(AddRecordError::ContainerFull(record));
         }
 
         match self.slice_builder.add_record(record) {
             Ok(r) => {
-                self.compression_header_builder
-                    .update(reference_sequence, r);
-
                 self.base_count += r.read_length() as i64;
-
                 Ok(())
             }
             Err(e) => match e {
@@ -83,9 +73,12 @@ impl Builder {
             self.slice_builders.push(self.slice_builder);
         }
 
-        self.compression_header_builder.apply_options(options);
-
-        let compression_header = self.compression_header_builder.build();
+        let compression_header = build_compression_header(
+            options,
+            reference_sequence_repository,
+            header,
+            &self.slice_builders,
+        );
 
         let record_counter = self.record_counter;
         let slices = self
@@ -106,4 +99,35 @@ impl Builder {
             slices,
         })
     }
+}
+
+fn build_compression_header(
+    options: &Options,
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    slice_builders: &[slice::Builder],
+) -> CompressionHeader {
+    let mut compression_header_builder = CompressionHeader::builder();
+    compression_header_builder.apply_options(options);
+
+    for slice_builder in slice_builders {
+        for record in slice_builder.records() {
+            let reference_sequence = record
+                .reference_sequence(header.reference_sequences())
+                .transpose()
+                .expect("invalid reference sequence ID")
+                .map(|rs| rs.name())
+                .and_then(|name| {
+                    reference_sequence_repository
+                        .get(name)
+                        .transpose()
+                        .expect("invalid reference sequence")
+                })
+                .unwrap_or_default();
+
+            compression_header_builder.update(&reference_sequence, record);
+        }
+    }
+
+    compression_header_builder.build()
 }

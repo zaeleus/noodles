@@ -15,7 +15,6 @@ use std::{
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use sam::AlignmentRecord;
 
 use self::container::write_container;
 use super::{
@@ -243,12 +242,7 @@ where
         use super::data_container::builder::AddRecordError;
 
         loop {
-            match add_record(
-                &mut self.data_container_builder,
-                &self.reference_sequence_repository,
-                self.header,
-                record,
-            ) {
+            match self.data_container_builder.add_record(record) {
                 Ok(_) => {
                     self.record_counter += 1;
                     return Ok(());
@@ -298,28 +292,6 @@ where
     fn drop(&mut self) {
         let _ = self.try_finish();
     }
-}
-
-fn add_record(
-    data_container_builder: &mut crate::data_container::Builder,
-    reference_sequence_repository: &fasta::Repository,
-    header: &sam::Header,
-    record: Record,
-) -> Result<(), crate::data_container::builder::AddRecordError> {
-    let reference_sequence = record
-        .reference_sequence(header.reference_sequences())
-        .transpose()
-        .expect("invalid reference sequence ID")
-        .map(|rs| rs.name())
-        .and_then(|name| {
-            reference_sequence_repository
-                .get(name)
-                .transpose()
-                .expect("invalid reference sequence")
-        })
-        .unwrap_or_default();
-
-    data_container_builder.add_record(&reference_sequence, record)
 }
 
 fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
