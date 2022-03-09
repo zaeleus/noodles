@@ -125,12 +125,7 @@ fn push_index_records_for_multi_reference_slice(
         let alignment_start = record.alignment_start().map(i32::from).unwrap_or_default();
         range.start = cmp::min(range.start, alignment_start);
 
-        let alignment_end = record
-            .alignment_end()
-            .transpose()?
-            .map(i32::from)
-            .unwrap_or_default();
-
+        let alignment_end = record.alignment_end().map(i32::from).unwrap_or_default();
         range.end = cmp::max(range.end, alignment_end);
     }
 

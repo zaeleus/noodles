@@ -30,8 +30,7 @@ where
     write_mapping_quality(writer, record.mapping_quality())?;
 
     // bin
-    let alignment_end = record.alignment_end().transpose()?;
-    write_bin(writer, record.position(), alignment_end)?;
+    write_bin(writer, record.position(), record.alignment_end())?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

@@ -43,16 +43,16 @@ pub trait AlignmentRecord {
     ///     .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 5)]))
     ///     .build()?;
     ///
-    /// let actual = record.alignment_end().transpose()?;
+    /// let actual = record.alignment_end();
     /// let expected = Position::try_from(12).map(Some)?;
     /// assert_eq!(actual, expected);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    fn alignment_end(&self) -> Option<io::Result<Position>> {
+    fn alignment_end(&self) -> Option<Position> {
         let start = self.alignment_start().map(i32::from)?;
         let len = self.alignment_span() as i32;
         let end = start + len - 1;
-        Some(Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        Position::try_from(end).ok()
     }
 
     /// Returns the mapping quality.

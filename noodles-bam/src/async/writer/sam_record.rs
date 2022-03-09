@@ -69,8 +69,7 @@ where
     write_mapping_quality(writer, record.mapping_quality()).await?;
 
     // bin
-    let alignment_end = record.alignment_end().transpose()?;
-    write_bin(writer, record.position(), alignment_end).await?;
+    write_bin(writer, record.position(), record.alignment_end()).await?;
 
     // n_cigar_op
     writer.write_u16_le(n_cigar_op).await?;

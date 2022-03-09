@@ -185,9 +185,7 @@ fn find_slice_alignment_positions(
 
     for record in records {
         slice_alignment_start = cmp::min(record.alignment_start(), slice_alignment_start);
-
-        let record_alignment_end = record.alignment_end().transpose()?;
-        slice_alignment_end = cmp::max(record_alignment_end, slice_alignment_end);
+        slice_alignment_end = cmp::max(record.alignment_end(), slice_alignment_end);
     }
 
     Ok((slice_alignment_start, slice_alignment_end))

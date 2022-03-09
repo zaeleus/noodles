@@ -55,6 +55,8 @@
 
   * sam/alignment_record: Change alignment span to a `usize`.
 
+  * sam/alignment_record: Remove `Result` from alignment end.
+
   * sam/record: Move `flags`, `mapping_quality`, `read_name`, `sequence`,
     `template_length`, and `quality_scores` to the implementation of
     `AlignmentRecord`.

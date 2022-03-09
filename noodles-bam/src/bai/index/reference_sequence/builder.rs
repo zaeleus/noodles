@@ -60,10 +60,7 @@ impl Builder {
     }
 
     fn update_bins(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        let alignment_start = record.alignment_start();
-        let alignment_end = record.alignment_end().transpose()?;
-
-        let bin_id = match (alignment_start, alignment_end) {
+        let bin_id = match (record.alignment_start(), record.alignment_end()) {
             (Some(start), Some(end)) => region_to_bin(start, end).map(u32::from)?,
             _ => u32::from(UNMAPPED_BIN),
         };
