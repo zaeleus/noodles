@@ -9,7 +9,7 @@ where
 {
     iter: I,
     reference_position: Position,
-    read_position: usize,
+    read_position: Position,
 }
 
 impl<'a, I> WithPositions<'a, I>
@@ -21,14 +21,15 @@ where
             iter,
             // SAFETY: `sam::record::Position` is guaranteed to be non-zero.
             reference_position: Position::new(i32::from(alignment_start) as usize).unwrap(),
-            read_position: 1,
+            // SAFETY: 1 is non-zero.
+            read_position: Position::new(1).unwrap(),
         }
     }
 
     /// Returns the current reference position and read position.
     ///
     /// These are 1-based.
-    pub fn positions(&self) -> (Position, usize) {
+    pub fn positions(&self) -> (Position, Position) {
         (self.reference_position, self.read_position)
     }
 }
@@ -37,20 +38,23 @@ impl<'a, I> Iterator for WithPositions<'a, I>
 where
     I: Iterator<Item = &'a Feature>,
 {
-    type Item = ((Position, usize), I::Item);
+    type Item = ((Position, Position), I::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
         let feature = self.iter.next()?;
 
         let feature_position = usize::from(feature.position());
-        let match_len = feature_position - self.read_position;
+        let match_len = feature_position - usize::from(self.read_position);
 
         self.reference_position = self
             .reference_position
             .checked_add(match_len)
             .expect("attempt to add with overflow");
 
-        self.read_position += match_len;
+        self.read_position = self
+            .read_position
+            .checked_add(match_len)
+            .expect("attempt to add with overflow");
 
         let (reference_position_delta, read_position_delta) = match feature {
             Feature::Bases(_, bases) => (bases.len(), bases.len()),
@@ -73,7 +77,10 @@ where
             .checked_add(reference_position_delta)
             .expect("attempt to add with overflow");
 
-        self.read_position += read_position_delta;
+        self.read_position = self
+            .read_position
+            .checked_add(read_position_delta)
+            .expect("attempt to add with overflow");
 
         Some((positions, feature))
     }

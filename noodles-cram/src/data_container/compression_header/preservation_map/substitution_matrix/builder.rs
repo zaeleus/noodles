@@ -18,16 +18,14 @@ impl Builder {
 
         let read_bases = record.bases();
 
-        for ((reference_position, mut read_position), feature) in
+        for ((reference_position, read_position), feature) in
             record.features().with_positions(alignment_start)
         {
-            read_position -= 1;
-
             if let Feature::Substitution(..) = feature {
                 let base = reference_sequence.get(reference_position).copied().unwrap();
                 let reference_base = Base::try_from(base).unwrap_or_default();
 
-                let base = read_bases[read_position];
+                let base = read_bases.get(read_position).copied().unwrap();
                 let read_base = Base::try_from(base).unwrap_or_default();
 
                 self.histogram.hit(reference_base, read_base);

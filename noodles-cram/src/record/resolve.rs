@@ -19,18 +19,15 @@ pub(crate) fn resolve_bases(
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
 
     let reference_sequence = reference_sequence.as_ref();
-    let mut buf = vec![Base::N; read_length];
+    let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
 
     let mut it = features.with_positions(alignment_start);
 
     let (mut last_reference_position, mut last_read_position) = it.positions();
-    last_read_position -= 1;
 
-    while let Some(((reference_position, mut read_position), feature)) = it.next() {
-        read_position -= 1;
-
+    while let Some(((reference_position, read_position), feature)) = it.next() {
         if let Some(reference_sequence) = reference_sequence {
-            let dst = &mut buf[last_read_position..read_position];
+            let dst = buf.get_mut(last_read_position..read_position).unwrap();
 
             let src = reference_sequence
                 .get(last_reference_position..reference_position)
@@ -45,17 +42,19 @@ pub(crate) fn resolve_bases(
         }
 
         match feature {
-            Feature::Bases(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
+            Feature::Bases(_, bases) => {
+                copy_from_bases(buf.get_mut(read_position..).unwrap(), bases)
+            }
             Feature::Scores(..) => {}
             Feature::ReadBase(_, base, _) => {
-                buf[read_position] = *base;
+                *buf.get_mut(read_position).unwrap() = *base;
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
                     let base = reference_sequence.get(reference_position).copied().unwrap();
                     let reference_base = SubstitutionMatrixBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
-                    buf[read_position] = Base::from(read_base);
+                    *buf.get_mut(read_position).unwrap() = Base::from(read_base);
                 } else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -63,25 +62,29 @@ pub(crate) fn resolve_bases(
                     ));
                 }
             }
-            Feature::Insertion(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
+            Feature::Insertion(_, bases) => {
+                copy_from_bases(buf.get_mut(read_position..).unwrap(), bases)
+            }
             Feature::Deletion(..) => {}
             Feature::InsertBase(_, base) => {
-                buf[read_position] = *base;
+                *buf.get_mut(read_position).unwrap() = *base;
             }
             Feature::QualityScore(..) => {}
             Feature::ReferenceSkip(..) => {}
-            Feature::SoftClip(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
+            Feature::SoftClip(_, bases) => {
+                copy_from_bases(buf.get_mut(read_position..).unwrap(), bases)
+            }
             Feature::Padding(..) => {}
             Feature::HardClip(..) => {}
         }
 
         let (next_reference_position, next_read_position) = it.positions();
         last_reference_position = next_reference_position;
-        last_read_position = next_read_position - 1;
+        last_read_position = next_read_position;
     }
 
     if let Some(reference_sequence) = reference_sequence {
-        let dst = &mut buf[last_read_position..];
+        let dst = buf.get_mut(last_read_position..).unwrap();
 
         let end = last_reference_position
             .checked_add(dst.len())
@@ -91,14 +94,14 @@ pub(crate) fn resolve_bases(
             .unwrap();
 
         copy_from_raw_bases(dst, src)?;
-    } else if last_read_position != buf.len() {
+    } else if usize::from(last_read_position) != buf.len() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "cannot resolve bases without reference sequence",
         ));
     }
 
-    Ok(sam::record::Sequence::from(buf))
+    Ok(buf)
 }
 
 fn copy_from_bases(dst: &mut [Base], src: &[Base]) {
