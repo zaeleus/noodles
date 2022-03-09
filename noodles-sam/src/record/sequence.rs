@@ -6,7 +6,7 @@ pub use self::base::Base;
 
 use std::{
     error, fmt,
-    ops::{Deref, DerefMut},
+    ops::{Deref, DerefMut, Index},
     str::FromStr,
 };
 
@@ -195,6 +195,17 @@ impl FromStr for Sequence {
             NULL_FIELD => Ok(Self::default()),
             _ => Self::try_from(s.as_bytes().to_vec()),
         }
+    }
+}
+
+impl<I> Index<I> for Sequence
+where
+    I: SequenceIndex<Base>,
+{
+    type Output = I::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        index.index(&self.0)
     }
 }
 

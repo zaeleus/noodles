@@ -25,7 +25,7 @@ impl Builder {
                 let base = reference_sequence[reference_position];
                 let reference_base = Base::try_from(base).unwrap_or_default();
 
-                let base = read_bases.get(read_position).copied().unwrap();
+                let base = read_bases[read_position];
                 let read_base = Base::try_from(base).unwrap_or_default();
 
                 self.histogram.hit(reference_base, read_base);

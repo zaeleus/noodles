@@ -291,7 +291,7 @@ fn update_substitution_codes(
             let base = reference_sequence[reference_position];
             let reference_base = Base::try_from(base).unwrap_or_default();
 
-            let base = read_bases.get(read_position).copied().unwrap();
+            let base = read_bases[read_position];
             let read_base = Base::try_from(base).unwrap_or_default();
 
             let code = substitution_matrix.find_code(reference_base, read_base);
