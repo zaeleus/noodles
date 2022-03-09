@@ -9,7 +9,11 @@ use std::{
 use byteorder::WriteBytesExt;
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
+use noodles_sam::{
+    self as sam,
+    record::{quality_scores::Score, sequence::Base},
+    AlignmentRecord,
+};
 
 use super::num::write_itf8;
 use crate::{
@@ -619,8 +623,9 @@ where
             })
     }
 
-    fn write_stretches_of_bases(&mut self, bases: &[u8]) -> io::Result<()> {
-        self.compression_header
+    fn write_stretches_of_bases(&mut self, bases: &[Base]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .stretches_of_bases_encoding()
             .ok_or_else(|| {
@@ -628,15 +633,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte_array(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    bases,
-                )
-            })
+            })?;
+
+        let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
+
+        encode_byte_array(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            &raw_bases,
+        )
     }
 
     fn write_stretches_of_quality_scores(&mut self, quality_scores: &[Score]) -> io::Result<()> {
@@ -663,8 +669,9 @@ where
         )
     }
 
-    fn write_base(&mut self, base: u8) -> io::Result<()> {
-        self.compression_header
+    fn write_base(&mut self, base: Base) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .bases_encoding()
             .ok_or_else(|| {
@@ -672,15 +679,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    base,
-                )
-            })
+            })?;
+
+        let raw_base = u8::from(base);
+
+        encode_byte(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            raw_base,
+        )
     }
 
     fn write_quality_score(&mut self, quality_score: Score) -> io::Result<()> {
@@ -725,8 +733,9 @@ where
             })
     }
 
-    fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
-        self.compression_header
+    fn write_insertion(&mut self, bases: &[Base]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .insertion_encoding()
             .ok_or_else(|| {
@@ -734,15 +743,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte_array(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    bases,
-                )
-            })
+            })?;
+
+        let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
+
+        encode_byte_array(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            &raw_bases,
+        )
     }
 
     fn write_deletion_length(&mut self, len: usize) -> io::Result<()> {
@@ -789,8 +799,9 @@ where
         )
     }
 
-    fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
-        self.compression_header
+    fn write_soft_clip(&mut self, bases: &[Base]) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .soft_clip_encoding()
             .ok_or_else(|| {
@@ -798,15 +809,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte_array(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    bases,
-                )
-            })
+            })?;
+
+        let raw_bases: Vec<_> = bases.iter().copied().map(u8::from).collect();
+
+        encode_byte_array(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            &raw_bases,
+        )
     }
 
     fn write_padding(&mut self, len: usize) -> io::Result<()> {
@@ -883,7 +895,9 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &base in record.bases() {
+        for &raw_base in record.bases() {
+            let base = Base::try_from(raw_base)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             self.write_base(base)?;
         }
 

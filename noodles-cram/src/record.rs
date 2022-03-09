@@ -259,6 +259,8 @@ mod tests {
 
     #[test]
     fn test_calculate_alignment_span() {
+        use sam::record::sequence::Base;
+
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
@@ -266,11 +268,11 @@ mod tests {
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
         let features = Features::from(vec![
-            Feature::Insertion(1, vec![b'A', b'C']),
-            Feature::InsertBase(4, b'G'),
+            Feature::Insertion(1, vec![Base::A, Base::C]),
+            Feature::InsertBase(4, Base::G),
             Feature::Deletion(6, 3),
             Feature::ReferenceSkip(10, 5),
-            Feature::SoftClip(16, vec![b'A', b'C', b'G', b'T']),
+            Feature::SoftClip(16, vec![Base::A, Base::C, Base::G, Base::T]),
         ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
     }

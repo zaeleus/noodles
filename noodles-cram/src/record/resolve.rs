@@ -3,7 +3,7 @@
 use std::io;
 
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::sequence::Base};
 
 use crate::data_container::compression_header::SubstitutionMatrix;
 
@@ -16,7 +16,7 @@ pub(crate) fn resolve_bases(
     alignment_start: sam::record::Position,
     read_length: usize,
 ) -> io::Result<Vec<u8>> {
-    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
+    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
 
     let reference_sequence = reference_sequence.as_ref();
     let mut buf = vec![b'-'; read_length];
@@ -43,18 +43,15 @@ pub(crate) fn resolve_bases(
         }
 
         match feature {
-            Feature::Bases(_, bases) => {
-                let dst = &mut buf[read_position..read_position + bases.len()];
-                dst.copy_from_slice(bases);
-            }
+            Feature::Bases(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Scores(..) => {}
             Feature::ReadBase(_, base, _) => {
-                buf[read_position] = *base;
+                buf[read_position] = u8::from(*base);
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
                     let base = reference_sequence.get(reference_position).copied().unwrap();
-                    let reference_base = Base::try_from(base).unwrap_or_default();
+                    let reference_base = SubstitutionMatrixBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
                     buf[read_position] = u8::from(read_base);
                 } else {
@@ -64,20 +61,14 @@ pub(crate) fn resolve_bases(
                     ));
                 }
             }
-            Feature::Insertion(_, bases) => {
-                let dst = &mut buf[read_position..read_position + bases.len()];
-                dst.copy_from_slice(bases);
-            }
+            Feature::Insertion(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Deletion(..) => {}
             Feature::InsertBase(_, base) => {
-                buf[read_position] = *base;
+                buf[read_position] = u8::from(*base);
             }
             Feature::QualityScore(..) => {}
             Feature::ReferenceSkip(..) => {}
-            Feature::SoftClip(_, bases) => {
-                let dst = &mut buf[read_position..read_position + bases.len()];
-                dst.copy_from_slice(bases);
-            }
+            Feature::SoftClip(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Padding(..) => {}
             Feature::HardClip(..) => {}
         }
@@ -106,6 +97,12 @@ pub(crate) fn resolve_bases(
     }
 
     Ok(buf)
+}
+
+fn copy_from_bases(dst: &mut [u8], src: &[Base]) {
+    for (&base, b) in src.iter().zip(dst.iter_mut()) {
+        *b = u8::from(base);
+    }
 }
 
 /// Resolves the read features as CIGAR operations.
@@ -207,23 +204,26 @@ mod tests {
 
         t(&Features::default(), b"ACGT")?;
         t(
-            &Features::from(vec![Feature::Bases(1, b"TG".to_vec())]),
+            &Features::from(vec![Feature::Bases(1, vec![Base::T, Base::G])]),
             b"TGGT",
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase(2, b'Y', Score::default())]),
+            &Features::from(vec![Feature::ReadBase(2, Base::Y, Score::default())]),
             b"AYGT",
         )?;
         t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT")?;
         t(
-            &Features::from(vec![Feature::Insertion(2, b"GG".to_vec())]),
+            &Features::from(vec![Feature::Insertion(2, vec![Base::G, Base::G])]),
             b"AGGC",
         )?;
         t(&Features::from(vec![Feature::Deletion(2, 2)]), b"ATAC")?;
-        t(&Features::from(vec![Feature::InsertBase(2, b'G')]), b"AGCG")?;
+        t(
+            &Features::from(vec![Feature::InsertBase(2, Base::G)]),
+            b"AGCG",
+        )?;
         t(&Features::from(vec![Feature::ReferenceSkip(2, 2)]), b"ATAC")?;
         t(
-            &Features::from(vec![Feature::SoftClip(3, b"GG".to_vec())]),
+            &Features::from(vec![Feature::SoftClip(3, vec![Base::G, Base::G])]),
             b"ACGG",
         )?;
         t(&Features::from(vec![Feature::Padding(1, 2)]), b"ACGT")?;
@@ -245,13 +245,13 @@ mod tests {
             Cigar::from(vec![Op::new(Kind::Match, 4)])
         );
 
-        let features = Features::from(vec![Feature::SoftClip(1, b"AT".to_vec())]);
+        let features = Features::from(vec![Feature::SoftClip(1, vec![Base::A, Base::T])]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])
         );
 
-        let features = Features::from(vec![Feature::SoftClip(4, b"G".to_vec())]);
+        let features = Features::from(vec![Feature::SoftClip(4, vec![Base::G])]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
@@ -265,7 +265,7 @@ mod tests {
 
         // FIXME
         let features = Features::from(vec![
-            Feature::SoftClip(1, b"A".to_vec()),
+            Feature::SoftClip(1, vec![Base::A]),
             Feature::Substitution(3, 0),
         ]);
         assert_eq!(
@@ -296,7 +296,7 @@ mod tests {
         use sam::record::{quality_scores::Score, QualityScores};
 
         let features = [
-            Feature::ReadBase(1, b'A', Score::try_from(5)?),
+            Feature::ReadBase(1, Base::A, Score::try_from(5)?),
             Feature::QualityScore(3, Score::try_from(8)?),
         ];
 

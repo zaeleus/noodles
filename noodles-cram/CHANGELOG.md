@@ -17,10 +17,11 @@
 
   * cram/record: Wrap quality scores as `sam::record::QualityScores`.
 
-  * cram/record/feature: Store each quality score as a
-    `sam::record::quality_scores::Score`.
+  * cram/record/feature: Change underlying data types:
 
-  * cram/record/feature: Store each length as a `usize`.
+      * bases as `sam::record::sequence::Base`,
+      * lengths as `usize`, and
+      * quality scores as `sam::record::quality_scores::Score`.
 
 ### Fixed
 

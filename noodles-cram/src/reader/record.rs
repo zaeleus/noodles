@@ -9,7 +9,11 @@ use std::{
 
 use byteorder::ReadBytesExt;
 use noodles_bam as bam;
-use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
+use noodles_sam::{
+    self as sam,
+    record::{quality_scores::Score, sequence::Base},
+    AlignmentRecord,
+};
 
 use super::num::read_itf8;
 use crate::{
@@ -657,8 +661,9 @@ where
             })
     }
 
-    fn read_stretches_of_bases(&mut self) -> io::Result<Vec<u8>> {
-        self.compression_header
+    fn read_stretches_of_bases(&mut self) -> io::Result<Vec<Base>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .stretches_of_bases_encoding()
             .ok_or_else(|| {
@@ -666,15 +671,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::StretchesOfBases),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte_array(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                    None,
-                )
-            })
+            })?;
+
+        let raw_bases = decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )?;
+
+        raw_bases
+            .into_iter()
+            .map(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect()
     }
 
     fn read_stretches_of_quality_scores(&mut self) -> io::Result<Vec<Score>> {
@@ -704,8 +713,9 @@ where
             .collect()
     }
 
-    fn read_base(&mut self) -> io::Result<u8> {
-        self.compression_header
+    fn read_base(&mut self) -> io::Result<Base> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .bases_encoding()
             .ok_or_else(|| {
@@ -713,14 +723,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Bases),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_quality_score(&mut self) -> io::Result<Score> {
@@ -762,8 +772,9 @@ where
             })
     }
 
-    fn read_insertion(&mut self) -> io::Result<Vec<u8>> {
-        self.compression_header
+    fn read_insertion(&mut self) -> io::Result<Vec<Base>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .insertion_encoding()
             .ok_or_else(|| {
@@ -771,15 +782,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Insertion),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte_array(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                    None,
-                )
-            })
+            })?;
+
+        let raw_bases = decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )?;
+
+        raw_bases
+            .into_iter()
+            .map(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect()
     }
 
     fn read_deletion_length(&mut self) -> io::Result<usize> {
@@ -822,8 +837,9 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
-        self.compression_header
+    fn read_soft_clip(&mut self) -> io::Result<Vec<Base>> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .soft_clip_encoding()
             .ok_or_else(|| {
@@ -831,15 +847,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::SoftClip),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte_array(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                    None,
-                )
-            })
+            })?;
+
+        let raw_bases = decode_byte_array(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+            None,
+        )?;
+
+        raw_bases
+            .into_iter()
+            .map(|n| Base::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect()
     }
 
     fn read_padding(&mut self) -> io::Result<usize> {
@@ -919,7 +939,7 @@ where
     ) -> io::Result<()> {
         for _ in 0..read_length {
             let base = self.read_base()?;
-            record.bases.push(base);
+            record.bases.push(u8::from(base));
         }
 
         if flags.are_quality_scores_stored_as_array() {
