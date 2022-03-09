@@ -25,7 +25,7 @@ pub trait AlignmentRecord {
     fn alignment_start(&self) -> Option<Position>;
 
     /// Calculates the alignment span over the reference sequence.
-    fn alignment_span(&self) -> io::Result<u32>;
+    fn alignment_span(&self) -> usize;
 
     /// Calculates the end position.
     ///
@@ -50,16 +50,8 @@ pub trait AlignmentRecord {
     /// ```
     fn alignment_end(&self) -> Option<io::Result<Position>> {
         let start = self.alignment_start().map(i32::from)?;
-
-        let len = match self.alignment_span().and_then(|len| {
-            i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        }) {
-            Ok(len) => len,
-            Err(e) => return Some(Err(e)),
-        };
-
+        let len = self.alignment_span() as i32;
         let end = start + len - 1;
-
         Some(Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 

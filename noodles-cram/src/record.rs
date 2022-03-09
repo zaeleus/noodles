@@ -167,8 +167,8 @@ impl sam::AlignmentRecord for Record {
         self.alignment_start
     }
 
-    fn alignment_span(&self) -> io::Result<u32> {
-        Ok(calculate_alignment_span(self.read_length(), self.features()) as u32)
+    fn alignment_span(&self) -> usize {
+        calculate_alignment_span(self.read_length(), self.features())
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {

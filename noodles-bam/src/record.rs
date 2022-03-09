@@ -464,15 +464,13 @@ impl sam::AlignmentRecord for Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bam as bam;
     /// use noodles_sam::AlignmentRecord;
     /// let record = bam::Record::default();
-    /// assert_eq!(record.alignment_span()?, 0);
-    /// # Ok::<_, io::Error>(())
+    /// assert_eq!(record.alignment_span(), 0);
     /// ```
-    fn alignment_span(&self) -> io::Result<u32> {
-        Ok(self.cigar().reference_len() as u32)
+    fn alignment_span(&self) -> usize {
+        self.cigar().reference_len()
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
