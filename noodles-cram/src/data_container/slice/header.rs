@@ -12,7 +12,7 @@ use crate::container::ReferenceSequenceId;
 pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Option<sam::record::Position>,
-    alignment_span: i32,
+    alignment_span: usize,
     record_count: usize,
     record_counter: i64,
     block_count: usize,
@@ -35,15 +35,17 @@ impl Header {
         self.alignment_start
     }
 
-    pub fn alignment_span(&self) -> i32 {
+    pub fn alignment_span(&self) -> usize {
         self.alignment_span
     }
 
     pub fn alignment_end(&self) -> Option<io::Result<sam::record::Position>> {
-        self.alignment_start().map(|alignment_start| {
-            let alignment_end = i32::from(alignment_start) + self.alignment_span() + 1;
+        self.alignment_start().map(|start| {
+            let start = i32::from(start);
+            let len = self.alignment_span() as i32;
+            let end = start + len + 1;
 
-            sam::record::Position::try_from(alignment_end)
+            sam::record::Position::try_from(end)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }

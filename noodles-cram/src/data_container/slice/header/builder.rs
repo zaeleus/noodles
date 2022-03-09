@@ -8,7 +8,7 @@ use super::Header;
 pub struct Builder {
     reference_sequence_id: ReferenceSequenceId,
     alignment_start: Option<sam::record::Position>,
-    alignment_span: i32,
+    alignment_span: usize,
     record_count: usize,
     record_counter: i64,
     block_count: usize,
@@ -29,7 +29,7 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_span(mut self, alignment_span: i32) -> Self {
+    pub fn set_alignment_span(mut self, alignment_span: usize) -> Self {
         self.alignment_span = alignment_span;
         self
     }

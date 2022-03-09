@@ -140,7 +140,7 @@ impl Builder {
 
             builder = builder
                 .set_alignment_start(alignment_start)
-                .set_alignment_span(alignment_span);
+                .set_alignment_span(alignment_span as usize);
         }
 
         let header = builder.build();

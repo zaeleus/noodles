@@ -15,7 +15,9 @@ where
     let alignment_start = header.alignment_start().map(i32::from).unwrap_or_default();
     write_itf8(writer, alignment_start)?;
 
-    write_itf8(writer, header.alignment_span())?;
+    let alignment_span = i32::try_from(header.alignment_span())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, alignment_span)?;
 
     let record_count = i32::try_from(header.record_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

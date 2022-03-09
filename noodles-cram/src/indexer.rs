@@ -206,7 +206,7 @@ fn push_index_record_for_single_reference_slice(
     let record = crai::Record::new(
         reference_sequence_id,
         alignment_start,
-        alignment_span,
+        alignment_span as i32,
         container_position,
         landmark,
         slice_length,

@@ -25,7 +25,9 @@ where
         }
     })?;
 
-    let alignment_span = read_itf8(reader).await?;
+    let alignment_span = read_itf8(reader).await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let record_count = read_itf8(reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
