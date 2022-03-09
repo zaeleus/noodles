@@ -15,13 +15,13 @@ pub use self::{
     next_mate_flags::NextMateFlags, read_group_id::ReadGroupId, tag::Tag,
 };
 
-use std::{fmt, io};
+use std::io;
 
 use noodles_bam as bam;
 use noodles_sam as sam;
 
 /// A CRAM record.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) id: i64,
     pub(crate) bam_bit_flags: sam::record::Flags,
@@ -144,34 +144,6 @@ impl Record {
 impl Default for Record {
     fn default() -> Self {
         Builder::default().build()
-    }
-}
-
-impl fmt::Debug for Record {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.debug_struct("Record")
-            .field("id", &self.id)
-            .field("bam_bit_flags", &self.bam_flags())
-            .field("cram_bit_flags", &self.cram_flags())
-            .field("reference_id", &self.reference_sequence_id)
-            .field("read_length", &self.read_length)
-            .field("alignment_start", &self.alignment_start)
-            .field("read_group", &self.read_group)
-            .field("read_name", &self.read_name)
-            .field("next_mate_bit_flags", &self.next_mate_flags())
-            .field(
-                "next_fragment_reference_sequence_id",
-                &self.next_fragment_reference_sequence_id,
-            )
-            .field("next_mate_alignment_start", &self.next_mate_alignment_start)
-            .field("template_size", &self.template_size)
-            .field("distance_to_next_fragment", &self.distance_to_next_fragment)
-            .field("tags", &self.tags)
-            .field("bases", &self.bases)
-            .field("features", &self.features)
-            .field("mapping_quality", &self.mapping_quality)
-            .field("quality_scores", &self.quality_scores)
-            .finish()
     }
 }
 
