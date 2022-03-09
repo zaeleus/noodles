@@ -24,7 +24,8 @@ where
         header.start_position().map(i32::from).unwrap_or_default();
     write_itf8(&mut crc_writer, starting_position_on_the_reference)?;
 
-    let alignment_span = header.alignment_span();
+    let alignment_span = i32::try_from(header.alignment_span())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, alignment_span)?;
 
     let number_of_records = header.record_count();

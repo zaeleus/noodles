@@ -9,7 +9,7 @@ pub struct Builder {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<sam::record::Position>,
-    alignment_span: i32,
+    alignment_span: usize,
     record_count: i32,
     record_counter: i64,
     base_count: i64,
@@ -34,7 +34,7 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_span(mut self, alignment_span: i32) -> Self {
+    pub fn set_alignment_span(mut self, alignment_span: usize) -> Self {
         self.alignment_span = alignment_span;
         self
     }

@@ -17,7 +17,7 @@ pub struct Header {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<sam::record::Position>,
-    alignment_span: i32,
+    alignment_span: usize,
     record_count: i32,
     record_counter: i64,
     base_count: i64,
@@ -55,7 +55,7 @@ impl Header {
         self.start_position
     }
 
-    pub fn alignment_span(&self) -> i32 {
+    pub fn alignment_span(&self) -> usize {
         self.alignment_span
     }
 

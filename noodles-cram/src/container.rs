@@ -107,7 +107,7 @@ impl Container {
 
             builder = builder
                 .set_start_position(alignment_start)
-                .set_alignment_span(alignment_span);
+                .set_alignment_span(alignment_span as usize);
         }
 
         let header = builder.build();
