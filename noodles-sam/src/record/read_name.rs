@@ -1,7 +1,6 @@
 //! SAM record read name.
 
 use std::{
-    convert::AsRef,
     error, fmt,
     str::{self, FromStr},
 };
