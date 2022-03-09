@@ -2,16 +2,14 @@ mod builder;
 
 pub use builder::Builder;
 
-use std::io;
-
-use noodles_sam as sam;
+use noodles_core::Position;
 
 use crate::container::ReferenceSequenceId;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
     reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Option<sam::record::Position>,
+    alignment_start: Option<Position>,
     alignment_span: usize,
     record_count: usize,
     record_counter: i64,
@@ -31,7 +29,7 @@ impl Header {
         self.reference_sequence_id
     }
 
-    pub fn alignment_start(&self) -> Option<sam::record::Position> {
+    pub fn alignment_start(&self) -> Option<Position> {
         self.alignment_start
     }
 
@@ -39,14 +37,10 @@ impl Header {
         self.alignment_span
     }
 
-    pub fn alignment_end(&self) -> Option<io::Result<sam::record::Position>> {
-        self.alignment_start().map(|start| {
-            let start = i32::from(start);
-            let len = self.alignment_span() as i32;
-            let end = start + len + 1;
-
-            sam::record::Position::try_from(end)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    pub fn alignment_end(&self) -> Option<Position> {
+        self.alignment_start().and_then(|start| {
+            let end = usize::from(start) + self.alignment_span() + 1;
+            Position::new(end)
         })
     }
 

@@ -165,10 +165,14 @@ fn find_container_alignment_positions(
     for slice in slices {
         let slice_header = slice.header();
 
-        let slice_alignment_start = slice_header.alignment_start();
+        let slice_alignment_start = slice_header
+            .alignment_start()
+            .map(|end| sam::record::Position::try_from(usize::from(end) as i32).unwrap());
         container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
 
-        let slice_alignment_end = slice_header.alignment_end().transpose()?;
+        let slice_alignment_end = slice_header
+            .alignment_end()
+            .map(|end| sam::record::Position::try_from(usize::from(end) as i32).unwrap());
         container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
     }
 

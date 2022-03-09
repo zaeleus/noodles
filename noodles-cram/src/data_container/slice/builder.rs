@@ -5,6 +5,7 @@ use std::{
 };
 
 use md5::{Digest, Md5};
+use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
@@ -139,7 +140,7 @@ impl Builder {
             let alignment_span = i32::from(alignment_end) - i32::from(alignment_start) + 1;
 
             builder = builder
-                .set_alignment_start(alignment_start)
+                .set_alignment_start(Position::new(i32::from(alignment_start) as usize).unwrap())
                 .set_alignment_span(alignment_span as usize);
         }
 

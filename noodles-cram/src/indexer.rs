@@ -192,7 +192,7 @@ fn push_index_record_for_single_reference_slice(
 
             let alignment_start = slice_header
                 .alignment_start()
-                .map(i32::from)
+                .map(usize::from)
                 .unwrap_or_default();
 
             let alignment_span = slice_header.alignment_span();
@@ -205,7 +205,7 @@ fn push_index_record_for_single_reference_slice(
 
     let record = crai::Record::new(
         reference_sequence_id,
-        alignment_start,
+        alignment_start as i32,
         alignment_span as i32,
         container_position,
         landmark,

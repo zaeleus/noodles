@@ -1,13 +1,12 @@
-use noodles_sam as sam;
-
-use crate::container::ReferenceSequenceId;
+use noodles_core::Position;
 
 use super::Header;
+use crate::container::ReferenceSequenceId;
 
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Option<sam::record::Position>,
+    alignment_start: Option<Position>,
     alignment_span: usize,
     record_count: usize,
     record_counter: i64,
@@ -24,7 +23,7 @@ impl Builder {
         self
     }
 
-    pub fn set_alignment_start(mut self, alignment_start: sam::record::Position) -> Self {
+    pub fn set_alignment_start(mut self, alignment_start: Position) -> Self {
         self.alignment_start = Some(alignment_start);
         self
     }
