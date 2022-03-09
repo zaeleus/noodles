@@ -898,7 +898,7 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &base in record.bases().iter() {
+        for &base in record.bases().as_ref() {
             self.write_base(base)?;
         }
 

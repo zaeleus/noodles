@@ -35,7 +35,8 @@
   * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
     (`ReadName::try_new`) and to `Vec<u8>`.
 
-  * sam/record/sequence: Implement `Index` and `IndexMut` with `Position`.
+  * sam/record/sequence: Implement `AsRef<[Base]>` and `Index`/`IndexMut` with
+    `Position`.
 
   * sam/record/sequence: Add conversion from `Vec<u8>`.
 
@@ -79,6 +80,10 @@
   * sam/record/read_name: Remove `Deref<Target = String>`.
 
     Use `AsRef<str>` instead.
+
+  * sam/record/sequence: Remove `Deref<Target = Vec<Base>>`.
+
+    Use `AsRef<[Base]>` instead.
 
 ## 0.13.0 - 2022-03-02
 

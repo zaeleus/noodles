@@ -6,7 +6,7 @@ pub use self::base::Base;
 
 use std::{
     error, fmt,
-    ops::{Deref, Index, IndexMut},
+    ops::{Index, IndexMut},
     str::FromStr,
 };
 
@@ -132,10 +132,8 @@ impl Sequence {
     }
 }
 
-impl Deref for Sequence {
-    type Target = Vec<Base>;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[Base]> for Sequence {
+    fn as_ref(&self) -> &[Base] {
         &self.0
     }
 }

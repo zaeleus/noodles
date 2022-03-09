@@ -250,7 +250,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{sequence::Base, Sequence},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let record = sam::Record::builder()
     ///     .set_cigar("4M".parse()?)
@@ -258,7 +262,8 @@ impl Builder {
     ///     .set_quality_scores("NDLS".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(**record.sequence(), [Base::A, Base::C, Base::G, Base::T]);
+    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
+    /// assert_eq!(record.sequence(), &sequence);
     /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {

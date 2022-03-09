@@ -225,7 +225,7 @@ where
 {
     use crate::writer::record::encode_base;
 
-    for chunk in sequence.chunks(2) {
+    for chunk in sequence.as_ref().chunks(2) {
         let l = chunk[0];
         let r = chunk.get(1).copied().unwrap_or(Base::Eq);
         let b = encode_base(l) << 4 | encode_base(r);
