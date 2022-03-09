@@ -17,6 +17,8 @@
 
   * cram/record: Wrap quality scores as `sam::record::QualityScores`.
 
+  * cram/record: Wrap sequence as `sam::record::Sequence`.
+
   * cram/record/feature: Change underlying data types:
 
       * bases as `sam::record::sequence::Base`,

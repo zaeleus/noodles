@@ -37,7 +37,7 @@ pub struct Record {
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: i32,
     pub(crate) tags: Vec<Tag>,
-    pub(crate) bases: Vec<u8>,
+    pub(crate) bases: sam::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: sam::record::QualityScores,
@@ -127,7 +127,7 @@ impl Record {
     }
 
     /// Returns the read bases.
-    pub fn bases(&self) -> &[u8] {
+    pub fn bases(&self) -> &sam::record::Sequence {
         &self.bases
     }
 

@@ -15,11 +15,11 @@ pub(crate) fn resolve_bases(
     features: &Features,
     alignment_start: sam::record::Position,
     read_length: usize,
-) -> io::Result<Vec<u8>> {
+) -> io::Result<sam::record::Sequence> {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
 
     let reference_sequence = reference_sequence.as_ref();
-    let mut buf = vec![b'-'; read_length];
+    let mut buf = vec![Base::N; read_length];
 
     let mut it = features.with_positions(alignment_start);
 
@@ -31,10 +31,12 @@ pub(crate) fn resolve_bases(
 
         if let Some(reference_sequence) = reference_sequence {
             let dst = &mut buf[last_read_position..read_position];
+
             let src = reference_sequence
                 .get(last_reference_position..reference_position)
                 .unwrap();
-            dst.copy_from_slice(src);
+
+            copy_from_raw_bases(dst, src)?;
         } else if read_position != last_read_position {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -46,14 +48,14 @@ pub(crate) fn resolve_bases(
             Feature::Bases(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Scores(..) => {}
             Feature::ReadBase(_, base, _) => {
-                buf[read_position] = u8::from(*base);
+                buf[read_position] = *base;
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
                     let base = reference_sequence.get(reference_position).copied().unwrap();
                     let reference_base = SubstitutionMatrixBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
-                    buf[read_position] = u8::from(read_base);
+                    buf[read_position] = Base::from(read_base);
                 } else {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
@@ -64,7 +66,7 @@ pub(crate) fn resolve_bases(
             Feature::Insertion(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Deletion(..) => {}
             Feature::InsertBase(_, base) => {
-                buf[read_position] = u8::from(*base);
+                buf[read_position] = *base;
             }
             Feature::QualityScore(..) => {}
             Feature::ReferenceSkip(..) => {}
@@ -88,7 +90,7 @@ pub(crate) fn resolve_bases(
             .get(last_reference_position..end)
             .unwrap();
 
-        dst.copy_from_slice(src);
+        copy_from_raw_bases(dst, src)?;
     } else if last_read_position != buf.len() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -96,13 +98,23 @@ pub(crate) fn resolve_bases(
         ));
     }
 
-    Ok(buf)
+    Ok(sam::record::Sequence::from(buf))
 }
 
-fn copy_from_bases(dst: &mut [u8], src: &[Base]) {
+fn copy_from_bases(dst: &mut [Base], src: &[Base]) {
     for (&base, b) in src.iter().zip(dst.iter_mut()) {
-        *b = u8::from(base);
+        *b = base;
     }
+}
+
+fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
+    for (&raw_base, b) in src.iter().zip(dst.iter_mut()) {
+        let base =
+            Base::try_from(raw_base).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        *b = base;
+    }
+
+    Ok(())
 }
 
 /// Resolves the read features as CIGAR operations.
@@ -189,7 +201,7 @@ mod tests {
         let substitution_matrix = Default::default();
         let alignment_start = sam::record::Position::try_from(1)?;
 
-        let t = |features: &Features, expected: &[u8]| {
+        let t = |features: &Features, expected: &sam::record::Sequence| {
             let actual = resolve_bases(
                 Some(reference_sequence.clone()),
                 &substitution_matrix,
@@ -198,18 +210,18 @@ mod tests {
                 4,
             )?;
 
-            assert_eq!(actual, expected);
+            assert_eq!(&actual, expected);
 
             Ok::<_, io::Error>(())
         };
 
-        t(&Features::default(), b"ACGT")?;
+        t(&Features::default(), &"ACGT".parse()?)?;
         t(
             &Features::from(vec![Feature::Bases(
                 Position::try_from(1)?,
                 vec![Base::T, Base::G],
             )]),
-            b"TGGT",
+            &"TGGT".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::ReadBase(
@@ -217,45 +229,45 @@ mod tests {
                 Base::Y,
                 Score::default(),
             )]),
-            b"AYGT",
+            &"AYGT".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::Substitution(Position::try_from(2)?, 1)]),
-            b"AGGT",
+            &"AGGT".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::Insertion(
                 Position::try_from(2)?,
                 vec![Base::G, Base::G],
             )]),
-            b"AGGC",
+            &"AGGC".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::Deletion(Position::try_from(2)?, 2)]),
-            b"ATAC",
+            &"ATAC".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::InsertBase(Position::try_from(2)?, Base::G)]),
-            b"AGCG",
+            &"AGCG".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::ReferenceSkip(Position::try_from(2)?, 2)]),
-            b"ATAC",
+            &"ATAC".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::SoftClip(
                 Position::try_from(3)?,
                 vec![Base::G, Base::G],
             )]),
-            b"ACGG",
+            &"ACGG".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::Padding(Position::try_from(1)?, 2)]),
-            b"ACGT",
+            &"ACGT".parse()?,
         )?;
         t(
             &Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]),
-            b"ACGT",
+            &"ACGT".parse()?,
         )?;
 
         Ok(())

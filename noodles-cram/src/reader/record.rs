@@ -942,7 +942,7 @@ where
     ) -> io::Result<()> {
         for _ in 0..read_length {
             let base = self.read_base()?;
-            record.bases.push(u8::from(base));
+            record.bases.push(base);
         }
 
         if flags.are_quality_scores_stored_as_array() {

@@ -279,11 +279,12 @@ fn update_substitution_codes(
     reference_sequence: &fasta::record::Sequence,
     substitution_matrix: &SubstitutionMatrix,
     alignment_start: sam::record::Position,
-    read_bases: &[u8],
+    read_bases: &sam::record::Sequence,
     features: &mut Features,
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
+    let read_bases = read_bases.as_slice();
     let mut codes = Vec::new();
 
     for ((reference_position, mut read_position), feature) in

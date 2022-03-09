@@ -1,5 +1,8 @@
 use noodles_bam as bam;
-use noodles_sam::{self as sam, record::quality_scores::Score};
+use noodles_sam::{
+    self as sam,
+    record::{quality_scores::Score, sequence::Base},
+};
 
 use super::{Feature, Features, Flags, NextMateFlags, ReadGroupId, Record, Tag};
 
@@ -19,7 +22,7 @@ pub struct Builder {
     template_size: i32,
     distance_to_next_fragment: i32,
     tags: Vec<Tag>,
-    bases: Vec<u8>,
+    bases: sam::record::Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
     quality_scores: sam::record::QualityScores,
@@ -126,13 +129,13 @@ impl Builder {
     }
 
     /// Sets the read bases.
-    pub fn set_bases(mut self, bases: Vec<u8>) -> Self {
+    pub fn set_bases(mut self, bases: sam::record::Sequence) -> Self {
         self.bases = bases;
         self
     }
 
     /// Adds a base to the read bases.
-    pub fn add_base(mut self, base: u8) -> Self {
+    pub fn add_base(mut self, base: Base) -> Self {
         self.bases.push(base);
         self
     }
@@ -209,7 +212,7 @@ impl Default for Builder {
             template_size: 0,
             distance_to_next_fragment: 0,
             tags: Vec::new(),
-            bases: Vec::new(),
+            bases: sam::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,
             quality_scores: sam::record::QualityScores::default(),

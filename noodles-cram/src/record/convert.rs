@@ -1,11 +1,7 @@
 use std::io;
 
 use noodles_bam::record::ReferenceSequenceId;
-use noodles_sam::{
-    self as sam,
-    record::{Data, Sequence},
-    AlignmentRecord,
-};
+use noodles_sam::{self as sam, record::Data, AlignmentRecord};
 
 use super::{resolve::resolve_features, Record, Tag};
 
@@ -57,9 +53,8 @@ impl Record {
 
         builder = builder.set_template_length(self.template_size());
 
-        if self.read_length() > 0 {
-            let sequence = bytes_to_sequence(self.bases())?;
-            builder = builder.set_sequence(sequence);
+        if !self.bases().is_empty() {
+            builder = builder.set_sequence(self.bases().clone());
         }
 
         if !self.quality_scores().is_empty() {
@@ -92,17 +87,6 @@ fn get_reference_sequence_name(
                 })
         })
         .transpose()
-}
-
-fn bytes_to_sequence(data: &[u8]) -> io::Result<Sequence> {
-    use sam::record::sequence::Base;
-
-    data.iter()
-        .copied()
-        .map(|b| Base::try_from(b as char))
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        .map(Sequence::from)
 }
 
 fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {

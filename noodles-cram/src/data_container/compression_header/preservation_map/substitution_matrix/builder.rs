@@ -49,13 +49,15 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::record::Sequence;
+
         let reference_sequence = fasta::record::Sequence::from(b"ACAGGAATAANNNNNN".to_vec());
-        let bases = b"TCTGGCGTGT";
+        let bases: Sequence = "TCTGGCGTGT".parse()?;
 
         let record = Record::builder()
             .set_alignment_start(sam::record::Position::try_from(1)?)
             .set_read_length(bases.len())
-            .set_bases(bases.to_vec())
+            .set_bases(bases)
             .add_feature(Feature::Substitution(Position::try_from(1)?, 2)) // A => T
             .add_feature(Feature::Substitution(Position::try_from(3)?, 2)) // A => T
             .add_feature(Feature::Substitution(Position::try_from(6)?, 0)) // A => C

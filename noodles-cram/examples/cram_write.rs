@@ -86,7 +86,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_id(bam::record::ReferenceSequenceId::from(0))
         .set_alignment_start(sam::record::Position::try_from(1)?)
         .set_read_length(4)
-        .set_bases(b"TTCA".to_vec())
+        .set_bases("TTCA".parse()?)
         .set_quality_scores("NDLS".parse()?)
         .build();
 

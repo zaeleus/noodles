@@ -898,9 +898,7 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &raw_base in record.bases() {
-            let base = Base::try_from(raw_base)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        for &base in record.bases().iter() {
             self.write_base(base)?;
         }
 
