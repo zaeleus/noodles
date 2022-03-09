@@ -20,7 +20,8 @@
   * cram/record/feature: Change underlying data types:
 
       * bases as `sam::record::sequence::Base`,
-      * lengths as `usize`, and
+      * lengths as `usize`,
+      * positions as `Position`, and
       * quality scores as `sam::record::quality_scores::Score`.
 
 ### Fixed

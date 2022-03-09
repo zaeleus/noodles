@@ -496,9 +496,9 @@ where
         let mut prev_position = 0;
 
         for feature in record.features().iter() {
-            let position = feature.position() - prev_position;
+            let position = usize::from(feature.position()) - prev_position;
             self.write_feature(feature, position)?;
-            prev_position = feature.position();
+            prev_position = usize::from(feature.position());
         }
 
         self.write_mapping_quality(record.mapping_quality())?;
@@ -534,7 +534,7 @@ where
             })
     }
 
-    fn write_feature(&mut self, feature: &Feature, position: i32) -> io::Result<()> {
+    fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {
         self.write_feature_code(feature.code())?;
         self.write_feature_position(position)?;
 
@@ -603,8 +603,9 @@ where
             })
     }
 
-    fn write_feature_position(&mut self, position: i32) -> io::Result<()> {
-        self.compression_header
+    fn write_feature_position(&mut self, position: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .in_read_positions_encoding()
             .ok_or_else(|| {
@@ -612,15 +613,17 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::InReadPositions),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    position,
-                )
-            })
+            })?;
+
+        let position =
+            i32::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            position,
+        )
     }
 
     fn write_stretches_of_bases(&mut self, bases: &[Base]) -> io::Result<()> {

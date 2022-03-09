@@ -4,35 +4,36 @@ pub mod code;
 
 pub use self::code::Code;
 
+use noodles_core::Position;
 use noodles_sam::record::{quality_scores::Score, sequence::Base};
 
 /// A CRAM record feature.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature {
     /// A stretch of bases (position, bases).
-    Bases(i32, Vec<Base>),
+    Bases(Position, Vec<Base>),
     /// A stretch of quality scores (position, quality scores).
-    Scores(i32, Vec<Score>),
+    Scores(Position, Vec<Score>),
     /// A base-quality score pair (position, base, quality score).
-    ReadBase(i32, Base, Score),
+    ReadBase(Position, Base, Score),
     /// A base substitution (position, code).
-    Substitution(i32, u8),
+    Substitution(Position, u8),
     /// Inserted bases (position, bases).
-    Insertion(i32, Vec<Base>),
+    Insertion(Position, Vec<Base>),
     /// A number of deleted bases (position, length).
-    Deletion(i32, usize),
+    Deletion(Position, usize),
     /// A single inserted base (position, base).
-    InsertBase(i32, Base),
+    InsertBase(Position, Base),
     /// A single quality score (position, score).
-    QualityScore(i32, Score),
+    QualityScore(Position, Score),
     /// A number of skipped bases (position, length).
-    ReferenceSkip(i32, usize),
+    ReferenceSkip(Position, usize),
     /// Soft clipped bases (position, bases).
-    SoftClip(i32, Vec<Base>),
+    SoftClip(Position, Vec<Base>),
     /// A number of padded bases (position, length).
-    Padding(i32, usize),
+    Padding(Position, usize),
     /// A number of hard clipped bases (position, length).
-    HardClip(i32, usize),
+    HardClip(Position, usize),
 }
 
 impl Feature {
@@ -41,9 +42,14 @@ impl Feature {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_cram::record::{feature::Code, Feature};
-    /// let feature = Feature::Padding(8, 13);
+    ///
+    /// let position = Position::try_from(8)?;
+    /// let feature = Feature::Padding(position, 13);
+    ///
     /// assert_eq!(feature.code(), Code::Padding);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn code(&self) -> Code {
         match self {
@@ -67,11 +73,16 @@ impl Feature {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_cram::record::Feature;
-    /// let feature = Feature::Padding(8, 13);
-    /// assert_eq!(feature.position(), 8);
+    ///
+    /// let position = Position::try_from(8)?;
+    /// let feature = Feature::Padding(position, 13);
+    ///
+    /// assert_eq!(feature.position(), position);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn position(&self) -> i32 {
+    pub fn position(&self) -> Position {
         match self {
             Self::Bases(pos, _) => *pos,
             Self::Scores(pos, _) => *pos,
@@ -94,43 +105,72 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_code() {
-        assert_eq!(Feature::Bases(1, Vec::new()).code(), Code::Bases);
-        assert_eq!(Feature::Scores(1, Vec::new()).code(), Code::Scores);
+    fn test_code() -> Result<(), noodles_core::position::TryFromIntError> {
+        let position = Position::try_from(1)?;
+
+        assert_eq!(Feature::Bases(position, Vec::new()).code(), Code::Bases);
+        assert_eq!(Feature::Scores(position, Vec::new()).code(), Code::Scores);
         assert_eq!(
-            Feature::ReadBase(1, Base::N, Score::default()).code(),
+            Feature::ReadBase(position, Base::N, Score::default()).code(),
             Code::ReadBase
         );
-        assert_eq!(Feature::Substitution(1, 0).code(), Code::Substitution);
-        assert_eq!(Feature::Insertion(1, Vec::new()).code(), Code::Insertion);
-        assert_eq!(Feature::Deletion(1, 0).code(), Code::Deletion);
-        assert_eq!(Feature::InsertBase(1, Base::N).code(), Code::InsertBase);
         assert_eq!(
-            Feature::QualityScore(1, Score::default()).code(),
+            Feature::Substitution(position, 0).code(),
+            Code::Substitution
+        );
+        assert_eq!(
+            Feature::Insertion(position, Vec::new()).code(),
+            Code::Insertion
+        );
+        assert_eq!(Feature::Deletion(position, 0).code(), Code::Deletion);
+        assert_eq!(
+            Feature::InsertBase(position, Base::N).code(),
+            Code::InsertBase
+        );
+        assert_eq!(
+            Feature::QualityScore(position, Score::default()).code(),
             Code::QualityScore
         );
-        assert_eq!(Feature::ReferenceSkip(1, 0).code(), Code::ReferenceSkip);
-        assert_eq!(Feature::SoftClip(1, Vec::new()).code(), Code::SoftClip);
-        assert_eq!(Feature::Padding(1, 0).code(), Code::Padding);
-        assert_eq!(Feature::HardClip(1, 0).code(), Code::HardClip);
+        assert_eq!(
+            Feature::ReferenceSkip(position, 0).code(),
+            Code::ReferenceSkip
+        );
+        assert_eq!(
+            Feature::SoftClip(position, Vec::new()).code(),
+            Code::SoftClip
+        );
+        assert_eq!(Feature::Padding(position, 0).code(), Code::Padding);
+        assert_eq!(Feature::HardClip(position, 0).code(), Code::HardClip);
+
+        Ok(())
     }
 
     #[test]
-    fn test_position() {
-        assert_eq!(Feature::Bases(1, Vec::new()).position(), 1);
-        assert_eq!(Feature::Scores(2, Vec::new()).position(), 2);
+    fn test_position() -> Result<(), noodles_core::position::TryFromIntError> {
+        let position = Position::try_from(1)?;
+
+        assert_eq!(Feature::Bases(position, Vec::new()).position(), position);
+        assert_eq!(Feature::Scores(position, Vec::new()).position(), position);
         assert_eq!(
-            Feature::ReadBase(3, Base::N, Score::default()).position(),
-            3
+            Feature::ReadBase(position, Base::N, Score::default()).position(),
+            position
         );
-        assert_eq!(Feature::Substitution(4, 0).position(), 4);
-        assert_eq!(Feature::Insertion(5, Vec::new()).position(), 5);
-        assert_eq!(Feature::Deletion(6, 0).position(), 6);
-        assert_eq!(Feature::InsertBase(7, Base::N).position(), 7);
-        assert_eq!(Feature::QualityScore(8, Score::default()).position(), 8);
-        assert_eq!(Feature::ReferenceSkip(9, 0).position(), 9);
-        assert_eq!(Feature::SoftClip(10, Vec::new()).position(), 10);
-        assert_eq!(Feature::Padding(11, 0).position(), 11);
-        assert_eq!(Feature::HardClip(12, 0).position(), 12);
+        assert_eq!(Feature::Substitution(position, 0).position(), position);
+        assert_eq!(
+            Feature::Insertion(position, Vec::new()).position(),
+            position
+        );
+        assert_eq!(Feature::Deletion(position, 0).position(), position);
+        assert_eq!(Feature::InsertBase(position, Base::N).position(), position);
+        assert_eq!(
+            Feature::QualityScore(position, Score::default()).position(),
+            position
+        );
+        assert_eq!(Feature::ReferenceSkip(position, 0).position(), position);
+        assert_eq!(Feature::SoftClip(position, Vec::new()).position(), position);
+        assert_eq!(Feature::Padding(position, 0).position(), position);
+        assert_eq!(Feature::HardClip(position, 0).position(), position);
+
+        Ok(())
     }
 }

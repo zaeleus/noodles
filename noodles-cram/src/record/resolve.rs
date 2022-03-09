@@ -106,30 +106,30 @@ fn copy_from_bases(dst: &mut [u8], src: &[Base]) {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Cigar {
+pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Cigar {
     use noodles_sam::record::cigar::{op::Kind, Op};
 
     let mut ops = Vec::new();
     let mut i = 1;
 
     for feature in features.iter() {
-        if feature.position() > i {
-            let len = feature.position() - i;
+        if usize::from(feature.position()) > i {
+            let len = usize::from(feature.position()) - i;
             let op = Op::new(Kind::Match, len as u32);
             ops.push(op);
 
-            i = feature.position();
+            i = usize::from(feature.position());
         }
 
         let (kind, len) = match feature {
             Feature::Substitution(..) => (Kind::Match, 1),
-            Feature::Insertion(_, bases) => (Kind::Insertion, bases.len() as i32),
-            Feature::Deletion(_, len) => (Kind::Deletion, *len as i32),
+            Feature::Insertion(_, bases) => (Kind::Insertion, bases.len()),
+            Feature::Deletion(_, len) => (Kind::Deletion, *len),
             Feature::InsertBase(..) => (Kind::Insertion, 1),
-            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len as i32),
-            Feature::SoftClip(_, bases) => (Kind::SoftClip, bases.len() as i32),
-            Feature::Padding(_, len) => (Kind::Pad, *len as i32),
-            Feature::HardClip(_, len) => (Kind::HardClip, *len as i32),
+            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len),
+            Feature::SoftClip(_, bases) => (Kind::SoftClip, bases.len()),
+            Feature::Padding(_, len) => (Kind::Pad, *len),
+            Feature::HardClip(_, len) => (Kind::HardClip, *len),
             _ => continue,
         };
 
@@ -164,7 +164,7 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::rec
     let mut scores = vec![Score::default(); read_len];
 
     for feature in features {
-        let read_pos = (feature.position() - 1) as usize;
+        let read_pos = usize::from(feature.position()) - 1;
 
         scores[read_pos] = match feature {
             Feature::ReadBase(_, _, quality_score) => *quality_score,
@@ -178,6 +178,7 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::rec
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
     use sam::record::quality_scores::Score;
 
     use super::*;
@@ -204,36 +205,64 @@ mod tests {
 
         t(&Features::default(), b"ACGT")?;
         t(
-            &Features::from(vec![Feature::Bases(1, vec![Base::T, Base::G])]),
+            &Features::from(vec![Feature::Bases(
+                Position::try_from(1)?,
+                vec![Base::T, Base::G],
+            )]),
             b"TGGT",
         )?;
         t(
-            &Features::from(vec![Feature::ReadBase(2, Base::Y, Score::default())]),
+            &Features::from(vec![Feature::ReadBase(
+                Position::try_from(2)?,
+                Base::Y,
+                Score::default(),
+            )]),
             b"AYGT",
         )?;
-        t(&Features::from(vec![Feature::Substitution(2, 1)]), b"AGGT")?;
         t(
-            &Features::from(vec![Feature::Insertion(2, vec![Base::G, Base::G])]),
+            &Features::from(vec![Feature::Substitution(Position::try_from(2)?, 1)]),
+            b"AGGT",
+        )?;
+        t(
+            &Features::from(vec![Feature::Insertion(
+                Position::try_from(2)?,
+                vec![Base::G, Base::G],
+            )]),
             b"AGGC",
         )?;
-        t(&Features::from(vec![Feature::Deletion(2, 2)]), b"ATAC")?;
         t(
-            &Features::from(vec![Feature::InsertBase(2, Base::G)]),
+            &Features::from(vec![Feature::Deletion(Position::try_from(2)?, 2)]),
+            b"ATAC",
+        )?;
+        t(
+            &Features::from(vec![Feature::InsertBase(Position::try_from(2)?, Base::G)]),
             b"AGCG",
         )?;
-        t(&Features::from(vec![Feature::ReferenceSkip(2, 2)]), b"ATAC")?;
         t(
-            &Features::from(vec![Feature::SoftClip(3, vec![Base::G, Base::G])]),
+            &Features::from(vec![Feature::ReferenceSkip(Position::try_from(2)?, 2)]),
+            b"ATAC",
+        )?;
+        t(
+            &Features::from(vec![Feature::SoftClip(
+                Position::try_from(3)?,
+                vec![Base::G, Base::G],
+            )]),
             b"ACGG",
         )?;
-        t(&Features::from(vec![Feature::Padding(1, 2)]), b"ACGT")?;
-        t(&Features::from(vec![Feature::HardClip(1, 2)]), b"ACGT")?;
+        t(
+            &Features::from(vec![Feature::Padding(Position::try_from(1)?, 2)]),
+            b"ACGT",
+        )?;
+        t(
+            &Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]),
+            b"ACGT",
+        )?;
 
         Ok(())
     }
 
     #[test]
-    fn test_resolve_features() {
+    fn test_resolve_features() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_sam::record::{
             cigar::{op::Kind, Op},
             Cigar,
@@ -245,19 +274,25 @@ mod tests {
             Cigar::from(vec![Op::new(Kind::Match, 4)])
         );
 
-        let features = Features::from(vec![Feature::SoftClip(1, vec![Base::A, Base::T])]);
+        let features = Features::from(vec![Feature::SoftClip(
+            Position::try_from(1)?,
+            vec![Base::A, Base::T],
+        )]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])
         );
 
-        let features = Features::from(vec![Feature::SoftClip(4, vec![Base::G])]);
+        let features = Features::from(vec![Feature::SoftClip(
+            Position::try_from(4)?,
+            vec![Base::G],
+        )]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
         );
 
-        let features = Features::from(vec![Feature::HardClip(1, 2)]);
+        let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]),
@@ -265,8 +300,8 @@ mod tests {
 
         // FIXME
         let features = Features::from(vec![
-            Feature::SoftClip(1, vec![Base::A]),
-            Feature::Substitution(3, 0),
+            Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
+            Feature::Substitution(Position::try_from(3)?, 0),
         ]);
         assert_eq!(
             resolve_features(&features, 4),
@@ -279,7 +314,7 @@ mod tests {
         );
 
         // FIXME
-        let features = Features::from(vec![Feature::Substitution(2, 0)]);
+        let features = Features::from(vec![Feature::Substitution(Position::try_from(2)?, 0)]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![
@@ -288,16 +323,17 @@ mod tests {
                 Op::new(Kind::Match, 2)
             ])
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_resolve_quality_scores(
-    ) -> Result<(), sam::record::quality_scores::score::TryFromUByteError> {
+    fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{quality_scores::Score, QualityScores};
 
         let features = [
-            Feature::ReadBase(1, Base::A, Score::try_from(5)?),
-            Feature::QualityScore(3, Score::try_from(8)?),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(5)?),
+            Feature::QualityScore(Position::try_from(3)?, Score::try_from(8)?),
         ];
 
         let actual = resolve_quality_scores(&features, 4);

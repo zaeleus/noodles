@@ -40,7 +40,7 @@ impl Record {
         }
 
         if !self.bam_flags().is_unmapped() {
-            let cigar = resolve_features(self.features(), self.read_length() as i32);
+            let cigar = resolve_features(self.features(), self.read_length());
             builder = builder.set_cigar(cigar);
         }
 

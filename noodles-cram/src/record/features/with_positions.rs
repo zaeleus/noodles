@@ -42,7 +42,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let feature = self.iter.next()?;
 
-        let feature_position = feature.position() as usize;
+        let feature_position = usize::from(feature.position());
         let match_len = feature_position - self.read_position;
 
         self.reference_position = self

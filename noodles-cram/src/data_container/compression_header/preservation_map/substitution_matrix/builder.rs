@@ -42,12 +42,13 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
     use noodles_sam as sam;
 
     use super::*;
 
     #[test]
-    fn test_build() -> Result<(), sam::record::position::TryFromIntError> {
+    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = fasta::record::Sequence::from(b"ACAGGAATAANNNNNN".to_vec());
         let bases = b"TCTGGCGTGT";
 
@@ -55,12 +56,12 @@ mod tests {
             .set_alignment_start(sam::record::Position::try_from(1)?)
             .set_read_length(bases.len())
             .set_bases(bases.to_vec())
-            .add_feature(Feature::Substitution(1, 2)) // A => T
-            .add_feature(Feature::Substitution(3, 2)) // A => T
-            .add_feature(Feature::Substitution(6, 0)) // A => C
-            .add_feature(Feature::Substitution(7, 1)) // A => G
-            .add_feature(Feature::Substitution(9, 1)) // A => G
-            .add_feature(Feature::Substitution(10, 2)) // A => T
+            .add_feature(Feature::Substitution(Position::try_from(1)?, 2)) // A => T
+            .add_feature(Feature::Substitution(Position::try_from(3)?, 2)) // A => T
+            .add_feature(Feature::Substitution(Position::try_from(6)?, 0)) // A => C
+            .add_feature(Feature::Substitution(Position::try_from(7)?, 1)) // A => G
+            .add_feature(Feature::Substitution(Position::try_from(9)?, 1)) // A => G
+            .add_feature(Feature::Substitution(Position::try_from(10)?, 2)) // A => T
             .build();
 
         let mut builder = Builder::default();

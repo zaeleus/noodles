@@ -258,22 +258,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_calculate_alignment_span() {
+    fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
+        use noodles_core::Position;
         use sam::record::sequence::Base;
 
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
-        let features = Features::from(vec![Feature::HardClip(1, 4)]);
+        let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 4)]);
         assert_eq!(calculate_alignment_span(4, &features), 4);
 
         let features = Features::from(vec![
-            Feature::Insertion(1, vec![Base::A, Base::C]),
-            Feature::InsertBase(4, Base::G),
-            Feature::Deletion(6, 3),
-            Feature::ReferenceSkip(10, 5),
-            Feature::SoftClip(16, vec![Base::A, Base::C, Base::G, Base::T]),
+            Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
+            Feature::InsertBase(Position::try_from(4)?, Base::G),
+            Feature::Deletion(Position::try_from(6)?, 3),
+            Feature::ReferenceSkip(Position::try_from(10)?, 5),
+            Feature::SoftClip(
+                Position::try_from(16)?,
+                vec![Base::A, Base::C, Base::G, Base::T],
+            ),
         ]);
         assert_eq!(calculate_alignment_span(20, &features), 21);
+
+        Ok(())
     }
 }
