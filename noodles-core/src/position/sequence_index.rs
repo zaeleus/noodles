@@ -28,6 +28,22 @@ impl<T> SequenceIndex<T> for Position {
     }
 }
 
+impl<T> SequenceIndex<T> for ops::Range<Position> {
+    type Output = [T];
+
+    fn get(self, sequence: &[T]) -> Option<&Self::Output> {
+        let start = usize::from(self.start) - 1;
+        let end = usize::from(self.end) - 1;
+        sequence.get(start..end)
+    }
+
+    fn get_mut(self, sequence: &mut [T]) -> Option<&mut Self::Output> {
+        let start = usize::from(self.start) - 1;
+        let end = usize::from(self.end) - 1;
+        sequence.get_mut(start..end)
+    }
+}
+
 impl<T> SequenceIndex<T> for ops::RangeFrom<Position> {
     type Output = [T];
 
