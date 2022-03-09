@@ -13,7 +13,7 @@
 
 ### Changed
 
-  * bam/record: Move `flags`, `mapping_quality`, `read_name`,
+  * bam/record: Move `flags`, `mapping_quality`, `read_name`, `sequence`,
     `template_length`, and `quality_scores` to the implementation of
     `sam::AlignmentReader`.
 

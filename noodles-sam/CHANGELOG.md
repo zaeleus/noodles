@@ -14,6 +14,7 @@
       * mapping quality (`AlignmentRecord::mapping_quality`),
       * mate position (`AlignmentRecord::mate_alignment_start`),
       * read name (`AlignmentRecord::read_name`),
+      * sequence (`AlignmentRecord::sequence`),
       * template length (`AlignmentRecord::template_length`), and
       * quality scores (`AlignmentRecord::quality_scores`).
 
@@ -53,7 +54,7 @@
 
   * sam/alignment_record: Change alignment span to a `usize`.
 
-  * sam/record: Move `flags`, `mapping_quality`, `read_name`,
+  * sam/record: Move `flags`, `mapping_quality`, `read_name`, `sequence`,
     `template_length`, and `quality_scores` to the implementation of
     `AlignmentRecord`.
 

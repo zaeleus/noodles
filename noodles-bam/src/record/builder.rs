@@ -219,7 +219,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Sequence;
+    /// use noodles_sam::{record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///

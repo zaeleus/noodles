@@ -2,7 +2,7 @@ use std::io;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Flags, MappingQuality, Position, QualityScores, ReadName},
+    record::{Flags, MappingQuality, Position, QualityScores, ReadName, Sequence},
 };
 
 /// An alignment record.
@@ -69,6 +69,9 @@ pub trait AlignmentRecord {
 
     /// Returns the template length.
     fn template_length(&self) -> i32;
+
+    /// Returns the sequence.
+    fn sequence(&self) -> &Sequence;
 
     /// Returns the quality scores.
     fn quality_scores(&self) -> &QualityScores;

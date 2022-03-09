@@ -377,39 +377,12 @@ impl Record {
         &mut self.template_length
     }
 
-    /// Returns the bases in the sequence of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::sequence::Base};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.sequence().is_empty());
-    /// assert_eq!(record.sequence().to_string(), "*");
-    ///
-    /// let record = sam::Record::builder()
-    ///     .set_sequence("AT".parse()?)
-    ///     .build()?;
-    ///
-    /// assert_eq!(record.sequence().to_string(), "AT");
-    ///
-    /// let mut bases = record.sequence().iter();
-    /// assert_eq!(bases.next(), Some(&Base::A));
-    /// assert_eq!(bases.next(), Some(&Base::T));
-    /// assert_eq!(bases.next(), None);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn sequence(&self) -> &Sequence {
-        &self.sequence
-    }
-
     /// Returns a mutable reference to the sequence.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::{sequence, Sequence}};
+    /// use noodles_sam::{self as sam, record::Sequence, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.sequence().is_empty());
@@ -418,7 +391,7 @@ impl Record {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<(), sequence::ParseError>(())
+    /// # Ok::<(), sam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence
@@ -576,6 +549,10 @@ impl AlignmentRecord for Record {
 
     fn template_length(&self) -> i32 {
         self.template_length
+    }
+
+    fn sequence(&self) -> &Sequence {
+        &self.sequence
     }
 
     fn quality_scores(&self) -> &QualityScores {

@@ -328,26 +328,13 @@ impl Record {
         &mut self.cigar
     }
 
-    /// Returns the bases in the sequence of this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.sequence().is_empty());
-    /// ```
-    pub fn sequence(&self) -> &sam::record::Sequence {
-        &self.seq
-    }
-
     /// Returns a mutable reference to the sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Sequence;
+    /// use noodles_sam::{record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -503,6 +490,10 @@ impl sam::AlignmentRecord for Record {
 
     fn template_length(&self) -> i32 {
         self.tlen
+    }
+
+    fn sequence(&self) -> &sam::record::Sequence {
+        &self.seq
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

@@ -250,7 +250,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::sequence::Base};
+    /// use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_cigar("4M".parse()?)
