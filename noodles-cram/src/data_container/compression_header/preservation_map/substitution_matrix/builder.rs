@@ -1,8 +1,8 @@
+use noodles_fasta as fasta;
 use noodles_sam::AlignmentRecord;
 
-use crate::{record::Feature, Record};
-
 use super::{Base, Histogram, SubstitutionMatrix};
+use crate::{record::Feature, Record};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -10,12 +10,13 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
+    pub fn update(&mut self, reference_sequence: &fasta::record::Sequence, record: &Record) {
         let alignment_start = match record.alignment_start() {
             Some(position) => position,
             None => return,
         };
 
+        let reference_sequence = reference_sequence.as_ref();
         let read_bases = record.bases();
 
         for ((mut reference_position, mut read_position), feature) in
@@ -49,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), sam::record::position::TryFromIntError> {
-        let reference_sequence = b"ACAGGAATAANNNNNN";
+        let reference_sequence = fasta::record::Sequence::from(b"ACAGGAATAANNNNNN".to_vec());
         let bases = b"TCTGGCGTGT";
 
         let record = Record::builder()
@@ -65,7 +66,7 @@ mod tests {
             .build();
 
         let mut builder = Builder::default();
-        builder.update(reference_sequence, &record);
+        builder.update(&reference_sequence, &record);
         let matrix = builder.build();
 
         assert_eq!(

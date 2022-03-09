@@ -319,7 +319,7 @@ fn add_record(
         })
         .unwrap_or_default();
 
-    data_container_builder.add_record(reference_sequence.as_ref(), record)
+    data_container_builder.add_record(&reference_sequence, record)
 }
 
 fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>

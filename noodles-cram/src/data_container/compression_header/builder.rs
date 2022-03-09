@@ -1,9 +1,10 @@
-use crate::{writer::Options, Record};
+use noodles_fasta as fasta;
 
 use super::{
     data_series_encoding_map::DataSeriesEncodingMap, preservation_map, tag_encoding_map,
     CompressionHeader,
 };
+use crate::{writer::Options, Record};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -16,7 +17,7 @@ impl Builder {
         self.preservation_map_builder.apply_options(options);
     }
 
-    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
+    pub fn update(&mut self, reference_sequence: &fasta::record::Sequence, record: &Record) {
         self.preservation_map_builder
             .update(reference_sequence, record);
         self.tag_encoding_map_builder.update(record);

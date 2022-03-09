@@ -231,7 +231,7 @@ fn write_records(
                     .expect("missing reference sequence")?;
 
                 update_substitution_codes(
-                    reference_sequence.as_ref(),
+                    &reference_sequence,
                     compression_header.preservation_map().substitution_matrix(),
                     alignment_start,
                     &record.bases,
@@ -272,7 +272,7 @@ fn write_records(
 }
 
 fn update_substitution_codes(
-    reference_sequence: &[u8],
+    reference_sequence: &fasta::record::Sequence,
     substitution_matrix: &SubstitutionMatrix,
     alignment_start: sam::record::Position,
     read_bases: &[u8],
@@ -280,6 +280,7 @@ fn update_substitution_codes(
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
+    let reference_sequence = reference_sequence.as_ref();
     let mut codes = Vec::new();
 
     for ((mut reference_position, mut read_position), feature) in

@@ -44,7 +44,7 @@ impl Builder {
 
     pub fn add_record(
         &mut self,
-        reference_sequence: &[u8],
+        reference_sequence: &fasta::record::Sequence,
         record: Record,
     ) -> Result<(), AddRecordError> {
         if self.slice_builders.len() >= MAX_SLICE_COUNT {

@@ -1,5 +1,6 @@
-use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
+use noodles_fasta as fasta;
 
+use super::{substitution_matrix, tag_ids_dictionary, PreservationMap};
 use crate::{writer::Options, Record};
 
 #[derive(Debug)]
@@ -17,7 +18,7 @@ impl Builder {
         self.ap_data_series_delta = options.encode_alignment_start_positions_as_deltas;
     }
 
-    pub fn update(&mut self, reference_sequence: &[u8], record: &Record) {
+    pub fn update(&mut self, reference_sequence: &fasta::record::Sequence, record: &Record) {
         self.substitution_matrix_builder
             .update(reference_sequence, record);
         self.tag_ids_dictionary_builder.update(record);
