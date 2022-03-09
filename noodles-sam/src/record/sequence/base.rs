@@ -163,6 +163,40 @@ impl From<Base> for char {
     }
 }
 
+impl From<Base> for u8 {
+    fn from(base: Base) -> Self {
+        match base {
+            Base::A => b'A',
+            Base::B => b'B',
+            Base::C => b'C',
+            Base::D => b'D',
+            Base::E => b'E',
+            Base::F => b'F',
+            Base::G => b'G',
+            Base::H => b'H',
+            Base::I => b'I',
+            Base::J => b'J',
+            Base::K => b'K',
+            Base::L => b'L',
+            Base::M => b'M',
+            Base::N => b'N',
+            Base::O => b'O',
+            Base::P => b'P',
+            Base::Q => b'Q',
+            Base::R => b'R',
+            Base::S => b'S',
+            Base::T => b'T',
+            Base::U => b'U',
+            Base::V => b'V',
+            Base::W => b'W',
+            Base::X => b'X',
+            Base::Y => b'Y',
+            Base::Z => b'Z',
+            Base::Eq => b'=',
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -231,5 +265,36 @@ mod tests {
         assert_eq!(Base::try_from(b'='), Ok(Base::Eq));
 
         assert_eq!(Base::try_from(b'*'), Err(TryFromCharError('*')));
+    }
+
+    #[test]
+    fn test_from_base_for_u8() {
+        assert_eq!(u8::from(Base::A), b'A');
+        assert_eq!(u8::from(Base::B), b'B');
+        assert_eq!(u8::from(Base::C), b'C');
+        assert_eq!(u8::from(Base::D), b'D');
+        assert_eq!(u8::from(Base::E), b'E');
+        assert_eq!(u8::from(Base::F), b'F');
+        assert_eq!(u8::from(Base::G), b'G');
+        assert_eq!(u8::from(Base::H), b'H');
+        assert_eq!(u8::from(Base::I), b'I');
+        assert_eq!(u8::from(Base::J), b'J');
+        assert_eq!(u8::from(Base::K), b'K');
+        assert_eq!(u8::from(Base::L), b'L');
+        assert_eq!(u8::from(Base::M), b'M');
+        assert_eq!(u8::from(Base::N), b'N');
+        assert_eq!(u8::from(Base::O), b'O');
+        assert_eq!(u8::from(Base::P), b'P');
+        assert_eq!(u8::from(Base::Q), b'Q');
+        assert_eq!(u8::from(Base::R), b'R');
+        assert_eq!(u8::from(Base::S), b'S');
+        assert_eq!(u8::from(Base::T), b'T');
+        assert_eq!(u8::from(Base::U), b'U');
+        assert_eq!(u8::from(Base::V), b'V');
+        assert_eq!(u8::from(Base::W), b'W');
+        assert_eq!(u8::from(Base::X), b'X');
+        assert_eq!(u8::from(Base::Y), b'Y');
+        assert_eq!(u8::from(Base::Z), b'Z');
+        assert_eq!(u8::from(Base::Eq), b'=');
     }
 }

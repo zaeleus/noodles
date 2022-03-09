@@ -43,6 +43,8 @@
 
   * sam/record/sequence/base: Implement `TryFrom<u8>`.
 
+  * sam/record/sequence/base: Implement conversion to `u8`.
+
 ### Changed
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
