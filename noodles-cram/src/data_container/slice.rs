@@ -165,7 +165,9 @@ impl Slice {
                 continue;
             }
 
-            let (reference_sequence, reference_sequence_offset) = if compression_header
+            let mut alignment_start = record.alignment_start().expect("invalid alignment start");
+
+            let reference_sequence = if compression_header
                 .preservation_map()
                 .is_reference_required()
             {
@@ -179,25 +181,27 @@ impl Slice {
                     .transpose()?
                     .expect("invalid reference sequence name");
 
-                (Some(sequence), 0)
+                Some(sequence)
             } else if let Some(ref sequence) = embedded_reference_sequence {
                 let offset = self
                     .header()
                     .alignment_start()
-                    .map(|alignment_start| (i32::from(alignment_start) - 1) as usize)
+                    .map(i32::from)
                     .expect("invalid slice alignment start");
 
-                (Some(sequence.clone()), offset)
+                let start = i32::from(alignment_start) - offset + 1;
+                alignment_start = sam::record::Position::try_from(start)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                Some(sequence.clone())
             } else {
-                (None, 0)
+                None
             };
 
             let substitution_matrix = compression_header.preservation_map().substitution_matrix();
-            let alignment_start = record.alignment_start().expect("invalid alignment start");
 
             let bases = resolve_bases(
                 reference_sequence,
-                reference_sequence_offset,
                 substitution_matrix,
                 record.features(),
                 alignment_start,
