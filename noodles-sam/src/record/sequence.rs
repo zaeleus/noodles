@@ -6,7 +6,7 @@ pub use self::base::Base;
 
 use std::{
     error, fmt,
-    ops::{Deref, DerefMut, Index},
+    ops::{Deref, DerefMut, Index, IndexMut},
     str::FromStr,
 };
 
@@ -206,6 +206,15 @@ where
 
     fn index(&self, index: I) -> &Self::Output {
         index.index(&self.0)
+    }
+}
+
+impl<I> IndexMut<I> for Sequence
+where
+    I: SequenceIndex<Base>,
+{
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        index.index_mut(&mut self.0)
     }
 }
 
