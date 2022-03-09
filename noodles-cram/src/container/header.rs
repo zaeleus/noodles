@@ -2,13 +2,13 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use noodles_sam as sam;
+use noodles_core::Position;
 
 use super::ReferenceSequenceId;
 
 // § 9 End of file container (2020-06-22)
 const EOF_LEN: i32 = 15;
-const EOF_START_POSITION: i32 = 4_542_278;
+const EOF_START_POSITION: usize = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
@@ -16,7 +16,7 @@ const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 pub struct Header {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
-    start_position: Option<sam::record::Position>,
+    start_position: Option<Position>,
     alignment_span: usize,
     record_count: i32,
     record_counter: i64,
@@ -36,7 +36,7 @@ impl Header {
     pub fn eof() -> Self {
         Self {
             length: EOF_LEN,
-            start_position: Some(sam::record::Position::try_from(EOF_START_POSITION).unwrap()),
+            start_position: Position::new(EOF_START_POSITION),
             block_count: EOF_BLOCK_COUNT,
             crc32: EOF_CRC32,
             ..Default::default()
@@ -51,7 +51,7 @@ impl Header {
         self.reference_sequence_id
     }
 
-    pub fn start_position(&self) -> Option<sam::record::Position> {
+    pub fn start_position(&self) -> Option<Position> {
         self.start_position
     }
 
@@ -84,7 +84,7 @@ impl Header {
             && self.reference_sequence_id.is_none()
             && self
                 .start_position
-                .map(|position| i32::from(position) == EOF_START_POSITION)
+                .map(|position| usize::from(position) == EOF_START_POSITION)
                 .unwrap_or(false)
             && self.alignment_span == 0
             && self.record_count == 0

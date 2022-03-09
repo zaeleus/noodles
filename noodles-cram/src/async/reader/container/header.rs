@@ -1,4 +1,4 @@
-use noodles_sam as sam;
+use noodles_core::Position;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
@@ -16,15 +16,10 @@ where
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let starting_position_on_the_reference = read_itf8(reader).await.and_then(|n| {
-        if n == 0 {
-            Ok(None)
-        } else {
-            sam::record::Position::try_from(n)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        }
-    })?;
+    let starting_position_on_the_reference = read_itf8(reader)
+        .await
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(Position::new)?;
 
     let alignment_span = read_itf8(reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -103,7 +98,7 @@ mod tests {
         let expected = container::Header::builder()
             .set_length(144)
             .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_start_position(sam::record::Position::try_from(3)?)
+            .set_start_position(Position::try_from(3)?)
             .set_alignment_span(5)
             .set_record_count(8)
             .set_record_counter(13)

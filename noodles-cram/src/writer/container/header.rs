@@ -2,6 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
+use noodles_core::Position;
 
 use crate::{
     container,
@@ -20,9 +21,7 @@ where
     let reference_sequence_id = i32::from(header.reference_sequence_id());
     write_itf8(&mut crc_writer, reference_sequence_id)?;
 
-    let starting_position_on_the_reference =
-        header.start_position().map(i32::from).unwrap_or_default();
-    write_itf8(&mut crc_writer, starting_position_on_the_reference)?;
+    write_starting_position_on_the_reference(&mut crc_writer, header.start_position())?;
 
     let alignment_span = i32::try_from(header.alignment_span())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -53,4 +52,19 @@ where
     writer.write_u32::<LittleEndian>(crc32)?;
 
     Ok(())
+}
+
+fn write_starting_position_on_the_reference<W>(
+    writer: &mut W,
+    start_position: Option<Position>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = start_position.map(usize::from).unwrap_or_default();
+
+    let starting_position_on_the_reference =
+        i32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_itf8(writer, starting_position_on_the_reference)
 }

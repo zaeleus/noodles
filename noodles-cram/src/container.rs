@@ -6,6 +6,7 @@ pub use self::{block::Block, header::Header, reference_sequence_id::ReferenceSeq
 
 use std::{cmp, error, fmt, io};
 
+use noodles_core::Position;
 use noodles_sam as sam;
 
 use super::{data_container::Slice, writer, DataContainer};
@@ -103,11 +104,11 @@ impl Container {
         if let (Some(alignment_start), Some(alignment_end)) =
             (container_alignment_start, container_alignment_end)
         {
-            let alignment_span = i32::from(alignment_end) - i32::from(alignment_start) + 1;
+            let alignment_span = usize::from(alignment_end) - usize::from(alignment_start) + 1;
 
             builder = builder
                 .set_start_position(alignment_start)
-                .set_alignment_span(alignment_span as usize);
+                .set_alignment_span(alignment_span);
         }
 
         let header = builder.build();
@@ -153,26 +154,19 @@ fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<Referenc
 
 fn find_container_alignment_positions(
     slices: &[Slice],
-) -> io::Result<(Option<sam::record::Position>, Option<sam::record::Position>)> {
+) -> io::Result<(Option<Position>, Option<Position>)> {
     assert!(!slices.is_empty());
 
-    let mut container_alignment_start = sam::record::Position::try_from(i32::MAX)
-        .map(Some)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+    let mut container_alignment_start = Position::new(usize::MAX);
     let mut container_alignment_end = None;
 
     for slice in slices {
         let slice_header = slice.header();
 
-        let slice_alignment_start = slice_header
-            .alignment_start()
-            .map(|end| sam::record::Position::try_from(usize::from(end) as i32).unwrap());
+        let slice_alignment_start = slice_header.alignment_start();
         container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
 
-        let slice_alignment_end = slice_header
-            .alignment_end()
-            .map(|end| sam::record::Position::try_from(usize::from(end) as i32).unwrap());
+        let slice_alignment_end = slice_header.alignment_end();
         container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
     }
 

@@ -1,4 +1,4 @@
-use noodles_sam as sam;
+use noodles_core::Position;
 
 use crate::container::ReferenceSequenceId;
 
@@ -8,7 +8,7 @@ use super::Header;
 pub struct Builder {
     length: i32,
     reference_sequence_id: ReferenceSequenceId,
-    start_position: Option<sam::record::Position>,
+    start_position: Option<Position>,
     alignment_span: usize,
     record_count: i32,
     record_counter: i64,
@@ -29,7 +29,7 @@ impl Builder {
         self
     }
 
-    pub fn set_start_position(mut self, start_position: sam::record::Position) -> Self {
+    pub fn set_start_position(mut self, start_position: Position) -> Self {
         self.start_position = Some(start_position);
         self
     }
