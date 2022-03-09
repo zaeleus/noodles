@@ -7,7 +7,7 @@ pub mod reference_sequence_id;
 
 pub use self::{builder::Builder, data::Data, reference_sequence_id::ReferenceSequenceId};
 
-use std::{fmt, io, mem};
+use std::{io, mem};
 
 use noodles_sam::{
     self as sam,
@@ -37,7 +37,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 ///
 /// A `bam::Record` and its fields store raw values and care should be taken when manipulating
 /// them.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
     pos: Option<sam::record::Position>,
@@ -544,25 +544,6 @@ impl Default for Record {
             qual: sam::record::QualityScores::default(),
             data: Data::default(),
         }
-    }
-}
-
-impl fmt::Debug for Record {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.debug_struct("Record")
-            .field("block_size", &self.block_size())
-            .field("ref_id", &self.reference_sequence_id())
-            .field("pos", &self.position())
-            .field("mapq", &self.mapq)
-            .field("flag", &self.flag)
-            .field("next_ref_id", &self.mate_reference_sequence_id())
-            .field("next_pos", &self.mate_position())
-            .field("tlen", &self.tlen)
-            .field("read_name", &self.read_name)
-            .field("cigar", &self.cigar())
-            .field("seq", &self.sequence())
-            .field("data", &self.data())
-            .finish()
     }
 }
 
