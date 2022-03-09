@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_base_for_char() {
+    fn test_from_base_for_u8() {
         assert_eq!(u8::from(Base::A), b'A');
         assert_eq!(u8::from(Base::C), b'C');
         assert_eq!(u8::from(Base::G), b'G');
