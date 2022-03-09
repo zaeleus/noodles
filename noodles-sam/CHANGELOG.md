@@ -53,6 +53,15 @@
     `template_length`, and `quality_scores` to the implementation of
     `AlignmentRecord`.
 
+  * sam/record: Errors that store lengths now use `usize`:
+
+      * `sam::record::parser::SequenceLengthMismatch`,
+      * `sam::record::parser::QualityScoresLengthMismatch`,
+      * `sam::record::builder::BuildError::SequenceLengthMismatch`, and
+      * `sam::record::builder::BuildError::QualityScoresLengthMismatch`.
+
+  * sam/record/cigar/op: Change length to a `usize`.
+
   * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch` and
     `SeqMismatch` to `SequenceMismatch`.
 

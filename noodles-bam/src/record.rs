@@ -472,7 +472,7 @@ impl sam::AlignmentRecord for Record {
     /// # Ok::<_, io::Error>(())
     /// ```
     fn alignment_span(&self) -> io::Result<u32> {
-        Ok(self.cigar().reference_len())
+        Ok(self.cigar().reference_len() as u32)
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {

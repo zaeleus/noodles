@@ -204,7 +204,8 @@ where
             }
         };
 
-        let len = n >> 4;
+        let len =
+            usize::try_from(n >> 4).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         Ok(Op::new(kind, len))
     }

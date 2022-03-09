@@ -216,9 +216,12 @@ where
 pub(crate) fn encode_cigar_op(op: sam::record::cigar::Op) -> io::Result<u32> {
     const MAX_LENGTH: u32 = (1 << 28) - 1;
 
-    if op.len() <= MAX_LENGTH {
+    let len =
+        u32::try_from(op.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    if len <= MAX_LENGTH {
         let k = op.kind() as u32;
-        Ok(op.len() << 4 | k)
+        Ok(len << 4 | k)
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,

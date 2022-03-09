@@ -11,9 +11,9 @@ use super::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildError {
     /// The sequence length does not match the CIGAR string read length.
-    SequenceLengthMismatch(u32, u32),
+    SequenceLengthMismatch(usize, usize),
     /// The quality scores length does not match the sequence length.
-    QualityScoresLengthMismatch(u32, u32),
+    QualityScoresLengthMismatch(usize, usize),
 }
 
 impl error::Error for BuildError {}
@@ -326,7 +326,7 @@ impl Builder {
         // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
         // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
         if !self.flags.is_unmapped() && !self.sequence.is_empty() {
-            let sequence_len = self.sequence.len() as u32;
+            let sequence_len = self.sequence.len();
             let cigar_read_len = self.cigar.read_len();
 
             if sequence_len != cigar_read_len {
@@ -340,8 +340,8 @@ impl Builder {
         // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ` must
         // not be a '*' and the length of the quality string ought to equal the length of `SEQ`."
         if !self.quality_scores.is_empty() {
-            let quality_scores_len = self.quality_scores.len() as u32;
-            let sequence_len = self.sequence.len() as u32;
+            let quality_scores_len = self.quality_scores.len();
+            let sequence_len = self.sequence.len();
 
             if quality_scores_len != sequence_len {
                 return Err(BuildError::QualityScoresLengthMismatch(

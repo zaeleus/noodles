@@ -41,11 +41,11 @@ pub enum ParseError {
     /// The record sequence is invalid.
     InvalidSequence(sequence::ParseError),
     /// The sequence length does not match the CIGAR string read length.
-    SequenceLengthMismatch(u32, u32),
+    SequenceLengthMismatch(usize, usize),
     /// The record quality score is invalid.
     InvalidQualityScores(quality_scores::ParseError),
     /// The quality scores length does not match the sequence length.
-    QualityScoresLengthMismatch(u32, u32),
+    QualityScoresLengthMismatch(usize, usize),
     /// The record data is invalid.
     InvalidData(data::ParseError),
 }

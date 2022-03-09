@@ -115,7 +115,7 @@ pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Ci
     for feature in features.iter() {
         if usize::from(feature.position()) > i {
             let len = usize::from(feature.position()) - i;
-            let op = Op::new(Kind::Match, len as u32);
+            let op = Op::new(Kind::Match, len);
             ops.push(op);
 
             i = usize::from(feature.position());
@@ -133,7 +133,7 @@ pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Ci
             _ => continue,
         };
 
-        let op = Op::new(kind, len as u32);
+        let op = Op::new(kind, len);
         ops.push(op);
 
         if matches!(
@@ -150,7 +150,7 @@ pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Ci
 
     if i <= read_len {
         let len = read_len - i + 1;
-        let op = Op::new(Kind::Match, len as u32);
+        let op = Op::new(Kind::Match, len);
         ops.push(op);
     }
 

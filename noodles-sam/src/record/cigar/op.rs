@@ -10,7 +10,7 @@ pub use self::kind::Kind;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Op {
     kind: Kind,
-    len: u32,
+    len: usize,
 }
 
 impl Op {
@@ -26,7 +26,7 @@ impl Op {
     /// assert_eq!(op.kind(), Kind::Match);
     /// assert_eq!(op.len(), 13);
     /// ```
-    pub fn new(kind: Kind, len: u32) -> Self {
+    pub fn new(kind: Kind, len: usize) -> Self {
         Self { kind, len }
     }
 
@@ -52,7 +52,7 @@ impl Op {
     /// let op = Op::new(Kind::Match, 13);
     /// assert_eq!(op.len(), 13);
     /// ```
-    pub fn len(self) -> u32 {
+    pub fn len(self) -> usize {
         self.len
     }
 

@@ -53,7 +53,7 @@ impl Cigar {
     ///
     /// assert_eq!(cigar.reference_len(), 40);
     /// ```
-    pub fn reference_len(&self) -> u32 {
+    pub fn reference_len(&self) -> usize {
         self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match
@@ -85,7 +85,7 @@ impl Cigar {
     ///
     /// assert_eq!(cigar.read_len(), 44);
     /// ```
-    pub fn read_len(&self) -> u32 {
+    pub fn read_len(&self) -> usize {
         self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match
