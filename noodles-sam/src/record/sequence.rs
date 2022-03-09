@@ -32,6 +32,19 @@ impl Sequence {
         self.0.is_empty()
     }
 
+    /// Returns the number of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::Sequence;
+    /// let sequence = Sequence::default();
+    /// assert_eq!(sequence.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     /// Returns a reference to the base at the given index.
     ///
     /// # Examples
