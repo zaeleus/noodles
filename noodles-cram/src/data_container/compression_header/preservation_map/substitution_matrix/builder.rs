@@ -22,7 +22,7 @@ impl Builder {
             record.features().with_positions(alignment_start)
         {
             if let Feature::Substitution(..) = feature {
-                let base = reference_sequence.get(reference_position).copied().unwrap();
+                let base = reference_sequence[reference_position];
                 let reference_base = Base::try_from(base).unwrap_or_default();
 
                 let base = read_bases.get(read_position).copied().unwrap();

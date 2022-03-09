@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use bytes::Bytes;
 use noodles_core::position::SequenceIndex;
 
@@ -68,5 +70,16 @@ impl AsRef<[u8]> for Sequence {
 impl From<Vec<u8>> for Sequence {
     fn from(data: Vec<u8>) -> Self {
         Self(Bytes::from(data))
+    }
+}
+
+impl<I> Index<I> for Sequence
+where
+    I: SequenceIndex<u8>,
+{
+    type Output = I::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        index.index(self.as_ref())
     }
 }

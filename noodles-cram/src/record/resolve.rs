@@ -28,11 +28,7 @@ pub(crate) fn resolve_bases(
     while let Some(((reference_position, read_position), feature)) = it.next() {
         if let Some(reference_sequence) = reference_sequence {
             let dst = buf.get_mut(last_read_position..read_position).unwrap();
-
-            let src = reference_sequence
-                .get(last_reference_position..reference_position)
-                .unwrap();
-
+            let src = &reference_sequence[last_reference_position..reference_position];
             copy_from_raw_bases(dst, src)?;
         } else if read_position != last_read_position {
             return Err(io::Error::new(
@@ -51,7 +47,7 @@ pub(crate) fn resolve_bases(
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
-                    let base = reference_sequence.get(reference_position).copied().unwrap();
+                    let base = reference_sequence[reference_position];
                     let reference_base = SubstitutionMatrixBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
                     *buf.get_mut(read_position).unwrap() = Base::from(read_base);
@@ -89,9 +85,7 @@ pub(crate) fn resolve_bases(
         let end = last_reference_position
             .checked_add(dst.len())
             .expect("attempt to add with overflow");
-        let src = reference_sequence
-            .get(last_reference_position..end)
-            .unwrap();
+        let src = &reference_sequence[last_reference_position..end];
 
         copy_from_raw_bases(dst, src)?;
     } else if usize::from(last_read_position) != buf.len() {
