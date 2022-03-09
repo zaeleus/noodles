@@ -1,3 +1,4 @@
+use noodles_core::Position;
 use noodles_sam as sam;
 
 use crate::record::Feature;
@@ -7,7 +8,7 @@ where
     I: Iterator<Item = &'a Feature>,
 {
     iter: I,
-    reference_position: usize,
+    reference_position: Position,
     read_position: usize,
 }
 
@@ -18,7 +19,8 @@ where
     pub fn new(iter: I, alignment_start: sam::record::Position) -> Self {
         Self {
             iter,
-            reference_position: i32::from(alignment_start) as usize,
+            // SAFETY: `sam::record::Position` is guaranteed to be non-zero.
+            reference_position: Position::new(i32::from(alignment_start) as usize).unwrap(),
             read_position: 1,
         }
     }
@@ -26,7 +28,7 @@ where
     /// Returns the current reference position and read position.
     ///
     /// These are 1-based.
-    pub fn positions(&self) -> (usize, usize) {
+    pub fn positions(&self) -> (Position, usize) {
         (self.reference_position, self.read_position)
     }
 }
@@ -35,14 +37,19 @@ impl<'a, I> Iterator for WithPositions<'a, I>
 where
     I: Iterator<Item = &'a Feature>,
 {
-    type Item = ((usize, usize), I::Item);
+    type Item = ((Position, usize), I::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
         let feature = self.iter.next()?;
 
         let feature_position = feature.position() as usize;
         let match_len = feature_position - self.read_position;
-        self.reference_position += match_len;
+
+        self.reference_position = self
+            .reference_position
+            .checked_add(match_len)
+            .expect("attempt to add with overflow");
+
         self.read_position += match_len;
 
         let (reference_position_delta, read_position_delta) = match feature {
@@ -61,7 +68,11 @@ where
 
         let positions = self.positions();
 
-        self.reference_position += reference_position_delta;
+        self.reference_position = self
+            .reference_position
+            .checked_add(reference_position_delta)
+            .expect("attempt to add with overflow");
+
         self.read_position += read_position_delta;
 
         Some((positions, feature))

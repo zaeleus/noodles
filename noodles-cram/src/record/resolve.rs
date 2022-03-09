@@ -18,23 +18,22 @@ pub(crate) fn resolve_bases(
 ) -> io::Result<Vec<u8>> {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    let reference_sequence = reference_sequence.as_ref().map(|rs| rs.as_ref());
-
+    let reference_sequence = reference_sequence.as_ref();
     let mut buf = vec![b'-'; read_length];
 
     let mut it = features.with_positions(alignment_start);
 
     let (mut last_reference_position, mut last_read_position) = it.positions();
-    last_reference_position -= 1;
     last_read_position -= 1;
 
-    while let Some(((mut reference_position, mut read_position), feature)) = it.next() {
-        reference_position -= 1;
+    while let Some(((reference_position, mut read_position), feature)) = it.next() {
         read_position -= 1;
 
         if let Some(reference_sequence) = reference_sequence {
             let dst = &mut buf[last_read_position..read_position];
-            let src = &reference_sequence[last_reference_position..reference_position];
+            let src = reference_sequence
+                .get(last_reference_position..reference_position)
+                .unwrap();
             dst.copy_from_slice(src);
         } else if read_position != last_read_position {
             return Err(io::Error::new(
@@ -54,7 +53,7 @@ pub(crate) fn resolve_bases(
             }
             Feature::Substitution(_, code) => {
                 if let Some(reference_sequence) = reference_sequence {
-                    let base = reference_sequence[reference_position];
+                    let base = reference_sequence.get(reference_position).copied().unwrap();
                     let reference_base = Base::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
                     buf[read_position] = u8::from(read_base);
@@ -84,13 +83,20 @@ pub(crate) fn resolve_bases(
         }
 
         let (next_reference_position, next_read_position) = it.positions();
-        last_reference_position = next_reference_position - 1;
+        last_reference_position = next_reference_position;
         last_read_position = next_read_position - 1;
     }
 
     if let Some(reference_sequence) = reference_sequence {
         let dst = &mut buf[last_read_position..];
-        let src = &reference_sequence[last_reference_position..last_reference_position + dst.len()];
+
+        let end = last_reference_position
+            .checked_add(dst.len())
+            .expect("attempt to add with overflow");
+        let src = reference_sequence
+            .get(last_reference_position..end)
+            .unwrap();
+
         dst.copy_from_slice(src);
     } else if last_read_position != buf.len() {
         return Err(io::Error::new(

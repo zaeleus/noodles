@@ -280,17 +280,15 @@ fn update_substitution_codes(
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    let reference_sequence = reference_sequence.as_ref();
     let mut codes = Vec::new();
 
-    for ((mut reference_position, mut read_position), feature) in
+    for ((reference_position, mut read_position), feature) in
         features.with_positions(alignment_start)
     {
-        reference_position -= 1;
         read_position -= 1;
 
         if let Feature::Substitution(..) = feature {
-            let base = reference_sequence[reference_position];
+            let base = reference_sequence.get(reference_position).copied().unwrap();
             let reference_base = Base::try_from(base).unwrap_or_default();
 
             let base = read_bases[read_position];
