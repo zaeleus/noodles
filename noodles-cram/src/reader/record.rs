@@ -61,7 +61,7 @@ where
     core_data_reader: BitReader<CDR>,
     external_data_readers: ExternalDataReaders<EDR>,
     reference_sequence_id: ReferenceSequenceId,
-    prev_alignment_start: Option<sam::record::Position>,
+    prev_alignment_start: Option<Position>,
 }
 
 impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
@@ -74,7 +74,7 @@ where
         core_data_reader: BitReader<CDR>,
         external_data_readers: ExternalDataReaders<EDR>,
         reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Option<sam::record::Position>,
+        initial_alignment_start: Option<Position>,
     ) -> Self {
         Self {
             compression_header,
@@ -107,7 +107,9 @@ where
             self.read_mapped_read(&mut record, cram_bit_flags, read_length)?;
         }
 
-        self.prev_alignment_start = record.alignment_start();
+        self.prev_alignment_start = record
+            .alignment_start()
+            .and_then(|start| Position::new(i32::from(start) as usize));
 
         Ok(record)
     }
@@ -216,18 +218,26 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-        )?;
+        )
+        .and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         if ap_data_series_delta {
-            let prev_alignment_start = self.prev_alignment_start.map(i32::from).unwrap_or_default();
+            let prev_alignment_start = self
+                .prev_alignment_start
+                .map(usize::from)
+                .unwrap_or_default();
+
             let delta = alignment_start;
+
             alignment_start = prev_alignment_start + delta;
         }
 
         if alignment_start == 0 {
             Ok(None)
         } else {
-            sam::record::Position::try_from(alignment_start)
+            sam::record::Position::try_from(alignment_start as i32)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         }

@@ -5,6 +5,7 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io::{self, Cursor};
 
+use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
@@ -93,7 +94,9 @@ impl Slice {
             core_data_reader,
             external_data_readers,
             self.header.reference_sequence_id(),
-            self.header.alignment_start(),
+            self.header
+                .alignment_start()
+                .and_then(|start| Position::new(i32::from(start) as usize)),
         );
 
         let record_count = self.header().record_count();
