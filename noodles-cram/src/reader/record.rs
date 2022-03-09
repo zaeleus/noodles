@@ -263,7 +263,7 @@ where
     }
 
     fn read_read_name(&mut self) -> io::Result<Option<sam::record::ReadName>> {
-        const MISSING: &[u8] = b"*";
+        use sam::record::read_name::MISSING;
 
         let encoding = self
             .compression_header
