@@ -93,6 +93,24 @@ impl Sequence {
     {
         index.get_mut(self.0.as_mut())
     }
+
+    /// Appends a base to the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::{sequence::Base, Sequence};
+    ///
+    /// let mut sequence = Sequence::default();
+    /// sequence.push(Base::N);
+    ///
+    /// let expected = Sequence::from(vec![Base::N]);
+    ///
+    /// assert_eq!(sequence, expected);
+    /// ````
+    pub fn push(&mut self, base: Base) {
+        self.0.push(base);
+    }
 }
 
 impl Deref for Sequence {
