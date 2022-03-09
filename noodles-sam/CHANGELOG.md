@@ -21,6 +21,8 @@
 
   * sam/record/cigar: Add `clear` method.
 
+  * sam/record/cigar: Implement `AsMut<Vec<Op>>`.
+
   * sam/record/quality_scores/score: Implement `Default` + `Ord` +
     `PartialOrd`.
 

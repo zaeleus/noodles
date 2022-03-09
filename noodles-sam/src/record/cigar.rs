@@ -107,6 +107,12 @@ impl Deref for Cigar {
     }
 }
 
+impl AsMut<Vec<Op>> for Cigar {
+    fn as_mut(&mut self) -> &mut Vec<Op> {
+        &mut self.0
+    }
+}
+
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
