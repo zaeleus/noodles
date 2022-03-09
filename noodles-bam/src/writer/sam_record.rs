@@ -5,16 +5,11 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_sam::{
-    self as sam,
-    header::ReferenceSequences,
-    record::{Cigar, Data},
-    AlignmentRecord,
-};
+use noodles_sam::{self as sam, header::ReferenceSequences, record::Data, AlignmentRecord};
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_quality_scores,
-    write_sequence, write_template_length,
+    write_bin, write_cigar, write_flags, write_mapping_quality, write_position,
+    write_quality_scores, write_sequence, write_template_length,
 };
 
 // § 4.2 The BAM format (2021-06-03)
@@ -157,20 +152,6 @@ where
     };
 
     writer.write_i32::<LittleEndian>(id)
-}
-
-fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
-where
-    W: Write,
-{
-    for op in cigar.iter() {
-        let len = op.len();
-        let kind = op.kind() as u32;
-        let value = len << 4 | kind;
-        writer.write_u32::<LittleEndian>(value)?;
-    }
-
-    Ok(())
 }
 
 pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {

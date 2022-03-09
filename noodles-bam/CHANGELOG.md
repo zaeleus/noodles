@@ -26,6 +26,8 @@
 
   * bam/record: Replace `Sequence` with `sam::record::Sequence`.
 
+  * bam/record: Replace `Cigar` with `sam::record::Cigar`.
+
   * bam/reader/record: Clear quality scores if all scores are missing.
 
     This previously filled the quality scores with scores of 255, but this just
@@ -57,6 +59,10 @@
   * bam/record: Remove `Sequence`.
 
     Use `sam::record::Sequence` instead.
+
+  * bam/record: Remove `Cigar`.
+
+    Use `sam::record::Cigar` instead.
 
 ## 0.16.0 - 2022-03-02
 

@@ -1,14 +1,11 @@
 //! BAM record and fields.
 
 pub mod builder;
-pub mod cigar;
 mod convert;
 pub mod data;
 pub mod reference_sequence_id;
 
-pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, reference_sequence_id::ReferenceSequenceId,
-};
+pub use self::{builder::Builder, data::Data, reference_sequence_id::ReferenceSequenceId};
 
 use std::{fmt, io, mem};
 
@@ -50,7 +47,7 @@ pub struct Record {
     next_pos: Option<sam::record::Position>,
     tlen: i32,
     read_name: Option<sam::record::ReadName>,
-    cigar: Cigar,
+    cigar: sam::record::Cigar,
     seq: sam::record::Sequence,
     qual: sam::record::QualityScores,
     data: Data,
@@ -307,7 +304,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> &Cigar {
+    pub fn cigar(&self) -> &sam::record::Cigar {
         &self.cigar
     }
 
@@ -316,18 +313,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::cigar::Op};
-    /// use noodles_sam::record::cigar::op::Kind;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::Cigar;
+    ///
+    /// let cigar: Cigar = "36M".parse()?;
     ///
     /// let mut record = bam::Record::default();
+    /// *record.cigar_mut() = cigar.clone();
     ///
-    /// let op = Op::new(Kind::Match, 36)?;
-    /// record.cigar_mut().push(op);
-    ///
-    /// assert_eq!(record.cigar().as_ref(), [0x00000240]);
-    /// Ok::<_, bam::record::cigar::op::LengthError>(())
+    /// assert_eq!(record.cigar(), &cigar);
+    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut Cigar {
+    pub fn cigar_mut(&mut self) -> &mut sam::record::Cigar {
         &mut self.cigar
     }
 
@@ -475,7 +472,7 @@ impl sam::AlignmentRecord for Record {
     /// # Ok::<_, io::Error>(())
     /// ```
     fn alignment_span(&self) -> io::Result<u32> {
-        self.cigar().reference_len()
+        Ok(self.cigar().reference_len())
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
@@ -542,7 +539,7 @@ impl Default for Record {
             next_pos: None,
             tlen: 0,
             read_name: None,
-            cigar: Cigar::default(),
+            cigar: sam::record::Cigar::default(),
             seq: sam::record::Sequence::default(),
             qual: sam::record::QualityScores::default(),
             data: Data::default(),
@@ -597,6 +594,10 @@ mod tests {
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let cigar = "4M"
+            .parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let seq = "ATGC"
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -614,7 +615,7 @@ mod tests {
             next_pos,
             tlen: 166,
             read_name,
-            cigar: Cigar::from(vec![0x00000040]), // 4M
+            cigar,
             seq,
             qual,
             data: Data::try_from(vec![

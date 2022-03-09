@@ -81,7 +81,7 @@ impl Builder {
 
     fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
         let start = record.position().map(i32::from).expect("missing position");
-        let reference_len = record.cigar().reference_len().map(|len| len as i32)?;
+        let reference_len = record.cigar().reference_len() as i32;
         let end = start + reference_len - 1;
 
         let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;

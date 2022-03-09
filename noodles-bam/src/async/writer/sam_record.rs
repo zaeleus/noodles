@@ -4,8 +4,8 @@ use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use super::record::{
-    write_bin, write_flags, write_mapping_quality, write_position, write_quality_scores,
-    write_sequence, write_template_length,
+    write_bin, write_cigar, write_flags, write_mapping_quality, write_position,
+    write_quality_scores, write_sequence, write_template_length,
 };
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
@@ -157,20 +157,6 @@ where
     };
 
     writer.write_i32_le(id).await
-}
-
-async fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    for op in cigar.iter() {
-        let len = op.len();
-        let kind = op.kind() as u32;
-        let value = len << 4 | kind;
-        writer.write_u32_le(value).await?;
-    }
-
-    Ok(())
 }
 
 async fn write_missing_filled_quality_scores<W>(

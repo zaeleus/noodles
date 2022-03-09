@@ -1,11 +1,7 @@
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{
-    record::{Cigar, ReferenceSequenceId},
-    writer::sam_record::NULL_QUALITY_SCORE,
-    Record,
-};
+use crate::{record::ReferenceSequenceId, writer::sam_record::NULL_QUALITY_SCORE, Record};
 
 pub(super) async fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
@@ -206,12 +202,15 @@ where
     Ok(())
 }
 
-async fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
+pub(super) async fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    for &raw_op in cigar.as_ref() {
-        writer.write_u32_le(raw_op).await?;
+    use crate::writer::record::encode_cigar_op;
+
+    for &op in cigar.as_ref() {
+        let n = encode_cigar_op(op)?;
+        writer.write_u32_le(n).await?;
     }
 
     Ok(())
@@ -283,10 +282,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{cigar::op::Kind, data::field::Tag, Flags, MappingQuality, Position};
+        use sam::record::{data::field::Tag, Flags, MappingQuality, Position};
 
         use crate::record::{
-            cigar::Op,
             data::{field::Value, Field},
             Data, ReferenceSequenceId,
         };
@@ -302,10 +300,7 @@ mod tests {
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
             .set_read_name("r0".parse()?)
-            .set_cigar(Cigar::from(vec![
-                Op::new(Kind::Match, 36)?,
-                Op::new(Kind::SoftClip, 8)?,
-            ]))
+            .set_cigar("36M8S".parse()?)
             .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .set_data(Data::try_from(vec![Field::new(

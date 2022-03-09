@@ -80,8 +80,9 @@ impl Record {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
-        let cigar = self.cigar().try_into()?;
-        builder = builder.set_cigar(cigar);
+        if !self.cigar().is_empty() {
+            builder = builder.set_cigar(self.cigar().clone());
+        }
 
         if let Some(mate_reference_sequence_name) =
             get_reference_sequence_name(reference_sequences, self.mate_reference_sequence_id())?
@@ -156,9 +157,9 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::record::{cigar::op::Kind, Flags, MappingQuality, Position};
+        use sam::record::{Flags, MappingQuality, Position};
 
-        use crate::record::{cigar::Op, Cigar, Data};
+        use crate::record::Data;
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 
@@ -171,7 +172,7 @@ mod tests {
             .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
             .set_read_name("r0".parse()?)
-            .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 4)?]))
+            .set_cigar("4M".parse()?)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data(Data::try_from(vec![
@@ -185,12 +186,9 @@ mod tests {
 
     #[test]
     fn test_try_into_sam_record() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{
-            cigar::{op, Op},
-            data::{
-                field::{Tag, Value},
-                Field,
-            },
+        use sam::record::data::{
+            field::{Tag, Value},
+            Field,
         };
 
         let bam_record = build_record()?;
@@ -203,7 +201,7 @@ mod tests {
             .set_reference_sequence_name("sq1".parse()?)
             .set_position(sam::record::Position::try_from(61062)?)
             .set_mapping_quality(sam::record::MappingQuality::try_from(12)?)
-            .set_cigar(sam::record::Cigar::from(vec![Op::new(op::Kind::Match, 4)]))
+            .set_cigar("4M".parse()?)
             .set_mate_reference_sequence_name("sq1".parse()?)
             .set_mate_position(sam::record::Position::try_from(61153)?)
             .set_template_length(166)

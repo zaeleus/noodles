@@ -4,10 +4,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
-use crate::{
-    record::{Cigar, ReferenceSequenceId},
-    Record,
-};
+use crate::{record::ReferenceSequenceId, Record};
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -204,15 +201,30 @@ where
     Ok(())
 }
 
-fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
+pub(super) fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
 where
     W: Write,
 {
-    for &raw_op in cigar.as_ref() {
-        writer.write_u32::<LittleEndian>(raw_op)?;
+    for &op in cigar.as_ref() {
+        let n = encode_cigar_op(op)?;
+        writer.write_u32::<LittleEndian>(n)?;
     }
 
     Ok(())
+}
+
+pub(crate) fn encode_cigar_op(op: sam::record::cigar::Op) -> io::Result<u32> {
+    const MAX_LENGTH: u32 = (1 << 28) - 1;
+
+    if op.len() <= MAX_LENGTH {
+        let k = op.kind() as u32;
+        Ok(op.len() << 4 | k)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid CIGAR op length",
+        ))
+    }
 }
 
 pub(super) fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
@@ -325,12 +337,11 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{cigar::op::Kind, data::field::Tag, Flags, MappingQuality, Position};
+        use sam::record::{data::field::Tag, Flags, MappingQuality, Position};
 
         use crate::record::{
-            cigar::Op,
             data::{field::Value, Field},
-            Cigar, Data, ReferenceSequenceId,
+            Data, ReferenceSequenceId,
         };
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
@@ -344,10 +355,7 @@ mod tests {
             .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
             .set_read_name("r0".parse()?)
-            .set_cigar(Cigar::from(vec![
-                Op::new(Kind::Match, 36)?,
-                Op::new(Kind::SoftClip, 8)?,
-            ]))
+            .set_cigar("36M8S".parse()?)
             .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .set_data(Data::try_from(vec![Field::new(

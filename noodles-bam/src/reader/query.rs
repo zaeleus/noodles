@@ -147,7 +147,7 @@ pub(crate) fn intersects(
     };
 
     let start = record.position().map(i32::from).expect("missing position");
-    let len = record.cigar().reference_len().map(|len| len as i32)?;
+    let len = record.cigar().reference_len() as i32;
     let end = start + len - 1;
 
     Ok(id == reference_sequence_id && in_interval(start, end, interval_start, interval_end))
