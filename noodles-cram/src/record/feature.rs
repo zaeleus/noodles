@@ -20,19 +20,19 @@ pub enum Feature {
     /// Inserted bases (position, bases).
     Insertion(i32, Vec<u8>),
     /// A number of deleted bases (position, length).
-    Deletion(i32, i32),
+    Deletion(i32, usize),
     /// A single inserted base (position, base).
     InsertBase(i32, u8),
     /// A single quality score (position, score).
     QualityScore(i32, Score),
     /// A number of skipped bases (position, length).
-    ReferenceSkip(i32, i32),
+    ReferenceSkip(i32, usize),
     /// Soft clipped bases (position, bases).
     SoftClip(i32, Vec<u8>),
     /// A number of padded bases (position, length).
-    Padding(i32, i32),
+    Padding(i32, usize),
     /// A number of hard clipped bases (position, length).
-    HardClip(i32, i32),
+    HardClip(i32, usize),
 }
 
 impl Feature {

@@ -196,7 +196,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn alignment_span(&self) -> io::Result<u32> {
-        Ok(calculate_alignment_span(self.read_length() as i32, self.features()) as u32)
+        Ok(calculate_alignment_span(self.read_length(), self.features()) as u32)
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
@@ -226,15 +226,15 @@ impl sam::AlignmentRecord for Record {
     }
 }
 
-fn calculate_alignment_span(read_length: i32, features: &Features) -> i32 {
+fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
     features
         .iter()
         .fold(read_length, |alignment_span, feature| match feature {
-            Feature::Insertion(_, bases) => alignment_span - bases.len() as i32,
+            Feature::Insertion(_, bases) => alignment_span - bases.len(),
             Feature::InsertBase(_, _) => alignment_span - 1,
             Feature::Deletion(_, len) => alignment_span + len,
             Feature::ReferenceSkip(_, len) => alignment_span + len,
-            Feature::SoftClip(_, bases) => alignment_span - bases.len() as i32,
+            Feature::SoftClip(_, bases) => alignment_span - bases.len(),
             _ => alignment_span,
         })
 }

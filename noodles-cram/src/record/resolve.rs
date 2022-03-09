@@ -127,12 +127,12 @@ pub fn resolve_features(features: &Features, read_len: i32) -> sam::record::Ciga
         let (kind, len) = match feature {
             Feature::Substitution(..) => (Kind::Match, 1),
             Feature::Insertion(_, bases) => (Kind::Insertion, bases.len() as i32),
-            Feature::Deletion(_, len) => (Kind::Deletion, *len),
+            Feature::Deletion(_, len) => (Kind::Deletion, *len as i32),
             Feature::InsertBase(..) => (Kind::Insertion, 1),
-            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len),
+            Feature::ReferenceSkip(_, len) => (Kind::Skip, *len as i32),
             Feature::SoftClip(_, bases) => (Kind::SoftClip, bases.len() as i32),
-            Feature::Padding(_, len) => (Kind::Pad, *len),
-            Feature::HardClip(_, len) => (Kind::HardClip, *len),
+            Feature::Padding(_, len) => (Kind::Pad, *len as i32),
+            Feature::HardClip(_, len) => (Kind::HardClip, *len as i32),
             _ => continue,
         };
 

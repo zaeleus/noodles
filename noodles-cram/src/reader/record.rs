@@ -781,8 +781,9 @@ where
             })
     }
 
-    fn read_deletion_length(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_deletion_length(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
             .ok_or_else(|| {
@@ -790,18 +791,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_reference_skip_length(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_reference_skip_length(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
             .ok_or_else(|| {
@@ -809,14 +811,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_soft_clip(&mut self) -> io::Result<Vec<u8>> {
@@ -839,8 +841,9 @@ where
             })
     }
 
-    fn read_padding(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_padding(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .padding_encoding()
             .ok_or_else(|| {
@@ -848,18 +851,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_hard_clip(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_hard_clip(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
             .ok_or_else(|| {
@@ -867,14 +871,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {

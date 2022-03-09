@@ -745,8 +745,9 @@ where
             })
     }
 
-    fn write_deletion_length(&mut self, len: i32) -> io::Result<()> {
-        self.compression_header
+    fn write_deletion_length(&mut self, len: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .deletion_lengths_encoding()
             .ok_or_else(|| {
@@ -754,19 +755,21 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::DeletionLengths),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    len,
-                )
-            })
+            })?;
+
+        let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            n,
+        )
     }
 
-    fn write_reference_skip_length(&mut self, len: i32) -> io::Result<()> {
-        self.compression_header
+    fn write_reference_skip_length(&mut self, len: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .reference_skip_length_encoding()
             .ok_or_else(|| {
@@ -774,15 +777,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceSkipLength),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    len,
-                )
-            })
+            })?;
+
+        let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            n,
+        )
     }
 
     fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
@@ -805,8 +809,9 @@ where
             })
     }
 
-    fn write_padding(&mut self, len: i32) -> io::Result<()> {
-        self.compression_header
+    fn write_padding(&mut self, len: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .padding_encoding()
             .ok_or_else(|| {
@@ -814,19 +819,21 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::Padding),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    len,
-                )
-            })
+            })?;
+
+        let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            n,
+        )
     }
 
-    fn write_hard_clip(&mut self, len: i32) -> io::Result<()> {
-        self.compression_header
+    fn write_hard_clip(&mut self, len: usize) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .hard_clip_encoding()
             .ok_or_else(|| {
@@ -834,15 +841,16 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::HardClip),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    len,
-                )
-            })
+            })?;
+
+        let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            n,
+        )
     }
 
     fn write_mapping_quality(
