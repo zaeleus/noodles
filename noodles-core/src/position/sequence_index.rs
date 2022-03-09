@@ -17,6 +17,11 @@ pub trait SequenceIndex<T> {
     ///
     /// This panics if the index is out of bounds.
     fn index(self, sequence: &[T]) -> &Self::Output;
+
+    /// Returns a mutable reference to the output of the given index.
+    ///
+    /// This panics if the index is out of bounds.
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output;
 }
 
 impl<T> SequenceIndex<T> for Position {
@@ -35,6 +40,11 @@ impl<T> SequenceIndex<T> for Position {
     fn index(self, sequence: &[T]) -> &Self::Output {
         let i = usize::from(self) - 1;
         &sequence[i]
+    }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
+        let i = usize::from(self) - 1;
+        &mut sequence[i]
     }
 }
 
@@ -58,6 +68,12 @@ impl<T> SequenceIndex<T> for ops::Range<Position> {
         let end = usize::from(self.end) - 1;
         &sequence[start..end]
     }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
+        let start = usize::from(self.start) - 1;
+        let end = usize::from(self.end) - 1;
+        &mut sequence[start..end]
+    }
 }
 
 impl<T> SequenceIndex<T> for ops::RangeFrom<Position> {
@@ -77,6 +93,11 @@ impl<T> SequenceIndex<T> for ops::RangeFrom<Position> {
         let start = usize::from(self.start) - 1;
         &sequence[start..]
     }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
+        let start = usize::from(self.start) - 1;
+        &mut sequence[start..]
+    }
 }
 
 impl<T> SequenceIndex<T> for ops::RangeFull {
@@ -91,6 +112,10 @@ impl<T> SequenceIndex<T> for ops::RangeFull {
     }
 
     fn index(self, sequence: &[T]) -> &Self::Output {
+        sequence
+    }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
         sequence
     }
 }
@@ -114,5 +139,11 @@ impl<T> SequenceIndex<T> for ops::RangeInclusive<Position> {
         let start = usize::from(*self.start()) - 1;
         let end = usize::from(*self.end()) - 1;
         &sequence[start..=end]
+    }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
+        let start = usize::from(*self.start()) - 1;
+        let end = usize::from(*self.end()) - 1;
+        &mut sequence[start..=end]
     }
 }
