@@ -535,8 +535,9 @@ where
         Ok(())
     }
 
-    fn read_number_of_read_features(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_number_of_read_features(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
             .ok_or_else(|| {
@@ -544,14 +545,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_feature(&mut self, prev_position: i32) -> io::Result<Feature> {
