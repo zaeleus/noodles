@@ -104,7 +104,7 @@ impl Builder {
             slice_alignment_start,
             slice_alignment_end,
         ) {
-            (ReferenceSequenceId::Some(id), Some(alignment_start), Some(alignment_end)) => {
+            (ReferenceSequenceId::Some(id), Some(start), Some(end)) => {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(id as usize)
@@ -116,11 +116,8 @@ impl Builder {
                     .expect("missing reference sequence")
                     .expect("invalid reference sequence");
 
-                let start = (i32::from(alignment_start) - 1) as usize;
-                let end = (i32::from(alignment_end) - 1) as usize;
-
                 let mut hasher = Md5::new();
-                hasher.update(&reference_sequence.as_ref()[start..=end]);
+                hasher.update(&reference_sequence[start..=end]);
                 <[u8; 16]>::from(hasher.finalize())
             }
             _ => [0; 16],
@@ -137,11 +134,11 @@ impl Builder {
         if let (Some(alignment_start), Some(alignment_end)) =
             (slice_alignment_start, slice_alignment_end)
         {
-            let alignment_span = i32::from(alignment_end) - i32::from(alignment_start) + 1;
+            let alignment_span = usize::from(alignment_end) - usize::from(alignment_start) + 1;
 
             builder = builder
-                .set_alignment_start(Position::new(i32::from(alignment_start) as usize).unwrap())
-                .set_alignment_span(alignment_span as usize);
+                .set_alignment_start(alignment_start)
+                .set_alignment_span(alignment_span);
         }
 
         let header = builder.build();
@@ -174,18 +171,20 @@ fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
 
 fn find_slice_alignment_positions(
     records: &[Record],
-) -> io::Result<(Option<sam::record::Position>, Option<sam::record::Position>)> {
+) -> io::Result<(Option<Position>, Option<Position>)> {
     assert!(!records.is_empty());
 
-    let mut slice_alignment_start = sam::record::Position::try_from(i32::MAX)
-        .map(Some)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+    let mut slice_alignment_start = Position::new(usize::MAX);
     let mut slice_alignment_end = None;
 
     for record in records {
-        slice_alignment_start = cmp::min(record.alignment_start(), slice_alignment_start);
-        slice_alignment_end = cmp::max(record.alignment_end(), slice_alignment_end);
+        let record_alignment_start =
+            Position::new(record.alignment_start().map(i32::from).unwrap_or_default() as usize);
+        slice_alignment_start = cmp::min(record_alignment_start, slice_alignment_start);
+
+        let record_alignment_end =
+            Position::new(record.alignment_end().map(i32::from).unwrap_or_default() as usize);
+        slice_alignment_end = cmp::max(record_alignment_end, slice_alignment_end);
     }
 
     Ok((slice_alignment_start, slice_alignment_end))
@@ -196,7 +195,7 @@ fn write_records(
     header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_reference_sequence_id: ReferenceSequenceId,
-    slice_alignment_start: Option<sam::record::Position>,
+    slice_alignment_start: Option<Position>,
     records: &mut [Record],
 ) -> io::Result<(Block, Vec<Block>)> {
     let mut core_data_writer = BitWriter::new(Vec::new());
@@ -217,7 +216,8 @@ fn write_records(
         &mut core_data_writer,
         &mut external_data_writers,
         slice_reference_sequence_id,
-        slice_alignment_start,
+        slice_alignment_start
+            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap()),
     );
 
     for record in records {
