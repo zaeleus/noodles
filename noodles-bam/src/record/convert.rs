@@ -92,6 +92,8 @@ impl Record {
         }
 
         if let Some(mate_position) = self.mate_position() {
+            let mate_position =
+                sam::record::Position::try_from(usize::from(mate_position) as i32).unwrap();
             builder = builder.set_mate_position(mate_position);
         }
 
@@ -172,7 +174,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::try_from(12)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(sam::record::Position::try_from(61153)?)
+            .set_mate_position(Position::try_from(61153)?)
             .set_template_length(166)
             .set_read_name("r0".parse()?)
             .set_cigar("4M".parse()?)

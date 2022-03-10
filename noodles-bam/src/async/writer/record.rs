@@ -297,7 +297,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(sam::record::Position::try_from(22)?)
+            .set_mate_position(Position::try_from(22)?)
             .set_template_length(144)
             .set_read_name("r0".parse()?)
             .set_cigar("36M8S".parse()?)

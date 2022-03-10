@@ -28,7 +28,7 @@
 
   * bam/record: Replace `Cigar` with `sam::record::Cigar`.
 
-  * bam/record: Change position a `Position`.
+  * bam/record: Change position and mate position to `Position`.
 
   * bam/reader/record: Clear quality scores if all scores are missing.
 

@@ -45,7 +45,7 @@ pub struct Record {
     mapq: Option<sam::record::MappingQuality>,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
-    next_pos: Option<sam::record::Position>,
+    next_pos: Option<Position>,
     tlen: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
@@ -247,7 +247,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_position().is_none());
     /// ```
-    pub fn mate_position(&self) -> Option<sam::record::Position> {
+    pub fn mate_position(&self) -> Option<Position> {
         self.next_pos
     }
 
@@ -257,17 +257,16 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
+    /// use noodles_core::Position;
     ///
-    /// let position = sam::record::Position::try_from(13).map(Some)?;
+    /// let position = Position::new(13);
     ///
     /// let mut record = bam::Record::default();
     /// *record.mate_position_mut() = position;
     ///
     /// assert_eq!(record.mate_position(), position);
-    /// Ok::<_, sam::record::position::TryFromIntError>(())
     /// ```
-    pub fn mate_position_mut(&mut self) -> &mut Option<sam::record::Position> {
+    pub fn mate_position_mut(&mut self) -> &mut Option<Position> {
         &mut self.next_pos
     }
 
@@ -486,7 +485,6 @@ impl sam::AlignmentRecord for Record {
 
     fn mate_alignment_start(&self) -> Option<Position> {
         self.mate_position()
-            .and_then(|position| Position::new(i32::from(position) as usize))
     }
 
     fn template_length(&self) -> i32 {
@@ -548,13 +546,7 @@ mod tests {
 
         let ref_id = Some(ReferenceSequenceId::from(10));
 
-        let pos = Position::new(61062);
-
         let mapq = MappingQuality::try_from(12)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let next_pos = sam::record::Position::try_from(61153)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
@@ -577,11 +569,11 @@ mod tests {
 
         Ok(Record {
             ref_id,
-            pos,
+            pos: Position::new(61062),
             mapq,
             flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
             next_ref_id: ref_id,
-            next_pos,
+            next_pos: Position::new(61153),
             tlen: 166,
             read_name,
             cigar,

@@ -63,9 +63,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    *record.mate_position_mut() = read_position(&mut buf).map(|position| {
-        position.map(|p| sam::record::Position::try_from(usize::from(p) as i32).unwrap())
-    })?;
+    *record.mate_position_mut() = read_position(&mut buf)?;
 
     *record.template_length_mut() = buf.get_i32_le();
 
