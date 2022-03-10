@@ -58,17 +58,21 @@ where
     Ok(builder.build())
 }
 
-fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<i32>>
+fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
 where
     R: Read,
 {
     let len = read_itf8(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
+
     let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let pos = read_itf8(reader)?;
+        let pos = read_itf8(reader).and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         buf.push(pos);
     }
 

@@ -56,17 +56,21 @@ where
     Ok(builder.build())
 }
 
-async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<i32>>
+async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
 where
     R: AsyncRead + Unpin,
 {
     let len = read_itf8(reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
+
     let mut landmarks = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let pos = read_itf8(reader).await?;
+        let pos = read_itf8(reader).await.and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         landmarks.push(pos);
     }
 

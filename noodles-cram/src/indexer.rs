@@ -33,7 +33,7 @@ where
     while let Some((container_header, data_container)) =
         reader.read_data_container_with_container_header()?
     {
-        let container_len = container_header.len() as i32;
+        let container_len = container_header.len();
 
         let landmarks = container_header.landmarks();
         let slice_count = landmarks.len();

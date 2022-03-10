@@ -22,7 +22,7 @@ pub struct Header {
     record_counter: i64,
     base_count: i64,
     block_count: usize,
-    landmarks: Vec<i32>,
+    landmarks: Vec<usize>,
     crc32: u32,
 }
 
@@ -75,7 +75,7 @@ impl Header {
         self.block_count
     }
 
-    pub fn landmarks(&self) -> &[i32] {
+    pub fn landmarks(&self) -> &[usize] {
         &self.landmarks
     }
 

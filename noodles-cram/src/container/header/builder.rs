@@ -14,7 +14,7 @@ pub struct Builder {
     record_counter: i64,
     base_count: i64,
     block_count: usize,
-    landmarks: Vec<i32>,
+    landmarks: Vec<usize>,
     crc32: u32,
 }
 
@@ -59,7 +59,7 @@ impl Builder {
         self
     }
 
-    pub fn set_landmarks(mut self, landmarks: Vec<i32>) -> Self {
+    pub fn set_landmarks(mut self, landmarks: Vec<usize>) -> Self {
         self.landmarks = landmarks;
         self
     }

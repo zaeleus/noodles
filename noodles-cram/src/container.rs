@@ -86,7 +86,7 @@ impl Container {
             }
 
             let last_landmark = landmarks.last().copied().unwrap_or(0);
-            let landmark = last_landmark + (slice_len as i32);
+            let landmark = last_landmark + slice_len;
             landmarks.push(landmark);
         }
 

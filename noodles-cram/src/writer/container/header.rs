@@ -41,12 +41,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, number_of_blocks)?;
 
-    let landmarks_len = header.landmarks().len() as i32;
-    write_itf8(&mut crc_writer, landmarks_len)?;
-
-    for &pos in header.landmarks() {
-        write_itf8(&mut crc_writer, pos)?;
-    }
+    write_landmarks(&mut crc_writer, header.landmarks())?;
 
     let crc32 = crc_writer.crc().sum();
     let writer = crc_writer.into_inner();
@@ -68,4 +63,20 @@ where
         i32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     write_itf8(writer, starting_position_on_the_reference)
+}
+
+fn write_landmarks<W>(writer: &mut W, landmarks: &[usize]) -> io::Result<()>
+where
+    W: Write,
+{
+    let landmarks_len = i32::try_from(landmarks.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, landmarks_len)?;
+
+    for &pos in landmarks {
+        let n = i32::try_from(pos).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        write_itf8(writer, n)?;
+    }
+
+    Ok(())
 }
