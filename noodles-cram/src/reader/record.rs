@@ -214,30 +214,29 @@ where
             .data_series_encoding_map()
             .in_seq_positions_encoding();
 
-        let mut alignment_start = decode_itf8(
+        let alignment_start_or_delta = decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-        )
-        .and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        )?;
 
-        if ap_data_series_delta {
-            let prev_alignment_start = self
-                .prev_alignment_start
-                .map(usize::from)
-                .unwrap_or_default();
+        let alignment_start = if ap_data_series_delta {
+            let prev_alignment_start = i32::try_from(
+                self.prev_alignment_start
+                    .map(usize::from)
+                    .unwrap_or_default(),
+            )
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let delta = alignment_start;
-
-            alignment_start = prev_alignment_start + delta;
-        }
+            prev_alignment_start + alignment_start_or_delta
+        } else {
+            alignment_start_or_delta
+        };
 
         if alignment_start == 0 {
             Ok(None)
         } else {
-            sam::record::Position::try_from(alignment_start as i32)
+            sam::record::Position::try_from(alignment_start)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         }
