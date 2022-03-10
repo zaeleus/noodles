@@ -73,7 +73,6 @@ impl Record {
         }
 
         if let Some(position) = self.position() {
-            let position = sam::record::Position::try_from(usize::from(position) as i32).unwrap();
             builder = builder.set_position(position);
         }
 
@@ -204,7 +203,7 @@ mod tests {
             .set_read_name("r0".parse()?)
             .set_flags(sam::record::Flags::SEGMENTED | sam::record::Flags::FIRST_SEGMENT)
             .set_reference_sequence_name("sq1".parse()?)
-            .set_position(sam::record::Position::try_from(61062)?)
+            .set_position(Position::try_from(61062)?)
             .set_mapping_quality(sam::record::MappingQuality::try_from(12)?)
             .set_cigar("4M".parse()?)
             .set_mate_reference_sequence_name("sq1".parse()?)

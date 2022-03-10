@@ -28,8 +28,6 @@ impl Record {
         }
 
         if let Some(alignment_start) = self.alignment_start() {
-            let alignment_start =
-                sam::record::Position::try_from(usize::from(alignment_start) as i32).unwrap();
             builder = builder.set_position(alignment_start);
         }
 

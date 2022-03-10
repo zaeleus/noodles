@@ -70,10 +70,15 @@
       * `sam::record::builder::BuildError::SequenceLengthMismatch`, and
       * `sam::record::builder::BuildError::QualityScoresLengthMismatch`.
 
+  * sam/record: Change position to `Position`.
+
   * sam/record/cigar/op: Change length to a `usize`.
 
   * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch` and
     `SeqMismatch` to `SequenceMismatch`.
+
+  * sam/record/parser: `ParseError::InvalidPosition` wraps a
+    `std::num::ParseIntError`.
 
   * sam/record/read_name: Disallow "`*`" as a read name.
 

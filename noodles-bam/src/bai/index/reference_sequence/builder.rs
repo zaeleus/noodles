@@ -131,10 +131,8 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{
-        self as sam,
-        record::{Flags, Position},
-    };
+    use noodles_core::Position;
+    use noodles_sam::{self as sam, record::Flags};
 
     use super::*;
 

@@ -27,7 +27,7 @@ pub enum ParseError {
     /// The record reference sequence name is invalid.
     InvalidReferenceSequenceName(reference_sequence_name::ParseError),
     /// The record position is invalid.
-    InvalidPosition(position::ParseError),
+    InvalidPosition(num::ParseIntError),
     /// The record mapping quality is invalid.
     InvalidMappingQuality(mapping_quality::ParseError),
     /// The record CIGAR string is invalid.
@@ -201,14 +201,13 @@ where
     })
 }
 
-fn parse_pos<'a, I>(fields: &mut I) -> Result<Option<Position>, ParseError>
+fn parse_pos<'a, I>(fields: &mut I) -> Result<Option<noodles_core::Position>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::Position).and_then(|s| match s {
-        ZERO_FIELD => Ok(None),
-        _ => s.parse().map(Some).map_err(ParseError::InvalidPosition),
-    })
+    parse_string(fields, Field::Position)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))
+        .map(noodles_core::Position::new)
 }
 
 fn parse_mapq<'a, I>(fields: &mut I) -> Result<Option<MappingQuality>, ParseError>

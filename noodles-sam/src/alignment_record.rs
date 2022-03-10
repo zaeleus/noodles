@@ -38,7 +38,7 @@ pub trait AlignmentRecord {
     /// use noodles_sam::{self as sam, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_position(sam::record::Position::try_from(8)?)
+    ///     .set_position(Position::try_from(8)?)
     ///     .set_cigar("5M".parse()?)
     ///     .build()?;
     ///

@@ -41,7 +41,7 @@ pub struct Builder {
     read_name: Option<ReadName>,
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
-    position: Option<Position>,
+    position: Option<noodles_core::Position>,
     mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
@@ -135,16 +135,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Position};
+    /// use noodles_core::Position;
+    /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// assert_eq!(record.position(), Position::new(13));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_position(mut self, position: Position) -> Self {
+    pub fn set_position(mut self, position: noodles_core::Position) -> Self {
         self.position = Some(position);
         self
     }
@@ -436,7 +437,7 @@ mod tests {
             .set_read_name(read_name.clone())
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_name(reference_sequence_name.clone())
-            .set_position(Position::try_from(13)?)
+            .set_position(noodles_core::Position::try_from(13)?)
             .set_mapping_quality(MappingQuality::try_from(37)?)
             .set_cigar(cigar)
             .set_mate_reference_sequence_name(mate_reference_sequence_name.clone())
@@ -453,7 +454,7 @@ mod tests {
             record.reference_sequence_name(),
             Some(&reference_sequence_name)
         );
-        assert_eq!(record.position().map(i32::from), Some(13));
+        assert_eq!(record.position(), noodles_core::Position::new(13));
         assert_eq!(record.mapping_quality().map(u8::from), Some(37));
         assert_eq!(record.cigar().len(), 1);
 

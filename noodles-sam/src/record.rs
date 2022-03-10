@@ -52,7 +52,7 @@ pub struct Record {
     read_name: Option<ReadName>,
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
-    position: Option<Position>,
+    position: Option<noodles_core::Position>,
     mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
@@ -175,7 +175,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Position};
+    /// use noodles_core::Position;
+    /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
     /// assert!(record.position().is_none());
@@ -183,10 +184,10 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
     ///     .build()?;
-    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// assert_eq!(record.position(), Position::new(13));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn position(&self) -> Option<Position> {
+    pub fn position(&self) -> Option<noodles_core::Position> {
         self.position
     }
 
@@ -197,17 +198,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Position};
+    /// use noodles_sam as sam;
+    /// use noodles_core::Position;
     ///
     /// let mut record = sam::Record::default();
-    /// *record.position_mut() = Some(Position::try_from(13)?);
-    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// *record.position_mut() = Position::new(13);
+    /// assert_eq!(record.position(), Position::new(13));
     ///
     /// *record.position_mut() = None;
     /// assert!(record.position().is_none());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn position_mut(&mut self) -> &mut Option<Position> {
+    pub fn position_mut(&mut self) -> &mut Option<noodles_core::Position> {
         &mut self.position
     }
 
@@ -507,7 +508,6 @@ impl AlignmentRecord for Record {
     /// ```
     fn alignment_start(&self) -> Option<noodles_core::Position> {
         self.position()
-            .and_then(|position| noodles_core::Position::new(i32::from(position) as usize))
     }
 
     /// Calculates the alignment span over the reference sequence.
@@ -607,7 +607,7 @@ impl fmt::Display for Record {
             .map(|name| name.as_str())
             .unwrap_or(NULL_FIELD);
 
-        let pos = self.position().map(i32::from).unwrap_or(position::UNMAPPED);
+        let pos = self.position().map(usize::from).unwrap_or_default();
 
         let mapq = self
             .mapping_quality()

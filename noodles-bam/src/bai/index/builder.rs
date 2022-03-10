@@ -102,11 +102,9 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_bgzf as bgzf;
+    use noodles_core::Position;
     use noodles_csi::BinningIndex;
-    use noodles_sam::{
-        self as sam,
-        record::{Flags, Position},
-    };
+    use noodles_sam::{self as sam, record::Flags};
 
     use super::*;
 
