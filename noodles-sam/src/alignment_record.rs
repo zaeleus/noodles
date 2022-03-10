@@ -1,8 +1,10 @@
 use std::io;
 
+use noodles_core::Position;
+
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Flags, MappingQuality, Position, QualityScores, ReadName, Sequence},
+    record::{Flags, MappingQuality, QualityScores, ReadName, Sequence},
 };
 
 /// An alignment record.
@@ -32,27 +34,22 @@ pub trait AlignmentRecord {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     record::{cigar::{op::Kind, Op}, Cigar, Position},
-    ///     AlignmentRecord,
-    /// };
+    /// use noodles_core::Position;
+    /// use noodles_sam::{self as sam, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
-    ///     .set_position(Position::try_from(8)?)
-    ///     .set_cigar(Cigar::from(vec![Op::new(Kind::Match, 5)]))
+    ///     .set_position(sam::record::Position::try_from(8)?)
+    ///     .set_cigar("5M".parse()?)
     ///     .build()?;
     ///
-    /// let actual = record.alignment_end();
-    /// let expected = Position::try_from(12).map(Some)?;
-    /// assert_eq!(actual, expected);
+    /// assert_eq!(record.alignment_end(), Position::new(12));
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     fn alignment_end(&self) -> Option<Position> {
-        let start = self.alignment_start().map(i32::from)?;
-        let len = self.alignment_span() as i32;
-        let end = start + len - 1;
-        Position::try_from(end).ok()
+        self.alignment_start().and_then(|alignment_start| {
+            let end = usize::from(alignment_start) + self.alignment_span() - 1;
+            Position::new(end)
+        })
     }
 
     /// Returns the mapping quality.

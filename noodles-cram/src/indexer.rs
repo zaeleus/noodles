@@ -93,14 +93,14 @@ fn push_index_records(
 
 #[derive(Debug)]
 struct SliceReferenceSequenceAlignmentRangeInclusive {
-    start: i32,
-    end: i32,
+    start: usize,
+    end: usize,
 }
 
 impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
     fn default() -> Self {
         Self {
-            start: i32::MAX,
+            start: usize::MAX,
             end: 0,
         }
     }
@@ -126,10 +126,13 @@ fn push_index_records_for_multi_reference_slice(
             .entry(reference_sequence_id)
             .or_default();
 
-        let alignment_start = record.alignment_start().map(i32::from).unwrap_or_default();
+        let alignment_start = record
+            .alignment_start()
+            .map(usize::from)
+            .unwrap_or_default();
         range.start = cmp::min(range.start, alignment_start);
 
-        let alignment_end = record.alignment_end().map(i32::from).unwrap_or_default();
+        let alignment_end = record.alignment_end().map(usize::from).unwrap_or_default();
         range.end = cmp::max(range.end, alignment_end);
     }
 
@@ -157,8 +160,8 @@ fn push_index_records_for_multi_reference_slice(
     for (reference_sequence_id, alignment_start, alignment_span) in reference_sequence_ids {
         let record = crai::Record::new(
             reference_sequence_id,
-            alignment_start,
-            alignment_span,
+            alignment_start as i32,
+            alignment_span as i32,
             container_position,
             landmark as u64,
             slice_length as u64,

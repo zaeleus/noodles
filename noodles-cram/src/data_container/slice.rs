@@ -310,15 +310,18 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
     let start = if record.bam_flags().is_reverse_complemented() {
-        record.alignment_end().map(i32::from).unwrap_or_default()
+        record.alignment_end().map(usize::from).unwrap_or_default() as i32
     } else {
-        record.alignment_start().map(i32::from).unwrap_or_default()
+        record
+            .alignment_start()
+            .map(usize::from)
+            .unwrap_or_default() as i32
     };
 
     let end = if mate.bam_flags().is_reverse_complemented() {
-        mate.alignment_end().map(i32::from).unwrap_or_default()
+        mate.alignment_end().map(usize::from).unwrap_or_default() as i32
     } else {
-        mate.alignment_start().map(i32::from).unwrap_or_default()
+        mate.alignment_start().map(usize::from).unwrap_or_default() as i32
     };
 
     // "...the absolute value of TLEN equals the distance between the mapped end of the template

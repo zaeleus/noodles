@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
+use noodles_core::Position;
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 
 use super::sam_record::NULL_QUALITY_SCORE;
@@ -153,7 +154,7 @@ where
 pub(super) fn write_bin<W>(
     writer: &mut W,
     alignment_start: Option<sam::record::Position>,
-    alignment_end: Option<sam::record::Position>,
+    alignment_end: Option<Position>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -284,10 +285,10 @@ where
 #[allow(clippy::eq_op)]
 pub(crate) fn region_to_bin(
     alignment_start: sam::record::Position,
-    alignment_end: sam::record::Position,
+    alignment_end: Position,
 ) -> io::Result<u16> {
-    let start = i32::from(alignment_start) - 1;
-    let end = i32::from(alignment_end) - 1;
+    let start = (i32::from(alignment_start) - 1) as usize;
+    let end = usize::from(alignment_end) - 1;
 
     let bin = if start >> 14 == end >> 14 {
         ((1 << 15) - 1) / 7 + (start >> 14)
@@ -398,11 +399,11 @@ mod tests {
     #[test]
     fn test_region_to_bin() -> Result<(), Box<dyn std::error::Error>> {
         let start = sam::record::Position::try_from(8)?;
-        let end = sam::record::Position::try_from(13)?;
+        let end = Position::try_from(13)?;
         assert_eq!(region_to_bin(start, end)?, 4681);
 
         let start = sam::record::Position::try_from(63245986)?;
-        let end = sam::record::Position::try_from(63245986)?;
+        let end = Position::try_from(63245986)?;
         assert_eq!(region_to_bin(start, end)?, 8541);
 
         Ok(())

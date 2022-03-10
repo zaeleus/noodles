@@ -101,9 +101,7 @@ where
             self.write_mapped_read(record)?;
         }
 
-        self.prev_alignment_start = record
-            .alignment_start()
-            .and_then(|start| Position::new(i32::from(start) as usize));
+        self.prev_alignment_start = record.alignment_start();
 
         Ok(())
     }

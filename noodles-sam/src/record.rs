@@ -505,8 +505,9 @@ impl AlignmentRecord for Record {
     /// let record = sam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
-    fn alignment_start(&self) -> Option<Position> {
+    fn alignment_start(&self) -> Option<noodles_core::Position> {
         self.position()
+            .and_then(|position| noodles_core::Position::new(i32::from(position) as usize))
     }
 
     /// Calculates the alignment span over the reference sequence.
@@ -543,8 +544,9 @@ impl AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.mate_reference_sequence_name())
     }
 
-    fn mate_alignment_start(&self) -> Option<Position> {
+    fn mate_alignment_start(&self) -> Option<noodles_core::Position> {
         self.mate_position()
+            .and_then(|position| noodles_core::Position::new(i32::from(position) as usize))
     }
 
     fn template_length(&self) -> i32 {

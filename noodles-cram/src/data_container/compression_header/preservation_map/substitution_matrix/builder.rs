@@ -1,4 +1,3 @@
-use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::AlignmentRecord;
 
@@ -17,7 +16,6 @@ impl Builder {
             None => return,
         };
 
-        let alignment_start = Position::new(i32::from(alignment_start) as usize).unwrap();
         let read_bases = record.bases();
 
         for ((reference_position, read_position), feature) in

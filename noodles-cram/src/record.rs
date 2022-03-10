@@ -164,9 +164,8 @@ impl sam::AlignmentRecord for Record {
         self.bam_bit_flags
     }
 
-    fn alignment_start(&self) -> Option<sam::record::Position> {
+    fn alignment_start(&self) -> Option<Position> {
         self.alignment_start
-            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap())
     }
 
     fn alignment_span(&self) -> usize {
@@ -187,9 +186,8 @@ impl sam::AlignmentRecord for Record {
         )
     }
 
-    fn mate_alignment_start(&self) -> Option<sam::record::Position> {
+    fn mate_alignment_start(&self) -> Option<Position> {
         self.next_mate_alignment_start
-            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap())
     }
 
     fn template_length(&self) -> i32 {

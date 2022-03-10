@@ -1,3 +1,4 @@
+use noodles_core::Position;
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
@@ -149,7 +150,7 @@ where
 pub(super) async fn write_bin<W>(
     writer: &mut W,
     alignment_start: Option<sam::record::Position>,
-    alignment_end: Option<sam::record::Position>,
+    alignment_end: Option<Position>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,

@@ -9,6 +9,7 @@ pub use self::{builder::Builder, data::Data, reference_sequence_id::ReferenceSeq
 
 use std::{io, mem};
 
+use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     header::{ReferenceSequence, ReferenceSequences},
@@ -442,8 +443,9 @@ impl sam::AlignmentRecord for Record {
     /// let record = bam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
-    fn alignment_start(&self) -> Option<sam::record::Position> {
+    fn alignment_start(&self) -> Option<Position> {
         self.position()
+            .and_then(|position| Position::new(i32::from(position) as usize))
     }
 
     /// Calculates the alignment span over the reference sequence.
@@ -484,8 +486,9 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.mate_reference_sequence_id())
     }
 
-    fn mate_alignment_start(&self) -> Option<sam::record::Position> {
+    fn mate_alignment_start(&self) -> Option<Position> {
         self.mate_position()
+            .and_then(|position| Position::new(i32::from(position) as usize))
     }
 
     fn template_length(&self) -> i32 {

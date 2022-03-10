@@ -178,13 +178,8 @@ fn find_slice_alignment_positions(
     let mut slice_alignment_end = None;
 
     for record in records {
-        let record_alignment_start =
-            Position::new(record.alignment_start().map(i32::from).unwrap_or_default() as usize);
-        slice_alignment_start = cmp::min(record_alignment_start, slice_alignment_start);
-
-        let record_alignment_end =
-            Position::new(record.alignment_end().map(i32::from).unwrap_or_default() as usize);
-        slice_alignment_end = cmp::max(record_alignment_end, slice_alignment_end);
+        slice_alignment_start = cmp::min(record.alignment_start(), slice_alignment_start);
+        slice_alignment_end = cmp::max(record.alignment_end(), slice_alignment_end);
     }
 
     Ok((slice_alignment_start, slice_alignment_end))

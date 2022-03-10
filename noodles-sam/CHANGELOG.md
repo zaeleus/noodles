@@ -53,6 +53,8 @@
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
 
+  * sam/alignment_record: Change alignment start and end to a `Position`.
+
   * sam/alignment_record: Change alignment span to a `usize`.
 
   * sam/alignment_record: Remove `Result` from alignment end.
