@@ -394,7 +394,7 @@ where
         })
     }
 
-    fn read_next_mate_alignment_start(&mut self) -> io::Result<Option<sam::record::Position>> {
+    fn read_next_mate_alignment_start(&mut self) -> io::Result<Option<Position>> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -411,15 +411,8 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .and_then(|n| {
-            if n == 0 {
-                Ok(None)
-            } else {
-                sam::record::Position::try_from(n)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }
-        })
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(Position::new)
     }
 
     fn read_template_size(&mut self) -> io::Result<i32> {

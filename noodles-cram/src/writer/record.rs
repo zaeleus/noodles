@@ -374,7 +374,7 @@ where
 
     fn write_next_mate_alignment_start(
         &mut self,
-        next_mate_alignment_start: Option<sam::record::Position>,
+        next_mate_alignment_start: Option<Position>,
     ) -> io::Result<()> {
         let encoding = self
             .compression_header
@@ -387,7 +387,12 @@ where
                 )
             })?;
 
-        let position = next_mate_alignment_start.map(i32::from).unwrap_or_default();
+        let position = i32::try_from(
+            next_mate_alignment_start
+                .map(usize::from)
+                .unwrap_or_default(),
+        )
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         encode_itf8(
             encoding,

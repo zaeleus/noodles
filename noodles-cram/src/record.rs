@@ -34,7 +34,7 @@ pub struct Record {
     pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    pub(crate) next_mate_alignment_start: Option<sam::record::Position>,
+    pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: i32,
     pub(crate) tags: Vec<Tag>,
@@ -106,7 +106,7 @@ impl Record {
     /// Returns the alignment start position of the next mate.
     ///
     /// This value is 1-based.
-    pub fn next_mate_alignment_start(&self) -> Option<sam::record::Position> {
+    pub fn next_mate_alignment_start(&self) -> Option<Position> {
         self.next_mate_alignment_start
     }
 
@@ -189,6 +189,7 @@ impl sam::AlignmentRecord for Record {
 
     fn mate_alignment_start(&self) -> Option<sam::record::Position> {
         self.next_mate_alignment_start
+            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap())
     }
 
     fn template_length(&self) -> i32 {

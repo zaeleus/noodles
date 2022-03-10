@@ -304,7 +304,7 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
     }
 
     record.next_fragment_reference_sequence_id = mate.reference_sequence_id();
-    record.next_mate_alignment_start = mate.alignment_start();
+    record.next_mate_alignment_start = mate.alignment_start;
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
@@ -384,7 +384,7 @@ mod tests {
             records[1].reference_sequence_id()
         );
         assert_eq!(
-            records[0].next_mate_alignment_start(),
+            records[0].mate_alignment_start(),
             records[1].alignment_start(),
         );
 
@@ -394,7 +394,7 @@ mod tests {
             records[3].reference_sequence_id()
         );
         assert_eq!(
-            records[1].next_mate_alignment_start(),
+            records[1].mate_alignment_start(),
             records[3].alignment_start(),
         );
 
@@ -408,7 +408,7 @@ mod tests {
             records[0].reference_sequence_id()
         );
         assert_eq!(
-            records[3].next_mate_alignment_start(),
+            records[3].mate_alignment_start(),
             records[0].alignment_start(),
         ); */
 

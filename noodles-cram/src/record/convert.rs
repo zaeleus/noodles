@@ -47,8 +47,8 @@ impl Record {
             builder = builder.set_mate_reference_sequence_name(mate_reference_sequence_name);
         }
 
-        if let Some(next_mate_alignment_start) = self.next_mate_alignment_start() {
-            builder = builder.set_mate_position(next_mate_alignment_start);
+        if let Some(mate_alignment_start) = self.mate_alignment_start() {
+            builder = builder.set_mate_position(mate_alignment_start);
         }
 
         builder = builder.set_template_length(self.template_size());

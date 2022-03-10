@@ -19,7 +19,8 @@
 
   * cram/record: Wrap sequence as `sam::record::Sequence`.
 
-  * cram/record: Change alignment start to a `Position`.
+  * cram/record: Change alignment start and next mate alignment start to a
+    `Position`.
 
   * cram/record/feature: Change underlying data types:
 

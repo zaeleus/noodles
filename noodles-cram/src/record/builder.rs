@@ -19,7 +19,7 @@ pub struct Builder {
     read_name: Option<sam::record::ReadName>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    next_mate_alignment_start: Option<sam::record::Position>,
+    next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: i32,
     tags: Vec<Tag>,
@@ -97,10 +97,7 @@ impl Builder {
     }
 
     /// Sets the alignment start position of the next mate.
-    pub fn set_next_mate_alignment_start(
-        mut self,
-        next_mate_alignment_start: sam::record::Position,
-    ) -> Self {
+    pub fn set_next_mate_alignment_start(mut self, next_mate_alignment_start: Position) -> Self {
         self.next_mate_alignment_start = Some(next_mate_alignment_start);
         self
     }
