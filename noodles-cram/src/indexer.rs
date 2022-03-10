@@ -3,7 +3,11 @@ use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 use noodles_bam as bam;
 use noodles_sam::AlignmentRecord;
 
-use super::{crai, data_container, Reader};
+use super::{
+    crai,
+    data_container::{slice, CompressionHeader, Slice},
+    Reader,
+};
 
 /// Indexes a CRAM file.
 ///
@@ -61,8 +65,8 @@ where
 
 fn push_index_records(
     index: &mut crai::Index,
-    compression_header: &data_container::CompressionHeader,
-    slice: &data_container::Slice,
+    compression_header: &CompressionHeader,
+    slice: &Slice,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
@@ -104,8 +108,8 @@ impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
 
 fn push_index_records_for_multi_reference_slice(
     index: &mut crai::Index,
-    compression_header: &data_container::CompressionHeader,
-    slice: &data_container::Slice,
+    compression_header: &CompressionHeader,
+    slice: &Slice,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
@@ -168,7 +172,7 @@ fn push_index_records_for_multi_reference_slice(
 
 fn push_index_record_for_single_reference_slice(
     index: &mut crai::Index,
-    slice_header: &data_container::slice::Header,
+    slice_header: &slice::Header,
     container_position: u64,
     landmark: u64,
     slice_length: u64,
