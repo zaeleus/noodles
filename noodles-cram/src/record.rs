@@ -18,6 +18,7 @@ pub use self::{
 use std::io;
 
 use noodles_bam as bam;
+use noodles_core::Position;
 use noodles_sam as sam;
 
 /// A CRAM record.
@@ -28,7 +29,7 @@ pub struct Record {
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub(crate) read_length: usize,
-    pub(crate) alignment_start: Option<sam::record::Position>,
+    pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group: Option<ReadGroupId>,
     pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
@@ -165,6 +166,7 @@ impl sam::AlignmentRecord for Record {
 
     fn alignment_start(&self) -> Option<sam::record::Position> {
         self.alignment_start
+            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap())
     }
 
     fn alignment_span(&self) -> usize {

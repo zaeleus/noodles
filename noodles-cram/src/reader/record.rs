@@ -203,7 +203,7 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_alignment_start(&mut self) -> io::Result<Option<sam::record::Position>> {
+    fn read_alignment_start(&mut self) -> io::Result<Option<Position>> {
         let ap_data_series_delta = self
             .compression_header
             .preservation_map()
@@ -233,13 +233,9 @@ where
             alignment_start_or_delta
         };
 
-        if alignment_start == 0 {
-            Ok(None)
-        } else {
-            sam::record::Position::try_from(alignment_start)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        }
+        usize::try_from(alignment_start)
+            .map(Position::new)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn read_read_group(&mut self) -> io::Result<Option<ReadGroupId>> {

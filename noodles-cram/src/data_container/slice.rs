@@ -5,6 +5,7 @@ pub use self::{builder::Builder, header::Header};
 
 use std::io::{self, Cursor};
 
+use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
@@ -165,7 +166,7 @@ impl Slice {
                 continue;
             }
 
-            let mut alignment_start = record.alignment_start().expect("invalid alignment start");
+            let mut alignment_start = record.alignment_start.expect("invalid alignment start");
 
             let reference_sequence = if compression_header
                 .preservation_map()
@@ -187,10 +188,10 @@ impl Slice {
                     .header()
                     .alignment_start()
                     .map(usize::from)
-                    .expect("invalid slice alignment start") as i32;
+                    .expect("invalid slice alignment start");
 
-                let start = i32::from(alignment_start) - offset + 1;
-                alignment_start = sam::record::Position::try_from(start)
+                let start = usize::from(alignment_start) - offset + 1;
+                alignment_start = Position::try_from(start)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 Some(sequence.clone())
@@ -336,6 +337,8 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
 
     #[test]
@@ -351,7 +354,7 @@ mod tests {
                 .set_flags(Flags::HAS_MATE_DOWNSTREAM)
                 .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
                 .set_read_length(4)
-                .set_alignment_start(sam::record::Position::try_from(5)?)
+                .set_alignment_start(Position::try_from(5)?)
                 .set_distance_to_next_fragment(0)
                 .build(),
             Record::builder()
@@ -359,7 +362,7 @@ mod tests {
                 .set_flags(Flags::HAS_MATE_DOWNSTREAM)
                 .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
                 .set_read_length(4)
-                .set_alignment_start(sam::record::Position::try_from(8)?)
+                .set_alignment_start(Position::try_from(8)?)
                 .set_distance_to_next_fragment(1)
                 .build(),
             Record::builder().set_id(3).build(),
@@ -367,7 +370,7 @@ mod tests {
                 .set_id(4)
                 .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
                 .set_read_length(4)
-                .set_alignment_start(sam::record::Position::try_from(13)?)
+                .set_alignment_start(Position::try_from(13)?)
                 .build(),
         ];
 
@@ -413,8 +416,8 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_template_size() -> Result<(), sam::record::position::TryFromIntError> {
-        use sam::record::{Flags, Position};
+    fn test_calculate_template_size() -> Result<(), noodles_core::position::TryFromIntError> {
+        use sam::record::Flags;
 
         // --> -->
         let record = Record::builder()

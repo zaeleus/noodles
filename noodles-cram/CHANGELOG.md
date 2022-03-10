@@ -19,6 +19,8 @@
 
   * cram/record: Wrap sequence as `sam::record::Sequence`.
 
+  * cram/record: Change alignment start to a `Position`.
+
   * cram/record/feature: Change underlying data types:
 
       * bases as `sam::record::sequence::Base`,

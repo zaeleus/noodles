@@ -14,12 +14,11 @@ pub(crate) fn resolve_bases(
     reference_sequence: Option<fasta::record::Sequence>,
     substitution_matrix: &SubstitutionMatrix,
     features: &Features,
-    alignment_start: sam::record::Position,
+    alignment_start: Position,
     read_length: usize,
 ) -> io::Result<sam::record::Sequence> {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
 
-    let alignment_start = Position::new(i32::from(alignment_start) as usize).unwrap();
     let reference_sequence = reference_sequence.as_ref();
 
     let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
@@ -189,7 +188,7 @@ mod tests {
     fn test_resolve_bases() -> Result<(), Box<dyn std::error::Error>> {
         let reference_sequence = fasta::record::Sequence::from(b"ACGTACGT".to_vec());
         let substitution_matrix = Default::default();
-        let alignment_start = sam::record::Position::try_from(1)?;
+        let alignment_start = Position::try_from(1)?;
 
         let t = |features: &Features, expected: &sam::record::Sequence| {
             let actual = resolve_bases(

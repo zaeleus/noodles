@@ -1,4 +1,5 @@
 use noodles_bam as bam;
+use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     record::{quality_scores::Score, sequence::Base},
@@ -13,7 +14,7 @@ pub struct Builder {
     flags: Flags,
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     read_length: usize,
-    alignment_start: Option<sam::record::Position>,
+    alignment_start: Option<Position>,
     read_group_id: Option<ReadGroupId>,
     read_name: Option<sam::record::ReadName>,
     next_mate_flags: NextMateFlags,
@@ -63,7 +64,7 @@ impl Builder {
     }
 
     /// Sets the alignment start position.
-    pub fn set_alignment_start(mut self, alignment_start: sam::record::Position) -> Self {
+    pub fn set_alignment_start(mut self, alignment_start: Position) -> Self {
         self.alignment_start = Some(alignment_start);
         self
     }

@@ -10,6 +10,7 @@ use std::io;
 use md5::{Digest, Md5};
 
 use noodles_bam as bam;
+use noodles_core::Position;
 use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
@@ -84,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_bam_flags(sam::record::Flags::empty())
         .set_flags(cram::record::Flags::QUALITY_SCORES_STORED_AS_ARRAY)
         .set_reference_sequence_id(bam::record::ReferenceSequenceId::from(0))
-        .set_alignment_start(sam::record::Position::try_from(1)?)
+        .set_alignment_start(Position::try_from(1)?)
         .set_read_length(4)
         .set_bases("TTCA".parse()?)
         .set_quality_scores("NDLS".parse()?)

@@ -146,7 +146,7 @@ where
         }
 
         self.write_read_length(record.read_length())?;
-        self.write_alignment_start(record.alignment_start())?;
+        self.write_alignment_start(record.alignment_start)?;
         self.write_read_group(record.read_group_id())?;
 
         Ok(())
@@ -201,10 +201,7 @@ where
         )
     }
 
-    fn write_alignment_start(
-        &mut self,
-        alignment_start: Option<sam::record::Position>,
-    ) -> io::Result<()> {
+    fn write_alignment_start(&mut self, alignment_start: Option<Position>) -> io::Result<()> {
         let ap_data_series_delta = self
             .compression_header
             .preservation_map()
@@ -219,10 +216,13 @@ where
             match (alignment_start, self.prev_alignment_start) {
                 (None, None) => 0,
                 (Some(alignment_start), Some(prev_alignment_start)) => {
+                    let alignment_start = i32::try_from(usize::from(alignment_start))
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
                     let prev_alignment_start = i32::try_from(usize::from(prev_alignment_start))
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-                    i32::from(alignment_start) - prev_alignment_start
+                    alignment_start - prev_alignment_start
                 }
                 _ => {
                     return Err(io::Error::new(
@@ -235,7 +235,8 @@ where
                 }
             }
         } else {
-            alignment_start.map(i32::from).unwrap_or_default()
+            i32::try_from(alignment_start.map(usize::from).unwrap_or_default())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         };
 
         encode_itf8(

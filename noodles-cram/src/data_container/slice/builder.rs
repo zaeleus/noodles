@@ -221,7 +221,7 @@ fn write_records(
 
     for record in records {
         if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
-            if let Some(alignment_start) = record.alignment_start() {
+            if let Some(alignment_start) = record.alignment_start {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(id as usize)
@@ -276,13 +276,12 @@ fn write_records(
 fn update_substitution_codes(
     reference_sequence: &fasta::record::Sequence,
     substitution_matrix: &SubstitutionMatrix,
-    alignment_start: sam::record::Position,
+    alignment_start: Position,
     read_bases: &sam::record::Sequence,
     features: &mut Features,
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
-    let alignment_start = Position::new(i32::from(alignment_start) as usize).unwrap();
     let mut codes = Vec::new();
 
     for ((reference_position, read_position), feature) in features.with_positions(alignment_start) {
