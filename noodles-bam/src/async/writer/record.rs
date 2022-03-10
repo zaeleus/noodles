@@ -16,7 +16,7 @@ where
     write_reference_sequence_id(writer, record.reference_sequence_id()).await?;
 
     // pos
-    write_position(writer, record.position()).await?;
+    write_position(writer, record.alignment_start()).await?;
 
     write_l_read_name(writer, record.read_name()).await?;
 
@@ -24,7 +24,7 @@ where
     write_mapping_quality(writer, record.mapping_quality()).await?;
 
     // bin
-    write_bin(writer, record.position(), record.alignment_end()).await?;
+    write_bin(writer, record.alignment_start(), record.alignment_end()).await?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -41,7 +41,7 @@ where
     write_reference_sequence_id(writer, record.mate_reference_sequence_id()).await?;
 
     // next_pos
-    write_position(writer, record.mate_position()).await?;
+    write_position(writer, record.mate_alignment_start()).await?;
 
     // tlen
     write_template_length(writer, record.template_length()).await?;
@@ -97,18 +97,18 @@ where
     writer.write_i32_le(ref_id).await
 }
 
-pub(super) async fn write_position<W>(
-    writer: &mut W,
-    position: Option<sam::record::Position>,
-) -> io::Result<()>
+pub(super) async fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
     use crate::record::UNMAPPED_POSITION;
 
-    let pos = position
-        .map(|p| i32::from(p) - 1)
-        .unwrap_or(UNMAPPED_POSITION);
+    let pos = if let Some(position) = position {
+        i32::try_from(usize::from(position) - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    } else {
+        UNMAPPED_POSITION
+    };
 
     writer.write_i32_le(pos).await
 }
@@ -149,7 +149,7 @@ where
 
 pub(super) async fn write_bin<W>(
     writer: &mut W,
-    alignment_start: Option<sam::record::Position>,
+    alignment_start: Option<Position>,
     alignment_end: Option<Position>,
 ) -> io::Result<()>
 where
@@ -282,7 +282,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{data::field::Tag, Flags, MappingQuality, Position};
+        use sam::record::{data::field::Tag, Flags, MappingQuality};
 
         use crate::record::{
             data::{field::Value, Field},
@@ -297,7 +297,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(Position::try_from(22)?)
+            .set_mate_position(sam::record::Position::try_from(22)?)
             .set_template_length(144)
             .set_read_name("r0".parse()?)
             .set_cigar("36M8S".parse()?)

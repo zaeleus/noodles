@@ -9,7 +9,7 @@ use crate::{
     Record,
 };
 
-use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
+use super::{bin, Bin, Metadata, ReferenceSequence, MIN_SHIFT};
 
 // § 5.2 The BAI index format for BAM files (2020-07-19)
 const MAX_INTERVAL_COUNT: usize = 131072;
@@ -77,12 +77,20 @@ impl Builder {
     }
 
     fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        let start = record.position().map(i32::from).expect("missing position");
-        let reference_len = record.cigar().reference_len() as i32;
-        let end = start + reference_len - 1;
+        const WINDOW_SIZE: usize = 1 << MIN_SHIFT;
 
-        let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
-        let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
+        let start = record
+            .alignment_start()
+            .map(usize::from)
+            .expect("missing alignment start");
+
+        let end = record
+            .alignment_end()
+            .map(usize::from)
+            .expect("missing alignment end");
+
+        let linear_index_start_offset = (start - 1) / WINDOW_SIZE;
+        let linear_index_end_offset = (end - 1) / WINDOW_SIZE;
 
         if linear_index_end_offset >= self.intervals.len() {
             self.intervals

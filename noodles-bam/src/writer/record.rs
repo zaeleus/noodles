@@ -23,7 +23,7 @@ where
     write_reference_sequence_id(writer, record.reference_sequence_id())?;
 
     // pos
-    write_position(writer, record.position())?;
+    write_position(writer, record.alignment_start())?;
 
     write_l_read_name(writer, record.read_name())?;
 
@@ -31,7 +31,7 @@ where
     write_mapping_quality(writer, record.mapping_quality())?;
 
     // bin
-    write_bin(writer, record.position(), record.alignment_end())?;
+    write_bin(writer, record.alignment_start(), record.alignment_end())?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -48,7 +48,7 @@ where
     write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
 
     // next_pos
-    write_position(writer, record.mate_position())?;
+    write_position(writer, record.mate_alignment_start())?;
 
     // tlen
     write_template_length(writer, record.template_length())?;
@@ -104,18 +104,18 @@ where
     writer.write_i32::<LittleEndian>(ref_id)
 }
 
-pub(super) fn write_position<W>(
-    writer: &mut W,
-    position: Option<sam::record::Position>,
-) -> io::Result<()>
+pub(super) fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
 where
     W: Write,
 {
     use crate::record::UNMAPPED_POSITION;
 
-    let pos = position
-        .map(|p| i32::from(p) - 1)
-        .unwrap_or(UNMAPPED_POSITION);
+    let pos = if let Some(position) = position {
+        i32::try_from(usize::from(position) - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    } else {
+        UNMAPPED_POSITION
+    };
 
     writer.write_i32::<LittleEndian>(pos)
 }
@@ -153,7 +153,7 @@ where
 
 pub(super) fn write_bin<W>(
     writer: &mut W,
-    alignment_start: Option<sam::record::Position>,
+    alignment_start: Option<Position>,
     alignment_end: Option<Position>,
 ) -> io::Result<()>
 where
@@ -283,11 +283,8 @@ where
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
 #[allow(clippy::eq_op)]
-pub(crate) fn region_to_bin(
-    alignment_start: sam::record::Position,
-    alignment_end: Position,
-) -> io::Result<u16> {
-    let start = (i32::from(alignment_start) - 1) as usize;
+pub(crate) fn region_to_bin(alignment_start: Position, alignment_end: Position) -> io::Result<u16> {
+    let start = usize::from(alignment_start) - 1;
     let end = usize::from(alignment_end) - 1;
 
     let bin = if start >> 14 == end >> 14 {
@@ -340,7 +337,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{data::field::Tag, Flags, MappingQuality, Position};
+        use sam::record::{data::field::Tag, Flags, MappingQuality};
 
         use crate::record::{
             data::{field::Value, Field},
@@ -355,7 +352,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(Position::try_from(22)?)
+            .set_mate_position(sam::record::Position::try_from(22)?)
             .set_template_length(144)
             .set_read_name("r0".parse()?)
             .set_cigar("36M8S".parse()?)
@@ -398,11 +395,11 @@ mod tests {
 
     #[test]
     fn test_region_to_bin() -> Result<(), Box<dyn std::error::Error>> {
-        let start = sam::record::Position::try_from(8)?;
+        let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         assert_eq!(region_to_bin(start, end)?, 4681);
 
-        let start = sam::record::Position::try_from(63245986)?;
+        let start = Position::try_from(63245986)?;
         let end = Position::try_from(63245986)?;
         assert_eq!(region_to_bin(start, end)?, 8541);
 

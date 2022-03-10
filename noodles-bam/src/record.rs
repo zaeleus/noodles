@@ -41,7 +41,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
-    pos: Option<sam::record::Position>,
+    pos: Option<Position>,
     mapq: Option<sam::record::MappingQuality>,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
@@ -144,7 +144,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.position().is_none());
     /// ```
-    pub fn position(&self) -> Option<sam::record::Position> {
+    pub fn position(&self) -> Option<Position> {
         self.pos
     }
 
@@ -154,17 +154,16 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
+    /// use noodles_core::Position;
     ///
-    /// let position = sam::record::Position::try_from(8).map(Some)?;
+    /// let position = Position::new(8);
     ///
     /// let mut record = bam::Record::default();
     /// *record.position_mut() = position;
     ///
     /// assert_eq!(record.position(), position);
-    /// Ok::<_, sam::record::position::TryFromIntError>(())
     /// ```
-    pub fn position_mut(&mut self) -> &mut Option<sam::record::Position> {
+    pub fn position_mut(&mut self) -> &mut Option<Position> {
         &mut self.pos
     }
 
@@ -445,7 +444,6 @@ impl sam::AlignmentRecord for Record {
     /// ```
     fn alignment_start(&self) -> Option<Position> {
         self.position()
-            .and_then(|position| Position::new(i32::from(position) as usize))
     }
 
     /// Calculates the alignment span over the reference sequence.
@@ -550,9 +548,7 @@ mod tests {
 
         let ref_id = Some(ReferenceSequenceId::from(10));
 
-        let pos = sam::record::Position::try_from(61062)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let pos = Position::new(61062);
 
         let mapq = MappingQuality::try_from(12)
             .map(Some)

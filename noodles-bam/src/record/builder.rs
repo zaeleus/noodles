@@ -2,6 +2,7 @@
 
 use std::{error, fmt};
 
+use noodles_core::Position;
 use noodles_sam as sam;
 
 use super::{Data, Record, ReferenceSequenceId};
@@ -10,7 +11,7 @@ use super::{Data, Record, ReferenceSequenceId};
 #[derive(Debug)]
 pub struct Builder {
     ref_id: Option<ReferenceSequenceId>,
-    pos: Option<sam::record::Position>,
+    pos: Option<Position>,
     mapq: Option<sam::record::MappingQuality>,
     flag: sam::record::Flags,
     next_ref_id: Option<ReferenceSequenceId>,
@@ -54,16 +55,16 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Position;
+    /// use noodles_core::Position;
     ///
     /// let record = bam::Record::builder()
     ///     .set_position(Position::try_from(8)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.position().map(i32::from), Some(8));
+    /// assert_eq!(record.position(), Position::new(8));
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_position(mut self, position: sam::record::Position) -> Self {
+    pub fn set_position(mut self, position: Position) -> Self {
         self.pos = Some(position);
         self
     }
@@ -139,13 +140,13 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Position;
+    /// use noodles_sam as sam;
     ///
     /// let record = bam::Record::builder()
-    ///     .set_position(Position::try_from(13)?)
+    ///     .set_mate_position(sam::record::Position::try_from(13)?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.position().map(i32::from), Some(13));
+    /// assert_eq!(record.mate_position().map(i32::from), Some(13));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: sam::record::Position) -> Self {

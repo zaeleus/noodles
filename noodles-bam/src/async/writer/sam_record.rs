@@ -60,7 +60,7 @@ where
     .await?;
 
     // pos
-    write_position(writer, record.position()).await?;
+    write_position(writer, record.alignment_start()).await?;
 
     // l_read_name
     writer.write_u8(l_read_name).await?;
@@ -69,7 +69,7 @@ where
     write_mapping_quality(writer, record.mapping_quality()).await?;
 
     // bin
-    write_bin(writer, record.position(), record.alignment_end()).await?;
+    write_bin(writer, record.alignment_start(), record.alignment_end()).await?;
 
     // n_cigar_op
     writer.write_u16_le(n_cigar_op).await?;
@@ -89,7 +89,7 @@ where
     .await?;
 
     // next_pos
-    write_position(writer, record.mate_position()).await?;
+    write_position(writer, record.mate_alignment_start()).await?;
 
     // tlen
     write_template_length(writer, record.template_length()).await?;

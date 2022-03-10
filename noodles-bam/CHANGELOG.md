@@ -28,6 +28,8 @@
 
   * bam/record: Replace `Cigar` with `sam::record::Cigar`.
 
+  * bam/record: Change position a `Position`.
+
   * bam/reader/record: Clear quality scores if all scores are missing.
 
     This previously filled the quality scores with scores of 255, but this just

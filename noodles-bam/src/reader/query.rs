@@ -5,6 +5,7 @@ use std::{
 
 use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_sam::AlignmentRecord;
 
 use crate::Record;
 
@@ -146,9 +147,16 @@ pub(crate) fn intersects(
         None => return Ok(false),
     };
 
-    let start = record.position().map(i32::from).expect("missing position");
-    let len = record.cigar().reference_len() as i32;
-    let end = start + len - 1;
+    // FIXME: Use positions.
+    let start = record
+        .alignment_start()
+        .map(usize::from)
+        .expect("missing alignment start") as i32;
+
+    let end = record
+        .alignment_end()
+        .map(usize::from)
+        .expect("missing alignment end") as i32;
 
     Ok(id == reference_sequence_id && in_interval(start, end, interval_start, interval_end))
 }

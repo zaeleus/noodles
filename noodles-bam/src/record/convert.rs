@@ -73,6 +73,7 @@ impl Record {
         }
 
         if let Some(position) = self.position() {
+            let position = sam::record::Position::try_from(usize::from(position) as i32).unwrap();
             builder = builder.set_position(position);
         }
 
@@ -136,6 +137,8 @@ fn get_reference_sequence_name(
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
 
     fn build_reference_sequences(
@@ -157,7 +160,7 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::record::{Flags, MappingQuality, Position};
+        use sam::record::{Flags, MappingQuality};
 
         use crate::record::Data;
 
@@ -169,7 +172,7 @@ mod tests {
             .set_mapping_quality(MappingQuality::try_from(12)?)
             .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(Position::try_from(61153)?)
+            .set_mate_position(sam::record::Position::try_from(61153)?)
             .set_template_length(166)
             .set_read_name("r0".parse()?)
             .set_cigar("4M".parse()?)

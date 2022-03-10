@@ -10,6 +10,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::Buf;
+use noodles_core::Position;
 use noodles_sam as sam;
 
 use crate::{
@@ -62,7 +63,9 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    *record.mate_position_mut() = read_position(&mut buf)?;
+    *record.mate_position_mut() = read_position(&mut buf).map(|position| {
+        position.map(|p| sam::record::Position::try_from(usize::from(p) as i32).unwrap())
+    })?;
 
     *record.template_length_mut() = buf.get_i32_le();
 
@@ -95,7 +98,7 @@ where
     }
 }
 
-fn read_position<B>(buf: &mut B) -> io::Result<Option<sam::record::Position>>
+fn read_position<B>(buf: &mut B) -> io::Result<Option<Position>>
 where
     B: Buf,
 {
@@ -107,9 +110,9 @@ where
 
     match buf.get_i32_le() {
         UNMAPPED_POSITION => Ok(None),
-        n => sam::record::Position::try_from(n + 1)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        n => usize::try_from(n + 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            .map(Position::new),
     }
 }
 

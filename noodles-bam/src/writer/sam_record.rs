@@ -63,7 +63,7 @@ where
     )?;
 
     // pos
-    write_position(writer, record.position())?;
+    write_position(writer, record.alignment_start())?;
 
     writer.write_u8(l_read_name)?;
 
@@ -71,7 +71,7 @@ where
     write_mapping_quality(writer, record.mapping_quality())?;
 
     // bin
-    write_bin(writer, record.position(), record.alignment_end())?;
+    write_bin(writer, record.alignment_start(), record.alignment_end())?;
 
     writer.write_u16::<LittleEndian>(n_cigar_op)?;
 
@@ -88,7 +88,7 @@ where
     )?;
 
     // next_pos
-    write_position(writer, record.mate_position())?;
+    write_position(writer, record.mate_alignment_start())?;
 
     // tlen
     write_template_length(writer, record.template_length())?;
