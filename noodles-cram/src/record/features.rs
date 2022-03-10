@@ -7,7 +7,7 @@ use std::{
     slice,
 };
 
-use noodles_sam as sam;
+use noodles_core::Position;
 
 use super::Feature;
 
@@ -18,7 +18,7 @@ pub struct Features(Vec<Feature>);
 impl Features {
     pub(crate) fn with_positions(
         &self,
-        alignment_start: sam::record::Position,
+        alignment_start: Position,
     ) -> WithPositions<'_, slice::Iter<'_, Feature>> {
         WithPositions::new(self.iter(), alignment_start)
     }

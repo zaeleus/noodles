@@ -2,6 +2,7 @@
 
 use std::io;
 
+use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, record::sequence::Base};
 
@@ -18,7 +19,9 @@ pub(crate) fn resolve_bases(
 ) -> io::Result<sam::record::Sequence> {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
 
+    let alignment_start = Position::new(i32::from(alignment_start) as usize).unwrap();
     let reference_sequence = reference_sequence.as_ref();
+
     let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
 
     let mut it = features.with_positions(alignment_start);

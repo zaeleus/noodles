@@ -1,5 +1,4 @@
 use noodles_core::Position;
-use noodles_sam as sam;
 
 use crate::record::Feature;
 
@@ -16,11 +15,10 @@ impl<'a, I> WithPositions<'a, I>
 where
     I: Iterator<Item = &'a Feature>,
 {
-    pub fn new(iter: I, alignment_start: sam::record::Position) -> Self {
+    pub fn new(iter: I, alignment_start: Position) -> Self {
         Self {
             iter,
-            // SAFETY: `sam::record::Position` is guaranteed to be non-zero.
-            reference_position: Position::new(i32::from(alignment_start) as usize).unwrap(),
+            reference_position: alignment_start,
             // SAFETY: 1 is non-zero.
             read_position: Position::new(1).unwrap(),
         }

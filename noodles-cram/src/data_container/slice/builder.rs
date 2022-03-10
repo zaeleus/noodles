@@ -283,6 +283,7 @@ fn update_substitution_codes(
 ) {
     use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
 
+    let alignment_start = Position::new(i32::from(alignment_start) as usize).unwrap();
     let mut codes = Vec::new();
 
     for ((reference_position, read_position), feature) in features.with_positions(alignment_start) {
