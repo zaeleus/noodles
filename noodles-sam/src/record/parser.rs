@@ -1,17 +1,17 @@
 use std::{error, fmt, num};
 
+use noodles_core::Position;
+
 use super::{
     cigar::{self, Cigar},
     data::{self, Data},
     mapping_quality::{self, MappingQuality},
-    position::{self, Position},
     quality_scores,
     read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
     sequence, Field, Flags, Record, EQ_FIELD, NULL_FIELD,
 };
 
-const ZERO_FIELD: &str = "0";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
 
@@ -35,7 +35,7 @@ pub enum ParseError {
     /// The record mate reference sequence name is invalid.
     InvalidMateReferenceSequenceName(reference_sequence_name::ParseError),
     /// The record mate position is invalid.
-    InvalidMatePosition(position::ParseError),
+    InvalidMatePosition(num::ParseIntError),
     /// The record template length is invalid.
     InvalidTemplateLength(num::ParseIntError),
     /// The record sequence is invalid.
@@ -201,13 +201,13 @@ where
     })
 }
 
-fn parse_pos<'a, I>(fields: &mut I) -> Result<Option<noodles_core::Position>, ParseError>
+fn parse_pos<'a, I>(fields: &mut I) -> Result<Option<Position>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
     parse_string(fields, Field::Position)
         .and_then(|s| s.parse().map_err(ParseError::InvalidPosition))
-        .map(noodles_core::Position::new)
+        .map(Position::new)
 }
 
 fn parse_mapq<'a, I>(fields: &mut I) -> Result<Option<MappingQuality>, ParseError>
@@ -249,10 +249,9 @@ fn parse_pnext<'a, I>(fields: &mut I) -> Result<Option<Position>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::MatePosition).and_then(|s| match s {
-        ZERO_FIELD => Ok(None),
-        _ => s.parse().map(Some).map_err(ParseError::InvalidMatePosition),
-    })
+    parse_string(fields, Field::MatePosition)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidMatePosition))
+        .map(Position::new)
 }
 
 fn parse_data<'a, I>(fields: &mut I) -> Result<Option<Data>, ParseError>

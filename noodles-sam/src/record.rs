@@ -56,7 +56,7 @@ pub struct Record {
     mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
-    mate_position: Option<Position>,
+    mate_position: Option<noodles_core::Position>,
     template_length: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -327,7 +327,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Position};
+    /// use noodles_core::Position;
+    /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
     /// assert!(record.mate_position().is_none());
@@ -335,10 +336,10 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_mate_position(Position::try_from(21)?)
     ///     .build()?;
-    /// assert_eq!(record.mate_position().map(i32::from), Some(21));
+    /// assert_eq!(record.mate_position(), Position::new(21));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn mate_position(&self) -> Option<Position> {
+    pub fn mate_position(&self) -> Option<noodles_core::Position> {
         self.mate_position
     }
 
@@ -349,17 +350,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Position};
+    /// use noodles_core::Position;
+    /// use noodles_sam as sam;
     ///
     /// let mut record = sam::Record::default();
-    /// *record.mate_position_mut() = Some(Position::try_from(13)?);
-    /// assert_eq!(record.mate_position().map(i32::from), Some(13));
+    /// *record.mate_position_mut() = Position::new(13);
+    /// assert_eq!(record.mate_position(), Position::new(13));
     ///
     /// *record.mate_position_mut() = None;
     /// assert!(record.mate_position().is_none());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn mate_position_mut(&mut self) -> &mut Option<Position> {
+    pub fn mate_position_mut(&mut self) -> &mut Option<noodles_core::Position> {
         &mut self.mate_position
     }
 
@@ -546,7 +547,6 @@ impl AlignmentRecord for Record {
 
     fn mate_alignment_start(&self) -> Option<noodles_core::Position> {
         self.mate_position()
-            .and_then(|position| noodles_core::Position::new(i32::from(position) as usize))
     }
 
     fn template_length(&self) -> i32 {
@@ -627,10 +627,7 @@ impl fmt::Display for Record {
             })
             .unwrap_or(NULL_FIELD);
 
-        let pnext = self
-            .mate_position()
-            .map(i32::from)
-            .unwrap_or(position::UNMAPPED);
+        let pnext = self.mate_position().map(usize::from).unwrap_or_default();
 
         write!(
             f,

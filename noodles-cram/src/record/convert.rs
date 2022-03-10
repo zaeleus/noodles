@@ -48,8 +48,6 @@ impl Record {
         }
 
         if let Some(mate_alignment_start) = self.mate_alignment_start() {
-            let mate_alignment_start =
-                sam::record::Position::try_from(usize::from(mate_alignment_start) as i32).unwrap();
             builder = builder.set_mate_position(mate_alignment_start);
         }
 
