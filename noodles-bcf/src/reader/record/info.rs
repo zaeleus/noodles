@@ -56,7 +56,7 @@ fn read_info_field_key<R>(
     reader: &mut R,
     infos: &vcf::header::Infos,
     string_string_map: &StringStringMap,
-) -> io::Result<vcf::record::info::field::Key>
+) -> io::Result<vcf::header::info::Key>
 where
     R: Read,
 {
@@ -252,7 +252,7 @@ fn type_mismatch_error(actual: Option<Value>, expected: Type) -> io::Error {
 
 #[cfg(test)]
 mod tests {
-    use vcf::{header::Number, record::info::field::Key};
+    use vcf::header::{info::Key, Number};
 
     use super::*;
 

@@ -9,13 +9,13 @@ use std::{error, fmt, str::FromStr};
 use indexmap::IndexMap;
 
 use super::MISSING_FIELD;
-use crate::header;
+use crate::header::{self, info::Key};
 
 const DELIMITER: char = ';';
 
 /// VCF record information fields (`INFO`).
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Info(IndexMap<field::Key, Field>);
+pub struct Info(IndexMap<Key, Field>);
 
 impl Info {
     /// Parses raw VCF record info.
@@ -56,7 +56,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -76,7 +79,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -86,7 +92,7 @@ impl Info {
     /// assert!(info.get(&Key::AlleleFrequencies).is_none());
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get(&self, key: &field::Key) -> Option<&Field> {
+    pub fn get(&self, key: &Key) -> Option<&Field> {
         self.0.get(key)
     }
 
@@ -95,7 +101,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -111,7 +120,7 @@ impl Info {
     /// );
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn get_mut(&mut self, key: &field::Key) -> Option<&mut Field> {
+    pub fn get_mut(&mut self, key: &Key) -> Option<&mut Field> {
         self.0.get_mut(key)
     }
 
@@ -120,7 +129,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -139,7 +151,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -169,7 +184,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let mut info = Info::try_from(vec![ns])?;
@@ -191,7 +209,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -204,7 +225,7 @@ impl Info {
     /// assert!(keys.next().is_none());
     /// # Ok::<_, noodles_vcf::record::info::TryFromFieldsError>(())
     /// ```
-    pub fn keys(&self) -> impl Iterator<Item = &field::Key> {
+    pub fn keys(&self) -> impl Iterator<Item = &Key> {
         self.values().map(|field| field.key())
     }
 
@@ -213,7 +234,10 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{info::{field::{Key, Value}, Field}, Info};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info},
+    /// };
     ///
     /// let ns = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(2)));
     /// let dp = Field::new(Key::TotalDepth, Some(Value::Integer(13)));
@@ -231,14 +255,14 @@ impl Info {
     }
 }
 
-impl AsRef<IndexMap<field::Key, Field>> for Info {
-    fn as_ref(&self) -> &IndexMap<field::Key, Field> {
+impl AsRef<IndexMap<Key, Field>> for Info {
+    fn as_ref(&self) -> &IndexMap<Key, Field> {
         &self.0
     }
 }
 
-impl AsMut<IndexMap<field::Key, Field>> for Info {
-    fn as_mut(&mut self) -> &mut IndexMap<field::Key, Field> {
+impl AsMut<IndexMap<Key, Field>> for Info {
+    fn as_mut(&mut self) -> &mut IndexMap<Key, Field> {
         &mut self.0
     }
 }
@@ -314,7 +338,7 @@ pub enum TryFromFieldsError {
     /// A key is duplicated.
     ///
     /// § 1.6.1 Fixed fields (2021-01-13): "Duplicate keys are not allowed."
-    DuplicateKey(field::Key),
+    DuplicateKey(Key),
 }
 
 impl error::Error for TryFromFieldsError {}
@@ -359,18 +383,15 @@ mod tests {
         assert_eq!(info.to_string(), ".");
 
         let info = Info::try_from(vec![Field::new(
-            field::Key::SamplesWithDataCount,
+            Key::SamplesWithDataCount,
             Some(field::Value::Integer(2)),
         )])?;
         assert_eq!(info.to_string(), "NS=2");
 
         let info = Info::try_from(vec![
+            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
             Field::new(
-                field::Key::SamplesWithDataCount,
-                Some(field::Value::Integer(2)),
-            ),
-            Field::new(
-                field::Key::AlleleFrequencies,
+                Key::AlleleFrequencies,
                 Some(field::Value::FloatArray(vec![Some(0.333), Some(0.667)])),
             ),
         ])?;
@@ -404,26 +425,18 @@ mod tests {
         assert_eq!(Info::try_from(Vec::new()), Ok(Info::default()));
 
         let fields = vec![Field::new(
-            field::Key::SamplesWithDataCount,
+            Key::SamplesWithDataCount,
             Some(field::Value::Integer(2)),
         )];
         assert!(Info::try_from(fields).is_ok());
 
         let fields = vec![
-            Field::new(
-                field::Key::SamplesWithDataCount,
-                Some(field::Value::Integer(2)),
-            ),
-            Field::new(
-                field::Key::SamplesWithDataCount,
-                Some(field::Value::Integer(2)),
-            ),
+            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
+            Field::new(Key::SamplesWithDataCount, Some(field::Value::Integer(2))),
         ];
         assert_eq!(
             Info::try_from(fields),
-            Err(TryFromFieldsError::DuplicateKey(
-                field::Key::SamplesWithDataCount
-            ))
+            Err(TryFromFieldsError::DuplicateKey(Key::SamplesWithDataCount))
         );
     }
 }

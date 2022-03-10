@@ -433,7 +433,8 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()
@@ -463,7 +464,8 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info, Position},
     /// };
     ///
     /// let mut record = vcf::Record::builder()
@@ -670,7 +672,8 @@ impl Record {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
-        use info::field::{Key, Value};
+        use self::info::field::Value;
+        use super::header::info::Key;
 
         let end = if let Some(value) = self.info().get(&Key::EndPosition).and_then(|f| f.value()) {
             match value {
@@ -739,12 +742,14 @@ mod tests {
 
     #[test]
     fn test_end() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::header::info::Key as InfoKey;
+
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
             .set_info(Info::try_from(vec![info::Field::new(
-                info::field::Key::EndPosition,
+                InfoKey::EndPosition,
                 None,
             )])?)
             .build()?;
@@ -756,7 +761,7 @@ mod tests {
             .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
             .set_info(Info::try_from(vec![info::Field::new(
-                info::field::Key::EndPosition,
+                InfoKey::EndPosition,
                 Some(info::field::Value::Flag),
             )])?)
             .build()?;

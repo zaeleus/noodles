@@ -47,7 +47,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
+    /// use noodles_vcf::{self as vcf, header::{info::Key, Info}};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(Info::from(Key::SamplesWithDataCount))
@@ -402,7 +402,7 @@ mod tests {
     #[test]
     fn test_build() {
         use crate::{
-            header,
+            header::{self, info::Key as InfoKey},
             record::{self, alternate_bases::allele},
         };
 
@@ -413,7 +413,7 @@ mod tests {
 
         let header = Builder::default()
             .set_file_format(FileFormat::new(4, 3))
-            .add_info(Info::from(record::info::field::Key::SamplesWithDataCount))
+            .add_info(Info::from(InfoKey::SamplesWithDataCount))
             .add_filter(Filter::new("q10", "Quality below 10"))
             .add_format(Format::from(
                 record::genotypes::genotype::field::Key::Genotype,

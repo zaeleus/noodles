@@ -37,11 +37,8 @@ impl StringMaps {
     /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{Contig, Filter, Format, Info},
-    ///     record::{
-    ///         genotypes::genotype::field::Key as GenotypeKey,
-    ///         info::field::Key as InfoKey,
-    ///     },
+    ///     header::{info::Key as InfoKey, Contig, Filter, Format, Info},
+    ///     record::genotypes::genotype::field::Key as GenotypeKey,
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -76,11 +73,8 @@ impl StringMaps {
     /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{Contig, Filter, Format, Info},
-    ///     record::{
-    ///         genotypes::genotype::field::Key as GenotypeKey,
-    ///         info::field::Key as InfoKey,
-    ///     },
+    ///     header::{info::Key as InfoKey, Contig, Filter, Format, Info},
+    ///     record::genotypes::genotype::field::Key as GenotypeKey,
     /// };
     ///
     /// let header = vcf::Header::builder()
@@ -392,14 +386,13 @@ mod tests {
     #[test]
     fn test_vcf_header_for_string_map() {
         use vcf::{
-            header::{AlternativeAllele, Contig},
+            header::{info::Key as InfoKey, AlternativeAllele, Contig},
             record::{
                 alternate_bases::allele::{
                     symbol::{structural_variant::Type, StructuralVariant},
                     Symbol,
                 },
                 genotypes::genotype::field::Key as GenotypeKey,
-                info::field::Key as InfoKey,
             },
         };
 
@@ -408,7 +401,7 @@ mod tests {
             .add_contig(Contig::new("sq1"))
             .add_contig(Contig::new("sq2"))
             .add_info(Info::from(InfoKey::SamplesWithDataCount))
-            .add_info(Info::from(vcf::record::info::field::Key::TotalDepth))
+            .add_info(Info::from(InfoKey::TotalDepth))
             .add_filter(Filter::pass())
             .add_filter(Filter::new("q10", "Quality below 10"))
             .add_format(Format::from(GenotypeKey::Genotype))

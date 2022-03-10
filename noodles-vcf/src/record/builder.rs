@@ -243,7 +243,8 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{info::{field::{Key, Value}, Field}, Info, Position},
+    ///     header::info::Key,
+    ///     record::{info::{field::Value, Field}, Info, Position},
     /// };
     ///
     /// let record = vcf::Record::builder()

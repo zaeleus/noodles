@@ -4,6 +4,8 @@
 
 ### Removed
 
+  * vcf: Move INFO key from record field to header record.
+
   * vcf/header: Remove record field keys.
 
 ## 0.14.1 - 2022-03-02

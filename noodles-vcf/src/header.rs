@@ -26,7 +26,7 @@ use std::str::FromStr;
 use indexmap::{IndexMap, IndexSet};
 
 /// VCF header info records.
-pub type Infos = IndexMap<crate::record::info::field::Key, Info>;
+pub type Infos = IndexMap<info::Key, Info>;
 
 /// VCF header filter records.
 pub type Filters = IndexMap<String, Filter>;
@@ -128,7 +128,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
+    /// use noodles_vcf::{self as vcf, header::{info::Key, Info}};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(Info::from(Key::SamplesWithDataCount))
@@ -147,7 +147,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Info, record::info::field::Key};
+    /// use noodles_vcf::{self as vcf, header::{info::Key, Info}};
     ///
     /// let mut header = vcf::Header::default();
     ///

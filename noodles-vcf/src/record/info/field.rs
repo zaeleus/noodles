@@ -1,13 +1,15 @@
 //! VCF record info field.
 
-pub mod key;
 pub mod value;
 
-pub use self::{key::Key, value::Value};
+pub use self::value::Value;
 
 use std::{error, fmt, str::FromStr};
 
-use crate::header::{self, info::Type};
+use crate::header::{
+    self,
+    info::{Key, Type},
+};
 
 const MISSING_VALUE: &str = ".";
 const SEPARATOR: char = '=';
@@ -30,7 +32,11 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::info::{field::Value, Field},
+    /// };
+    ///
     /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// ```
     pub fn new(key: Key, value: Option<Value>) -> Self {
@@ -42,7 +48,11 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::info::{field::Value, Field},
+    /// };
+    ///
     /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// assert_eq!(field.key(), &Key::SamplesWithDataCount);
     /// ```
@@ -55,7 +65,11 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::info::{field::Value, Field},
+    /// };
+    ///
     /// let field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// assert_eq!(field.value(), Some(&Value::Integer(1)));
     /// ```
@@ -68,7 +82,11 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::info::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::info::Key,
+    ///     record::info::{field::Value, Field},
+    /// };
+    ///
     /// let mut field = Field::new(Key::SamplesWithDataCount, Some(Value::Integer(1)));
     /// *field.value_mut() = Some(Value::Integer(2));
     /// assert_eq!(field.value(), Some(&Value::Integer(2)));
@@ -94,7 +112,7 @@ pub enum ParseError {
     /// The key is missing.
     MissingKey,
     /// The key is invalid.
-    InvalidKey(key::ParseError),
+    InvalidKey(header::info::key::ParseError),
     /// The value is missing.
     MissingValue,
     /// The value is invalid.

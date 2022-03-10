@@ -1,15 +1,15 @@
 //! VCF header information record and components.
 
+pub mod key;
 pub mod ty;
 
-pub use self::ty::Type;
+pub use self::{key::Key, ty::Type};
 
 use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
 use super::{number, record, FileFormat, Number, Record};
-use crate::record::info;
 
 const ID: &str = "ID";
 const NUMBER: &str = "Number";
@@ -20,7 +20,7 @@ const IDX: &str = "IDX";
 /// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Info {
-    id: info::field::Key,
+    id: Key,
     number: Number,
     ty: Type,
     description: String,
@@ -34,13 +34,14 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, record::{Key, Value}, FileFormat, Info, Number, Record},
-    ///     record::info,
+    /// use noodles_vcf::header::{
+    ///     info::{Key as InfoKey, Type},
+    ///     record::{Key as RecordKey, Value},
+    ///     FileFormat, Info, Number, Record,
     /// };
     ///
     /// let record = Record::new(
-    ///     Key::Info,
+    ///     RecordKey::Info,
     ///     Value::Struct(vec![
     ///         (String::from("ID"), String::from("NS")),
     ///         (String::from("Number"), String::from("1")),
@@ -55,7 +56,7 @@ impl Info {
     /// assert_eq!(
     ///     Info::try_from_record_file_format(record, FileFormat::new(4, 3)),
     ///     Ok(Info::new(
-    ///         info::field::Key::SamplesWithDataCount,
+    ///         InfoKey::SamplesWithDataCount,
     ///         Number::Count(1),
     ///         Type::Integer,
     ///         String::from("Number of samples with data"),
@@ -77,10 +78,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{
-    ///     header::{info::Type, Info, Number},
-    ///     record::info::field::Key,
-    /// };
+    /// use noodles_vcf::header::{info::{Key, Type}, Info, Number};
     ///
     /// let info = Info::new(
     ///     Key::SamplesWithDataCount,
@@ -89,7 +87,7 @@ impl Info {
     ///     String::from("Number of samples with data"),
     /// );
     /// ```
-    pub fn new(id: info::field::Key, number: Number, ty: Type, description: String) -> Self {
+    pub fn new(id: Key, number: Number, ty: Type, description: String) -> Self {
         Self {
             id,
             number,
@@ -105,11 +103,11 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Info};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.id(), &Key::SamplesWithDataCount);
     /// ```
-    pub fn id(&self) -> &info::field::Key {
+    pub fn id(&self) -> &Key {
         &self.id
     }
 
@@ -118,7 +116,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::{Info, Number}, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Info, Number};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.number(), Number::Count(1));
     /// ```
@@ -131,7 +129,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::{info::Type, Info}, record::info::field::Key};
+    /// use noodles_vcf::header::{info::{Key, Type}, Info};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.ty(), Type::Integer);
     /// ```
@@ -144,7 +142,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Info};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert_eq!(info.description(), "Number of samples with data");
     /// ```
@@ -159,7 +157,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Info};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert!(info.idx().is_none());
     /// ```
@@ -174,7 +172,7 @@ impl Info {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Info, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Info};
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert!(info.fields().is_empty());
     /// ```
@@ -183,8 +181,8 @@ impl Info {
     }
 }
 
-impl From<info::field::Key> for Info {
-    fn from(key: info::field::Key) -> Self {
+impl From<Key> for Info {
+    fn from(key: Key) -> Self {
         let number = key.number();
         let ty = key.ty();
         let description = key.description().to_string();
@@ -228,7 +226,7 @@ pub enum TryFromRecordError {
     /// A required field is missing.
     MissingField(&'static str),
     /// The ID is invalid.
-    InvalidId(info::field::key::ParseError),
+    InvalidId(key::ParseError),
     /// The number is invalid.
     InvalidNumber(number::ParseError),
     /// The type is invalid.
@@ -300,7 +298,7 @@ fn parse_struct(
             _ => Err(TryFromRecordError::MissingField(TYPE)),
         })?;
 
-    if file_format >= FileFormat::new(4, 3) && !matches!(id, info::field::Key::Other(..)) {
+    if file_format >= FileFormat::new(4, 3) && !matches!(id, Key::Other(..)) {
         if id.number() != number {
             return Err(TryFromRecordError::NumberMismatch(number, id.number()));
         }
@@ -366,10 +364,10 @@ mod tests {
 
     #[test]
     fn test_from_info_field_key_for_info() {
-        let actual = Info::from(info::field::Key::SamplesWithDataCount);
+        let actual = Info::from(Key::SamplesWithDataCount);
 
         let expected = Info::new(
-            info::field::Key::SamplesWithDataCount,
+            Key::SamplesWithDataCount,
             Number::Count(1),
             Type::Integer,
             String::from("Number of samples with data"),
@@ -408,7 +406,7 @@ mod tests {
         assert_eq!(
             Info::try_from_record_file_format(record, FileFormat::new(4, 2)),
             Ok(Info::new(
-                info::field::Key::SamplesWithDataCount,
+                Key::SamplesWithDataCount,
                 Number::Unknown,
                 Type::Integer,
                 String::from("Number of samples with data"),
@@ -423,7 +421,7 @@ mod tests {
         assert_eq!(
             Info::try_from(record),
             Ok(Info::new(
-                info::field::Key::SamplesWithDataCount,
+                Key::SamplesWithDataCount,
                 Number::Count(1),
                 Type::Integer,
                 String::from("Number of samples with data"),
@@ -452,7 +450,7 @@ mod tests {
         assert_eq!(
             Info::try_from(record),
             Ok(Info {
-                id: info::field::Key::SamplesWithDataCount,
+                id: Key::SamplesWithDataCount,
                 number: Number::Count(1),
                 ty: Type::Integer,
                 description: String::from("Number of samples with data"),

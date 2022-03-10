@@ -45,7 +45,7 @@ where
 fn write_info_field_key<W>(
     writer: &mut W,
     string_string_map: &StringStringMap,
-    key: &vcf::record::info::field::Key,
+    key: &vcf::header::info::Key,
 ) -> io::Result<()>
 where
     W: Write,

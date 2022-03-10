@@ -107,7 +107,7 @@ impl Info {
     /// ```
     /// # use std::io;
     /// use noodles_bcf::{header::StringMaps, record::Info};
-    /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
+    /// use noodles_vcf::{self as vcf, header::info::Key, record::info::{field::Value, Field}};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(vcf::header::Info::from(Key::AlleleCount))
@@ -135,7 +135,7 @@ impl Info {
         &self,
         header: &vcf::Header,
         string_string_map: &StringStringMap,
-        key: &vcf::record::info::field::Key,
+        key: &vcf::header::info::Key,
     ) -> Option<io::Result<vcf::record::info::Field>> {
         for result in self.values(header, string_string_map) {
             match result {
@@ -158,7 +158,7 @@ impl Info {
     /// ```
     /// # use std::io;
     /// use noodles_bcf::{header::StringMaps, record::Info};
-    /// use noodles_vcf::{self as vcf, record::info::{field::{Key, Value}, Field}, Header};
+    /// use noodles_vcf::{self as vcf, header::info::Key, record::info::{field::Value, Field}};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(vcf::header::Info::from(Key::AlleleCount))

@@ -1,6 +1,7 @@
-//! VCF record info field key.
+//! VCF header info key.
 
-use crate::header::{info::Type, Number};
+use super::Type;
+use crate::header::Number;
 
 use std::{error, fmt, str::FromStr};
 
@@ -113,7 +114,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Number, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Number};
     /// assert_eq!(Key::AlleleCount.number(), Number::A);
     /// ```
     pub fn number(&self) -> Number {
@@ -175,7 +176,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::info::Type, record::info::field::Key};
+    /// use noodles_vcf::header::info::{Key, Type};
     /// assert_eq!(Key::AlleleCount.ty(), Type::Integer);
     /// ```
     pub fn ty(&self) -> Type {
@@ -237,7 +238,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Number, record::info::field::Key};
+    /// use noodles_vcf::header::{info::Key, Number};
     ///
     /// assert_eq!(
     ///     Key::AlleleCount.description(),

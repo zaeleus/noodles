@@ -146,7 +146,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::info::field::{Key, Value};
+    /// use noodles_vcf::{header::info::Key, record::info::field::Value};
     /// assert_eq!(Value::from_str_key("1", &Key::SamplesWithDataCount), Ok(Value::Integer(1)));
     /// ```
     pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {

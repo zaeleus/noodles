@@ -37,20 +37,20 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::record::{
-        genotypes::{
-            genotype::{
-                field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
-                Field as GenotypeField,
+    use noodles_vcf::{
+        header::info::Key as InfoFieldKey,
+        record::{
+            genotypes::{
+                genotype::{
+                    field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
+                    Field as GenotypeField,
+                },
+                Genotype, Keys,
             },
-            Genotype, Keys,
+            info::{field::Value as InfoFieldValue, Field as InfoField},
+            Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
+            QualityScore,
         },
-        info::{
-            field::{Key as InfoFieldKey, Value as InfoFieldValue},
-            Field as InfoField,
-        },
-        Filters as VcfFilters, Genotypes as VcfGenotypes, Ids, Info as VcfInfo, Position,
-        QualityScore,
     };
 
     use super::*;
