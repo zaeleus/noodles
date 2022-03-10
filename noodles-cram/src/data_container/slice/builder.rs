@@ -216,8 +216,7 @@ fn write_records(
         &mut core_data_writer,
         &mut external_data_writers,
         slice_reference_sequence_id,
-        slice_alignment_start
-            .map(|start| sam::record::Position::try_from(usize::from(start) as i32).unwrap()),
+        slice_alignment_start,
     );
 
     for record in records {

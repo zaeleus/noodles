@@ -9,6 +9,7 @@ use std::{
 use byteorder::WriteBytesExt;
 
 use noodles_bam as bam;
+use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     record::{quality_scores::Score, sequence::Base},
@@ -55,7 +56,7 @@ pub struct Writer<'a, W, X> {
     core_data_writer: &'a mut BitWriter<W>,
     external_data_writers: &'a mut HashMap<i32, X>,
     reference_sequence_id: ReferenceSequenceId,
-    prev_alignment_start: Option<sam::record::Position>,
+    prev_alignment_start: Option<Position>,
 }
 
 impl<'a, W, X> Writer<'a, W, X>
@@ -68,7 +69,7 @@ where
         core_data_writer: &'a mut BitWriter<W>,
         external_data_writers: &'a mut HashMap<i32, X>,
         reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Option<sam::record::Position>,
+        initial_alignment_start: Option<Position>,
     ) -> Self {
         Self {
             compression_header,
@@ -100,7 +101,9 @@ where
             self.write_mapped_read(record)?;
         }
 
-        self.prev_alignment_start = record.alignment_start();
+        self.prev_alignment_start = record
+            .alignment_start()
+            .and_then(|start| Position::new(i32::from(start) as usize));
 
         Ok(())
     }
@@ -143,34 +146,7 @@ where
         }
 
         self.write_read_length(record.read_length())?;
-
-        let ap_data_series_delta = self
-            .compression_header
-            .preservation_map()
-            .ap_data_series_delta();
-
-        let alignment_start = if ap_data_series_delta {
-            match (record.alignment_start(), self.prev_alignment_start) {
-                (None, None) => 0,
-                (Some(alignment_start), Some(prev_alignment_start)) => {
-                    i32::from(alignment_start) - i32::from(prev_alignment_start)
-                }
-                _ => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!(
-                            "invalid alignment start ({:?}) or previous alignment start ({:?})",
-                            record.alignment_start(),
-                            self.prev_alignment_start
-                        ),
-                    ));
-                }
-            }
-        } else {
-            record.alignment_start().map(i32::from).unwrap_or_default()
-        };
-
-        self.write_alignment_start(alignment_start)?;
+        self.write_alignment_start(record.alignment_start())?;
         self.write_read_group(record.read_group_id())?;
 
         Ok(())
@@ -225,17 +201,48 @@ where
         )
     }
 
-    fn write_alignment_start(&mut self, alignment_start: i32) -> io::Result<()> {
+    fn write_alignment_start(
+        &mut self,
+        alignment_start: Option<sam::record::Position>,
+    ) -> io::Result<()> {
+        let ap_data_series_delta = self
+            .compression_header
+            .preservation_map()
+            .ap_data_series_delta();
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .in_seq_positions_encoding();
 
+        let alignment_start_or_delta = if ap_data_series_delta {
+            match (alignment_start, self.prev_alignment_start) {
+                (None, None) => 0,
+                (Some(alignment_start), Some(prev_alignment_start)) => {
+                    let prev_alignment_start = i32::try_from(usize::from(prev_alignment_start))
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+                    i32::from(alignment_start) - prev_alignment_start
+                }
+                _ => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!(
+                            "invalid alignment start ({:?}) or previous alignment start ({:?})",
+                            alignment_start, self.prev_alignment_start
+                        ),
+                    ));
+                }
+            }
+        } else {
+            alignment_start.map(i32::from).unwrap_or_default()
+        };
+
         encode_itf8(
             encoding,
             self.core_data_writer,
             self.external_data_writers,
-            alignment_start,
+            alignment_start_or_delta,
         )
     }
 
