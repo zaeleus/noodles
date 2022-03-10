@@ -1,16 +1,15 @@
 //! VCF header contig record and key.
 
-mod key;
-
 use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
+use super::{record, Record};
 use crate::record::chromosome;
 
-use super::{record, Record};
-
-use self::key::Key;
+const ID: &str = "ID";
+const LENGTH: &str = "length";
+const IDX: &str = "IDX";
 
 /// A VCF header contig record (`contig`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -116,10 +115,10 @@ impl fmt::Display for Contig {
         f.write_str(record::Key::Contig.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, "{}={}", ID, self.id)?;
 
         if let Some(len) = self.len {
-            write!(f, ",{}={}", Key::Length, len)?;
+            write!(f, ",{}={}", LENGTH, len)?;
         }
 
         for (key, value) in &self.fields {
@@ -128,7 +127,7 @@ impl fmt::Display for Contig {
         }
 
         if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", Key::Idx, idx)?;
+            write!(f, ",{}={}", IDX, idx)?;
         }
 
         f.write_str(">")?;
@@ -142,14 +141,12 @@ impl fmt::Display for Contig {
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
-    /// A key is invalid.
-    InvalidKey(key::ParseError),
     /// The ID is invalid.
     InvalidId,
     /// The length is invalid.
     InvalidLength(num::ParseIntError),
     /// A required field is missing.
-    MissingField(Key),
+    MissingField(&'static str),
     /// The index (`IDX`) is invalid.
     InvalidIdx(num::ParseIntError),
 }
@@ -162,9 +159,8 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing field: {}", key),
             Self::InvalidId => f.write_str("invalid ID"),
-            Self::InvalidKey(e) => write!(f, "invalid key: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
         }
     }
 }
@@ -186,37 +182,35 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
     let mut idx = None;
     let mut other_fields = IndexMap::new();
 
-    for (raw_key, value) in fields {
-        let key = raw_key.parse().map_err(TryFromRecordError::InvalidKey)?;
-
-        match key {
-            Key::Id => {
+    for (key, value) in fields {
+        match key.as_ref() {
+            ID => {
                 if !chromosome::is_valid_name(&value) {
                     return Err(TryFromRecordError::InvalidId);
                 }
 
                 id = Some(value);
             }
-            Key::Length => {
+            LENGTH => {
                 len = value
                     .parse()
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidLength)?;
             }
-            Key::Idx => {
+            IDX => {
                 idx = value
                     .parse()
                     .map(Some)
                     .map_err(TryFromRecordError::InvalidIdx)?;
             }
-            Key::Other(k) => {
-                other_fields.insert(k, value);
+            _ => {
+                other_fields.insert(key, value);
             }
         }
     }
 
     Ok(Contig {
-        id: id.ok_or(TryFromRecordError::MissingField(Key::Id))?,
+        id: id.ok_or(TryFromRecordError::MissingField(ID))?,
         len,
         idx,
         fields: other_fields,
@@ -327,19 +321,6 @@ mod tests {
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidRecord)
         );
-    }
-
-    #[test]
-    fn test_try_from_record_for_contig_with_an_invalid_key() {
-        let record = Record::new(
-            record::Key::Contig,
-            record::Value::Struct(vec![(String::new(), String::from("sq0"))]),
-        );
-
-        assert!(matches!(
-            Contig::try_from(record),
-            Err(TryFromRecordError::InvalidKey(_))
-        ));
     }
 
     #[test]

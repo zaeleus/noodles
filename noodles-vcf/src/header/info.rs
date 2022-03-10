@@ -1,17 +1,21 @@
 //! VCF header information record and components.
 
-pub mod key;
 pub mod ty;
 
-pub use self::{key::Key, ty::Type};
+pub use self::ty::Type;
 
 use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
+use super::{number, record, FileFormat, Number, Record};
 use crate::record::info;
 
-use super::{number, record, FileFormat, Number, Record};
+const ID: &str = "ID";
+const NUMBER: &str = "Number";
+const TYPE: &str = "Type";
+const DESCRIPTION: &str = "Description";
+const IDX: &str = "IDX";
 
 /// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -194,11 +198,11 @@ impl fmt::Display for Info {
         f.write_str(record::Key::Info.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", Key::Id, self.id)?;
-        write!(f, ",{}={}", Key::Number, self.number)?;
-        write!(f, ",{}={}", Key::Type, self.ty)?;
+        write!(f, "{}={}", ID, self.id)?;
+        write!(f, ",{}={}", NUMBER, self.number)?;
+        write!(f, ",{}={}", TYPE, self.ty)?;
 
-        write!(f, ",{}=", Key::Description)?;
+        write!(f, ",{}=", DESCRIPTION)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
         for (key, value) in &self.fields {
@@ -207,7 +211,7 @@ impl fmt::Display for Info {
         }
 
         if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", Key::Idx, idx)?;
+            write!(f, ",{}={}", IDX, idx)?;
         }
 
         f.write_str(">")?;
@@ -222,7 +226,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(Key),
+    MissingField(&'static str),
     /// The ID is invalid.
     InvalidId(info::field::key::ParseError),
     /// The number is invalid.
@@ -247,7 +251,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
             Self::NumberMismatch(actual, expected) => {
                 write!(f, "number mismatch: expected {}, got {}", expected, actual)
             }
@@ -274,26 +278,26 @@ fn parse_struct(
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Id))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
-            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        .ok_or(TryFromRecordError::MissingField(ID))
+        .and_then(|(k, v)| match k.as_ref() {
+            ID => v.parse().map_err(TryFromRecordError::InvalidId),
+            _ => Err(TryFromRecordError::MissingField(ID)),
         })?;
 
     let number = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Number))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Number) => v.parse().map_err(TryFromRecordError::InvalidNumber),
-            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        .ok_or(TryFromRecordError::MissingField(NUMBER))
+        .and_then(|(k, v)| match k.as_ref() {
+            NUMBER => v.parse().map_err(TryFromRecordError::InvalidNumber),
+            _ => Err(TryFromRecordError::MissingField(NUMBER)),
         })?;
 
     let ty = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Type))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Type) => v.parse().map_err(TryFromRecordError::InvalidType),
-            _ => Err(TryFromRecordError::MissingField(Key::Type)),
+        .ok_or(TryFromRecordError::MissingField(TYPE))
+        .and_then(|(k, v)| match k.as_ref() {
+            TYPE => v.parse().map_err(TryFromRecordError::InvalidType),
+            _ => Err(TryFromRecordError::MissingField(TYPE)),
         })?;
 
     if file_format >= FileFormat::new(4, 3) && !matches!(id, info::field::Key::Other(..)) {
@@ -308,18 +312,18 @@ fn parse_struct(
 
     let description = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Description))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Description) => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        .ok_or(TryFromRecordError::MissingField(DESCRIPTION))
+        .and_then(|(k, v)| match k.as_ref() {
+            DESCRIPTION => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(DESCRIPTION)),
         })?;
 
     let mut idx = None;
     let mut fields = IndexMap::new();
 
     for (key, value) in it {
-        match key.parse() {
-            Ok(Key::Idx) => {
+        match key.as_ref() {
+            IDX => {
                 idx = value
                     .parse()
                     .map(Some)

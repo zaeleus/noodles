@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * vcf/header: Remove record field keys.
+
 ## 0.14.1 - 2022-03-02
 
 ### Fixed

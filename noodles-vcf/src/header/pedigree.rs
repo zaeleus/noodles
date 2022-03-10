@@ -1,14 +1,12 @@
 //! VCF header pedigree record.
 
-pub mod key;
-
-pub use self::key::Key;
-
 use std::{error, fmt};
 
 use indexmap::IndexMap;
 
 use super::{record, Record};
+
+const ID: &str = "ID";
 
 /// A VCF header pedigree record (`PEDIGREE`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -83,7 +81,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(Key),
+    MissingField(&'static str),
 }
 
 impl error::Error for TryFromRecordError {}
@@ -113,10 +111,10 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecord
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Id))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Id) => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        .ok_or(TryFromRecordError::MissingField(ID))
+        .and_then(|(k, v)| match k.as_ref() {
+            ID => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(ID)),
         })?;
 
     let fields = it.collect();

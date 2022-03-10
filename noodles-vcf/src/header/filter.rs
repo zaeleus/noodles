@@ -1,16 +1,15 @@
 //! VCF header filter record and key.
 
-pub mod key;
-
-pub use self::key::Key;
-
 use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
+use super::{record, Record};
 use crate::record::Filters;
 
-use super::{record, Record};
+const ID: &str = "ID";
+const DESCRIPTION: &str = "Description";
+const IDX: &str = "IDX";
 
 /// A VCF header filter record (`FILTER`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -119,9 +118,9 @@ impl fmt::Display for Filter {
         f.write_str(record::Key::Filter.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, "{}={}", ID, self.id)?;
 
-        write!(f, ",{}=", Key::Description)?;
+        write!(f, ",{}=", DESCRIPTION)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
         for (key, value) in &self.fields {
@@ -130,7 +129,7 @@ impl fmt::Display for Filter {
         }
 
         if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", Key::Idx, idx)?;
+            write!(f, ",{}={}", IDX, idx)?;
         }
 
         f.write_str(">")?;
@@ -145,7 +144,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A field is missing.
-    MissingField(Key),
+    MissingField(&'static str),
     /// The index (`IDX`) is invalid.
     InvalidIdx(num::ParseIntError),
 }
@@ -157,7 +156,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing field: {}", key),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", Key::Idx, e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
         }
     }
 }
@@ -178,26 +177,26 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordEr
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Id))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Id) => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        .ok_or(TryFromRecordError::MissingField(ID))
+        .and_then(|(k, v)| match k.as_ref() {
+            ID => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(ID)),
         })?;
 
     let description = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Description))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Description) => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        .ok_or(TryFromRecordError::MissingField(DESCRIPTION))
+        .and_then(|(k, v)| match k.as_ref() {
+            DESCRIPTION => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(DESCRIPTION)),
         })?;
 
     let mut idx = None;
     let mut fields = IndexMap::new();
 
     for (key, value) in it {
-        match key.parse() {
-            Ok(Key::Idx) => {
+        match key.as_ref() {
+            IDX => {
                 idx = value
                     .parse()
                     .map(Some)

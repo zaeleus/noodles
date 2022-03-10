@@ -1,14 +1,12 @@
 //! VCF header symbolic alternate allele record and key.
 
-mod key;
-
 use std::{error, fmt};
 
+use super::{record, Record};
 use crate::record::alternate_bases::allele::{symbol, Symbol};
 
-use super::{record, Record};
-
-use self::key::Key;
+const ID: &str = "ID";
+const DESCRIPTION: &str = "Description";
 
 /// A VCF header symbolic alternate allele record (`ALT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -104,9 +102,9 @@ impl fmt::Display for AlternativeAllele {
         f.write_str(record::Key::AlternativeAllele.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", Key::Id, self.id)?;
+        write!(f, "{}={}", ID, self.id)?;
 
-        write!(f, ",{}=", Key::Description)?;
+        write!(f, ",{}=", DESCRIPTION)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
         f.write_str(">")?;
@@ -122,7 +120,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// A required field is missing.
-    MissingField(Key),
+    MissingField(&'static str),
     /// The ID is invalid.
     InvalidId(symbol::ParseError),
 }
@@ -155,18 +153,18 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<AlternativeAllele, TryF
 
     let id = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Id))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Id) => v.parse().map_err(TryFromRecordError::InvalidId),
-            _ => Err(TryFromRecordError::MissingField(Key::Id)),
+        .ok_or(TryFromRecordError::MissingField(ID))
+        .and_then(|(k, v)| match k.as_ref() {
+            ID => v.parse().map_err(TryFromRecordError::InvalidId),
+            _ => Err(TryFromRecordError::MissingField(ID)),
         })?;
 
     let description = it
         .next()
-        .ok_or(TryFromRecordError::MissingField(Key::Description))
-        .and_then(|(k, v)| match k.parse() {
-            Ok(Key::Description) => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(Key::Description)),
+        .ok_or(TryFromRecordError::MissingField(DESCRIPTION))
+        .and_then(|(k, v)| match k.as_ref() {
+            DESCRIPTION => Ok(v),
+            _ => Err(TryFromRecordError::MissingField(DESCRIPTION)),
         })?;
 
     Ok(AlternativeAllele { id, description })
@@ -250,7 +248,7 @@ mod tests {
 
         assert_eq!(
             AlternativeAllele::try_from(record),
-            Err(TryFromRecordError::MissingField(Key::Id))
+            Err(TryFromRecordError::MissingField(ID))
         );
     }
 
