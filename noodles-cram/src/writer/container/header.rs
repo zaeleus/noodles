@@ -15,7 +15,8 @@ where
 {
     let mut crc_writer = CrcWriter::new(writer);
 
-    let length = header.len();
+    let length =
+        i32::try_from(header.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
     let reference_sequence_id = i32::from(header.reference_sequence_id());

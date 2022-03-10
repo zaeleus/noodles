@@ -10,7 +10,9 @@ pub async fn read_header<R>(reader: &mut R) -> io::Result<container::Header>
 where
     R: AsyncRead + Unpin,
 {
-    let length = reader.read_i32_le().await?;
+    let length = reader.read_i32_le().await.and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let reference_sequence_id = read_itf8(reader).await.and_then(|n| {
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

@@ -74,23 +74,23 @@ impl Container {
                 .set_data(slice_header_buf)
                 .build();
 
-            slice_len += slice_header_block.len() as i32;
+            slice_len += slice_header_block.len();
             blocks.push(slice_header_block);
 
             blocks.push(slice.core_data_block().clone());
-            slice_len += slice.core_data_block().len() as i32;
+            slice_len += slice.core_data_block().len();
 
             for external_block in slice.external_blocks() {
                 blocks.push(external_block.clone());
-                slice_len += external_block.len() as i32;
+                slice_len += external_block.len();
             }
 
             let last_landmark = landmarks.last().copied().unwrap_or(0);
-            let landmark = last_landmark + slice_len;
+            let landmark = last_landmark + (slice_len as i32);
             landmarks.push(landmark);
         }
 
-        let len = blocks.iter().map(|b| b.len() as i32).sum();
+        let len = blocks.iter().map(|b| b.len()).sum();
 
         let mut builder = Header::builder()
             .set_length(len)
@@ -213,7 +213,7 @@ impl TryFrom<&sam::Header> for Container {
         let blocks = vec![block];
         let landmarks = vec![0];
 
-        let len = blocks.iter().map(|b| b.len() as i32).sum();
+        let len = blocks.iter().map(|b| b.len()).sum();
 
         let container_header = Header::builder()
             .set_length(len)

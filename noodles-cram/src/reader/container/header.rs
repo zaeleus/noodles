@@ -13,7 +13,9 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<Header>
 where
     R: Read,
 {
-    let length = reader.read_i32::<LittleEndian>()?;
+    let length = reader.read_i32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let reference_sequence_id = read_itf8(reader).and_then(|n| {
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

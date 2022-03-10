@@ -6,7 +6,7 @@ use super::Header;
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    length: i32,
+    length: usize,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<Position>,
     alignment_span: usize,
@@ -19,7 +19,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn set_length(mut self, length: i32) -> Self {
+    pub fn set_length(mut self, length: usize) -> Self {
         self.length = length;
         self
     }

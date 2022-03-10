@@ -7,14 +7,14 @@ use noodles_core::Position;
 use super::ReferenceSequenceId;
 
 // § 9 End of file container (2020-06-22)
-const EOF_LEN: i32 = 15;
+const EOF_LEN: usize = 15;
 const EOF_START_POSITION: usize = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
-    length: i32,
+    length: usize,
     reference_sequence_id: ReferenceSequenceId,
     start_position: Option<Position>,
     alignment_span: usize,
@@ -43,7 +43,7 @@ impl Header {
         }
     }
 
-    pub fn len(&self) -> i32 {
+    pub fn len(&self) -> usize {
         self.length
     }
 
