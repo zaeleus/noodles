@@ -7,7 +7,6 @@ mod field;
 mod flags;
 pub mod mapping_quality;
 mod parser;
-pub mod position;
 pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;
@@ -15,12 +14,13 @@ pub mod sequence;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
-    mapping_quality::MappingQuality, parser::ParseError, position::Position,
-    quality_scores::QualityScores, read_name::ReadName,
-    reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    mapping_quality::MappingQuality, parser::ParseError, quality_scores::QualityScores,
+    read_name::ReadName, reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
 
 use std::{fmt, io, str::FromStr};
+
+use noodles_core::Position;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
@@ -52,11 +52,11 @@ pub struct Record {
     read_name: Option<ReadName>,
     flags: Flags,
     reference_sequence_name: Option<ReferenceSequenceName>,
-    position: Option<noodles_core::Position>,
+    position: Option<Position>,
     mapping_quality: Option<MappingQuality>,
     cigar: Cigar,
     mate_reference_sequence_name: Option<ReferenceSequenceName>,
-    mate_position: Option<noodles_core::Position>,
+    mate_position: Option<Position>,
     template_length: i32,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -187,7 +187,7 @@ impl Record {
     /// assert_eq!(record.position(), Position::new(13));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn position(&self) -> Option<noodles_core::Position> {
+    pub fn position(&self) -> Option<Position> {
         self.position
     }
 
@@ -208,7 +208,7 @@ impl Record {
     /// *record.position_mut() = None;
     /// assert!(record.position().is_none());
     /// ```
-    pub fn position_mut(&mut self) -> &mut Option<noodles_core::Position> {
+    pub fn position_mut(&mut self) -> &mut Option<Position> {
         &mut self.position
     }
 
@@ -339,7 +339,7 @@ impl Record {
     /// assert_eq!(record.mate_position(), Position::new(21));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn mate_position(&self) -> Option<noodles_core::Position> {
+    pub fn mate_position(&self) -> Option<Position> {
         self.mate_position
     }
 
@@ -360,7 +360,7 @@ impl Record {
     /// *record.mate_position_mut() = None;
     /// assert!(record.mate_position().is_none());
     /// ```
-    pub fn mate_position_mut(&mut self) -> &mut Option<noodles_core::Position> {
+    pub fn mate_position_mut(&mut self) -> &mut Option<Position> {
         &mut self.mate_position
     }
 
@@ -507,7 +507,7 @@ impl AlignmentRecord for Record {
     /// let record = sam::Record::default();
     /// assert!(record.alignment_start().is_none());
     /// ```
-    fn alignment_start(&self) -> Option<noodles_core::Position> {
+    fn alignment_start(&self) -> Option<Position> {
         self.position()
     }
 
@@ -545,7 +545,7 @@ impl AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.mate_reference_sequence_name())
     }
 
-    fn mate_alignment_start(&self) -> Option<noodles_core::Position> {
+    fn mate_alignment_start(&self) -> Option<Position> {
         self.mate_position()
     }
 

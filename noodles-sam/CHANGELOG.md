@@ -86,6 +86,10 @@
 
 ### Removed
 
+  * sam/record: Remove `Position`.
+
+    Use `noodles_core::Position` instead.
+
   * sam/record/read_name: Remove `Deref<Target = String>`.
 
     Use `AsRef<str>` instead.
