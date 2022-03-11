@@ -78,7 +78,7 @@ pub fn parse(s: &str, header: &Header) -> Result<Record, ParseError> {
         .and_then(|s| Info::try_from_str(s, header.infos()).map_err(ParseError::InvalidInfo))?;
 
     let genotypes = if let Some(s) = fields.next() {
-        s.parse().map_err(ParseError::InvalidGenotypes)?
+        Genotypes::parse(s, header).map_err(ParseError::InvalidGenotypes)?
     } else {
         Genotypes::default()
     };

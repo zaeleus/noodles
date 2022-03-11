@@ -28,6 +28,8 @@
 
     `Value` now uses INFO header records for type information.
 
+  * vcf/record/parser: Use VCF header when parsing genotypes.
+
 ### Removed
 
   * vcf/header: Remove record field keys.
