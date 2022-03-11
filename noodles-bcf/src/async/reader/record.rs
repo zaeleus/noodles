@@ -38,13 +38,10 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
-        header::info::Key as InfoFieldKey,
+        header::{format::Key as GenotypeFieldKey, info::Key as InfoFieldKey},
         record::{
             genotypes::{
-                genotype::{
-                    field::{Key as GenotypeFieldKey, Value as GenotypeFieldValue},
-                    Field as GenotypeField,
-                },
+                genotype::{field::Value as GenotypeFieldValue, Field as GenotypeField},
                 Genotype, Keys,
             },
             info::{field::Value as InfoFieldValue, Field as InfoField},

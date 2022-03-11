@@ -1,11 +1,12 @@
 //! VCF record genotype field.
 
-pub mod key;
 pub mod value;
 
-pub use self::{key::Key, value::Value};
+pub use self::value::Value;
 
 use std::{error, fmt};
+
+use crate::header::format::Key;
 
 const MISSING_VALUE: &str = ".";
 
@@ -39,7 +40,10 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::format::Key,
+    ///     record::genotypes::genotype::{field::Value, Field}
+    /// };
     ///
     /// assert_eq!(
     ///     Field::from_str_key("13", &Key::ConditionalGenotypeQuality),
@@ -61,7 +65,10 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::format::Key,
+    ///     record::genotypes::genotype::{field::Value, Field},
+    /// };
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,
@@ -77,7 +84,10 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::format::Key,
+    ///     record::genotypes::genotype::{field::Value, Field},
+    /// };
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,
@@ -95,7 +105,10 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
+    /// use noodles_vcf::{
+    ///     header::format::Key,
+    ///     record::genotypes::genotype::{field::Value, Field},
+    /// };
     ///
     /// let field = Field::new(
     ///     Key::ConditionalGenotypeQuality,
@@ -113,9 +126,18 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::{field::{Key, Value}, Field};
-    /// let mut field = Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13)));
+    /// use noodles_vcf::{
+    ///     header::format::Key,
+    ///     record::genotypes::genotype::{field::Value, Field},
+    /// };
+    ///
+    /// let mut field = Field::new(
+    ///     Key::ConditionalGenotypeQuality,
+    ///     Some(Value::Integer(13)),
+    /// );
+    ///
     /// *field.value_mut() = None;
+    ///
     /// assert!(field.value().is_none());
     /// ```
     pub fn value_mut(&mut self) -> &mut Option<Value> {

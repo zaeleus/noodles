@@ -4,10 +4,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_vcf::{
-    self as vcf,
-    record::genotypes::genotype::field::{Key, Value},
-};
+use noodles_vcf::{self as vcf, header::format::Key, record::genotypes::genotype::field::Value};
 
 use crate::{
     header::string_maps::StringStringMap,

@@ -87,7 +87,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Format, record::genotypes::genotype::field::Key};
+    /// use noodles_vcf::{self as vcf, header::{format::Key, Format}};
     ///
     /// let header = vcf::Header::builder()
     ///     .add_format(Format::from(Key::Genotype))
@@ -402,8 +402,8 @@ mod tests {
     #[test]
     fn test_build() {
         use crate::{
-            header::{self, info::Key as InfoKey},
-            record::{self, alternate_bases::allele},
+            header::{self, format::Key as FormatKey, info::Key as InfoKey},
+            record::alternate_bases::allele,
         };
 
         let record = Record::new(
@@ -415,9 +415,7 @@ mod tests {
             .set_file_format(FileFormat::new(4, 3))
             .add_info(Info::from(InfoKey::SamplesWithDataCount))
             .add_filter(Filter::new("q10", "Quality below 10"))
-            .add_format(Format::from(
-                record::genotypes::genotype::field::Key::Genotype,
-            ))
+            .add_format(Format::from(FormatKey::Genotype))
             .add_alternative_allele(AlternativeAllele::new(
                 allele::Symbol::StructuralVariant(allele::symbol::StructuralVariant::from(
                     allele::symbol::structural_variant::Type::Deletion,

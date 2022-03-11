@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * vcf: Move INFO key from record field to header record.
+  * vcf: Move INFO and FORMAT keys from record field to header record.
 
   * vcf/record/info/field/value: Rename `from_str_key` to `from_str_info`.
 

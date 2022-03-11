@@ -8,8 +8,10 @@ use std::{
 
 use indexmap::IndexSet;
 
-use super::genotype::field::{key, Key};
-use crate::{header, record::MISSING_FIELD};
+use crate::{
+    header::{self, format::Key},
+    record::MISSING_FIELD,
+};
 
 const DELIMITER: char = ':';
 
@@ -62,7 +64,7 @@ pub enum ParseError {
     /// The input is empty.
     Empty,
     /// The key is invalid.
-    InvalidKey(key::ParseError),
+    InvalidKey(crate::header::format::key::ParseError),
     /// The format is invalid.
     InvalidFormat(TryFromKeyVectorError),
 }

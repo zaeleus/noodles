@@ -161,13 +161,11 @@ mod tests {
 
     #[test]
     fn test_from_str_with_genotype_info() -> Result<(), Box<dyn std::error::Error>> {
-        use genotypes::{
-            genotype::{
-                field::{Key, Value},
-                Field,
-            },
+        use self::genotypes::{
+            genotype::{field::Value, Field},
             Genotype,
         };
+        use crate::header::format::Key;
 
         let s = "chr1\t13\tnd0\tATCG\tA\t5.8\tPASS\tSVTYPE=DEL\tGT:GQ\t0|1:13";
         let record: Record = s.parse()?;

@@ -499,7 +499,8 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     record::{genotypes::{genotype::field::Key, Genotype, Keys}, Genotypes, Position},
+    ///     header::format::Key,
+    ///     record::{genotypes::{Genotype, Keys}, Genotypes, Position},
     /// };
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -529,8 +530,9 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
+    ///     header::format::Key,
     ///     record::{
-    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype, Genotypes},
+    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Genotypes},
     ///         Position,
     ///     },
     /// };
@@ -566,8 +568,9 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
+    ///     header::format::Key,
     ///     record::{
-    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype, Genotypes},
+    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Genotypes},
     ///         Position,
     ///     },
     /// };

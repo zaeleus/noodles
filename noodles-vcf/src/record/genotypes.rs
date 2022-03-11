@@ -53,10 +53,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{
-    ///     genotypes::{genotype::field::Key, Keys},
-    ///     Genotypes,
-    /// };
+    /// use noodles_vcf::{header::format::Key, record::{genotypes::Keys, Genotypes}};
     ///
     /// let genotypes = Genotypes::default();
     /// assert!(genotypes.keys().is_empty());
@@ -75,10 +72,7 @@ impl Genotypes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::{
-    ///     genotypes::{genotype::field::Key, Keys},
-    ///     Genotypes,
-    /// };
+    /// use noodles_vcf::{header::format::Key, record::{genotypes::Keys, Genotypes}};
     ///
     /// let keys = Keys::try_from(vec![Key::Genotype])?;
     ///
@@ -208,10 +202,8 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        use genotype::{
-            field::{Key, Value},
-            Field,
-        };
+        use self::genotype::{field::Value, Field};
+        use crate::header::format::Key;
 
         let genotypes = Genotypes::new(
             Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
@@ -228,10 +220,8 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
-        use genotype::{
-            field::{Key, Value},
-            Field,
-        };
+        use self::genotype::{field::Value, Field};
+        use crate::header::format::Key;
 
         let expected = Genotypes::new(
             Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,

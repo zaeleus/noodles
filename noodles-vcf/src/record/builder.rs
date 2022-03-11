@@ -275,10 +275,10 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
+    ///     header::format::Key,
     ///     record::{
-    ///         genotypes::{genotype::{field::{Key, Value}, Field}, Genotype},
-    ///         Genotypes,
-    ///         Position,
+    ///         genotypes::{genotype::{field::Value, Field}, Genotype},
+    ///         Genotypes, Position,
     ///     },
     /// };
     ///

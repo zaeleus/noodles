@@ -37,14 +37,13 @@ impl StringMaps {
     /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key as InfoKey, Contig, Filter, Format, Info},
-    ///     record::genotypes::genotype::field::Key as GenotypeKey,
+    ///     header::{format::Key as FormatKey, info::Key as InfoKey, Contig, Filter, Format, Info},
     /// };
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(Info::from(InfoKey::TotalDepth))
     ///     .add_filter(Filter::new("q10", "Quality below 10"))
-    ///     .add_format(Format::from(GenotypeKey::ReadDepth))
+    ///     .add_format(Format::from(FormatKey::ReadDepth))
     ///     .add_contig(Contig::new("sq0"))
     ///     .build();
     ///
@@ -73,14 +72,13 @@ impl StringMaps {
     /// use noodles_bcf::{self as bcf, header::StringMaps};
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{info::Key as InfoKey, Contig, Filter, Format, Info},
-    ///     record::genotypes::genotype::field::Key as GenotypeKey,
+    ///     header::{format::Key as FormatKey, info::Key as InfoKey, Contig, Filter, Format, Info},
     /// };
     ///
     /// let header = vcf::Header::builder()
     ///     .add_info(Info::from(InfoKey::TotalDepth))
     ///     .add_filter(Filter::new("q10", "Quality below 10"))
-    ///     .add_format(Format::from(GenotypeKey::ReadDepth))
+    ///     .add_format(Format::from(FormatKey::ReadDepth))
     ///     .add_contig(Contig::new("sq0"))
     ///     .build();
     ///
@@ -386,13 +384,10 @@ mod tests {
     #[test]
     fn test_vcf_header_for_string_map() {
         use vcf::{
-            header::{info::Key as InfoKey, AlternativeAllele, Contig},
-            record::{
-                alternate_bases::allele::{
-                    symbol::{structural_variant::Type, StructuralVariant},
-                    Symbol,
-                },
-                genotypes::genotype::field::Key as GenotypeKey,
+            header::{format::Key as FormatKey, info::Key as InfoKey, AlternativeAllele, Contig},
+            record::alternate_bases::allele::{
+                symbol::{structural_variant::Type, StructuralVariant},
+                Symbol,
             },
         };
 
@@ -404,8 +399,8 @@ mod tests {
             .add_info(Info::from(InfoKey::TotalDepth))
             .add_filter(Filter::pass())
             .add_filter(Filter::new("q10", "Quality below 10"))
-            .add_format(Format::from(GenotypeKey::Genotype))
-            .add_format(Format::from(GenotypeKey::ReadDepth))
+            .add_format(Format::from(FormatKey::Genotype))
+            .add_format(Format::from(FormatKey::ReadDepth))
             .add_alternative_allele(AlternativeAllele::new(
                 Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
                 "Deletion",

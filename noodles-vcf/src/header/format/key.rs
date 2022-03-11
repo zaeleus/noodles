@@ -1,10 +1,10 @@
-//! VCF record genotype field key.
+//! VCF header format key.
 
 use std::{error, fmt, str::FromStr};
 
 use crate::header::{format::Type, Number};
 
-/// A VCF record genotype field key.
+/// A VCF header format key.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
     // § 1.6.2 Genotype fields (2021-01-13)
@@ -67,7 +67,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::Number, record::genotypes::genotype::field::Key};
+    /// use noodles_vcf::header::{format::Key, Number};
     /// assert_eq!(Key::Genotype.number(), Number::Count(1));
     /// ```
     pub fn number(&self) -> Number {
@@ -106,7 +106,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::format::Type, record::genotypes::genotype::field::Key};
+    /// use noodles_vcf::header::format::{Key, Type};
     /// assert_eq!(Key::Genotype.ty(), Type::String);
     /// ```
     pub fn ty(&self) -> Type {
@@ -145,7 +145,7 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::record::genotypes::genotype::field::Key;
+    /// use noodles_vcf::header::format::Key;
     /// assert_eq!(Key::Genotype.description(), "Genotype");
     /// ```
     pub fn description(&self) -> &str {
