@@ -524,7 +524,8 @@ where
     }
 
     fn write_number_of_read_features(&mut self, feature_count: usize) -> io::Result<()> {
-        self.compression_header
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .number_of_read_features_encoding()
             .ok_or_else(|| {
@@ -532,17 +533,17 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::NumberOfReadFeatures),
                 )
-            })
-            .and_then(|encoding| {
-                let number_of_read_features = feature_count as i32;
+            })?;
 
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    number_of_read_features,
-                )
-            })
+        let number_of_read_features = i32::try_from(feature_count)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            number_of_read_features,
+        )
     }
 
     fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {

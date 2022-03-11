@@ -33,6 +33,9 @@
 
   * cram/data_container/slice/builder: Detach all records before writing.
 
+  * cram/writer/record: Fix possible wrapping when casting when writing number
+    of read features.
+
 ## 0.13.0 - 2022-03-02
 
 ### Added
