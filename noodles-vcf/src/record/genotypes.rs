@@ -14,7 +14,7 @@ use std::{
 
 use self::genotype::field;
 use super::FIELD_DELIMITER;
-use crate::header::Formats;
+use crate::Header;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -24,6 +24,38 @@ pub struct Genotypes {
 }
 
 impl Genotypes {
+    /// Parses VCF record genotypes with a VCF header as context.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{format::Key, Format},
+    ///     record::{
+    ///         genotypes::{genotype::{field::Value, Field}, Genotype, Keys},
+    ///         Genotypes,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder().add_format(Format::from(Key::Genotype)).build();
+    /// let actual = Genotypes::parse("GT:GQ\t0|0:13", &header)?;
+    ///
+    /// let expected = Genotypes::new(
+    ///     Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+    ///     vec![Genotype::try_from(vec![
+    ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+    ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+    ///     ])?],
+    /// );
+    ///
+    /// assert_eq!(actual, expected);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
+        parse(s, header)
+    }
+
     /// Creates VCF record genotypes.
     ///
     /// # Examples
@@ -155,23 +187,26 @@ impl FromStr for Genotypes {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
-        let (format, t) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
-
-        let formats = Formats::default();
-        let keys = format.parse().map_err(ParseError::InvalidKeys)?;
-
-        let genotypes = t
-            .split(FIELD_DELIMITER)
-            .map(|t| Genotype::parse(t, &formats, &keys))
-            .collect::<Result<_, _>>()
-            .map_err(ParseError::InvalidGenotype)?;
-
-        Ok(Self::new(keys, genotypes))
+        parse(s, &Header::default())
     }
+}
+
+fn parse(s: &str, header: &Header) -> Result<Genotypes, ParseError> {
+    if s.is_empty() {
+        return Err(ParseError::Empty);
+    }
+
+    let (format, t) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
+
+    let keys = format.parse().map_err(ParseError::InvalidKeys)?;
+
+    let genotypes = t
+        .split(FIELD_DELIMITER)
+        .map(|t| Genotype::parse(t, header.formats(), &keys))
+        .collect::<Result<_, _>>()
+        .map_err(ParseError::InvalidGenotype)?;
+
+    Ok(Genotypes::new(keys, genotypes))
 }
 
 #[cfg(test)]

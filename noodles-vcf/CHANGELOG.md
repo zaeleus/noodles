@@ -6,6 +6,10 @@
 
   * vcf: Move INFO and FORMAT keys from record field to header record.
 
+  * vcf/record/genotypes: Add `parse` method.
+
+    This uses FORMAT header records for type information.
+
   * vcf/record/genotypes/genotype: Rename `from_str_keys` to `parse`.
 
     `Genotype` now uses FORMAT header records for type information.
