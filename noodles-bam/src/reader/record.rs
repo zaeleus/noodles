@@ -84,7 +84,7 @@ where
     use crate::record::reference_sequence_id::UNMAPPED;
 
     if buf.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     match buf.get_i32_le() {
@@ -103,7 +103,7 @@ where
     use crate::record::UNMAPPED_POSITION;
 
     if buf.remaining() < mem::size_of::<i32>() {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     match buf.get_i32_le() {
@@ -121,7 +121,7 @@ where
     use sam::record::mapping_quality::MISSING;
 
     if buf.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     match buf.get_u8() {
@@ -137,7 +137,7 @@ where
     B: Buf,
 {
     if buf.remaining() < mem::size_of::<u16>() {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     Ok(sam::record::Flags::from(buf.get_u16_le()))
@@ -156,7 +156,7 @@ where
     let len = usize::from(l_read_name);
 
     if buf.remaining() < len {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     *read_name = if len == 2 && buf.chunk()[0] == MISSING {
@@ -212,7 +212,7 @@ where
     }
 
     if buf.remaining() < mem::size_of::<u32>() * n_cigar_op {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     cigar.clear();
@@ -260,7 +260,7 @@ where
     let seq_len = (l_seq + 1) / 2;
 
     if buf.remaining() < seq_len {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     let seq = buf.take(seq_len);
@@ -293,7 +293,7 @@ where
     use sam::record::quality_scores::Score;
 
     if buf.remaining() < l_seq {
-        return Err(io::Error::from(io::ErrorKind::InvalidData));
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     quality_scores.clear();
