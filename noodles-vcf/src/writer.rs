@@ -137,12 +137,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{
-        genotypes::{self, Genotype},
-        Genotypes, Position,
-    };
-
     use super::*;
+    use crate::record::Position;
 
     #[test]
     fn test_write_header() -> io::Result<()> {
@@ -181,16 +177,32 @@ mod tests {
 
     #[test]
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::{
+            header::format::Key,
+            record::{
+                genotypes::{
+                    genotype::{field::Value, Field},
+                    Genotype, Keys,
+                },
+                Genotypes,
+            },
+        };
+
         let mut writer = Writer::new(Vec::new());
 
-        let keys: genotypes::Keys = "GT:GQ".parse()?;
-        let genotypes = vec![Genotype::from_str_keys("0|0:13", &keys)?];
+        let genotypes = Genotypes::new(
+            Keys::try_from(vec![Key::Genotype, Key::ConditionalGenotypeQuality])?,
+            vec![Genotype::try_from(vec![
+                Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
+                Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
+            ])?],
+        );
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
             .set_position(Position::try_from(1)?)
             .set_reference_bases("A".parse()?)
-            .set_genotypes(Genotypes::new(keys, genotypes))
+            .set_genotypes(genotypes)
             .build()?;
 
         writer.write_record(&record)?;

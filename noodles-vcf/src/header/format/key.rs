@@ -58,165 +58,141 @@ pub enum Key {
     AncestralHaplotypeId,
 
     /// Any other non-reserved key.
-    Other(String, Number, Type, String),
+    Other(String),
 }
 
-impl Key {
-    /// Returns the cardinality of the genotype field value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{format::Key, Number};
-    /// assert_eq!(Key::Genotype.number(), Number::Count(1));
-    /// ```
-    pub fn number(&self) -> Number {
-        match self {
-            Self::ReadDepths => Number::R,
-            Self::ForwardStrandReadDepths => Number::R,
-            Self::ReverseStrandReadDepths => Number::R,
-            Self::ReadDepth => Number::Count(1),
-            Self::ExpectedAlternateAlleleCounts => Number::A,
-            Self::Filter => Number::Count(1),
-            Self::GenotypeLikelihoods => Number::G,
-            Self::GenotypePosteriorProbabilities => Number::G,
-            Self::ConditionalGenotypeQuality => Number::Count(1),
-            Self::Genotype => Number::Count(1),
-            Self::HaplotypeQuality => Number::Count(2),
-            Self::MappingQuality => Number::Count(1),
-            Self::RoundedGenotypeLikelihoods => Number::G,
-            Self::RoundedGenotypePosteriorProbabilities => Number::G,
-            Self::PhasingQuality => Number::Count(1),
-            Self::PhaseSet => Number::Count(1),
+pub(super) fn number(key: &Key) -> Option<Number> {
+    match key {
+        Key::ReadDepths => Some(Number::R),
+        Key::ForwardStrandReadDepths => Some(Number::R),
+        Key::ReverseStrandReadDepths => Some(Number::R),
+        Key::ReadDepth => Some(Number::Count(1)),
+        Key::ExpectedAlternateAlleleCounts => Some(Number::A),
+        Key::Filter => Some(Number::Count(1)),
+        Key::GenotypeLikelihoods => Some(Number::G),
+        Key::GenotypePosteriorProbabilities => Some(Number::G),
+        Key::ConditionalGenotypeQuality => Some(Number::Count(1)),
+        Key::Genotype => Some(Number::Count(1)),
+        Key::HaplotypeQuality => Some(Number::Count(2)),
+        Key::MappingQuality => Some(Number::Count(1)),
+        Key::RoundedGenotypeLikelihoods => Some(Number::G),
+        Key::RoundedGenotypePosteriorProbabilities => Some(Number::G),
+        Key::PhasingQuality => Some(Number::Count(1)),
+        Key::PhaseSet => Some(Number::Count(1)),
 
-            Self::GenotypeCopyNumber => Number::Count(1),
-            Self::GenotypeCopyNumberQuality => Number::Count(1),
-            Self::GenotypeCopyNumberLikelihoods => Number::G,
-            Self::GenotypeCopyNumberPosteriorProbabilities => Number::G,
-            Self::NovelVariantQualityScore => Number::Count(1),
-            Self::HaplotypeId => Number::Count(1),
-            Self::AncestralHaplotypeId => Number::Count(1),
+        Key::GenotypeCopyNumber => Some(Number::Count(1)),
+        Key::GenotypeCopyNumberQuality => Some(Number::Count(1)),
+        Key::GenotypeCopyNumberLikelihoods => Some(Number::G),
+        Key::GenotypeCopyNumberPosteriorProbabilities => Some(Number::G),
+        Key::NovelVariantQualityScore => Some(Number::Count(1)),
+        Key::HaplotypeId => Some(Number::Count(1)),
+        Key::AncestralHaplotypeId => Some(Number::Count(1)),
 
-            Self::Other(_, number, _, _) => *number,
-        }
+        Key::Other(_) => None,
     }
+}
 
-    /// Returns the type of the genotype field value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::format::{Key, Type};
-    /// assert_eq!(Key::Genotype.ty(), Type::String);
-    /// ```
-    pub fn ty(&self) -> Type {
-        match self {
-            Self::ReadDepths => Type::Integer,
-            Self::ForwardStrandReadDepths => Type::Integer,
-            Self::ReverseStrandReadDepths => Type::Integer,
-            Self::ReadDepth => Type::Integer,
-            Self::ExpectedAlternateAlleleCounts => Type::Integer,
-            Self::Filter => Type::String,
-            Self::GenotypeLikelihoods => Type::Float,
-            Self::GenotypePosteriorProbabilities => Type::Float,
-            Self::ConditionalGenotypeQuality => Type::Integer,
-            Self::Genotype => Type::String,
-            Self::HaplotypeQuality => Type::Integer,
-            Self::MappingQuality => Type::Integer,
-            Self::RoundedGenotypeLikelihoods => Type::Integer,
-            Self::RoundedGenotypePosteriorProbabilities => Type::Integer,
-            Self::PhasingQuality => Type::Integer,
-            Self::PhaseSet => Type::Integer,
+pub(super) fn ty(key: &Key) -> Option<Type> {
+    match key {
+        Key::ReadDepths => Some(Type::Integer),
+        Key::ForwardStrandReadDepths => Some(Type::Integer),
+        Key::ReverseStrandReadDepths => Some(Type::Integer),
+        Key::ReadDepth => Some(Type::Integer),
+        Key::ExpectedAlternateAlleleCounts => Some(Type::Integer),
+        Key::Filter => Some(Type::String),
+        Key::GenotypeLikelihoods => Some(Type::Float),
+        Key::GenotypePosteriorProbabilities => Some(Type::Float),
+        Key::ConditionalGenotypeQuality => Some(Type::Integer),
+        Key::Genotype => Some(Type::String),
+        Key::HaplotypeQuality => Some(Type::Integer),
+        Key::MappingQuality => Some(Type::Integer),
+        Key::RoundedGenotypeLikelihoods => Some(Type::Integer),
+        Key::RoundedGenotypePosteriorProbabilities => Some(Type::Integer),
+        Key::PhasingQuality => Some(Type::Integer),
+        Key::PhaseSet => Some(Type::Integer),
 
-            Self::GenotypeCopyNumber => Type::Integer,
-            Self::GenotypeCopyNumberQuality => Type::Float,
-            Self::GenotypeCopyNumberLikelihoods => Type::Float,
-            Self::GenotypeCopyNumberPosteriorProbabilities => Type::Float,
-            Self::NovelVariantQualityScore => Type::Integer,
-            Self::HaplotypeId => Type::Integer,
-            Self::AncestralHaplotypeId => Type::Integer,
+        Key::GenotypeCopyNumber => Some(Type::Integer),
+        Key::GenotypeCopyNumberQuality => Some(Type::Float),
+        Key::GenotypeCopyNumberLikelihoods => Some(Type::Float),
+        Key::GenotypeCopyNumberPosteriorProbabilities => Some(Type::Float),
+        Key::NovelVariantQualityScore => Some(Type::Integer),
+        Key::HaplotypeId => Some(Type::Integer),
+        Key::AncestralHaplotypeId => Some(Type::Integer),
 
-            Self::Other(_, _, ty, _) => *ty,
-        }
+        Key::Other(_) => None,
     }
+}
 
-    /// Returns the description of the genotype field.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::format::Key;
-    /// assert_eq!(Key::Genotype.description(), "Genotype");
-    /// ```
-    pub fn description(&self) -> &str {
-        match self {
-            Self::ReadDepths => "Read depth for each allele",
-            Self::ForwardStrandReadDepths => "Read depth for each allele on the forward strand",
-            Self::ReverseStrandReadDepths => "Read depth for each allele on the reverse strand",
-            Self::ReadDepth => "Read depth",
-            Self::ExpectedAlternateAlleleCounts => "Expected alternate allele counts",
-            Self::Filter => r#"Filter indicating if this genotype was "called""#,
-            Self::GenotypeLikelihoods => "Genotype likelihoods",
-            Self::GenotypePosteriorProbabilities => "Genotype posterior probabilities",
-            Self::ConditionalGenotypeQuality => "Conditional genotype quality",
-            Self::Genotype => "Genotype",
-            Self::HaplotypeQuality => "Haplotype quality",
-            Self::MappingQuality => "RMS mapping quality",
-            Self::RoundedGenotypeLikelihoods => {
-                "Phred-scaled genotype likelihoods rounded to the closest integer"
-            }
-            Self::RoundedGenotypePosteriorProbabilities => {
-                "Phred-scaled genotype posterior probabilities rounded to the closest integer"
-            }
-            Self::PhasingQuality => "Phasing quality",
-            Self::PhaseSet => "Phase set",
-
-            Self::GenotypeCopyNumber => "Copy number genotype for imprecise events",
-            Self::GenotypeCopyNumberQuality => "Copy number genotype quality for imprecise events",
-            Self::GenotypeCopyNumberLikelihoods => {
-                "Copy number genotype likelihood for imprecise events"
-            }
-            Self::GenotypeCopyNumberPosteriorProbabilities => "Copy number posterior probabilities",
-            Self::NovelVariantQualityScore => {
-                "Phred style probability score that the variant is novel"
-            }
-            Self::HaplotypeId => "Unique haplotype identifier",
-            Self::AncestralHaplotypeId => "Unique identifier of ancestral haplotype",
-
-            Self::Other(_, _, _, description) => description,
+pub(super) fn description(key: &Key) -> Option<&str> {
+    match key {
+        Key::ReadDepths => Some("Read depth for each allele"),
+        Key::ForwardStrandReadDepths => Some("Read depth for each allele on the forward strand"),
+        Key::ReverseStrandReadDepths => Some("Read depth for each allele on the reverse strand"),
+        Key::ReadDepth => Some("Read depth"),
+        Key::ExpectedAlternateAlleleCounts => Some("Expected alternate allele counts"),
+        Key::Filter => Some(r#"Filter indicating if this genotype was "called""#),
+        Key::GenotypeLikelihoods => Some("Genotype likelihoods"),
+        Key::GenotypePosteriorProbabilities => Some("Genotype posterior probabilities"),
+        Key::ConditionalGenotypeQuality => Some("Conditional genotype quality"),
+        Key::Genotype => Some("Genotype"),
+        Key::HaplotypeQuality => Some("Haplotype quality"),
+        Key::MappingQuality => Some("RMS mapping quality"),
+        Key::RoundedGenotypeLikelihoods => {
+            Some("Phred-scaled genotype likelihoods rounded to the closest integer")
         }
+        Key::RoundedGenotypePosteriorProbabilities => {
+            Some("Phred-scaled genotype posterior probabilities rounded to the closest integer")
+        }
+        Key::PhasingQuality => Some("Phasing quality"),
+        Key::PhaseSet => Some("Phase set"),
+
+        Key::GenotypeCopyNumber => Some("Copy number genotype for imprecise events"),
+        Key::GenotypeCopyNumberQuality => Some("Copy number genotype quality for imprecise events"),
+        Key::GenotypeCopyNumberLikelihoods => {
+            Some("Copy number genotype likelihood for imprecise events")
+        }
+        Key::GenotypeCopyNumberPosteriorProbabilities => {
+            Some("Copy number posterior probabilities")
+        }
+        Key::NovelVariantQualityScore => {
+            Some("Phred style probability score that the variant is novel")
+        }
+        Key::HaplotypeId => Some("Unique haplotype identifier"),
+        Key::AncestralHaplotypeId => Some("Unique identifier of ancestral haplotype"),
+
+        Key::Other(_) => None,
     }
 }
 
 impl AsRef<str> for Key {
     fn as_ref(&self) -> &str {
         match self {
-            Self::ReadDepths => "AD",
-            Self::ForwardStrandReadDepths => "ADF",
-            Self::ReverseStrandReadDepths => "ADR",
-            Self::ReadDepth => "DP",
-            Self::ExpectedAlternateAlleleCounts => "EC",
-            Self::Filter => "FT",
-            Self::GenotypeLikelihoods => "GL",
-            Self::GenotypePosteriorProbabilities => "GP",
-            Self::ConditionalGenotypeQuality => "GQ",
-            Self::Genotype => "GT",
-            Self::HaplotypeQuality => "HQ",
-            Self::MappingQuality => "MQ",
-            Self::RoundedGenotypeLikelihoods => "PL",
-            Self::RoundedGenotypePosteriorProbabilities => "PP",
-            Self::PhasingQuality => "PQ",
-            Self::PhaseSet => "PS",
+            Key::ReadDepths => "AD",
+            Key::ForwardStrandReadDepths => "ADF",
+            Key::ReverseStrandReadDepths => "ADR",
+            Key::ReadDepth => "DP",
+            Key::ExpectedAlternateAlleleCounts => "EC",
+            Key::Filter => "FT",
+            Key::GenotypeLikelihoods => "GL",
+            Key::GenotypePosteriorProbabilities => "GP",
+            Key::ConditionalGenotypeQuality => "GQ",
+            Key::Genotype => "GT",
+            Key::HaplotypeQuality => "HQ",
+            Key::MappingQuality => "MQ",
+            Key::RoundedGenotypeLikelihoods => "PL",
+            Key::RoundedGenotypePosteriorProbabilities => "PP",
+            Key::PhasingQuality => "PQ",
+            Key::PhaseSet => "PS",
 
-            Self::GenotypeCopyNumber => "CN",
-            Self::GenotypeCopyNumberQuality => "CNQ",
-            Self::GenotypeCopyNumberLikelihoods => "CNL",
-            Self::GenotypeCopyNumberPosteriorProbabilities => "CNP",
-            Self::NovelVariantQualityScore => "NQ",
-            Self::HaplotypeId => "HAP",
-            Self::AncestralHaplotypeId => "AHAP",
+            Key::GenotypeCopyNumber => "CN",
+            Key::GenotypeCopyNumberQuality => "CNQ",
+            Key::GenotypeCopyNumberLikelihoods => "CNL",
+            Key::GenotypeCopyNumberPosteriorProbabilities => "CNP",
+            Key::NovelVariantQualityScore => "NQ",
+            Key::HaplotypeId => "HAP",
+            Key::AncestralHaplotypeId => "AHAP",
 
-            Self::Other(key, ..) => key,
+            Key::Other(s) => s,
         }
     }
 }
@@ -256,39 +232,34 @@ impl FromStr for Key {
         }
 
         match s {
-            "AD" => Ok(Self::ReadDepths),
-            "ADF" => Ok(Self::ForwardStrandReadDepths),
-            "ADR" => Ok(Self::ReverseStrandReadDepths),
-            "DP" => Ok(Self::ReadDepth),
-            "EC" => Ok(Self::ExpectedAlternateAlleleCounts),
-            "FT" => Ok(Self::Filter),
-            "GL" => Ok(Self::GenotypeLikelihoods),
-            "GP" => Ok(Self::GenotypePosteriorProbabilities),
-            "GQ" => Ok(Self::ConditionalGenotypeQuality),
-            "GT" => Ok(Self::Genotype),
-            "HQ" => Ok(Self::HaplotypeQuality),
-            "MQ" => Ok(Self::MappingQuality),
-            "PL" => Ok(Self::RoundedGenotypeLikelihoods),
-            "PP" => Ok(Self::RoundedGenotypePosteriorProbabilities),
-            "PQ" => Ok(Self::PhasingQuality),
-            "PS" => Ok(Self::PhaseSet),
+            "AD" => Ok(Key::ReadDepths),
+            "ADF" => Ok(Key::ForwardStrandReadDepths),
+            "ADR" => Ok(Key::ReverseStrandReadDepths),
+            "DP" => Ok(Key::ReadDepth),
+            "EC" => Ok(Key::ExpectedAlternateAlleleCounts),
+            "FT" => Ok(Key::Filter),
+            "GL" => Ok(Key::GenotypeLikelihoods),
+            "GP" => Ok(Key::GenotypePosteriorProbabilities),
+            "GQ" => Ok(Key::ConditionalGenotypeQuality),
+            "GT" => Ok(Key::Genotype),
+            "HQ" => Ok(Key::HaplotypeQuality),
+            "MQ" => Ok(Key::MappingQuality),
+            "PL" => Ok(Key::RoundedGenotypeLikelihoods),
+            "PP" => Ok(Key::RoundedGenotypePosteriorProbabilities),
+            "PQ" => Ok(Key::PhasingQuality),
+            "PS" => Ok(Key::PhaseSet),
 
-            "CN" => Ok(Self::GenotypeCopyNumber),
-            "CNQ" => Ok(Self::GenotypeCopyNumberQuality),
-            "CNL" => Ok(Self::GenotypeCopyNumberLikelihoods),
-            "CNP" => Ok(Self::GenotypeCopyNumberPosteriorProbabilities),
-            "NQ" => Ok(Self::NovelVariantQualityScore),
-            "HAP" => Ok(Self::HaplotypeId),
-            "AHAP" => Ok(Self::AncestralHaplotypeId),
+            "CN" => Ok(Key::GenotypeCopyNumber),
+            "CNQ" => Ok(Key::GenotypeCopyNumberQuality),
+            "CNL" => Ok(Key::GenotypeCopyNumberLikelihoods),
+            "CNP" => Ok(Key::GenotypeCopyNumberPosteriorProbabilities),
+            "NQ" => Ok(Key::NovelVariantQualityScore),
+            "HAP" => Ok(Key::HaplotypeId),
+            "AHAP" => Ok(Key::AncestralHaplotypeId),
 
             _ => {
                 if is_valid_name(s) {
-                    Ok(Self::Other(
-                        s.into(),
-                        Number::Count(1),
-                        Type::String,
-                        String::default(),
-                    ))
+                    Ok(Key::Other(s.into()))
                 } else {
                     Err(ParseError::Invalid)
                 }
@@ -317,183 +288,6 @@ fn is_valid_name(s: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_number() {
-        assert_eq!(Key::ReadDepths.number(), Number::R);
-        assert_eq!(Key::ForwardStrandReadDepths.number(), Number::R);
-        assert_eq!(Key::ReverseStrandReadDepths.number(), Number::R);
-        assert_eq!(Key::ReadDepth.number(), Number::Count(1));
-        assert_eq!(Key::ExpectedAlternateAlleleCounts.number(), Number::A);
-        assert_eq!(Key::Filter.number(), Number::Count(1));
-        assert_eq!(Key::GenotypeLikelihoods.number(), Number::G);
-        assert_eq!(Key::GenotypePosteriorProbabilities.number(), Number::G);
-        assert_eq!(Key::ConditionalGenotypeQuality.number(), Number::Count(1));
-        assert_eq!(Key::Genotype.number(), Number::Count(1));
-        assert_eq!(Key::HaplotypeQuality.number(), Number::Count(2));
-        assert_eq!(Key::MappingQuality.number(), Number::Count(1));
-        assert_eq!(Key::RoundedGenotypeLikelihoods.number(), Number::G);
-        assert_eq!(
-            Key::RoundedGenotypePosteriorProbabilities.number(),
-            Number::G
-        );
-        assert_eq!(Key::PhasingQuality.number(), Number::Count(1));
-        assert_eq!(Key::PhaseSet.number(), Number::Count(1));
-
-        assert_eq!(Key::GenotypeCopyNumber.number(), Number::Count(1));
-        assert_eq!(Key::GenotypeCopyNumberQuality.number(), Number::Count(1));
-        assert_eq!(Key::GenotypeCopyNumberLikelihoods.number(), Number::G);
-        assert_eq!(
-            Key::GenotypeCopyNumberPosteriorProbabilities.number(),
-            Number::G
-        );
-        assert_eq!(Key::NovelVariantQualityScore.number(), Number::Count(1));
-        assert_eq!(Key::HaplotypeId.number(), Number::Count(1));
-        assert_eq!(Key::AncestralHaplotypeId.number(), Number::Count(1));
-
-        assert_eq!(
-            Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            )
-            .number(),
-            Number::Count(1)
-        );
-    }
-
-    #[test]
-    fn test_ty() {
-        assert_eq!(Key::ReadDepths.ty(), Type::Integer);
-        assert_eq!(Key::ForwardStrandReadDepths.ty(), Type::Integer);
-        assert_eq!(Key::ReverseStrandReadDepths.ty(), Type::Integer);
-        assert_eq!(Key::ReadDepth.ty(), Type::Integer);
-        assert_eq!(Key::ExpectedAlternateAlleleCounts.ty(), Type::Integer);
-        assert_eq!(Key::Filter.ty(), Type::String);
-        assert_eq!(Key::GenotypeLikelihoods.ty(), Type::Float);
-        assert_eq!(Key::GenotypePosteriorProbabilities.ty(), Type::Float);
-        assert_eq!(Key::ConditionalGenotypeQuality.ty(), Type::Integer);
-        assert_eq!(Key::Genotype.ty(), Type::String);
-        assert_eq!(Key::HaplotypeQuality.ty(), Type::Integer);
-        assert_eq!(Key::MappingQuality.ty(), Type::Integer);
-        assert_eq!(Key::RoundedGenotypeLikelihoods.ty(), Type::Integer);
-        assert_eq!(
-            Key::RoundedGenotypePosteriorProbabilities.ty(),
-            Type::Integer
-        );
-        assert_eq!(Key::PhasingQuality.ty(), Type::Integer);
-        assert_eq!(Key::PhaseSet.ty(), Type::Integer);
-
-        assert_eq!(Key::GenotypeCopyNumber.ty(), Type::Integer);
-        assert_eq!(Key::GenotypeCopyNumberQuality.ty(), Type::Float);
-        assert_eq!(Key::GenotypeCopyNumberLikelihoods.ty(), Type::Float);
-        assert_eq!(
-            Key::GenotypeCopyNumberPosteriorProbabilities.ty(),
-            Type::Float
-        );
-        assert_eq!(Key::NovelVariantQualityScore.ty(), Type::Integer);
-        assert_eq!(Key::HaplotypeId.ty(), Type::Integer);
-        assert_eq!(Key::AncestralHaplotypeId.ty(), Type::Integer);
-
-        assert_eq!(
-            Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            )
-            .ty(),
-            Type::String
-        );
-    }
-
-    #[test]
-    fn test_description() {
-        assert_eq!(Key::ReadDepths.description(), "Read depth for each allele");
-        assert_eq!(
-            Key::ForwardStrandReadDepths.description(),
-            "Read depth for each allele on the forward strand"
-        );
-        assert_eq!(
-            Key::ReverseStrandReadDepths.description(),
-            "Read depth for each allele on the reverse strand"
-        );
-        assert_eq!(Key::ReadDepth.description(), "Read depth");
-        assert_eq!(
-            Key::ExpectedAlternateAlleleCounts.description(),
-            "Expected alternate allele counts"
-        );
-        assert_eq!(
-            Key::Filter.description(),
-            r#"Filter indicating if this genotype was "called""#
-        );
-        assert_eq!(
-            Key::GenotypeLikelihoods.description(),
-            "Genotype likelihoods"
-        );
-        assert_eq!(
-            Key::GenotypePosteriorProbabilities.description(),
-            "Genotype posterior probabilities"
-        );
-        assert_eq!(
-            Key::ConditionalGenotypeQuality.description(),
-            "Conditional genotype quality"
-        );
-        assert_eq!(Key::Genotype.description(), "Genotype");
-        assert_eq!(Key::HaplotypeQuality.description(), "Haplotype quality");
-        assert_eq!(Key::MappingQuality.description(), "RMS mapping quality");
-        assert_eq!(
-            Key::RoundedGenotypeLikelihoods.description(),
-            "Phred-scaled genotype likelihoods rounded to the closest integer"
-        );
-        assert_eq!(
-            Key::RoundedGenotypePosteriorProbabilities.description(),
-            "Phred-scaled genotype posterior probabilities rounded to the closest integer"
-        );
-        assert_eq!(Key::PhasingQuality.description(), "Phasing quality");
-        assert_eq!(Key::PhaseSet.description(), "Phase set");
-
-        assert_eq!(
-            Key::GenotypeCopyNumber.description(),
-            "Copy number genotype for imprecise events"
-        );
-        assert_eq!(
-            Key::GenotypeCopyNumberQuality.description(),
-            "Copy number genotype quality for imprecise events"
-        );
-        assert_eq!(
-            Key::GenotypeCopyNumberLikelihoods.description(),
-            "Copy number genotype likelihood for imprecise events"
-        );
-        assert_eq!(
-            Key::GenotypeCopyNumberPosteriorProbabilities.description(),
-            "Copy number posterior probabilities"
-        );
-        assert_eq!(
-            Key::NovelVariantQualityScore.description(),
-            "Phred style probability score that the variant is novel"
-        );
-        assert_eq!(
-            Key::HaplotypeId.description(),
-            "Unique haplotype identifier"
-        );
-        assert_eq!(
-            Key::AncestralHaplotypeId.description(),
-            "Unique identifier of ancestral haplotype"
-        );
-
-        assert_eq!(
-            Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::from("noodles")
-            )
-            .description(),
-            "noodles"
-        );
-    }
 
     #[test]
     fn test_fmt() {
@@ -525,16 +319,7 @@ mod tests {
         assert_eq!(Key::HaplotypeId.to_string(), "HAP");
         assert_eq!(Key::AncestralHaplotypeId.to_string(), "AHAP");
 
-        assert_eq!(
-            Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            )
-            .to_string(),
-            "NDLS"
-        );
+        assert_eq!(Key::Other(String::from("NDLS")).to_string(), "NDLS");
     }
 
     #[test]
@@ -567,19 +352,182 @@ mod tests {
         assert_eq!("HAP".parse(), Ok(Key::HaplotypeId));
         assert_eq!("AHAP".parse(), Ok(Key::AncestralHaplotypeId));
 
-        assert_eq!(
-            "NDLS".parse(),
-            Ok(Key::Other(
-                String::from("NDLS"),
-                Number::Count(1),
-                Type::String,
-                String::default()
-            ))
-        );
+        assert_eq!("NDLS".parse(), Ok(Key::Other(String::from("NDLS"))));
 
         assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
         assert_eq!("8D".parse::<Key>(), Err(ParseError::Invalid));
         assert_eq!(".N".parse::<Key>(), Err(ParseError::Invalid));
         assert_eq!("A!".parse::<Key>(), Err(ParseError::Invalid));
+    }
+
+    #[test]
+    fn test_number() {
+        assert_eq!(number(&Key::ReadDepths), Some(Number::R));
+        assert_eq!(number(&Key::ForwardStrandReadDepths), Some(Number::R));
+        assert_eq!(number(&Key::ReverseStrandReadDepths), Some(Number::R));
+        assert_eq!(number(&Key::ReadDepth), Some(Number::Count(1)));
+        assert_eq!(number(&Key::ExpectedAlternateAlleleCounts), Some(Number::A));
+        assert_eq!(number(&Key::Filter), Some(Number::Count(1)));
+        assert_eq!(number(&Key::GenotypeLikelihoods), Some(Number::G));
+        assert_eq!(
+            number(&Key::GenotypePosteriorProbabilities),
+            Some(Number::G)
+        );
+        assert_eq!(
+            number(&Key::ConditionalGenotypeQuality),
+            Some(Number::Count(1))
+        );
+        assert_eq!(number(&Key::Genotype), Some(Number::Count(1)));
+        assert_eq!(number(&Key::HaplotypeQuality), Some(Number::Count(2)));
+        assert_eq!(number(&Key::MappingQuality), Some(Number::Count(1)));
+        assert_eq!(number(&Key::RoundedGenotypeLikelihoods), Some(Number::G));
+        assert_eq!(
+            number(&Key::RoundedGenotypePosteriorProbabilities),
+            Some(Number::G)
+        );
+        assert_eq!(number(&Key::PhasingQuality), Some(Number::Count(1)));
+        assert_eq!(number(&Key::PhaseSet), Some(Number::Count(1)));
+
+        assert_eq!(number(&Key::GenotypeCopyNumber), Some(Number::Count(1)));
+        assert_eq!(
+            number(&Key::GenotypeCopyNumberQuality),
+            Some(Number::Count(1))
+        );
+        assert_eq!(number(&Key::GenotypeCopyNumberLikelihoods), Some(Number::G));
+        assert_eq!(
+            number(&Key::GenotypeCopyNumberPosteriorProbabilities),
+            Some(Number::G)
+        );
+        assert_eq!(
+            number(&Key::NovelVariantQualityScore),
+            Some(Number::Count(1))
+        );
+        assert_eq!(number(&Key::HaplotypeId), Some(Number::Count(1)));
+        assert_eq!(number(&Key::AncestralHaplotypeId), Some(Number::Count(1)));
+
+        assert!(number(&Key::Other(String::from("NDLS"))).is_none());
+    }
+
+    #[test]
+    fn test_ty() {
+        assert_eq!(ty(&Key::ReadDepths), Some(Type::Integer));
+        assert_eq!(ty(&Key::ForwardStrandReadDepths), Some(Type::Integer));
+        assert_eq!(ty(&Key::ReverseStrandReadDepths), Some(Type::Integer));
+        assert_eq!(ty(&Key::ReadDepth), Some(Type::Integer));
+        assert_eq!(ty(&Key::ExpectedAlternateAlleleCounts), Some(Type::Integer));
+        assert_eq!(ty(&Key::Filter), Some(Type::String));
+        assert_eq!(ty(&Key::GenotypeLikelihoods), Some(Type::Float));
+        assert_eq!(ty(&Key::GenotypePosteriorProbabilities), Some(Type::Float));
+        assert_eq!(ty(&Key::ConditionalGenotypeQuality), Some(Type::Integer));
+        assert_eq!(ty(&Key::Genotype), Some(Type::String));
+        assert_eq!(ty(&Key::HaplotypeQuality), Some(Type::Integer));
+        assert_eq!(ty(&Key::MappingQuality), Some(Type::Integer));
+        assert_eq!(ty(&Key::RoundedGenotypeLikelihoods), Some(Type::Integer));
+        assert_eq!(
+            ty(&Key::RoundedGenotypePosteriorProbabilities),
+            Some(Type::Integer)
+        );
+        assert_eq!(ty(&Key::PhasingQuality), Some(Type::Integer));
+        assert_eq!(ty(&Key::PhaseSet), Some(Type::Integer));
+
+        assert_eq!(ty(&Key::GenotypeCopyNumber), Some(Type::Integer));
+        assert_eq!(ty(&Key::GenotypeCopyNumberQuality), Some(Type::Float));
+        assert_eq!(ty(&Key::GenotypeCopyNumberLikelihoods), Some(Type::Float));
+        assert_eq!(
+            ty(&Key::GenotypeCopyNumberPosteriorProbabilities),
+            Some(Type::Float)
+        );
+        assert_eq!(ty(&Key::NovelVariantQualityScore), Some(Type::Integer));
+        assert_eq!(ty(&Key::HaplotypeId), Some(Type::Integer));
+        assert_eq!(ty(&Key::AncestralHaplotypeId), Some(Type::Integer));
+
+        assert!(ty(&Key::Other(String::from("NDLS"))).is_none());
+    }
+
+    #[test]
+    fn test_description() {
+        assert_eq!(
+            description(&Key::ReadDepths),
+            Some("Read depth for each allele")
+        );
+        assert_eq!(
+            description(&Key::ForwardStrandReadDepths),
+            Some("Read depth for each allele on the forward strand")
+        );
+        assert_eq!(
+            description(&Key::ReverseStrandReadDepths),
+            Some("Read depth for each allele on the reverse strand")
+        );
+        assert_eq!(description(&Key::ReadDepth), Some("Read depth"));
+        assert_eq!(
+            description(&Key::ExpectedAlternateAlleleCounts),
+            Some("Expected alternate allele counts")
+        );
+        assert_eq!(
+            description(&Key::Filter),
+            Some(r#"Filter indicating if this genotype was "called""#)
+        );
+        assert_eq!(
+            description(&Key::GenotypeLikelihoods),
+            Some("Genotype likelihoods")
+        );
+        assert_eq!(
+            description(&Key::GenotypePosteriorProbabilities),
+            Some("Genotype posterior probabilities")
+        );
+        assert_eq!(
+            description(&Key::ConditionalGenotypeQuality),
+            Some("Conditional genotype quality")
+        );
+        assert_eq!(description(&Key::Genotype), Some("Genotype"));
+        assert_eq!(
+            description(&Key::HaplotypeQuality),
+            Some("Haplotype quality")
+        );
+        assert_eq!(
+            description(&Key::MappingQuality),
+            Some("RMS mapping quality")
+        );
+        assert_eq!(
+            description(&Key::RoundedGenotypeLikelihoods),
+            Some("Phred-scaled genotype likelihoods rounded to the closest integer")
+        );
+        assert_eq!(
+            description(&Key::RoundedGenotypePosteriorProbabilities),
+            Some("Phred-scaled genotype posterior probabilities rounded to the closest integer")
+        );
+        assert_eq!(description(&Key::PhasingQuality), Some("Phasing quality"));
+        assert_eq!(description(&Key::PhaseSet), Some("Phase set"));
+
+        assert_eq!(
+            description(&Key::GenotypeCopyNumber),
+            Some("Copy number genotype for imprecise events")
+        );
+        assert_eq!(
+            description(&Key::GenotypeCopyNumberQuality),
+            Some("Copy number genotype quality for imprecise events")
+        );
+        assert_eq!(
+            description(&Key::GenotypeCopyNumberLikelihoods),
+            Some("Copy number genotype likelihood for imprecise events")
+        );
+        assert_eq!(
+            description(&Key::GenotypeCopyNumberPosteriorProbabilities),
+            Some("Copy number posterior probabilities")
+        );
+        assert_eq!(
+            description(&Key::NovelVariantQualityScore),
+            Some("Phred style probability score that the variant is novel")
+        );
+        assert_eq!(
+            description(&Key::HaplotypeId),
+            Some("Unique haplotype identifier")
+        );
+        assert_eq!(
+            description(&Key::AncestralHaplotypeId),
+            Some("Unique identifier of ancestral haplotype")
+        );
+
+        assert!(description(&Key::Other(String::from("NDLS"))).is_none());
     }
 }

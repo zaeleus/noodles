@@ -31,6 +31,7 @@ where
     if !genotypes.is_empty() {
         write_genotypes(
             &mut genotypes_buf,
+            header,
             string_maps.strings(),
             genotypes.keys(),
             genotypes,

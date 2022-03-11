@@ -182,9 +182,9 @@ impl Format {
 
 impl From<Key> for Format {
     fn from(key: Key) -> Self {
-        let number = key.number();
-        let ty = key.ty();
-        let description = key.description().to_string();
+        let number = key::number(&key).unwrap_or(Number::Count(1));
+        let ty = key::ty(&key).unwrap_or(Type::String);
+        let description = key::description(&key).map(|s| s.into()).unwrap_or_default();
         Self::new(key, number, ty, description)
     }
 }
@@ -299,12 +299,14 @@ fn parse_struct(
         })?;
 
     if file_format >= FileFormat::new(4, 3) && !matches!(id, Key::Other(..)) {
-        if id.number() != number {
-            return Err(TryFromRecordError::NumberMismatch(number, id.number()));
-        }
+        if let (Some(expected_number), Some(expected_type)) = (key::number(&id), key::ty(&id)) {
+            if number != expected_number {
+                return Err(TryFromRecordError::NumberMismatch(number, expected_number));
+            }
 
-        if id.ty() != ty {
-            return Err(TryFromRecordError::TypeMismatch(ty, id.ty()));
+            if ty != expected_type {
+                return Err(TryFromRecordError::TypeMismatch(ty, expected_type));
+            }
         }
     }
 

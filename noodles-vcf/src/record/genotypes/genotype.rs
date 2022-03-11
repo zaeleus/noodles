@@ -12,7 +12,10 @@ use std::{
 use indexmap::IndexMap;
 
 use super::Keys;
-use crate::{header::format::Key, record::MISSING_FIELD};
+use crate::{
+    header::{format::Key, Format, Formats},
+    record::MISSING_FIELD,
+};
 
 const DELIMITER: char = ':';
 
@@ -67,25 +70,25 @@ impl fmt::Display for GenotypeError {
 
 impl Genotype {
     /// Parses a raw genotype for the given genotype keys.
-    #[deprecated(since = "0.13.0", note = "Use `Genotype::from_str_keys` instead.")]
-    pub fn from_str_format(s: &str, keys: &Keys) -> Result<Self, ParseError> {
-        Self::from_str_keys(s, keys)
-    }
-
-    /// Parses a raw genotype for the given genotype keys.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::format::Key,
+    ///     self as vcf,
+    ///     header::{format::Key, Format},
     ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
     /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_format(Format::from(Key::Genotype))
+    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
     ///
     /// assert_eq!(
-    ///     Genotype::from_str_keys("0|0:13", &keys),
+    ///     Genotype::parse("0|0:13", header.formats(), &keys),
     ///     Ok(Genotype::try_from(vec![
     ///         Field::new(Key::Genotype, Some(Value::String(String::from("0|0")))),
     ///         Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))),
@@ -93,21 +96,27 @@ impl Genotype {
     /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn from_str_keys(s: &str, keys: &Keys) -> Result<Self, ParseError> {
-        match s {
-            "" => Err(ParseError::Empty),
-            MISSING_FIELD => Ok(Self::default()),
-            _ => {
-                let fields = s
-                    .split(DELIMITER)
-                    .zip(keys.iter())
-                    .map(|(t, k)| Field::from_str_key(t, k))
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(ParseError::InvalidField)?;
-
-                Self::try_from(fields).map_err(ParseError::Invalid)
-            }
+    pub fn parse(s: &str, formats: &Formats, keys: &Keys) -> Result<Self, ParseError> {
+        if s.is_empty() {
+            return Err(ParseError::Empty);
+        } else if s == MISSING_FIELD {
+            return Ok(Self::default());
         }
+
+        let mut fields = Vec::with_capacity(keys.len());
+
+        for (raw_field, key) in s.split(DELIMITER).zip(keys.iter()) {
+            let field = if let Some(format) = formats.get(key) {
+                Field::from_str_format(raw_field, format).map_err(ParseError::InvalidField)?
+            } else {
+                let format = Format::from(key.clone());
+                Field::from_str_format(raw_field, &format).map_err(ParseError::InvalidField)?
+            };
+
+            fields.push(field);
+        }
+
+        Self::try_from(fields).map_err(ParseError::Invalid)
     }
 
     /// Returns the VCF record genotypes genotype value.
@@ -119,11 +128,19 @@ impl Genotype {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::format::Key,
+    ///     self as vcf,
+    ///     header::{format::Key, Format},
     ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
     /// };
     ///
-    /// let genotype = Genotype::from_str_keys("0|0:13", &"GT:GQ".parse()?)?;
+    /// let header = vcf::Header::builder()
+    ///     .add_format(Format::from(Key::Genotype))
+    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .build();
+    ///
+    /// let keys = "GT:GQ".parse()?;
+    ///
+    /// let genotype = Genotype::parse("0|0:13", header.formats(), &keys)?;
     /// assert_eq!(genotype.genotype(), Some(Ok("0|0".parse()?)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -224,20 +241,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str_keys() -> Result<(), Box<dyn std::error::Error>> {
-        let keys = "GT".parse()?;
-        assert_eq!(Genotype::from_str_keys(".", &keys), Ok(Genotype::default()));
+    fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
+        let header = crate::Header::builder()
+            .add_format(Format::from(Key::Genotype))
+            .add_format(Format::from(Key::ConditionalGenotypeQuality))
+            .build();
 
         let keys = "GT".parse()?;
-        let actual = Genotype::from_str_keys("0|0", &keys)?;
+        assert_eq!(
+            Genotype::parse(".", header.formats(), &keys),
+            Ok(Genotype::default())
+        );
+
+        let keys = "GT".parse()?;
+        let actual = Genotype::parse("0|0", header.formats(), &keys)?;
         assert_eq!(actual.len(), 1);
 
         let keys = "GT:GQ".parse()?;
-        let actual = Genotype::from_str_keys("0|0:13", &keys)?;
+        let actual = Genotype::parse("0|0:13", header.formats(), &keys)?;
         assert_eq!(actual.len(), 2);
 
         let keys = "GT".parse()?;
-        assert_eq!(Genotype::from_str_keys("", &keys), Err(ParseError::Empty));
+        assert_eq!(
+            Genotype::parse("", header.formats(), &keys),
+            Err(ParseError::Empty)
+        );
 
         Ok(())
     }

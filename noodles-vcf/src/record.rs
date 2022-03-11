@@ -499,12 +499,17 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::format::Key,
+    ///     header::{format::Key, Format},
     ///     record::{genotypes::{Genotype, Keys}, Genotypes, Position},
     /// };
     ///
+    /// let header = vcf::Header::builder()
+    ///     .add_format(Format::from(Key::Genotype))
+    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .build();
+    ///
     /// let keys = "GT:GQ".parse()?;
-    /// let genotypes = vec![Genotype::from_str_keys("0|0:13", &keys)?];
+    /// let genotypes = vec![Genotype::parse("0|0:13", header.formats(), &keys)?];
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
@@ -800,10 +805,19 @@ mod tests {
 
     #[test]
     fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
-        use genotypes::Genotype;
+        use super::genotypes::Genotype;
+        use crate::{
+            header::{format::Key, Format},
+            Header,
+        };
+
+        let header = Header::builder()
+            .add_format(Format::from(Key::Genotype))
+            .add_format(Format::from(Key::ConditionalGenotypeQuality))
+            .build();
 
         let keys: genotypes::Keys = "GT:GQ".parse()?;
-        let genotypes = vec![Genotype::from_str_keys("0|0:13", &keys)?];
+        let genotypes = vec![Genotype::parse("0|0:13", header.formats(), &keys)?];
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)

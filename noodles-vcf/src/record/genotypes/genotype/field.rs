@@ -6,7 +6,7 @@ pub use self::value::Value;
 
 use std::{error, fmt};
 
-use crate::header::format::Key;
+use crate::header::{format::Key, Format};
 
 const MISSING_VALUE: &str = ".";
 
@@ -41,21 +41,25 @@ impl Field {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::format::Key,
+    ///     header::{format::Key, Format},
     ///     record::genotypes::genotype::{field::Value, Field}
     /// };
     ///
+    /// let format = Format::from(Key::ConditionalGenotypeQuality);
+    ///
     /// assert_eq!(
-    ///     Field::from_str_key("13", &Key::ConditionalGenotypeQuality),
+    ///     Field::from_str_format("13", &format),
     ///     Ok(Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13))))
     /// );
     /// ```
-    pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
+    pub fn from_str_format(s: &str, format: &Format) -> Result<Self, ParseError> {
+        let key = format.id().clone();
+
         if s == MISSING_VALUE {
-            Ok(Self::new(key.clone(), None))
+            Ok(Self::new(key, None))
         } else {
-            Value::from_str_key(s, key)
-                .map(|v| Self::new(key.clone(), Some(v)))
+            Value::from_str_format(s, format)
+                .map(|v| Self::new(key, Some(v)))
                 .map_err(ParseError::InvalidValue)
         }
     }
@@ -157,35 +161,30 @@ impl fmt::Display for Field {
 
 #[cfg(test)]
 mod tests {
-    use crate::header::{format::Type, Number};
+    use crate::header::{format::Key, Format};
 
     use super::*;
 
     #[test]
-    fn test_from_str_key() -> Result<(), ParseError> {
-        let key = Key::MappingQuality;
-        let actual = Field::from_str_key(".", &key)?;
-        assert_eq!(actual.key(), &key);
+    fn test_from_str_format() -> Result<(), ParseError> {
+        let format = Format::from(Key::MappingQuality);
+        let actual = Field::from_str_format(".", &format)?;
+        assert_eq!(actual.key(), format.id());
         assert_eq!(actual.value(), None);
 
-        let key = Key::ConditionalGenotypeQuality;
-        let actual = Field::from_str_key("13", &key)?;
-        assert_eq!(actual.key(), &key);
+        let format = Format::from(Key::ConditionalGenotypeQuality);
+        let actual = Field::from_str_format("13", &format)?;
+        assert_eq!(actual.key(), format.id());
         assert_eq!(actual.value(), Some(&Value::Integer(13)));
 
-        let key = Key::Other(
-            String::from("CNQ"),
-            Number::Count(1),
-            Type::Float,
-            String::default(),
-        );
-        let actual = Field::from_str_key("8.333", &key)?;
-        assert_eq!(actual.key(), &key);
+        let format = Format::from(Key::GenotypeCopyNumberQuality);
+        let actual = Field::from_str_format("8.333", &format)?;
+        assert_eq!(actual.key(), format.id());
         assert_eq!(actual.value(), Some(&Value::Float(8.333)));
 
-        let key = Key::Genotype;
-        let actual = Field::from_str_key("0|0", &key)?;
-        assert_eq!(actual.key(), &key);
+        let format = Format::from(Key::Genotype);
+        let actual = Field::from_str_format("0|0", &format)?;
+        assert_eq!(actual.key(), format.id());
         assert_eq!(actual.value(), Some(&Value::String(String::from("0|0"))));
 
         Ok(())
@@ -199,13 +198,7 @@ mod tests {
         let field = Field::new(Key::ConditionalGenotypeQuality, Some(Value::Integer(13)));
         assert_eq!(field.to_string(), "13");
 
-        let key = Key::Other(
-            String::from("CNQ"),
-            Number::Count(1),
-            Type::Float,
-            String::default(),
-        );
-        let field = Field::new(key, Some(Value::Float(8.333)));
+        let field = Field::new(Key::GenotypeCopyNumberQuality, Some(Value::Float(8.333)));
         assert_eq!(field.to_string(), "8.333");
 
         let field = Field::new(Key::Genotype, Some(Value::String(String::from("0|0"))));

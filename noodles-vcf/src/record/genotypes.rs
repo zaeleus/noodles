@@ -14,6 +14,7 @@ use std::{
 
 use self::genotype::field;
 use super::FIELD_DELIMITER;
+use crate::header::Formats;
 
 /// VCF record genotypes.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -160,11 +161,12 @@ impl FromStr for Genotypes {
 
         let (format, t) = s.split_once(FIELD_DELIMITER).ok_or(ParseError::Invalid)?;
 
+        let formats = Formats::default();
         let keys = format.parse().map_err(ParseError::InvalidKeys)?;
 
         let genotypes = t
             .split(FIELD_DELIMITER)
-            .map(|t| Genotype::from_str_keys(t, &keys))
+            .map(|t| Genotype::parse(t, &formats, &keys))
             .collect::<Result<_, _>>()
             .map_err(ParseError::InvalidGenotype)?;
 
@@ -178,12 +180,19 @@ mod tests {
 
     #[test]
     fn test_genotypes() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::header::{format::Key, Format};
+
+        let header = crate::Header::builder()
+            .add_format(Format::from(Key::Genotype))
+            .add_format(Format::from(Key::ConditionalGenotypeQuality))
+            .build();
+
         let keys = "GT:GQ".parse()?;
         let genotypes = vec![
-            Genotype::from_str_keys("0|0:7", &keys)?,
-            Genotype::from_str_keys("./.:20", &keys)?,
-            Genotype::from_str_keys("1/1:1", &keys)?,
-            Genotype::from_str_keys(".", &keys)?,
+            Genotype::parse("0|0:7", header.formats(), &keys)?,
+            Genotype::parse("./.:20", header.formats(), &keys)?,
+            Genotype::parse("1/1:1", header.formats(), &keys)?,
+            Genotype::parse(".", header.formats(), &keys)?,
         ];
         let genotypes = Genotypes::new(keys, genotypes);
 
@@ -220,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
-        use self::genotype::{field::Value, Field};
+        use super::genotype::{field::Value, Field};
         use crate::header::format::Key;
 
         let expected = Genotypes::new(

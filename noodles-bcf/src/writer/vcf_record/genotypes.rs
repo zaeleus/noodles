@@ -4,7 +4,11 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_vcf::{self as vcf, header::format::Key, record::genotypes::genotype::field::Value};
+use noodles_vcf::{
+    self as vcf,
+    header::{format::Key, Format},
+    record::genotypes::genotype::field::Value,
+};
 
 use crate::{
     header::string_maps::StringStringMap,
@@ -18,6 +22,7 @@ const MISSING_VALUE: char = '.';
 
 pub fn write_genotypes<W>(
     writer: &mut W,
+    header: &vcf::Header,
     string_string_map: &StringStringMap,
     keys: &vcf::record::genotypes::Keys,
     genotypes: &[vcf::record::genotypes::Genotype],
@@ -41,7 +46,11 @@ where
             values.push(value);
         }
 
-        write_genotype_field_values(writer, key, &values)?;
+        let format = header.formats().get(key).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidData, "missing FORMAT header record")
+        })?;
+
+        write_genotype_field_values(writer, format, &values)?;
     }
 
     Ok(())
@@ -68,7 +77,7 @@ where
 
 pub fn write_genotype_field_values<W>(
     writer: &mut W,
-    key: &Key,
+    format: &Format,
     values: &[Option<&Value>],
 ) -> io::Result<()>
 where
@@ -76,20 +85,20 @@ where
 {
     use vcf::header::{format, Number};
 
-    match key.ty() {
-        format::Type::Integer => match key.number() {
+    match format.ty() {
+        format::Type::Integer => match format.number() {
             Number::Count(1) => write_genotype_field_integer_values(writer, values),
             _ => write_genotype_field_integer_array_values(writer, values),
         },
-        format::Type::Float => match key.number() {
+        format::Type::Float => match format.number() {
             Number::Count(1) => write_genotype_field_float_values(writer, values),
             _ => write_genotype_field_float_array_values(writer, values),
         },
-        format::Type::Character => match key.number() {
+        format::Type::Character => match format.number() {
             Number::Count(1) => write_genotype_field_character_values(writer, values),
             _ => write_genotype_field_character_array_values(writer, values),
         },
-        format::Type::String => match key.number() {
+        format::Type::String => match format.number() {
             Number::Count(1) => write_genotype_field_string_values(writer, values),
             _ => write_genotype_field_string_array_values(writer, values),
         },
@@ -677,24 +686,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_genotype_field_values_with_integer_values() -> io::Result<()> {
+    fn test_write_genotype_field_values_with_integer_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
-            key: &Key,
+            format: &Format,
             values: &[Option<&Value>],
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, key, values)?;
+            write_genotype_field_values(buf, format, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
-        let key = Key::Other(
-            String::from("I32"),
+        let key = Format::new(
+            "I32".parse()?,
             Number::Count(1),
             format::Type::Integer,
-            String::default(),
+            String::new(),
         );
 
         let mut buf = Vec::new();
@@ -851,24 +861,25 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_integer_array_values() -> io::Result<()> {
+    fn test_write_genotype_field_values_with_integer_array_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
-            key: &Key,
+            format: &Format,
             values: &[Option<&Value>],
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_genotype_field_values(buf, key, values)?;
+            write_genotype_field_values(buf, format, values)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
-        let key = Key::Other(
-            String::from("I32"),
+        let format = Format::new(
+            "I32".parse()?,
             Number::Count(2),
             format::Type::Integer,
-            String::default(),
+            String::new(),
         );
 
         let mut buf = Vec::new();
@@ -879,7 +890,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
         buf.clear();
         assert!(matches!(
-            write_genotype_field_values(&mut buf, &key, &values),
+            write_genotype_field_values(&mut buf, &format, &values),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -895,7 +906,7 @@ mod tests {
             0x0b, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // Some([Some(-2147483637)])
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(-32761), Some(-32760)]);
         let value_1 = Value::IntegerArray(vec![Some(-32759), None]);
@@ -909,7 +920,7 @@ mod tests {
             0x0a, 0x80, 0xff, 0xff, 0x01, 0x00, 0x00, 0x80, // Some([Some(-32761)])
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(-32760), Some(-32759)]);
         let value_1 = Value::IntegerArray(vec![Some(-32758), None]);
@@ -922,7 +933,7 @@ mod tests {
             0x0b, 0x80, 0x01, 0x80, // Some([Some(-32757)])
             0x00, 0x80, 0x01, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(-121), Some(-120)]);
         let value_1 = Value::IntegerArray(vec![Some(-119), None]);
@@ -935,7 +946,7 @@ mod tests {
             0x8a, 0xff, 0x01, 0x80, // Some([Some(-118)])
             0x00, 0x80, 0x01, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(-120), Some(-119)]);
         let value_1 = Value::IntegerArray(vec![Some(-118), None]);
@@ -948,7 +959,7 @@ mod tests {
             0x8b, 0x81, // Some([Some(-117)])
             0x80, 0x81, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(-1), Some(0)]);
         let value_1 = Value::IntegerArray(vec![Some(1), None]);
@@ -961,7 +972,7 @@ mod tests {
             0x02, 0x81, // Some([Some(2)])
             0x80, 0x81, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(124), Some(125)]);
         let value_1 = Value::IntegerArray(vec![Some(126), None]);
@@ -974,7 +985,7 @@ mod tests {
             0x7f, 0x81, // Some([Some(127)])
             0x80, 0x81, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(125), Some(126)]);
         let value_1 = Value::IntegerArray(vec![Some(127), None]);
@@ -987,7 +998,7 @@ mod tests {
             0x80, 0x00, 0x01, 0x80, // Some([Some(128)])
             0x00, 0x80, 0x01, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(32764), Some(32765)]);
         let value_1 = Value::IntegerArray(vec![Some(32766), None]);
@@ -1000,7 +1011,7 @@ mod tests {
             0xff, 0x7f, 0x01, 0x80, // Some([Some(32767)])
             0x00, 0x80, 0x01, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(32765), Some(32766)]);
         let value_1 = Value::IntegerArray(vec![Some(32767), None]);
@@ -1014,7 +1025,7 @@ mod tests {
             0x00, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // Some([Some(32768)])
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         let value_0 = Value::IntegerArray(vec![Some(2147483644), Some(2147483645)]);
         let value_1 = Value::IntegerArray(vec![Some(2147483646), None]);
@@ -1028,24 +1039,25 @@ mod tests {
             0xff, 0xff, 0xff, 0x7f, 0x01, 0x00, 0x00, 0x80, // Some([Some(2147483647)])
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
         ];
-        t(&mut buf, &key, &values, &expected)?;
+        t(&mut buf, &format, &values, &expected)?;
 
         Ok(())
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_float_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("F32"),
+    fn test_write_genotype_field_values_with_float_values() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let format = Format::new(
+            "F32".parse()?,
             Number::Count(1),
             format::Type::Float,
-            String::default(),
+            String::new(),
         );
 
         let values = [Some(&Value::Float(0.0)), Some(&Value::Float(1.0)), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x15, // Some(Type::Float(1))
@@ -1060,12 +1072,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_float_array_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("F32"),
+    fn test_write_genotype_field_values_with_float_array_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let format = Format::new(
+            "F32".parse()?,
             Number::Count(2),
             format::Type::Float,
-            String::default(),
+            String::new(),
         );
 
         let value_0 = Value::FloatArray(vec![Some(0.0), Some(1.0)]);
@@ -1074,7 +1087,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x25, // Some(Type::Float(2))
@@ -1090,12 +1103,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_character_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("CHAR"),
+    fn test_write_genotype_field_values_with_character_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let format = Format::new(
+            "CHAR".parse()?,
             Number::Count(1),
             format::Type::Character,
-            String::default(),
+            String::new(),
         );
 
         let values = [
@@ -1105,7 +1119,7 @@ mod tests {
         ];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x17, // Some(Type::String(1))
@@ -1120,12 +1134,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_character_array_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("CHAR"),
+    fn test_write_genotype_field_values_with_character_array_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let format = Format::new(
+            "CHAR".parse()?,
             Number::Count(2),
             format::Type::Character,
-            String::default(),
+            String::new(),
         );
 
         let value_0 = Value::CharacterArray(vec![Some('n'), Some('d')]);
@@ -1134,7 +1149,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x37, // Some(Type::String(1))
@@ -1150,12 +1165,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_string_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("STRING"),
+    fn test_write_genotype_field_values_with_string_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let format = Format::new(
+            "STRING".parse()?,
             Number::Count(1),
             format::Type::String,
-            String::default(),
+            String::new(),
         );
 
         let value_0 = Value::String(String::from("n"));
@@ -1164,7 +1180,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x47, // Some(Type::String(4))
@@ -1180,12 +1196,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_genotype_field_values_with_string_array_values() -> io::Result<()> {
-        let key = Key::Other(
-            String::from("STRING"),
+    fn test_write_genotype_field_values_with_string_array_values(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let format = Format::new(
+            "STRING".parse()?,
             Number::Count(2),
             format::Type::String,
-            String::default(),
+            String::new(),
         );
 
         let value_0 = Value::StringArray(vec![Some(String::from("n")), Some(String::from("nd"))]);
@@ -1194,7 +1211,7 @@ mod tests {
         let values = [Some(&value_0), Some(&value_1), Some(&value_2), None];
 
         let mut buf = Vec::new();
-        write_genotype_field_values(&mut buf, &key, &values)?;
+        write_genotype_field_values(&mut buf, &format, &values)?;
 
         let expected = [
             0x67, // Some(Type::String(6))

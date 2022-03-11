@@ -6,6 +6,20 @@
 
   * vcf: Move INFO and FORMAT keys from record field to header record.
 
+  * vcf/record/genotypes/genotype: Rename `from_str_keys` to `parse`.
+
+    `Genotype` now uses FORMAT header records for type information.
+
+  * vcf/record/genotypes/genotype/field: Rename `from_str_key` to
+    `from_str_format`.
+
+    `Field` now uses FORMAT header records for type information.
+
+  * vcf/record/genotypes/genotype/field/value: Rename `from_str_key` to
+    `from_str_format`.
+
+    `Value` now uses FORMAT header records for type information.
+
   * vcf/record/info/field/value: Rename `from_str_key` to `from_str_info`.
 
     `Value` now uses INFO header records for type information.
@@ -13,6 +27,10 @@
 ### Removed
 
   * vcf/header: Remove record field keys.
+
+  * vcf/record/genotypes/genotype: Remove deprecated `from_str_format`.
+
+    Use `Genotype::parse` instead.
 
 ## 0.14.1 - 2022-03-02
 
