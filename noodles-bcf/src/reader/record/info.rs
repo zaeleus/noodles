@@ -252,12 +252,12 @@ fn type_mismatch_error(actual: Option<Value>, expected: Type) -> io::Error {
 
 #[cfg(test)]
 mod tests {
-    use vcf::header::{info::Key, Number};
+    use vcf::header::Number;
 
     use super::*;
 
     #[test]
-    fn test_read_info_field_value_with_integer_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_integer_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -269,12 +269,12 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("I32"),
+        let info = vcf::header::Info::new(
+            "I32".parse()?,
             Number::Count(1),
             Type::Integer,
-            String::default(),
-        ));
+            String::new(),
+        );
 
         // None
         t(&[0x00], &info, None)?;
@@ -304,7 +304,8 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_integer_array_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_integer_array_value(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -316,12 +317,12 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("I32"),
+        let info = vcf::header::Info::new(
+            "I32".parse()?,
             Number::Count(2),
             Type::Integer,
-            String::default(),
-        ));
+            String::new(),
+        );
 
         // Some(Value::IntegerArray([Some(8), Some(13)]))
         t(&[0x21, 0x08, 0x0d], &info, Some(vec![Some(8), Some(13)]))?;
@@ -358,7 +359,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_flag_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_flag_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut reader: &[u8], info: &vcf::header::Info) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
             let expected = Some(vcf::record::info::field::Value::Flag);
@@ -366,12 +367,8 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("BOOL"),
-            Number::Count(1),
-            Type::Flag,
-            String::default(),
-        ));
+        let info =
+            vcf::header::Info::new("BOOL".parse()?, Number::Count(1), Type::Flag, String::new());
 
         // None
         t(&[0x00], &info)?;
@@ -382,7 +379,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_float_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_float_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -394,12 +391,8 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("F32"),
-            Number::Count(1),
-            Type::Float,
-            String::default(),
-        ));
+        let info =
+            vcf::header::Info::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -415,7 +408,8 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_float_array_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_float_array_value() -> Result<(), Box<dyn std::error::Error>>
+    {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -427,12 +421,8 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("F32"),
-            Number::Count(2),
-            Type::Float,
-            String::default(),
-        ));
+        let info =
+            vcf::header::Info::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
 
         // Some(Value::FloatArray([0.0, 1.0]))
         t(
@@ -451,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_character_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_character_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -463,12 +453,12 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("CHAR"),
+        let info = vcf::header::Info::new(
+            "CHAR".parse()?,
             Number::Count(1),
             Type::Character,
-            String::default(),
-        ));
+            String::new(),
+        );
 
         // None
         t(&[0x00], &info, None)?;
@@ -482,7 +472,8 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_character_array_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_character_array_value(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -494,12 +485,12 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("CHAR"),
+        let info = vcf::header::Info::new(
+            "CHAR".parse()?,
             Number::Count(2),
             Type::Character,
-            String::default(),
-        ));
+            String::new(),
+        );
 
         // None
         t(&[0x00], &info, None)?;
@@ -521,7 +512,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_info_field_value_with_string_value() -> io::Result<()> {
+    fn test_read_info_field_value_with_string_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
             info: &vcf::header::Info,
@@ -534,12 +525,12 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::from(Key::Other(
-            String::from("STRING"),
+        let info = vcf::header::Info::new(
+            "STRING".parse()?,
             Number::Count(1),
             Type::String,
-            String::default(),
-        ));
+            String::new(),
+        );
 
         // None
         t(&[0x00], &info, None)?;

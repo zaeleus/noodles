@@ -9,6 +9,7 @@ use std::{error, fmt, str::FromStr};
 use crate::header::{
     self,
     info::{Key, Type},
+    Info, Infos,
 };
 
 const MISSING_VALUE: &str = ".";
@@ -23,7 +24,7 @@ pub struct Field {
 
 impl Field {
     /// Parses a raw VCF record info field.
-    pub fn try_from_str(s: &str, infos: &header::Infos) -> Result<Self, ParseError> {
+    pub fn try_from_str(s: &str, infos: &Infos) -> Result<Self, ParseError> {
         parse(s, infos)
     }
 
@@ -136,47 +137,50 @@ impl FromStr for Field {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::try_from_str(s, &header::Infos::default())
+        Self::try_from_str(s, &Infos::default())
     }
 }
 
-fn parse(s: &str, infos: &header::Infos) -> Result<Field, ParseError> {
+fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
     const MAX_COMPONENTS: usize = 2;
 
     let mut components = s.splitn(MAX_COMPONENTS, SEPARATOR);
 
-    let raw_key = components.next().ok_or(ParseError::MissingKey)?;
+    let key: Key = components
+        .next()
+        .ok_or(ParseError::MissingKey)
+        .and_then(|t| t.parse().map_err(ParseError::InvalidKey))?;
 
-    let key = match infos.keys().find(|k| k.as_ref() == raw_key) {
-        Some(k) => k.clone(),
-        None => raw_key.parse().map_err(ParseError::InvalidKey)?,
+    let value = if let Some(info) = infos.get(&key) {
+        parse_value(&mut components, info)?
+    } else {
+        let info = header::Info::from(key.clone());
+        parse_value(&mut components, &info)?
     };
-
-    let value = parse_value(&mut components, &key)?;
 
     Ok(Field::new(key, value))
 }
 
-fn parse_value<'a, I>(iter: &mut I, key: &Key) -> Result<Option<Value>, ParseError>
+fn parse_value<'a, I>(iter: &mut I, info: &Info) -> Result<Option<Value>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    if let Type::Flag = key.ty() {
+    if let Type::Flag = info.ty() {
         let t = iter.next().unwrap_or_default();
 
         if t == MISSING_VALUE {
             Ok(None)
         } else {
-            Value::from_str_key(t, key)
+            Value::from_str_info(t, info)
                 .map(Some)
                 .map_err(ParseError::InvalidValue)
         }
-    } else if let Key::Other(..) = key {
+    } else if let Key::Other(..) = info.id() {
         if let Some(t) = iter.next() {
             if t == MISSING_VALUE {
                 Ok(None)
             } else {
-                Value::from_str_key(t, key)
+                Value::from_str_info(t, info)
                     .map(Some)
                     .map_err(ParseError::InvalidValue)
             }
@@ -187,7 +191,7 @@ where
         if t == MISSING_VALUE {
             Ok(None)
         } else {
-            Value::from_str_key(t, key)
+            Value::from_str_info(t, info)
                 .map(Some)
                 .map_err(ParseError::InvalidValue)
         }
@@ -198,12 +202,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::header::Number;
-
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), crate::header::info::key::ParseError> {
         let field = Field::new(Key::AlleleCount, None);
         assert_eq!(field.to_string(), "AC=.");
 
@@ -216,24 +218,28 @@ mod tests {
         let field = Field::new(Key::IsSomaticMutation, Some(Value::Flag));
         assert_eq!(field.to_string(), "SOMATIC");
 
-        let field = Field::new(
-            Key::Other(
-                String::from("SVTYPE"),
-                Number::Count(1),
-                Type::String,
-                String::default(),
-            ),
-            Some(Value::String(String::from("DEL"))),
-        );
-        assert_eq!(field.to_string(), "SVTYPE=DEL");
+        let field = Field::new("NOODLES".parse()?, Some(Value::String(String::from("VCF"))));
+        assert_eq!(field.to_string(), "NOODLES=VCF");
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!("AC=.".parse(), Ok(Field::new(Key::AlleleCount, None)));
+    fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
+        let header = crate::Header::builder()
+            .add_info(Info::from(Key::AlleleCount))
+            .add_info(Info::from(Key::SamplesWithDataCount))
+            .add_info(Info::from(Key::IsSomaticMutation))
+            .add_info(Info::from(Key::BreakendEventId))
+            .build();
 
         assert_eq!(
-            "NS=2".parse(),
+            parse("AC=.", header.infos()),
+            Ok(Field::new(Key::AlleleCount, None))
+        );
+
+        assert_eq!(
+            parse("NS=2", header.infos()),
             Ok(Field::new(
                 Key::SamplesWithDataCount,
                 Some(Value::Integer(2))
@@ -241,40 +247,35 @@ mod tests {
         );
 
         assert_eq!(
-            "BQ=1.333".parse(),
+            parse("BQ=1.333", header.infos()),
             Ok(Field::new(Key::BaseQuality, Some(Value::Float(1.333))))
         );
 
         assert_eq!(
-            "SOMATIC".parse(),
+            parse("SOMATIC", header.infos()),
             Ok(Field::new(Key::IsSomaticMutation, Some(Value::Flag)))
         );
 
         assert_eq!(
-            "EVENT=INV0".parse(),
+            parse("EVENT=INV0", header.infos()),
             Ok(Field::new(
                 Key::BreakendEventId,
                 Some(Value::String(String::from("INV0")))
             ))
         );
 
-        let key = Key::Other(
-            String::from("NDLS"),
-            Number::Count(1),
-            Type::String,
-            String::default(),
-        );
+        let key = "NDLS".parse()?;
         assert_eq!(
-            "NDLS=VCF".parse(),
+            parse("NDLS=VCF", header.infos()),
             Ok(Field::new(key, Some(Value::String(String::from("VCF")))))
         );
 
-        let key = Key::Other(
-            String::from("FLG"),
-            Number::Count(1),
-            Type::String,
-            String::default(),
+        let key = "FLG".parse()?;
+        assert_eq!(
+            parse("FLG", header.infos()),
+            Ok(Field::new(key, Some(Value::Flag)))
         );
-        assert_eq!("FLG".parse(), Ok(Field::new(key, Some(Value::Flag))));
+
+        Ok(())
     }
 }

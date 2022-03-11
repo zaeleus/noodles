@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+  * vcf/record/info/field/value: Rename `from_str_key` to `from_str_info`.
+
+    `Value` now uses INFO header records for type information.
+
 ### Removed
 
   * vcf: Move INFO key from record field to header record.

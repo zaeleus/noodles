@@ -2,12 +2,11 @@
 
 use std::{error, fmt, num, str};
 
+use super::MISSING_VALUE;
 use crate::{
-    header::{info::Type, Number},
+    header::{info::Type, Info, Number},
     record::value::{self, percent_decode},
 };
-
-use super::{Key, MISSING_VALUE};
 
 const DELIMITER: char = ',';
 
@@ -141,37 +140,38 @@ impl fmt::Display for ParseError {
 }
 
 impl Value {
-    /// Parses a raw info field value for the given key.
+    /// Parses a raw info field value with the given info header record.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{header::info::Key, record::info::field::Value};
-    /// assert_eq!(Value::from_str_key("1", &Key::SamplesWithDataCount), Ok(Value::Integer(1)));
+    /// use noodles_vcf::{header::{info::Key, Info}, record::info::field::Value};
+    /// let info = Info::from(Key::SamplesWithDataCount);
+    /// assert_eq!(Value::from_str_info("1", &info), Ok(Value::Integer(1)));
     /// ```
-    pub fn from_str_key(s: &str, key: &Key) -> Result<Self, ParseError> {
-        match key.ty() {
-            Type::Integer => match key.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
+    pub fn from_str_info(s: &str, info: &Info) -> Result<Self, ParseError> {
+        match info.ty() {
+            Type::Integer => match info.number() {
+                Number::Count(0) => Err(ParseError::InvalidNumberForType(info.number(), info.ty())),
                 Number::Count(1) => parse_i32(s),
                 _ => parse_i32_array(s),
             },
-            Type::Float => match key.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
+            Type::Float => match info.number() {
+                Number::Count(0) => Err(ParseError::InvalidNumberForType(info.number(), info.ty())),
                 Number::Count(1) => parse_f32(s),
                 _ => parse_f32_array(s),
             },
-            Type::Flag => match key.number() {
+            Type::Flag => match info.number() {
                 Number::Count(0) => parse_flag(s),
-                _ => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
+                _ => Err(ParseError::InvalidNumberForType(info.number(), info.ty())),
             },
-            Type::Character => match key.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
+            Type::Character => match info.number() {
+                Number::Count(0) => Err(ParseError::InvalidNumberForType(info.number(), info.ty())),
                 Number::Count(1) => parse_char(s),
                 _ => parse_char_array(s),
             },
-            Type::String => match key.number() {
-                Number::Count(0) => Err(ParseError::InvalidNumberForType(key.number(), key.ty())),
+            Type::String => match info.number() {
+                Number::Count(0) => Err(ParseError::InvalidNumberForType(info.number(), info.ty())),
                 Number::Count(1) => parse_string(s),
                 _ => parse_string_array(s),
             },
@@ -326,153 +326,162 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str_key_with_integer() {
-        let key = Key::Other(
-            String::from("I32"),
+    fn test_from_str_info_with_integer() -> Result<(), crate::header::info::key::ParseError> {
+        let info = Info::new(
+            "I32".parse()?,
             Number::Count(0),
             Type::Integer,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("8", &key),
+            Value::from_str_info("8", &info),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Integer
             ))
         );
 
-        let key = Key::Other(
-            String::from("I32"),
+        let info = Info::new(
+            "I32".parse()?,
             Number::Count(1),
             Type::Integer,
             String::default(),
         );
-        assert_eq!(Value::from_str_key("8", &key), Ok(Value::Integer(8)));
+        assert_eq!(Value::from_str_info("8", &info), Ok(Value::Integer(8)));
 
-        let key = Key::Other(
-            String::from("I32"),
+        let info = Info::new(
+            "I32".parse()?,
             Number::Count(2),
             Type::Integer,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("8,13", &key),
+            Value::from_str_info("8,13", &info),
             Ok(Value::IntegerArray(vec![Some(8), Some(13)])),
         );
         assert_eq!(
-            Value::from_str_key("8,.", &key),
+            Value::from_str_info("8,.", &info),
             Ok(Value::IntegerArray(vec![Some(8), None])),
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_float() {
-        let key = Key::Other(
-            String::from("F32"),
+    fn test_from_str_info_with_float() -> Result<(), crate::header::info::key::ParseError> {
+        let info = Info::new(
+            "F32".parse()?,
             Number::Count(0),
             Type::Float,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("0.333", &key),
+            Value::from_str_info("0.333", &info),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Float
             ))
         );
 
-        let key = Key::Other(
-            String::from("F32"),
+        let info = Info::new(
+            "F32".parse()?,
             Number::Count(1),
             Type::Float,
             String::default(),
         );
-        assert_eq!(Value::from_str_key("0.333", &key), Ok(Value::Float(0.333)));
+        assert_eq!(
+            Value::from_str_info("0.333", &info),
+            Ok(Value::Float(0.333))
+        );
 
-        let key = Key::Other(
-            String::from("F32"),
+        let info = Info::new(
+            "F32".parse()?,
             Number::Count(2),
             Type::Float,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("0.333,0.667", &key),
+            Value::from_str_info("0.333,0.667", &info),
             Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
         );
         assert_eq!(
-            Value::from_str_key("0.333,.", &key),
+            Value::from_str_info("0.333,.", &info),
             Ok(Value::FloatArray(vec![Some(0.333), None]))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_flag() {
-        let key = Key::Other(
-            String::from("BOOL"),
+    fn test_from_str_info_with_flag() -> Result<(), crate::header::info::key::ParseError> {
+        let info = Info::new(
+            "BOOL".parse()?,
             Number::Count(0),
             Type::Flag,
             String::default(),
         );
-        assert_eq!(Value::from_str_key("", &key), Ok(Value::Flag));
+        assert_eq!(Value::from_str_info("", &info), Ok(Value::Flag));
 
-        let key = Key::Other(
-            String::from("BOOL"),
+        let info = Info::new(
+            "BOOL".parse()?,
             Number::Count(0),
             Type::Flag,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("true", &key),
+            Value::from_str_info("true", &info),
             Err(ParseError::InvalidFlag)
         );
 
-        let key = Key::Other(
-            String::from("BOOL"),
+        let info = Info::new(
+            "BOOL".parse()?,
             Number::Count(1),
             Type::Flag,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("", &key),
+            Value::from_str_info("", &info),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(1),
                 Type::Flag
             ))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_character() {
-        let key = Key::Other(
-            String::from("CHAR"),
+    fn test_from_str_info_with_character() -> Result<(), crate::header::info::key::ParseError> {
+        let info = Info::new(
+            "CHAR".parse()?,
             Number::Count(0),
             Type::Character,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("n", &key),
+            Value::from_str_info("n", &info),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::Character
             ))
         );
 
-        let key = Key::Other(
-            String::from("CHAR"),
+        let info = Info::new(
+            "CHAR".parse()?,
             Number::Count(1),
             Type::Character,
             String::default(),
         );
-        assert_eq!(Value::from_str_key("n", &key), Ok(Value::Character('n')));
+        assert_eq!(Value::from_str_info("n", &info), Ok(Value::Character('n')));
 
-        let key = Key::Other(
-            String::from("CHAR"),
+        let info = Info::new(
+            "CHAR".parse()?,
             Number::Count(2),
             Type::Character,
             String::default(),
         );
         assert_eq!(
-            Value::from_str_key("n,d,l,s", &key),
+            Value::from_str_info("n,d,l,s", &info),
             Ok(Value::CharacterArray(vec![
                 Some('n'),
                 Some('d'),
@@ -481,7 +490,7 @@ mod tests {
             ]))
         );
         assert_eq!(
-            Value::from_str_key("n,d,l,.", &key),
+            Value::from_str_info("n,d,l,.", &info),
             Ok(Value::CharacterArray(vec![
                 Some('n'),
                 Some('d'),
@@ -489,65 +498,69 @@ mod tests {
                 None
             ]))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str_key_with_string() {
-        let key = Key::Other(
-            String::from("STRING"),
+    fn test_from_str_info_with_string() -> Result<(), crate::header::info::key::ParseError> {
+        let info = Info::new(
+            "STRING".parse()?,
             Number::Count(0),
             Type::String,
-            String::default(),
+            String::new(),
         );
         assert_eq!(
-            Value::from_str_key("noodles", &key),
+            Value::from_str_info("noodles", &info),
             Err(ParseError::InvalidNumberForType(
                 Number::Count(0),
                 Type::String
             ))
         );
 
-        let key = Key::Other(
-            String::from("STRING"),
+        let info = Info::new(
+            "STRING".parse()?,
             Number::Count(1),
             Type::String,
-            String::default(),
+            String::new(),
         );
         assert_eq!(
-            Value::from_str_key("noodles", &key),
+            Value::from_str_info("noodles", &info),
             Ok(Value::String(String::from("noodles")))
         );
         assert_eq!(
-            Value::from_str_key("8%25", &key),
+            Value::from_str_info("8%25", &info),
             Ok(Value::String(String::from("8%")))
         );
 
-        let key = Key::Other(
-            String::from("STRING"),
+        let info = Info::new(
+            "STRING".parse()?,
             Number::Count(2),
             Type::String,
-            String::default(),
+            String::new(),
         );
         assert_eq!(
-            Value::from_str_key("noodles,vcf", &key),
+            Value::from_str_info("noodles,vcf", &info),
             Ok(Value::StringArray(vec![
                 Some(String::from("noodles")),
                 Some(String::from("vcf"))
             ]))
         );
         assert_eq!(
-            Value::from_str_key("noodles,.", &key),
+            Value::from_str_info("noodles,.", &info),
             Ok(Value::StringArray(vec![
                 Some(String::from("noodles")),
                 None
             ]))
         );
         assert_eq!(
-            Value::from_str_key("8%25,13%25", &key),
+            Value::from_str_info("8%25,13%25", &info),
             Ok(Value::StringArray(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%"))
             ]))
         );
+
+        Ok(())
     }
 }
