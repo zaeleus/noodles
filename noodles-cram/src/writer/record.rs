@@ -306,8 +306,8 @@ where
 
             self.write_next_mate_alignment_start(record.next_mate_alignment_start())?;
             self.write_template_size(record.template_size())?;
-        } else {
-            self.write_distance_to_next_fragment(record.distance_to_next_fragment())?;
+        } else if let Some(distance_to_next_fragment) = record.distance_to_next_fragment() {
+            self.write_distance_to_next_fragment(distance_to_next_fragment)?;
         }
 
         Ok(())
@@ -422,9 +422,10 @@ where
 
     fn write_distance_to_next_fragment(
         &mut self,
-        distance_to_next_fragment: i32,
+        distance_to_next_fragment: usize,
     ) -> io::Result<()> {
-        self.compression_header
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
             .ok_or_else(|| {
@@ -432,15 +433,17 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
                 )
-            })
-            .and_then(|encoding| {
-                encode_itf8(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    distance_to_next_fragment,
-                )
-            })
+            })?;
+
+        let n = i32::try_from(distance_to_next_fragment)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        encode_itf8(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            n,
+        )
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {

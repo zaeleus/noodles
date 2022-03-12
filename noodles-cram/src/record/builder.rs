@@ -21,7 +21,7 @@ pub struct Builder {
     next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
-    distance_to_next_fragment: i32,
+    distance_to_next_fragment: Option<usize>,
     tags: Vec<Tag>,
     bases: sam::record::Sequence,
     features: Features,
@@ -109,8 +109,8 @@ impl Builder {
     }
 
     /// Sets the distance to the next fragment.
-    pub fn set_distance_to_next_fragment(mut self, distance_to_next_fragment: i32) -> Self {
-        self.distance_to_next_fragment = distance_to_next_fragment;
+    pub fn set_distance_to_next_fragment(mut self, distance_to_next_fragment: usize) -> Self {
+        self.distance_to_next_fragment = Some(distance_to_next_fragment);
         self
     }
 
@@ -208,7 +208,7 @@ impl Default for Builder {
             next_fragment_reference_sequence_id: None,
             next_mate_alignment_start: None,
             template_size: 0,
-            distance_to_next_fragment: 0,
+            distance_to_next_fragment: None,
             tags: Vec::new(),
             bases: sam::record::Sequence::default(),
             features: Features::default(),
@@ -238,7 +238,7 @@ mod tests {
         assert!(builder.next_fragment_reference_sequence_id.is_none());
         assert!(builder.next_mate_alignment_start.is_none());
         assert_eq!(builder.template_size, 0);
-        assert_eq!(builder.distance_to_next_fragment, 0);
+        assert!(builder.distance_to_next_fragment.is_none());
         assert!(builder.tags.is_empty());
         assert!(builder.bases.is_empty());
         assert!(builder.features.is_empty());

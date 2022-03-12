@@ -22,6 +22,13 @@
   * cram/record: Change alignment start and next mate alignment start to a
     `Position`.
 
+  * cram/record: Change distance to next fragment to an `Option<usize>`.
+
+    This distance can only be forward (_CRAM format specification (version
+    3.0)_ (2021-10-15) § 8.4 "Compression header block": "... NF can only refer
+    to a record later within [the] slice.") and is only set when the "has mate
+    downstream" flag is set.
+
   * cram/record/feature: Change underlying data types:
 
       * bases as `sam::record::sequence::Base`,

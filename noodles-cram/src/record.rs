@@ -36,7 +36,7 @@ pub struct Record {
     pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
-    pub(crate) distance_to_next_fragment: i32,
+    pub(crate) distance_to_next_fragment: Option<usize>,
     pub(crate) tags: Vec<Tag>,
     pub(crate) bases: sam::record::Sequence,
     pub(crate) features: Features,
@@ -118,7 +118,7 @@ impl Record {
     /// Returns the distance to the next fragment.
     ///
     /// This is the number of records to the next fragment within a slice.
-    pub fn distance_to_next_fragment(&self) -> i32 {
+    pub fn distance_to_next_fragment(&self) -> Option<usize> {
         self.distance_to_next_fragment
     }
 

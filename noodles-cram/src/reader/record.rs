@@ -332,7 +332,7 @@ where
             record.next_mate_alignment_start = self.read_next_mate_alignment_start()?;
             record.template_size = self.read_template_size()?;
         } else if flags.has_mate_downstream() {
-            record.distance_to_next_fragment = self.read_distance_to_next_fragment()?;
+            record.distance_to_next_fragment = self.read_distance_to_next_fragment().map(Some)?;
         }
 
         Ok(())
@@ -432,8 +432,9 @@ where
             })
     }
 
-    fn read_distance_to_next_fragment(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_distance_to_next_fragment(&mut self) -> io::Result<usize> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .distance_to_next_fragment_encoding()
             .ok_or_else(|| {
@@ -441,14 +442,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::DistanceToNextFragment),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_tag_data(&mut self) -> io::Result<Vec<Tag>> {

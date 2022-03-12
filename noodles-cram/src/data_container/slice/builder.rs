@@ -240,7 +240,7 @@ fn write_records(
         // FIXME: For simplicity, all records are written as detached.
         record.cram_bit_flags.insert(Flags::DETACHED);
         record.cram_bit_flags.remove(Flags::HAS_MATE_DOWNSTREAM);
-        record.distance_to_next_fragment = -1;
+        record.distance_to_next_fragment = None;
 
         record_writer.write_record(record)?;
     }

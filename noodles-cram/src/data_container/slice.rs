@@ -231,8 +231,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut mate_indices = vec![None; records.len()];
 
     for (i, record) in records.iter().enumerate() {
-        if record.cram_flags().has_mate_downstream() {
-            let distance_to_next_fragment = record.distance_to_next_fragment() as usize;
+        if let Some(distance_to_next_fragment) = record.distance_to_next_fragment() {
             let mate_index = i + distance_to_next_fragment + 1;
             mate_indices[i] = Some(mate_index);
         }
