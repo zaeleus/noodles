@@ -33,7 +33,7 @@ where
 
     /// Sets whether to preserve read names.
     ///
-    /// If `false`, read names are discared.
+    /// If `false`, read names are discarded.
     ///
     /// The default is `true`.
     pub fn preserve_read_names(mut self, value: bool) -> Self {
