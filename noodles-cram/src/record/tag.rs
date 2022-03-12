@@ -119,7 +119,7 @@ mod tests {
 
         let expected = Ok(Field::new(
             sam::record::data::field::Tag::AlignmentHitCount,
-            sam::record::data::field::Value::Int(1),
+            sam::record::data::field::Value::Int32(1),
         ));
 
         assert_eq!(actual, expected);

@@ -39,9 +39,8 @@ where
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let data_len = calculate_data_len(record.data()).and_then(|len| {
-        u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
+    let data_len = u32::try_from(calculate_data_len(record.data()))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let block_size = 32
         + u32::from(l_read_name)
@@ -197,8 +196,8 @@ where
 
     let value = field.value();
 
-    if let Value::Int(n) = value {
-        write_data_field_int_value(writer, *n).await?;
+    if let Value::Int32(n) = value {
+        write_data_field_int32_value(writer, *n).await?;
     } else {
         write_data_field_value_type(writer, value).await?;
         write_data_field_value(writer, value).await?;
@@ -217,38 +216,33 @@ where
     writer.write_all(tag.as_ref()).await
 }
 
-async fn write_data_field_int_value<W>(writer: &mut W, n: i64) -> io::Result<()>
+async fn write_data_field_int32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
     use crate::record::data::field::value::Type;
 
     if n >= 0 {
-        if n <= i64::from(u8::MAX) {
+        if n <= i32::from(u8::MAX) {
             writer.write_u8(u8::from(Type::UInt8)).await?;
-            return writer.write_u8(n as u8).await;
-        } else if n <= i64::from(u16::MAX) {
+            writer.write_u8(n as u8).await
+        } else if n <= i32::from(u16::MAX) {
             writer.write_u8(u8::from(Type::UInt16)).await?;
-            return writer.write_u16_le(n as u16).await;
-        } else if n <= i64::from(u32::MAX) {
+            writer.write_u16_le(n as u16).await
+        } else {
             writer.write_u8(u8::from(Type::UInt32)).await?;
-            return writer.write_u32_le(n as u32).await;
+            writer.write_u32_le(n as u32).await
         }
-    } else if n >= i64::from(i8::MIN) {
+    } else if n >= i32::from(i8::MIN) {
         writer.write_u8(u8::from(Type::Int8)).await?;
-        return writer.write_i8(n as i8).await;
-    } else if n >= i64::from(i16::MIN) {
+        writer.write_i8(n as i8).await
+    } else if n >= i32::from(i16::MIN) {
         writer.write_u8(u8::from(Type::Int16)).await?;
-        return writer.write_i16_le(n as i16).await;
-    } else if n >= i64::from(i32::MIN) {
+        writer.write_i16_le(n as i16).await
+    } else {
         writer.write_u8(u8::from(Type::Int32)).await?;
-        return writer.write_i32_le(n as i32).await;
+        writer.write_i32_le(n as i32).await
     }
-
-    Err(io::Error::new(
-        io::ErrorKind::InvalidInput,
-        format!("invalid data field integer value: {}", n),
-    ))
 }
 
 async fn write_data_field_value_type<W>(
@@ -284,8 +278,8 @@ where
 
     match value {
         Value::Char(c) => writer.write_u8(*c as u8).await?,
-        Value::Int(_) => {
-            // Integers are handled by `write_data_field_int_value`.
+        Value::Int32(_) => {
+            // Integers are handled by `write_data_field_int32_value`.
             unreachable!();
         }
         Value::Float(n) => writer.write_f32_le(*n).await?,
@@ -406,22 +400,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_write_data_field_int_value() -> io::Result<()> {
-        async fn t(buf: &mut Vec<u8>, n: i64, expected: &[u8]) -> io::Result<()> {
+    async fn test_write_data_field_int32_value() -> io::Result<()> {
+        async fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_data_field_int_value(buf, n).await?;
+            write_data_field_int32_value(buf, n).await?;
             assert_eq!(&buf[..], expected);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        // i32::MIN - 1
-        buf.clear();
-        assert!(matches!(
-            write_data_field_int_value(&mut buf, -2147483649).await,
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
         // i32::MIN
         t(&mut buf, -2147483648, &[b'i', 0x00, 0x00, 0x00, 0x80]).await?;
         // i32::MIN + 1
@@ -480,17 +468,6 @@ mod tests {
         t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f]).await?;
         // i32::MAX
         t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f]).await?;
-        // i32::MAX + 1
-        t(&mut buf, 2147483648, &[b'I', 0x00, 0x00, 0x00, 0x80]).await?;
-
-        // u32::MAX - 1
-        t(&mut buf, 4294967295, &[b'I', 0xff, 0xff, 0xff, 0xff]).await?;
-        // u32::MAX
-        buf.clear();
-        assert!(matches!(
-            write_data_field_int_value(&mut buf, 4294967296).await,
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
 
         Ok(())
     }
@@ -509,7 +486,7 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &Value::Char('n'), &[b'A']).await?;
-        t(&mut buf, &Value::Int(13), &[b'i']).await?;
+        t(&mut buf, &Value::Int32(13), &[b'i']).await?;
         t(&mut buf, &Value::Float(8.0), &[b'f']).await?;
         t(&mut buf, &Value::String(String::from("ndls")), &[b'Z']).await?;
         t(&mut buf, &Value::Hex(String::from("CAFE")), &[b'H']).await?;

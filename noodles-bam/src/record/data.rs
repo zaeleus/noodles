@@ -467,7 +467,7 @@ mod tests {
 
         let actual = sam::record::Data::try_from(&data)?;
         let expected = sam::record::Data::try_from(vec![
-            sam::record::data::Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+            sam::record::data::Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
             sam::record::data::Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
         ])?;
 

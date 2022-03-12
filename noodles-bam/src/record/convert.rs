@@ -210,7 +210,7 @@ mod tests {
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data(sam::record::Data::try_from(vec![
-                Field::new(Tag::EditDistance, Value::Int(0)),
+                Field::new(Tag::EditDistance, Value::Int32(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
             ])?)
             .build()?;

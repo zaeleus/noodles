@@ -673,12 +673,12 @@ impl From<Value> for sam::record::data::field::Value {
     fn from(value: Value) -> Self {
         match value {
             Value::Char(c) => Self::Char(c),
-            Value::Int8(n) => Self::Int(i64::from(n)),
-            Value::UInt8(n) => Self::Int(i64::from(n)),
-            Value::Int16(n) => Self::Int(i64::from(n)),
-            Value::UInt16(n) => Self::Int(i64::from(n)),
-            Value::Int32(n) => Self::Int(i64::from(n)),
-            Value::UInt32(n) => Self::Int(i64::from(n)),
+            Value::Int8(n) => Self::Int32(i32::from(n)),
+            Value::UInt8(n) => Self::Int32(i32::from(n)),
+            Value::Int16(n) => Self::Int32(i32::from(n)),
+            Value::UInt16(n) => Self::Int32(i32::from(n)),
+            Value::Int32(n) => Self::Int32(n),
+            Value::UInt32(n) => Self::Int32(n as i32),
             Value::Float(n) => Self::Float(n),
             Value::String(s) => Self::String(s),
             Value::Hex(s) => Self::Hex(s),
@@ -787,12 +787,12 @@ mod tests {
 
         assert_eq!(SamValue::from(Value::Char('m')), SamValue::Char('m'));
 
-        assert_eq!(SamValue::from(Value::Int8(0)), SamValue::Int(0));
-        assert_eq!(SamValue::from(Value::UInt8(0)), SamValue::Int(0));
-        assert_eq!(SamValue::from(Value::Int16(0)), SamValue::Int(0));
-        assert_eq!(SamValue::from(Value::UInt16(0)), SamValue::Int(0));
-        assert_eq!(SamValue::from(Value::Int32(0)), SamValue::Int(0));
-        assert_eq!(SamValue::from(Value::UInt32(0)), SamValue::Int(0));
+        assert_eq!(SamValue::from(Value::Int8(0)), SamValue::Int32(0));
+        assert_eq!(SamValue::from(Value::UInt8(0)), SamValue::Int32(0));
+        assert_eq!(SamValue::from(Value::Int16(0)), SamValue::Int32(0));
+        assert_eq!(SamValue::from(Value::UInt16(0)), SamValue::Int32(0));
+        assert_eq!(SamValue::from(Value::Int32(0)), SamValue::Int32(0));
+        assert_eq!(SamValue::from(Value::UInt32(0)), SamValue::Int32(0));
 
         assert_eq!(
             SamValue::from(Value::String(String::from("noodles"))),

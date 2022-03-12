@@ -66,7 +66,7 @@ impl Data {
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let mut data = Data::try_from(vec![
-    ///     Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+    ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
     /// ])?;
     ///
     /// assert_eq!(data.len(), 1);
@@ -89,7 +89,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh.clone()])?;
     ///
     /// assert_eq!(data.get(Tag::AlignmentHitCount), Some(&nh));
@@ -107,7 +107,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh])?;
     ///
     /// assert_eq!(data.get_index_of(Tag::AlignmentHitCount), Some(0));
@@ -128,7 +128,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh])?;
     ///
     /// let mut keys = data.keys();
@@ -147,7 +147,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh.clone()])?;
     ///
     /// let mut values = data.values();
@@ -171,7 +171,7 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     /// let mut data = Data::default();
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// data.insert(nh);
     /// ```
     pub fn insert(&mut self, field: Field) -> Option<Field> {
@@ -196,9 +196,9 @@ impl Data {
     /// ```
     /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int(1));
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let rg = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
-    /// let md = Field::new(Tag::AlignmentScore, Value::Int(98));
+    /// let md = Field::new(Tag::AlignmentScore, Value::Int32(98));
     /// let mut data = Data::try_from(vec![nh.clone(), rg.clone(), md.clone()])?;
     ///
     /// assert_eq!(data.remove(Tag::AlignmentHitCount), Some(nh));
@@ -455,7 +455,7 @@ mod tests {
     fn test_fmt() -> Result<(), ParseError> {
         let data = Data::try_from(vec![
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-            Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+            Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
         ])?;
 
         let expected = "RG:Z:rg0\tNH:i:1";
@@ -473,7 +473,7 @@ mod tests {
             "RG:Z:rg0\tNH:i:1".parse(),
             Ok(Data::try_from(vec![
                 Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-                Field::new(Tag::AlignmentHitCount, Value::Int(1)),
+                Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
             ])?)
         );
 

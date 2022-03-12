@@ -72,6 +72,12 @@
 
   * sam/record: Change position and mate position to `Position`.
 
+  * sam/record/data/field/value: Rename `Int` to `Int32`.
+
+    As the name implies, the largest value is now `i32::MAX`.
+
+  * sam/record/data/field/value/ty: Rename `Int` to `Int32`.
+
   * sam/record/cigar/op: Change length to a `usize`.
 
   * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch` and

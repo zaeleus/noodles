@@ -43,9 +43,8 @@ where
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let data_len = calculate_data_len(record.data()).and_then(|len| {
-        u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
+    let data_len = u32::try_from(calculate_data_len(record.data()))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let block_size = BLOCK_HEADER_SIZE
         + u32::from(l_read_name)
@@ -153,7 +152,7 @@ where
     writer.write_i32::<LittleEndian>(id)
 }
 
-pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
+pub(crate) fn calculate_data_len(data: &Data) -> usize {
     use noodles_sam::record::data::field::Value;
 
     let mut len = 0;
@@ -177,31 +176,21 @@ pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
             Value::Char(_) => {
                 len += mem::size_of::<u8>();
             }
-            Value::Int(n) => {
+            Value::Int32(n) => {
                 if *n >= 0 {
-                    if *n <= i64::from(u8::MAX) {
+                    if *n <= i32::from(u8::MAX) {
                         len += mem::size_of::<u8>();
-                    } else if *n <= i64::from(u16::MAX) {
+                    } else if *n <= i32::from(u16::MAX) {
                         len += mem::size_of::<u16>();
-                    } else if *n <= i64::from(u32::MAX) {
-                        len += mem::size_of::<u32>();
                     } else {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            format!("invalid integer value: {}", n),
-                        ));
+                        len += mem::size_of::<u32>();
                     }
-                } else if *n >= i64::from(i8::MIN) {
+                } else if *n >= i32::from(i8::MIN) {
                     len += mem::size_of::<i8>();
-                } else if *n >= i64::from(i16::MIN) {
+                } else if *n >= i32::from(i16::MIN) {
                     len += mem::size_of::<i16>();
-                } else if *n >= i64::from(i32::MIN) {
-                    len += mem::size_of::<i32>();
                 } else {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        format!("invalid integer value: {}", n),
-                    ));
+                    len += mem::size_of::<i32>();
                 }
             }
             Value::Float(_) => {
@@ -234,7 +223,7 @@ pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
         }
     }
 
-    Ok(len)
+    len
 }
 
 fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
@@ -258,8 +247,8 @@ where
 
     let value = field.value();
 
-    if let Value::Int(n) = value {
-        write_data_field_int_value(writer, *n)?;
+    if let Value::Int32(n) = value {
+        write_data_field_int32_value(writer, *n)?;
     } else {
         write_data_field_value_type(writer, value)?;
         write_data_field_value(writer, value)?;
@@ -275,38 +264,33 @@ where
     writer.write_all(tag.as_ref())
 }
 
-fn write_data_field_int_value<W>(writer: &mut W, n: i64) -> io::Result<()>
+fn write_data_field_int32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,
 {
     use crate::record::data::field::value::Type;
 
     if n >= 0 {
-        if n <= i64::from(u8::MAX) {
+        if n <= i32::from(u8::MAX) {
             writer.write_u8(u8::from(Type::UInt8))?;
-            return writer.write_u8(n as u8);
-        } else if n <= i64::from(u16::MAX) {
+            writer.write_u8(n as u8)
+        } else if n <= i32::from(u16::MAX) {
             writer.write_u8(u8::from(Type::UInt16))?;
-            return writer.write_u16::<LittleEndian>(n as u16);
-        } else if n <= i64::from(u32::MAX) {
+            writer.write_u16::<LittleEndian>(n as u16)
+        } else {
             writer.write_u8(u8::from(Type::UInt32))?;
-            return writer.write_u32::<LittleEndian>(n as u32);
+            writer.write_u32::<LittleEndian>(n as u32)
         }
-    } else if n >= i64::from(i8::MIN) {
+    } else if n >= i32::from(i8::MIN) {
         writer.write_u8(u8::from(Type::Int8))?;
-        return writer.write_i8(n as i8);
-    } else if n >= i64::from(i16::MIN) {
+        writer.write_i8(n as i8)
+    } else if n >= i32::from(i16::MIN) {
         writer.write_u8(u8::from(Type::Int16))?;
-        return writer.write_i16::<LittleEndian>(n as i16);
-    } else if n >= i64::from(i32::MIN) {
+        writer.write_i16::<LittleEndian>(n as i16)
+    } else {
         writer.write_u8(u8::from(Type::Int32))?;
-        return writer.write_i32::<LittleEndian>(n as i32);
+        writer.write_i32::<LittleEndian>(n as i32)
     }
-
-    Err(io::Error::new(
-        io::ErrorKind::InvalidInput,
-        format!("invalid integer value: {}", n),
-    ))
 }
 
 fn write_data_field_value_type<W>(
@@ -342,8 +326,8 @@ where
 
     match value {
         Value::Char(c) => writer.write_u8(*c as u8)?,
-        Value::Int(_) => {
-            // Integers are handled by `write_data_field_int_value`.
+        Value::Int32(_) => {
+            // Integers are handled by `write_data_field_int32_value`.
             unreachable!();
         }
         Value::Float(n) => writer.write_f32::<LittleEndian>(*n)?,
@@ -418,22 +402,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_data_field_int_value() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, n: i64, expected: &[u8]) -> io::Result<()> {
+    fn test_write_data_field_int32_value() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_data_field_int_value(buf, n)?;
+            write_data_field_int32_value(buf, n)?;
             assert_eq!(&buf[..], expected, "n = {}", n);
             Ok(())
         }
 
         let mut buf = Vec::new();
 
-        // i32::MIN - 1
-        buf.clear();
-        assert!(matches!(
-            write_data_field_int_value(&mut buf, -2147483649),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
         // i32::MIN
         t(&mut buf, -2147483648, &[b'i', 0x00, 0x00, 0x00, 0x80])?;
         // i32::MIN + 1
@@ -492,17 +470,6 @@ mod tests {
         t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f])?;
         // i32::MAX
         t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f])?;
-        // i32::MAX + 1
-        t(&mut buf, 2147483648, &[b'I', 0x00, 0x00, 0x00, 0x80])?;
-
-        // u32::MAX - 1
-        t(&mut buf, 4294967295, &[b'I', 0xff, 0xff, 0xff, 0xff])?;
-        // u32::MAX
-        buf.clear();
-        assert!(matches!(
-            write_data_field_int_value(&mut buf, 4294967296),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
 
         Ok(())
     }
@@ -521,7 +488,7 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &Value::Char('n'), &[b'A'])?;
-        t(&mut buf, &Value::Int(13), &[b'i'])?;
+        t(&mut buf, &Value::Int32(13), &[b'i'])?;
         t(&mut buf, &Value::Float(8.0), &[b'f'])?;
         t(&mut buf, &Value::String(String::from("ndls")), &[b'Z'])?;
         t(&mut buf, &Value::Hex(String::from("CAFE")), &[b'H'])?;
