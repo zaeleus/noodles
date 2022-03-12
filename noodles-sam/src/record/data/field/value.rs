@@ -168,6 +168,51 @@ impl Value {
         matches!(self, Self::Int32(_))
     }
 
+    /// Returns the value as a 64-bit integer.
+    ///
+    /// This is a convenience method that converts any integer to an `i64`, which captures the
+    /// entire range of all record data field integer values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::field::Value;
+    /// assert_eq!(Value::Int32(0).as_int(), Some(0));
+    /// assert_eq!(Value::Char('n').as_int(), None);
+    /// ```
+    pub fn as_int(&self) -> Option<i64> {
+        match *self {
+            Self::Int8(n) => Some(i64::from(n)),
+            Self::UInt8(n) => Some(i64::from(n)),
+            Self::Int16(n) => Some(i64::from(n)),
+            Self::UInt16(n) => Some(i64::from(n)),
+            Self::Int32(n) => Some(i64::from(n)),
+            Self::UInt32(n) => Some(i64::from(n)),
+            _ => None,
+        }
+    }
+
+    /// Returns whether the value is an integer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::field::Value;
+    /// assert!(Value::Int32(0).is_int());
+    /// assert!(!Value::Char('n').is_int());
+    /// ```
+    pub fn is_int(&self) -> bool {
+        matches!(
+            self,
+            Self::Int8(_)
+                | Self::UInt8(_)
+                | Self::Int16(_)
+                | Self::UInt16(_)
+                | Self::Int32(_)
+                | Self::UInt32(_)
+        )
+    }
+
     /// Returns the value as a single-precision floating-point if it is a single-precision
     /// float-point.
     ///
