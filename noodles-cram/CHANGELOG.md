@@ -29,6 +29,8 @@
     to a record later within [the] slice.") and is only set when the "has mate
     downstream" flag is set.
 
+  * cram/record/convert: Accept `sam::Header` instead of `ReferenceSequences`.
+
   * cram/record/feature: Change underlying data types:
 
       * bases as `sam::record::sequence::Base`,

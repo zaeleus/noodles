@@ -9,10 +9,7 @@ impl Record {
     /// Converts this CRAM record to a SAM record.
     ///
     /// This assumes this record is fully resolved.
-    pub fn try_into_sam_record(
-        &self,
-        reference_sequences: &sam::header::ReferenceSequences,
-    ) -> io::Result<sam::Record> {
+    pub fn try_into_sam_record(&self, header: &sam::Header) -> io::Result<sam::Record> {
         let mut builder = sam::Record::builder();
 
         if let Some(read_name) = self.read_name() {
@@ -22,7 +19,7 @@ impl Record {
         builder = builder.set_flags(self.bam_flags());
 
         if let Some(reference_sequence_name) =
-            get_reference_sequence_name(reference_sequences, self.reference_sequence_id())?
+            get_reference_sequence_name(header.reference_sequences(), self.reference_sequence_id())?
         {
             builder = builder.set_reference_sequence_name(reference_sequence_name);
         }
@@ -41,7 +38,7 @@ impl Record {
         }
 
         if let Some(mate_reference_sequence_name) = get_reference_sequence_name(
-            reference_sequences,
+            header.reference_sequences(),
             self.next_fragment_reference_sequence_id(),
         )? {
             builder = builder.set_mate_reference_sequence_name(mate_reference_sequence_name);

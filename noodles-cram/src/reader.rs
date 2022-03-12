@@ -298,10 +298,7 @@ where
     ) -> Box<dyn Iterator<Item = io::Result<sam::Record>> + 'a> {
         Box::new(
             self.records(reference_sequence_repository, header)
-                .map(|result| {
-                    result
-                        .and_then(|record| record.try_into_sam_record(header.reference_sequences()))
-                }),
+                .map(|result| result.and_then(|record| record.try_into_sam_record(header))),
         )
     }
 }

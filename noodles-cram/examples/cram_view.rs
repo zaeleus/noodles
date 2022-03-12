@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in reader.records(&repository, &header) {
         let record = result?;
-        let sam_record = record.try_into_sam_record(header.reference_sequences())?;
+        let sam_record = record.try_into_sam_record(&header)?;
         println!("{}", sam_record);
     }
 
