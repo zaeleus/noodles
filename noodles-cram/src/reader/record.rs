@@ -982,9 +982,6 @@ where
                 decoder.decode(core_data_reader).map(|i| i as u8)
             }
         }
-        Encoding::Beta(offset, len) => core_data_reader
-            .read_u32(*len)
-            .map(|i| (i as i32 - offset) as u8),
         _ => todo!("decode_byte: {:?}", encoding),
     }
 }
@@ -1108,7 +1105,6 @@ mod tests {
 
         t(&Encoding::External(1), 0x0d)?;
         t(&Encoding::Huffman(vec![0x4e], vec![0]), 0x4e)?;
-        t(&Encoding::Beta(1, 3), 3)?;
 
         Ok(())
     }
