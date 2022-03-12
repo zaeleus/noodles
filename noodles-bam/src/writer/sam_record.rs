@@ -298,11 +298,11 @@ fn write_data_field_value_type<W>(
 where
     W: Write,
 {
-    let val_type = char::from(value.ty()) as u8;
+    let val_type = u8::from(value.ty());
     writer.write_u8(val_type)?;
 
     if let Some(subtype) = value.subtype() {
-        let val_subtype = char::from(subtype) as u8;
+        let val_subtype = u8::from(subtype);
         writer.write_u8(val_subtype)?;
     }
 
