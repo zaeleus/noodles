@@ -32,7 +32,7 @@
 
   * sam/record/data/field/value/subtype: Implement conversion to `u8`.
 
-  * sam/record/data/field/value/ty: Implement `TryFrom<u8>`.
+  * sam/record/data/field/value/ty: Implement `Hash` and `TryFrom<u8>`.
 
   * sam/record/data/field/value/ty: Implement conversion to `u8`.
 
