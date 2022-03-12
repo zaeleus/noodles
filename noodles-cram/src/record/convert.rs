@@ -1,7 +1,7 @@
 use std::io;
 
 use noodles_bam::record::ReferenceSequenceId;
-use noodles_sam::{self as sam, record::Data, AlignmentRecord};
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::{resolve::resolve_features, Record, Tag};
 
@@ -58,10 +58,8 @@ impl Record {
             builder = builder.set_quality_scores(self.quality_scores().clone());
         }
 
-        if !self.tags().is_empty() {
-            let data = tags_to_data(self.tags())?;
-            builder = builder.set_data(data);
-        }
+        let data = build_data(header.read_groups(), self.tags(), self.read_group_id())?;
+        builder = builder.set_data(data);
 
         builder
             .build()
@@ -86,8 +84,15 @@ fn get_reference_sequence_name(
         .transpose()
 }
 
-fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {
-    use sam::record::data::Field;
+fn build_data(
+    read_groups: &sam::header::ReadGroups,
+    tags: &[Tag],
+    read_group_id: Option<usize>,
+) -> io::Result<sam::record::Data> {
+    use sam::record::data::{
+        field::{Tag as SamTag, Value},
+        Field,
+    };
 
     let mut fields = Vec::with_capacity(tags.len());
 
@@ -104,5 +109,15 @@ fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {
         fields.push(field);
     }
 
-    Data::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    if let Some(id) = read_group_id {
+        let name = read_groups
+            .get_index(id)
+            .map(|(_, rg)| rg.id())
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
+
+        let field = Field::new(SamTag::ReadGroup, Value::String(name.into()));
+        fields.push(field);
+    }
+
+    sam::record::Data::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
 }
