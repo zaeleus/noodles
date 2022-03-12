@@ -39,8 +39,9 @@ where
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let data_len = u32::try_from(calculate_data_len(record.data()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let data_len = calculate_data_len(record.data()).and_then(|n| {
+        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
 
     let block_size = 32
         + u32::from(l_read_name)
@@ -194,13 +195,21 @@ where
 
     write_data_field_tag(writer, field.tag()).await?;
 
-    let value = field.value();
-
-    if let Value::Int32(n) = value {
-        write_data_field_int32_value(writer, *n).await?;
-    } else {
-        write_data_field_value_type(writer, value).await?;
-        write_data_field_value(writer, value).await?;
+    match field.value() {
+        Value::Int8(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
+        Value::UInt8(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
+        Value::Int16(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
+        Value::UInt16(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
+        Value::Int32(n) => write_data_field_int32_value(writer, *n).await?,
+        Value::UInt32(n) => {
+            let m =
+                i32::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            write_data_field_int32_value(writer, m).await?;
+        }
+        value => {
+            write_data_field_value_type(writer, value).await?;
+            write_data_field_value(writer, value).await?;
+        }
     }
 
     Ok(())
@@ -278,7 +287,12 @@ where
 
     match value {
         Value::Char(c) => writer.write_u8(*c as u8).await?,
-        Value::Int32(_) => {
+        Value::Int8(_)
+        | Value::UInt8(_)
+        | Value::Int16(_)
+        | Value::UInt16(_)
+        | Value::Int32(_)
+        | Value::UInt32(_) => {
             // Integers are handled by `write_data_field_int32_value`.
             unreachable!();
         }

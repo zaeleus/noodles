@@ -21,8 +21,18 @@ const ARRAY_VALUE_DELIMITER: char = ',';
 pub enum Value {
     /// A character (`A`).
     Char(char),
-    /// An integer (`i`).
+    /// An 8-bit integer (`c`).
+    Int8(i8),
+    /// An 8-bit unsigned integer (`C`).
+    UInt8(u8),
+    /// A 16-bit integer (`s`).
+    Int16(i16),
+    /// A 16-bit unsigned integer (`S`).
+    UInt16(u16),
+    /// A 32-bit integer (`i`).
     Int32(i32),
+    /// A 32-bit unsigned integer (`I`).
+    UInt32(u32),
     /// A single-precision floating-point (`f`).
     Float(f32),
     /// A string (`Z`).
@@ -57,7 +67,12 @@ impl Value {
     pub fn ty(&self) -> Type {
         match *self {
             Self::Char(_) => Type::Char,
+            Self::Int8(_) => Type::Int8,
+            Self::UInt8(_) => Type::UInt8,
+            Self::Int16(_) => Type::Int16,
+            Self::UInt16(_) => Type::UInt16,
             Self::Int32(_) => Type::Int32,
+            Self::UInt32(_) => Type::UInt32,
             Self::Float(_) => Type::Float,
             Self::String(_) => Type::String,
             Self::Hex(_) => Type::Hex,
@@ -453,7 +468,12 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Char(c) => f.write_char(*c),
+            Self::Int8(n) => write!(f, "{}", n),
+            Self::UInt8(n) => write!(f, "{}", n),
+            Self::Int16(n) => write!(f, "{}", n),
+            Self::UInt16(n) => write!(f, "{}", n),
             Self::Int32(n) => write!(f, "{}", n),
+            Self::UInt32(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
             Self::String(s) => f.write_str(s),
             Self::Hex(s) => f.write_str(s),
@@ -531,6 +551,8 @@ pub enum ParseError {
     Invalid,
     /// The data field type is invalid.
     InvalidType(ty::ParseError),
+    /// The data field type is unsupported.
+    UnsupportedType(Type),
     /// The data field character value is invalid.
     InvalidCharValue,
     /// The data field integer value is invalid.
@@ -554,6 +576,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid => f.write_str("invalid input"),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
+            Self::UnsupportedType(ty) => write!(f, "unsupported type: {}", ty),
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
             Self::InvalidFloatValue(e) => write!(f, "invalid float value: {}", e),
@@ -587,6 +610,7 @@ fn parse_value(ty: Type, s: &str) -> Result<Value, ParseError> {
         Type::String => parse_string(s).map(Value::String),
         Type::Hex => parse_hex(s).map(Value::Hex),
         Type::Array => parse_array(s),
+        _ => Err(ParseError::UnsupportedType(ty)),
     }
 }
 

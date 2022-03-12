@@ -43,8 +43,9 @@ where
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let data_len = u32::try_from(calculate_data_len(record.data()))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let data_len = calculate_data_len(record.data()).and_then(|n| {
+        u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
 
     let block_size = BLOCK_HEADER_SIZE
         + u32::from(l_read_name)
@@ -152,8 +153,26 @@ where
     writer.write_i32::<LittleEndian>(id)
 }
 
-pub(crate) fn calculate_data_len(data: &Data) -> usize {
+pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
     use noodles_sam::record::data::field::Value;
+
+    fn size_of_int(n: i32) -> usize {
+        if n >= 0 {
+            if n <= i32::from(u8::MAX) {
+                mem::size_of::<u8>()
+            } else if n <= i32::from(u16::MAX) {
+                mem::size_of::<u16>()
+            } else {
+                mem::size_of::<u32>()
+            }
+        } else if n >= i32::from(i8::MIN) {
+            mem::size_of::<i8>()
+        } else if n >= i32::from(i16::MIN) {
+            mem::size_of::<i16>()
+        } else {
+            mem::size_of::<i32>()
+        }
+    }
 
     let mut len = 0;
 
@@ -172,58 +191,29 @@ pub(crate) fn calculate_data_len(data: &Data) -> usize {
             len += mem::size_of::<u32>();
         }
 
-        match value {
-            Value::Char(_) => {
-                len += mem::size_of::<u8>();
-            }
-            Value::Int32(n) => {
-                if *n >= 0 {
-                    if *n <= i32::from(u8::MAX) {
-                        len += mem::size_of::<u8>();
-                    } else if *n <= i32::from(u16::MAX) {
-                        len += mem::size_of::<u16>();
-                    } else {
-                        len += mem::size_of::<u32>();
-                    }
-                } else if *n >= i32::from(i8::MIN) {
-                    len += mem::size_of::<i8>();
-                } else if *n >= i32::from(i16::MIN) {
-                    len += mem::size_of::<i16>();
-                } else {
-                    len += mem::size_of::<i32>();
-                }
-            }
-            Value::Float(_) => {
-                len += mem::size_of::<f32>();
-            }
-            Value::String(s) | Value::Hex(s) => {
-                len += s.as_bytes().len() + 1;
-            }
-            Value::Int8Array(values) => {
-                len += values.len();
-            }
-            Value::UInt8Array(values) => {
-                len += values.len();
-            }
-            Value::Int16Array(values) => {
-                len += mem::size_of::<i16>() * values.len();
-            }
-            Value::UInt16Array(values) => {
-                len += mem::size_of::<u16>() * values.len();
-            }
-            Value::Int32Array(values) => {
-                len += mem::size_of::<i32>() * values.len();
-            }
-            Value::UInt32Array(values) => {
-                len += mem::size_of::<u32>() * values.len();
-            }
-            Value::FloatArray(values) => {
-                len += mem::size_of::<f32>() * values.len();
-            }
+        len += match value {
+            Value::Char(_) => mem::size_of::<u8>(),
+            Value::Int8(n) => size_of_int(i32::from(*n)),
+            Value::UInt8(n) => size_of_int(i32::from(*n)),
+            Value::Int16(n) => size_of_int(i32::from(*n)),
+            Value::UInt16(n) => size_of_int(i32::from(*n)),
+            Value::Int32(n) => size_of_int(*n),
+            Value::UInt32(n) => i32::try_from(*n)
+                .map(size_of_int)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+            Value::Float(_) => mem::size_of::<f32>(),
+            Value::String(s) | Value::Hex(s) => s.as_bytes().len() + 1,
+            Value::Int8Array(values) => values.len(),
+            Value::UInt8Array(values) => values.len(),
+            Value::Int16Array(values) => mem::size_of::<i16>() * values.len(),
+            Value::UInt16Array(values) => mem::size_of::<u16>() * values.len(),
+            Value::Int32Array(values) => mem::size_of::<i32>() * values.len(),
+            Value::UInt32Array(values) => mem::size_of::<u32>() * values.len(),
+            Value::FloatArray(values) => mem::size_of::<f32>() * values.len(),
         }
     }
 
-    len
+    Ok(len)
 }
 
 fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
@@ -245,13 +235,21 @@ where
 
     write_data_field_tag(writer, field.tag())?;
 
-    let value = field.value();
-
-    if let Value::Int32(n) = value {
-        write_data_field_int32_value(writer, *n)?;
-    } else {
-        write_data_field_value_type(writer, value)?;
-        write_data_field_value(writer, value)?;
+    match field.value() {
+        Value::Int8(n) => write_data_field_int32_value(writer, i32::from(*n))?,
+        Value::UInt8(n) => write_data_field_int32_value(writer, i32::from(*n))?,
+        Value::Int16(n) => write_data_field_int32_value(writer, i32::from(*n))?,
+        Value::UInt16(n) => write_data_field_int32_value(writer, i32::from(*n))?,
+        Value::Int32(n) => write_data_field_int32_value(writer, *n)?,
+        Value::UInt32(n) => {
+            let m =
+                i32::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            write_data_field_int32_value(writer, m)?;
+        }
+        value => {
+            write_data_field_value_type(writer, value)?;
+            write_data_field_value(writer, value)?;
+        }
     }
 
     Ok(())
@@ -326,7 +324,12 @@ where
 
     match value {
         Value::Char(c) => writer.write_u8(*c as u8)?,
-        Value::Int32(_) => {
+        Value::Int8(_)
+        | Value::UInt8(_)
+        | Value::Int16(_)
+        | Value::UInt16(_)
+        | Value::Int32(_)
+        | Value::UInt32(_) => {
             // Integers are handled by `write_data_field_int32_value`.
             unreachable!();
         }
