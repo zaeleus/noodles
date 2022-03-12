@@ -41,17 +41,18 @@ impl fmt::Display for Type {
 
 /// An error returned when a raw SAM record data field value type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ParseError(String);
+pub enum ParseError {
+    /// The input is invalid.
+    Invalid,
+}
 
 impl error::Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "invalid data field type: expected {{A, c, C, s, S, i, I, f, Z, H, B}}, got {}",
-            self.0
-        )
+        match self {
+            Self::Invalid => f.write_str("invalid input"),
+        }
     }
 }
 
@@ -71,7 +72,28 @@ impl FromStr for Type {
             "Z" => Ok(Self::String),
             "H" => Ok(Self::Hex),
             "B" => Ok(Self::Array),
-            _ => Err(ParseError(s.into())),
+            _ => Err(ParseError::Invalid),
+        }
+    }
+}
+
+impl TryFrom<u8> for Type {
+    type Error = ParseError;
+
+    fn try_from(n: u8) -> Result<Self, Self::Error> {
+        match n {
+            b'A' => Ok(Self::Char),
+            b'c' => Ok(Self::Int8),
+            b'C' => Ok(Self::UInt8),
+            b's' => Ok(Self::Int16),
+            b'S' => Ok(Self::UInt16),
+            b'i' => Ok(Self::Int32),
+            b'I' => Ok(Self::UInt32),
+            b'f' => Ok(Self::Float),
+            b'Z' => Ok(Self::String),
+            b'H' => Ok(Self::Hex),
+            b'B' => Ok(Self::Array),
+            _ => Err(ParseError::Invalid),
         }
     }
 }
@@ -133,12 +155,26 @@ mod tests {
         assert_eq!("H".parse(), Ok(Type::Hex));
         assert_eq!("B".parse(), Ok(Type::Array));
 
-        assert_eq!("".parse::<Type>(), Err(ParseError(String::from(""))));
-        assert_eq!("n".parse::<Type>(), Err(ParseError(String::from("n"))));
-        assert_eq!(
-            "noodles".parse::<Type>(),
-            Err(ParseError(String::from("noodles")))
-        );
+        assert_eq!("".parse::<Type>(), Err(ParseError::Invalid));
+        assert_eq!("n".parse::<Type>(), Err(ParseError::Invalid));
+        assert_eq!("noodles".parse::<Type>(), Err(ParseError::Invalid));
+    }
+
+    #[test]
+    fn test_try_from_u8_for_type() {
+        assert_eq!(Type::try_from(b'A'), Ok(Type::Char));
+        assert_eq!(Type::try_from(b'c'), Ok(Type::Int8));
+        assert_eq!(Type::try_from(b'C'), Ok(Type::UInt8));
+        assert_eq!(Type::try_from(b's'), Ok(Type::Int16));
+        assert_eq!(Type::try_from(b'S'), Ok(Type::UInt16));
+        assert_eq!(Type::try_from(b'i'), Ok(Type::Int32));
+        assert_eq!(Type::try_from(b'I'), Ok(Type::UInt32));
+        assert_eq!(Type::try_from(b'f'), Ok(Type::Float));
+        assert_eq!(Type::try_from(b'Z'), Ok(Type::String));
+        assert_eq!(Type::try_from(b'H'), Ok(Type::Hex));
+        assert_eq!(Type::try_from(b'B'), Ok(Type::Array));
+
+        assert_eq!(Type::try_from(b'n'), Err(ParseError::Invalid));
     }
 
     #[test]
