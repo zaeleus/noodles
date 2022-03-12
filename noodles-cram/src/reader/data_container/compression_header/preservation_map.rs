@@ -1,7 +1,7 @@
 use std::io::{self, BufRead, Read};
 
 use byteorder::ReadBytesExt;
-use noodles_bam as bam;
+use noodles_sam::record::data::field::value::Type;
 
 use crate::{
     data_container::compression_header::{
@@ -123,8 +123,8 @@ where
             let (t0, t1, ty) = (chunk[0], chunk[1], chunk[2]);
 
             let tag = [t0, t1];
-            let ty = bam::record::data::field::value::Type::try_from(ty)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let ty =
+                Type::try_from(ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             let key = record::tag::Key::new(tag, ty);
 
@@ -139,8 +139,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_bam::record::data::field::value::Type;
-
     use crate::record::tag::Key;
 
     use super::*;

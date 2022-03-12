@@ -7,7 +7,7 @@ use std::io::{self, BufRead};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::record::data::field::{
+use noodles_sam::record::data::field::{
     value::{Subtype, Type},
     Value,
 };
@@ -20,10 +20,8 @@ use crate::record::data::field::{
 ///
 /// ```
 /// # use std::io;
-/// use noodles_bam::{
-///     reader::record::data::field::read_value,
-///     record::data::field::{value::Type, Value}
-/// };
+/// use noodles_bam::reader::record::data::field::read_value;
+/// use noodles_sam::record::data::field::{value::Type, Value};
 ///
 /// let data = [0x01, 0x00, 0x00, 0x00];
 /// let mut reader = &data[..];

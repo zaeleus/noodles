@@ -2,7 +2,7 @@ use std::{io, mem, ops::Range};
 
 use bytes::Buf;
 
-use super::field::value::Type;
+use noodles_sam::{self as sam, record::data::field::value::Type};
 
 /// A container to store the end positions of each field.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -125,7 +125,7 @@ fn size_of_array_value<B>(buf: &mut B) -> io::Result<usize>
 where
     B: Buf,
 {
-    use super::field::value::Subtype;
+    use sam::record::data::field::value::Subtype;
 
     let subtype = Subtype::try_from(buf.get_u8())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

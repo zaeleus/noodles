@@ -108,11 +108,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_bam::record::data::field::value::Type;
-
-    use crate::record::tag::Key;
+    use noodles_sam::record::data::field::value::Type;
 
     use super::*;
+    use crate::record::tag::Key;
 
     #[test]
     fn test_write_tag_ids_dictionary() -> io::Result<()> {

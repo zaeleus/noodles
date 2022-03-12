@@ -469,19 +469,19 @@ mod tests {
     #[test]
     fn test_write_sam_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::record::data::{
-            field::{Tag as SamTag, Value as SamValue},
+            field::{Tag, Value},
             Field as SamField,
         };
 
-        use crate::record::data::{field::Value, Field};
+        use crate::record::data::Field;
 
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
         let sam_record = sam::Record::builder()
             .set_data(Data::try_from(vec![
-                SamField::new(SamTag::ReadGroup, SamValue::String(String::from("rg0"))),
-                SamField::new(SamTag::AlignmentHitCount, SamValue::Int32(1)),
+                SamField::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
+                SamField::new(Tag::AlignmentHitCount, Value::Int32(1)),
             ])?)
             .build()?;
 
@@ -499,14 +499,14 @@ mod tests {
         assert_eq!(
             fields.next().transpose()?,
             Some(Field::new(
-                SamTag::ReadGroup,
+                Tag::ReadGroup,
                 Value::String(String::from("rg0"))
-            ),)
+            ))
         );
 
         assert_eq!(
             fields.next().transpose()?,
-            Some(Field::new(SamTag::AlignmentHitCount, Value::UInt8(1)))
+            Some(Field::new(Tag::AlignmentHitCount, Value::UInt8(1)))
         );
 
         assert!(fields.next().is_none());

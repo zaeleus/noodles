@@ -178,7 +178,7 @@ mod tests {
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data(Data::try_from(vec![
-                0x4e, 0x4d, 0x43, 0x00, // NM:i:0
+                0x4e, 0x4d, 0x43, 0x00, // NM:C:0
                 0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
             ])?)
             .build()?;
@@ -210,7 +210,7 @@ mod tests {
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data(sam::record::Data::try_from(vec![
-                Field::new(Tag::EditDistance, Value::Int32(0)),
+                Field::new(Tag::EditDistance, Value::UInt8(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
             ])?)
             .build()?;

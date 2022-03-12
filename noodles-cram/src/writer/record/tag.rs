@@ -5,7 +5,7 @@ use std::{
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use noodles_bam::record::data::field::Value;
+use noodles_sam::record::data::field::Value;
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where

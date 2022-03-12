@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::record::data::field::value::Type;
+use noodles_sam::record::data::field::value::Type;
 
 pub fn read_type<R>(reader: &mut R) -> io::Result<Type>
 where

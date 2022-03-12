@@ -101,9 +101,9 @@ fn tags_to_data(tags: &[Tag]) -> io::Result<Data> {
             .try_into()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let sam_value = tag.value().clone().into();
+        let value = tag.value().clone();
+        let field = Field::new(sam_tag, value);
 
-        let field = Field::new(sam_tag, sam_value);
         fields.push(field);
     }
 

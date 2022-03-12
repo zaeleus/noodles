@@ -80,8 +80,8 @@ impl Data {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::{data::Field, Data};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let data = Data::try_from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
@@ -115,8 +115,8 @@ impl Data {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::{data::Field, Data};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let data = Data::try_from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
@@ -149,8 +149,8 @@ impl Data {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::{data::Field, Data};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let mut data = Data::default();
     ///
@@ -206,8 +206,8 @@ impl Data {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::{data::Field, Data};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let data = Data::try_from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
@@ -274,8 +274,8 @@ impl Data {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::record::{data::{field::Value, Field}, Data};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::{data::Field, Data};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let data = Data::try_from(vec![
     ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
@@ -395,12 +395,12 @@ impl TryFrom<&Data> for sam::record::Data {
 
 #[cfg(test)]
 mod tests {
+    use sam::record::data::field::Value;
+
     use super::*;
 
     #[test]
     fn test_insert() -> io::Result<()> {
-        use field::Value;
-
         let mut data = Data::try_from(vec![
             b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
             b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
@@ -436,8 +436,6 @@ mod tests {
 
     #[test]
     fn test_try_from_vec_field_for_data() -> io::Result<()> {
-        use field::Value;
-
         let fields = vec![
             Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
             Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
@@ -458,8 +456,6 @@ mod tests {
 
     #[test]
     fn test_try_from_data_for_sam_record_data() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::data::field::Value;
-
         let data = Data::try_from(vec![
             b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
             b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0

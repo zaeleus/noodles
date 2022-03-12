@@ -1,13 +1,12 @@
 //! BAM record data field and values.
 
-pub mod value;
-
-pub use self::value::Value;
-
 use std::{io, num};
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, record::data::field::Tag};
+use noodles_sam::{
+    self as sam,
+    record::data::field::{Tag, Value},
+};
 
 /// A BAM record data field.
 #[derive(Clone, Debug, PartialEq)]
@@ -22,8 +21,8 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::{field::Value, Field};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::record::data::Field;
+    /// use noodles_sam::record::data::field::{Tag, Value};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// ```
     pub fn new(tag: Tag, value: Value) -> Self {
@@ -35,11 +34,9 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::{field::Value, Field};
-    /// use noodles_sam::record::data::field::Tag;
-    ///
+    /// use noodles_bam::record::data::Field;
+    /// use noodles_sam::record::data::field::{Tag, Value};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    ///
     /// assert_eq!(field.tag(), Tag::AlignmentHitCount);
     /// ```
     pub fn tag(&self) -> Tag {
@@ -51,11 +48,9 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::{field::Value, Field};
-    /// use noodles_sam::record::data::field::Tag;
-    ///
+    /// use noodles_bam::record::data::Field;
+    /// use noodles_sam::record::data::field::{Tag, Value};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    ///
     /// assert_eq!(field.value(), &Value::Int32(1));
     /// ```
     pub fn value(&self) -> &Value {
@@ -65,7 +60,7 @@ impl Field {
 
 impl From<Field> for sam::record::data::Field {
     fn from(field: Field) -> Self {
-        Self::new(field.tag, field.value.into())
+        Self::new(field.tag, field.value)
     }
 }
 

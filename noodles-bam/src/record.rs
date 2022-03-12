@@ -386,8 +386,8 @@ impl Record {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::{self as bam, record::data::{field::Value, Field}};
-    /// use noodles_sam::record::data::field::Tag;
+    /// use noodles_bam::{self as bam, record::data::Field};
+    /// use noodles_sam::record::data::field::{Tag, Value};
     ///
     /// let mut record = bam::Record::default();
     ///

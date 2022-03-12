@@ -1,4 +1,4 @@
-use noodles_bam as bam;
+use noodles_sam as sam;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use crate::{
@@ -122,7 +122,7 @@ async fn read_raw_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<Vec<Vec<re
 where
     R: AsyncBufRead + Unpin,
 {
-    use bam::record::data::field::value::Type;
+    use sam::record::data::field::value::Type;
 
     use self::record::tag::Key;
 
@@ -224,7 +224,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_tag_ids_dictionary() -> io::Result<()> {
-        use noodles_bam::record::data::field::value::Type;
+        use sam::record::data::field::value::Type;
 
         use self::record::tag::Key;
 

@@ -30,6 +30,9 @@
 
   * bam/record: Change position and mate position to `Position`.
 
+  * bam/record/data/field: Replace `Value` with
+    `sam::record::data::field::Value`.
+
   * bam/reader/record: Clear quality scores if all scores are missing.
 
     This previously filled the quality scores with scores of 255, but this just
@@ -65,6 +68,12 @@
   * bam/record: Remove `Cigar`.
 
     Use `sam::record::Cigar` instead.
+
+  * bam/record/data/field: Remove `Value`, `value::Type`, and `value::Subtype`.
+
+    Use `sam::record::data::field::Value`,
+    `sam::record::data::field::value::Type`, and
+    `sam::record::data::field::value::Subtype`, respectively, instead.
 
 ## 0.16.0 - 2022-03-02
 

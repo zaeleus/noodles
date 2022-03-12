@@ -282,12 +282,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{data::field::Tag, Flags, MappingQuality};
-
-        use crate::record::{
-            data::{field::Value, Field},
-            Data, ReferenceSequenceId,
+        use sam::record::{
+            data::field::{Tag, Value},
+            Flags, MappingQuality,
         };
+
+        use crate::record::{data::Field, Data, ReferenceSequenceId};
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 

@@ -6,8 +6,7 @@ mod key;
 
 pub use self::key::Key;
 
-use noodles_bam::record::data::field::Value;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, record::data::field::Value};
 
 /// A CRAM record tag.
 #[derive(Clone, Debug, PartialEq)]
@@ -22,8 +21,8 @@ impl Tag {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::Value;
     /// use noodles_cram::record::{tag::Key, Tag};
+    /// use noodles_sam::record::data::field::Value;
     ///
     /// let value = Value::Int8(1);
     /// let key = Key::new([b'N', b'H'], value.ty());
@@ -39,8 +38,8 @@ impl Tag {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::Value;
     /// use noodles_cram::record::{tag::Key, Tag};
+    /// use noodles_sam::record::data::field::Value;
     ///
     /// let value = Value::Int8(1);
     /// let key = Key::new([b'N', b'H'], value.ty());
@@ -57,8 +56,8 @@ impl Tag {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::Value;
     /// use noodles_cram::record::{tag::Key, Tag};
+    /// use noodles_sam::record::data::field::Value;
     ///
     /// let value = Value::Int8(1);
     /// let key = Key::new([b'N', b'H'], value.ty());
@@ -98,9 +97,7 @@ impl TryFrom<Tag> for sam::record::data::Field {
             .try_into()
             .map_err(|_| TryFromTagError::InvalidTag)?;
 
-        let sam_value = tag.value.into();
-
-        Ok(Self::new(sam_tag, sam_value))
+        Ok(Self::new(sam_tag, tag.value))
     }
 }
 
@@ -119,7 +116,7 @@ mod tests {
 
         let expected = Ok(Field::new(
             sam::record::data::field::Tag::AlignmentHitCount,
-            sam::record::data::field::Value::Int32(1),
+            sam::record::data::field::Value::Int8(1),
         ));
 
         assert_eq!(actual, expected);

@@ -1,4 +1,4 @@
-use noodles_bam::record::data::field::value::Type;
+use noodles_sam::record::data::field::value::Type;
 
 /// A CRAM record tag key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -13,8 +13,8 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::value::Type;
     /// use noodles_cram::record::tag::Key;
+    /// use noodles_sam::record::data::field::value::Type;
     /// let key = Key::new([b'N', b'H'], Type::Int8);
     /// ```
     pub fn new(tag: [u8; 2], ty: Type) -> Self {
@@ -26,8 +26,8 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::value::Type;
     /// use noodles_cram::record::tag::Key;
+    /// use noodles_sam::record::data::field::value::Type;
     /// let key = Key::new([b'N', b'H'], Type::Int8);
     /// assert_eq!(key.tag(), [b'N', b'H']);
     /// ```
@@ -40,8 +40,8 @@ impl Key {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::record::data::field::value::Type;
     /// use noodles_cram::record::tag::Key;
+    /// use noodles_sam::record::data::field::value::Type;
     /// let key = Key::new([b'N', b'H'], Type::Int8);
     /// assert_eq!(key.ty(), Type::Int8);
     /// ```

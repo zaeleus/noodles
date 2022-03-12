@@ -26,11 +26,10 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_bam::record::data::field::{value::Type, Value};
-
-    use crate::record::{tag::Key, Tag};
+    use noodles_sam::record::data::field::{value::Type, Value};
 
     use super::*;
+    use crate::record::{tag::Key, Tag};
 
     #[test]
     fn test_from_records() {

@@ -50,7 +50,7 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
 }
 
 fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
-    use bam::record::data::field::value::Type;
+    use sam::record::data::field::value::Type;
 
     match data.get(Tag::ReadGroup) {
         Some(Ok(field)) => field

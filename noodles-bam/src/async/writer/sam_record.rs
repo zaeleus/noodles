@@ -229,7 +229,7 @@ async fn write_data_field_int32_value<W>(writer: &mut W, n: i32) -> io::Result<(
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::record::data::field::value::Type;
+    use sam::record::data::field::value::Type;
 
     if n >= 0 {
         if n <= i32::from(u8::MAX) {
