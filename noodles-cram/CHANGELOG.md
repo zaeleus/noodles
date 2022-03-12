@@ -65,7 +65,7 @@
 
   * cram/record: Implement `sam::RecordExt`.
 
-  * cram/record/feature/code: Add fallible conversion from `u8`.
+  * cram/record/feature/code: Implement `TryFrom<u8>`.
 
   * cram/record/feature/code: Add conversion to `u8`.
 
