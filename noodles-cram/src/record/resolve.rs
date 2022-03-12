@@ -107,19 +107,20 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Cigar {
+pub fn resolve_features(features: &Features, read_length: usize) -> sam::record::Cigar {
     use noodles_sam::record::cigar::{op::Kind, Op};
 
     let mut ops = Vec::new();
-    let mut i = 1;
+    // SAFETY: 1 is non-zero.
+    let mut read_position = Position::new(1).unwrap();
 
     for feature in features.iter() {
-        if usize::from(feature.position()) > i {
-            let len = usize::from(feature.position()) - i;
+        if usize::from(feature.position()) > usize::from(read_position) {
+            let len = usize::from(feature.position()) - usize::from(read_position);
             let op = Op::new(Kind::Match, len);
             ops.push(op);
 
-            i = usize::from(feature.position());
+            read_position = feature.position();
         }
 
         let (kind, len) = match feature {
@@ -145,12 +146,14 @@ pub fn resolve_features(features: &Features, read_len: usize) -> sam::record::Ci
                 | Kind::SequenceMatch
                 | Kind::SequenceMismatch
         ) {
-            i += len;
+            read_position = read_position
+                .checked_add(len)
+                .expect("attempt to add with overflow");
         }
     }
 
-    if i <= read_len {
-        let len = read_len - i + 1;
+    if usize::from(read_position) <= read_length {
+        let len = read_length - usize::from(read_position) + 1;
         let op = Op::new(Kind::Match, len);
         ops.push(op);
     }
