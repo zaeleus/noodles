@@ -29,6 +29,8 @@
     to a record later within [the] slice.") and is only set when the "has mate
     downstream" flag is set.
 
+  * cram/record: Change read group ID to an `Option<usize>`.
+
   * cram/record/convert: Accept `sam::Header` instead of `ReferenceSequences`.
 
   * cram/record/feature: Change underlying data types:
@@ -44,6 +46,12 @@
 
   * cram/writer/record: Fix possible wrapping when casting when writing number
     of read features.
+
+### Removed
+
+  * cram/record: Remove `ReadGroupId`.
+
+    Use `usize` instead.
 
 ## 0.13.0 - 2022-03-02
 

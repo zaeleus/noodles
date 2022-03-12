@@ -5,7 +5,7 @@ use noodles_sam::{
     record::{quality_scores::Score, sequence::Base},
 };
 
-use super::{Feature, Features, Flags, NextMateFlags, ReadGroupId, Record, Tag};
+use super::{Feature, Features, Flags, NextMateFlags, Record, Tag};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -15,7 +15,7 @@ pub struct Builder {
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     read_length: usize,
     alignment_start: Option<Position>,
-    read_group_id: Option<ReadGroupId>,
+    read_group_id: Option<usize>,
     read_name: Option<sam::record::ReadName>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
@@ -70,7 +70,7 @@ impl Builder {
     }
 
     /// Sets the read group ID.
-    pub fn set_read_group_id(mut self, read_group_id: ReadGroupId) -> Self {
+    pub fn set_read_group_id(mut self, read_group_id: usize) -> Self {
         self.read_group_id = Some(read_group_id);
         self
     }

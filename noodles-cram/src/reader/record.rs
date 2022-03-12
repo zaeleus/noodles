@@ -24,7 +24,7 @@ use crate::{
         CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
-    record::{feature, tag, Feature, Flags, NextMateFlags, ReadGroupId, Tag},
+    record::{feature, tag, Feature, Flags, NextMateFlags, Tag},
     BitReader, Record,
 };
 
@@ -236,7 +236,10 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    fn read_read_group(&mut self) -> io::Result<Option<ReadGroupId>> {
+    fn read_read_group(&mut self) -> io::Result<Option<usize>> {
+        // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
+        const MISSING: i32 = -1;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -247,15 +250,11 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .and_then(|n| {
-            if n == crate::record::read_group_id::MISSING {
-                Ok(None)
-            } else {
-                usize::try_from(n)
-                    .map(ReadGroupId::from)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }
+        .and_then(|n| match n {
+            MISSING => Ok(None),
+            _ => usize::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         })
     }
 

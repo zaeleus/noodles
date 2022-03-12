@@ -6,13 +6,12 @@ pub mod feature;
 mod features;
 mod flags;
 mod next_mate_flags;
-pub(crate) mod read_group_id;
 pub mod resolve;
 pub mod tag;
 
 pub use self::{
     builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags, read_group_id::ReadGroupId, tag::Tag,
+    next_mate_flags::NextMateFlags, tag::Tag,
 };
 
 use std::io;
@@ -30,7 +29,7 @@ pub struct Record {
     pub(crate) reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
-    pub(crate) read_group: Option<ReadGroupId>,
+    pub(crate) read_group: Option<usize>,
     pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
@@ -85,7 +84,7 @@ impl Record {
     ///
     /// This is also simply called the read group. It is the position of the read group in the SAM
     /// header.
-    pub fn read_group_id(&self) -> Option<ReadGroupId> {
+    pub fn read_group_id(&self) -> Option<usize> {
         self.read_group
     }
 

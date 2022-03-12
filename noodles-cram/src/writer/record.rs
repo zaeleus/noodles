@@ -23,7 +23,7 @@ use crate::{
         compression_header::{data_series_encoding_map::DataSeries, Encoding},
         CompressionHeader,
     },
-    record::{self, feature, Feature, Flags, NextMateFlags, ReadGroupId},
+    record::{self, feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
 };
 
@@ -245,17 +245,19 @@ where
         )
     }
 
-    fn write_read_group(&mut self, read_group_id: Option<ReadGroupId>) -> io::Result<()> {
+    fn write_read_group(&mut self, read_group_id: Option<usize>) -> io::Result<()> {
+        // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
+        const MISSING: i32 = -1;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .read_groups_encoding();
 
         let read_group = if let Some(id) = read_group_id {
-            i32::try_from(usize::from(id))
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+            i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
-            crate::record::read_group_id::MISSING
+            MISSING
         };
 
         encode_itf8(
