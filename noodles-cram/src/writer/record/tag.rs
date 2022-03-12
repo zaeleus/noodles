@@ -12,7 +12,7 @@ where
     W: Write,
 {
     if let Some(subtype) = value.subtype() {
-        writer.write_u8(char::from(subtype) as u8)?;
+        writer.write_u8(u8::from(subtype))?;
     }
 
     match value {
