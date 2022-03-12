@@ -78,18 +78,24 @@ impl FromStr for Type {
 
 impl From<Type> for char {
     fn from(ty: Type) -> Self {
+        Self::from(u8::from(ty))
+    }
+}
+
+impl From<Type> for u8 {
+    fn from(ty: Type) -> Self {
         match ty {
-            Type::Char => 'A',
-            Type::Int8 => 'c',
-            Type::UInt8 => 'C',
-            Type::Int16 => 's',
-            Type::UInt16 => 'S',
-            Type::Int32 => 'i',
-            Type::UInt32 => 'I',
-            Type::Float => 'f',
-            Type::String => 'Z',
-            Type::Hex => 'H',
-            Type::Array => 'B',
+            Type::Char => b'A',
+            Type::Int8 => b'c',
+            Type::UInt8 => b'C',
+            Type::Int16 => b's',
+            Type::UInt16 => b'S',
+            Type::Int32 => b'i',
+            Type::UInt32 => b'I',
+            Type::Float => b'f',
+            Type::String => b'Z',
+            Type::Hex => b'H',
+            Type::Array => b'B',
         }
     }
 }
@@ -148,5 +154,20 @@ mod tests {
         assert_eq!(char::from(Type::String), 'Z');
         assert_eq!(char::from(Type::Hex), 'H');
         assert_eq!(char::from(Type::Array), 'B');
+    }
+
+    #[test]
+    fn test_from_type_for_u8() {
+        assert_eq!(u8::from(Type::Char), b'A');
+        assert_eq!(u8::from(Type::Int8), b'c');
+        assert_eq!(u8::from(Type::UInt8), b'C');
+        assert_eq!(u8::from(Type::Int16), b's');
+        assert_eq!(u8::from(Type::UInt16), b'S');
+        assert_eq!(u8::from(Type::Int32), b'i');
+        assert_eq!(u8::from(Type::UInt32), b'I');
+        assert_eq!(u8::from(Type::Float), b'f');
+        assert_eq!(u8::from(Type::String), b'Z');
+        assert_eq!(u8::from(Type::Hex), b'H');
+        assert_eq!(u8::from(Type::Array), b'B');
     }
 }

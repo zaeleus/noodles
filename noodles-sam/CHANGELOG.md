@@ -28,6 +28,8 @@
     they can transparently be used in SAM and shared among the different
     alignment formats.
 
+  * sam/record/data/field/value/ty: Implement conversion to `u8`.
+
   * sam/record/cigar: Add `clear` method.
 
   * sam/record/cigar: Implement `AsMut<Vec<Op>>`.
