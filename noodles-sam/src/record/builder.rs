@@ -306,17 +306,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::{data, Data}};
+    /// use noodles_sam::{self as sam, record::Data, AlignmentRecord};
     ///
     /// let record = sam::Record::default();
     /// assert!(record.data().is_empty());
     ///
-    /// let data = Data::try_from(vec![data::Field::new(
-    ///     data::field::Tag::AlignmentHitCount,
-    ///     data::field::Value::Int32(1),
-    /// )])?;
-    /// let record = sam::Record::builder().set_data(data).build()?;
-    /// assert_eq!(record.data().to_string(), "NH:i:1");
+    /// let data: Data = "NH:i:1".parse()?;
+    ///
+    /// let record = sam::Record::builder().set_data(data.clone()).build()?;
+    ///
+    /// assert_eq!(record.data(), &data);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {

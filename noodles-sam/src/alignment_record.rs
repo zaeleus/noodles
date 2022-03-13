@@ -4,7 +4,7 @@ use noodles_core::Position;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Cigar, Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
 };
 
 /// An alignment record.
@@ -75,4 +75,7 @@ pub trait AlignmentRecord {
 
     /// Returns the quality scores.
     fn quality_scores(&self) -> &QualityScores;
+
+    /// Returns the data fields.
+    fn data(&self) -> &Data;
 }

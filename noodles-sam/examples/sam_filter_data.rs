@@ -11,6 +11,7 @@ use std::{
 use noodles_sam::{
     self as sam,
     record::data::field::{Tag, Value},
+    AlignmentRecord,
 };
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {

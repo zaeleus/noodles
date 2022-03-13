@@ -207,6 +207,10 @@ impl sam::AlignmentRecord for Record {
     fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.quality_scores
     }
+
+    fn data(&self) -> &sam::record::Data {
+        &self.tags
+    }
 }
 
 fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {

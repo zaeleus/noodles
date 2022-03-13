@@ -8,7 +8,7 @@
 
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use std::{collections::HashMap, env, fs::File, io};
 

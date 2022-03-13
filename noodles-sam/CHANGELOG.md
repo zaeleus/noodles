@@ -11,6 +11,7 @@
   * sam/alignment_record: Add alignment record fields:
 
       * cigar (`AlignmentRecord::cigar`),
+      * data (`AlignmentRecord::data`),
       * flags (`AlignmentRecord::flags`),
       * mapping quality (`AlignmentRecord::mapping_quality`),
       * mate position (`AlignmentRecord::mate_alignment_start`),
@@ -80,8 +81,8 @@
 
   * sam/alignment_record: Remove `Result` from alignment end.
 
-  * sam/record: Move `cigar`, `flags`, `mapping_quality`, `read_name`,
-    `sequence`, `template_length`, and `quality_scores` to the
+  * sam/record: Move `cigar`, `data`, `flags`, `mapping_quality`,
+    `read_name`, `sequence`, `template_length`, and `quality_scores` to the
     implementation of `AlignmentRecord`.
 
   * sam/record: Errors that store lengths now use `usize`:

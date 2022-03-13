@@ -403,34 +403,12 @@ impl Record {
         &mut self.quality_scores
     }
 
-    /// Returns the optional data fields for this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::{data, Data}};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.data().is_empty());
-    ///
-    /// let data = Data::try_from(vec![data::Field::new(
-    ///     data::field::Tag::AlignmentHitCount,
-    ///     data::field::Value::Int32(1),
-    /// )])?;
-    /// let record = sam::Record::builder().set_data(data).build()?;
-    /// assert_eq!(record.data().to_string(), "NH:i:1");
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn data(&self) -> &Data {
-        &self.data
-    }
-
     /// Returns a mutable reference to the data fields for this record.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::data};
+    /// use noodles_sam::{self as sam, record::data, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.data().is_empty());
@@ -543,6 +521,10 @@ impl AlignmentRecord for Record {
 
     fn quality_scores(&self) -> &QualityScores {
         &self.quality_scores
+    }
+
+    fn data(&self) -> &Data {
+        &self.data
     }
 }
 

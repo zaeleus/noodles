@@ -325,26 +325,16 @@ impl Record {
         &mut self.qual
     }
 
-    /// Returns the optional data fields for this record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.data().is_empty());
-    /// ```
-    pub fn data(&self) -> &sam::record::Data {
-        &self.data
-    }
-
     /// Returns a mutable reference to the data.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
+    /// use noodles_sam::{
+    ///     record::data::{field::{Tag, Value}, Field},
+    ///     AlignmentRecord
+    /// };
     ///
     /// let mut record = bam::Record::default();
     ///
@@ -457,6 +447,10 @@ impl sam::AlignmentRecord for Record {
 
     fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.qual
+    }
+
+    fn data(&self) -> &sam::record::Data {
+        &self.data
     }
 }
 

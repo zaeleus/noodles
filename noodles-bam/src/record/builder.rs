@@ -263,9 +263,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Data;
+    /// use noodles_sam::{record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
