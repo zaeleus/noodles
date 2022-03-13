@@ -1,8 +1,8 @@
 pub(crate) mod data;
 
-use std::io::{self, Write};
+use std::io;
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 
@@ -13,59 +13,59 @@ use crate::{record::ReferenceSequenceId, Record};
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
-pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+pub(super) fn encode_record<B>(dst: &mut B, record: &Record) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     // ref_id
-    write_reference_sequence_id(writer, record.reference_sequence_id())?;
+    put_reference_sequence_id(dst, record.reference_sequence_id())?;
 
     // pos
-    write_position(writer, record.alignment_start())?;
+    put_position(dst, record.alignment_start())?;
 
-    write_l_read_name(writer, record.read_name())?;
+    put_l_read_name(dst, record.read_name())?;
 
     // mapq
-    write_mapping_quality(writer, record.mapping_quality())?;
+    put_mapping_quality(dst, record.mapping_quality());
 
     // bin
-    write_bin(writer, record.alignment_start(), record.alignment_end())?;
+    put_bin(dst, record.alignment_start(), record.alignment_end())?;
 
     let n_cigar_op = u16::try_from(record.cigar().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(n_cigar_op)?;
+    dst.put_u16_le(n_cigar_op);
 
     // flag
-    write_flags(writer, record.flags())?;
+    put_flags(dst, record.flags());
 
     let l_seq = u32::try_from(record.sequence().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(l_seq)?;
+    dst.put_u32_le(l_seq);
 
     // next_ref_id
-    write_reference_sequence_id(writer, record.mate_reference_sequence_id())?;
+    put_reference_sequence_id(dst, record.mate_reference_sequence_id())?;
 
     // next_pos
-    write_position(writer, record.mate_alignment_start())?;
+    put_position(dst, record.mate_alignment_start())?;
 
     // tlen
-    write_template_length(writer, record.template_length())?;
+    put_template_length(dst, record.template_length());
 
-    write_read_name(writer, record.read_name())?;
+    put_read_name(dst, record.read_name());
 
-    write_cigar(writer, record.cigar())?;
+    put_cigar(dst, record.cigar())?;
 
     let sequence = record.sequence();
     let quality_scores = record.quality_scores();
 
     // seq
-    write_sequence(writer, sequence)?;
+    put_sequence(dst, sequence);
 
     if sequence.len() == quality_scores.len() {
-        write_quality_scores(writer, quality_scores)?;
+        put_quality_scores(dst, quality_scores);
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
-            writer.write_u8(NULL_QUALITY_SCORE)?;
+            dst.put_u8(NULL_QUALITY_SCORE);
         }
     } else {
         return Err(io::Error::new(
@@ -78,17 +78,17 @@ where
         ));
     }
 
-    writer.write_all(record.data().as_ref())?;
+    dst.put(record.data().as_ref());
 
     Ok(())
 }
 
-fn write_reference_sequence_id<W>(
-    writer: &mut W,
+fn put_reference_sequence_id<B>(
+    dst: &mut B,
     reference_sequence_id: Option<ReferenceSequenceId>,
 ) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
@@ -99,12 +99,14 @@ where
         UNMAPPED
     };
 
-    writer.write_i32::<LittleEndian>(ref_id)
+    dst.put_i32_le(ref_id);
+
+    Ok(())
 }
 
-pub(super) fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
+fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     use crate::record::UNMAPPED_POSITION;
 
@@ -115,12 +117,14 @@ where
         UNMAPPED_POSITION
     };
 
-    writer.write_i32::<LittleEndian>(pos)
+    dst.put_i32_le(pos);
+
+    Ok(())
 }
 
-fn write_l_read_name<W>(writer: &mut W, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
+fn put_l_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     use std::mem;
 
@@ -134,78 +138,77 @@ where
     let l_read_name =
         u8::try_from(read_name_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    writer.write_u8(l_read_name)
+    dst.put_u8(l_read_name);
+
+    Ok(())
 }
 
-pub(super) fn write_mapping_quality<W>(
-    writer: &mut W,
-    mapping_quality: Option<sam::record::MappingQuality>,
-) -> io::Result<()>
+fn put_mapping_quality<B>(dst: &mut B, mapping_quality: Option<sam::record::MappingQuality>)
 where
-    W: Write,
+    B: BufMut,
 {
     use sam::record::mapping_quality::MISSING;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
-    writer.write_u8(mapq)
+    dst.put_u8(mapq);
 }
 
-pub(super) fn write_bin<W>(
-    writer: &mut W,
+fn put_bin<B>(
+    dst: &mut B,
     alignment_start: Option<Position>,
     alignment_end: Option<Position>,
 ) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     let bin = match (alignment_start, alignment_end) {
         (Some(start), Some(end)) => region_to_bin(start, end)?,
         _ => UNMAPPED_BIN,
     };
 
-    writer.write_u16::<LittleEndian>(bin)
+    dst.put_u16_le(bin);
+
+    Ok(())
 }
 
-pub(super) fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
 where
-    W: Write,
+    B: BufMut,
 {
     let flag = u16::from(flags);
-    writer.write_u16::<LittleEndian>(flag)
+    dst.put_u16_le(flag);
 }
 
-pub(super) fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+fn put_template_length<B>(dst: &mut B, template_length: i32)
 where
-    W: Write,
+    B: BufMut,
 {
-    writer.write_i32::<LittleEndian>(template_length)
+    dst.put_i32_le(template_length);
 }
 
-fn write_read_name<W>(writer: &mut W, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
+fn put_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>)
 where
-    W: Write,
+    B: BufMut,
 {
     use sam::record::read_name::MISSING;
 
     const NUL: u8 = 0x00;
 
     if let Some(read_name) = read_name {
-        writer.write_all(read_name.as_ref())?;
+        dst.put(read_name.as_ref());
     } else {
-        writer.write_all(MISSING)?;
+        dst.put(MISSING);
     }
 
-    writer.write_all(&[NUL])?;
-
-    Ok(())
+    dst.put_u8(NUL);
 }
 
-pub(super) fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
+fn put_cigar<B>(dst: &mut B, cigar: &sam::record::Cigar) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     for &op in cigar.as_ref() {
         let n = encode_cigar_op(op)?;
-        writer.write_u32::<LittleEndian>(n)?;
+        dst.put_u32_le(n);
     }
 
     Ok(())
@@ -228,18 +231,16 @@ pub(crate) fn encode_cigar_op(op: sam::record::cigar::Op) -> io::Result<u32> {
     }
 }
 
-pub(super) fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
+fn put_sequence<B>(dst: &mut B, sequence: &sam::record::Sequence)
 where
-    W: Write,
+    B: BufMut,
 {
     for chunk in sequence.as_ref().chunks(2) {
         let l = chunk[0];
         let r = chunk.get(1).copied().unwrap_or(Base::Eq);
         let b = encode_base(l) << 4 | encode_base(r);
-        writer.write_u8(b)?;
+        dst.put_u8(b);
     }
-
-    Ok(())
 }
 
 pub(crate) fn encode_base(base: Base) -> u8 {
@@ -265,18 +266,13 @@ pub(crate) fn encode_base(base: Base) -> u8 {
     }
 }
 
-pub(super) fn write_quality_scores<W>(
-    writer: &mut W,
-    quality_scores: &sam::record::QualityScores,
-) -> io::Result<()>
+fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::QualityScores)
 where
-    W: Write,
+    B: BufMut,
 {
     for &score in quality_scores.iter() {
-        writer.write_u8(u8::from(score))?;
+        dst.put_u8(u8::from(score));
     }
-
-    Ok(())
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
@@ -310,7 +306,7 @@ mod tests {
     fn test_write_record_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
         let record = Record::default();
-        write_record(&mut buf, &record)?;
+        encode_record(&mut buf, &record)?;
 
         let expected = [
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -362,7 +358,7 @@ mod tests {
             .build()?;
 
         let mut buf = Vec::new();
-        write_record(&mut buf, &record)?;
+        encode_record(&mut buf, &record)?;
 
         let expected = [
             0x01, 0x00, 0x00, 0x00, // ref_id = 1

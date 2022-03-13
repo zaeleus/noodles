@@ -5,11 +5,12 @@ use std::{
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_sam::{self as sam, header::ReferenceSequences, record::Data, AlignmentRecord};
-
-use super::record::{
-    write_bin, write_cigar, write_flags, write_mapping_quality, write_position,
-    write_quality_scores, write_sequence, write_template_length,
+use noodles_core::Position;
+use noodles_sam::{
+    self as sam,
+    header::ReferenceSequences,
+    record::{sequence::Base, Data},
+    AlignmentRecord,
 };
 
 // § 4.2 The BAM format (2021-06-03)
@@ -151,6 +152,111 @@ where
     };
 
     writer.write_i32::<LittleEndian>(id)
+}
+
+fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
+where
+    W: Write,
+{
+    use crate::record::UNMAPPED_POSITION;
+
+    let pos = if let Some(position) = position {
+        i32::try_from(usize::from(position) - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    } else {
+        UNMAPPED_POSITION
+    };
+
+    writer.write_i32::<LittleEndian>(pos)
+}
+
+fn write_mapping_quality<W>(
+    writer: &mut W,
+    mapping_quality: Option<sam::record::MappingQuality>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use sam::record::mapping_quality::MISSING;
+    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
+    writer.write_u8(mapq)
+}
+
+fn write_bin<W>(
+    writer: &mut W,
+    alignment_start: Option<Position>,
+    alignment_end: Option<Position>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    use super::record::{region_to_bin, UNMAPPED_BIN};
+
+    let bin = match (alignment_start, alignment_end) {
+        (Some(start), Some(end)) => region_to_bin(start, end)?,
+        _ => UNMAPPED_BIN,
+    };
+
+    writer.write_u16::<LittleEndian>(bin)
+}
+
+fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+where
+    W: Write,
+{
+    let flag = u16::from(flags);
+    writer.write_u16::<LittleEndian>(flag)
+}
+
+fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_i32::<LittleEndian>(template_length)
+}
+
+fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
+where
+    W: Write,
+{
+    use super::record::encode_cigar_op;
+
+    for &op in cigar.as_ref() {
+        let n = encode_cigar_op(op)?;
+        writer.write_u32::<LittleEndian>(n)?;
+    }
+
+    Ok(())
+}
+
+fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
+where
+    W: Write,
+{
+    use super::record::encode_base;
+
+    for chunk in sequence.as_ref().chunks(2) {
+        let l = chunk[0];
+        let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+        let b = encode_base(l) << 4 | encode_base(r);
+        writer.write_u8(b)?;
+    }
+
+    Ok(())
+}
+
+fn write_quality_scores<W>(
+    writer: &mut W,
+    quality_scores: &sam::record::QualityScores,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    for &score in quality_scores.iter() {
+        writer.write_u8(u8::from(score))?;
+    }
+
+    Ok(())
 }
 
 pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {

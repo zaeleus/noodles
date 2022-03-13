@@ -13,6 +13,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
+use self::record::encode_record;
 use super::Record;
 
 /// A BAM writer.
@@ -39,6 +40,7 @@ use super::Record;
 /// ```
 pub struct Writer<W> {
     inner: W,
+    buf: Vec<u8>,
 }
 
 impl<W> Writer<W>
@@ -149,7 +151,13 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(block_size)?;
 
-        record::write_record(&mut self.inner, record)
+        encode_record(&mut self.buf, record)?;
+
+        self.inner.write_all(&self.buf)?;
+
+        self.buf.clear();
+
+        Ok(())
     }
 
     /// Writes a SAM record.
@@ -216,7 +224,10 @@ where
 
 impl<W> From<W> for Writer<W> {
     fn from(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 
