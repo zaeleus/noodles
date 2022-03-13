@@ -58,14 +58,18 @@ impl Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::value::Type;
+
+        let ty = if self.value().is_int() {
+            Type::Int32
+        } else {
+            self.value().ty()
+        };
+
         write!(
             f,
             "{}{}{}{}{}",
-            self.tag,
-            DELIMITER,
-            self.value.ty(),
-            DELIMITER,
-            self.value
+            self.tag, DELIMITER, ty, DELIMITER, self.value
         )
     }
 }
@@ -114,6 +118,9 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        let field = Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
+        assert_eq!(field.to_string(), "NH:i:1");
+
         let field = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
         assert_eq!(field.to_string(), "RG:Z:rg0");
     }
