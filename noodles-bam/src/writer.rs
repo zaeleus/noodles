@@ -147,11 +147,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        let block_size = u32::try_from(record.block_size())
+        encode_record(&mut self.buf, record)?;
+
+        let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(block_size)?;
-
-        encode_record(&mut self.buf, record)?;
 
         self.inner.write_all(&self.buf)?;
 
