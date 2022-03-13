@@ -768,7 +768,7 @@ impl FromStr for Value {
 fn parse_value(ty: Type, s: &str) -> Result<Value, ParseError> {
     match ty {
         Type::Char => parse_char(s).map(Value::Char),
-        Type::Int32 => parse_i32(s).map(Value::Int32),
+        Type::Int32 => parse_i32(s).map(Value::from),
         Type::Float => parse_f32(s).map(Value::Float),
         Type::String => parse_string(s).map(Value::String),
         Type::Hex => parse_hex(s).map(Value::Hex),
@@ -1089,7 +1089,7 @@ mod tests {
         assert_eq!("A:".parse::<Value>(), Err(ParseError::InvalidCharValue));
         assert_eq!("A:🍜".parse::<Value>(), Err(ParseError::InvalidCharValue));
 
-        assert_eq!("i:13".parse(), Ok(Value::Int32(13)));
+        assert_eq!("i:13".parse(), Ok(Value::UInt8(13)));
         assert!(matches!(
             "i:".parse::<Value>(),
             Err(ParseError::InvalidIntValue(_))

@@ -22,11 +22,13 @@
 
   * sam/record/data/field/value: Add integer types.
 
-    This means that SAM data field integer values can be typed, i.e., it adds
+    This means that SAM data field integer values are typed, i.e., it adds
     the `Int8` (`c`), `UInt8` (`C`), `Int16` (`s`), `UInt16` (`S`), and
-    `UInt32` (`I`) types. Though these aren't actually used in the SAM format,
-    they can transparently be used in SAM and shared among the different
-    alignment formats.
+    `UInt32` (`I`) types. Additionally, it renames `Int` to `Int32`.
+
+    Though these aren't actually used in the SAM format, they can transparently
+    be used in SAM and shared among the different alignment formats. An integer
+    (`i`) is placed in the smallest type when parsed.
 
   * sam/record/data/field/value: Add conversions from raw types.
 

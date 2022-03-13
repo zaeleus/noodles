@@ -473,7 +473,7 @@ mod tests {
             "RG:Z:rg0\tNH:i:1".parse(),
             Ok(Data::try_from(vec![
                 Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
-                Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
+                Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
             ])?)
         );
 
