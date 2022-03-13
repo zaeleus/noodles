@@ -23,6 +23,7 @@ noodles-bam = { path = "../noodles-bam", version = "0.16.0" }
 noodles-core = { path = "../noodles-core", version = "0.5.0" }
 noodles-fasta = { path = "../noodles-fasta", version = "0.8.0" }
 noodles-sam = { path = "../noodles-sam", version = "0.13.0" }
+once_cell = "1.10.0"
 xz2 = "0.1.6"
 
 async-compression = { version = "0.3.8", optional = true, features = ["gzip", "tokio"] }

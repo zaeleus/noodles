@@ -189,6 +189,7 @@ impl Builder {
             features: self.features,
             mapping_quality: self.mapping_quality,
             quality_scores: self.quality_scores,
+            cigar: Default::default(),
         }
     }
 }

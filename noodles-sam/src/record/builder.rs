@@ -176,13 +176,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::cigar::{op::Kind, Op}};
+    /// use noodles_sam::{self as sam, record::Cigar, AlignmentRecord};
+    ///
+    /// let cigar: Cigar = "36M".parse()?;
     ///
     /// let record = sam::Record::builder()
-    ///     .set_cigar("36M".parse()?)
+    ///     .set_cigar(cigar.clone())
     ///     .build()?;
     ///
-    /// assert_eq!(**record.cigar(), [Op::new(Kind::Match, 36)]);
+    /// assert_eq!(record.cigar(), &cigar);
     /// Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {

@@ -265,26 +265,13 @@ impl Record {
         &mut self.read_name
     }
 
-    /// Returns the CIGAR operations that describe how the read was mapped.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bam as bam;
-    /// let record = bam::Record::default();
-    /// assert!(record.cigar().is_empty());
-    /// ```
-    pub fn cigar(&self) -> &sam::record::Cigar {
-        &self.cigar
-    }
-
     /// Returns a mutable reference to the CIGAR.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Cigar;
+    /// use noodles_sam::{record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -430,6 +417,10 @@ impl sam::AlignmentRecord for Record {
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapq
+    }
+
+    fn cigar(&self) -> &sam::record::Cigar {
+        &self.cigar
     }
 
     /// Returns the associated reference sequence of the mate.

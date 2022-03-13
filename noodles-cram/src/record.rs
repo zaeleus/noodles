@@ -19,6 +19,7 @@ use std::io;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam as sam;
+use once_cell::sync::OnceCell;
 
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
@@ -41,6 +42,8 @@ pub struct Record {
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: sam::record::QualityScores,
+
+    pub(crate) cigar: OnceCell<sam::record::Cigar>,
 }
 
 impl Record {
@@ -173,6 +176,11 @@ impl sam::AlignmentRecord for Record {
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
+    }
+
+    fn cigar(&self) -> &sam::record::Cigar {
+        self.cigar
+            .get_or_init(|| resolve::resolve_features(self.features(), self.read_length()))
     }
 
     fn mate_reference_sequence<'rs>(

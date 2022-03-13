@@ -198,7 +198,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::record::Cigar;
+    /// use noodles_sam::{record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///

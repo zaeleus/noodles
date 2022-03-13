@@ -231,43 +231,23 @@ impl Record {
         &mut self.mapping_quality
     }
 
-    /// Returns the CIGAR operations that describe how the read was mapped.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, record::cigar::{op, Op}};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.cigar().is_empty());
-    /// assert_eq!(record.cigar().to_string(), "*");
-    ///
-    /// let record = sam::Record::builder().set_cigar("34M2S".parse()?).build()?;
-    /// assert_eq!(record.cigar().to_string(), "34M2S");
-    ///
-    /// let mut ops = record.cigar().iter();
-    /// assert_eq!(ops.next(), Some(&Op::new(op::Kind::Match, 34)));
-    /// assert_eq!(ops.next(), Some(&Op::new(op::Kind::SoftClip, 2)));
-    /// assert_eq!(ops.next(), None);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn cigar(&self) -> &Cigar {
-        &self.cigar
-    }
-
     /// Returns a mutable reference to the CIGAR operations.
     ///
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::{cigar::{op, Op}, Cigar}};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     record::{cigar::{op::Kind, Op}, Cigar},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.cigar().is_empty());
     ///
     /// let cigar = Cigar::from(vec![
-    ///     Op::new(op::Kind::Match, 36),
-    ///     Op::new(op::Kind::SoftClip, 2),
+    ///     Op::new(Kind::Match, 36),
+    ///     Op::new(Kind::SoftClip, 2),
     /// ]);
     /// *record.cigar_mut() = cigar.clone();
     ///
@@ -526,6 +506,10 @@ impl AlignmentRecord for Record {
 
     fn mapping_quality(&self) -> Option<MappingQuality> {
         self.mapping_quality
+    }
+
+    fn cigar(&self) -> &Cigar {
+        &self.cigar
     }
 
     /// Returns the associated reference sequence of the mate.

@@ -4,7 +4,7 @@ use noodles_core::Position;
 
 use super::{
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    record::{Cigar, Flags, MappingQuality, QualityScores, ReadName, Sequence},
 };
 
 /// An alignment record.
@@ -54,6 +54,9 @@ pub trait AlignmentRecord {
 
     /// Returns the mapping quality.
     fn mapping_quality(&self) -> Option<MappingQuality>;
+
+    /// Returns the CIGAR operations.
+    fn cigar(&self) -> &Cigar;
 
     /// Returns the associated reference sequence of the mate.
     fn mate_reference_sequence<'rs>(
