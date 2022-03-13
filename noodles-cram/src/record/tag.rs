@@ -2,11 +2,9 @@
 
 use std::{error, fmt};
 
-mod key;
-
-pub use self::key::Key;
-
 use noodles_sam::{self as sam, record::data::field::Value};
+
+use crate::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
 
 /// A CRAM record tag.
 #[derive(Clone, Debug, PartialEq)]
@@ -17,54 +15,16 @@ pub struct Tag {
 
 impl Tag {
     /// Creates a CRAM record tag.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
-    ///
-    /// let value = Value::Int8(1);
-    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
-    ///
-    /// let tag = Tag::new(key, value);
-    /// ```
     pub fn new(key: Key, value: Value) -> Self {
         Self { key, value }
     }
 
     /// Returns the tag key.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
-    ///
-    /// let value = Value::Int8(1);
-    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
-    ///
-    /// let tag = Tag::new(key.clone(), value);
-    /// assert_eq!(tag.key(), key);
-    /// ```
     pub fn key(&self) -> Key {
         self.key
     }
 
     /// Returns the tag value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
-    ///
-    /// let value = Value::Int8(1);
-    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
-    ///
-    /// let tag = Tag::new(key, value.clone());
-    /// assert_eq!(tag.value(), &value);
-    /// ```
     pub fn value(&self) -> &Value {
         &self.value
     }

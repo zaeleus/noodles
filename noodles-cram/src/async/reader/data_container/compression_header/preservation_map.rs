@@ -3,10 +3,10 @@ use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use crate::{
     data_container::compression_header::{
-        preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
+        preservation_map::{tag_ids_dictionary, Key},
+        PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
     r#async::reader::num::read_itf8,
-    record,
 };
 
 pub async fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
@@ -118,12 +118,12 @@ where
     Ok(TagIdsDictionary::from(dictionary))
 }
 
-async fn read_raw_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<Vec<Vec<record::tag::Key>>>
+async fn read_raw_tag_ids_dictionary<R>(
+    reader: &mut R,
+) -> io::Result<Vec<Vec<tag_ids_dictionary::Key>>>
 where
     R: AsyncBufRead + Unpin,
 {
-    use crate::record::tag::Key;
-
     const NUL: u8 = 0x00;
 
     let mut dictionary = Vec::new();
@@ -149,7 +149,7 @@ where
             let ty =
                 Type::try_from(ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let key = Key::new(tag, ty);
+            let key = tag_ids_dictionary::Key::new(tag, ty);
             line.push(key);
         }
 
@@ -223,8 +223,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_tag_ids_dictionary() -> io::Result<()> {
-        use self::record::tag::Key;
-
         let data = [
             0x0b, // data_len = 11
             b'C', b'O', b'Z', // dictionary[0][0] = (b"CO", String)
@@ -239,10 +237,10 @@ mod tests {
 
         let expected = TagIdsDictionary::from(vec![
             vec![
-                Key::new(Tag::Comment, Type::String),
-                Key::new(Tag::AlignmentHitCount, Type::UInt8),
+                tag_ids_dictionary::Key::new(Tag::Comment, Type::String),
+                tag_ids_dictionary::Key::new(Tag::AlignmentHitCount, Type::UInt8),
             ],
-            vec![Key::new(Tag::Program, Type::String)],
+            vec![tag_ids_dictionary::Key::new(Tag::Program, Type::String)],
         ]);
 
         assert_eq!(actual, expected);

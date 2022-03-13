@@ -1,24 +1,23 @@
 mod builder;
+mod key;
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, key::Key};
 
 use std::ops::Deref;
 
-use crate::record;
-
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TagIdsDictionary(Vec<Vec<record::tag::Key>>);
+pub struct TagIdsDictionary(Vec<Vec<Key>>);
 
 impl Deref for TagIdsDictionary {
-    type Target = [Vec<record::tag::Key>];
+    type Target = [Vec<Key>];
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl From<Vec<Vec<record::tag::Key>>> for TagIdsDictionary {
-    fn from(dictionary: Vec<Vec<record::tag::Key>>) -> Self {
+impl From<Vec<Vec<Key>>> for TagIdsDictionary {
+    fn from(dictionary: Vec<Vec<Key>>) -> Self {
         Self(dictionary)
     }
 }

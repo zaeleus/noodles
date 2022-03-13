@@ -20,11 +20,14 @@ use super::num::read_itf8;
 use crate::{
     container::ReferenceSequenceId,
     data_container::{
-        compression_header::{data_series_encoding_map::DataSeries, encoding::Encoding},
+        compression_header::{
+            data_series_encoding_map::DataSeries, encoding::Encoding,
+            preservation_map::tag_ids_dictionary,
+        },
         CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
-    record::{feature, tag, Feature, Flags, NextMateFlags, Tag},
+    record::{feature, Feature, Flags, NextMateFlags, Tag},
     BitReader, Record,
 };
 
@@ -32,7 +35,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ReadRecordError {
     MissingDataSeriesEncoding(DataSeries),
-    MissingTagEncoding(tag::Key),
+    MissingTagEncoding(tag_ids_dictionary::Key),
     MissingExternalBlock(i32),
 }
 

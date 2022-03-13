@@ -20,10 +20,12 @@ use super::num::write_itf8;
 use crate::{
     container::ReferenceSequenceId,
     data_container::{
-        compression_header::{data_series_encoding_map::DataSeries, Encoding},
+        compression_header::{
+            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary, Encoding,
+        },
         CompressionHeader,
     },
-    record::{self, feature, Feature, Flags, NextMateFlags},
+    record::{feature, Feature, Flags, NextMateFlags},
     BitWriter, Record,
 };
 
@@ -31,7 +33,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WriteRecordError {
     MissingDataSeriesEncoding(DataSeries),
-    MissingTagEncoding(record::tag::Key),
+    MissingTagEncoding(tag_ids_dictionary::Key),
     MissingExternalBlock(i32),
 }
 

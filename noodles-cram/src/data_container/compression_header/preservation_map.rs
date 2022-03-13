@@ -1,7 +1,7 @@
 mod builder;
 pub mod key;
 pub mod substitution_matrix;
-mod tag_ids_dictionary;
+pub mod tag_ids_dictionary;
 
 pub use {
     builder::Builder, key::Key, substitution_matrix::SubstitutionMatrix,

@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{record, Record};
-
-use super::TagIdsDictionary;
+use super::{Key, TagIdsDictionary};
+use crate::Record;
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    keys_indices: HashMap<Vec<record::tag::Key>, usize>,
+    keys_indices: HashMap<Vec<Key>, usize>,
 }
 
 impl Builder {
@@ -29,7 +28,7 @@ mod tests {
     use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
 
     use super::*;
-    use crate::record::{tag::Key, Tag};
+    use crate::record::Tag;
 
     #[test]
     fn test_from_records() {

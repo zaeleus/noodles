@@ -2,11 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 use super::TagEncodingMap;
 
-use crate::{data_container::compression_header::Encoding, record, Record};
+use crate::{
+    data_container::compression_header::{preservation_map::tag_ids_dictionary::Key, Encoding},
+    Record,
+};
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    keys: HashSet<record::tag::Key>,
+    keys: HashSet<Key>,
 }
 
 impl Builder {
@@ -38,7 +41,7 @@ mod tests {
     use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
 
     use super::*;
-    use crate::record::{tag::Key, Tag};
+    use crate::record::Tag;
 
     #[test]
     fn test_build() {

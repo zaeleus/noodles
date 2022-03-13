@@ -111,7 +111,7 @@ mod tests {
     use noodles_sam::record::data::field::{value::Type, Tag};
 
     use super::*;
-    use crate::record::tag::Key;
+    use crate::data_container::compression_header::preservation_map::tag_ids_dictionary::Key;
 
     #[test]
     fn test_write_tag_ids_dictionary() -> io::Result<()> {
