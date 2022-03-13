@@ -80,7 +80,7 @@ where
         ));
     }
 
-    dst.put(record.data().as_ref());
+    put_data(dst, record.data())?;
 
     Ok(())
 }
@@ -338,11 +338,14 @@ mod tests {
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{
-            data::field::{Tag, Value},
-            Flags, MappingQuality,
+            data::{
+                field::{Tag, Value},
+                Field,
+            },
+            Data, Flags, MappingQuality,
         };
 
-        use crate::record::{data::Field, Data, ReferenceSequenceId};
+        use crate::record::ReferenceSequenceId;
 
         let reference_sequence_id = ReferenceSequenceId::from(1);
 

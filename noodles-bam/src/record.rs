@@ -2,10 +2,9 @@
 
 pub mod builder;
 mod convert;
-pub mod data;
 pub mod reference_sequence_id;
 
-pub use self::{builder::Builder, data::Data, reference_sequence_id::ReferenceSequenceId};
+pub use self::{builder::Builder, reference_sequence_id::ReferenceSequenceId};
 
 use std::io;
 
@@ -38,7 +37,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 ///
 /// A `bam::Record` and its fields store raw values and care should be taken when manipulating
 /// them.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     ref_id: Option<ReferenceSequenceId>,
     pos: Option<Position>,
@@ -51,7 +50,7 @@ pub struct Record {
     cigar: sam::record::Cigar,
     seq: sam::record::Sequence,
     qual: sam::record::QualityScores,
-    data: Data,
+    data: sam::record::Data,
 }
 
 impl Record {
@@ -348,7 +347,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> &Data {
+    pub fn data(&self) -> &sam::record::Data {
         &self.data
     }
 
@@ -357,19 +356,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// use noodles_bam::{self as bam, record::data::Field};
-    /// use noodles_sam::record::data::field::{Tag, Value};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     ///
     /// let mut record = bam::Record::default();
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
-    /// record.data_mut().insert(nh).transpose()?;
+    /// record.data_mut().insert(nh);
     ///
     /// assert_eq!(record.data().len(), 1);
-    /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn data_mut(&mut self) -> &mut Data {
+    pub fn data_mut(&mut self) -> &mut sam::record::Data {
         &mut self.data
     }
 }
@@ -502,7 +499,7 @@ impl Default for Record {
             cigar: sam::record::Cigar::default(),
             seq: sam::record::Sequence::default(),
             qual: sam::record::QualityScores::default(),
-            data: Data::default(),
+            data: sam::record::Data::default(),
         }
     }
 }

@@ -28,6 +28,8 @@
 
   * bam/record: Replace `Cigar` with `sam::record::Cigar`.
 
+  * bam/record: Replace `Data` with `sam::record::Data`.
+
   * bam/record: Change position and mate position to `Position`.
 
   * bam/record/data/field: Replace `Value` with
@@ -72,6 +74,10 @@
   * bam/record: Remove `Cigar`.
 
     Use `sam::record::Cigar` instead.
+
+  * bam/record: Remove `Data`.
+
+    Use `sam::record::Data` instead.
 
   * bam/record/data/field: Remove `Value`, `value::Type`, and `value::Subtype`.
 

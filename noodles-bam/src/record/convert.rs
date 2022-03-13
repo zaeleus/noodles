@@ -104,12 +104,9 @@ impl Record {
             builder = builder.set_quality_scores(self.quality_scores().clone());
         }
 
-        let data = self
-            .data()
-            .try_into()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        builder = builder.set_data(data);
+        if !self.data().is_empty() {
+            builder = builder.set_data(self.data().clone());
+        }
 
         builder
             .build()
@@ -161,8 +158,6 @@ mod tests {
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
         use sam::record::{Flags, MappingQuality};
 
-        use crate::record::Data;
-
         let reference_sequence_id = ReferenceSequenceId::from(1);
 
         let record = Record::builder()
@@ -177,10 +172,7 @@ mod tests {
             .set_cigar("4M".parse()?)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
-            .set_data(Data::try_from(vec![
-                0x4e, 0x4d, 0x43, 0x00, // NM:C:0
-                0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ])?)
+            .set_data("NM:i:0\tPG:Z:SNAP".parse()?)
             .build()?;
 
         Ok(record)
@@ -188,9 +180,12 @@ mod tests {
 
     #[test]
     fn test_try_into_sam_record() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::data::{
-            field::{Tag, Value},
-            Field,
+        use sam::record::{
+            data::{
+                field::{Tag, Value},
+                Field,
+            },
+            Data,
         };
 
         let bam_record = build_record()?;
@@ -209,7 +204,7 @@ mod tests {
             .set_template_length(166)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
-            .set_data(sam::record::Data::try_from(vec![
+            .set_data(Data::try_from(vec![
                 Field::new(Tag::EditDistance, Value::UInt8(0)),
                 Field::new(Tag::Program, Value::String(String::from("SNAP"))),
             ])?)

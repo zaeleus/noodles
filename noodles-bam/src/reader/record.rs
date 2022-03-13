@@ -13,10 +13,7 @@ use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use crate::{
-    record::{Data, ReferenceSequenceId},
-    Record,
-};
+use crate::{record::ReferenceSequenceId, Record};
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
@@ -320,17 +317,17 @@ fn is_missing_quality_scores(buf: &[u8]) -> bool {
     buf.iter().all(|&b| b == NULL_QUALITY_SCORE)
 }
 
-fn read_data<B>(buf: &mut B, data: &mut Data) -> io::Result<()>
+fn read_data<B>(buf: &mut B, data: &mut sam::record::Data) -> io::Result<()>
 where
     B: Buf,
 {
-    let data_len = buf.remaining();
+    use self::data::get_field;
 
-    let data_buf = data.as_mut();
-    data_buf.resize(data_len, Default::default());
-    buf.copy_to_slice(data_buf);
+    data.clear();
 
-    data.index()?;
+    while let Some(field) = get_field(buf)? {
+        data.insert(field);
+    }
 
     Ok(())
 }

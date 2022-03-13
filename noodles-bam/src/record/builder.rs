@@ -5,7 +5,7 @@ use std::{error, fmt};
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Data, Record, ReferenceSequenceId};
+use super::{Record, ReferenceSequenceId};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Builder {
     cigar: sam::record::Cigar,
     seq: sam::record::Sequence,
     qual: sam::record::QualityScores,
-    data: Data,
+    data: sam::record::Data,
 }
 
 impl Builder {
@@ -264,11 +264,10 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bam::{self as bam, record::Data};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::record::Data;
     ///
-    /// let data = Data::try_from(vec![
-    ///     b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00, // NH:i:1
-    /// ])?;
+    /// let data: Data = "NH:i:1".parse()?;
     ///
     /// let record = bam::Record::builder()
     ///     .set_data(data.clone())
@@ -277,7 +276,7 @@ impl Builder {
     /// assert_eq!(record.data(), &data);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_data(mut self, data: Data) -> Self {
+    pub fn set_data(mut self, data: sam::record::Data) -> Self {
         self.data = data;
         self
     }
@@ -323,7 +322,7 @@ impl Default for Builder {
             cigar: sam::record::Cigar::default(),
             seq: sam::record::Sequence::default(),
             qual: sam::record::QualityScores::default(),
-            data: Data::default(),
+            data: sam::record::Data::default(),
         }
     }
 }

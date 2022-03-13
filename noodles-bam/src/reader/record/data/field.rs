@@ -8,8 +8,7 @@ pub use self::value::get_value;
 use std::io;
 
 use bytes::Buf;
-
-use crate::record::data::Field;
+use noodles_sam::record::data::Field;
 
 pub(crate) fn get_field<B>(src: &mut B) -> io::Result<Option<Field>>
 where

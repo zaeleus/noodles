@@ -8,7 +8,7 @@
 
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, record::data::field::Tag};
+use noodles_sam as sam;
 
 use std::{collections::HashMap, env, fs::File, io};
 
@@ -49,11 +49,11 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
     Ok(())
 }
 
-fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
-    use sam::record::data::field::value::Type;
+fn find_read_group(data: &sam::record::Data) -> io::Result<Option<String>> {
+    use sam::record::data::field::{value::Type, Tag};
 
     match data.get(Tag::ReadGroup) {
-        Some(Ok(field)) => field
+        Some(field) => field
             .value()
             .as_str()
             .map(|s| Some(s.into()))
@@ -63,7 +63,6 @@ fn find_read_group(data: &bam::record::Data) -> io::Result<Option<String>> {
                     format!("expected {:?}, got {:?}", Type::String, field.value()),
                 )
             }),
-        Some(Err(e)) => Err(e),
         None => Ok(None),
     }
 }
