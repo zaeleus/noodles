@@ -1,4 +1,4 @@
-use std::{io, mem};
+use std::io;
 
 use bytes::BufMut;
 use noodles_sam::{self as sam, header::ReferenceSequences, record::Data, AlignmentRecord};
@@ -118,49 +118,6 @@ where
     dst.put_i32_le(id);
 
     Ok(())
-}
-
-pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
-    use noodles_sam::record::data::field::Value;
-
-    let mut len = 0;
-
-    for field in data.values() {
-        // tag
-        len += 2;
-        // val_type
-        len += 1;
-
-        let value = field.value();
-
-        if value.subtype().is_some() {
-            // subtype
-            len += 1;
-            // count
-            len += mem::size_of::<u32>();
-        }
-
-        len += match value {
-            Value::Char(_) => mem::size_of::<u8>(),
-            Value::Int8(_) => mem::size_of::<i8>(),
-            Value::UInt8(_) => mem::size_of::<u8>(),
-            Value::Int16(_) => mem::size_of::<i16>(),
-            Value::UInt16(_) => mem::size_of::<u16>(),
-            Value::Int32(_) => mem::size_of::<i32>(),
-            Value::UInt32(_) => mem::size_of::<u32>(),
-            Value::Float(_) => mem::size_of::<f32>(),
-            Value::String(s) | Value::Hex(s) => s.as_bytes().len() + 1,
-            Value::Int8Array(values) => values.len(),
-            Value::UInt8Array(values) => values.len(),
-            Value::Int16Array(values) => mem::size_of::<i16>() * values.len(),
-            Value::UInt16Array(values) => mem::size_of::<u16>() * values.len(),
-            Value::Int32Array(values) => mem::size_of::<i32>() * values.len(),
-            Value::UInt32Array(values) => mem::size_of::<u32>() * values.len(),
-            Value::FloatArray(values) => mem::size_of::<f32>() * values.len(),
-        }
-    }
-
-    Ok(len)
 }
 
 fn put_data<B>(dst: &mut B, data: &Data) -> io::Result<()>
