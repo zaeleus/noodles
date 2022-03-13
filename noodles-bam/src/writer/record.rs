@@ -1,3 +1,5 @@
+pub(crate) mod data;
+
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};

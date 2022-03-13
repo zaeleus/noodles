@@ -1,7 +1,7 @@
 use std::{
     ffi::CString,
     io::{self, Write},
-    mem, num,
+    mem,
 };
 
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -156,24 +156,6 @@ where
 pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
     use noodles_sam::record::data::field::Value;
 
-    fn size_of_int(n: i32) -> usize {
-        if n >= 0 {
-            if n <= i32::from(u8::MAX) {
-                mem::size_of::<u8>()
-            } else if n <= i32::from(u16::MAX) {
-                mem::size_of::<u16>()
-            } else {
-                mem::size_of::<u32>()
-            }
-        } else if n >= i32::from(i8::MIN) {
-            mem::size_of::<i8>()
-        } else if n >= i32::from(i16::MIN) {
-            mem::size_of::<i16>()
-        } else {
-            mem::size_of::<i32>()
-        }
-    }
-
     let mut len = 0;
 
     for field in data.values() {
@@ -193,14 +175,12 @@ pub(crate) fn calculate_data_len(data: &Data) -> io::Result<usize> {
 
         len += match value {
             Value::Char(_) => mem::size_of::<u8>(),
-            Value::Int8(n) => size_of_int(i32::from(*n)),
-            Value::UInt8(n) => size_of_int(i32::from(*n)),
-            Value::Int16(n) => size_of_int(i32::from(*n)),
-            Value::UInt16(n) => size_of_int(i32::from(*n)),
-            Value::Int32(n) => size_of_int(*n),
-            Value::UInt32(n) => i32::try_from(*n)
-                .map(size_of_int)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
+            Value::Int8(_) => mem::size_of::<i8>(),
+            Value::UInt8(_) => mem::size_of::<u8>(),
+            Value::Int16(_) => mem::size_of::<i16>(),
+            Value::UInt16(_) => mem::size_of::<u16>(),
+            Value::Int32(_) => mem::size_of::<i32>(),
+            Value::UInt32(_) => mem::size_of::<u32>(),
             Value::Float(_) => mem::size_of::<f32>(),
             Value::String(s) | Value::Hex(s) => s.as_bytes().len() + 1,
             Value::Int8Array(values) => values.len(),
@@ -220,181 +200,10 @@ fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
 where
     W: Write,
 {
+    use crate::writer::record::data::write_field;
+
     for field in data.values() {
-        write_data_field(writer, field)?;
-    }
-
-    Ok(())
-}
-
-fn write_data_field<W>(writer: &mut W, field: &sam::record::data::Field) -> io::Result<()>
-where
-    W: Write,
-{
-    use noodles_sam::record::data::field::Value;
-
-    write_data_field_tag(writer, field.tag())?;
-
-    match field.value() {
-        Value::Int8(n) => write_data_field_int32_value(writer, i32::from(*n))?,
-        Value::UInt8(n) => write_data_field_int32_value(writer, i32::from(*n))?,
-        Value::Int16(n) => write_data_field_int32_value(writer, i32::from(*n))?,
-        Value::UInt16(n) => write_data_field_int32_value(writer, i32::from(*n))?,
-        Value::Int32(n) => write_data_field_int32_value(writer, *n)?,
-        Value::UInt32(n) => {
-            let m =
-                i32::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            write_data_field_int32_value(writer, m)?;
-        }
-        value => {
-            write_data_field_value_type(writer, value)?;
-            write_data_field_value(writer, value)?;
-        }
-    }
-
-    Ok(())
-}
-
-fn write_data_field_tag<W>(writer: &mut W, tag: sam::record::data::field::Tag) -> io::Result<()>
-where
-    W: Write,
-{
-    writer.write_all(tag.as_ref())
-}
-
-fn write_data_field_int32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
-where
-    W: Write,
-{
-    use sam::record::data::field::value::Type;
-
-    if n >= 0 {
-        if n <= i32::from(u8::MAX) {
-            writer.write_u8(u8::from(Type::UInt8))?;
-            writer.write_u8(n as u8)
-        } else if n <= i32::from(u16::MAX) {
-            writer.write_u8(u8::from(Type::UInt16))?;
-            writer.write_u16::<LittleEndian>(n as u16)
-        } else {
-            writer.write_u8(u8::from(Type::UInt32))?;
-            writer.write_u32::<LittleEndian>(n as u32)
-        }
-    } else if n >= i32::from(i8::MIN) {
-        writer.write_u8(u8::from(Type::Int8))?;
-        writer.write_i8(n as i8)
-    } else if n >= i32::from(i16::MIN) {
-        writer.write_u8(u8::from(Type::Int16))?;
-        writer.write_i16::<LittleEndian>(n as i16)
-    } else {
-        writer.write_u8(u8::from(Type::Int32))?;
-        writer.write_i32::<LittleEndian>(n as i32)
-    }
-}
-
-fn write_data_field_value_type<W>(
-    writer: &mut W,
-    value: &sam::record::data::field::Value,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    let val_type = u8::from(value.ty());
-    writer.write_u8(val_type)?;
-
-    if let Some(subtype) = value.subtype() {
-        let val_subtype = u8::from(subtype);
-        writer.write_u8(val_subtype)?;
-    }
-
-    Ok(())
-}
-
-fn write_data_field_value<W>(
-    writer: &mut W,
-    value: &sam::record::data::field::Value,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    use sam::record::data::field::Value;
-
-    fn invalid_array_len(e: num::TryFromIntError) -> io::Error {
-        io::Error::new(io::ErrorKind::InvalidInput, e)
-    }
-
-    match value {
-        Value::Char(c) => writer.write_u8(*c as u8)?,
-        Value::Int8(_)
-        | Value::UInt8(_)
-        | Value::Int16(_)
-        | Value::UInt16(_)
-        | Value::Int32(_)
-        | Value::UInt32(_) => {
-            // Integers are handled by `write_data_field_int32_value`.
-            unreachable!();
-        }
-        Value::Float(n) => writer.write_f32::<LittleEndian>(*n)?,
-        Value::String(s) | Value::Hex(s) => {
-            let c_str = CString::new(s.as_bytes())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            writer.write_all(c_str.as_bytes_with_nul())?;
-        }
-        Value::Int8Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_i8(n)?;
-            }
-        }
-        Value::UInt8Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_u8(n)?;
-            }
-        }
-        Value::Int16Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_i16::<LittleEndian>(n)?;
-            }
-        }
-        Value::UInt16Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_u16::<LittleEndian>(n)?;
-            }
-        }
-        Value::Int32Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_i32::<LittleEndian>(n)?;
-            }
-        }
-        Value::UInt32Array(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_u32::<LittleEndian>(n)?;
-            }
-        }
-        Value::FloatArray(values) => {
-            let len = u32::try_from(values.len()).map_err(invalid_array_len)?;
-            writer.write_u32::<LittleEndian>(len)?;
-
-            for &n in values {
-                writer.write_f32::<LittleEndian>(n)?;
-            }
-        }
+        write_field(writer, field)?;
     }
 
     Ok(())
@@ -403,209 +212,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_write_data_field_int32_value() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_data_field_int32_value(buf, n)?;
-            assert_eq!(&buf[..], expected, "n = {}", n);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        // i32::MIN
-        t(&mut buf, -2147483648, &[b'i', 0x00, 0x00, 0x00, 0x80])?;
-        // i32::MIN + 1
-        t(&mut buf, -2147483647, &[b'i', 0x01, 0x00, 0x00, 0x80])?;
-
-        // i16::MIN - 1
-        t(&mut buf, -32769, &[b'i', 0xff, 0x7f, 0xff, 0xff])?;
-        // i16::MIN
-        t(&mut buf, -32768, &[b's', 0x00, 0x80])?;
-        // i16::MIN + 1
-        t(&mut buf, -32767, &[b's', 0x01, 0x80])?;
-
-        // i8::MIN - 1
-        t(&mut buf, -129, &[b's', 0x7f, 0xff])?;
-        // i8::MIN
-        t(&mut buf, -128, &[b'c', 0x80])?;
-        // i8::MIN + 1
-        t(&mut buf, -127, &[b'c', 0x81])?;
-
-        // -1
-        t(&mut buf, -1, &[b'c', 0xff])?;
-        // 0
-        t(&mut buf, 0, &[b'C', 0x00])?;
-        // 1
-        t(&mut buf, 1, &[b'C', 0x01])?;
-
-        // i8::MAX - 1
-        t(&mut buf, 126, &[b'C', 0x7e])?;
-        // i8::MAX
-        t(&mut buf, 127, &[b'C', 0x7f])?;
-        // i8::MAX + 1
-        t(&mut buf, 128, &[b'C', 0x80])?;
-
-        // u8::MAX - 1
-        t(&mut buf, 254, &[b'C', 0xfe])?;
-        // u8::MAX
-        t(&mut buf, 255, &[b'C', 0xff])?;
-        // u8::MAX + 1
-        t(&mut buf, 256, &[b'S', 0x00, 0x01])?;
-
-        // i16::MAX - 1
-        t(&mut buf, 32766, &[b'S', 0xfe, 0x7f])?;
-        // i16::MAX
-        t(&mut buf, 32767, &[b'S', 0xff, 0x7f])?;
-        // i16::MAX + 1
-        t(&mut buf, 32768, &[b'S', 0x00, 0x80])?;
-
-        // u16::MAX - 1
-        t(&mut buf, 65534, &[b'S', 0xfe, 0xff])?;
-        // u16::MAX
-        t(&mut buf, 65535, &[b'S', 0xff, 0xff])?;
-        // u16::MAX + 1
-        t(&mut buf, 65536, &[b'I', 0x00, 0x00, 0x01, 0x00])?;
-
-        // i32::MAX - 1
-        t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f])?;
-        // i32::MAX
-        t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f])?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_data_field_value_type() -> io::Result<()> {
-        use sam::record::data::field::Value;
-
-        fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_data_field_value_type(buf, value)?;
-            assert_eq!(&buf[..], expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, &Value::Char('n'), &[b'A'])?;
-        t(&mut buf, &Value::Int32(13), &[b'i'])?;
-        t(&mut buf, &Value::Float(8.0), &[b'f'])?;
-        t(&mut buf, &Value::String(String::from("ndls")), &[b'Z'])?;
-        t(&mut buf, &Value::Hex(String::from("CAFE")), &[b'H'])?;
-        t(&mut buf, &Value::Int8Array(vec![1, -2]), &[b'B', b'c'])?;
-        t(&mut buf, &Value::UInt8Array(vec![3, 5]), &[b'B', b'C'])?;
-        t(&mut buf, &Value::Int16Array(vec![8, -13]), &[b'B', b's'])?;
-        t(&mut buf, &Value::UInt16Array(vec![21, 34]), &[b'B', b'S'])?;
-        t(&mut buf, &Value::Int32Array(vec![55, -89]), &[b'B', b'i'])?;
-        t(&mut buf, &Value::UInt32Array(vec![144, 223]), &[b'B', b'I'])?;
-        t(&mut buf, &Value::FloatArray(vec![8.0, 13.0]), &[b'B', b'f'])?;
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_data_field_value() -> io::Result<()> {
-        use sam::record::data::field::Value;
-
-        fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_data_field_value(buf, value)?;
-            assert_eq!(&buf[..], expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, &Value::Char('n'), &[b'n'])?;
-        t(&mut buf, &Value::Float(8.0), &[0x00, 0x00, 0x00, 0x41])?;
-
-        t(
-            &mut buf,
-            &Value::String(String::from("ndls")),
-            &[b'n', b'd', b'l', b's', 0x00],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::Hex(String::from("CAFE")),
-            &[b'C', b'A', b'F', b'E', 0x00],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::Int8Array(vec![1, -2]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x01, // values[0] = 1
-                0xfe, // values[1] = -2
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::UInt8Array(vec![3, 5]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x03, // values[0] = 3
-                0x05, // values[1] = 5
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::Int16Array(vec![8, -13]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x08, 0x00, // values[0] = 8
-                0xf3, 0xff, // values[1] = -13
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::UInt16Array(vec![21, 34]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x15, 0x00, // values[0] = 21
-                0x22, 0x00, // values[1] = 34
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::Int32Array(vec![55, -89]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x37, 0x00, 0x00, 0x00, // values[0] = 55
-                0xa7, 0xff, 0xff, 0xff, // values[1] = -89
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::UInt32Array(vec![144, 223]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x90, 0x00, 0x00, 0x00, // values[0] = 55
-                0xdf, 0x00, 0x00, 0x00, // values[1] = -89
-            ],
-        )?;
-
-        t(
-            &mut buf,
-            &Value::FloatArray(vec![8.0, 13.0]),
-            &[
-                0x02, 0x00, 0x00, 0x00, // count = 2
-                0x00, 0x00, 0x00, 0x41, // values[0] = 8.0
-                0x00, 0x00, 0x50, 0x41, // values[1] = 13.0
-            ],
-        )?;
-
-        Ok(())
-    }
 
     #[test]
     fn test_write_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
