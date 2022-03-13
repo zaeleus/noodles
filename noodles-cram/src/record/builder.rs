@@ -5,7 +5,7 @@ use noodles_sam::{
     record::{quality_scores::Score, sequence::Base},
 };
 
-use super::{Feature, Features, Flags, NextMateFlags, Record, Tag};
+use super::{Feature, Features, Flags, NextMateFlags, Record};
 
 /// A CRAM record builder.
 pub struct Builder {
@@ -22,7 +22,7 @@ pub struct Builder {
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
-    tags: Vec<Tag>,
+    tags: sam::record::Data,
     bases: sam::record::Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
@@ -115,14 +115,14 @@ impl Builder {
     }
 
     /// Sets the tag dictionary.
-    pub fn set_tags(mut self, tags: Vec<Tag>) -> Self {
+    pub fn set_tags(mut self, tags: sam::record::Data) -> Self {
         self.tags = tags;
         self
     }
 
     /// Adds a tag to the tag dictionary.
-    pub fn add_tag(mut self, tag: Tag) -> Self {
-        self.tags.push(tag);
+    pub fn add_tag(mut self, tag: sam::record::data::Field) -> Self {
+        self.tags.insert(tag);
         self
     }
 
@@ -210,7 +210,7 @@ impl Default for Builder {
             next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
-            tags: Vec::new(),
+            tags: sam::record::Data::default(),
             bases: sam::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,

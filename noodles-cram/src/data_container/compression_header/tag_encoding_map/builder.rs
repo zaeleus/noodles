@@ -14,8 +14,8 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        for tag in record.tags() {
-            self.keys.insert(tag.key());
+        for field in record.tags().values() {
+            self.keys.insert(field.into());
         }
     }
 
@@ -38,33 +38,40 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
+    use noodles_sam::record::data::{
+        field::{value::Type, Tag, Value},
+        Field,
+    };
 
     use super::*;
-    use crate::record::Tag;
 
     #[test]
     fn test_build() {
-        let nh = Key::new(SamTag::AlignmentHitCount, Type::Int8);
-        let co = Key::new(SamTag::Comment, Type::String);
-
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.push(Tag::new(nh, Value::Int8(1)));
-        builder.update(&record);
-
-        let mut record = Record::default();
-        record.tags.push(Tag::new(nh, Value::Int8(1)));
+        record
+            .tags
+            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
         record
             .tags
-            .push(Tag::new(co, Value::String(String::from("noodles"))));
+            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
+        builder.update(&record);
+
+        let mut record = Record::default();
+        record.tags.insert(Field::new(
+            Tag::Comment,
+            Value::String(String::from("noodles")),
+        ));
         builder.update(&record);
 
         let actual = builder.build();
+
+        let nh = Key::new(Tag::AlignmentHitCount, Type::Int8);
+        let co = Key::new(Tag::Comment, Type::String);
 
         let expected = [
             (

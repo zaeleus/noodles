@@ -7,11 +7,10 @@ mod features;
 mod flags;
 mod next_mate_flags;
 pub mod resolve;
-pub mod tag;
 
 pub use self::{
     builder::Builder, feature::Feature, features::Features, flags::Flags,
-    next_mate_flags::NextMateFlags, tag::Tag,
+    next_mate_flags::NextMateFlags,
 };
 
 use std::io;
@@ -37,7 +36,7 @@ pub struct Record {
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
-    pub(crate) tags: Vec<Tag>,
+    pub(crate) tags: sam::record::Data,
     pub(crate) bases: sam::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
@@ -125,7 +124,7 @@ impl Record {
     }
 
     /// Returns the tag dictionary.
-    pub fn tags(&self) -> &[Tag] {
+    pub fn tags(&self) -> &sam::record::Data {
         &self.tags
     }
 

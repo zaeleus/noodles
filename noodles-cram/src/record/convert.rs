@@ -3,7 +3,7 @@ use std::io;
 use noodles_bam::record::ReferenceSequenceId;
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{resolve::resolve_features, Record, Tag};
+use super::{resolve::resolve_features, Record};
 
 impl Record {
     /// Converts this CRAM record to a SAM record.
@@ -86,7 +86,7 @@ fn get_reference_sequence_name(
 
 fn build_data(
     read_groups: &sam::header::ReadGroups,
-    tags: &[Tag],
+    tags: &sam::record::Data,
     read_group_id: Option<usize>,
 ) -> io::Result<sam::record::Data> {
     use sam::record::data::{
@@ -94,20 +94,7 @@ fn build_data(
         Field,
     };
 
-    let mut fields = Vec::with_capacity(tags.len());
-
-    for tag in tags {
-        let sam_tag = tag
-            .key()
-            .tag()
-            .try_into()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let value = tag.value().clone();
-        let field = Field::new(sam_tag, value);
-
-        fields.push(field);
-    }
+    let mut data = tags.clone();
 
     if let Some(id) = read_group_id {
         let name = read_groups
@@ -115,9 +102,9 @@ fn build_data(
             .map(|(_, rg)| rg.id())
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
 
-        let field = Field::new(SamTag::ReadGroup, Value::String(name.into()));
-        fields.push(field);
+        let rg = Field::new(SamTag::ReadGroup, Value::String(name.into()));
+        data.insert(rg);
     }
 
-    sam::record::Data::try_from(fields).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    Ok(data)
 }

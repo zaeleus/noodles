@@ -10,7 +10,7 @@ pub struct Builder {
 
 impl Builder {
     pub fn update(&mut self, record: &Record) {
-        let keys: Vec<_> = record.tags().iter().map(|tag| tag.key()).collect();
+        let keys: Vec<_> = record.tags().values().map(|field| field.into()).collect();
         let next_index = self.keys_indices.len();
         self.keys_indices.entry(keys).or_insert(next_index);
     }
@@ -25,36 +25,35 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
+    use noodles_sam::record::data::{
+        field::{value::Type, Tag, Value},
+        Field,
+    };
 
     use super::*;
-    use crate::record::Tag;
 
     #[test]
     fn test_from_records() {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record.tags.push(Tag::new(
-            Key::new(SamTag::AlignmentHitCount, Type::Int8),
-            Value::Int8(1),
-        ));
+        record
+            .tags
+            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.push(Tag::new(
-            Key::new(SamTag::AlignmentHitCount, Type::Int8),
-            Value::Int8(2),
-        ));
+        record
+            .tags
+            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(2)));
         builder.update(&record);
 
         let mut record = Record::default();
-        record.tags.push(Tag::new(
-            Key::new(SamTag::AlignmentHitCount, Type::Int8),
-            Value::Int8(1),
-        ));
-        record.tags.push(Tag::new(
-            Key::new(SamTag::Comment, Type::String),
+        record
+            .tags
+            .insert(Field::new(Tag::AlignmentHitCount, Value::Int8(1)));
+        record.tags.insert(Field::new(
+            Tag::Comment,
             Value::String(String::from("noodles")),
         ));
         builder.update(&record);
@@ -64,10 +63,10 @@ mod tests {
         assert_eq!(
             *dictionary,
             [
-                vec![Key::new(SamTag::AlignmentHitCount, Type::Int8)],
+                vec![Key::new(Tag::AlignmentHitCount, Type::Int8)],
                 vec![
-                    Key::new(SamTag::AlignmentHitCount, Type::Int8),
-                    Key::new(SamTag::Comment, Type::String)
+                    Key::new(Tag::AlignmentHitCount, Type::Int8),
+                    Key::new(Tag::Comment, Type::String)
                 ]
             ]
         )

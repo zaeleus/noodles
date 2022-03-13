@@ -27,7 +27,7 @@ use crate::{
         CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
-    record::{feature, Feature, Flags, NextMateFlags, Tag},
+    record::{feature, Feature, Flags, NextMateFlags},
     BitReader, Record,
 };
 
@@ -454,8 +454,9 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_tag_data(&mut self) -> io::Result<Vec<Tag>> {
+    fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
         use bam::reader::record::data::field::get_value;
+        use sam::record::data::Field;
 
         let tag_line = self.read_tag_line().and_then(|i| {
             usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -470,7 +471,7 @@ where
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
 
-        let mut tags = Vec::with_capacity(tag_keys.len());
+        let mut fields = Vec::with_capacity(tag_keys.len());
 
         for key in tag_keys {
             let id = key.id();
@@ -491,11 +492,12 @@ where
             let mut data_reader = &data[..];
             let value = get_value(&mut data_reader, key.ty())?;
 
-            let tag = Tag::new(*key, value);
-            tags.push(tag);
+            let field = Field::new(key.tag(), value);
+            fields.push(field);
         }
 
-        Ok(tags)
+        sam::record::Data::try_from(fields)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn read_tag_line(&mut self) -> io::Result<i32> {

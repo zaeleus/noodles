@@ -1,4 +1,7 @@
-use noodles_sam::record::data::field::{value::Type, Tag};
+use noodles_sam::{
+    self as sam,
+    record::data::field::{value::Type, Tag},
+};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
@@ -23,6 +26,12 @@ impl Key {
         let [l, r] = self.tag.as_ref();
         let ty = u8::from(self.ty);
         i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty)
+    }
+}
+
+impl From<&sam::record::data::Field> for Key {
+    fn from(field: &sam::record::data::Field) -> Self {
+        Self::new(field.tag(), field.value().ty())
     }
 }
 

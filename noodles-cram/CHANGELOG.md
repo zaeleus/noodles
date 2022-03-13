@@ -19,6 +19,8 @@
 
   * cram/record: Wrap sequence as `sam::record::Sequence`.
 
+  * cram/record: Change tags to `sam::record::Data`.
+
   * cram/record: Change alignment start and next mate alignment start to a
     `Position`.
 
@@ -57,6 +59,10 @@
   * cram/record: Remove `ReadGroupId`.
 
     Use `usize` instead.
+
+  * cram/record: Remove `Tag`.
+
+    Use `sam::record::data::Field` instead.
 
 ## 0.13.0 - 2022-03-02
 
