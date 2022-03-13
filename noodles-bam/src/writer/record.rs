@@ -17,10 +17,6 @@ pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
 where
     W: Write,
 {
-    let block_size = u32::try_from(record.block_size())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(block_size)?;
-
     // ref_id
     write_reference_sequence_id(writer, record.reference_sequence_id())?;
 
@@ -317,7 +313,6 @@ mod tests {
         write_record(&mut buf, &record)?;
 
         let expected = [
-            0x22, 0x00, 0x00, 0x00, // block_size = 34
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
             0xff, 0xff, 0xff, 0xff, // pos = -1
             0x02, // l_read_name = 2
@@ -370,7 +365,6 @@ mod tests {
         write_record(&mut buf, &record)?;
 
         let expected = [
-            0x35, 0x00, 0x00, 0x00, // block_size = 53
             0x01, 0x00, 0x00, 0x00, // ref_id = 1
             0x08, 0x00, 0x00, 0x00, // pos = 8
             0x03, // l_read_name = 3
