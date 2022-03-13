@@ -26,7 +26,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{value::Type, Value};
+    use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
 
     use super::*;
     use crate::record::{tag::Key, Tag};
@@ -36,23 +36,26 @@ mod tests {
         let mut builder = Builder::default();
 
         let mut record = Record::default();
-        record
-            .tags
-            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
-        builder.update(&record);
-
-        let mut record = Record::default();
-        record
-            .tags
-            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(2)));
-        builder.update(&record);
-
-        let mut record = Record::default();
-        record
-            .tags
-            .push(Tag::new(Key::new([b'N', b'H'], Type::Int8), Value::Int8(1)));
         record.tags.push(Tag::new(
-            Key::new([b'C', b'O'], Type::String),
+            Key::new(SamTag::AlignmentHitCount, Type::Int8),
+            Value::Int8(1),
+        ));
+        builder.update(&record);
+
+        let mut record = Record::default();
+        record.tags.push(Tag::new(
+            Key::new(SamTag::AlignmentHitCount, Type::Int8),
+            Value::Int8(2),
+        ));
+        builder.update(&record);
+
+        let mut record = Record::default();
+        record.tags.push(Tag::new(
+            Key::new(SamTag::AlignmentHitCount, Type::Int8),
+            Value::Int8(1),
+        ));
+        record.tags.push(Tag::new(
+            Key::new(SamTag::Comment, Type::String),
             Value::String(String::from("noodles")),
         ));
         builder.update(&record);
@@ -62,10 +65,10 @@ mod tests {
         assert_eq!(
             *dictionary,
             [
-                vec![Key::new([b'N', b'H'], Type::Int8)],
+                vec![Key::new(SamTag::AlignmentHitCount, Type::Int8)],
                 vec![
-                    Key::new([b'N', b'H'], Type::Int8),
-                    Key::new([b'C', b'O'], Type::String)
+                    Key::new(SamTag::AlignmentHitCount, Type::Int8),
+                    Key::new(SamTag::Comment, Type::String)
                 ]
             ]
         )

@@ -35,15 +35,15 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::{value::Type, Value};
+    use noodles_sam::record::data::field::{value::Type, Tag as SamTag, Value};
 
     use super::*;
     use crate::record::{tag::Key, Tag};
 
     #[test]
     fn test_build() {
-        let nh = Key::new([b'N', b'H'], Type::Int8);
-        let co = Key::new([b'C', b'O'], Type::String);
+        let nh = Key::new(SamTag::AlignmentHitCount, Type::Int8);
+        let co = Key::new(SamTag::Comment, Type::String);
 
         let mut builder = Builder::default();
 

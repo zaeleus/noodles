@@ -1,14 +1,13 @@
 use std::io::{self, BufRead, Read};
 
 use byteorder::ReadBytesExt;
-use noodles_sam::record::data::field::value::Type;
+use noodles_sam::record::data::field::{value::Type, Tag};
 
 use crate::{
     data_container::compression_header::{
         preservation_map::Key, PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
     reader::num::read_itf8,
-    record,
 };
 
 pub fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
@@ -99,6 +98,8 @@ fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>
 where
     R: Read,
 {
+    use crate::record::tag::Key;
+
     let data_len = read_itf8(reader)?;
     let mut buf = vec![0; data_len as usize];
     reader.read_exact(&mut buf)?;
@@ -122,12 +123,13 @@ where
         for chunk in keys_buf.chunks_exact(3) {
             let (t0, t1, ty) = (chunk[0], chunk[1], chunk[2]);
 
-            let tag = [t0, t1];
+            let tag = Tag::try_from([t0, t1])
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
             let ty =
                 Type::try_from(ty).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let key = record::tag::Key::new(tag, ty);
-
+            let key = Key::new(tag, ty);
             line.push(key);
         }
 
@@ -168,7 +170,7 @@ mod tests {
             false,
             false,
             SubstitutionMatrix::default(),
-            TagIdsDictionary::from(vec![vec![Key::new([b'C', b'O'], Type::String)]]),
+            TagIdsDictionary::from(vec![vec![Key::new(Tag::Comment, Type::String)]]),
         );
 
         assert_eq!(actual, expected);

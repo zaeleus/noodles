@@ -1,9 +1,9 @@
-use noodles_sam::record::data::field::value::Type;
+use noodles_sam::record::data::field::{value::Type, Tag};
 
 /// A CRAM record tag key.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Key {
-    tag: [u8; 2],
+    tag: Tag,
     ty: Type,
 }
 
@@ -14,10 +14,10 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::record::tag::Key;
-    /// use noodles_sam::record::data::field::value::Type;
-    /// let key = Key::new([b'N', b'H'], Type::Int8);
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::Int8);
     /// ```
-    pub fn new(tag: [u8; 2], ty: Type) -> Self {
+    pub fn new(tag: Tag, ty: Type) -> Self {
         Self { tag, ty }
     }
 
@@ -27,11 +27,11 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::record::tag::Key;
-    /// use noodles_sam::record::data::field::value::Type;
-    /// let key = Key::new([b'N', b'H'], Type::Int8);
-    /// assert_eq!(key.tag(), [b'N', b'H']);
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::Int8);
+    /// assert_eq!(key.tag(), Tag::AlignmentHitCount);
     /// ```
-    pub fn tag(self) -> [u8; 2] {
+    pub fn tag(self) -> Tag {
         self.tag
     }
 
@@ -41,8 +41,8 @@ impl Key {
     ///
     /// ```
     /// use noodles_cram::record::tag::Key;
-    /// use noodles_sam::record::data::field::value::Type;
-    /// let key = Key::new([b'N', b'H'], Type::Int8);
+    /// use noodles_sam::record::data::field::{value::Type, Tag};
+    /// let key = Key::new(Tag::AlignmentHitCount, Type::Int8);
     /// assert_eq!(key.ty(), Type::Int8);
     /// ```
     pub fn ty(self) -> Type {
@@ -50,9 +50,9 @@ impl Key {
     }
 
     pub(crate) fn id(self) -> i32 {
-        let [l, r] = self.tag;
+        let [l, r] = self.tag.as_ref();
         let ty = u8::from(self.ty);
-        i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
+        i32::from(*l) << 16 | i32::from(*r) << 8 | i32::from(ty)
     }
 }
 
@@ -62,10 +62,10 @@ mod tests {
 
     #[test]
     fn test_id() {
-        let key = Key::new([b'C', b'O'], Type::String);
+        let key = Key::new(Tag::Comment, Type::String);
         assert_eq!(key.id(), 4411226);
 
-        let key = Key::new([b'N', b'H'], Type::Int32);
+        let key = Key::new(Tag::AlignmentHitCount, Type::Int32);
         assert_eq!(key.id(), 5130345);
     }
 }

@@ -40,6 +40,8 @@
       * positions as `Position`, and
       * quality scores as `sam::record::quality_scores::Score`.
 
+  * cram/record/tag/key: Change tag to a `sam::record::data::field::Tag`.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Detach all records before writing.

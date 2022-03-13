@@ -22,10 +22,10 @@ impl Tag {
     ///
     /// ```
     /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
     ///
     /// let value = Value::Int8(1);
-    /// let key = Key::new([b'N', b'H'], value.ty());
+    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
     ///
     /// let tag = Tag::new(key, value);
     /// ```
@@ -39,10 +39,10 @@ impl Tag {
     ///
     /// ```
     /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
     ///
     /// let value = Value::Int8(1);
-    /// let key = Key::new([b'N', b'H'], value.ty());
+    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
     ///
     /// let tag = Tag::new(key.clone(), value);
     /// assert_eq!(tag.key(), key);
@@ -57,10 +57,10 @@ impl Tag {
     ///
     /// ```
     /// use noodles_cram::record::{tag::Key, Tag};
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::record::data::field::{Tag as SamTag, Value};
     ///
     /// let value = Value::Int8(1);
-    /// let key = Key::new([b'N', b'H'], value.ty());
+    /// let key = Key::new(SamTag::AlignmentHitCount, value.ty());
     ///
     /// let tag = Tag::new(key, value.clone());
     /// assert_eq!(tag.value(), &value);
@@ -91,13 +91,7 @@ impl TryFrom<Tag> for sam::record::data::Field {
     type Error = TryFromTagError;
 
     fn try_from(tag: Tag) -> Result<Self, Self::Error> {
-        let sam_tag = tag
-            .key()
-            .tag()
-            .try_into()
-            .map_err(|_| TryFromTagError::InvalidTag)?;
-
-        Ok(Self::new(sam_tag, tag.value))
+        Ok(Self::new(tag.key().tag(), tag.value))
     }
 }
 
@@ -107,10 +101,10 @@ mod tests {
 
     #[test]
     fn test_try_from_tag_for_sam_record_data_field() {
-        use sam::record::data::Field;
+        use sam::record::data::{field::Tag as SamTag, Field};
 
         let value = Value::Int8(1);
-        let key = Key::new([b'N', b'H'], value.ty());
+        let key = Key::new(SamTag::AlignmentHitCount, value.ty());
         let tag = Tag::new(key, value);
         let actual = Field::try_from(tag);
 

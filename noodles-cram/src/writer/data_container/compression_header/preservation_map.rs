@@ -108,7 +108,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::record::data::field::value::Type;
+    use noodles_sam::record::data::field::{value::Type, Tag};
 
     use super::*;
     use crate::record::tag::Key;
@@ -118,10 +118,10 @@ mod tests {
         let mut buf = Vec::new();
 
         let tag_ids_dictionary = TagIdsDictionary::from(vec![
-            vec![Key::new([b'N', b'H'], Type::Int8)],
+            vec![Key::new(Tag::AlignmentHitCount, Type::Int8)],
             vec![
-                Key::new([b'N', b'H'], Type::Int8),
-                Key::new([b'C', b'O'], Type::String),
+                Key::new(Tag::AlignmentHitCount, Type::Int8),
+                Key::new(Tag::Comment, Type::String),
             ],
         ]);
 
