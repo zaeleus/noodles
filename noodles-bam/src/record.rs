@@ -7,7 +7,7 @@ pub mod reference_sequence_id;
 
 pub use self::{builder::Builder, data::Data, reference_sequence_id::ReferenceSequenceId};
 
-use std::{io, mem};
+use std::io;
 
 use noodles_core::Position;
 use noodles_sam::{
@@ -67,34 +67,6 @@ impl Record {
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
-    }
-
-    pub(crate) fn block_size(&self) -> usize {
-        let l_seq = self.seq.len();
-
-        let read_name_len = self
-            .read_name
-            .as_ref()
-            .map(|name| name.len())
-            .unwrap_or(sam::record::read_name::MISSING.len());
-        let l_read_name = read_name_len + mem::size_of::<u8>(); // read_name + NUL terminator
-
-        mem::size_of::<i32>() // ref_id
-            + mem::size_of::<i32>() // pos
-            + mem::size_of::<u8>() // l_read_name
-            + mem::size_of::<u8>() // mapq
-            + mem::size_of::<u16>() // bin
-            + mem::size_of::<u16>() // n_cigar_op
-            + mem::size_of::<u16>() // flag
-            + mem::size_of::<u32>() // l_seq
-            + mem::size_of::<i32>() // next_ref_id
-            + mem::size_of::<i32>() // next_pos
-            + mem::size_of::<i32>() // tlen
-            + l_read_name
-            + (mem::size_of::<u32>() * self.cigar.len())
-            + ((l_seq + 1) / 2) // seq
-            + l_seq // qual
-            + self.data.as_ref().len()
     }
 
     /// Returns the reference sequence ID of this record.
@@ -537,61 +509,7 @@ impl Default for Record {
 
 #[cfg(test)]
 mod tests {
-    use std::io;
-
     use super::*;
-
-    fn build_record() -> io::Result<Record> {
-        use sam::record::{Flags, MappingQuality};
-
-        let ref_id = Some(ReferenceSequenceId::from(10));
-
-        let mapq = MappingQuality::try_from(12)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let read_name = "r0"
-            .parse()
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let cigar = "4M"
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let seq = "ATGC"
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let qual = "@>?A"
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        Ok(Record {
-            ref_id,
-            pos: Position::new(61062),
-            mapq,
-            flag: Flags::SEGMENTED | Flags::FIRST_SEGMENT,
-            next_ref_id: ref_id,
-            next_pos: Position::new(61153),
-            tlen: 166,
-            read_name,
-            cigar,
-            seq,
-            qual,
-            data: Data::try_from(vec![
-                0x4e, 0x4d, 0x43, 0x00, // NM:i:0
-                0x50, 0x47, 0x5a, 0x53, 0x4e, 0x41, 0x50, 0x00, // PG:Z:SNAP
-            ])?,
-        })
-    }
-
-    #[test]
-    fn test_block_size() -> io::Result<()> {
-        let record = build_record()?;
-        assert_eq!(record.block_size(), 57);
-        Ok(())
-    }
 
     #[test]
     fn test_default() {
