@@ -148,6 +148,10 @@ where
     /// # }
     /// ```
     pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
+        let block_size = u32::try_from(record.block_size())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32_le(block_size).await?;
+
         record::write_record(&mut self.inner, record).await
     }
 
