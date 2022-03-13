@@ -81,6 +81,8 @@ pub enum ParseError {
     Invalid,
     /// The data field tag is invalid.
     InvalidTag(tag::ParseError),
+    /// The data field type is invalid.
+    InvalidType(value::ty::ParseError),
     /// The data field value is invalid.
     InvalidValue(value::ParseError),
 }
@@ -92,6 +94,7 @@ impl fmt::Display for ParseError {
         match self {
             Self::Invalid => f.write_str("invalid input"),
             Self::InvalidTag(e) => write!(f, "invalid tag: {}", e),
+            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
             Self::InvalidValue(e) => write!(f, "invalid value: {}", e),
         }
     }
@@ -101,14 +104,14 @@ impl FromStr for Field {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.split_once(DELIMITER) {
-            Some((t, v)) => {
-                let tag = t.parse().map_err(ParseError::InvalidTag)?;
-                let value = v.parse().map_err(ParseError::InvalidValue)?;
-                Ok(Self::new(tag, value))
-            }
-            None => Err(ParseError::Invalid),
-        }
+        let (t, rest) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
+        let tag = t.parse().map_err(ParseError::InvalidTag)?;
+
+        let (raw_ty, raw_value) = rest.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
+        let ty = raw_ty.parse().map_err(ParseError::InvalidType)?;
+        let value = Value::from_str_type(raw_value, ty).map_err(ParseError::InvalidValue)?;
+
+        Ok(Self::new(tag, value))
     }
 }
 
@@ -144,6 +147,11 @@ mod tests {
 
         assert!(matches!(
             "RG:_:rg0".parse::<Field>(),
+            Err(ParseError::InvalidType(_))
+        ));
+
+        assert!(matches!(
+            "RG:Z:🍜".parse::<Field>(),
             Err(ParseError::InvalidValue(_))
         ));
     }

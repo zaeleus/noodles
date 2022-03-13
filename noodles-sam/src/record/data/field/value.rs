@@ -9,10 +9,7 @@ use std::{
     error,
     fmt::{self, Write},
     num,
-    str::FromStr,
 };
-
-use super::DELIMITER;
 
 const ARRAY_VALUE_DELIMITER: char = ',';
 
@@ -56,6 +53,28 @@ pub enum Value {
 }
 
 impl Value {
+    /// Parses a raw value as the given type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::data::field::{value::Type, Value};
+    /// let value = Value::from_str_type("rg0", Type::String)?;
+    /// assert_eq!(value, Value::String(String::from("rg0")));
+    /// # Ok::<_, noodles_sam::record::data::field::value::ParseError>(())
+    /// ```
+    pub fn from_str_type(s: &str, ty: Type) -> Result<Self, ParseError> {
+        match ty {
+            Type::Char => parse_char(s).map(Value::Char),
+            Type::Int32 => parse_i32(s).map(Value::from),
+            Type::Float => parse_f32(s).map(Value::Float),
+            Type::String => parse_string(s).map(Value::String),
+            Type::Hex => parse_hex(s).map(Value::Hex),
+            Type::Array => parse_array(s),
+            _ => Err(ParseError::UnsupportedType(ty)),
+        }
+    }
+
     /// Returns the type of the value.
     ///
     /// # Examples
@@ -712,8 +731,6 @@ impl fmt::Display for Value {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
-    /// The data field type is invalid.
-    InvalidType(ty::ParseError),
     /// The data field type is unsupported.
     UnsupportedType(Type),
     /// The data field character value is invalid.
@@ -738,7 +755,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidType(e) => write!(f, "invalid type: {}", e),
             Self::UnsupportedType(ty) => write!(f, "unsupported type: {}", ty),
             Self::InvalidCharValue => f.write_str("invalid char value"),
             Self::InvalidIntValue(e) => write!(f, "invalid int value: {}", e),
@@ -748,32 +764,6 @@ impl fmt::Display for ParseError {
             Self::MissingSubtype => f.write_str("missing subtype"),
             Self::InvalidSubtype(e) => write!(f, "invalid subtype: {}", e),
         }
-    }
-}
-
-impl FromStr for Value {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.split_once(DELIMITER) {
-            Some((t, v)) => t
-                .parse()
-                .map_err(ParseError::InvalidType)
-                .and_then(|ty| parse_value(ty, v)),
-            None => Err(ParseError::Invalid),
-        }
-    }
-}
-
-fn parse_value(ty: Type, s: &str) -> Result<Value, ParseError> {
-    match ty {
-        Type::Char => parse_char(s).map(Value::Char),
-        Type::Int32 => parse_i32(s).map(Value::from),
-        Type::Float => parse_f32(s).map(Value::Float),
-        Type::String => parse_string(s).map(Value::String),
-        Type::Hex => parse_hex(s).map(Value::Hex),
-        Type::Array => parse_array(s),
-        _ => Err(ParseError::UnsupportedType(ty)),
     }
 }
 
@@ -1084,121 +1074,193 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!("A:n".parse(), Ok(Value::Char('n')));
-        assert_eq!("A:".parse::<Value>(), Err(ParseError::InvalidCharValue));
-        assert_eq!("A:🍜".parse::<Value>(), Err(ParseError::InvalidCharValue));
-
-        assert_eq!("i:13".parse(), Ok(Value::UInt8(13)));
-        assert!(matches!(
-            "i:".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "i:ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("f:0.0".parse(), Ok(Value::Float(0.0)));
-        assert!(matches!(
-            "f:".parse::<Value>(),
-            Err(ParseError::InvalidFloatValue(_))
-        ));
-        assert!(matches!(
-            "f:ndls".parse::<Value>(),
-            Err(ParseError::InvalidFloatValue(_))
-        ));
-
-        assert_eq!("Z:".parse(), Ok(Value::String(String::from(""))));
-        assert_eq!("Z: ".parse(), Ok(Value::String(String::from(" "))));
+    fn test_from_str_type() {
+        assert_eq!(Value::from_str_type("n", Type::Char), Ok(Value::Char('n')));
         assert_eq!(
-            "Z:noodles".parse(),
+            Value::from_str_type("", Type::Char),
+            Err(ParseError::InvalidCharValue)
+        );
+        assert_eq!(
+            Value::from_str_type("🍜", Type::Char),
+            Err(ParseError::InvalidCharValue)
+        );
+
+        assert_eq!(
+            Value::from_str_type("13", Type::Int32),
+            Ok(Value::UInt8(13))
+        );
+        assert!(matches!(
+            Value::from_str_type("", Type::Int32),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("ndls", Type::Int32),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("0.0", Type::Float),
+            Ok(Value::Float(0.0))
+        );
+        assert!(matches!(
+            Value::from_str_type("", Type::Float),
+            Err(ParseError::InvalidFloatValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("ndls", Type::Float),
+            Err(ParseError::InvalidFloatValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("", Type::String),
+            Ok(Value::String(String::from("")))
+        );
+        assert_eq!(
+            Value::from_str_type(" ", Type::String),
+            Ok(Value::String(String::from(" ")))
+        );
+        assert_eq!(
+            Value::from_str_type("noodles", Type::String),
             Ok(Value::String(String::from("noodles")))
         );
-        assert_eq!("Z:🍜".parse::<Value>(), Err(ParseError::InvalidStringValue));
-
-        assert_eq!("H:CAFE".parse(), Ok(Value::Hex(String::from("CAFE"))));
-        assert_eq!("H:cafe".parse::<Value>(), Err(ParseError::InvalidHexValue));
-        assert_eq!("H:CAFE0".parse::<Value>(), Err(ParseError::InvalidHexValue));
-        assert_eq!("H:NDLS".parse::<Value>(), Err(ParseError::InvalidHexValue));
-
-        assert_eq!("B:c".parse(), Ok(Value::Int8Array(Vec::new())));
-        assert_eq!("B:c,1,-2".parse(), Ok(Value::Int8Array(vec![1, -2])));
-        assert!(matches!(
-            "B:c,".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "B:c,ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("B:C".parse(), Ok(Value::UInt8Array(Vec::new())));
-        assert_eq!("B:C,3,5".parse(), Ok(Value::UInt8Array(vec![3, 5])));
-        assert!(matches!(
-            "B:C,".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "B:C,ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("B:s".parse(), Ok(Value::Int16Array(Vec::new())));
-        assert_eq!("B:s,8,-13".parse(), Ok(Value::Int16Array(vec![8, -13])));
-        assert!(matches!(
-            "B:s,".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "B:s,ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("B:S".parse(), Ok(Value::UInt16Array(Vec::new())));
-        assert_eq!("B:S,21,34".parse(), Ok(Value::UInt16Array(vec![21, 34])));
-        assert!(matches!(
-            "B:S,".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "B:S,ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("B:i".parse(), Ok(Value::Int32Array(Vec::new())));
-        assert_eq!("B:i,55,-89".parse(), Ok(Value::Int32Array(vec![55, -89])));
-        assert!(matches!(
-            "B:i,".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-        assert!(matches!(
-            "B:i,ndls".parse::<Value>(),
-            Err(ParseError::InvalidIntValue(_))
-        ));
-
-        assert_eq!("B:I".parse(), Ok(Value::UInt32Array(Vec::new())));
         assert_eq!(
-            "B:I,144,233".parse(),
+            Value::from_str_type("🍜", Type::String),
+            Err(ParseError::InvalidStringValue)
+        );
+
+        assert_eq!(
+            Value::from_str_type("CAFE", Type::Hex),
+            Ok(Value::Hex(String::from("CAFE")))
+        );
+        assert_eq!(
+            Value::from_str_type("cafe", Type::Hex),
+            Err(ParseError::InvalidHexValue)
+        );
+        assert_eq!(
+            Value::from_str_type("CAFE0", Type::Hex),
+            Err(ParseError::InvalidHexValue)
+        );
+        assert_eq!(
+            Value::from_str_type("NDLS", Type::Hex),
+            Err(ParseError::InvalidHexValue)
+        );
+
+        assert_eq!(
+            Value::from_str_type("c", Type::Array),
+            Ok(Value::Int8Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("c,1,-2", Type::Array),
+            Ok(Value::Int8Array(vec![1, -2]))
+        );
+        assert!(matches!(
+            Value::from_str_type("c,", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("c,ndls", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("C", Type::Array),
+            Ok(Value::UInt8Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("C,3,5", Type::Array),
+            Ok(Value::UInt8Array(vec![3, 5]))
+        );
+        assert!(matches!(
+            Value::from_str_type("C,", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("C,ndls", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("s", Type::Array),
+            Ok(Value::Int16Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("s,8,-13", Type::Array),
+            Ok(Value::Int16Array(vec![8, -13]))
+        );
+        assert!(matches!(
+            Value::from_str_type("s,", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("s,ndls", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("S", Type::Array),
+            Ok(Value::UInt16Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("S,21,34", Type::Array),
+            Ok(Value::UInt16Array(vec![21, 34]))
+        );
+        assert!(matches!(
+            Value::from_str_type("S,", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("S,ndls", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("i", Type::Array),
+            Ok(Value::Int32Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("i,55,-89", Type::Array),
+            Ok(Value::Int32Array(vec![55, -89]))
+        );
+        assert!(matches!(
+            Value::from_str_type("i,", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+        assert!(matches!(
+            Value::from_str_type("i,ndls", Type::Array),
+            Err(ParseError::InvalidIntValue(_))
+        ));
+
+        assert_eq!(
+            Value::from_str_type("I", Type::Array),
+            Ok(Value::UInt32Array(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("I,144,233", Type::Array),
             Ok(Value::UInt32Array(vec![144, 233]))
         );
         assert!(matches!(
-            "B:I,".parse::<Value>(),
+            Value::from_str_type("I,", Type::Array),
             Err(ParseError::InvalidIntValue(_))
         ));
         assert!(matches!(
-            "B:I,ndls".parse::<Value>(),
+            Value::from_str_type("I,ndls", Type::Array),
             Err(ParseError::InvalidIntValue(_))
         ));
 
-        assert_eq!("B:f".parse(), Ok(Value::FloatArray(Vec::new())));
-        assert_eq!("B:f,0,1".parse(), Ok(Value::FloatArray(vec![0.0, 1.0])));
+        assert_eq!(
+            Value::from_str_type("f", Type::Array),
+            Ok(Value::FloatArray(Vec::new()))
+        );
+        assert_eq!(
+            Value::from_str_type("f,0,1", Type::Array),
+            Ok(Value::FloatArray(vec![0.0, 1.0]))
+        );
         assert!(matches!(
-            "B:f,".parse::<Value>(),
+            Value::from_str_type("f,", Type::Array),
             Err(ParseError::InvalidFloatValue(_))
         ));
         assert!(matches!(
-            "B:f,ndls".parse::<Value>(),
+            Value::from_str_type("f,ndls", Type::Array),
             Err(ParseError::InvalidFloatValue(_))
         ));
     }

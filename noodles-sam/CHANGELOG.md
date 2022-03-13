@@ -116,6 +116,10 @@
 
     Use `noodles_core::Position` instead.
 
+  * sam/record/data/field/value: Remove `FromStr`.
+
+    Use `Value::from_str_type` instead.
+
   * sam/record/read_name: Remove `Deref<Target = String>`.
 
     Use `AsRef<str>` instead.
