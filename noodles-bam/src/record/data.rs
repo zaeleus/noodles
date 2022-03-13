@@ -130,11 +130,11 @@ impl Data {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn get_index(&self, i: usize) -> Option<io::Result<Field>> {
-        use crate::reader::record::data::read_field;
+        use crate::reader::record::data::get_field;
 
         self.bounds.get(i).map(|range| {
             let mut reader = &self.data[range];
-            read_field(&mut reader).transpose().unwrap()
+            get_field(&mut reader).transpose().unwrap()
         })
     }
 
@@ -230,7 +230,7 @@ impl Data {
     /// # Ok::<(), io::Error>(())
     /// ```
     #[deprecated(since = "0.8.0", note = "Use `Data::values` instead.")]
-    pub fn fields(&self) -> Fields<&[u8]> {
+    pub fn fields(&self) -> Fields<'_> {
         self.values()
     }
 
@@ -297,7 +297,7 @@ impl Data {
     /// assert!(values.next().is_none());
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn values(&self) -> Fields<&[u8]> {
+    pub fn values(&self) -> Fields<'_> {
         Fields::new(&self.data)
     }
 

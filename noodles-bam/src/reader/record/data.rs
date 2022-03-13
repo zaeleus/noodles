@@ -2,4 +2,4 @@
 
 pub mod field;
 
-pub(crate) use self::field::read_field;
+pub(crate) use self::field::get_field;

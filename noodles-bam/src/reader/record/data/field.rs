@@ -3,26 +3,28 @@
 mod tag;
 mod value;
 
-pub use self::value::read_value;
+pub use self::value::get_value;
 
-use std::io::{self, BufRead};
+use std::io;
+
+use bytes::Buf;
 
 use crate::record::data::Field;
 
-pub(crate) fn read_field<R>(reader: &mut R) -> io::Result<Option<Field>>
+pub(crate) fn get_field<B>(src: &mut B) -> io::Result<Option<Field>>
 where
-    R: BufRead,
+    B: Buf,
 {
-    use self::tag::read_tag;
+    use self::tag::get_tag;
 
-    let tag = match read_tag(reader) {
+    let tag = match get_tag(src) {
         Ok(t) => t,
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
         Err(e) => return Err(e),
     };
 
-    let ty = value::read_type(reader)?;
-    let value = read_value(reader, ty)?;
+    let ty = value::get_type(src)?;
+    let value = get_value(src, ty)?;
 
     Ok(Some(Field::new(tag, value)))
 }

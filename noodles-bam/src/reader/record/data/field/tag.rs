@@ -1,13 +1,17 @@
-use std::io::{self, Read};
+use std::io;
 
+use bytes::Buf;
 use noodles_sam::record::data::field::Tag;
 
-pub fn read_tag<R>(reader: &mut R) -> io::Result<Tag>
+pub fn get_tag<B>(src: &mut B) -> io::Result<Tag>
 where
-    R: Read,
+    B: Buf,
 {
-    let mut buf = [0; 2];
-    reader.read_exact(&mut buf)?;
+    if src.remaining() < 2 {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let buf = [src.get_u8(), src.get_u8()];
     Tag::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
@@ -16,11 +20,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_tag() -> io::Result<()> {
+    fn test_get_tag() -> io::Result<()> {
         let data = [b'N', b'H'];
 
         let mut reader = &data[..];
-        let actual = read_tag(&mut reader)?;
+        let actual = get_tag(&mut reader)?;
 
         let expected = Tag::AlignmentHitCount;
 

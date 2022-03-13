@@ -38,6 +38,10 @@
     This previously filled the quality scores with scores of 255, but this just
     signals that the quality scores are missing.
 
+  * bam/reader/record/data/field/value: Rename `read_value` to `get_value`.
+
+    This now takes a buffer instead of a reader.
+
 ### Fixed
 
   * bam/async/writer/record: Calculate bin number for record.
