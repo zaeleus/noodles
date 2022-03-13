@@ -67,10 +67,10 @@ impl TryFrom<Field> for Vec<u8> {
     type Error = io::Error;
 
     fn try_from(field: Field) -> Result<Self, Self::Error> {
-        use crate::writer::record::data::write_field;
+        use crate::writer::record::data::put_field;
 
         let mut buf = Vec::new();
-        write_field(&mut buf, &field.into())?;
+        put_field(&mut buf, &field.into())?;
         Ok(buf)
     }
 }

@@ -1,77 +1,74 @@
 mod subtype;
 mod ty;
 
-pub use self::{subtype::write_subtype, ty::write_type};
+pub use self::{subtype::put_subtype, ty::put_type};
 
-use std::{
-    ffi::CString,
-    io::{self, Write},
-};
+use std::{ffi::CString, io};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use bytes::BufMut;
 use noodles_sam::record::data::field::{value::Subtype, Value};
 
-pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
+pub fn put_value<B>(dst: &mut B, value: &Value) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     match value {
-        Value::Char(c) => writer.write_u8(*c as u8)?,
-        Value::Int8(n) => writer.write_i8(*n)?,
-        Value::UInt8(n) => writer.write_u8(*n)?,
-        Value::Int16(n) => writer.write_i16::<LittleEndian>(*n)?,
-        Value::UInt16(n) => writer.write_u16::<LittleEndian>(*n)?,
-        Value::Int32(n) => writer.write_i32::<LittleEndian>(*n)?,
-        Value::UInt32(n) => writer.write_u32::<LittleEndian>(*n)?,
-        Value::Float(n) => writer.write_f32::<LittleEndian>(*n)?,
-        Value::String(s) | Value::Hex(s) => write_string(writer, s)?,
+        Value::Char(c) => dst.put_u8(*c as u8),
+        Value::Int8(n) => dst.put_i8(*n),
+        Value::UInt8(n) => dst.put_u8(*n),
+        Value::Int16(n) => dst.put_i16_le(*n),
+        Value::UInt16(n) => dst.put_u16_le(*n),
+        Value::Int32(n) => dst.put_i32_le(*n),
+        Value::UInt32(n) => dst.put_u32_le(*n),
+        Value::Float(n) => dst.put_f32_le(*n),
+        Value::String(s) | Value::Hex(s) => put_string(dst, s)?,
         Value::Int8Array(values) => {
-            write_array_header(writer, Subtype::Int8, values.len())?;
+            put_array_header(dst, Subtype::Int8, values.len())?;
 
             for &n in values {
-                writer.write_i8(n)?;
+                dst.put_i8(n);
             }
         }
         Value::UInt8Array(values) => {
-            write_array_header(writer, Subtype::UInt8, values.len())?;
+            put_array_header(dst, Subtype::UInt8, values.len())?;
 
             for &n in values {
-                writer.write_u8(n)?;
+                dst.put_u8(n);
             }
         }
         Value::Int16Array(values) => {
-            write_array_header(writer, Subtype::Int16, values.len())?;
+            put_array_header(dst, Subtype::Int16, values.len())?;
 
             for &n in values {
-                writer.write_i16::<LittleEndian>(n)?;
+                dst.put_i16_le(n);
             }
         }
         Value::UInt16Array(values) => {
-            write_array_header(writer, Subtype::UInt16, values.len())?;
+            put_array_header(dst, Subtype::UInt16, values.len())?;
 
             for &n in values {
-                writer.write_u16::<LittleEndian>(n)?;
+                dst.put_u16_le(n);
             }
         }
         Value::Int32Array(values) => {
-            write_array_header(writer, Subtype::Int32, values.len())?;
+            put_array_header(dst, Subtype::Int32, values.len())?;
 
             for &n in values {
-                writer.write_i32::<LittleEndian>(n)?;
+                dst.put_i32_le(n);
             }
         }
         Value::UInt32Array(values) => {
-            write_array_header(writer, Subtype::UInt32, values.len())?;
+            put_array_header(dst, Subtype::UInt32, values.len())?;
 
             for &n in values {
-                writer.write_u32::<LittleEndian>(n)?;
+                dst.put_u32_le(n);
             }
         }
         Value::FloatArray(values) => {
-            write_array_header(writer, Subtype::Float, values.len())?;
+            put_array_header(dst, Subtype::Float, values.len())?;
 
             for &n in values {
-                writer.write_f32::<LittleEndian>(n)?;
+                dst.put_f32_le(n);
             }
         }
     }
@@ -79,22 +76,23 @@ where
     Ok(())
 }
 
-fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
+fn put_string<B>(dst: &mut B, s: &str) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
     let c_str = CString::new(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_all(c_str.as_bytes_with_nul())
+    dst.put(c_str.as_bytes_with_nul());
+    Ok(())
 }
 
-fn write_array_header<W>(writer: &mut W, subtype: Subtype, len: usize) -> io::Result<()>
+fn put_array_header<B>(dst: &mut B, subtype: Subtype, len: usize) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
-    write_subtype(writer, subtype)?;
+    put_subtype(dst, subtype);
 
     let n = u32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n)?;
+    dst.put_u32_le(n);
 
     Ok(())
 }
@@ -104,10 +102,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_value() -> io::Result<()> {
+    fn test_put_value() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_value(buf, value)?;
+            put_value(buf, value)?;
             assert_eq!(buf, expected);
             Ok(())
         }

@@ -1,12 +1,11 @@
-use std::io::{self, Write};
-
+use bytes::BufMut;
 use noodles_sam::record::data::field::Tag;
 
-pub fn write_tag<W>(writer: &mut W, tag: Tag) -> io::Result<()>
+pub fn put_tag<B>(dst: &mut B, tag: Tag)
 where
-    W: Write,
+    B: BufMut,
 {
-    writer.write_all(tag.as_ref())
+    dst.put(&tag.as_ref()[..]);
 }
 
 #[cfg(test)]
@@ -14,10 +13,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_tag() -> io::Result<()> {
+    fn test_put_tag() {
         let mut buf = Vec::new();
-        write_tag(&mut buf, Tag::AlignmentHitCount)?;
+        put_tag(&mut buf, Tag::AlignmentHitCount);
         assert_eq!(buf, [b'N', b'H']);
-        Ok(())
     }
 }

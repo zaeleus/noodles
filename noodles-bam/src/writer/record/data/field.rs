@@ -1,18 +1,19 @@
 mod tag;
 mod value;
 
-use std::io::{self, Write};
+use std::io;
 
+use bytes::BufMut;
 use noodles_sam::record::data::Field;
 
-use self::{tag::write_tag, value::write_value};
+use self::{tag::put_tag, value::put_value};
 
-pub fn write_field<W>(writer: &mut W, field: &Field) -> io::Result<()>
+pub fn put_field<B>(dst: &mut B, field: &Field) -> io::Result<()>
 where
-    W: Write,
+    B: BufMut,
 {
-    write_tag(writer, field.tag())?;
-    value::write_type(writer, field.value().ty())?;
-    write_value(writer, field.value())?;
+    put_tag(dst, field.tag());
+    value::put_type(dst, field.value().ty());
+    put_value(dst, field.value())?;
     Ok(())
 }

@@ -1,5 +1,7 @@
 pub(crate) mod data;
 
+pub(crate) use self::data::put_data;
+
 use std::io;
 
 use bytes::BufMut;

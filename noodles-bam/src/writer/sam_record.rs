@@ -1,10 +1,10 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, header::ReferenceSequences, record::Data, AlignmentRecord};
+use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 
 use super::record::{
-    put_bin, put_cigar, put_flags, put_l_read_name, put_mapping_quality, put_position,
+    put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,
     put_quality_scores, put_read_name, put_sequence, put_template_length,
 };
 
@@ -116,20 +116,6 @@ where
     };
 
     dst.put_i32_le(id);
-
-    Ok(())
-}
-
-fn put_data<B>(dst: &mut B, data: &Data) -> io::Result<()>
-where
-    B: BufMut,
-{
-    use crate::writer::record::data::write_field;
-
-    for field in data.values() {
-        let mut writer = dst.writer();
-        write_field(&mut writer, field)?;
-    }
 
     Ok(())
 }

@@ -1,13 +1,11 @@
-use std::io::{self, Write};
-
-use byteorder::WriteBytesExt;
+use bytes::BufMut;
 use noodles_sam::record::data::field::value::Subtype;
 
-pub fn write_subtype<W>(writer: &mut W, subtype: Subtype) -> io::Result<()>
+pub fn put_subtype<B>(dst: &mut B, subtype: Subtype)
 where
-    W: Write,
+    B: BufMut,
 {
-    writer.write_u8(u8::from(subtype))
+    dst.put_u8(u8::from(subtype));
 }
 
 #[cfg(test)]
@@ -15,10 +13,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_type() -> io::Result<()> {
+    fn test_put_type() {
         let mut buf = Vec::new();
-        write_subtype(&mut buf, Subtype::Int32)?;
+        put_subtype(&mut buf, Subtype::Int32);
         assert_eq!(buf, [b'i']);
-        Ok(())
     }
 }
