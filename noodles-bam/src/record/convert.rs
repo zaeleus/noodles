@@ -25,14 +25,14 @@ impl Record {
         reference_sequences: &sam::header::ReferenceSequences,
         sam_record: &sam::Record,
     ) -> io::Result<Self> {
-        use crate::{reader::record::read_record, writer::sam_record::write_sam_record};
+        use crate::{reader::record::read_record_buf, writer::sam_record::encode_sam_record};
 
         let mut buf = Vec::new();
-        write_sam_record(&mut buf, reference_sequences, sam_record)?;
+        encode_sam_record(&mut buf, reference_sequences, sam_record)?;
 
         let mut reader = &buf[..];
         let mut record = Self::default();
-        read_record(&mut reader, &mut Vec::new(), &mut record)?;
+        read_record_buf(&mut reader, &mut record)?;
 
         Ok(record)
     }

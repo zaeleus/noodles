@@ -13,7 +13,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use self::record::encode_record;
+use self::{record::encode_record, sam_record::encode_sam_record};
 use super::Record;
 
 /// A BAM writer.
@@ -181,7 +181,17 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        sam_record::write_sam_record(&mut self.inner, reference_sequences, record)
+        encode_sam_record(&mut self.buf, reference_sequences, record)?;
+
+        let block_size = u32::try_from(self.buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32::<LittleEndian>(block_size)?;
+
+        self.inner.write_all(&self.buf)?;
+
+        self.buf.clear();
+
+        Ok(())
     }
 }
 

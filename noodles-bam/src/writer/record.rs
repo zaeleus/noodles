@@ -104,7 +104,7 @@ where
     Ok(())
 }
 
-fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
+pub(super) fn put_position<B>(dst: &mut B, position: Option<Position>) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -122,7 +122,10 @@ where
     Ok(())
 }
 
-fn put_l_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>) -> io::Result<()>
+pub(super) fn put_l_read_name<B>(
+    dst: &mut B,
+    read_name: Option<&sam::record::ReadName>,
+) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -143,8 +146,10 @@ where
     Ok(())
 }
 
-fn put_mapping_quality<B>(dst: &mut B, mapping_quality: Option<sam::record::MappingQuality>)
-where
+pub(super) fn put_mapping_quality<B>(
+    dst: &mut B,
+    mapping_quality: Option<sam::record::MappingQuality>,
+) where
     B: BufMut,
 {
     use sam::record::mapping_quality::MISSING;
@@ -152,7 +157,7 @@ where
     dst.put_u8(mapq);
 }
 
-fn put_bin<B>(
+pub(super) fn put_bin<B>(
     dst: &mut B,
     alignment_start: Option<Position>,
     alignment_end: Option<Position>,
@@ -170,7 +175,7 @@ where
     Ok(())
 }
 
-fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
+pub(super) fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
 where
     B: BufMut,
 {
@@ -178,14 +183,14 @@ where
     dst.put_u16_le(flag);
 }
 
-fn put_template_length<B>(dst: &mut B, template_length: i32)
+pub(super) fn put_template_length<B>(dst: &mut B, template_length: i32)
 where
     B: BufMut,
 {
     dst.put_i32_le(template_length);
 }
 
-fn put_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>)
+pub(super) fn put_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>)
 where
     B: BufMut,
 {
@@ -202,7 +207,7 @@ where
     dst.put_u8(NUL);
 }
 
-fn put_cigar<B>(dst: &mut B, cigar: &sam::record::Cigar) -> io::Result<()>
+pub(super) fn put_cigar<B>(dst: &mut B, cigar: &sam::record::Cigar) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -231,7 +236,7 @@ pub(crate) fn encode_cigar_op(op: sam::record::cigar::Op) -> io::Result<u32> {
     }
 }
 
-fn put_sequence<B>(dst: &mut B, sequence: &sam::record::Sequence)
+pub(super) fn put_sequence<B>(dst: &mut B, sequence: &sam::record::Sequence)
 where
     B: BufMut,
 {
@@ -266,7 +271,7 @@ pub(crate) fn encode_base(base: Base) -> u8 {
     }
 }
 
-fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::QualityScores)
+pub(super) fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::QualityScores)
 where
     B: BufMut,
 {
