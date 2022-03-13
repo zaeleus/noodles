@@ -22,7 +22,7 @@ impl Field {
     /// ```
     /// use noodles_bam::record::data::Field;
     /// use noodles_sam::record::data::field::{Tag, Value};
-    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
     /// ```
     pub fn new(tag: Tag, value: Value) -> Self {
         Self { tag, value }
@@ -35,7 +35,7 @@ impl Field {
     /// ```
     /// use noodles_bam::record::data::Field;
     /// use noodles_sam::record::data::field::{Tag, Value};
-    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
     /// assert_eq!(field.tag(), Tag::AlignmentHitCount);
     /// ```
     pub fn tag(&self) -> Tag {
@@ -49,8 +49,8 @@ impl Field {
     /// ```
     /// use noodles_bam::record::data::Field;
     /// use noodles_sam::record::data::field::{Tag, Value};
-    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
-    /// assert_eq!(field.value(), &Value::Int32(1));
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
+    /// assert_eq!(field.value(), &Value::UInt8(1));
     /// ```
     pub fn value(&self) -> &Value {
         &self.value
@@ -81,23 +81,20 @@ mod tests {
 
     #[test]
     fn test_from_field_for_sam_record_data_field() {
-        let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+        let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
 
         let actual = sam::record::data::Field::from(field);
-        let expected = sam::record::data::Field::new(
-            Tag::AlignmentHitCount,
-            sam::record::data::field::Value::Int32(1),
-        );
+        let expected = sam::record::data::Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
 
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn test_try_from_field_for_vec_u8() -> io::Result<()> {
-        let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
+        let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
 
         let actual = <Vec<u8>>::try_from(field)?;
-        let expected = vec![b'N', b'H', b'i', 0x01, 0x00, 0x00, 0x00];
+        let expected = vec![b'N', b'H', b'C', 0x01];
 
         assert_eq!(actual, expected);
 

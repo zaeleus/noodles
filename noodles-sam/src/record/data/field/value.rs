@@ -509,6 +509,124 @@ impl Value {
     }
 }
 
+impl From<i8> for Value {
+    fn from(n: i8) -> Self {
+        if n >= 0 {
+            Self::from(n as u8)
+        } else {
+            Self::Int8(n)
+        }
+    }
+}
+
+impl From<u8> for Value {
+    fn from(n: u8) -> Self {
+        Self::UInt8(n)
+    }
+}
+
+impl From<i16> for Value {
+    fn from(n: i16) -> Self {
+        if n >= 0 {
+            Self::from(n as u16)
+        } else if n >= i16::from(i8::MIN) {
+            Self::Int8(n as i8)
+        } else {
+            Self::Int16(n)
+        }
+    }
+}
+
+impl From<u16> for Value {
+    fn from(n: u16) -> Self {
+        if n <= u16::from(u8::MAX) {
+            Self::UInt8(n as u8)
+        } else {
+            Self::UInt16(n)
+        }
+    }
+}
+
+impl From<i32> for Value {
+    fn from(n: i32) -> Self {
+        if n >= 0 {
+            Self::from(n as u32)
+        } else if n >= i32::from(i8::MIN) {
+            Self::Int8(n as i8)
+        } else if n >= i32::from(i16::MIN) {
+            Self::Int16(n as i16)
+        } else {
+            Self::Int32(n)
+        }
+    }
+}
+
+impl From<u32> for Value {
+    fn from(n: u32) -> Self {
+        if n <= u32::from(u8::MAX) {
+            Self::UInt8(n as u8)
+        } else if n <= u32::from(u16::MAX) {
+            Self::UInt16(n as u16)
+        } else {
+            Self::UInt32(n)
+        }
+    }
+}
+
+impl From<f32> for Value {
+    fn from(n: f32) -> Self {
+        Value::Float(n)
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Value::String(s)
+    }
+}
+
+impl From<Vec<i8>> for Value {
+    fn from(values: Vec<i8>) -> Self {
+        Value::Int8Array(values)
+    }
+}
+
+impl From<Vec<u8>> for Value {
+    fn from(values: Vec<u8>) -> Self {
+        Value::UInt8Array(values)
+    }
+}
+
+impl From<Vec<i16>> for Value {
+    fn from(values: Vec<i16>) -> Self {
+        Value::Int16Array(values)
+    }
+}
+
+impl From<Vec<u16>> for Value {
+    fn from(values: Vec<u16>) -> Self {
+        Value::UInt16Array(values)
+    }
+}
+
+impl From<Vec<i32>> for Value {
+    fn from(values: Vec<i32>) -> Self {
+        Value::Int32Array(values)
+    }
+}
+
+impl From<Vec<u32>> for Value {
+    fn from(values: Vec<u32>) -> Self {
+        Value::UInt32Array(values)
+    }
+}
+
+impl From<Vec<f32>> for Value {
+    fn from(values: Vec<f32>) -> Self {
+        Value::FloatArray(values)
+    }
+}
+
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -803,6 +921,129 @@ mod tests {
         assert_eq!(Value::Int32Array(vec![0]).subtype(), Some(Subtype::Int32));
         assert_eq!(Value::UInt32Array(vec![0]).subtype(), Some(Subtype::UInt32));
         assert_eq!(Value::FloatArray(vec![0.0]).subtype(), Some(Subtype::Float));
+    }
+
+    #[test]
+    fn test_from_i8_for_value() {
+        assert_eq!(Value::from(i8::MIN), Value::Int8(i8::MIN));
+        assert_eq!(Value::from(-1i8), Value::Int8(-1));
+
+        assert_eq!(Value::from(0i8), Value::UInt8(0));
+        assert_eq!(Value::from(1i8), Value::UInt8(1));
+        assert_eq!(Value::from(i8::MAX), Value::UInt8(i8::MAX as u8));
+    }
+
+    #[test]
+    fn test_from_u8_for_value() {
+        assert_eq!(Value::from(u8::MIN), Value::UInt8(u8::MIN));
+        assert_eq!(Value::from(u8::MAX), Value::UInt8(u8::MAX));
+    }
+
+    #[test]
+    fn test_from_i16_for_value() {
+        assert_eq!(Value::from(i16::MIN), Value::Int16(i16::MIN));
+        assert_eq!(Value::from(-129i16), Value::Int16(-129)); // i8::MIN - 1
+
+        assert_eq!(Value::from(-128i16), Value::Int8(-128)); // i8::MAX
+        assert_eq!(Value::from(-1i16), Value::Int8(-1));
+
+        assert_eq!(Value::from(0i16), Value::UInt8(0));
+        assert_eq!(Value::from(1i16), Value::UInt8(1));
+        assert_eq!(Value::from(255i16), Value::UInt8(255)); // u8::MAX
+
+        assert_eq!(Value::from(256i16), Value::UInt16(256)); // u8::MAX + 1
+        assert_eq!(Value::from(i16::MAX), Value::UInt16(i16::MAX as u16));
+    }
+
+    #[test]
+    fn test_from_u16_for_value() {
+        assert_eq!(Value::from(u16::MIN), Value::UInt8(0));
+        assert_eq!(Value::from(255u16), Value::UInt8(255));
+
+        assert_eq!(Value::from(256u16), Value::UInt16(256));
+        assert_eq!(Value::from(u16::MAX), Value::UInt16(u16::MAX));
+    }
+
+    #[test]
+    fn test_from_i32_for_value() {
+        assert_eq!(Value::from(i32::MIN), Value::Int32(i32::MIN));
+        assert_eq!(Value::from(-32769i32), Value::Int32(-32769)); // i16::MIN - 1
+
+        assert_eq!(Value::from(-32768i32), Value::Int16(-32768)); // i16::MIN
+        assert_eq!(Value::from(-129i32), Value::Int16(-129)); // i8::MIN - 1
+
+        assert_eq!(Value::from(-128i32), Value::Int8(-128)); // i8::MIN
+        assert_eq!(Value::from(-1i32), Value::Int8(-1));
+
+        assert_eq!(Value::from(0i32), Value::UInt8(0));
+        assert_eq!(Value::from(1i32), Value::UInt8(1));
+        assert_eq!(Value::from(255i32), Value::UInt8(255)); // u8::MAX
+
+        assert_eq!(Value::from(256i32), Value::UInt16(256)); // u8::MAX + 1
+        assert_eq!(Value::from(65535i32), Value::UInt16(65535)); // u16::MAX
+
+        assert_eq!(Value::from(65536i32), Value::UInt32(65536)); // u16::MAX + 1
+        assert_eq!(Value::from(i32::MAX), Value::UInt32(i32::MAX as u32));
+    }
+
+    #[test]
+    fn test_from_u32_for_value() {
+        assert_eq!(Value::from(u32::MIN), Value::UInt8(0));
+        assert_eq!(Value::from(255u32), Value::UInt8(255)); // u8::MAX
+
+        assert_eq!(Value::from(256u32), Value::UInt16(256)); // u8::MAX + 1
+        assert_eq!(Value::from(65535u32), Value::UInt16(65535)); // u16::MAX
+
+        assert_eq!(Value::from(65536u32), Value::UInt32(65536)); // u16::MAX + 1
+        assert_eq!(Value::from(u32::MAX), Value::UInt32(u32::MAX));
+    }
+
+    #[test]
+    fn test_from_f32_for_value() {
+        assert_eq!(Value::from(0.0f32), Value::Float(0.0));
+    }
+
+    #[test]
+    fn test_from_string_for_value() {
+        assert_eq!(
+            Value::from(String::from("noodles")),
+            Value::String(String::from("noodles"))
+        );
+    }
+
+    #[test]
+    fn test_from_vec_i8_for_value() {
+        assert_eq!(Value::from(vec![0i8]), Value::Int8Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_u8_for_value() {
+        assert_eq!(Value::from(vec![0u8]), Value::UInt8Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_i16_for_value() {
+        assert_eq!(Value::from(vec![0i16]), Value::Int16Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_u16_for_value() {
+        assert_eq!(Value::from(vec![0u16]), Value::UInt16Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_i32_for_value() {
+        assert_eq!(Value::from(vec![0i32]), Value::Int32Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_u32_for_value() {
+        assert_eq!(Value::from(vec![0u32]), Value::UInt32Array(vec![0]));
+    }
+
+    #[test]
+    fn test_from_vec_f32_for_value() {
+        assert_eq!(Value::from(vec![0.0f32]), Value::FloatArray(vec![0.0]));
     }
 
     #[test]
