@@ -1,12 +1,8 @@
 use std::{ffi::CString, num};
 
+use noodles_core::Position;
 use noodles_sam::{self as sam, header::ReferenceSequences, AlignmentRecord};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
-
-use super::record::{
-    write_bin, write_cigar, write_flags, write_mapping_quality, write_position,
-    write_quality_scores, write_sequence, write_template_length,
-};
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): "A `QNAME` '*' indicates the
 // information is unavailable."
@@ -156,6 +152,113 @@ where
     };
 
     writer.write_i32_le(id).await
+}
+
+async fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::record::UNMAPPED_POSITION;
+
+    let pos = if let Some(position) = position {
+        i32::try_from(usize::from(position) - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+    } else {
+        UNMAPPED_POSITION
+    };
+
+    writer.write_i32_le(pos).await
+}
+
+async fn write_mapping_quality<W>(
+    writer: &mut W,
+    mapping_quality: Option<sam::record::MappingQuality>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use sam::record::mapping_quality::MISSING;
+    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
+    writer.write_u8(mapq).await
+}
+
+async fn write_bin<W>(
+    writer: &mut W,
+    alignment_start: Option<Position>,
+    alignment_end: Option<Position>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::writer::record::{region_to_bin, UNMAPPED_BIN};
+
+    let bin = match (alignment_start, alignment_end) {
+        (Some(start), Some(end)) => region_to_bin(start, end)?,
+        _ => UNMAPPED_BIN,
+    };
+
+    writer.write_u16_le(bin).await
+}
+
+async fn write_flags<W>(writer: &mut W, flags: sam::record::Flags) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let flag = u16::from(flags);
+    writer.write_u16_le(flag).await
+}
+
+async fn write_template_length<W>(writer: &mut W, template_length: i32) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer.write_i32_le(template_length).await
+}
+
+async fn write_cigar<W>(writer: &mut W, cigar: &sam::record::Cigar) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use crate::writer::record::encode_cigar_op;
+
+    for &op in cigar.as_ref() {
+        let n = encode_cigar_op(op)?;
+        writer.write_u32_le(n).await?;
+    }
+
+    Ok(())
+}
+
+async fn write_sequence<W>(writer: &mut W, sequence: &sam::record::Sequence) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    use sam::record::sequence::Base;
+
+    use crate::writer::record::encode_base;
+
+    for chunk in sequence.as_ref().chunks(2) {
+        let l = chunk[0];
+        let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+        let b = encode_base(l) << 4 | encode_base(r);
+        writer.write_u8(b).await?;
+    }
+
+    Ok(())
+}
+
+async fn write_quality_scores<W>(
+    writer: &mut W,
+    quality_scores: &sam::record::QualityScores,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    for &score in quality_scores.iter() {
+        writer.write_u8(u8::from(score)).await?;
+    }
+
+    Ok(())
 }
 
 async fn write_missing_filled_quality_scores<W>(

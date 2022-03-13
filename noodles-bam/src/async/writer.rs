@@ -1,5 +1,4 @@
 mod builder;
-mod record;
 mod sam_record;
 
 pub use self::builder::Builder;
@@ -10,11 +9,12 @@ use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::Record;
+use crate::{writer::record::encode_record, Record};
 
 /// An async BAM writer.
 pub struct Writer<W> {
     inner: W,
+    buf: Vec<u8>,
 }
 
 impl<W> Writer<W>
@@ -152,7 +152,13 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32_le(block_size).await?;
 
-        record::write_record(&mut self.inner, record).await
+        encode_record(&mut self.buf, record)?;
+
+        self.inner.write_all(&self.buf).await?;
+
+        self.buf.clear();
+
+        Ok(())
     }
 
     /// Writes a SAM record.
@@ -216,7 +222,10 @@ where
 
 impl<W> From<W> for Writer<W> {
     fn from(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 }
 

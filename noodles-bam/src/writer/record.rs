@@ -13,7 +13,7 @@ use crate::{record::ReferenceSequenceId, Record};
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
 
-pub(super) fn encode_record<B>(dst: &mut B, record: &Record) -> io::Result<()>
+pub(crate) fn encode_record<B>(dst: &mut B, record: &Record) -> io::Result<()>
 where
     B: BufMut,
 {
