@@ -191,27 +191,9 @@ async fn write_data_field<W>(writer: &mut W, field: &sam::record::data::Field) -
 where
     W: AsyncWrite + Unpin,
 {
-    use sam::record::data::field::Value;
-
     write_data_field_tag(writer, field.tag()).await?;
-
-    match field.value() {
-        Value::Int8(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
-        Value::UInt8(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
-        Value::Int16(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
-        Value::UInt16(n) => write_data_field_int32_value(writer, i32::from(*n)).await?,
-        Value::Int32(n) => write_data_field_int32_value(writer, *n).await?,
-        Value::UInt32(n) => {
-            let m =
-                i32::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-            write_data_field_int32_value(writer, m).await?;
-        }
-        value => {
-            write_data_field_value_type(writer, value).await?;
-            write_data_field_value(writer, value).await?;
-        }
-    }
-
+    write_data_field_value_type(writer, field.value()).await?;
+    write_data_field_value(writer, field.value()).await?;
     Ok(())
 }
 
@@ -223,35 +205,6 @@ where
     W: AsyncWrite + Unpin,
 {
     writer.write_all(tag.as_ref()).await
-}
-
-async fn write_data_field_int32_value<W>(writer: &mut W, n: i32) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    use sam::record::data::field::value::Type;
-
-    if n >= 0 {
-        if n <= i32::from(u8::MAX) {
-            writer.write_u8(u8::from(Type::UInt8)).await?;
-            writer.write_u8(n as u8).await
-        } else if n <= i32::from(u16::MAX) {
-            writer.write_u8(u8::from(Type::UInt16)).await?;
-            writer.write_u16_le(n as u16).await
-        } else {
-            writer.write_u8(u8::from(Type::UInt32)).await?;
-            writer.write_u32_le(n as u32).await
-        }
-    } else if n >= i32::from(i8::MIN) {
-        writer.write_u8(u8::from(Type::Int8)).await?;
-        writer.write_i8(n as i8).await
-    } else if n >= i32::from(i16::MIN) {
-        writer.write_u8(u8::from(Type::Int16)).await?;
-        writer.write_i16_le(n as i16).await
-    } else {
-        writer.write_u8(u8::from(Type::Int32)).await?;
-        writer.write_i32_le(n as i32).await
-    }
 }
 
 async fn write_data_field_value_type<W>(
@@ -287,15 +240,12 @@ where
 
     match value {
         Value::Char(c) => writer.write_u8(*c as u8).await?,
-        Value::Int8(_)
-        | Value::UInt8(_)
-        | Value::Int16(_)
-        | Value::UInt16(_)
-        | Value::Int32(_)
-        | Value::UInt32(_) => {
-            // Integers are handled by `write_data_field_int32_value`.
-            unreachable!();
-        }
+        Value::Int8(n) => writer.write_i8(*n).await?,
+        Value::UInt8(n) => writer.write_u8(*n).await?,
+        Value::Int16(n) => writer.write_i16_le(*n).await?,
+        Value::UInt16(n) => writer.write_u16_le(*n).await?,
+        Value::Int32(n) => writer.write_i32_le(*n).await?,
+        Value::UInt32(n) => writer.write_u32_le(*n).await?,
         Value::Float(n) => writer.write_f32_le(*n).await?,
         Value::String(s) | Value::Hex(s) => {
             let c_str = CString::new(s.as_bytes())
@@ -414,79 +364,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_write_data_field_int32_value() -> io::Result<()> {
-        async fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_data_field_int32_value(buf, n).await?;
-            assert_eq!(&buf[..], expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        // i32::MIN
-        t(&mut buf, -2147483648, &[b'i', 0x00, 0x00, 0x00, 0x80]).await?;
-        // i32::MIN + 1
-        t(&mut buf, -2147483647, &[b'i', 0x01, 0x00, 0x00, 0x80]).await?;
-
-        // i16::MIN - 1
-        t(&mut buf, -32769, &[b'i', 0xff, 0x7f, 0xff, 0xff]).await?;
-        // i16::MIN
-        t(&mut buf, -32768, &[b's', 0x00, 0x80]).await?;
-        // i16::MIN + 1
-        t(&mut buf, -32767, &[b's', 0x01, 0x80]).await?;
-
-        // i8::MIN - 1
-        t(&mut buf, -129, &[b's', 0x7f, 0xff]).await?;
-        // i8::MIN
-        t(&mut buf, -128, &[b'c', 0x80]).await?;
-        // i8::MIN + 1
-        t(&mut buf, -127, &[b'c', 0x81]).await?;
-
-        // -1
-        t(&mut buf, -1, &[b'c', 0xff]).await?;
-        // 0
-        t(&mut buf, 0, &[b'C', 0x00]).await?;
-        // 1
-        t(&mut buf, 1, &[b'C', 0x01]).await?;
-
-        // i8::MAX - 1
-        t(&mut buf, 126, &[b'C', 0x7e]).await?;
-        // i8::MAX
-        t(&mut buf, 127, &[b'C', 0x7f]).await?;
-        // i8::MAX + 1
-        t(&mut buf, 128, &[b'C', 0x80]).await?;
-
-        // u8::MAX - 1
-        t(&mut buf, 254, &[b'C', 0xfe]).await?;
-        // u8::MAX
-        t(&mut buf, 255, &[b'C', 0xff]).await?;
-        // u8::MAX + 1
-        t(&mut buf, 256, &[b'S', 0x00, 0x01]).await?;
-
-        // i16::MAX - 1
-        t(&mut buf, 32766, &[b'S', 0xfe, 0x7f]).await?;
-        // i16::MAX
-        t(&mut buf, 32767, &[b'S', 0xff, 0x7f]).await?;
-        // i16::MAX + 1
-        t(&mut buf, 32768, &[b'S', 0x00, 0x80]).await?;
-
-        // u16::MAX - 1
-        t(&mut buf, 65534, &[b'S', 0xfe, 0xff]).await?;
-        // u16::MAX
-        t(&mut buf, 65535, &[b'S', 0xff, 0xff]).await?;
-        // u16::MAX + 1
-        t(&mut buf, 65536, &[b'I', 0x00, 0x00, 0x01, 0x00]).await?;
-
-        // i32::MAX - 1
-        t(&mut buf, 2147483646, &[b'I', 0xfe, 0xff, 0xff, 0x7f]).await?;
-        // i32::MAX
-        t(&mut buf, 2147483647, &[b'I', 0xff, 0xff, 0xff, 0x7f]).await?;
-
-        Ok(())
-    }
-
-    #[tokio::test]
     async fn test_write_data_field_value_type() -> io::Result<()> {
         use sam::record::data::field::Value;
 
@@ -500,8 +377,13 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &Value::Char('n'), &[b'A']).await?;
-        t(&mut buf, &Value::Int32(13), &[b'i']).await?;
-        t(&mut buf, &Value::Float(8.0), &[b'f']).await?;
+        t(&mut buf, &Value::Int8(0), &[b'c']).await?;
+        t(&mut buf, &Value::UInt8(0), &[b'C']).await?;
+        t(&mut buf, &Value::Int16(0), &[b's']).await?;
+        t(&mut buf, &Value::UInt16(0), &[b'S']).await?;
+        t(&mut buf, &Value::Int32(0), &[b'i']).await?;
+        t(&mut buf, &Value::UInt32(0), &[b'I']).await?;
+        t(&mut buf, &Value::Float(0.0), &[b'f']).await?;
         t(&mut buf, &Value::String(String::from("ndls")), &[b'Z']).await?;
         t(&mut buf, &Value::Hex(String::from("CAFE")), &[b'H']).await?;
         t(&mut buf, &Value::Int8Array(vec![1, -2]), &[b'B', b'c']).await?;
@@ -529,6 +411,12 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &Value::Char('n'), &[b'n']).await?;
+        t(&mut buf, &Value::Int8(1), &[0x01]).await?;
+        t(&mut buf, &Value::UInt8(2), &[0x02]).await?;
+        t(&mut buf, &Value::Int16(3), &[0x03, 0x00]).await?;
+        t(&mut buf, &Value::UInt16(5), &[0x05, 0x00]).await?;
+        t(&mut buf, &Value::Int32(8), &[0x08, 0x00, 0x00, 0x00]).await?;
+        t(&mut buf, &Value::UInt32(13), &[0x0d, 0x00, 0x00, 0x00]).await?;
         t(&mut buf, &Value::Float(8.0), &[0x00, 0x00, 0x00, 0x41]).await?;
 
         t(
