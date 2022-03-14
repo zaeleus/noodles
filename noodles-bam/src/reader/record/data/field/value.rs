@@ -141,15 +141,12 @@ where
 {
     const NUL: u8 = 0x00;
 
-    let len = dbg!(src.chunk())
-        .iter()
-        .position(|&b| b == NUL)
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                "string value missing NUL terminator",
-            )
-        })?;
+    let len = src.chunk().iter().position(|&b| b == NUL).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            "string value missing NUL terminator",
+        )
+    })?;
 
     let mut buf = vec![0; len];
     src.copy_to_slice(&mut buf);
