@@ -467,7 +467,7 @@ where
                 )
             })?;
 
-        self.write_tag_line(tag_line as i32)?;
+        self.write_tag_line(tag_line)?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
 
@@ -494,17 +494,20 @@ where
         Ok(())
     }
 
-    fn write_tag_line(&mut self, tag_line: i32) -> io::Result<()> {
+    fn write_tag_line(&mut self, tag_line: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
             .tag_ids_encoding();
 
+        let n =
+            i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         encode_itf8(
             encoding,
             self.core_data_writer,
             self.external_data_writers,
-            tag_line,
+            n,
         )
     }
 
