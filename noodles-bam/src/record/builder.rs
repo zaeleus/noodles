@@ -10,17 +10,17 @@ use super::{Record, ReferenceSequenceId};
 /// A BAM record builder.
 #[derive(Debug)]
 pub struct Builder {
-    ref_id: Option<ReferenceSequenceId>,
-    pos: Option<Position>,
-    mapq: Option<sam::record::MappingQuality>,
-    flag: sam::record::Flags,
-    next_ref_id: Option<ReferenceSequenceId>,
-    next_pos: Option<Position>,
-    tlen: i32,
+    reference_sequence_id: Option<ReferenceSequenceId>,
+    position: Option<Position>,
+    mapping_quality: Option<sam::record::MappingQuality>,
+    flags: sam::record::Flags,
+    mate_reference_sequence_id: Option<ReferenceSequenceId>,
+    mate_position: Option<Position>,
+    template_length: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
-    seq: sam::record::Sequence,
-    qual: sam::record::QualityScores,
+    sequence: sam::record::Sequence,
+    quality_scores: sam::record::QualityScores,
     data: sam::record::Data,
 }
 
@@ -43,7 +43,7 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_reference_sequence_id(mut self, reference_sequence_id: ReferenceSequenceId) -> Self {
-        self.ref_id = Some(reference_sequence_id);
+        self.reference_sequence_id = Some(reference_sequence_id);
         self
     }
 
@@ -65,7 +65,7 @@ impl Builder {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
-        self.pos = Some(position);
+        self.position = Some(position);
         self
     }
 
@@ -85,7 +85,7 @@ impl Builder {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
-        self.mapq = Some(mapping_quality);
+        self.mapping_quality = Some(mapping_quality);
         self
     }
 
@@ -105,7 +105,7 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_flags(mut self, flags: sam::record::Flags) -> Self {
-        self.flag = flags;
+        self.flags = flags;
         self
     }
 
@@ -130,7 +130,7 @@ impl Builder {
         mut self,
         mate_reference_sequence_id: ReferenceSequenceId,
     ) -> Self {
-        self.next_ref_id = Some(mate_reference_sequence_id);
+        self.mate_reference_sequence_id = Some(mate_reference_sequence_id);
         self
     }
 
@@ -150,7 +150,7 @@ impl Builder {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
-        self.next_pos = Some(mate_position);
+        self.mate_position = Some(mate_position);
         self
     }
 
@@ -166,7 +166,7 @@ impl Builder {
     /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_template_length(mut self, template_length: i32) -> Self {
-        self.tlen = template_length;
+        self.template_length = template_length;
         self
     }
 
@@ -232,7 +232,7 @@ impl Builder {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_sequence(mut self, sequence: sam::record::Sequence) -> Self {
-        self.seq = sequence;
+        self.sequence = sequence;
         self
     }
 
@@ -254,7 +254,7 @@ impl Builder {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
-        self.qual = quality_scores;
+        self.quality_scores = quality_scores;
         self
     }
 
@@ -291,17 +291,17 @@ impl Builder {
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
         Ok(Record {
-            ref_id: self.ref_id,
-            pos: self.pos,
-            mapq: self.mapq,
-            flag: self.flag,
-            next_ref_id: self.next_ref_id,
-            next_pos: self.next_pos,
-            tlen: self.tlen,
+            ref_id: self.reference_sequence_id,
+            pos: self.position,
+            mapq: self.mapping_quality,
+            flag: self.flags,
+            next_ref_id: self.mate_reference_sequence_id,
+            next_pos: self.mate_position,
+            tlen: self.template_length,
             read_name: self.read_name,
             cigar: self.cigar,
-            seq: self.seq,
-            qual: self.qual,
+            seq: self.sequence,
+            qual: self.quality_scores,
             data: self.data,
         })
     }
@@ -310,17 +310,17 @@ impl Builder {
 impl Default for Builder {
     fn default() -> Self {
         Self {
-            ref_id: None,
-            pos: None,
-            mapq: None,
-            flag: sam::record::Flags::UNMAPPED,
-            next_ref_id: None,
-            next_pos: None,
-            tlen: 0,
+            reference_sequence_id: None,
+            position: None,
+            mapping_quality: None,
+            flags: sam::record::Flags::UNMAPPED,
+            mate_reference_sequence_id: None,
+            mate_position: None,
+            template_length: 0,
             read_name: None,
             cigar: sam::record::Cigar::default(),
-            seq: sam::record::Sequence::default(),
-            qual: sam::record::QualityScores::default(),
+            sequence: sam::record::Sequence::default(),
+            quality_scores: sam::record::QualityScores::default(),
             data: sam::record::Data::default(),
         }
     }
@@ -351,17 +351,17 @@ mod tests {
     fn test_default() {
         let builder = Builder::default();
 
-        assert!(builder.ref_id.is_none());
-        assert!(builder.pos.is_none());
-        assert!(builder.mapq.is_none());
-        assert_eq!(builder.flag, sam::record::Flags::UNMAPPED);
-        assert!(builder.next_ref_id.is_none());
-        assert!(builder.next_pos.is_none());
-        assert_eq!(builder.tlen, 0);
+        assert!(builder.reference_sequence_id.is_none());
+        assert!(builder.position.is_none());
+        assert!(builder.mapping_quality.is_none());
+        assert_eq!(builder.flags, sam::record::Flags::UNMAPPED);
+        assert!(builder.mate_reference_sequence_id.is_none());
+        assert!(builder.mate_position.is_none());
+        assert_eq!(builder.template_length, 0);
         assert!(builder.read_name.is_none());
         assert!(builder.cigar.is_empty());
-        assert!(builder.seq.is_empty());
-        assert!(builder.qual.is_empty());
+        assert!(builder.sequence.is_empty());
+        assert!(builder.quality_scores.is_empty());
         assert!(builder.data.is_empty());
     }
 }
