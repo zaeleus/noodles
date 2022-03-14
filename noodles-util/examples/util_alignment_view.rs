@@ -15,6 +15,7 @@ use std::{
 
 use fasta::repository::adapters::IndexedReader;
 use noodles_fasta::{self as fasta, fai};
+use noodles_sam as sam;
 use noodles_util::alignment;
 
 fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
@@ -59,13 +60,17 @@ fn main() -> io::Result<()> {
     }
 
     let mut reader = builder.build()?;
-
     let header = reader.read_header()?;
-    print!("{}", header);
+
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = sam::Writer::new(handle);
+
+    writer.write_header(&header)?;
 
     for result in reader.records(&header) {
         let record = result?;
-        println!("{}", record);
+        writer.write_alignment_record(&header, &record)?;
     }
 
     Ok(())

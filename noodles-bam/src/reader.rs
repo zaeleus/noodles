@@ -382,11 +382,13 @@ where
     fn alignment_records<'a>(
         &'a mut self,
         _: &'a fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<sam::Record>> + 'a> {
-        Box::new(self.records().map(|result| {
-            result.and_then(|record| record.try_into_sam_record(header.reference_sequences()))
-        }))
+        _: &'a sam::Header,
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a> {
+        Box::new(
+            self.records().map(|result| {
+                result.map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
+            }),
+        )
     }
 }
 

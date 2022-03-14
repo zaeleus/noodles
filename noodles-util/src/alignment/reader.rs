@@ -31,7 +31,7 @@ impl Reader {
     pub fn records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<sam::Record>> + 'a> {
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a> {
         self.inner
             .alignment_records(&self.reference_sequence_repository, header)
     }

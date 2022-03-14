@@ -79,3 +79,66 @@ pub trait AlignmentRecord {
     /// Returns the data fields.
     fn data(&self) -> &Data;
 }
+
+impl<R> AlignmentRecord for Box<R>
+where
+    R: AlignmentRecord + ?Sized,
+{
+    fn read_name(&self) -> Option<&ReadName> {
+        (**self).read_name()
+    }
+
+    fn reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        (**self).reference_sequence(reference_sequences)
+    }
+
+    fn flags(&self) -> Flags {
+        (**self).flags()
+    }
+
+    fn alignment_start(&self) -> Option<Position> {
+        (**self).alignment_start()
+    }
+
+    fn alignment_span(&self) -> usize {
+        (**self).alignment_span()
+    }
+
+    fn mapping_quality(&self) -> Option<MappingQuality> {
+        (**self).mapping_quality()
+    }
+
+    fn cigar(&self) -> &Cigar {
+        (**self).cigar()
+    }
+
+    fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs ReferenceSequences,
+    ) -> Option<io::Result<&'rs ReferenceSequence>> {
+        (**self).mate_reference_sequence(reference_sequences)
+    }
+
+    fn mate_alignment_start(&self) -> Option<Position> {
+        (**self).mate_alignment_start()
+    }
+
+    fn template_length(&self) -> i32 {
+        (**self).template_length()
+    }
+
+    fn sequence(&self) -> &Sequence {
+        (**self).sequence()
+    }
+
+    fn quality_scores(&self) -> &QualityScores {
+        (**self).quality_scores()
+    }
+
+    fn data(&self) -> &Data {
+        (**self).data()
+    }
+}
