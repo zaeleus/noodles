@@ -12,7 +12,7 @@ pub(super) async fn read_record<R>(
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::record::read_record_buf;
+    use crate::reader::record::decode_record;
 
     let block_size = match reader.read_u32_le().await {
         Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
@@ -23,7 +23,7 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    read_record_buf(&buf[..], record)?;
+    decode_record(&buf[..], record)?;
 
     Ok(block_size)
 }

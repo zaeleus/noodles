@@ -32,12 +32,12 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf)?;
 
-    read_record_buf(&buf[..], record)?;
+    decode_record(&buf[..], record)?;
 
     Ok(block_size)
 }
 
-pub(crate) fn read_record_buf<B>(mut buf: B, record: &mut Record) -> io::Result<()>
+pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()>
 where
     B: Buf,
 {
@@ -365,7 +365,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_record_buf_with_invalid_l_read_name() {
+    fn test_decode_record_with_invalid_l_read_name() {
         let data = [
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
             0xff, 0xff, 0xff, 0xff, // pos = -1
@@ -376,7 +376,7 @@ mod tests {
         let mut record = Record::default();
 
         assert!(matches!(
-            read_record_buf(&mut reader, &mut record),
+            decode_record(&mut reader, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
