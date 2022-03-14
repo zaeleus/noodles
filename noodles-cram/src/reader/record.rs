@@ -458,9 +458,7 @@ where
         use bam::reader::record::data::field::get_value;
         use sam::record::data::Field;
 
-        let tag_line = self.read_tag_line().and_then(|i| {
-            usize::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        let tag_line = self.read_tag_line()?;
 
         let tag_keys = self
             .compression_header
@@ -500,7 +498,7 @@ where
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    fn read_tag_line(&mut self) -> io::Result<i32> {
+    fn read_tag_line(&mut self) -> io::Result<usize> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -511,6 +509,7 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
     fn read_mapped_read(
