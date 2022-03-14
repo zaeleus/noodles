@@ -43,7 +43,8 @@ where
     write_key(&mut buf, Key::TagIdsDictionary)?;
     write_tag_ids_dictionary(&mut buf, preservation_map.tag_ids_dictionary())?;
 
-    let data_len = buf.len() as i32;
+    let data_len =
+        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)
@@ -99,7 +100,8 @@ where
         buf.push(NUL);
     }
 
-    let data_len = buf.len() as i32;
+    let data_len =
+        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
     writer.write_all(&buf)?;
 

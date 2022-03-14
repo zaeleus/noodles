@@ -1012,7 +1012,8 @@ where
             writer.write_all(data)
         }
         Encoding::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = data.len() as i32;
+            let len = i32::try_from(data.len())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             encode_itf8(len_encoding, core_data_writer, external_data_writers, len)?;
 
             encode_byte_array(

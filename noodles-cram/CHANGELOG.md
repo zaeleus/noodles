@@ -51,8 +51,7 @@
   * cram/record/convert: Create read group (`RG`) data field if a read group ID
     is set.
 
-  * cram/writer/record: Fix possible wrapping when casting when writing number
-    of read features.
+  * cram/writer: Avoid possible wrapping when casting `usize` to `i32`.
 
 ### Removed
 

@@ -20,7 +20,8 @@ where
     let block_content_id = block.content_id();
     write_itf8(&mut crc_writer, block_content_id)?;
 
-    let size_in_bytes = block.data().len() as i32;
+    let size_in_bytes = i32::try_from(block.data().len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, size_in_bytes)?;
 
     let uncompressed_data_len = i32::try_from(block.uncompressed_len())

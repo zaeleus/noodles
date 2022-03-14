@@ -62,7 +62,8 @@ fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[i32]) -> io::
 where
     W: Write,
 {
-    let len = block_content_ids.len() as i32;
+    let len = i32::try_from(block_content_ids.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, len)?;
 
     for &block_content_id in block_content_ids {
@@ -96,7 +97,8 @@ fn write_optional_tags<W>(writer: &mut W, optional_tags: &[u8]) -> io::Result<()
 where
     W: Write,
 {
-    let len = optional_tags.len() as i32;
+    let len = i32::try_from(optional_tags.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, len)?;
 
     writer.write_all(optional_tags)

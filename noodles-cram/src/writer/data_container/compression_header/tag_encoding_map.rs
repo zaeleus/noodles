@@ -12,7 +12,8 @@ where
 {
     let mut buf = Vec::new();
 
-    let map_len = tag_encoding_map.len() as i32;
+    let map_len = i32::try_from(tag_encoding_map.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut buf, map_len)?;
 
     for (&key, encoding) in tag_encoding_map.iter() {
@@ -20,7 +21,8 @@ where
         write_encoding(&mut buf, encoding)?;
     }
 
-    let data_len = buf.len() as i32;
+    let data_len =
+        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, data_len)?;
 
     writer.write_all(&buf)?;

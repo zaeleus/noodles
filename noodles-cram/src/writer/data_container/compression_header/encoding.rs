@@ -33,7 +33,8 @@ fn write_args<W>(writer: &mut W, buf: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    let len = buf.len() as i32;
+    let len =
+        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, len)?;
     writer.write_all(buf)
 }
@@ -64,14 +65,16 @@ where
 {
     let mut args = Vec::new();
 
-    let alphabet_len = alphabet.len() as i32;
+    let alphabet_len = i32::try_from(alphabet.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut args, alphabet_len)?;
 
     for &symbol in alphabet {
         write_itf8(&mut args, symbol)?;
     }
 
-    let bit_lens_len = bit_lens.len() as i32;
+    let bit_lens_len = i32::try_from(bit_lens.len())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut args, bit_lens_len)?;
 
     for &len in bit_lens {
