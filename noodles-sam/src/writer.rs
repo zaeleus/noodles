@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{Header, Record};
+use super::{AlignmentRecord, Header, Record};
 
 /// A SAM writer.
 ///
@@ -129,6 +129,81 @@ where
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         writeln!(self.inner, "{}", record)
+    }
+
+    /// Writes an alignment record.
+    pub fn write_alignment_record<R>(&mut self, header: &Header, record: &R) -> io::Result<()>
+    where
+        R: AlignmentRecord,
+    {
+        const MISSING: &str = "*";
+        const EQ: &str = "=";
+
+        let qname = record
+            .read_name()
+            .map(|name| name.as_ref())
+            .unwrap_or(MISSING);
+
+        let reference_sequence = record
+            .reference_sequence(header.reference_sequences())
+            .transpose()?;
+
+        let rname = reference_sequence
+            .map(|rs| rs.name().as_str())
+            .unwrap_or(MISSING);
+
+        let pos = record
+            .alignment_start()
+            .map(usize::from)
+            .unwrap_or_default();
+
+        let mapq = record
+            .mapping_quality()
+            .map(u8::from)
+            .unwrap_or(crate::record::mapping_quality::MISSING);
+
+        let rnext = record
+            .mate_reference_sequence(header.reference_sequences())
+            .transpose()?
+            .map(|mate_reference_sequence| {
+                if let Some(rs) = reference_sequence {
+                    if mate_reference_sequence.name() == rs.name() {
+                        return EQ;
+                    }
+                }
+
+                mate_reference_sequence.name().as_str()
+            })
+            .unwrap_or(MISSING);
+
+        let pnext = record
+            .mate_alignment_start()
+            .map(usize::from)
+            .unwrap_or_default();
+
+        write!(
+            self.inner,
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
+            qname = qname,
+            flag = u16::from(record.flags()),
+            rname = rname,
+            pos = pos,
+            mapq = mapq,
+            cigar = record.cigar(),
+            rnext = rnext,
+            pnext = pnext,
+            tlen = record.template_length(),
+            seq = record.sequence(),
+            qual = record.quality_scores(),
+        )?;
+
+        if !record.data().is_empty() {
+            write!(self.inner, "\t{}", record.data())?;
+        }
+
+        writeln!(self.inner)?;
+
+        Ok(())
     }
 }
 
