@@ -31,13 +31,8 @@ where
     let mut substitution_matrix = None;
     let mut tag_ids_dictionary = None;
 
-    let mut key_buf = [0; 2];
-
     for _ in 0..map_len {
-        buf_reader.read_exact(&mut key_buf)?;
-
-        let key =
-            Key::try_from(key_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let key = read_key(&mut buf_reader)?;
 
         match key {
             Key::ReadNamesIncluded => {
@@ -69,6 +64,15 @@ where
             io::Error::new(io::ErrorKind::InvalidData, "missing tag IDs dictionary")
         })?,
     ))
+}
+
+fn read_key<R>(reader: &mut R) -> io::Result<Key>
+where
+    R: Read,
+{
+    let mut buf = [0; 2];
+    reader.read_exact(&mut buf)?;
+    Key::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn read_bool<R>(reader: &mut R) -> io::Result<bool>
