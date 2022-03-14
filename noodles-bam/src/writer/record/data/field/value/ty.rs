@@ -5,7 +5,7 @@ pub fn put_type<B>(dst: &mut B, ty: Type)
 where
     B: BufMut,
 {
-    dst.put_u8(u8::from(ty))
+    dst.put_u8(u8::from(ty));
 }
 
 #[cfg(test)]
