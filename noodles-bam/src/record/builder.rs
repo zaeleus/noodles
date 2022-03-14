@@ -291,17 +291,17 @@ impl Builder {
     /// ```
     pub fn build(self) -> Result<Record, BuildError> {
         Ok(Record {
-            ref_id: self.reference_sequence_id,
-            pos: self.position,
-            mapq: self.mapping_quality,
-            flag: self.flags,
-            next_ref_id: self.mate_reference_sequence_id,
-            next_pos: self.mate_position,
-            tlen: self.template_length,
+            reference_sequence_id: self.reference_sequence_id,
+            position: self.position,
+            mapping_quality: self.mapping_quality,
+            flags: self.flags,
+            mate_reference_sequence_id: self.mate_reference_sequence_id,
+            mate_position: self.mate_position,
+            template_length: self.template_length,
             read_name: self.read_name,
             cigar: self.cigar,
-            seq: self.sequence,
-            qual: self.quality_scores,
+            sequence: self.sequence,
+            quality_scores: self.quality_scores,
             data: self.data,
         })
     }

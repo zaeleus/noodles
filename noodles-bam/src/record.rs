@@ -39,17 +39,17 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 /// them.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    ref_id: Option<ReferenceSequenceId>,
-    pos: Option<Position>,
-    mapq: Option<sam::record::MappingQuality>,
-    flag: sam::record::Flags,
-    next_ref_id: Option<ReferenceSequenceId>,
-    next_pos: Option<Position>,
-    tlen: i32,
+    reference_sequence_id: Option<ReferenceSequenceId>,
+    position: Option<Position>,
+    mapping_quality: Option<sam::record::MappingQuality>,
+    flags: sam::record::Flags,
+    mate_reference_sequence_id: Option<ReferenceSequenceId>,
+    mate_position: Option<Position>,
+    template_length: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
-    seq: sam::record::Sequence,
-    qual: sam::record::QualityScores,
+    sequence: sam::record::Sequence,
+    quality_scores: sam::record::QualityScores,
     data: sam::record::Data,
 }
 
@@ -81,7 +81,7 @@ impl Record {
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
     pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        self.ref_id
+        self.reference_sequence_id
     }
 
     /// Returns a mutable reference to the reference sequence ID.
@@ -100,7 +100,7 @@ impl Record {
     /// );
     /// ```
     pub fn reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
-        &mut self.ref_id
+        &mut self.reference_sequence_id
     }
 
     /// Returns the start position of this record.
@@ -116,7 +116,7 @@ impl Record {
     /// assert!(record.position().is_none());
     /// ```
     pub fn position(&self) -> Option<Position> {
-        self.pos
+        self.position
     }
 
     /// Returns a mutable reference to the start position.
@@ -135,7 +135,7 @@ impl Record {
     /// assert_eq!(record.position(), position);
     /// ```
     pub fn position_mut(&mut self) -> &mut Option<Position> {
-        &mut self.pos
+        &mut self.position
     }
 
     /// Returns a mutable reference to the mapping quality.
@@ -153,7 +153,7 @@ impl Record {
     /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
     /// ```
     pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
-        &mut self.mapq
+        &mut self.mapping_quality
     }
 
     /// Returns a mutable reference to the flags.
@@ -168,7 +168,7 @@ impl Record {
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
     pub fn flags_mut(&mut self) -> &mut sam::record::Flags {
-        &mut self.flag
+        &mut self.flags
     }
 
     /// Returns the reference sequence ID of the mate of this record.
@@ -184,7 +184,7 @@ impl Record {
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
     pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
-        self.next_ref_id
+        self.mate_reference_sequence_id
     }
 
     /// Returns a mutable reference to the mate reference sequence ID.
@@ -203,7 +203,7 @@ impl Record {
     /// );
     /// ```
     pub fn mate_reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
-        &mut self.next_ref_id
+        &mut self.mate_reference_sequence_id
     }
 
     /// Returns the start position of the mate of this record.
@@ -219,7 +219,7 @@ impl Record {
     /// assert!(record.mate_position().is_none());
     /// ```
     pub fn mate_position(&self) -> Option<Position> {
-        self.next_pos
+        self.mate_position
     }
 
     /// Returns a mutable reference to the position of the mate.
@@ -238,11 +238,11 @@ impl Record {
     /// assert_eq!(record.mate_position(), position);
     /// ```
     pub fn mate_position_mut(&mut self) -> &mut Option<Position> {
-        &mut self.next_pos
+        &mut self.mate_position
     }
 
     pub(crate) fn template_length_mut(&mut self) -> &mut i32 {
-        &mut self.tlen
+        &mut self.template_length
     }
 
     /// Returns a mutable reference to the read name.
@@ -302,7 +302,7 @@ impl Record {
     /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut sam::record::Sequence {
-        &mut self.seq
+        &mut self.sequence
     }
 
     /// Returns a mutable reference to the quality scores.
@@ -322,7 +322,7 @@ impl Record {
     /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
     /// ```
     pub fn quality_scores_mut(&mut self) -> &mut sam::record::QualityScores {
-        &mut self.qual
+        &mut self.quality_scores
     }
 
     /// Returns a mutable reference to the data.
@@ -374,7 +374,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn flags(&self) -> sam::record::Flags {
-        self.flag
+        self.flags
     }
 
     /// Returns the start position.
@@ -406,7 +406,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
-        self.mapq
+        self.mapping_quality
     }
 
     fn cigar(&self) -> &sam::record::Cigar {
@@ -438,15 +438,15 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn template_length(&self) -> i32 {
-        self.tlen
+        self.template_length
     }
 
     fn sequence(&self) -> &sam::record::Sequence {
-        &self.seq
+        &self.sequence
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {
-        &self.qual
+        &self.quality_scores
     }
 
     fn data(&self) -> &sam::record::Data {
@@ -473,17 +473,17 @@ fn get_reference_sequence(
 impl Default for Record {
     fn default() -> Self {
         Self {
-            ref_id: None,
-            pos: None,
-            mapq: None,
-            flag: sam::record::Flags::UNMAPPED,
-            next_ref_id: None,
-            next_pos: None,
-            tlen: 0,
+            reference_sequence_id: None,
+            position: None,
+            mapping_quality: None,
+            flags: sam::record::Flags::UNMAPPED,
+            mate_reference_sequence_id: None,
+            mate_position: None,
+            template_length: 0,
             read_name: None,
             cigar: sam::record::Cigar::default(),
-            seq: sam::record::Sequence::default(),
-            qual: sam::record::QualityScores::default(),
+            sequence: sam::record::Sequence::default(),
+            quality_scores: sam::record::QualityScores::default(),
             data: sam::record::Data::default(),
         }
     }
@@ -497,17 +497,17 @@ mod tests {
     fn test_default() {
         let record = Record::default();
 
-        assert!(record.ref_id.is_none());
-        assert!(record.pos.is_none());
-        assert!(record.mapq.is_none());
-        assert_eq!(record.flag, sam::record::Flags::UNMAPPED);
-        assert!(record.next_ref_id.is_none());
-        assert!(record.next_pos.is_none());
-        assert_eq!(record.tlen, 0);
+        assert!(record.reference_sequence_id.is_none());
+        assert!(record.position.is_none());
+        assert!(record.mapping_quality.is_none());
+        assert_eq!(record.flags, sam::record::Flags::UNMAPPED);
+        assert!(record.mate_reference_sequence_id.is_none());
+        assert!(record.mate_position.is_none());
+        assert_eq!(record.template_length, 0);
         assert!(record.read_name.is_none());
         assert!(record.cigar.is_empty());
-        assert!(record.seq.is_empty());
-        assert!(record.qual.is_empty());
+        assert!(record.sequence.is_empty());
+        assert!(record.quality_scores.is_empty());
         assert!(record.data.is_empty());
     }
 }
