@@ -30,8 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_reference_sequences(header.reference_sequences())?;
 
     for _ in 0..3 {
-        let record = sam::Record::default();
-        writer.write_sam_record(header.reference_sequences(), &record)?;
+        let record = bam::Record::default();
+        writer.write_record(&record)?;
     }
 
     Ok(())
