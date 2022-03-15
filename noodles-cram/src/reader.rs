@@ -1,6 +1,6 @@
 //! CRAM reader and record iterator.
 
-mod container;
+pub(crate) mod container;
 pub(crate) mod data_container;
 pub(crate) mod num;
 pub(crate) mod record;

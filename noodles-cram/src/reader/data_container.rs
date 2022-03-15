@@ -69,7 +69,7 @@ where
     Ok(Some((header, data_container)))
 }
 
-fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
+pub(crate) fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
 where
     R: Read,
 {
