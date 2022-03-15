@@ -11,7 +11,7 @@
 
   * bam/record/sequence: Add `clear` method.
 
-  * bam/writer: Add alignment record writer (`Writer::write_alignment_record`).
+  * bam/writer: Implement `sam::AlignmentWriter`.
 
 ### Changed
 

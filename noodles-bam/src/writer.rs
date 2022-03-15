@@ -185,33 +185,6 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        self.write_alignment_record(reference_sequences, record)
-    }
-
-    /// Writes an alignment record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
-    ///
-    /// let mut writer = bam::Writer::new(Vec::new());
-    ///
-    /// let header = sam::Header::default();
-    /// let record = sam::Record::default();
-    /// writer.write_alignment_record(header.reference_sequences(), &record)?;
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn write_alignment_record<R>(
-        &mut self,
-        reference_sequences: &ReferenceSequences,
-        record: &R,
-    ) -> io::Result<()>
-    where
-        R: sam::AlignmentRecord,
-    {
         encode_alignment_record(&mut self.buf, reference_sequences, record)?;
 
         let block_size = u32::try_from(self.buf.len())
@@ -269,6 +242,32 @@ impl<W> From<W> for Writer<W> {
             inner,
             buf: Vec::new(),
         }
+    }
+}
+
+impl<W> sam::AlignmentWriter for Writer<W>
+where
+    W: Write,
+{
+    fn write_alignment_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.write_header(header)
+    }
+
+    fn write_alignment_record<R>(&mut self, header: &sam::Header, record: &R) -> io::Result<()>
+    where
+        R: sam::AlignmentRecord,
+    {
+        encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
+
+        let block_size = u32::try_from(self.buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32::<LittleEndian>(block_size)?;
+
+        self.inner.write_all(&self.buf)?;
+
+        self.buf.clear();
+
+        Ok(())
     }
 }
 
@@ -332,7 +331,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{record::Data, AlignmentRecord};
+    use noodles_sam::{record::Data, AlignmentRecord, AlignmentWriter};
 
     use crate::{Reader, Record};
 
@@ -393,7 +392,7 @@ mod tests {
 
         let header = sam::Header::default();
         let sam_record = sam::Record::default();
-        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -427,9 +426,7 @@ mod tests {
         let mut record = sam::Record::builder().set_sequence("AT".parse()?).build()?;
         *record.quality_scores_mut() = "NDLS".parse()?;
 
-        assert!(writer
-            .write_alignment_record(header.reference_sequences(), &record)
-            .is_err());
+        assert!(writer.write_alignment_record(&header, &record).is_err());
 
         Ok(())
     }
@@ -446,9 +443,7 @@ mod tests {
             .build()?;
         *record.quality_scores_mut() = "ND".parse()?;
 
-        assert!(writer
-            .write_alignment_record(header.reference_sequences(), &record)
-            .is_err());
+        assert!(writer.write_alignment_record(&header, &record).is_err());
 
         Ok(())
     }
@@ -462,9 +457,7 @@ mod tests {
         let mut record = sam::Record::default();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
-        assert!(writer
-            .write_alignment_record(header.reference_sequences(), &record)
-            .is_err());
+        assert!(writer.write_alignment_record(&header, &record).is_err());
 
         Ok(())
     }
@@ -479,7 +472,7 @@ mod tests {
             .set_sequence("ATCG".parse()?)
             .build()?;
 
-        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -506,7 +499,7 @@ mod tests {
             .set_quality_scores("NDLS".parse()?)
             .build()?;
 
-        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -539,7 +532,7 @@ mod tests {
             ])?)
             .build()?;
 
-        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
