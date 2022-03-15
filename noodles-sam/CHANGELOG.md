@@ -75,6 +75,8 @@
 
   * sam/record/sequence/base: Implement conversion to `u8`.
 
+  * sam/writer: Implement `AlignmentWriter`.
+
 ### Changed
 
   * sam: Rename `RecordExt` to `AlignmentRecord`.
