@@ -13,11 +13,16 @@ where
 {
     let header = read_header(reader)?;
 
+    let mut buf = vec![0; header.len()];
+    reader.read_exact(&mut buf)?;
+
+    let mut buf_reader = &buf[..];
+
     let blocks_len = header.block_count();
     let mut blocks = Vec::with_capacity(blocks_len);
 
     for _ in 0..blocks_len {
-        let block = read_block(reader)?;
+        let block = read_block(&mut buf_reader)?;
         blocks.push(block);
     }
 

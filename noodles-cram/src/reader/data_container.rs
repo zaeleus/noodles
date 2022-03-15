@@ -19,13 +19,18 @@ where
         return Ok(None);
     }
 
-    let compression_header = read_compression_header_from_block(reader)?;
+    let mut buf = vec![0; header.len()];
+    reader.read_exact(&mut buf)?;
+
+    let mut buf_reader = &buf[..];
+
+    let compression_header = read_compression_header_from_block(&mut buf_reader)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
 
     for _ in 0..slice_count {
-        let slice = read_slice(reader)?;
+        let slice = read_slice(&mut buf_reader)?;
         slices.push(slice);
     }
 
@@ -44,13 +49,18 @@ where
         return Ok(None);
     }
 
-    let compression_header = read_compression_header_from_block(reader)?;
+    let mut buf = vec![0; header.len()];
+    reader.read_exact(&mut buf)?;
+
+    let mut buf_reader = &buf[..];
+
+    let compression_header = read_compression_header_from_block(&mut buf_reader)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
 
     for _ in 0..slice_count {
-        let slice = read_slice(reader)?;
+        let slice = read_slice(&mut buf_reader)?;
         slices.push(slice);
     }
 
