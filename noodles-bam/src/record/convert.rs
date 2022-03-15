@@ -175,7 +175,7 @@ mod tests {
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
             .set_data("NM:i:0\tPG:Z:SNAP".parse()?)
-            .build()?;
+            .build();
 
         Ok(record)
     }

@@ -1,7 +1,5 @@
 //! BAM record builder.
 
-use std::{error, fmt};
-
 use noodles_core::Position;
 use noodles_sam as sam;
 
@@ -34,13 +32,12 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_reference_sequence_id(ReferenceSequenceId::from(1))
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(
     ///     record.reference_sequence_id(),
     ///     Some(ReferenceSequenceId::from(1))
     /// );
-    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_reference_sequence_id(mut self, reference_sequence_id: ReferenceSequenceId) -> Self {
         self.reference_sequence_id = Some(reference_sequence_id);
@@ -59,10 +56,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_position(Position::try_from(8)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.position(), Position::new(8));
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
         self.position = Some(position);
@@ -79,10 +76,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.mapping_quality().map(u8::from), Some(34));
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);
@@ -99,10 +96,9 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
-    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_flags(mut self, flags: sam::record::Flags) -> Self {
         self.flags = flags;
@@ -118,13 +114,12 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_mate_reference_sequence_id(ReferenceSequenceId::from(1))
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(
     ///     record.mate_reference_sequence_id(),
     ///     Some(ReferenceSequenceId::from(1))
     /// );
-    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_mate_reference_sequence_id(
         mut self,
@@ -144,10 +139,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_mate_position(Position::try_from(13)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.mate_position(), Position::new(13));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
         self.mate_position = Some(mate_position);
@@ -161,9 +156,8 @@ impl Builder {
     /// ```
     /// use noodles_bam as bam;
     /// use noodles_sam::AlignmentRecord;
-    /// let record = bam::Record::builder().set_template_length(144).build()?;
+    /// let record = bam::Record::builder().set_template_length(144).build();
     /// assert_eq!(record.template_length(), 144);
-    /// # Ok::<_, bam::record::builder::BuildError>(())
     /// ```
     pub fn set_template_length(mut self, template_length: i32) -> Self {
         self.template_length = template_length;
@@ -182,10 +176,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_read_name(read_name.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_sam::record::read_name::ParseError>(())
     /// ```
     pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
         self.read_name = Some(read_name);
@@ -204,10 +198,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_cigar(cigar.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, Box<dyn std::error::Error>>(())
+    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn set_cigar(mut self, cigar: sam::record::Cigar) -> Self {
         self.cigar = cigar;
@@ -226,10 +220,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_sequence(sequence.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: sam::record::Sequence) -> Self {
         self.sequence = sequence;
@@ -248,10 +242,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_quality_scores(quality_scores.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
         self.quality_scores = quality_scores;
@@ -270,10 +264,10 @@ impl Builder {
     ///
     /// let record = bam::Record::builder()
     ///     .set_data(data.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.data(), &data);
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
     pub fn set_data(mut self, data: sam::record::Data) -> Self {
         self.data = data;
@@ -286,11 +280,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::Record::builder().build()?;
-    /// # Ok::<_, bam::record::builder::BuildError>(())
+    /// let record = bam::Record::builder().build();
     /// ```
-    pub fn build(self) -> Result<Record, BuildError> {
-        Ok(Record {
+    pub fn build(self) -> Record {
+        Record {
             reference_sequence_id: self.reference_sequence_id,
             position: self.position,
             mapping_quality: self.mapping_quality,
@@ -303,7 +296,7 @@ impl Builder {
             sequence: self.sequence,
             quality_scores: self.quality_scores,
             data: self.data,
-        })
+        }
     }
 }
 
@@ -322,23 +315,6 @@ impl Default for Builder {
             sequence: sam::record::Sequence::default(),
             quality_scores: sam::record::QualityScores::default(),
             data: sam::record::Data::default(),
-        }
-    }
-}
-
-/// An error returned when a BAM record fails to build.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum BuildError {
-    /// The CIGAR is invalid.
-    InvalidCigar,
-}
-
-impl error::Error for BuildError {}
-
-impl fmt::Display for BuildError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidCigar => f.write_str("invalid CIGAR"),
         }
     }
 }

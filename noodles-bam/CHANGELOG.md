@@ -87,6 +87,10 @@
 
     Use `sam::record::Data` instead.
 
+  * bam/record/builder: Remove `BuildError`.
+
+    This is no longer used.
+
   * bam/record/data/field: Remove `Value`, `value::Type`, and `value::Subtype`.
 
     Use `sam::record::data::field::Value`,

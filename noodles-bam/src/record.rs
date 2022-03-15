@@ -61,8 +61,7 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let builder = bam::Record::builder();
-    /// let record = builder.build()?;
-    /// # Ok::<(), bam::record::builder::BuildError>(())
+    /// let record = builder.build();
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
@@ -472,20 +471,7 @@ fn get_reference_sequence(
 
 impl Default for Record {
     fn default() -> Self {
-        Self {
-            reference_sequence_id: None,
-            position: None,
-            mapping_quality: None,
-            flags: sam::record::Flags::UNMAPPED,
-            mate_reference_sequence_id: None,
-            mate_position: None,
-            template_length: 0,
-            read_name: None,
-            cigar: sam::record::Cigar::default(),
-            sequence: sam::record::Sequence::default(),
-            quality_scores: sam::record::QualityScores::default(),
-            data: sam::record::Data::default(),
-        }
+        Self::builder().build()
     }
 }
 

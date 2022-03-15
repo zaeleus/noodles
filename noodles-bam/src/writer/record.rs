@@ -337,13 +337,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{
-            data::{
-                field::{Tag, Value},
-                Field,
-            },
-            Data, Flags, MappingQuality,
-        };
+        use sam::record::{Flags, MappingQuality};
 
         use crate::record::ReferenceSequenceId;
 
@@ -361,11 +355,8 @@ mod tests {
             .set_cigar("36M8S".parse()?)
             .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
-            .set_data(Data::try_from(vec![Field::new(
-                Tag::AlignmentHitCount,
-                Value::UInt8(1),
-            )])?)
-            .build()?;
+            .set_data("NH:i:1".parse()?)
+            .build();
 
         let mut buf = Vec::new();
         encode_record(&mut buf, &record)?;
