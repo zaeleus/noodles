@@ -8,7 +8,7 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{self as sam, record::sequence::Base, AlignmentRecord};
 
-use super::sam_record::NULL_QUALITY_SCORE;
+use super::alignment_record::NULL_QUALITY_SCORE;
 use crate::{record::ReferenceSequenceId, Record};
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which

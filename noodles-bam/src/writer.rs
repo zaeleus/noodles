@@ -1,5 +1,5 @@
+pub(crate) mod alignment_record;
 pub(crate) mod record;
-pub(crate) mod sam_record;
 
 use std::{
     ffi::CString,
@@ -13,7 +13,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use self::{record::encode_record, sam_record::encode_sam_record};
+use self::{alignment_record::encode_alignment_record, record::encode_record};
 use super::Record;
 
 /// A BAM writer.
@@ -30,12 +30,12 @@ use super::Record;
 ///
 /// let mut writer = bam::Writer::new(Vec::new());
 ///
-/// let header = sam::Header::builder().add_comment("noodles-bam").build();
+/// let header = sam::Header::default();
 /// writer.write_header(&header)?;
 /// writer.write_reference_sequences(header.reference_sequences())?;
 ///
-/// let record = sam::Record::default();
-/// writer.write_sam_record(header.reference_sequences(), &record)?;
+/// let record = bam::Record::default();
+/// writer.write_record(&record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Writer<W> {
@@ -162,6 +162,7 @@ where
 
     /// Writes a SAM record.
     ///
+    ///
     /// # Examples
     ///
     /// ```
@@ -171,17 +172,47 @@ where
     ///
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
-    /// let reference_sequences = sam::header::ReferenceSequences::new();
+    /// let header = sam::Header::default();
     /// let record = sam::Record::default();
-    /// writer.write_sam_record(&reference_sequences, &record)?;
+    /// writer.write_sam_record(header.reference_sequences(), &record)?;
     /// # Ok::<(), io::Error>(())
-    /// ```
+    #[deprecated(
+        since = "0.17.0",
+        note = "Use `Writer::write_alignment_record` instead."
+    )]
     pub fn write_sam_record(
         &mut self,
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        encode_sam_record(&mut self.buf, reference_sequences, record)?;
+        self.write_alignment_record(reference_sequences, record)
+    }
+
+    /// Writes an alignment record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::Writer::new(Vec::new());
+    ///
+    /// let header = sam::Header::default();
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(header.reference_sequences(), &record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn write_alignment_record<R>(
+        &mut self,
+        reference_sequences: &ReferenceSequences,
+        record: &R,
+    ) -> io::Result<()>
+    where
+        R: sam::AlignmentRecord,
+    {
+        encode_alignment_record(&mut self.buf, reference_sequences, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -357,12 +388,12 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
         let sam_record = sam::Record::default();
-        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -387,7 +418,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record_with_sequence_length_less_than_quality_scores_length(
+    fn test_write_alignment_record_with_sequence_length_less_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -397,14 +428,14 @@ mod tests {
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer
-            .write_sam_record(header.reference_sequences(), &record)
+            .write_alignment_record(header.reference_sequences(), &record)
             .is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_write_sam_record_with_sequence_length_greater_than_quality_scores_length(
+    fn test_write_alignment_record_with_sequence_length_greater_than_quality_scores_length(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -416,14 +447,14 @@ mod tests {
         *record.quality_scores_mut() = "ND".parse()?;
 
         assert!(writer
-            .write_sam_record(header.reference_sequences(), &record)
+            .write_alignment_record(header.reference_sequences(), &record)
             .is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_write_sam_record_with_no_sequence_and_with_quality_scores(
+    fn test_write_alignment_record_with_no_sequence_and_with_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -432,14 +463,14 @@ mod tests {
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer
-            .write_sam_record(header.reference_sequences(), &record)
+            .write_alignment_record(header.reference_sequences(), &record)
             .is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_write_sam_record_with_sequence_and_no_quality_scores(
+    fn test_write_alignment_record_with_sequence_and_no_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -448,7 +479,7 @@ mod tests {
             .set_sequence("ATCG".parse()?)
             .build()?;
 
-        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -465,7 +496,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record_with_sequence_and_quality_scores(
+    fn test_write_alignment_record_with_sequence_and_quality_scores(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
@@ -475,7 +506,7 @@ mod tests {
             .set_quality_scores("NDLS".parse()?)
             .build()?;
 
-        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -492,7 +523,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_sam_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::record::data::{
             field::{Tag, Value},
             Field,
@@ -508,7 +539,7 @@ mod tests {
             ])?)
             .build()?;
 
-        writer.write_sam_record(header.reference_sequences(), &sam_record)?;
+        writer.write_alignment_record(header.reference_sequences(), &sam_record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());

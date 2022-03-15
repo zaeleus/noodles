@@ -11,16 +11,22 @@ use super::record::{
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 pub(crate) const NULL_QUALITY_SCORE: u8 = 255;
 
-pub fn encode_sam_record<B>(
+pub fn encode_alignment_record<B, R>(
     dst: &mut B,
     reference_sequences: &ReferenceSequences,
-    record: &sam::Record,
+    record: &R,
 ) -> io::Result<()>
 where
     B: BufMut,
+    R: AlignmentRecord,
 {
     // ref_id
-    put_reference_sequence_id(dst, reference_sequences, record.reference_sequence_name())?;
+    let reference_sequence_name = record
+        .reference_sequence(reference_sequences)
+        .transpose()?
+        .map(|rs| rs.name());
+
+    put_reference_sequence_id(dst, reference_sequences, reference_sequence_name)?;
 
     // pos
     put_position(dst, record.alignment_start())?;
@@ -45,11 +51,12 @@ where
     dst.put_u32_le(l_seq);
 
     // next_ref_id
-    put_reference_sequence_id(
-        dst,
-        reference_sequences,
-        record.mate_reference_sequence_name(),
-    )?;
+    let mate_reference_sequence_name = record
+        .mate_reference_sequence(reference_sequences)
+        .transpose()?
+        .map(|rs| rs.name());
+
+    put_reference_sequence_id(dst, reference_sequences, mate_reference_sequence_name)?;
 
     // next_pos
     put_position(dst, record.mate_alignment_start())?;

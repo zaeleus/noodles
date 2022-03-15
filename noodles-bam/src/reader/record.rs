@@ -312,7 +312,7 @@ where
 }
 
 fn is_missing_quality_scores(buf: &[u8]) -> bool {
-    use crate::writer::sam_record::NULL_QUALITY_SCORE;
+    use crate::writer::alignment_record::NULL_QUALITY_SCORE;
 
     buf.iter().all(|&b| b == NULL_QUALITY_SCORE)
 }

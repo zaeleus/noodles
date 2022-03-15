@@ -11,6 +11,8 @@
 
   * bam/record/sequence: Add `clear` method.
 
+  * bam/writer: Add alignment record writer (`Writer::write_alignment_record`).
+
 ### Changed
 
   * bam/record: Move `cigar`, `data`, `flags`, `mapping_quality`,
@@ -43,6 +45,12 @@
   * bam/reader/record/data/field/value: Rename `read_value` to `get_value`.
 
     This now takes a buffer instead of a reader.
+
+### Deprecated
+
+  * bam/writer: Deprecate `Writer::write_sam_record`.
+
+    Use `Writer::write_alignment_record` instead.
 
 ### Fixed
 

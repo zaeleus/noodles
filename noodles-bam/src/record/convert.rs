@@ -25,10 +25,12 @@ impl Record {
         reference_sequences: &sam::header::ReferenceSequences,
         sam_record: &sam::Record,
     ) -> io::Result<Self> {
-        use crate::{reader::record::decode_record, writer::sam_record::encode_sam_record};
+        use crate::{
+            reader::record::decode_record, writer::alignment_record::encode_alignment_record,
+        };
 
         let mut buf = Vec::new();
-        encode_sam_record(&mut buf, reference_sequences, sam_record)?;
+        encode_alignment_record(&mut buf, reference_sequences, sam_record)?;
 
         let mut reader = &buf[..];
         let mut record = Self::default();

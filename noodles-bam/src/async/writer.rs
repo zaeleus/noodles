@@ -9,7 +9,7 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::{
-    writer::{record::encode_record, sam_record::encode_sam_record},
+    writer::{alignment_record::encode_alignment_record, record::encode_record},
     Record,
 };
 
@@ -188,7 +188,7 @@ where
         reference_sequences: &sam::header::ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
-        encode_sam_record(&mut self.buf, reference_sequences, record)?;
+        encode_alignment_record(&mut self.buf, reference_sequences, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
