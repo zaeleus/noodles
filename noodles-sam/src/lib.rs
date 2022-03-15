@@ -36,14 +36,16 @@ mod r#async;
 
 mod alignment_reader;
 mod alignment_record;
+mod alignment_writer;
 pub mod header;
 pub mod reader;
 pub mod record;
 mod writer;
 
 pub use self::{
-    alignment_reader::AlignmentReader, alignment_record::AlignmentRecord, header::Header,
-    reader::Reader, record::Record, writer::Writer,
+    alignment_reader::AlignmentReader, alignment_record::AlignmentRecord,
+    alignment_writer::AlignmentWriter, header::Header, reader::Reader, record::Record,
+    writer::Writer,
 };
 
 #[cfg(feature = "async")]

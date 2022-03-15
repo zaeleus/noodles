@@ -15,7 +15,7 @@ use std::{
 
 use fasta::repository::adapters::IndexedReader;
 use noodles_fasta::{self as fasta, fai};
-use noodles_sam as sam;
+use noodles_sam::{self as sam, AlignmentWriter};
 use noodles_util::alignment;
 
 fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf

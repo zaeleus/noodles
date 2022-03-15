@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{AlignmentRecord, Header, Record};
+use super::{AlignmentRecord, AlignmentWriter, Header, Record};
 
 /// A SAM writer.
 ///
@@ -130,9 +130,17 @@ where
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         writeln!(self.inner, "{}", record)
     }
+}
 
-    /// Writes an alignment record.
-    pub fn write_alignment_record<R>(&mut self, header: &Header, record: &R) -> io::Result<()>
+impl<W> AlignmentWriter for Writer<W>
+where
+    W: Write,
+{
+    fn write_alignment_header(&mut self, header: &Header) -> io::Result<()> {
+        self.write_header(header)
+    }
+
+    fn write_alignment_record<R>(&mut self, header: &Header, record: &R) -> io::Result<()>
     where
         R: AlignmentRecord,
     {

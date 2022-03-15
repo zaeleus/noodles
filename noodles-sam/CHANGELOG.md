@@ -6,7 +6,11 @@
 
   * sam: Add an alignment reader trait (`AlignmentReader`).
 
-    This is a generalization over SAM-like alignment formats.
+    This is a generalization for reading SAM-like alignment formats.
+
+  * sam: Add an alignment writer trait (`AlignmentWriter`).
+
+    This is a generalization for writing SAM-like alignment formats.
 
   * sam/alignment_record: Add alignment record fields:
 
