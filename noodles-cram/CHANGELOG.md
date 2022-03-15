@@ -6,6 +6,8 @@
 
   * cram/reader: Implement `sam::AlignmentReader`.
 
+  * cram/record: Add conversion from an alignment record to a CRAM record.
+
   * cram/record/features: Add conversion from SAM CIGAR operations.
 
 ### Changed

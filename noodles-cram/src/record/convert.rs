@@ -1,11 +1,85 @@
 use std::io;
 
-use noodles_bam::record::ReferenceSequenceId;
+use noodles_bam as bam;
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{resolve::resolve_features, Record};
+use super::{resolve::resolve_features, Features, Record};
 
 impl Record {
+    /// Converts an alignment record to a CRAM record.
+    pub fn try_from_alignment_record<R>(header: &sam::Header, record: &R) -> io::Result<Self>
+    where
+        R: AlignmentRecord,
+    {
+        let mut builder = Self::builder();
+
+        builder = builder.set_bam_flags(record.flags());
+
+        // CRAM flags
+
+        if let Some(reference_sequence) = record
+            .reference_sequence(header.reference_sequences())
+            .transpose()?
+        {
+            let reference_sequence_id =
+                get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
+            builder = builder.set_reference_sequence_id(reference_sequence_id);
+        }
+
+        builder = builder.set_read_length(record.sequence().len());
+
+        if let Some(alignment_start) = record.alignment_start() {
+            builder = builder.set_alignment_start(alignment_start);
+        }
+
+        if let Some(read_group_id) = get_read_group_id(header.read_groups(), record.data())? {
+            builder = builder.set_read_group_id(read_group_id);
+        }
+
+        if let Some(read_name) = record.read_name() {
+            builder = builder.set_read_name(read_name.clone());
+        }
+
+        // next mate bit flags
+
+        if let Some(reference_sequence) = record
+            .mate_reference_sequence(header.reference_sequences())
+            .transpose()?
+        {
+            let reference_sequence_id =
+                get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
+            builder = builder.set_next_fragment_reference_sequence_id(reference_sequence_id);
+        }
+
+        if let Some(mate_alignment_start) = record.mate_alignment_start() {
+            builder = builder.set_next_mate_alignment_start(mate_alignment_start);
+        }
+
+        builder = builder.set_template_size(record.template_length());
+
+        // distance to next fragment
+
+        if !record.data().is_empty() {
+            use sam::record::data::field::Tag;
+            let mut data = record.data().clone();
+            data.remove(Tag::ReadGroup);
+            builder = builder.set_tags(data);
+        }
+
+        builder = builder.set_bases(record.sequence().clone());
+
+        let features = Features::from_cigar(record.cigar(), record.sequence());
+        builder = builder.set_features(features);
+
+        if let Some(mapping_quality) = record.mapping_quality() {
+            builder = builder.set_mapping_quality(mapping_quality);
+        }
+
+        builder = builder.set_quality_scores(record.quality_scores().clone());
+
+        Ok(builder.build())
+    }
+
     /// Converts this CRAM record to a SAM record.
     ///
     /// This assumes this record is fully resolved.
@@ -67,9 +141,48 @@ impl Record {
     }
 }
 
+fn get_reference_sequence_id(
+    reference_sequences: &sam::header::ReferenceSequences,
+    reference_sequence: &sam::header::ReferenceSequence,
+) -> io::Result<bam::record::ReferenceSequenceId> {
+    reference_sequences
+        .get_index_of(reference_sequence.name().as_str())
+        .map(bam::record::ReferenceSequenceId::from)
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid reference sequence name",
+            )
+        })
+}
+
+fn get_read_group_id(
+    read_groups: &sam::header::ReadGroups,
+    data: &sam::record::Data,
+) -> io::Result<Option<usize>> {
+    use sam::record::data::field::Tag;
+
+    let rg = match data.get(Tag::ReadGroup) {
+        Some(field) => field,
+        None => return Ok(None),
+    };
+
+    let read_group_name = rg.value().as_str().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid read group field value",
+        )
+    })?;
+
+    read_groups
+        .get_index_of(read_group_name)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group name"))
+        .map(Some)
+}
+
 fn get_reference_sequence_name(
     reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence_id: Option<ReferenceSequenceId>,
+    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
 ) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
     reference_sequence_id
         .map(usize::from)
