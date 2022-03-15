@@ -294,6 +294,25 @@ where
     }
 }
 
+impl<'a, W> sam::AlignmentWriter for Writer<'a, W>
+where
+    W: Write,
+{
+    fn write_alignment_header(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.write_file_definition()?;
+        self.write_file_header(header)?;
+        Ok(())
+    }
+
+    fn write_alignment_record<R>(&mut self, header: &sam::Header, record: &R) -> io::Result<()>
+    where
+        R: sam::AlignmentRecord,
+    {
+        let r = Record::try_from_alignment_record(header, record)?;
+        self.write_record(r)
+    }
+}
+
 fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
 where
     W: Write,

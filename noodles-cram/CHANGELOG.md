@@ -10,6 +10,8 @@
 
   * cram/record/features: Add conversion from SAM CIGAR operations.
 
+  * cram/writer: Implement `sam::AlignmentWriter`.
+
 ### Changed
 
   * cram/record: Move `mapping_quality`, `read_name`, and `quality_scores` to
