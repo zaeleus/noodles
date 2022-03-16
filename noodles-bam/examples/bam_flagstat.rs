@@ -143,8 +143,8 @@ fn print_stats(qc_pass_counts: &Counts, qc_fail_counts: &Counts) {
         "{} + {} primary mapped ({} : {})",
         qc_pass_counts.primary_mapped,
         qc_fail_counts.primary_mapped,
-        PercentageFormat(qc_pass_counts.primary_mapped, qc_pass_counts.read),
-        PercentageFormat(qc_fail_counts.primary_mapped, qc_fail_counts.read)
+        PercentageFormat(qc_pass_counts.primary_mapped, qc_pass_counts.primary),
+        PercentageFormat(qc_fail_counts.primary_mapped, qc_fail_counts.primary)
     );
     println!(
         "{} + {} paired in sequencing",
