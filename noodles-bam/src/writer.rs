@@ -250,7 +250,9 @@ where
     W: Write,
 {
     fn write_alignment_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.write_header(header)
+        self.write_header(header)?;
+        self.write_reference_sequences(header.reference_sequences())?;
+        Ok(())
     }
 
     fn write_alignment_record(
