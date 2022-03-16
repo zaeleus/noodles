@@ -304,10 +304,11 @@ where
         Ok(())
     }
 
-    fn write_alignment_record<R>(&mut self, header: &sam::Header, record: &R) -> io::Result<()>
-    where
-        R: sam::AlignmentRecord,
-    {
+    fn write_alignment_record(
+        &mut self,
+        header: &sam::Header,
+        record: &dyn sam::AlignmentRecord,
+    ) -> io::Result<()> {
         let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(r)
     }

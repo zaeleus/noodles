@@ -9,7 +9,7 @@ impl Record {
     /// Converts an alignment record to a CRAM record.
     pub fn try_from_alignment_record<R>(header: &sam::Header, record: &R) -> io::Result<Self>
     where
-        R: AlignmentRecord,
+        R: AlignmentRecord + ?Sized,
     {
         let mut builder = Self::builder();
 

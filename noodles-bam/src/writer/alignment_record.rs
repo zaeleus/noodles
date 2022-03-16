@@ -18,7 +18,7 @@ pub fn encode_alignment_record<B, R>(
 ) -> io::Result<()>
 where
     B: BufMut,
-    R: AlignmentRecord,
+    R: AlignmentRecord + ?Sized,
 {
     // ref_id
     let reference_sequence_name = record

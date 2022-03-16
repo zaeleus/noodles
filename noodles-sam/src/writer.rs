@@ -140,10 +140,11 @@ where
         self.write_header(header)
     }
 
-    fn write_alignment_record<R>(&mut self, header: &Header, record: &R) -> io::Result<()>
-    where
-        R: AlignmentRecord,
-    {
+    fn write_alignment_record(
+        &mut self,
+        header: &Header,
+        record: &dyn AlignmentRecord,
+    ) -> io::Result<()> {
         const MISSING: &str = "*";
         const EQ: &str = "=";
 

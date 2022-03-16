@@ -253,10 +253,11 @@ where
         self.write_header(header)
     }
 
-    fn write_alignment_record<R>(&mut self, header: &sam::Header, record: &R) -> io::Result<()>
-    where
-        R: sam::AlignmentRecord,
-    {
+    fn write_alignment_record(
+        &mut self,
+        header: &sam::Header,
+        record: &dyn sam::AlignmentRecord,
+    ) -> io::Result<()> {
         encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
 
         let block_size = u32::try_from(self.buf.len())
