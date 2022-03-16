@@ -423,7 +423,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = sam::Record::builder().set_sequence("AT".parse()?).build()?;
+        let mut record = sam::Record::builder().set_sequence("AT".parse()?).build();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -438,9 +438,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = sam::Record::builder()
-            .set_sequence("ATCG".parse()?)
-            .build()?;
+        let mut record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
         *record.quality_scores_mut() = "ND".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -468,9 +466,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::builder()
-            .set_sequence("ATCG".parse()?)
-            .build()?;
+        let sam_record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
 
         writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
@@ -497,7 +493,7 @@ mod tests {
         let sam_record = sam::Record::builder()
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("NDLS".parse()?)
-            .build()?;
+            .build();
 
         writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;
@@ -530,7 +526,7 @@ mod tests {
                 Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
                 Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),
             ])?)
-            .build()?;
+            .build();
 
         writer.write_alignment_record(&header, &sam_record)?;
         writer.try_finish()?;

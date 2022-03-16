@@ -217,28 +217,30 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::record::{
-        data::{self, Field},
-        Data,
-    };
-
     use super::*;
 
     #[test]
     fn test_write_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
+        use crate::record::{
+            data::{
+                field::{Tag, Value},
+                Field,
+            },
+            Data,
+        };
+
         let mut writer = Writer::new(vec![]);
 
         let data = Data::try_from(vec![Field::new(
-            data::field::Tag::ReadGroup,
-            data::field::Value::String(String::from("rg0")),
+            Tag::ReadGroup,
+            Value::String(String::from("rg0")),
         )])?;
 
-        let record = Record::builder().set_data(data).build()?;
+        let record = Record::builder().set_data(data).build();
 
         writer.write_record(&record)?;
 
         let expected = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0\n";
-
         assert_eq!(&writer.get_ref()[..], &expected[..]);
 
         Ok(())

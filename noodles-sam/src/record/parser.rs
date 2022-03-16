@@ -11,6 +11,7 @@ use super::{
     reference_sequence_name::{self, ReferenceSequenceName},
     sequence, Field, Flags, Record, EQ_FIELD, NULL_FIELD,
 };
+use crate::AlignmentRecord;
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
@@ -87,8 +88,6 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
-    use super::builder::BuildError;
-
     let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
     let mut builder = Record::builder();
@@ -146,15 +145,37 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_data(data);
     }
 
-    match builder.build() {
-        Ok(r) => Ok(r),
-        Err(BuildError::SequenceLengthMismatch(sequence_len, cigar_read_len)) => Err(
-            ParseError::SequenceLengthMismatch(sequence_len, cigar_read_len),
-        ),
-        Err(BuildError::QualityScoresLengthMismatch(quality_scores_len, sequence_len)) => Err(
-            ParseError::QualityScoresLengthMismatch(quality_scores_len, sequence_len),
-        ),
+    let record = builder.build();
+
+    // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
+    // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
+    if !record.flags().is_unmapped() && !record.sequence().is_empty() {
+        let sequence_len = record.sequence().len();
+        let cigar_read_len = record.cigar().read_len();
+
+        if sequence_len != cigar_read_len {
+            return Err(ParseError::SequenceLengthMismatch(
+                sequence_len,
+                cigar_read_len,
+            ));
+        }
     }
+
+    // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ` must
+    // not be a '*' and the length of the quality string ought to equal the length of `SEQ`."
+    if !record.quality_scores().is_empty() {
+        let quality_scores_len = record.quality_scores().len();
+        let sequence_len = record.sequence().len();
+
+        if quality_scores_len != sequence_len {
+            return Err(ParseError::QualityScoresLengthMismatch(
+                quality_scores_len,
+                sequence_len,
+            ));
+        }
+    }
+
+    Ok(record)
 }
 
 fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<&'a str, ParseError>

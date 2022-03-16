@@ -40,7 +40,7 @@ pub trait AlignmentRecord {
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(8)?)
     ///     .set_cigar("5M".parse()?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.alignment_end(), Position::new(12));
     /// # Ok::<_, Box<dyn std::error::Error>>(())

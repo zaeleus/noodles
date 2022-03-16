@@ -1,41 +1,11 @@
 //! SAM record builder.
 
-use std::{error, fmt};
-
 use noodles_core::Position;
 
 use super::{
     Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Record, ReferenceSequenceName,
     Sequence,
 };
-
-/// An error returned when a SAM record fails to build.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum BuildError {
-    /// The sequence length does not match the CIGAR string read length.
-    SequenceLengthMismatch(usize, usize),
-    /// The quality scores length does not match the sequence length.
-    QualityScoresLengthMismatch(usize, usize),
-}
-
-impl error::Error for BuildError {}
-
-impl fmt::Display for BuildError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::SequenceLengthMismatch(sequence_len, cigar_read_len) => write!(
-                f,
-                "sequence length mismatch: expected {}, got {}",
-                cigar_read_len, sequence_len
-            ),
-            Self::QualityScoresLengthMismatch(quality_scores_len, sequence_len) => write!(
-                f,
-                "quality scores length mismatch: expected {}, got {}",
-                sequence_len, quality_scores_len
-            ),
-        }
-    }
-}
 
 /// A SAM record builder.
 #[derive(Debug)]
@@ -79,10 +49,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// Ok::<(), sam::record::read_name::ParseError>(())
     /// ```
     pub fn set_read_name(mut self, read_name: ReadName) -> Self {
         self.read_name = Some(read_name);
@@ -98,10 +68,9 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
-    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn set_flags(mut self, flags: Flags) -> Self {
         self.flags = flags;
@@ -117,10 +86,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_reference_sequence_name("sq0".parse()?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn set_reference_sequence_name(
         mut self,
@@ -142,10 +111,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.position(), Position::new(13));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
         self.position = Some(position);
@@ -161,10 +130,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.mapping_quality().map(u8::from), Some(34));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), sam::record::mapping_quality::ParseError>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);
@@ -182,10 +151,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_cigar(cigar.clone())
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// Ok::<(), sam::record::cigar::ParseError>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
         self.cigar = cigar;
@@ -203,10 +172,13 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
-    ///     .build()?;
+    ///     .build();
     ///
-    /// assert_eq!(record.mate_reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(
+    ///     record.mate_reference_sequence_name().map(|name| name.as_str()),
+    ///     Some("sq0")
+    /// );
+    /// Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn set_mate_reference_sequence_name(
         mut self,
@@ -226,10 +198,10 @@ impl Builder {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_position(Position::try_from(21)?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.mate_position(), Position::new(21));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn set_mate_position(mut self, mate_position: Position) -> Self {
         self.mate_position = Some(mate_position);
@@ -242,9 +214,8 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam::{self as sam, AlignmentRecord};
-    /// let record = sam::Record::builder().set_template_length(36).build()?;
+    /// let record = sam::Record::builder().set_template_length(36).build();
     /// assert_eq!(record.template_length(), 36);
-    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn set_template_length(mut self, template_length: i32) -> Self {
         self.template_length = template_length;
@@ -256,21 +227,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     record::{sequence::Base, Sequence},
-    ///     AlignmentRecord,
-    /// };
+    /// use noodles_sam::{self as sam, record::Sequence, AlignmentRecord};
+    ///
+    /// let sequence: Sequence = "ACGT".parse()?;
     ///
     /// let record = sam::Record::builder()
-    ///     .set_cigar("4M".parse()?)
-    ///     .set_sequence("ACGT".parse()?)
-    ///     .set_quality_scores("NDLS".parse()?)
-    ///     .build()?;
+    ///     .set_sequence(sequence.clone())
+    ///     .build();
     ///
-    /// let sequence = Sequence::from(vec![Base::A, Base::C, Base::G, Base::T]);
     /// assert_eq!(record.sequence(), &sequence);
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// Ok::<(),  sam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {
         self.sequence = sequence;
@@ -282,19 +248,16 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::quality_scores::Score, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::QualityScores, AlignmentRecord};
+    ///
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
     /// let record = sam::Record::builder()
-    ///     .set_cigar("2M".parse()?)
-    ///     .set_sequence("AC".parse()?)
-    ///     .set_quality_scores("ND".parse()?)
-    ///     .build()?;
+    ///     .set_quality_scores(quality_scores.clone())
+    ///     .build();
     ///
-    /// assert_eq!(**record.quality_scores(), [
-    ///     Score::try_from('N')?,
-    ///     Score::try_from('D')?,
-    /// ]);
-    /// Ok::<(), Box<dyn std::error::Error>>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores);
+    /// Ok::<(), sam::record::quality_scores::ParseError>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;
@@ -307,16 +270,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam::{self as sam, record::Data, AlignmentRecord};
-    ///
-    /// let record = sam::Record::default();
-    /// assert!(record.data().is_empty());
-    ///
     /// let data: Data = "NH:i:1".parse()?;
-    ///
-    /// let record = sam::Record::builder().set_data(data.clone()).build()?;
-    ///
+    /// let record = sam::Record::builder().set_data(data.clone()).build();
     /// assert_eq!(record.data(), &data);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), sam::record::data::ParseError>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;
@@ -329,39 +286,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_sam as sam;
-    /// let record = sam::Record::builder().build()?;
-    /// # Ok::<(), sam::record::builder::BuildError>(())
+    /// let record = sam::Record::builder().build();
     /// ```
-    pub fn build(self) -> Result<Record, BuildError> {
-        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', the length of
-        // the sequence must equal the sum of lengths of `M/I/S/=/X` operations in `CIGAR`."
-        if !self.flags.is_unmapped() && !self.sequence.is_empty() {
-            let sequence_len = self.sequence.len();
-            let cigar_read_len = self.cigar.read_len();
-
-            if sequence_len != cigar_read_len {
-                return Err(BuildError::SequenceLengthMismatch(
-                    sequence_len,
-                    cigar_read_len,
-                ));
-            }
-        }
-
-        // § 1.4 The alignment section: mandatory fields (2021-06-03): "If not a '*', `SEQ` must
-        // not be a '*' and the length of the quality string ought to equal the length of `SEQ`."
-        if !self.quality_scores.is_empty() {
-            let quality_scores_len = self.quality_scores.len();
-            let sequence_len = self.sequence.len();
-
-            if quality_scores_len != sequence_len {
-                return Err(BuildError::QualityScoresLengthMismatch(
-                    quality_scores_len,
-                    sequence_len,
-                ));
-            }
-        }
-
-        Ok(Record {
+    pub fn build(self) -> Record {
+        Record {
             read_name: self.read_name,
             flags: self.flags,
             reference_sequence_name: self.reference_sequence_name,
@@ -374,7 +302,7 @@ impl Builder {
             sequence: self.sequence,
             quality_scores: self.quality_scores,
             data: self.data,
-        })
+        }
     }
 }
 
@@ -450,7 +378,7 @@ mod tests {
             .set_sequence(sequence.clone())
             .set_quality_scores(quality_scores.clone())
             .set_data(data)
-            .build()?;
+            .build();
 
         assert_eq!(record.read_name(), Some(&read_name));
         assert_eq!(record.flags(), Flags::SEGMENTED | Flags::FIRST_SEGMENT);
@@ -472,21 +400,6 @@ mod tests {
         assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
         assert_eq!(record.data().len(), 1);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_build_with_quality_scores_length_mismatch() -> Result<(), Box<dyn std::error::Error>> {
-        let builder = Builder::default()
-            .set_cigar("4M".parse()?)
-            .set_sequence("ACGT".parse()?)
-            .set_quality_scores("NDL".parse()?);
-
-        assert_eq!(
-            builder.build(),
-            Err(BuildError::QualityScoresLengthMismatch(3, 4))
-        );
 
         Ok(())
     }

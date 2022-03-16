@@ -135,9 +135,7 @@ impl Record {
         let data = build_data(header.read_groups(), self.tags(), self.read_group_id())?;
         builder = builder.set_data(data);
 
-        builder
-            .build()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Ok(builder.build())
     }
 }
 

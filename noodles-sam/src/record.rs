@@ -74,7 +74,7 @@ impl Record {
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
     ///     .set_flags(Flags::UNMAPPED)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
     /// assert_eq!(record.flags(), Flags::UNMAPPED);
@@ -116,14 +116,12 @@ impl Record {
     ///
     /// let mut record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
-    ///     .build()?;
+    ///     .build();
     /// record.flags_mut().set(Flags::DUPLICATE, true);
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1 | Flags::DUPLICATE);
     ///
     /// record.flags_mut().set(Flags::PAIRED | Flags::QC_FAIL, false);
     /// assert_eq!(record.flags(), Flags::READ_1 | Flags::DUPLICATE);
-    ///
-    /// # Ok::<(), sam::record::builder::BuildError>(())
     /// ```
     pub fn flags_mut(&mut self) -> &mut Flags {
         &mut self.flags
@@ -137,13 +135,17 @@ impl Record {
     /// use noodles_sam as sam;
     ///
     /// let record = sam::Record::default();
-    /// assert_eq!(record.reference_sequence_name(), None);
+    /// assert!(record.reference_sequence_name().is_none());
     ///
     /// let record = sam::Record::builder()
     ///     .set_reference_sequence_name("sq0".parse()?)
-    ///     .build()?;
-    /// assert_eq!(record.reference_sequence_name().map(|name| name.as_str()), Some("sq0"));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    ///     .build();
+    ///
+    /// assert_eq!(
+    ///     record.reference_sequence_name().map(|name| name.as_str()),
+    ///     Some("sq0")
+    /// );
+    /// # Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
         self.reference_sequence_name.as_ref()
@@ -183,9 +185,9 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_position(Position::try_from(13)?)
-    ///     .build()?;
+    ///     .build();
     /// assert_eq!(record.position(), Position::new(13));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn position(&self) -> Option<Position> {
         self.position
@@ -269,13 +271,13 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_reference_sequence_name("sq0".parse()?)
-    ///     .build()?;
+    ///     .build();
     ///
     /// assert_eq!(
     ///     record.mate_reference_sequence_name().map(|name| name.as_str()),
     ///     Some("sq0")
     /// );
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), sam::record::reference_sequence_name::ParseError>(())
     /// ```
     pub fn mate_reference_sequence_name(&self) -> Option<&ReferenceSequenceName> {
         self.mate_reference_sequence_name.as_ref()
@@ -315,9 +317,9 @@ impl Record {
     ///
     /// let record = sam::Record::builder()
     ///     .set_mate_position(Position::try_from(21)?)
-    ///     .build()?;
+    ///     .build();
     /// assert_eq!(record.mate_position(), Position::new(21));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// # Ok::<(), noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn mate_position(&self) -> Option<Position> {
         self.mate_position
@@ -657,12 +659,17 @@ mod tests {
 
     #[test]
     fn test_fmt_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        let data = Data::try_from(vec![data::Field::new(
-            data::field::Tag::ReadGroup,
-            data::field::Value::String(String::from("rg0")),
+        use super::data::{
+            field::{Tag, Value},
+            Field,
+        };
+
+        let data = Data::try_from(vec![Field::new(
+            Tag::ReadGroup,
+            Value::String(String::from("rg0")),
         )])?;
 
-        let record = Record::builder().set_data(data).build()?;
+        let record = Record::builder().set_data(data).build();
 
         assert_eq!(
             record.to_string(),

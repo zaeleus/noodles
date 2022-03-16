@@ -124,6 +124,10 @@
 
     Use `noodles_core::Position` instead.
 
+  * sam/record/builder: Remove `BuildError`.
+
+    This is no longer used.
+
   * sam/record/data/field/value: Remove `FromStr`.
 
     Use `Value::from_str_type` instead.

@@ -156,7 +156,7 @@ mod tests {
                 .set_flags(Flags::empty())
                 .set_position(Position::try_from(2)?)
                 .set_cigar("4M".parse()?)
-                .build()?,
+                .build(),
         )?;
 
         builder.add_record(
@@ -172,7 +172,7 @@ mod tests {
             &sam::Record::builder()
                 .set_position(Position::try_from(6)?)
                 .set_cigar("2M".parse()?)
-                .build()?,
+                .build(),
         )?;
 
         builder.add_record(

@@ -110,9 +110,7 @@ impl Record {
             builder = builder.set_data(self.data().clone());
         }
 
-        builder
-            .build()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Ok(builder.build())
     }
 }
 
@@ -182,14 +180,6 @@ mod tests {
 
     #[test]
     fn test_try_into_sam_record() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{
-            data::{
-                field::{Tag, Value},
-                Field,
-            },
-            Data,
-        };
-
         let bam_record = build_record()?;
         let reference_sequences = build_reference_sequences()?;
         let actual = bam_record.try_into_sam_record(&reference_sequences)?;
@@ -206,11 +196,8 @@ mod tests {
             .set_template_length(166)
             .set_sequence("ATGC".parse()?)
             .set_quality_scores("@>?A".parse()?)
-            .set_data(Data::try_from(vec![
-                Field::new(Tag::EditDistance, Value::UInt8(0)),
-                Field::new(Tag::Program, Value::String(String::from("SNAP"))),
-            ])?)
-            .build()?;
+            .set_data("NM:i:0\tPG:Z:SNAP".parse()?)
+            .build();
 
         assert_eq!(actual, expected);
 
