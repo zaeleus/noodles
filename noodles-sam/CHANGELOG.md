@@ -61,8 +61,8 @@
   * sam/record/read_name: Add conversions from `Into<Vec<u8>>`
     (`ReadName::try_new`) and to `Vec<u8>`.
 
-  * sam/record/sequence: Implement `AsRef<[Base]>` and `Index`/`IndexMut` with
-    `Position`.
+  * sam/record/sequence: Implement `AsRef<[Base]>`, `AsMut<Vec<Base>>`
+    and `Index`/`IndexMut` with `Position`.
 
   * sam/record/sequence: Add conversion from `Vec<u8>`.
 

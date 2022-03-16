@@ -138,6 +138,12 @@ impl AsRef<[Base]> for Sequence {
     }
 }
 
+impl AsMut<Vec<Base>> for Sequence {
+    fn as_mut(&mut self) -> &mut Vec<Base> {
+        &mut self.0
+    }
+}
+
 impl From<Vec<Base>> for Sequence {
     fn from(bases: Vec<Base>) -> Self {
         Self(bases)
