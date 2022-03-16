@@ -161,15 +161,15 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordErro
         return Err(TryFromRecordError::InvalidType);
     }
 
-    let number = it
+    let number: Number = it
         .next()
         .ok_or(TryFromRecordError::MissingField(NUMBER))
         .and_then(|(k, v)| match k.as_ref() {
-            NUMBER => Ok(v),
+            NUMBER => v.parse().map_err(|_| TryFromRecordError::InvalidNumber),
             _ => Err(TryFromRecordError::MissingField(NUMBER)),
         })?;
 
-    if number != "." {
+    if number != Number::Unknown {
         return Err(TryFromRecordError::InvalidNumber);
     }
 
