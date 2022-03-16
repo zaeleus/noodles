@@ -228,7 +228,7 @@ where
 {
     use sam::record::sequence::Base;
 
-    fn decode_bases(n: u8) -> [Base; 2] {
+    fn decode_base(n: u8) -> Base {
         static BASES: [Base; 16] = [
             Base::Eq,
             Base::A,
@@ -248,10 +248,7 @@ where
             Base::N,
         ];
 
-        let l = n >> 4;
-        let r = n & 0x0f;
-
-        [BASES[usize::from(l)], BASES[usize::from(r)]]
+        BASES[usize::from(n & 0x0f)]
     }
 
     let seq_len = (l_seq + 1) / 2;
@@ -261,18 +258,15 @@ where
     }
 
     let seq = buf.take(seq_len);
-    let bases = seq
-        .chunk()
-        .iter()
-        .copied()
-        .flat_map(decode_bases)
-        .take(l_seq);
 
     sequence.clear();
 
-    for base in bases {
-        sequence.push(base);
+    for &b in seq.chunk() {
+        sequence.push(decode_base(b >> 4));
+        sequence.push(decode_base(b));
     }
+
+    sequence.as_mut().truncate(l_seq);
 
     buf.advance(seq_len);
 
