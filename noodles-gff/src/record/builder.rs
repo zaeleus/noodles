@@ -1,3 +1,5 @@
+use noodles_core::Position;
+
 use super::{Attributes, Phase, Record, Strand, NULL_FIELD};
 
 /// A GFF record builder.
@@ -6,8 +8,8 @@ pub struct Builder {
     reference_sequence_name: String,
     source: String,
     ty: String,
-    start: i32,
-    end: i32,
+    start: Position,
+    end: Position,
     score: Option<f32>,
     strand: Strand,
     phase: Option<Phase>,
@@ -88,11 +90,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::Record::builder().set_start(8).build();
-    /// assert_eq!(record.start(), 8);
+    /// let start = Position::MIN;
+    /// let record = gff::Record::builder().set_start(start).build();
+    /// assert_eq!(record.start(), start);
     /// ```
-    pub fn set_start(mut self, start: i32) -> Self {
+    pub fn set_start(mut self, start: Position) -> Self {
         self.start = start;
         self
     }
@@ -102,11 +106,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::Record::builder().set_end(13).build();
-    /// assert_eq!(record.end(), 13);
+    /// let end = Position::MIN;
+    /// let record = gff::Record::builder().set_end(end).build();
+    /// assert_eq!(record.end(), end);
     /// ```
-    pub fn set_end(mut self, end: i32) -> Self {
+    pub fn set_end(mut self, end: Position) -> Self {
         self.end = end;
         self
     }
@@ -209,8 +215,8 @@ impl Default for Builder {
             reference_sequence_name: NULL_FIELD.into(),
             source: NULL_FIELD.into(),
             ty: NULL_FIELD.into(),
-            start: 1,
-            end: 1,
+            start: Position::MIN,
+            end: Position::MIN,
             score: None,
             strand: Strand::default(),
             phase: None,
@@ -232,8 +238,8 @@ mod tests {
         assert_eq!(record.reference_sequence_name, ".");
         assert_eq!(record.source, ".");
         assert_eq!(record.ty, ".");
-        assert_eq!(record.start, 1);
-        assert_eq!(record.end, 1);
+        assert_eq!(record.start, Position::MIN);
+        assert_eq!(record.end, Position::MIN);
         assert!(record.score.is_none());
         assert_eq!(record.strand, Strand::default());
         assert!(record.phase.is_none());
@@ -241,15 +247,15 @@ mod tests {
     }
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
         let attributes = Attributes::from(vec![Entry::new("gene_id", "ndls0")]);
 
         let record = Builder::new()
             .set_reference_sequence_name(String::from("sq0"))
             .set_source(String::from("NOODLES"))
             .set_type(String::from("CDS"))
-            .set_start(8)
-            .set_end(13)
+            .set_start(Position::try_from(8)?)
+            .set_end(Position::try_from(13)?)
             .set_score(21.0)
             .set_strand(Strand::Forward)
             .set_phase(Phase::Zero)
@@ -259,11 +265,13 @@ mod tests {
         assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.source(), "NOODLES");
         assert_eq!(record.ty(), "CDS");
-        assert_eq!(record.start(), 8);
-        assert_eq!(record.end(), 13);
+        assert_eq!(record.start(), Position::try_from(8)?);
+        assert_eq!(record.end(), Position::try_from(13)?);
         assert_eq!(record.score(), Some(21.0));
         assert_eq!(record.strand(), Strand::Forward);
         assert_eq!(record.phase(), Some(Phase::Zero));
         assert_eq!(record.attributes(), &attributes);
+
+        Ok(())
     }
 }

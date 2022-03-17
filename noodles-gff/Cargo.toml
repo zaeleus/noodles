@@ -11,4 +11,5 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gff"
 
 [dependencies]
+noodles-core = { path = "../noodles-core", version = "0.5.0" }
 percent-encoding = "2.1.0"

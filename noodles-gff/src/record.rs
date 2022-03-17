@@ -12,6 +12,8 @@ pub use self::{
 
 use std::{error, fmt, num, str::FromStr};
 
+use noodles_core::Position;
+
 pub(crate) const NULL_FIELD: &str = ".";
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 9;
@@ -22,8 +24,8 @@ pub struct Record {
     reference_sequence_name: String,
     source: String,
     ty: String,
-    start: i32,
-    end: i32,
+    start: Position,
+    end: Position,
     score: Option<f32>,
     strand: Strand,
     phase: Option<Phase>,
@@ -94,11 +96,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let record = gff::Record::default();
-    /// assert_eq!(record.start(), 1);
+    /// assert_eq!(record.start(), Position::MIN);
     /// ```
-    pub fn start(&self) -> i32 {
+    pub fn start(&self) -> Position {
         self.start
     }
 
@@ -109,11 +112,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let record = gff::Record::default();
-    /// assert_eq!(record.end(), 1);
+    /// assert_eq!(record.end(), Position::MIN);
     /// ```
-    pub fn end(&self) -> i32 {
+    pub fn end(&self) -> Position {
         self.end
     }
 
@@ -347,15 +351,15 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id=ndls0;gene_name=gene0";
         let record = s.parse::<Record>()?;
 
         assert_eq!(record.reference_sequence_name(), "sq0");
         assert_eq!(record.source(), "NOODLES");
         assert_eq!(record.ty(), "gene");
-        assert_eq!(record.start(), 8);
-        assert_eq!(record.end(), 13);
+        assert_eq!(record.start(), Position::try_from(8)?);
+        assert_eq!(record.end(), Position::try_from(13)?);
         assert_eq!(record.score(), None);
         assert_eq!(record.strand(), Strand::Forward);
         assert_eq!(record.phase(), None);
