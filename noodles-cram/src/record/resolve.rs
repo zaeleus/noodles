@@ -111,8 +111,7 @@ pub fn resolve_features(features: &Features, read_length: usize) -> sam::record:
     use noodles_sam::record::cigar::{op::Kind, Op};
 
     let mut ops = Vec::new();
-    // SAFETY: 1 is non-zero.
-    let mut read_position = Position::new(1).unwrap();
+    let mut read_position = Position::MIN;
 
     for feature in features.iter() {
         if usize::from(feature.position()) > usize::from(read_position) {

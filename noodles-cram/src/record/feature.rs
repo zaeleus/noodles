@@ -105,8 +105,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_code() -> Result<(), noodles_core::position::TryFromIntError> {
-        let position = Position::try_from(1)?;
+    fn test_code() {
+        let position = Position::MIN;
 
         assert_eq!(Feature::Bases(position, Vec::new()).code(), Code::Bases);
         assert_eq!(Feature::Scores(position, Vec::new()).code(), Code::Scores);
@@ -141,13 +141,11 @@ mod tests {
         );
         assert_eq!(Feature::Padding(position, 0).code(), Code::Padding);
         assert_eq!(Feature::HardClip(position, 0).code(), Code::HardClip);
-
-        Ok(())
     }
 
     #[test]
-    fn test_position() -> Result<(), noodles_core::position::TryFromIntError> {
-        let position = Position::try_from(1)?;
+    fn test_position() {
+        let position = Position::MIN;
 
         assert_eq!(Feature::Bases(position, Vec::new()).position(), position);
         assert_eq!(Feature::Scores(position, Vec::new()).position(), position);
@@ -170,7 +168,5 @@ mod tests {
         assert_eq!(Feature::SoftClip(position, Vec::new()).position(), position);
         assert_eq!(Feature::Padding(position, 0).position(), position);
         assert_eq!(Feature::HardClip(position, 0).position(), position);
-
-        Ok(())
     }
 }

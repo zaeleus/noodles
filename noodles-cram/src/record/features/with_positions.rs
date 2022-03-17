@@ -19,8 +19,7 @@ where
         Self {
             iter,
             reference_position: alignment_start,
-            // SAFETY: 1 is non-zero.
-            read_position: Position::new(1).unwrap(),
+            read_position: Position::MIN,
         }
     }
 

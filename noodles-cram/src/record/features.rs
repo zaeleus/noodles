@@ -54,9 +54,7 @@ fn cigar_to_features(cigar: &sam::record::Cigar, sequence: &sam::record::Sequenc
     use sam::record::{cigar::op::Kind, quality_scores::Score};
 
     let mut features = Features::default();
-
-    // SAFETY: 1 is non-zero.
-    let mut read_position = Position::new(1).unwrap();
+    let mut read_position = Position::MIN;
 
     for op in cigar.iter() {
         let feature = match op.kind() {
