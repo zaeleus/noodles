@@ -1,5 +1,8 @@
+mod record;
+
 use std::io::{self, Write};
 
+use self::record::write_sequence;
 use super::{AlignmentRecord, AlignmentWriter, Header, Record};
 
 /// A SAM writer.
@@ -192,7 +195,7 @@ where
 
         write!(
             self.inner,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}",
             qname = qname,
             flag = u16::from(record.flags()),
             rname = rname,
@@ -202,9 +205,11 @@ where
             rnext = rnext,
             pnext = pnext,
             tlen = record.template_length(),
-            seq = record.sequence(),
-            qual = record.quality_scores(),
         )?;
+
+        write_sequence(&mut self.inner, record.sequence())?;
+
+        write!(self.inner, "\t{}", record.quality_scores())?;
 
         if !record.data().is_empty() {
             write!(self.inner, "\t{}", record.data())?;
