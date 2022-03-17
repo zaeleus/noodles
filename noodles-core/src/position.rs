@@ -24,8 +24,12 @@ impl Position {
     /// assert!(Position::new(8).is_some());
     /// assert!(Position::new(0).is_none());
     /// ```
-    pub fn new(n: usize) -> Option<Self> {
-        NonZeroUsize::new(n).map(Self)
+    pub const fn new(n: usize) -> Option<Self> {
+        if let Some(m) = NonZeroUsize::new(n) {
+            Some(Self(m))
+        } else {
+            None
+        }
     }
 
     /// Adds an unsigned integer to a 1-based position.
