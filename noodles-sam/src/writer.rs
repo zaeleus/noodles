@@ -148,8 +148,9 @@ where
         header: &Header,
         record: &dyn AlignmentRecord,
     ) -> io::Result<()> {
-        const MISSING: &str = "*";
+        const DELIMITER: &[u8] = b"\t";
         const EQ: &str = "=";
+        const MISSING: &str = "*";
 
         let qname = record
             .read_name()
@@ -207,8 +208,12 @@ where
             tlen = record.template_length(),
         )?;
 
+        self.inner.write_all(DELIMITER)?;
         write_sequence(&mut self.inner, record.sequence())?;
+
+        self.inner.write_all(DELIMITER)?;
         write_quality_scores(&mut self.inner, record.quality_scores())?;
+
         write_data(&mut self.inner, record.data())?;
 
         writeln!(self.inner)?;
