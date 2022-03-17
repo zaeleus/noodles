@@ -1,3 +1,7 @@
+mod data;
+
+pub use self::data::write_data;
+
 use std::io::{self, Write};
 
 use crate::record::{QualityScores, Sequence};

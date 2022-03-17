@@ -2,7 +2,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_quality_scores, write_sequence};
+use self::record::{write_data, write_quality_scores, write_sequence};
 use super::{AlignmentRecord, AlignmentWriter, Header, Record};
 
 /// A SAM writer.
@@ -209,10 +209,7 @@ where
 
         write_sequence(&mut self.inner, record.sequence())?;
         write_quality_scores(&mut self.inner, record.quality_scores())?;
-
-        if !record.data().is_empty() {
-            write!(self.inner, "\t{}", record.data())?;
-        }
+        write_data(&mut self.inner, record.data())?;
 
         writeln!(self.inner)?;
 
