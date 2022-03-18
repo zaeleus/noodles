@@ -1,3 +1,5 @@
+use noodles_core::Position;
+
 use super::{Attributes, Frame, Record, Strand, NULL_FIELD};
 
 /// A GTF record builder.
@@ -6,8 +8,8 @@ pub struct Builder {
     reference_sequence_name: String,
     source: String,
     ty: String,
-    start: i32,
-    end: i32,
+    start: Position,
+    end: Position,
     score: Option<f32>,
     strand: Option<Strand>,
     frame: Option<Frame>,
@@ -71,11 +73,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::builder().set_start(8).build();
-    /// assert_eq!(record.start(), 8);
+    /// let start = Position::MIN;
+    /// let record = gtf::Record::builder().set_start(start).build();
+    /// assert_eq!(record.start(), start);
     /// ```
-    pub fn set_start(mut self, start: i32) -> Self {
+    pub fn set_start(mut self, start: Position) -> Self {
         self.start = start;
         self
     }
@@ -85,11 +89,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::builder().set_end(13).build();
-    /// assert_eq!(record.end(), 13);
+    /// let end = Position::MIN;
+    /// let record = gtf::Record::builder().set_end(end).build();
+    /// assert_eq!(record.end(), end);
     /// ```
-    pub fn set_end(mut self, end: i32) -> Self {
+    pub fn set_end(mut self, end: Position) -> Self {
         self.end = end;
         self
     }
@@ -182,8 +188,8 @@ impl Default for Builder {
             reference_sequence_name: NULL_FIELD.into(),
             source: NULL_FIELD.into(),
             ty: NULL_FIELD.into(),
-            start: 1,
-            end: 1,
+            start: Position::MIN,
+            end: Position::MIN,
             score: None,
             strand: None,
             frame: None,
@@ -203,8 +209,8 @@ mod tests {
         assert_eq!(builder.reference_sequence_name, ".");
         assert_eq!(builder.source, ".");
         assert_eq!(builder.ty, ".");
-        assert_eq!(builder.start, 1);
-        assert_eq!(builder.end, 1);
+        assert_eq!(builder.start, Position::MIN);
+        assert_eq!(builder.end, Position::MIN);
         assert!(builder.score.is_none());
         assert!(builder.strand.is_none());
         assert!(builder.frame.is_none());

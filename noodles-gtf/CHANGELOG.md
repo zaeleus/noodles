@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/record: Change start and end positions to `Position`.
+
 ## 0.2.0 - 2022-02-17
 
 ### Added

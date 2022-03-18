@@ -9,3 +9,6 @@ description = "Gene Transfer Format (GTF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gtf"
+
+[dependencies]
+noodles-core = { path = "../noodles-core", version = "0.5.0" }

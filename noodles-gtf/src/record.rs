@@ -9,6 +9,8 @@ pub use self::{attributes::Attributes, builder::Builder, frame::Frame, strand::S
 
 use std::{error, fmt, num, str::FromStr};
 
+use noodles_core::Position;
+
 pub(crate) const NULL_FIELD: &str = ".";
 
 /// A GTF record.
@@ -17,8 +19,8 @@ pub struct Record {
     reference_sequence_name: String,
     source: String,
     ty: String,
-    start: i32,
-    end: i32,
+    start: Position,
+    end: Position,
     score: Option<f32>,
     strand: Option<Strand>,
     frame: Option<Frame>,
@@ -88,11 +90,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
     /// let record = gtf::Record::default();
-    /// assert_eq!(record.start(), 1);
+    /// assert_eq!(record.start(), Position::MIN);
     /// ```
-    pub fn start(&self) -> i32 {
+    pub fn start(&self) -> Position {
         self.start
     }
 
@@ -103,11 +106,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
     /// let record = gtf::Record::default();
-    /// assert_eq!(record.end(), 1);
+    /// assert_eq!(record.end(), Position::MIN);
     /// ```
-    pub fn end(&self) -> i32 {
+    pub fn end(&self) -> Position {
         self.end
     }
 
@@ -371,13 +375,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), noodles_core::position::TryFromIntError> {
         let record = Record {
             reference_sequence_name: String::from("sq0"),
             source: String::from("NOODLES"),
             ty: String::from("gene"),
-            start: 8,
-            end: 13,
+            start: Position::try_from(8)?,
+            end: Position::try_from(13)?,
             score: None,
             strand: Some(Strand::Forward),
             frame: None,
@@ -391,10 +395,12 @@ mod tests {
         let expected = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), noodles_core::position::TryFromIntError> {
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
 
         assert_eq!(
@@ -403,8 +409,8 @@ mod tests {
                 reference_sequence_name: String::from("sq0"),
                 source: String::from("NOODLES"),
                 ty: String::from("gene"),
-                start: 8,
-                end: 13,
+                start: Position::try_from(8)?,
+                end: Position::try_from(13)?,
                 score: None,
                 strand: Some(Strand::Forward),
                 frame: None,
@@ -414,5 +420,7 @@ mod tests {
                 ])
             })
         );
+
+        Ok(())
     }
 }

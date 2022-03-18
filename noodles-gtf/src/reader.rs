@@ -98,6 +98,7 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
     ///
     /// let data = b"##format: gtf
@@ -108,7 +109,7 @@ where
     /// let mut records = reader.records();
     ///
     /// let record = records.next().transpose()?;
-    /// assert_eq!(record.map(|r| r.start()), Some(8));
+    /// assert_eq!(record.map(|r| r.start()), Position::new(8));
     /// // ...
     ///
     /// assert!(records.next().is_none());
