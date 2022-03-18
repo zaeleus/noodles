@@ -78,6 +78,9 @@
   * sam/record/quality_scores: Implement `AsRef<[Score]>` and
     `AsMut<Vec<Score>>`.
 
+  * sam/record/sequence: Add getting (`QualityScores::get`) and setting
+    (`QualityScores::get_mut`) a score by `Position`.
+
   * sam/record/quality_scores: Add `is_empty` and `len` methods.
 
   * sam/writer: Implement `AlignmentWriter`.

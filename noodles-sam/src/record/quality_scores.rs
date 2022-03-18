@@ -6,6 +6,8 @@ pub use self::score::Score;
 
 use std::{error, fmt, str::FromStr};
 
+use noodles_core::position::SequenceIndex;
+
 use super::NULL_FIELD;
 
 /// SAM record quality scores.
@@ -57,6 +59,55 @@ impl QualityScores {
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
+    }
+
+    /// Returns a reference to the score at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
+    ///
+    /// let i = Position::try_from(2)?;
+    /// assert_eq!(quality_scores.get(i), Some(&Score::try_from('D')?));
+    ///
+    /// let i = Position::try_from(8)?;
+    /// assert!(quality_scores.get(i).is_none());
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get<I>(&self, index: I) -> Option<&I::Output>
+    where
+        I: SequenceIndex<Score>,
+    {
+        index.get(self.0.as_ref())
+    }
+
+    /// Returns a mutable reference to the score at the given index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let mut quality_scores: QualityScores = "NDLS".parse()?;
+    ///
+    /// let i = Position::try_from(2)?;
+    /// if let Some(score) = quality_scores.get_mut(i) {
+    ///     *score = Score::try_from('!')?;
+    /// }
+    ///
+    /// assert_eq!(quality_scores.get(i), Some(&Score::try_from('!')?));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_mut<I>(&mut self, index: I) -> Option<&mut I::Output>
+    where
+        I: SequenceIndex<Score>,
+    {
+        index.get_mut(self.0.as_mut())
     }
 
     /// Appends a score.
