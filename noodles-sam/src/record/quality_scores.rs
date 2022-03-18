@@ -4,7 +4,11 @@ pub mod score;
 
 pub use self::score::Score;
 
-use std::{error, fmt, ops::Index, str::FromStr};
+use std::{
+    error, fmt,
+    ops::{Index, IndexMut},
+    str::FromStr,
+};
 
 use noodles_core::position::SequenceIndex;
 
@@ -206,6 +210,15 @@ where
 
     fn index(&self, index: I) -> &Self::Output {
         index.index(&self.0)
+    }
+}
+
+impl<I> IndexMut<I> for QualityScores
+where
+    I: SequenceIndex<Score>,
+{
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        index.index_mut(&mut self.0)
     }
 }
 

@@ -76,7 +76,7 @@
   * sam/record/sequence/base: Implement conversion to `u8`.
 
   * sam/record/quality_scores: Implement `AsRef<[Score]>`,
-    `AsMut<Vec<Score>>`, and `Index` with `Position`.
+    `AsMut<Vec<Score>>`, and `Index`/`IndexMut` with `Position`.
 
   * sam/record/sequence: Add getting (`QualityScores::get`) and setting
     (`QualityScores::get_mut`) a score by `Position`.
