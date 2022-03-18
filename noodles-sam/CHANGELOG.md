@@ -75,7 +75,8 @@
 
   * sam/record/sequence/base: Implement conversion to `u8`.
 
-  * sam/record/quality_scores: Implement `AsRef<[Score]>`.
+  * sam/record/quality_scores: Implement `AsRef<[Score]>` and
+    `AsMut<Vec<Score>>`.
 
   * sam/record/quality_scores: Add `is_empty` and `len` methods.
 

@@ -84,6 +84,12 @@ impl AsRef<[Score]> for QualityScores {
     }
 }
 
+impl AsMut<Vec<Score>> for QualityScores {
+    fn as_mut(&mut self) -> &mut Vec<Score> {
+        &mut self.0
+    }
+}
+
 impl fmt::Display for QualityScores {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_empty() {
