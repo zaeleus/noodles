@@ -18,17 +18,22 @@ impl<'a, W> Builder<'a, W>
 where
     W: Write,
 {
-    pub(crate) fn new(
-        inner: W,
-        reference_sequence_repository: fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Self {
+    pub(crate) fn new(inner: W, header: &'a sam::Header) -> Self {
         Self {
             inner,
-            reference_sequence_repository,
+            reference_sequence_repository: fasta::Repository::default(),
             header,
             options: Options::default(),
         }
+    }
+
+    /// Sets the reference sequence repository.
+    pub fn set_reference_sequence_repository(
+        mut self,
+        reference_sequence_repository: fasta::Repository,
+    ) -> Self {
+        self.reference_sequence_repository = reference_sequence_repository;
+        self
     }
 
     /// Sets whether to preserve read names.
@@ -57,12 +62,10 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let writer = cram::Writer::builder(Vec::new(), repository, &header).build();
+    /// let writer = cram::Writer::builder(Vec::new(), &header).build();
     /// ```
     pub fn build(self) -> Writer<'a, W> {
         Writer {

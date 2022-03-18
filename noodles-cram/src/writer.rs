@@ -29,12 +29,10 @@ use super::{
 /// ```
 /// # use std::io;
 /// use noodles_cram as cram;
-/// use noodles_fasta as fasta;
 /// use noodles_sam as sam;
 ///
-/// let repository = fasta::Repository::default();
 /// let header = sam::Header::default();
-/// let mut writer = cram::Writer::builder(Vec::new(), repository, &header).build();
+/// let mut writer = cram::Writer::builder(Vec::new(), &header).build();
 /// writer.write_file_definition()?;
 ///
 /// let header = sam::Header::builder().add_comment("noodles-cram").build();
@@ -67,20 +65,14 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let builder = cram::Writer::builder(Vec::new(), repository, &header);
+    /// let builder = cram::Writer::builder(Vec::new(), &header);
     /// let writer = builder.build();
     /// ```
-    pub fn builder(
-        inner: W,
-        reference_sequence_repository: fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Builder<'a, W> {
-        Builder::new(inner, reference_sequence_repository, header)
+    pub fn builder(inner: W, header: &'a sam::Header) -> Builder<'a, W> {
+        Builder::new(inner, header)
     }
 
     /// Creates a new CRAM writer with default options.
@@ -89,19 +81,13 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let writer = cram::Writer::new(Vec::new(), &header);
     /// ```
-    pub fn new(
-        inner: W,
-        reference_sequence_repository: fasta::Repository,
-        header: &'a sam::Header,
-    ) -> Self {
-        Builder::new(inner, reference_sequence_repository, header).build()
+    pub fn new(inner: W, header: &'a sam::Header) -> Self {
+        Builder::new(inner, header).build()
     }
 
     /// Returns a reference to the underlying writer.
@@ -110,12 +96,10 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let writer = cram::Writer::new(Vec::new(), &header);
     ///
     /// assert!(writer.get_ref().is_empty());
     /// ```
@@ -134,12 +118,10 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let mut writer = cram::Writer::new(Vec::new(), &header);
     ///
     /// writer.try_finish()?;
     /// # Ok::<(), io::Error>(())
@@ -159,12 +141,10 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let mut writer = cram::Writer::new(Vec::new(), &header);
     ///
     /// writer.write_file_definition()?;
     ///
@@ -195,12 +175,10 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let mut writer = cram::Writer::new(Vec::new(), &header);
     ///
     /// writer.write_file_definition()?;
     /// writer.write_file_header(&header)?;
@@ -219,12 +197,10 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_fasta as fasta;
     /// use noodles_sam as sam;
     ///
-    /// let repository = fasta::Repository::default();
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), repository, &header);
+    /// let mut writer = cram::Writer::new(Vec::new(), &header);
     ///
     /// let record = cram::Record::default();
     /// writer.write_record(record)?;

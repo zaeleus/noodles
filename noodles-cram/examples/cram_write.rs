@@ -76,7 +76,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = build_header(&reference_sequences)?;
     let repository = fasta::Repository::new(reference_sequences);
-    let mut writer = cram::Writer::new(handle, repository, &header);
+    let mut writer = cram::Writer::builder(handle, &header)
+        .set_reference_sequence_repository(repository)
+        .build();
 
     writer.write_file_definition()?;
     writer.write_file_header(&header)?;

@@ -51,6 +51,10 @@
 
   * cram/record/tag/key: Change tag to a `sam::record::data::field::Tag`.
 
+  * cram/writer: Make a reference sequence repository optional.
+
+    Use `Builder::set_reference_sequence_repository` to set one.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Detach all records before writing.
