@@ -75,6 +75,10 @@
 
   * sam/record/sequence/base: Implement conversion to `u8`.
 
+  * sam/record/quality_scores: Implement `AsRef<[Score]>`.
+
+  * sam/record/quality_scores: Add `is_empty` and `len` methods.
+
   * sam/writer: Implement `AlignmentWriter`.
 
 ### Changed
@@ -139,6 +143,10 @@
   * sam/record/sequence: Remove `Deref<Target = Vec<Base>>`.
 
     Use `AsRef<[Base]>` instead.
+
+  * sam/record/quality_scores: Remove `Deref<Target = [Score]>`.
+
+    Use `AsRef<[Score]>` instead.
 
 ## 0.13.0 - 2022-03-02
 

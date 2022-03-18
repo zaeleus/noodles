@@ -277,7 +277,7 @@ pub(super) fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::Q
 where
     B: BufMut,
 {
-    for &score in quality_scores.iter() {
+    for &score in quality_scores.as_ref() {
         dst.put_u8(u8::from(score));
     }
 }

@@ -4,7 +4,7 @@ pub mod score;
 
 pub use self::score::Score;
 
-use std::{error, fmt, ops::Deref, str::FromStr};
+use std::{error, fmt, str::FromStr};
 
 use super::NULL_FIELD;
 
@@ -13,6 +13,32 @@ use super::NULL_FIELD;
 pub struct QualityScores(Vec<Score>);
 
 impl QualityScores {
+    /// Returns whether there are any scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert!(quality_scores.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the number of scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert_eq!(quality_scores.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     /// Removes all scores.
     ///
     /// This does not affect the capacity of the list.
@@ -52,10 +78,8 @@ impl QualityScores {
     }
 }
 
-impl Deref for QualityScores {
-    type Target = [Score];
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<[Score]> for QualityScores {
+    fn as_ref(&self) -> &[Score] {
         &self.0
     }
 }
@@ -65,7 +89,7 @@ impl fmt::Display for QualityScores {
         if self.is_empty() {
             write!(f, "{}", NULL_FIELD)
         } else {
-            for score in self.iter() {
+            for score in self.as_ref() {
                 write!(f, "{}", score)?;
             }
 

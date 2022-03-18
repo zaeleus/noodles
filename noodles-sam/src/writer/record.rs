@@ -67,7 +67,7 @@ where
     if quality_scores.is_empty() {
         writer.write_all(&[MISSING])?;
     } else {
-        for &score in quality_scores.iter() {
+        for &score in quality_scores.as_ref() {
             let n = u8::from(score) + MIN_VALUE;
             writer.write_all(&[n])?;
         }

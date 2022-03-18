@@ -525,7 +525,7 @@ where
         self.write_mapping_quality(record.mapping_quality())?;
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores().iter() {
+            for &score in record.quality_scores().as_ref() {
                 self.write_quality_score(score)?;
             }
         }
@@ -933,7 +933,7 @@ where
         }
 
         if record.cram_flags().are_quality_scores_stored_as_array() {
-            for &score in record.quality_scores().iter() {
+            for &score in record.quality_scores().as_ref() {
                 self.write_quality_score(score)?;
             }
         }
