@@ -68,7 +68,8 @@ impl Record {
 
         builder = builder.set_bases(record.sequence().clone());
 
-        let features = Features::from_cigar(record.cigar(), record.sequence());
+        let features =
+            Features::from_cigar(record.cigar(), record.sequence(), record.quality_scores());
         builder = builder.set_features(features);
 
         if let Some(mapping_quality) = record.mapping_quality() {
