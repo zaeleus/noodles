@@ -210,10 +210,9 @@ impl TryFrom<&sam::Header> for Container {
             .set_data(data)
             .build();
 
+        let len = block.len();
         let blocks = vec![block];
         let landmarks = vec![0];
-
-        let len = blocks.iter().map(|b| b.len()).sum();
 
         let container_header = Header::builder()
             .set_length(len)
