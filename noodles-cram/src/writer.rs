@@ -181,15 +181,7 @@ where
     /// ```
     pub fn write_file_definition(&mut self) -> io::Result<()> {
         let file_definition = FileDefinition::default();
-
-        // magic number
-        self.inner.write_all(MAGIC_NUMBER)?;
-
-        write_format(&mut self.inner, file_definition.version())?;
-
-        self.inner.write_all(file_definition.file_id())?;
-
-        Ok(())
+        write_file_definition(&mut self.inner, &file_definition)
     }
 
     /// Writes a CRAM file header container.
@@ -312,6 +304,16 @@ where
         let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(r)
     }
+}
+
+fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(MAGIC_NUMBER)?;
+    write_format(writer, file_definition.version())?;
+    writer.write_all(file_definition.file_id())?;
+    Ok(())
 }
 
 fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
