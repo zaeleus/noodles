@@ -4,7 +4,7 @@ pub mod score;
 
 pub use self::score::Score;
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, ops::Index, str::FromStr};
 
 use noodles_core::position::SequenceIndex;
 
@@ -195,6 +195,17 @@ impl FromStr for QualityScores {
                 .map(Self::from)
                 .map_err(ParseError::InvalidScore),
         }
+    }
+}
+
+impl<I> Index<I> for QualityScores
+where
+    I: SequenceIndex<Score>,
+{
+    type Output = I::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        index.index(&self.0)
     }
 }
 
