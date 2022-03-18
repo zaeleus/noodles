@@ -1,8 +1,8 @@
-use noodles_fasta as fasta;
-use noodles_sam::AlignmentRecord;
-
-use super::{Base, Histogram, SubstitutionMatrix};
-use crate::{record::Feature, Record};
+use super::{Histogram, SubstitutionMatrix};
+use crate::{
+    record::{feature::substitution, Feature},
+    Record,
+};
 
 #[derive(Debug, Default)]
 pub struct Builder {
@@ -10,25 +10,16 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn update(&mut self, reference_sequence: &fasta::record::Sequence, record: &Record) {
-        let alignment_start = match record.alignment_start() {
-            Some(position) => position,
-            None => return,
-        };
-
-        let read_bases = record.bases();
-
-        for ((reference_position, read_position), feature) in
-            record.features().with_positions(alignment_start)
-        {
-            if let Feature::Substitution(..) = feature {
-                let base = reference_sequence[reference_position];
-                let reference_base = Base::try_from(base).unwrap_or_default();
-
-                let base = read_bases[read_position];
-                let read_base = Base::try_from(base).unwrap_or_default();
-
-                self.histogram.hit(reference_base, read_base);
+    pub fn update(&mut self, record: &Record) {
+        for feature in record.features().iter() {
+            match feature {
+                Feature::Substitution(_, substitution::Value::Bases(reference_base, read_base)) => {
+                    self.histogram.hit(*reference_base, *read_base);
+                }
+                Feature::Substitution(_, substitution::Value::Code(_)) => {
+                    panic!("substitution matrix cannot be built from substitution codes");
+                }
+                _ => {}
             }
         }
     }
@@ -49,23 +40,43 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::Sequence;
 
-        let reference_sequence = fasta::record::Sequence::from(b"ACAGGAATAANNNNNN".to_vec());
+        use crate::record::feature::substitution::{self, Base};
+
+        // reference sequence = "ACAGGAATAANNNNNN"
         let bases: Sequence = "TCTGGCGTGT".parse()?;
 
         let record = Record::builder()
             .set_alignment_start(Position::try_from(1)?)
             .set_read_length(bases.len())
             .set_bases(bases)
-            .add_feature(Feature::Substitution(Position::try_from(1)?, 2)) // A => T
-            .add_feature(Feature::Substitution(Position::try_from(3)?, 2)) // A => T
-            .add_feature(Feature::Substitution(Position::try_from(6)?, 0)) // A => C
-            .add_feature(Feature::Substitution(Position::try_from(7)?, 1)) // A => G
-            .add_feature(Feature::Substitution(Position::try_from(9)?, 1)) // A => G
-            .add_feature(Feature::Substitution(Position::try_from(10)?, 2)) // A => T
+            .add_feature(Feature::Substitution(
+                Position::try_from(1)?,
+                substitution::Value::Bases(Base::A, Base::T),
+            ))
+            .add_feature(Feature::Substitution(
+                Position::try_from(3)?,
+                substitution::Value::Bases(Base::A, Base::T),
+            ))
+            .add_feature(Feature::Substitution(
+                Position::try_from(6)?,
+                substitution::Value::Bases(Base::A, Base::C),
+            ))
+            .add_feature(Feature::Substitution(
+                Position::try_from(7)?,
+                substitution::Value::Bases(Base::A, Base::G),
+            ))
+            .add_feature(Feature::Substitution(
+                Position::try_from(9)?,
+                substitution::Value::Bases(Base::A, Base::G),
+            ))
+            .add_feature(Feature::Substitution(
+                Position::try_from(10)?,
+                substitution::Value::Bases(Base::A, Base::T),
+            ))
             .build();
 
         let mut builder = Builder::default();
-        builder.update(&reference_sequence, &record);
+        builder.update(&record);
         let matrix = builder.build();
 
         assert_eq!(

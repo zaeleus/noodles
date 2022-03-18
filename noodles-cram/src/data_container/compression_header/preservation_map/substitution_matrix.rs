@@ -1,12 +1,12 @@
-mod base;
 mod builder;
 mod histogram;
 
-pub use self::{base::Base, builder::Builder};
+pub use self::builder::Builder;
 
 use std::{cmp, error, fmt};
 
 use self::histogram::Histogram;
+use crate::record::feature::substitution::Base;
 
 type Substitutions = [[Base; 4]; 5];
 

@@ -561,7 +561,7 @@ where
     }
 
     fn read_feature(&mut self, prev_position: usize) -> io::Result<Feature> {
-        use feature::Code;
+        use feature::{substitution, Code};
 
         let code = self.read_feature_code()?;
 
@@ -585,7 +585,10 @@ where
             }
             Code::Substitution => {
                 let code = self.read_base_substitution_code()?;
-                Ok(Feature::Substitution(position, code))
+                Ok(Feature::Substitution(
+                    position,
+                    substitution::Value::Code(code),
+                ))
             }
             Code::Insertion => {
                 let bases = self.read_insertion()?;

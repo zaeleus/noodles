@@ -8,7 +8,10 @@ use noodles_sam::{self as sam, record::sequence::Base};
 
 use crate::data_container::compression_header::SubstitutionMatrix;
 
-use super::{Feature, Features};
+use super::{
+    feature::substitution::{self, Base as SubstitutionBase},
+    Feature, Features,
+};
 
 pub(crate) fn resolve_bases(
     reference_sequence: Option<fasta::record::Sequence>,
@@ -17,8 +20,6 @@ pub(crate) fn resolve_bases(
     alignment_start: Position,
     read_length: usize,
 ) -> io::Result<sam::record::Sequence> {
-    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base as SubstitutionMatrixBase;
-
     let reference_sequence = reference_sequence.as_ref();
 
     let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
@@ -43,10 +44,10 @@ pub(crate) fn resolve_bases(
             Feature::Bases(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Scores(..) => {}
             Feature::ReadBase(_, base, _) => buf[read_position] = *base,
-            Feature::Substitution(_, code) => {
+            Feature::Substitution(_, substitution::Value::Code(code)) => {
                 if let Some(reference_sequence) = reference_sequence {
                     let base = reference_sequence[reference_position];
-                    let reference_base = SubstitutionMatrixBase::try_from(base).unwrap_or_default();
+                    let reference_base = SubstitutionBase::try_from(base).unwrap_or_default();
                     let read_base = substitution_matrix.get(reference_base, *code);
                     buf[read_position] = Base::from(read_base);
                 } else {
@@ -55,6 +56,12 @@ pub(crate) fn resolve_bases(
                         "cannot resolve base substitution without reference sequence",
                     ));
                 }
+            }
+            Feature::Substitution(_, substitution::Value::Bases(..)) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "cannot resolve base substitution with bases",
+                ))
             }
             Feature::Insertion(_, bases) => copy_from_bases(&mut buf[read_position..], bases),
             Feature::Deletion(..) => {}
@@ -223,7 +230,10 @@ mod tests {
             &"AYGT".parse()?,
         )?;
         t(
-            &Features::from(vec![Feature::Substitution(Position::try_from(2)?, 1)]),
+            &Features::from(vec![Feature::Substitution(
+                Position::try_from(2)?,
+                substitution::Value::Code(1),
+            )]),
             &"AGGT".parse()?,
         )?;
         t(
@@ -260,6 +270,19 @@ mod tests {
             &Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]),
             &"ACGT".parse()?,
         )?;
+
+        let features = Features::from(vec![Feature::Substitution(
+            Position::try_from(2)?,
+            substitution::Value::Bases(SubstitutionBase::A, SubstitutionBase::C),
+        )]);
+        let actual = resolve_bases(
+            Some(reference_sequence.clone()),
+            &substitution_matrix,
+            &features,
+            alignment_start,
+            4,
+        );
+        assert!(matches!(actual, Err(e) if e.kind() == io::ErrorKind::InvalidData));
 
         Ok(())
     }
@@ -304,7 +327,7 @@ mod tests {
         // FIXME
         let features = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
-            Feature::Substitution(Position::try_from(3)?, 0),
+            Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
         ]);
         assert_eq!(
             resolve_features(&features, 4),
@@ -317,7 +340,10 @@ mod tests {
         );
 
         // FIXME
-        let features = Features::from(vec![Feature::Substitution(Position::try_from(2)?, 0)]);
+        let features = Features::from(vec![Feature::Substitution(
+            Position::try_from(2)?,
+            substitution::Value::Code(0),
+        )]);
         assert_eq!(
             resolve_features(&features, 4),
             Cigar::from(vec![

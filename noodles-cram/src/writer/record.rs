@@ -557,6 +557,8 @@ where
     }
 
     fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {
+        use crate::record::feature::substitution;
+
         self.write_feature_code(feature.code())?;
         self.write_feature_position(position)?;
 
@@ -571,8 +573,14 @@ where
                 self.write_base(*base)?;
                 self.write_quality_score(*quality_score)?;
             }
-            Feature::Substitution(_, code) => {
+            Feature::Substitution(_, substitution::Value::Code(code)) => {
                 self.write_base_substitution_code(*code)?;
+            }
+            Feature::Substitution(_, substitution::Value::Bases(..)) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "substitution feature cannot be written from bases",
+                ));
             }
             Feature::Insertion(_, bases) => {
                 self.write_insertion(bases)?;

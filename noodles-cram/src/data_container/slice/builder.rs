@@ -84,8 +84,6 @@ impl Builder {
         };
 
         let (core_data_block, external_blocks) = write_records(
-            reference_sequence_repostitory,
-            header,
             compression_header,
             slice_reference_sequence_id,
             slice_alignment_start,
@@ -186,8 +184,6 @@ fn find_slice_alignment_positions(
 }
 
 fn write_records(
-    reference_sequence_repository: &fasta::Repository,
-    header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_reference_sequence_id: ReferenceSequenceId,
     slice_alignment_start: Option<Position>,
@@ -215,27 +211,10 @@ fn write_records(
     );
 
     for record in records {
-        if let ReferenceSequenceId::Some(id) = slice_reference_sequence_id {
-            if let Some(alignment_start) = record.alignment_start {
-                let reference_sequence_name = header
-                    .reference_sequences()
-                    .get_index(id as usize)
-                    .map(|(_, rs)| rs.name())
-                    .expect("invalid reference sequence ID");
-
-                let reference_sequence = reference_sequence_repository
-                    .get(reference_sequence_name)
-                    .expect("missing reference sequence")?;
-
-                update_substitution_codes(
-                    &reference_sequence,
-                    compression_header.preservation_map().substitution_matrix(),
-                    alignment_start,
-                    &record.bases,
-                    &mut record.features,
-                );
-            }
-        }
+        update_substitution_features(
+            compression_header.preservation_map().substitution_matrix(),
+            &mut record.features,
+        );
 
         // FIXME: For simplicity, all records are written as detached.
         record.cram_bit_flags.insert(Flags::DETACHED);
@@ -268,36 +247,20 @@ fn write_records(
     Ok((core_data_block, external_blocks))
 }
 
-fn update_substitution_codes(
-    reference_sequence: &fasta::record::Sequence,
-    substitution_matrix: &SubstitutionMatrix,
-    alignment_start: Position,
-    read_bases: &sam::record::Sequence,
-    features: &mut Features,
-) {
-    use crate::data_container::compression_header::preservation_map::substitution_matrix::Base;
-
-    let mut codes = Vec::new();
-
-    for ((reference_position, read_position), feature) in features.with_positions(alignment_start) {
-        if let Feature::Substitution(..) = feature {
-            let base = reference_sequence[reference_position];
-            let reference_base = Base::try_from(base).unwrap_or_default();
-
-            let base = read_bases[read_position];
-            let read_base = Base::try_from(base).unwrap_or_default();
-
-            let code = substitution_matrix.find_code(reference_base, read_base);
-            codes.push(code);
-        }
-    }
-
-    let mut i = 0;
+fn update_substitution_features(substitution_matrix: &SubstitutionMatrix, features: &mut Features) {
+    use crate::record::feature::substitution;
 
     for feature in features.iter_mut() {
-        if let Feature::Substitution(pos, _) = feature {
-            *feature = Feature::Substitution(*pos, codes[i]);
-            i += 1;
+        match feature {
+            Feature::Substitution(pos, substitution::Value::Bases(reference_base, read_base)) => {
+                let code = substitution_matrix.find_code(*reference_base, *read_base);
+                let value = substitution::Value::Code(code);
+                *feature = Feature::Substitution(*pos, value);
+            }
+            Feature::Substitution(_, substitution::Value::Code(_)) => {
+                panic!("cannot update substitution features with code");
+            }
+            _ => {}
         }
     }
 }

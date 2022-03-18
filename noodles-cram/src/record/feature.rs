@@ -1,6 +1,7 @@
 //! CRAM record feature.
 
 pub mod code;
+pub mod substitution;
 
 pub use self::code::Code;
 
@@ -16,8 +17,8 @@ pub enum Feature {
     Scores(Position, Vec<Score>),
     /// A base-quality score pair (position, base, quality score).
     ReadBase(Position, Base, Score),
-    /// A base substitution (position, code).
-    Substitution(Position, u8),
+    /// A base substitution (position, code (read) / base (write)).
+    Substitution(Position, substitution::Value),
     /// Inserted bases (position, bases).
     Insertion(Position, Vec<Base>),
     /// A number of deleted bases (position, length).
@@ -115,7 +116,7 @@ mod tests {
             Code::ReadBase
         );
         assert_eq!(
-            Feature::Substitution(position, 0).code(),
+            Feature::Substitution(position, substitution::Value::Code(0)).code(),
             Code::Substitution
         );
         assert_eq!(
@@ -153,7 +154,10 @@ mod tests {
             Feature::ReadBase(position, Base::N, Score::default()).position(),
             position
         );
-        assert_eq!(Feature::Substitution(position, 0).position(), position);
+        assert_eq!(
+            Feature::Substitution(position, substitution::Value::Code(0)).position(),
+            position
+        );
         assert_eq!(
             Feature::Insertion(position, Vec::new()).position(),
             position

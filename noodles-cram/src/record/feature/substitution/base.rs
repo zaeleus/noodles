@@ -2,12 +2,18 @@ use std::{error, fmt};
 
 use noodles_sam as sam;
 
+/// A substitution base.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
+    /// Adenine.
     A,
+    /// Cytosine.
     C,
+    /// Guanine.
     G,
+    /// Thymine.
     T,
+    /// Any base.
     N,
 }
 

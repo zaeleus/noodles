@@ -1,5 +1,3 @@
-use noodles_fasta as fasta;
-
 use super::{
     data_series_encoding_map::DataSeriesEncodingMap, preservation_map, tag_encoding_map,
     CompressionHeader,
@@ -17,9 +15,8 @@ impl Builder {
         self.preservation_map_builder.apply_options(options);
     }
 
-    pub fn update(&mut self, reference_sequence: &fasta::record::Sequence, record: &Record) {
-        self.preservation_map_builder
-            .update(reference_sequence, record);
+    pub fn update(&mut self, record: &Record) {
+        self.preservation_map_builder.update(record);
         self.tag_encoding_map_builder.update(record);
     }
 

@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam as sam;
 
 use super::{slice, CompressionHeader, DataContainer, Slice};
 use crate::{writer::Options, Record};
@@ -73,12 +73,7 @@ impl Builder {
             self.slice_builders.push(self.slice_builder);
         }
 
-        let compression_header = build_compression_header(
-            options,
-            reference_sequence_repository,
-            header,
-            &self.slice_builders,
-        );
+        let compression_header = build_compression_header(options, &self.slice_builders);
 
         let record_counter = self.record_counter;
         let slices = self
@@ -103,8 +98,6 @@ impl Builder {
 
 fn build_compression_header(
     options: &Options,
-    reference_sequence_repository: &fasta::Repository,
-    header: &sam::Header,
     slice_builders: &[slice::Builder],
 ) -> CompressionHeader {
     let mut compression_header_builder = CompressionHeader::builder();
@@ -112,20 +105,7 @@ fn build_compression_header(
 
     for slice_builder in slice_builders {
         for record in slice_builder.records() {
-            let reference_sequence = record
-                .reference_sequence(header.reference_sequences())
-                .transpose()
-                .expect("invalid reference sequence ID")
-                .map(|rs| rs.name())
-                .and_then(|name| {
-                    reference_sequence_repository
-                        .get(name)
-                        .transpose()
-                        .expect("invalid reference sequence")
-                })
-                .unwrap_or_default();
-
-            compression_header_builder.update(&reference_sequence, record);
+            compression_header_builder.update(record);
         }
     }
 

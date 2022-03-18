@@ -45,8 +45,9 @@
 
       * bases as `sam::record::sequence::Base`,
       * lengths as `usize`,
-      * positions as `Position`, and
-      * quality scores as `sam::record::quality_scores::Score`.
+      * positions as `Position`,
+      * quality scores as `sam::record::quality_scores::Score`, and
+      * substitution as `substitution::Value`.
 
   * cram/record/tag/key: Change tag to a `sam::record::data::field::Tag`.
 
