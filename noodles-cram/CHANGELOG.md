@@ -67,6 +67,9 @@
     The slice builder does not yet calculate mate distances, so all records are
     currently written as detached.
 
+  * cram/data_container/slice/builder: Normalize sequence for MD5 digest
+    calculation.
+
   * cram/record/convert: Create read group (`RG`) data field if a read group ID
     is set.
 
