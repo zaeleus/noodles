@@ -2,7 +2,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_data, write_quality_scores, write_sequence};
+use self::record::{write_cigar, write_data, write_quality_scores, write_sequence};
 use super::{AlignmentRecord, AlignmentWriter, Header, Record};
 
 /// A SAM writer.
@@ -196,13 +196,20 @@ where
 
         write!(
             self.inner,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}",
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}",
             qname = qname,
             flag = u16::from(record.flags()),
             rname = rname,
             pos = pos,
             mapq = mapq,
-            cigar = record.cigar(),
+        )?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_cigar(&mut self.inner, record.cigar())?;
+
+        write!(
+            self.inner,
+            "\t{rnext}\t{pnext}\t{tlen}",
             rnext = rnext,
             pnext = pnext,
             tlen = record.template_length(),
