@@ -75,8 +75,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let handle = stdout.lock();
 
     let header = build_header(&reference_sequences)?;
+
     let repository = fasta::Repository::new(reference_sequences);
-    let mut writer = cram::Writer::builder(handle, &header)
+    let mut writer = cram::Writer::builder(handle)
         .set_reference_sequence_repository(repository)
         .build();
 
@@ -95,7 +96,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_alignment_record(&header, &record)?;
 
     let record = cram::Record::default();
-    writer.write_record(record)?;
+    writer.write_record(&header, record)?;
+
+    writer.try_finish(&header)?;
 
     Ok(())
 }

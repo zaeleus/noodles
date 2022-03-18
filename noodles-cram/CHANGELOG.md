@@ -55,6 +55,11 @@
 
     Use `Builder::set_reference_sequence_repository` to set one.
 
+  * cram/writer: A writer no longer has to be constructed with a header.
+
+    However, `Writer::write_record` and `Writer::try_finish` must be called
+    with a reference to a `sam::Header` now.
+
 ### Fixed
 
   * cram/data_container/slice/builder: Detach all records before writing.
@@ -73,6 +78,10 @@
   * cram/record: Remove `Tag`.
 
     Use `sam::record::data::Field` instead.
+
+  * cram/writer: Remove `Drop`.
+
+    A call to `Writer::try_finish` must be made before the writer is dropped.
 
 ## 0.13.0 - 2022-03-02
 

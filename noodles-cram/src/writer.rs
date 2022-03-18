@@ -24,6 +24,8 @@ use super::{
 
 /// A CRAM writer.
 ///
+/// A call to [`try_finish`] must be made before the writer is dropped.
+///
 /// # Examples
 ///
 /// ```
@@ -31,31 +33,31 @@ use super::{
 /// use noodles_cram as cram;
 /// use noodles_sam as sam;
 ///
-/// let header = sam::Header::default();
-/// let mut writer = cram::Writer::builder(Vec::new(), &header).build();
+/// let mut writer = cram::Writer::builder(Vec::new()).build();
 /// writer.write_file_definition()?;
 ///
-/// let header = sam::Header::builder().add_comment("noodles-cram").build();
+/// let header = sam::Header::default();
 /// writer.write_file_header(&header)?;
 ///
 /// let record = cram::Record::default();
-/// writer.write_record(record)?;
+/// writer.write_record(&header, record)?;
+///
+/// writer.try_finish(&header)?;
 /// # Ok::<(), io::Error>(())
 /// ```
 #[derive(Debug)]
-pub struct Writer<'a, W>
+pub struct Writer<W>
 where
     W: Write,
 {
     inner: W,
     reference_sequence_repository: fasta::Repository,
-    header: &'a sam::Header,
     options: Options,
     data_container_builder: crate::data_container::Builder,
     record_counter: i64,
 }
 
-impl<'a, W> Writer<'a, W>
+impl<W> Writer<W>
 where
     W: Write,
 {
@@ -65,14 +67,11 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
-    ///
-    /// let header = sam::Header::default();
-    /// let builder = cram::Writer::builder(Vec::new(), &header);
+    /// let builder = cram::Writer::builder(Vec::new());
     /// let writer = builder.build();
     /// ```
-    pub fn builder(inner: W, header: &'a sam::Header) -> Builder<'a, W> {
-        Builder::new(inner, header)
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
     }
 
     /// Creates a new CRAM writer with default options.
@@ -81,13 +80,10 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
-    ///
-    /// let header = sam::Header::default();
-    /// let writer = cram::Writer::new(Vec::new(), &header);
+    /// let writer = cram::Writer::new(Vec::new());
     /// ```
-    pub fn new(inner: W, header: &'a sam::Header) -> Self {
-        Builder::new(inner, header).build()
+    pub fn new(inner: W) -> Self {
+        Builder::new(inner).build()
     }
 
     /// Returns a reference to the underlying writer.
@@ -96,11 +92,7 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
-    ///
-    /// let header = sam::Header::default();
-    /// let writer = cram::Writer::new(Vec::new(), &header);
-    ///
+    /// let writer = cram::Writer::new(Vec::new());
     /// assert!(writer.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &W {
@@ -121,13 +113,12 @@ where
     /// use noodles_sam as sam;
     ///
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), &header);
-    ///
-    /// writer.try_finish()?;
+    /// let mut writer = cram::Writer::new(Vec::new());
+    /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn try_finish(&mut self) -> io::Result<()> {
-        self.flush()?;
+    pub fn try_finish(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.flush(header)?;
         let eof_container = Container::eof();
         write_container(&mut self.inner, &eof_container)
     }
@@ -141,11 +132,8 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
     ///
-    /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), &header);
-    ///
+    /// let mut writer = cram::Writer::new(Vec::new());
     /// writer.write_file_definition()?;
     ///
     /// assert_eq!(writer.get_ref(), &[
@@ -177,11 +165,13 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
-    /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), &header);
-    ///
+    /// let mut writer = cram::Writer::new(Vec::new());
     /// writer.write_file_definition()?;
+    ///
+    /// let header = sam::Header::default();
     /// writer.write_file_header(&header)?;
+    ///
+    /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
@@ -199,14 +189,21 @@ where
     /// use noodles_cram as cram;
     /// use noodles_sam as sam;
     ///
+    ///
+    /// let mut writer = cram::Writer::new(Vec::new());
+    ///
+    /// writer.write_file_definition()?;
+    ///
     /// let header = sam::Header::default();
-    /// let mut writer = cram::Writer::new(Vec::new(), &header);
+    /// writer.write_file_header(&header)?;
     ///
     /// let record = cram::Record::default();
-    /// writer.write_record(record)?;
+    /// writer.write_record(&header, record)?;
+    ///
+    /// writer.try_finish(&header)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, mut record: Record) -> io::Result<()> {
+    pub fn write_record(&mut self, header: &sam::Header, mut record: Record) -> io::Result<()> {
         use super::data_container::builder::AddRecordError;
 
         loop {
@@ -218,7 +215,7 @@ where
                 Err(e) => match e {
                     AddRecordError::ContainerFull(r) => {
                         record = r;
-                        self.flush()?;
+                        self.flush(header)?;
                     }
                     AddRecordError::SliceFull(r) => {
                         record = r;
@@ -228,7 +225,7 @@ where
         }
     }
 
-    fn flush(&mut self) -> io::Result<()> {
+    fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
         if self.data_container_builder.is_empty() {
             return Ok(());
         }
@@ -243,7 +240,7 @@ where
         let data_container = data_container_builder.build(
             &self.options,
             &self.reference_sequence_repository,
-            self.header,
+            header,
         )?;
 
         let container = Container::try_from_data_container(&data_container, base_count)?;
@@ -253,16 +250,7 @@ where
     }
 }
 
-impl<'a, W> Drop for Writer<'a, W>
-where
-    W: Write,
-{
-    fn drop(&mut self) {
-        let _ = self.try_finish();
-    }
-}
-
-impl<'a, W> sam::AlignmentWriter for Writer<'a, W>
+impl<W> sam::AlignmentWriter for Writer<W>
 where
     W: Write,
 {
@@ -278,7 +266,7 @@ where
         record: &dyn sam::AlignmentRecord,
     ) -> io::Result<()> {
         let r = Record::try_from_alignment_record(header, record)?;
-        self.write_record(r)
+        self.write_record(header, r)
     }
 }
 

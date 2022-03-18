@@ -1,28 +1,25 @@
 use std::io::Write;
 
 use noodles_fasta as fasta;
-use noodles_sam as sam;
 
 use super::{Options, Writer};
 use crate::DataContainer;
 
 /// A CRAM writer builder.
-pub struct Builder<'a, W> {
+pub struct Builder<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
-    header: &'a sam::Header,
     options: Options,
 }
 
-impl<'a, W> Builder<'a, W>
+impl<W> Builder<W>
 where
     W: Write,
 {
-    pub(crate) fn new(inner: W, header: &'a sam::Header) -> Self {
+    pub(crate) fn new(inner: W) -> Self {
         Self {
             inner,
             reference_sequence_repository: fasta::Repository::default(),
-            header,
             options: Options::default(),
         }
     }
@@ -62,16 +59,12 @@ where
     ///
     /// ```
     /// use noodles_cram as cram;
-    /// use noodles_sam as sam;
-    ///
-    /// let header = sam::Header::default();
-    /// let writer = cram::Writer::builder(Vec::new(), &header).build();
+    /// let writer = cram::Writer::builder(Vec::new()).build();
     /// ```
-    pub fn build(self) -> Writer<'a, W> {
+    pub fn build(self) -> Writer<W> {
         Writer {
             inner: self.inner,
             reference_sequence_repository: self.reference_sequence_repository,
-            header: self.header,
             options: self.options,
             data_container_builder: DataContainer::builder(0),
             record_counter: 0,
