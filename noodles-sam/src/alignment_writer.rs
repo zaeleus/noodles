@@ -3,6 +3,8 @@ use std::io;
 use super::{AlignmentRecord, Header};
 
 /// An alignment format writer.
+///
+/// A call to [`finish`] must be made before the writer is dropped.
 pub trait AlignmentWriter {
     /// Writes a SAM header.
     fn write_alignment_header(&mut self, header: &Header) -> io::Result<()>;
@@ -13,4 +15,7 @@ pub trait AlignmentWriter {
         header: &Header,
         record: &dyn AlignmentRecord,
     ) -> io::Result<()>;
+
+    /// Shuts down an alignment format writer.
+    fn finish(&mut self, header: &Header) -> io::Result<()>;
 }

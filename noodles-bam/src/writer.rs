@@ -272,6 +272,10 @@ where
 
         Ok(())
     }
+
+    fn finish(&mut self, _: &sam::Header) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>

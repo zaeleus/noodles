@@ -268,6 +268,10 @@ where
         let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(header, r)
     }
+
+    fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.try_finish(header)
+    }
 }
 
 fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) -> io::Result<()>

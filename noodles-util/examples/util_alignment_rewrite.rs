@@ -84,5 +84,7 @@ fn main() -> io::Result<()> {
         writer.write_record(&header, &record)?;
     }
 
+    writer.finish(&header)?;
+
     Ok(())
 }

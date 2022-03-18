@@ -33,4 +33,9 @@ impl Writer {
     ) -> io::Result<()> {
         self.inner.write_alignment_record(header, record)
     }
+
+    /// Shuts down the alignment format writer.
+    pub fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
+        self.inner.finish(header)
+    }
 }

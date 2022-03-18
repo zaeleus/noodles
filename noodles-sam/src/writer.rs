@@ -227,6 +227,10 @@ where
 
         Ok(())
     }
+
+    fn finish(&mut self, _: &Header) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
