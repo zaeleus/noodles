@@ -25,7 +25,10 @@ use crate::{
         },
         CompressionHeader,
     },
-    record::{feature, Feature, Flags, NextMateFlags},
+    record::{
+        feature::{self, substitution},
+        Feature, Flags, NextMateFlags,
+    },
     BitWriter, Record,
 };
 
@@ -557,8 +560,6 @@ where
     }
 
     fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {
-        use crate::record::feature::substitution;
-
         self.write_feature_code(feature.code())?;
         self.write_feature_position(position)?;
 
@@ -573,14 +574,8 @@ where
                 self.write_base(*base)?;
                 self.write_quality_score(*quality_score)?;
             }
-            Feature::Substitution(_, substitution::Value::Code(code)) => {
-                self.write_base_substitution_code(*code)?;
-            }
-            Feature::Substitution(_, substitution::Value::Bases(..)) => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "substitution feature cannot be written from bases",
-                ));
+            Feature::Substitution(_, value) => {
+                self.write_base_substitution_code(*value)?;
             }
             Feature::Insertion(_, bases) => {
                 self.write_insertion(bases)?;
@@ -746,8 +741,9 @@ where
         )
     }
 
-    fn write_base_substitution_code(&mut self, code: u8) -> io::Result<()> {
-        self.compression_header
+    fn write_base_substitution_code(&mut self, value: substitution::Value) -> io::Result<()> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .base_substitution_codes_encoding()
             .ok_or_else(|| {
@@ -755,15 +751,31 @@ where
                     io::ErrorKind::InvalidData,
                     WriteRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
                 )
-            })
-            .and_then(|encoding| {
-                encode_byte(
-                    encoding,
-                    self.core_data_writer,
-                    self.external_data_writers,
-                    code,
-                )
-            })
+            })?;
+
+        let substitution_matrix = self
+            .compression_header
+            .preservation_map()
+            .substitution_matrix();
+
+        let code = match value {
+            substitution::Value::Bases(reference_base, read_base) => {
+                substitution_matrix.find_code(reference_base, read_base)
+            }
+            substitution::Value::Code(_) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "base substitution cannot be a code on write",
+                ));
+            }
+        };
+
+        encode_byte(
+            encoding,
+            self.core_data_writer,
+            self.external_data_writers,
+            code,
+        )
     }
 
     fn write_insertion(&mut self, bases: &[Base]) -> io::Result<()> {

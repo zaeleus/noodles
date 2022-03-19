@@ -14,11 +14,8 @@ use crate::{
         block::{self, CompressionMethod},
         Block, ReferenceSequenceId,
     },
-    data_container::{
-        compression_header::{data_series_encoding_map::DataSeries, SubstitutionMatrix},
-        CompressionHeader,
-    },
-    record::{Feature, Features, Flags},
+    data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
+    record::Flags,
     writer, BitWriter, Record,
 };
 
@@ -210,11 +207,6 @@ fn write_records(
     );
 
     for record in records {
-        update_substitution_features(
-            compression_header.preservation_map().substitution_matrix(),
-            &mut record.features,
-        );
-
         // FIXME: For simplicity, all records are written as detached.
         record.cram_bit_flags.insert(Flags::DETACHED);
         record.cram_bit_flags.remove(Flags::HAS_MATE_DOWNSTREAM);
@@ -244,24 +236,6 @@ fn write_records(
         .collect::<Result<_, _>>()?;
 
     Ok((core_data_block, external_blocks))
-}
-
-fn update_substitution_features(substitution_matrix: &SubstitutionMatrix, features: &mut Features) {
-    use crate::record::feature::substitution;
-
-    for feature in features.iter_mut() {
-        match feature {
-            Feature::Substitution(pos, substitution::Value::Bases(reference_base, read_base)) => {
-                let code = substitution_matrix.find_code(*reference_base, *read_base);
-                let value = substitution::Value::Code(code);
-                *feature = Feature::Substitution(*pos, value);
-            }
-            Feature::Substitution(_, substitution::Value::Code(_)) => {
-                panic!("cannot update substitution features with code");
-            }
-            _ => {}
-        }
-    }
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.3.2 "Reference MD5 calculation"
