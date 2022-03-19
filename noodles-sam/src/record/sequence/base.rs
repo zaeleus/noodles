@@ -199,36 +199,21 @@ impl From<Base> for u8 {
 
 #[cfg(test)]
 mod tests {
+    #[rustfmt::skip]
+    static ALPHA_BASES: &[Base; 26] = &[
+        Base::A, Base::B, Base::C, Base::D, Base::E, Base::F, Base::G, Base::H, Base::I, Base::J,
+        Base::K, Base::L, Base::M, Base::N, Base::O, Base::P, Base::Q, Base::R, Base::S, Base::T,
+        Base::U, Base::V, Base::W, Base::X, Base::Y, Base::Z,
+    ];
+
     use super::*;
 
     #[test]
     fn test_try_from_char_for_base() {
-        assert_eq!(Base::try_from('A'), Ok(Base::A));
-        assert_eq!(Base::try_from('B'), Ok(Base::B));
-        assert_eq!(Base::try_from('C'), Ok(Base::C));
-        assert_eq!(Base::try_from('D'), Ok(Base::D));
-        assert_eq!(Base::try_from('E'), Ok(Base::E));
-        assert_eq!(Base::try_from('F'), Ok(Base::F));
-        assert_eq!(Base::try_from('G'), Ok(Base::G));
-        assert_eq!(Base::try_from('H'), Ok(Base::H));
-        assert_eq!(Base::try_from('I'), Ok(Base::I));
-        assert_eq!(Base::try_from('J'), Ok(Base::J));
-        assert_eq!(Base::try_from('K'), Ok(Base::K));
-        assert_eq!(Base::try_from('L'), Ok(Base::L));
-        assert_eq!(Base::try_from('M'), Ok(Base::M));
-        assert_eq!(Base::try_from('N'), Ok(Base::N));
-        assert_eq!(Base::try_from('O'), Ok(Base::O));
-        assert_eq!(Base::try_from('P'), Ok(Base::P));
-        assert_eq!(Base::try_from('Q'), Ok(Base::Q));
-        assert_eq!(Base::try_from('R'), Ok(Base::R));
-        assert_eq!(Base::try_from('S'), Ok(Base::S));
-        assert_eq!(Base::try_from('T'), Ok(Base::T));
-        assert_eq!(Base::try_from('U'), Ok(Base::U));
-        assert_eq!(Base::try_from('V'), Ok(Base::V));
-        assert_eq!(Base::try_from('W'), Ok(Base::W));
-        assert_eq!(Base::try_from('X'), Ok(Base::X));
-        assert_eq!(Base::try_from('Y'), Ok(Base::Y));
-        assert_eq!(Base::try_from('Z'), Ok(Base::Z));
+        for (c, &expected) in ('A'..='Z').zip(ALPHA_BASES) {
+            assert_eq!(Base::try_from(c), Ok(expected));
+        }
+
         assert_eq!(Base::try_from('='), Ok(Base::Eq));
 
         assert_eq!(Base::try_from('*'), Err(TryFromCharError('*')));
@@ -236,32 +221,10 @@ mod tests {
 
     #[test]
     fn test_try_from_u8_for_base() {
-        assert_eq!(Base::try_from(b'A'), Ok(Base::A));
-        assert_eq!(Base::try_from(b'B'), Ok(Base::B));
-        assert_eq!(Base::try_from(b'C'), Ok(Base::C));
-        assert_eq!(Base::try_from(b'D'), Ok(Base::D));
-        assert_eq!(Base::try_from(b'E'), Ok(Base::E));
-        assert_eq!(Base::try_from(b'F'), Ok(Base::F));
-        assert_eq!(Base::try_from(b'G'), Ok(Base::G));
-        assert_eq!(Base::try_from(b'H'), Ok(Base::H));
-        assert_eq!(Base::try_from(b'I'), Ok(Base::I));
-        assert_eq!(Base::try_from(b'J'), Ok(Base::J));
-        assert_eq!(Base::try_from(b'K'), Ok(Base::K));
-        assert_eq!(Base::try_from(b'L'), Ok(Base::L));
-        assert_eq!(Base::try_from(b'M'), Ok(Base::M));
-        assert_eq!(Base::try_from(b'N'), Ok(Base::N));
-        assert_eq!(Base::try_from(b'O'), Ok(Base::O));
-        assert_eq!(Base::try_from(b'P'), Ok(Base::P));
-        assert_eq!(Base::try_from(b'Q'), Ok(Base::Q));
-        assert_eq!(Base::try_from(b'R'), Ok(Base::R));
-        assert_eq!(Base::try_from(b'S'), Ok(Base::S));
-        assert_eq!(Base::try_from(b'T'), Ok(Base::T));
-        assert_eq!(Base::try_from(b'U'), Ok(Base::U));
-        assert_eq!(Base::try_from(b'V'), Ok(Base::V));
-        assert_eq!(Base::try_from(b'W'), Ok(Base::W));
-        assert_eq!(Base::try_from(b'X'), Ok(Base::X));
-        assert_eq!(Base::try_from(b'Y'), Ok(Base::Y));
-        assert_eq!(Base::try_from(b'Z'), Ok(Base::Z));
+        for (c, &expected) in (b'A'..=b'Z').zip(ALPHA_BASES) {
+            assert_eq!(Base::try_from(c), Ok(expected));
+        }
+
         assert_eq!(Base::try_from(b'='), Ok(Base::Eq));
 
         assert_eq!(Base::try_from(b'*'), Err(TryFromCharError('*')));
@@ -269,32 +232,10 @@ mod tests {
 
     #[test]
     fn test_from_base_for_u8() {
-        assert_eq!(u8::from(Base::A), b'A');
-        assert_eq!(u8::from(Base::B), b'B');
-        assert_eq!(u8::from(Base::C), b'C');
-        assert_eq!(u8::from(Base::D), b'D');
-        assert_eq!(u8::from(Base::E), b'E');
-        assert_eq!(u8::from(Base::F), b'F');
-        assert_eq!(u8::from(Base::G), b'G');
-        assert_eq!(u8::from(Base::H), b'H');
-        assert_eq!(u8::from(Base::I), b'I');
-        assert_eq!(u8::from(Base::J), b'J');
-        assert_eq!(u8::from(Base::K), b'K');
-        assert_eq!(u8::from(Base::L), b'L');
-        assert_eq!(u8::from(Base::M), b'M');
-        assert_eq!(u8::from(Base::N), b'N');
-        assert_eq!(u8::from(Base::O), b'O');
-        assert_eq!(u8::from(Base::P), b'P');
-        assert_eq!(u8::from(Base::Q), b'Q');
-        assert_eq!(u8::from(Base::R), b'R');
-        assert_eq!(u8::from(Base::S), b'S');
-        assert_eq!(u8::from(Base::T), b'T');
-        assert_eq!(u8::from(Base::U), b'U');
-        assert_eq!(u8::from(Base::V), b'V');
-        assert_eq!(u8::from(Base::W), b'W');
-        assert_eq!(u8::from(Base::X), b'X');
-        assert_eq!(u8::from(Base::Y), b'Y');
-        assert_eq!(u8::from(Base::Z), b'Z');
+        for (&base, expected) in ALPHA_BASES.iter().zip(b'A'..=b'Z') {
+            assert_eq!(u8::from(base), expected);
+        }
+
         assert_eq!(u8::from(Base::Eq), b'=');
     }
 }
