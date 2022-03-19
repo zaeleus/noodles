@@ -946,6 +946,8 @@ where
         flags: Flags,
         read_length: usize,
     ) -> io::Result<()> {
+        record.bases.as_mut().reserve(read_length);
+
         for _ in 0..read_length {
             let base = self.read_base()?;
             record.bases.push(base);
