@@ -96,7 +96,7 @@ impl TryFrom<u8> for Base {
     type Error = TryFromCharError;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
-        match n {
+        match n.to_ascii_uppercase() {
             b'A' => Ok(Self::A),
             b'B' => Ok(Self::B),
             b'C' => Ok(Self::C),
@@ -212,6 +212,7 @@ mod tests {
     fn test_try_from_char_for_base() {
         for (c, &expected) in ('A'..='Z').zip(ALPHA_BASES) {
             assert_eq!(Base::try_from(c), Ok(expected));
+            assert_eq!(Base::try_from(c.to_ascii_lowercase()), Ok(expected));
         }
 
         assert_eq!(Base::try_from('='), Ok(Base::Eq));
@@ -223,6 +224,7 @@ mod tests {
     fn test_try_from_u8_for_base() {
         for (c, &expected) in (b'A'..=b'Z').zip(ALPHA_BASES) {
             assert_eq!(Base::try_from(c), Ok(expected));
+            assert_eq!(Base::try_from(c.to_ascii_lowercase()), Ok(expected));
         }
 
         assert_eq!(Base::try_from(b'='), Ok(Base::Eq));

@@ -221,7 +221,6 @@ impl TryFrom<Vec<u8>> for Sequence {
 
     fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
         buf.into_iter()
-            .map(|b| b.to_ascii_uppercase())
             .map(Base::try_from)
             .collect::<Result<Vec<_>, _>>()
             .map(Self::from)

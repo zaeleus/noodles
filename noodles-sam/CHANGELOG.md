@@ -75,6 +75,8 @@
 
   * sam/record/sequence/base: Implement conversion to `u8`.
 
+  * sam/record/sequence/base: Parse case-insensitive.
+
   * sam/record/quality_scores: Implement `AsRef<[Score]>`,
     `AsMut<Vec<Score>>`, and `Index`/`IndexMut` with `Position`.
 
