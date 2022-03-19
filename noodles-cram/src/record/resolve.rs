@@ -14,14 +14,12 @@ use super::{
 };
 
 pub(crate) fn resolve_bases(
-    reference_sequence: Option<fasta::record::Sequence>,
+    reference_sequence: Option<&fasta::record::Sequence>,
     substitution_matrix: &SubstitutionMatrix,
     features: &Features,
     alignment_start: Position,
     read_length: usize,
 ) -> io::Result<sam::record::Sequence> {
-    let reference_sequence = reference_sequence.as_ref();
-
     let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
 
     let mut it = features.with_positions(alignment_start);
@@ -201,7 +199,7 @@ mod tests {
 
         let t = |features: &Features, expected: &sam::record::Sequence| {
             let actual = resolve_bases(
-                Some(reference_sequence.clone()),
+                Some(&reference_sequence),
                 &substitution_matrix,
                 features,
                 alignment_start,
@@ -276,7 +274,7 @@ mod tests {
             substitution::Value::Bases(SubstitutionBase::A, SubstitutionBase::C),
         )]);
         let actual = resolve_bases(
-            Some(reference_sequence.clone()),
+            Some(&reference_sequence),
             &substitution_matrix,
             &features,
             alignment_start,

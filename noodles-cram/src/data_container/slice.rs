@@ -202,7 +202,7 @@ impl Slice {
             let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
             let bases = resolve_bases(
-                reference_sequence,
+                reference_sequence.as_ref(),
                 substitution_matrix,
                 record.features(),
                 alignment_start,
