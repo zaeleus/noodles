@@ -534,6 +534,8 @@ where
         record.mapping_quality = self.read_mapping_quality()?;
 
         if flags.are_quality_scores_stored_as_array() {
+            record.quality_scores.as_mut().reserve(read_length);
+
             for _ in 0..read_length {
                 let score = self.read_quality_score()?;
                 record.quality_scores.push(score);
@@ -950,6 +952,8 @@ where
         }
 
         if flags.are_quality_scores_stored_as_array() {
+            record.quality_scores.as_mut().reserve(read_length);
+
             for _ in 0..read_length {
                 let score = self.read_quality_score()?;
                 record.quality_scores.push(score);
