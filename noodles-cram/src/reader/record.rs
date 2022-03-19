@@ -27,7 +27,10 @@ use crate::{
         CompressionHeader,
     },
     huffman::CanonicalHuffmanDecoder,
-    record::{feature, Feature, Flags, NextMateFlags},
+    record::{
+        feature::{self, substitution},
+        Feature, Flags, NextMateFlags,
+    },
     BitReader, Record,
 };
 
@@ -561,7 +564,7 @@ where
     }
 
     fn read_feature(&mut self, prev_position: usize) -> io::Result<Feature> {
-        use feature::{substitution, Code};
+        use feature::Code;
 
         let code = self.read_feature_code()?;
 
@@ -585,10 +588,7 @@ where
             }
             Code::Substitution => {
                 let code = self.read_base_substitution_code()?;
-                Ok(Feature::Substitution(
-                    position,
-                    substitution::Value::Code(code),
-                ))
+                Ok(Feature::Substitution(position, code))
             }
             Code::Insertion => {
                 let bases = self.read_insertion()?;
@@ -759,8 +759,9 @@ where
         .and_then(|n| Score::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_base_substitution_code(&mut self) -> io::Result<u8> {
-        self.compression_header
+    fn read_base_substitution_code(&mut self) -> io::Result<substitution::Value> {
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .base_substitution_codes_encoding()
             .ok_or_else(|| {
@@ -768,14 +769,14 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::BaseSubstitutionCodes),
                 )
-            })
-            .and_then(|encoding| {
-                decode_byte(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_byte(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .map(substitution::Value::Code)
     }
 
     fn read_insertion(&mut self) -> io::Result<Vec<Base>> {
