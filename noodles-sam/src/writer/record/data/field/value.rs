@@ -6,27 +6,33 @@ pub use self::ty::write_type;
 use std::io::{self, Write};
 
 use self::subtype::write_subtype;
-use crate::record::data::field::{value::Subtype, Value};
+use crate::{
+    record::data::field::{value::Subtype, Value},
+    writer::write_int,
+};
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
+    const ARRAY_VALUE_DELIMITER: u8 = b',';
+
     match value {
         Value::Char(c) => writer.write_all(&[*c as u8]),
-        Value::Int8(n) => write!(writer, "{}", n),
-        Value::UInt8(n) => write!(writer, "{}", n),
-        Value::Int16(n) => write!(writer, "{}", n),
-        Value::UInt16(n) => write!(writer, "{}", n),
-        Value::Int32(n) => write!(writer, "{}", n),
-        Value::UInt32(n) => write!(writer, "{}", n),
+        Value::Int8(n) => write_int(writer, *n),
+        Value::UInt8(n) => write_int(writer, *n),
+        Value::Int16(n) => write_int(writer, *n),
+        Value::UInt16(n) => write_int(writer, *n),
+        Value::Int32(n) => write_int(writer, *n),
+        Value::UInt32(n) => write_int(writer, *n),
         Value::Float(n) => write!(writer, "{}", n),
         Value::String(s) | Value::Hex(s) => writer.write_all(s.as_bytes()),
         Value::Int8Array(values) => {
             write_subtype(writer, Subtype::Int8)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())
@@ -35,7 +41,8 @@ where
             write_subtype(writer, Subtype::UInt8)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())
@@ -44,7 +51,8 @@ where
             write_subtype(writer, Subtype::Int16)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())
@@ -53,7 +61,8 @@ where
             write_subtype(writer, Subtype::UInt16)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())
@@ -62,7 +71,8 @@ where
             write_subtype(writer, Subtype::Int32)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())
@@ -71,7 +81,8 @@ where
             write_subtype(writer, Subtype::UInt32)?;
 
             for &n in values {
-                write!(writer, ",{}", n)?;
+                writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
+                write_int(writer, n)?;
             }
 
             Ok(())

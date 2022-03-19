@@ -4,6 +4,7 @@ pub use self::data::write_data;
 
 use std::io::{self, Write};
 
+use super::write_int;
 use crate::record::{Cigar, QualityScores, Sequence};
 
 const MISSING: u8 = b'*';
@@ -18,7 +19,7 @@ where
         writer.write_all(&[MISSING])?;
     } else {
         for op in cigar.iter() {
-            write!(writer, "{}", op.len())?;
+            write_int(writer, op.len())?;
 
             let c = match op.kind() {
                 Kind::Match => b'M',

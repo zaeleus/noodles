@@ -194,26 +194,31 @@ where
             .map(usize::from)
             .unwrap_or_default();
 
-        write!(
-            self.inner,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}",
-            qname = qname,
-            flag = u16::from(record.flags()),
-            rname = rname,
-            pos = pos,
-            mapq = mapq,
-        )?;
+        self.inner.write_all(qname.as_bytes())?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_int(&mut self.inner, u16::from(record.flags()))?;
+
+        self.inner.write_all(DELIMITER)?;
+        self.inner.write_all(rname.as_bytes())?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_int(&mut self.inner, pos)?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_int(&mut self.inner, mapq)?;
 
         self.inner.write_all(DELIMITER)?;
         write_cigar(&mut self.inner, record.cigar())?;
 
-        write!(
-            self.inner,
-            "\t{rnext}\t{pnext}\t{tlen}",
-            rnext = rnext,
-            pnext = pnext,
-            tlen = record.template_length(),
-        )?;
+        self.inner.write_all(DELIMITER)?;
+        self.inner.write_all(rnext.as_bytes())?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_int(&mut self.inner, pnext)?;
+
+        self.inner.write_all(DELIMITER)?;
+        write_int(&mut self.inner, record.template_length())?;
 
         self.inner.write_all(DELIMITER)?;
         write_sequence(&mut self.inner, record.sequence())?;
@@ -231,6 +236,16 @@ where
     fn finish(&mut self, _: &Header) -> io::Result<()> {
         Ok(())
     }
+}
+
+fn write_int<W, I>(writer: &mut W, i: I) -> io::Result<()>
+where
+    W: Write,
+    I: itoa::Integer,
+{
+    let mut buf = itoa::Buffer::new();
+    let a = buf.format(i);
+    writer.write_all(a.as_bytes())
 }
 
 #[cfg(test)]
