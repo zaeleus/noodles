@@ -85,7 +85,7 @@ pub(crate) fn resolve_bases(
         let src = &reference_sequence[last_reference_position..end];
 
         copy_from_raw_bases(dst, src)?;
-    } else if usize::from(last_read_position) != buf.len() {
+    } else if buf[..last_read_position].len() != buf.len() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "cannot resolve bases without reference sequence",
@@ -281,6 +281,23 @@ mod tests {
             4,
         );
         assert!(matches!(actual, Err(e) if e.kind() == io::ErrorKind::InvalidData));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve_bases_without_a_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
+        let substitution_matrix = SubstitutionMatrix::default();
+        let features = Features::from(vec![Feature::Bases(
+            Position::try_from(1)?,
+            vec![Base::N, Base::N, Base::N, Base::N],
+        )]);
+        let alignment_start = Position::try_from(1)?;
+
+        let actual = resolve_bases(None, &substitution_matrix, &features, alignment_start, 4)?;
+        let expected = "NNNN".parse()?;
+
+        assert_eq!(actual, expected);
 
         Ok(())
     }
