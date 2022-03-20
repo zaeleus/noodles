@@ -2,7 +2,9 @@ mod header;
 
 pub use self::header::read_header;
 
-use std::io::{self, Read};
+use std::io;
+
+use bytes::Bytes;
 
 use crate::{
     container::Block,
@@ -10,37 +12,28 @@ use crate::{
     reader::container::read_block,
 };
 
-pub fn read_slice<R>(reader: &mut R) -> io::Result<Slice>
-where
-    R: Read,
-{
-    let header = read_header_from_block(reader)?;
-    let core_data_block = read_block(reader)?;
+pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
+    let header = read_header_from_block(src)?;
+    let core_data_block = read_block(src)?;
 
     let external_block_count = header.block_count() - 1;
-    let external_blocks = read_external_blocks(reader, external_block_count)?;
+    let external_blocks = read_external_blocks(src, external_block_count)?;
 
     Ok(Slice::new(header, core_data_block, external_blocks))
 }
 
-fn read_header_from_block<R>(reader: &mut R) -> io::Result<slice::Header>
-where
-    R: Read,
-{
-    let block = read_block(reader)?;
+fn read_header_from_block(src: &mut Bytes) -> io::Result<slice::Header> {
+    let block = read_block(src)?;
     let data = block.decompressed_data()?;
     let mut data_reader = &data[..];
     read_header(&mut data_reader)
 }
 
-fn read_external_blocks<R>(reader: &mut R, len: usize) -> io::Result<Vec<Block>>
-where
-    R: Read,
-{
+fn read_external_blocks(src: &mut Bytes, len: usize) -> io::Result<Vec<Block>> {
     let mut external_blocks = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let block = read_block(reader)?;
+        let block = read_block(src)?;
         external_blocks.push(block);
     }
 

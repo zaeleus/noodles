@@ -1,3 +1,4 @@
+use bytes::BytesMut;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
@@ -15,18 +16,18 @@ where
         return Ok(None);
     }
 
-    let mut buf = vec![0; header.len()];
+    let mut buf = BytesMut::new();
+    buf.resize(header.len(), 0);
     reader.read_exact(&mut buf).await?;
+    let mut buf = buf.freeze();
 
-    let mut buf_reader = &buf[..];
-
-    let compression_header = read_compression_header_from_block(&mut buf_reader)?;
+    let compression_header = read_compression_header_from_block(&mut buf)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
 
     for _ in 0..slice_count {
-        let slice = read_slice(&mut buf_reader)?;
+        let slice = read_slice(&mut buf)?;
         slices.push(slice);
     }
 

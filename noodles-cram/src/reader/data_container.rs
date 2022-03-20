@@ -2,12 +2,13 @@ pub mod compression_header;
 pub mod slice;
 
 pub use self::{compression_header::read_compression_header, slice::read_slice};
-use crate::data_container::CompressionHeader;
 
 use std::io::{self, Read};
 
+use bytes::{Bytes, BytesMut};
+
 use super::container;
-use crate::DataContainer;
+use crate::{data_container::CompressionHeader, DataContainer};
 
 pub fn read_data_container<R>(reader: &mut R) -> io::Result<Option<DataContainer>>
 where
@@ -19,18 +20,18 @@ where
         return Ok(None);
     }
 
-    let mut buf = vec![0; header.len()];
+    let mut buf = BytesMut::new();
+    buf.resize(header.len(), 0);
     reader.read_exact(&mut buf)?;
+    let mut buf = buf.freeze();
 
-    let mut buf_reader = &buf[..];
-
-    let compression_header = read_compression_header_from_block(&mut buf_reader)?;
+    let compression_header = read_compression_header_from_block(&mut buf)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
 
     for _ in 0..slice_count {
-        let slice = read_slice(&mut buf_reader)?;
+        let slice = read_slice(&mut buf)?;
         slices.push(slice);
     }
 
@@ -49,18 +50,18 @@ where
         return Ok(None);
     }
 
-    let mut buf = vec![0; header.len()];
+    let mut buf = BytesMut::new();
+    buf.resize(header.len(), 0);
     reader.read_exact(&mut buf)?;
+    let mut buf = buf.freeze();
 
-    let mut buf_reader = &buf[..];
-
-    let compression_header = read_compression_header_from_block(&mut buf_reader)?;
+    let compression_header = read_compression_header_from_block(&mut buf)?;
 
     let slice_count = header.landmarks().len();
     let mut slices = Vec::with_capacity(slice_count);
 
     for _ in 0..slice_count {
-        let slice = read_slice(&mut buf_reader)?;
+        let slice = read_slice(&mut buf)?;
         slices.push(slice);
     }
 
@@ -69,13 +70,10 @@ where
     Ok(Some((header, data_container)))
 }
 
-pub(crate) fn read_compression_header_from_block<R>(reader: &mut R) -> io::Result<CompressionHeader>
-where
-    R: Read,
-{
+pub(crate) fn read_compression_header_from_block(src: &mut Bytes) -> io::Result<CompressionHeader> {
     use super::container::read_block;
 
-    let block = read_block(reader)?;
+    let block = read_block(src)?;
     let data = block.decompressed_data()?;
     let mut data_reader = &data[..];
     read_compression_header(&mut data_reader)

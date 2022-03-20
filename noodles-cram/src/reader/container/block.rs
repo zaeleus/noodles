@@ -1,6 +1,6 @@
-use std::io::{self, Read};
+use std::{io, mem};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use bytes::{Buf, Bytes};
 
 use crate::{
     container::{
@@ -10,39 +10,49 @@ use crate::{
     reader::num::read_itf8,
 };
 
-pub fn read_block<R>(reader: &mut R) -> io::Result<Block>
-where
-    R: Read,
-{
-    let method = reader.read_u8().and_then(|b| {
-        CompressionMethod::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
+    if !src.has_remaining() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
 
-    let block_content_type_id = reader.read_u8().and_then(|b| {
-        ContentType::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let method = CompressionMethod::try_from(src.get_u8())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let block_content_id = read_itf8(reader)?;
+    if !src.has_remaining() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
 
-    let size_in_bytes = read_itf8(reader).and_then(|n| {
+    let block_content_type_id = ContentType::try_from(src.get_u8())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let block_content_id = read_itf8(&mut src.reader())?;
+
+    let size_in_bytes = read_itf8(&mut src.reader()).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let raw_size_in_bytes = read_itf8(reader).and_then(|n| {
+    let raw_size_in_bytes = read_itf8(&mut src.reader()).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut data = vec![0; size_in_bytes];
-    reader.read_exact(&mut data)?;
+    if src.remaining() < size_in_bytes {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
 
-    let crc32 = reader.read_u32::<LittleEndian>()?;
+    let data = src.split_to(size_in_bytes);
+
+    if src.remaining() < mem::size_of::<u32>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let crc32 = src.get_u32_le();
 
     Ok(Block::builder()
         .set_compression_method(method)
         .set_content_type(block_content_type_id)
         .set_content_id(block_content_id)
         .set_uncompressed_len(raw_size_in_bytes)
-        .set_data(data.into())
+        .set_data(data)
         .set_crc32(crc32)
         .build())
 }
@@ -55,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_read_block() -> io::Result<()> {
-        let data = [
+        let mut data = Bytes::from_static(&[
             0x00, // compression method = none (0)
             0x04, // content type = external data (4)
             0x01, // block content ID = 1
@@ -63,9 +73,8 @@ mod tests {
             0x04, // raw size in bytes = 4 bytes
             0x6e, 0x64, 0x6c, 0x73, // data = b"ndls",
             0xfd, 0x38, 0x27, 0xb5, // CRC32
-        ];
-        let mut reader = &data[..];
-        let actual = read_block(&mut reader)?;
+        ]);
+        let actual = read_block(&mut data)?;
 
         let expected = Block::builder()
             .set_compression_method(CompressionMethod::None)
