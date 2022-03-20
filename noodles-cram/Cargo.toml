@@ -16,6 +16,7 @@ async = ["async-compression", "tokio"]
 [dependencies]
 bitflags = "1.2.1"
 byteorder = "1.2.3"
+bytes = "1.0.1"
 bzip2 = "0.4.1"
 flate2 = "1.0.1"
 md-5 = "0.10.0"

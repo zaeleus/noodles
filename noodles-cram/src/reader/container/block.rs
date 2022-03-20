@@ -42,13 +42,15 @@ where
         .set_content_type(block_content_type_id)
         .set_content_id(block_content_id)
         .set_uncompressed_len(raw_size_in_bytes)
-        .set_data(data)
+        .set_data(data.into())
         .set_crc32(crc32)
         .build())
 }
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
+
     use super::*;
 
     #[test]
@@ -70,7 +72,7 @@ mod tests {
             .set_content_type(ContentType::ExternalData)
             .set_content_id(1)
             .set_uncompressed_len(4)
-            .set_data(b"ndls".to_vec())
+            .set_data(Bytes::from_static(b"ndls"))
             .set_crc32(0xb52738fd)
             .build();
 

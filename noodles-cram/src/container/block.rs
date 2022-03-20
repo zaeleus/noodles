@@ -12,6 +12,7 @@ use std::{
     mem,
 };
 
+use bytes::Bytes;
 use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use xz2::read::XzDecoder;
@@ -34,7 +35,7 @@ pub struct Block {
     content_type: ContentType,
     content_id: i32,
     uncompressed_len: usize,
-    data: Vec<u8>,
+    data: Bytes,
     crc32: u32,
 }
 
@@ -49,7 +50,7 @@ impl Block {
         Self::builder()
             .set_content_type(ContentType::CompressionHeader)
             .set_uncompressed_len(EOF_DATA.len())
-            .set_data(EOF_DATA.to_vec())
+            .set_data(Bytes::from_static(&EOF_DATA))
             .set_crc32(EOF_CRC32)
             .build()
     }
@@ -140,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_len() {
-        let data = b"noodles".to_vec();
+        let data = Bytes::from_static(b"noodles");
 
         let block = Block::builder()
             .set_content_type(ContentType::ExternalData)

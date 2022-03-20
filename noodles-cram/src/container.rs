@@ -6,6 +6,7 @@ pub use self::{block::Block, header::Header, reference_sequence_id::ReferenceSeq
 
 use std::{cmp, error, fmt, io};
 
+use bytes::{BufMut, BytesMut};
 use noodles_core::Position;
 use noodles_sam as sam;
 
@@ -35,7 +36,7 @@ impl Container {
         let block = Block::builder()
             .set_content_type(block::ContentType::CompressionHeader)
             .set_uncompressed_len(buf.len())
-            .set_data(buf)
+            .set_data(buf.into())
             .build();
 
         let mut blocks = vec![block];
@@ -71,7 +72,7 @@ impl Container {
             let slice_header_block = Block::builder()
                 .set_content_type(block::ContentType::SliceHeader)
                 .set_uncompressed_len(slice_header_buf.len())
-                .set_data(slice_header_buf)
+                .set_data(slice_header_buf.into())
                 .build();
 
             slice_len += slice_header_block.len();
@@ -201,13 +202,14 @@ impl TryFrom<&sam::Header> for Container {
         let header_data = header.to_string().into_bytes();
         let header_data_len = header_data.len() as i32;
 
-        let mut data = header_data_len.to_le_bytes().to_vec();
-        data.extend(header_data);
+        let mut data = BytesMut::new();
+        data.put_i32_le(header_data_len);
+        data.extend_from_slice(&header_data);
 
         let block = Block::builder()
             .set_content_type(ContentType::FileHeader)
             .set_uncompressed_len(data.len())
-            .set_data(data)
+            .set_data(data.freeze())
             .build();
 
         let len = block.len();
@@ -283,7 +285,7 @@ mod tests {
             .set_content_type(block::ContentType::FileHeader)
             .set_content_id(0)
             .set_uncompressed_len(56)
-            .set_data(data)
+            .set_data(data.into())
             .set_crc32(0)
             .build()];
 

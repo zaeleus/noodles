@@ -392,18 +392,21 @@ mod tests {
 
     #[test]
     fn test_read_file_header_block() -> io::Result<()> {
+        use bytes::{BufMut, BytesMut};
+
         let expected = "noodles";
 
         let header_data = expected.as_bytes();
         let header_data_len = header_data.len() as i32;
 
-        let mut data = header_data_len.to_le_bytes().to_vec();
-        data.extend(header_data);
+        let mut data = BytesMut::new();
+        data.put_i32_le(header_data_len);
+        data.extend_from_slice(&header_data);
 
         let block = Block::builder()
             .set_content_type(ContentType::FileHeader)
             .set_uncompressed_len(data.len())
-            .set_data(data.to_vec())
+            .set_data(data.freeze())
             .build();
 
         let actual = read_file_header_block(&block)?;

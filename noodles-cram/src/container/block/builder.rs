@@ -2,6 +2,7 @@ use std::io::{self, Write};
 
 use super::{Block, CompressionMethod, ContentType};
 
+use bytes::Bytes;
 use bzip2::write::BzEncoder;
 use flate2::write::GzEncoder;
 use xz2::write::XzEncoder;
@@ -14,7 +15,7 @@ pub struct Builder {
     content_type: Option<ContentType>,
     content_id: i32,
     uncompressed_len: usize,
-    data: Vec<u8>,
+    data: Bytes,
     crc32: u32,
 }
 
@@ -39,7 +40,7 @@ impl Builder {
         self
     }
 
-    pub fn set_data(mut self, data: Vec<u8>) -> Self {
+    pub fn set_data(mut self, data: Bytes) -> Self {
         self.data = data;
         self
     }
@@ -61,7 +62,7 @@ impl Builder {
         self.compression_method = compression_method;
         self.uncompressed_len = data.len();
 
-        self.data = match compression_method {
+        let data = match compression_method {
             CompressionMethod::None => data,
             CompressionMethod::Gzip => {
                 let mut encoder = GzEncoder::new(Vec::new(), flate2::Compression::default());
@@ -83,6 +84,8 @@ impl Builder {
                 compression_method
             ),
         };
+
+        self.data = Bytes::from(data);
 
         Ok(self)
     }
