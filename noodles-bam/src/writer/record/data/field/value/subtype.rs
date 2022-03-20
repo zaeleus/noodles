@@ -13,7 +13,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_type() {
+    fn test_put_subtype() {
         let mut buf = Vec::new();
         put_subtype(&mut buf, Subtype::Int32);
         assert_eq!(buf, [b'i']);
