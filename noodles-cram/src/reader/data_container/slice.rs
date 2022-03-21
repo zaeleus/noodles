@@ -1,6 +1,6 @@
 mod header;
 
-pub use self::header::read_header;
+pub use self::header::get_header;
 
 use std::io;
 
@@ -25,8 +25,8 @@ pub fn read_slice(src: &mut Bytes) -> io::Result<Slice> {
 fn read_header_from_block(src: &mut Bytes) -> io::Result<slice::Header> {
     let block = read_block(src)?;
     let data = block.decompressed_data()?;
-    let mut data_reader = &data[..];
-    read_header(&mut data_reader)
+    let mut data_reader = Bytes::from(data.to_vec());
+    get_header(&mut data_reader)
 }
 
 fn read_external_blocks(src: &mut Bytes, len: usize) -> io::Result<Vec<Block>> {

@@ -1,46 +1,47 @@
-use std::io::{self, Read};
+use std::io;
 
+use bytes::Buf;
 use noodles_core::Position;
 
 use crate::{
     container::ReferenceSequenceId,
     data_container::slice,
-    reader::num::{read_itf8, read_ltf8},
+    reader::num::{get_itf8, get_ltf8},
 };
 
-pub fn read_header<R>(reader: &mut R) -> io::Result<slice::Header>
+pub fn get_header<B>(src: &mut B) -> io::Result<slice::Header>
 where
-    R: Read,
+    B: Buf,
 {
-    let reference_sequence_id = read_itf8(reader).and_then(|n| {
+    let reference_sequence_id = get_itf8(src).and_then(|n| {
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let alignment_start = read_itf8(reader)
+    let alignment_start = get_itf8(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
         .map(Position::new)?;
 
-    let alignment_span = read_itf8(reader).and_then(|n| {
+    let alignment_span = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let record_count = read_itf8(reader).and_then(|n| {
+    let record_count = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let record_counter = read_ltf8(reader)?;
+    let record_counter = get_ltf8(src)?;
 
-    let block_count = read_itf8(reader).and_then(|n| {
+    let block_count = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let block_content_ids = read_block_content_ids(reader)?;
+    let block_content_ids = get_block_content_ids(src)?;
 
     let embedded_reference_bases_block_content_id =
-        read_embedded_reference_bases_block_content_id(reader)?;
+        get_embedded_reference_bases_block_content_id(src)?;
 
-    let reference_md5 = read_reference_md5(reader)?;
-    let optional_tags = read_optional_tags(reader)?;
+    let reference_md5 = get_reference_md5(src)?;
+    let optional_tags = get_optional_tags(src)?;
 
     let mut builder = slice::Header::builder()
         .set_reference_sequence_id(reference_sequence_id)
@@ -63,46 +64,55 @@ where
     Ok(builder.build())
 }
 
-fn read_block_content_ids<R>(reader: &mut R) -> io::Result<Vec<i32>>
+fn get_block_content_ids<B>(src: &mut B) -> io::Result<Vec<i32>>
 where
-    R: Read,
+    B: Buf,
 {
-    let len = read_itf8(reader).map(|i| i as usize)?;
+    let len = get_itf8(src).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
     let mut buf = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let value = read_itf8(reader)?;
+        let value = get_itf8(src)?;
         buf.push(value);
     }
 
     Ok(buf)
 }
 
-fn read_embedded_reference_bases_block_content_id<R>(reader: &mut R) -> io::Result<Option<i32>>
+fn get_embedded_reference_bases_block_content_id<B>(src: &mut B) -> io::Result<Option<i32>>
 where
-    R: Read,
+    B: Buf,
 {
-    read_itf8(reader).map(|n| match n {
+    get_itf8(src).map(|n| match n {
         -1 => None,
         _ => Some(n),
     })
 }
 
-fn read_reference_md5<R>(reader: &mut R) -> io::Result<[u8; 16]>
+fn get_reference_md5<B>(src: &mut B) -> io::Result<[u8; 16]>
 where
-    R: Read,
+    B: Buf,
 {
     let mut buf = [0; 16];
-    reader.read_exact(&mut buf)?;
+
+    if src.remaining() < buf.len() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    src.copy_to_slice(&mut buf);
+
     Ok(buf)
 }
 
-fn read_optional_tags<R>(reader: &mut R) -> io::Result<Vec<u8>>
+fn get_optional_tags<B>(src: &mut B) -> io::Result<Vec<u8>>
 where
-    R: Read,
+    B: Buf,
 {
-    let mut buf = Vec::new();
-    reader.read_to_end(&mut buf)?;
+    let mut buf = vec![0; src.remaining()];
+    src.copy_to_slice(&mut buf);
     Ok(buf)
 }
 
@@ -111,7 +121,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_get_header() -> Result<(), Box<dyn std::error::Error>> {
         let data = [
             0x02, // reference sequence ID = 2
             0x03, // alignment start = 3
@@ -126,7 +136,7 @@ mod tests {
             0x7e, 0xf7, // reference MD5 (b"ACGTA")
         ];
         let mut reader = &data[..];
-        let actual = read_header(&mut reader)?;
+        let actual = get_header(&mut reader)?;
 
         let expected = slice::Header::builder()
             .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
