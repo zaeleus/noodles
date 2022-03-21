@@ -171,3 +171,27 @@ impl<T> SequenceIndex<T> for ops::RangeTo<Position> {
         &mut sequence[..end]
     }
 }
+
+impl<T> SequenceIndex<T> for ops::RangeToInclusive<Position> {
+    type Output = [T];
+
+    fn get(self, sequence: &[T]) -> Option<&Self::Output> {
+        let end = usize::from(self.end) - 1;
+        sequence.get(..=end)
+    }
+
+    fn get_mut(self, sequence: &mut [T]) -> Option<&mut Self::Output> {
+        let end = usize::from(self.end) - 1;
+        sequence.get_mut(..=end)
+    }
+
+    fn index(self, sequence: &[T]) -> &Self::Output {
+        let end = usize::from(self.end) - 1;
+        &sequence[..=end]
+    }
+
+    fn index_mut(self, sequence: &mut [T]) -> &mut Self::Output {
+        let end = usize::from(self.end) - 1;
+        &mut sequence[..=end]
+    }
+}
