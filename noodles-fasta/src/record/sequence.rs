@@ -73,6 +73,12 @@ impl From<Vec<u8>> for Sequence {
     }
 }
 
+impl From<Bytes> for Sequence {
+    fn from(data: Bytes) -> Self {
+        Self(data)
+    }
+}
+
 impl<I> Index<I> for Sequence
 where
     I: SequenceIndex<u8>,

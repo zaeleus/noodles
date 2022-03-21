@@ -6,6 +6,8 @@
 
   * fasta/record/sequence: Add indexing by `Position`.
 
+  * fasta/record/sequence: Implement `From<Bytes>`.
+
 ### Changed
 
   * fasta/repository: Box the adapter.
