@@ -169,19 +169,19 @@ pub fn resolve_features(features: &Features, read_length: usize) -> sam::record:
 pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
     use sam::record::quality_scores::Score;
 
-    let mut scores = vec![Score::default(); read_len];
+    let mut quality_scores = sam::record::QualityScores::from(vec![Score::default(); read_len]);
 
     for feature in features {
-        let read_pos = usize::from(feature.position()) - 1;
+        let read_pos = feature.position();
 
-        scores[read_pos] = match feature {
-            Feature::ReadBase(_, _, quality_score) => *quality_score,
-            Feature::QualityScore(_, quality_score) => *quality_score,
+        quality_scores[read_pos] = match feature {
+            Feature::ReadBase(_, _, score) => *score,
+            Feature::QualityScore(_, score) => *score,
             _ => continue,
         }
     }
 
-    sam::record::QualityScores::from(scores)
+    quality_scores
 }
 
 #[cfg(test)]
