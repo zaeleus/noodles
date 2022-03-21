@@ -401,7 +401,7 @@ mod tests {
 
         let mut data = BytesMut::new();
         data.put_i32_le(header_data_len);
-        data.extend_from_slice(&header_data);
+        data.extend_from_slice(header_data);
 
         let block = Block::builder()
             .set_content_type(ContentType::FileHeader)
