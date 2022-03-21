@@ -7,7 +7,7 @@ use crate::{
         block::{CompressionMethod, ContentType},
         Block,
     },
-    reader::num::read_itf8,
+    reader::num::get_itf8,
 };
 
 pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
@@ -25,13 +25,13 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
     let block_content_type_id = ContentType::try_from(src.get_u8())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let block_content_id = read_itf8(&mut src.reader())?;
+    let block_content_id = get_itf8(src)?;
 
-    let size_in_bytes = read_itf8(&mut src.reader()).and_then(|n| {
+    let size_in_bytes = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let raw_size_in_bytes = read_itf8(&mut src.reader()).and_then(|n| {
+    let raw_size_in_bytes = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
