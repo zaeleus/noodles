@@ -60,22 +60,27 @@ fn main() -> io::Result<()> {
     let dst = args.next().expect("missing dst");
     let fasta_src = args.next();
 
-    let mut reader = File::open(src).and_then(|f| alignment::Reader::builder(f).build())?;
+    let repository = fasta_src
+        .map(create_reference_sequence_repository)
+        .transpose()?
+        .unwrap_or_default();
+
+    let mut reader = File::open(src).and_then(|f| {
+        alignment::Reader::builder(f)
+            .set_reference_sequence_repository(repository.clone())
+            .build()
+    })?;
+
     let header = reader.read_header()?;
 
-    let mut builder = File::create(&dst)
-        .map(BufWriter::new)
-        .map(alignment::Writer::builder)?;
+    let output_format = detect_format_from_extension(&dst).expect("invalid dst extension");
 
-    let output_format = detect_format_from_extension(dst).expect("invalid dst extension");
-    builder = builder.set_format(output_format);
-
-    if let Some(fasta_src) = fasta_src {
-        let repository = create_reference_sequence_repository(fasta_src)?;
-        builder = builder.set_reference_sequence_repository(repository);
-    }
-
-    let mut writer = builder.build();
+    let mut writer = File::create(dst).map(|f| {
+        alignment::Writer::builder(BufWriter::new(f))
+            .set_format(output_format)
+            .set_reference_sequence_repository(repository)
+            .build()
+    })?;
 
     writer.write_header(&header)?;
 
