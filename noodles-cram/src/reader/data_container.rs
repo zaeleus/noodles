@@ -74,7 +74,6 @@ pub(crate) fn read_compression_header_from_block(src: &mut Bytes) -> io::Result<
     use super::container::read_block;
 
     let block = read_block(src)?;
-    let data = block.decompressed_data()?;
-    let mut buf = Bytes::from(data.to_vec());
-    get_compression_header(&mut buf)
+    let mut data = block.decompressed_data()?;
+    get_compression_header(&mut data)
 }

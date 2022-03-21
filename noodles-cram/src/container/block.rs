@@ -7,7 +7,6 @@ pub use self::{
 };
 
 use std::{
-    borrow::Cow,
     io::{self, Read},
     mem,
 };
@@ -75,48 +74,48 @@ impl Block {
         &self.data
     }
 
-    pub fn decompressed_data(&self) -> io::Result<Cow<'_, [u8]>> {
+    pub fn decompressed_data(&self) -> io::Result<Bytes> {
         match self.compression_method {
-            CompressionMethod::None => Ok(Cow::from(self.data())),
+            CompressionMethod::None => Ok(self.data.clone()),
             CompressionMethod::Gzip => {
                 let mut reader = GzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
-                Ok(Cow::from(buf))
+                Ok(Bytes::from(buf))
             }
             CompressionMethod::Bzip2 => {
                 let mut reader = BzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
-                Ok(Cow::from(buf))
+                Ok(Bytes::from(buf))
             }
             CompressionMethod::Lzma => {
                 let mut reader = XzDecoder::new(self.data());
                 let mut buf = Vec::with_capacity(self.uncompressed_len);
                 reader.read_to_end(&mut buf)?;
-                Ok(Cow::from(buf))
+                Ok(Bytes::from(buf))
             }
             CompressionMethod::Rans4x8 => {
                 let mut buf = self.data();
-                rans_decode(&mut buf).map(Cow::from)
+                rans_decode(&mut buf).map(Bytes::from)
             }
             CompressionMethod::RansNx16 => {
                 let mut reader = self.data();
-                rans_decode_nx16(&mut reader, self.uncompressed_len()).map(Cow::from)
+                rans_decode_nx16(&mut reader, self.uncompressed_len()).map(Bytes::from)
             }
             CompressionMethod::AdaptiveArithmeticCoding => {
                 let mut reader = self.data();
-                arith_decode(&mut reader, self.uncompressed_len()).map(Cow::from)
+                arith_decode(&mut reader, self.uncompressed_len()).map(Bytes::from)
             }
             CompressionMethod::Fqzcomp => {
                 let mut reader = self.data();
-                fqz_decode(&mut reader).map(Cow::from)
+                fqz_decode(&mut reader).map(Bytes::from)
             }
             CompressionMethod::NameTokenizer => {
                 let mut reader = self.data();
                 let names = decode_names(&mut reader)?;
                 let data: Vec<_> = names.into_iter().flat_map(|s| s.into_bytes()).collect();
-                Ok(Cow::from(data))
+                Ok(Bytes::from(data))
             }
         }
     }

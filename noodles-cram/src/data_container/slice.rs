@@ -153,7 +153,7 @@ impl Slice {
                 .expect("invalid block content ID");
 
             let data = block.decompressed_data()?;
-            let sequence = fasta::record::Sequence::from(Vec::from(data));
+            let sequence = fasta::record::Sequence::from(data);
 
             Some(sequence)
         } else {
