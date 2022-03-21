@@ -62,6 +62,9 @@
 
 ### Fixed
 
+  * cram/data_container/slice: Only attempt to resolve quality scores for
+    mapped records.
+
   * cram/data_container/slice/builder: Detach all records before writing.
 
     The slice builder does not yet calculate mate distances, so all records are

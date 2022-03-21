@@ -217,7 +217,9 @@ impl Slice {
 
     fn resolve_quality_scores(&self, records: &mut [Record]) {
         for record in records {
-            if !record.cram_flags().are_quality_scores_stored_as_array() {
+            if !record.flags().is_unmapped()
+                && !record.cram_flags().are_quality_scores_stored_as_array()
+            {
                 let quality_scores =
                     resolve_quality_scores(record.features(), record.read_length());
 
