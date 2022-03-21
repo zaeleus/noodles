@@ -178,8 +178,13 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn cigar(&self) -> &sam::record::Cigar {
-        self.cigar
-            .get_or_init(|| resolve::resolve_features(self.features(), self.read_length()))
+        self.cigar.get_or_init(|| {
+            if self.flags().is_unmapped() {
+                sam::record::Cigar::default()
+            } else {
+                resolve::resolve_features(self.features(), self.read_length())
+            }
+        })
     }
 
     fn mate_reference_sequence<'rs>(
