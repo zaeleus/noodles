@@ -13,9 +13,10 @@ impl Record {
     {
         let mut builder = Self::builder();
 
-        builder = builder.set_bam_flags(record.flags());
+        let bam_flags = record.flags();
+        builder = builder.set_bam_flags(bam_flags);
 
-        let flags = Flags::default();
+        let mut flags = Flags::default();
 
         if let Some(reference_sequence) = record
             .reference_sequence(header.reference_sequences())
@@ -80,7 +81,13 @@ impl Record {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
-        builder = builder.set_quality_scores(record.quality_scores().clone());
+        if !record.quality_scores().is_empty() {
+            if bam_flags.is_unmapped() {
+                flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
+            }
+
+            builder = builder.set_quality_scores(record.quality_scores().clone());
+        }
 
         Ok(builder.set_flags(flags).build())
     }
