@@ -69,13 +69,16 @@ impl Record {
 
         builder = builder.set_bases(record.sequence().clone());
 
-        let features = Features::from_cigar(
-            flags,
-            record.cigar(),
-            record.sequence(),
-            record.quality_scores(),
-        );
-        builder = builder.set_features(features);
+        if !bam_flags.is_unmapped() {
+            let features = Features::from_cigar(
+                flags,
+                record.cigar(),
+                record.sequence(),
+                record.quality_scores(),
+            );
+
+            builder = builder.set_features(features);
+        }
 
         if let Some(mapping_quality) = record.mapping_quality() {
             builder = builder.set_mapping_quality(mapping_quality);

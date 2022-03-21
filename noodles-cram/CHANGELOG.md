@@ -76,6 +76,10 @@
   * cram/record/convert: Create read group (`RG`) data field if a read group ID
     is set.
 
+  * cram/record/convert: Only convert CIGAR to features for mapped records.
+
+    Unmapped records cannot have features.
+
   * cram/record/resolve: Handle `Scores` feature when resolving quality scores.
 
   * cram/writer: Avoid possible wrapping when casting `usize` to `i32`.
