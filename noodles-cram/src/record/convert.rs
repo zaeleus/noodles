@@ -3,7 +3,7 @@ use std::io;
 use noodles_bam as bam;
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{resolve::resolve_features, Features, Record};
+use super::{resolve::resolve_features, Features, Flags, Record};
 
 impl Record {
     /// Converts an alignment record to a CRAM record.
@@ -15,7 +15,7 @@ impl Record {
 
         builder = builder.set_bam_flags(record.flags());
 
-        // CRAM flags
+        let flags = Flags::default();
 
         if let Some(reference_sequence) = record
             .reference_sequence(header.reference_sequences())
@@ -68,8 +68,12 @@ impl Record {
 
         builder = builder.set_bases(record.sequence().clone());
 
-        let features =
-            Features::from_cigar(record.cigar(), record.sequence(), record.quality_scores());
+        let features = Features::from_cigar(
+            flags,
+            record.cigar(),
+            record.sequence(),
+            record.quality_scores(),
+        );
         builder = builder.set_features(features);
 
         if let Some(mapping_quality) = record.mapping_quality() {
@@ -78,7 +82,7 @@ impl Record {
 
         builder = builder.set_quality_scores(record.quality_scores().clone());
 
-        Ok(builder.build())
+        Ok(builder.set_flags(flags).build())
     }
 
     /// Converts this CRAM record to a SAM record.

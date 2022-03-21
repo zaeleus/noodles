@@ -10,7 +10,7 @@ use std::{
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::Feature;
+use super::{Feature, Flags};
 
 /// CRAM record features.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -19,11 +19,12 @@ pub struct Features(Vec<Feature>);
 impl Features {
     /// Converts SAM record CIGAR operations to CRAM record features.
     pub fn from_cigar(
+        flags: Flags,
         cigar: &sam::record::Cigar,
         sequence: &sam::record::Sequence,
         quality_scores: &sam::record::QualityScores,
     ) -> Self {
-        cigar_to_features(cigar, sequence, quality_scores)
+        cigar_to_features(flags, cigar, sequence, quality_scores)
     }
 
     pub(crate) fn with_positions(
@@ -55,6 +56,7 @@ impl From<Vec<Feature>> for Features {
 }
 
 fn cigar_to_features(
+    flags: Flags,
     cigar: &sam::record::Cigar,
     sequence: &sam::record::Sequence,
     quality_scores: &sam::record::QualityScores,
@@ -79,8 +81,10 @@ fn cigar_to_features(
                     let bases = &sequence[read_position..end];
                     features.push(Feature::Bases(read_position, bases.to_vec()));
 
-                    let scores = &quality_scores[read_position..end];
-                    features.push(Feature::Scores(read_position, scores.to_vec()));
+                    if !flags.are_quality_scores_stored_as_array() {
+                        let scores = &quality_scores[read_position..end];
+                        features.push(Feature::Scores(read_position, scores.to_vec()));
+                    }
                 }
             }
             Kind::Insertion => {
@@ -88,8 +92,10 @@ fn cigar_to_features(
                     let base = sequence[read_position];
                     features.push(Feature::InsertBase(read_position, base));
 
-                    let score = quality_scores[read_position];
-                    features.push(Feature::QualityScore(read_position, score));
+                    if !flags.are_quality_scores_stored_as_array() {
+                        let score = quality_scores[read_position];
+                        features.push(Feature::QualityScore(read_position, score));
+                    }
                 } else {
                     let end = read_position
                         .checked_add(op.len())
@@ -98,8 +104,10 @@ fn cigar_to_features(
                     let bases = &sequence[read_position..end];
                     features.push(Feature::Insertion(read_position, bases.to_vec()));
 
-                    let scores = &quality_scores[read_position..end];
-                    features.push(Feature::Scores(read_position, scores.to_vec()));
+                    if !flags.are_quality_scores_stored_as_array() {
+                        let scores = &quality_scores[read_position..end];
+                        features.push(Feature::Scores(read_position, scores.to_vec()));
+                    }
                 }
             }
             Kind::Deletion => features.push(Feature::Deletion(read_position, op.len())),
@@ -112,12 +120,14 @@ fn cigar_to_features(
                 let bases = &sequence[read_position..end];
                 features.push(Feature::SoftClip(read_position, bases.to_vec()));
 
-                if bases.len() == 1 {
-                    let score = quality_scores[read_position];
-                    features.push(Feature::QualityScore(read_position, score));
-                } else {
-                    let scores = &quality_scores[read_position..end];
-                    features.push(Feature::Scores(read_position, scores.to_vec()));
+                if !flags.are_quality_scores_stored_as_array() {
+                    if bases.len() == 1 {
+                        let score = quality_scores[read_position];
+                        features.push(Feature::QualityScore(read_position, score));
+                    } else {
+                        let scores = &quality_scores[read_position..end];
+                        features.push(Feature::Scores(read_position, scores.to_vec()));
+                    }
                 }
             }
             Kind::HardClip => features.push(Feature::HardClip(read_position, op.len())),
@@ -149,10 +159,12 @@ mod tests {
     fn test_cigar_to_features() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{quality_scores::Score, sequence::Base};
 
+        let flags = Flags::default();
+
         let cigar = "1M".parse()?;
         let sequence = "A".parse()?;
         let quality_scores = "N".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![Feature::ReadBase(
             Position::try_from(1)?,
             Base::A,
@@ -163,7 +175,7 @@ mod tests {
         let cigar = "2M".parse()?;
         let sequence = "AC".parse()?;
         let quality_scores = "ND".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Bases(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
@@ -176,7 +188,7 @@ mod tests {
         let cigar = "1I1M".parse()?;
         let sequence = "AC".parse()?;
         let quality_scores = "ND".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::InsertBase(Position::try_from(1)?, Base::A),
             Feature::QualityScore(Position::try_from(1)?, Score::try_from('N')?),
@@ -187,7 +199,7 @@ mod tests {
         let cigar = "2I1M".parse()?;
         let sequence = "ACG".parse()?;
         let quality_scores = "NDL".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
@@ -201,7 +213,7 @@ mod tests {
         let cigar = "1D2M".parse()?;
         let sequence = "AC".parse()?;
         let quality_scores = "ND".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Deletion(Position::try_from(1)?, 1),
             Feature::Bases(Position::try_from(1)?, vec![Base::A, Base::C]),
@@ -215,7 +227,7 @@ mod tests {
         let cigar = "1N1M".parse()?;
         let sequence = "A".parse()?;
         let quality_scores = "N".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::ReferenceSkip(Position::try_from(1)?, 1),
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
@@ -225,7 +237,7 @@ mod tests {
         let cigar = "1S1M".parse()?;
         let sequence = "AC".parse()?;
         let quality_scores = "ND".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
             Feature::QualityScore(Position::try_from(1)?, Score::try_from('N')?),
@@ -236,7 +248,7 @@ mod tests {
         let cigar = "2S1M".parse()?;
         let sequence = "ACG".parse()?;
         let quality_scores = "NDL".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::SoftClip(Position::try_from(1)?, vec![Base::A, Base::C]),
             Feature::Scores(
@@ -250,7 +262,7 @@ mod tests {
         let cigar = "1H1M".parse()?;
         let sequence = "A".parse()?;
         let quality_scores = "N".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::HardClip(Position::try_from(1)?, 1),
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
@@ -260,7 +272,118 @@ mod tests {
         let cigar = "1P1M".parse()?;
         let sequence = "A".parse()?;
         let quality_scores = "N".parse()?;
-        let actual = cigar_to_features(&cigar, &sequence, &quality_scores);
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::Padding(Position::try_from(1)?, 1),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cigar_to_features_with_quality_scores_stored_as_array(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use sam::record::{quality_scores::Score, sequence::Base};
+
+        let flags = Flags::QUALITY_SCORES_STORED_AS_ARRAY;
+
+        let cigar = "1M".parse()?;
+        let sequence = "A".parse()?;
+        let quality_scores = "N".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![Feature::ReadBase(
+            Position::try_from(1)?,
+            Base::A,
+            Score::try_from('N')?,
+        )]);
+        assert_eq!(actual, expected);
+
+        let cigar = "2M".parse()?;
+        let sequence = "AC".parse()?;
+        let quality_scores = "ND".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![Feature::Bases(
+            Position::try_from(1)?,
+            vec![Base::A, Base::C],
+        )]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1I1M".parse()?;
+        let sequence = "AC".parse()?;
+        let quality_scores = "ND".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::InsertBase(Position::try_from(1)?, Base::A),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "2I1M".parse()?;
+        let sequence = "ACG".parse()?;
+        let quality_scores = "NDL".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::Insertion(Position::try_from(1)?, vec![Base::A, Base::C]),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1D2M".parse()?;
+        let sequence = "AC".parse()?;
+        let quality_scores = "ND".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::Deletion(Position::try_from(1)?, 1),
+            Feature::Bases(Position::try_from(1)?, vec![Base::A, Base::C]),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1N1M".parse()?;
+        let sequence = "A".parse()?;
+        let quality_scores = "N".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::ReferenceSkip(Position::try_from(1)?, 1),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1S1M".parse()?;
+        let sequence = "AC".parse()?;
+        let quality_scores = "ND".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::SoftClip(Position::try_from(1)?, vec![Base::A]),
+            Feature::ReadBase(Position::try_from(2)?, Base::C, Score::try_from('D')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "2S1M".parse()?;
+        let sequence = "ACG".parse()?;
+        let quality_scores = "NDL".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::SoftClip(Position::try_from(1)?, vec![Base::A, Base::C]),
+            Feature::ReadBase(Position::try_from(3)?, Base::G, Score::try_from('L')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1H1M".parse()?;
+        let sequence = "A".parse()?;
+        let quality_scores = "N".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
+        let expected = Features::from(vec![
+            Feature::HardClip(Position::try_from(1)?, 1),
+            Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
+        ]);
+        assert_eq!(actual, expected);
+
+        let cigar = "1P1M".parse()?;
+        let sequence = "A".parse()?;
+        let quality_scores = "N".parse()?;
+        let actual = cigar_to_features(flags, &cigar, &sequence, &quality_scores);
         let expected = Features::from(vec![
             Feature::Padding(Position::try_from(1)?, 1),
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from('N')?),
