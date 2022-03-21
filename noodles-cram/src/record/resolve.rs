@@ -172,11 +172,18 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::rec
     let mut quality_scores = sam::record::QualityScores::from(vec![Score::default(); read_len]);
 
     for feature in features {
-        let read_pos = feature.position();
+        let read_position = feature.position();
 
-        quality_scores[read_pos] = match feature {
-            Feature::ReadBase(_, _, score) => *score,
-            Feature::QualityScore(_, score) => *score,
+        match feature {
+            Feature::Scores(_, scores) => {
+                let end = read_position
+                    .checked_add(scores.len())
+                    .expect("attempt to add with overflow");
+
+                quality_scores[read_position..end].copy_from_slice(scores);
+            }
+            Feature::ReadBase(_, _, score) => quality_scores[read_position] = *score,
+            Feature::QualityScore(_, score) => quality_scores[read_position] = *score,
             _ => continue,
         }
     }
@@ -378,11 +385,15 @@ mod tests {
         let features = [
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(5)?),
             Feature::QualityScore(Position::try_from(3)?, Score::try_from(8)?),
+            Feature::Scores(
+                Position::try_from(5)?,
+                vec![Score::try_from(13)?, Score::try_from(21)?],
+            ),
         ];
 
-        let actual = resolve_quality_scores(&features, 4);
+        let actual = resolve_quality_scores(&features, 6);
 
-        let expected = [5, 0, 8, 0]
+        let expected = [5, 0, 8, 0, 13, 21]
             .into_iter()
             .map(Score::try_from)
             .collect::<Result<Vec<_>, _>>()

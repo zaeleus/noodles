@@ -73,6 +73,8 @@
   * cram/record/convert: Create read group (`RG`) data field if a read group ID
     is set.
 
+  * cram/record/resolve: Handle `Scores` feature when resolving quality scores.
+
   * cram/writer: Avoid possible wrapping when casting `usize` to `i32`.
 
 ### Removed
