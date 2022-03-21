@@ -73,6 +73,9 @@
   * cram/data_container/slice/builder: Normalize sequence for MD5 digest
     calculation.
 
+  * cram/reader/data_container: Disallow unexpected block content types when
+    reading a data container.
+
   * cram/record/convert: Create read group (`RG`) data field if a read group ID
     is set.
 

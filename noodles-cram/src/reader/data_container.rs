@@ -8,7 +8,7 @@ use std::io::{self, Read};
 use bytes::{Bytes, BytesMut};
 
 use super::container;
-use crate::{data_container::CompressionHeader, DataContainer};
+use crate::{container::block::ContentType, data_container::CompressionHeader, DataContainer};
 
 pub fn read_data_container<R>(reader: &mut R) -> io::Result<Option<DataContainer>>
 where
@@ -74,6 +74,18 @@ pub(crate) fn read_compression_header_from_block(src: &mut Bytes) -> io::Result<
     use super::container::read_block;
 
     let block = read_block(src)?;
+
+    if block.content_type() != ContentType::CompressionHeader {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "invalid block content type: expected {:?}, got {:?}",
+                ContentType::CompressionHeader,
+                block.content_type()
+            ),
+        ));
+    }
+
     let mut data = block.decompressed_data()?;
     get_compression_header(&mut data)
 }
