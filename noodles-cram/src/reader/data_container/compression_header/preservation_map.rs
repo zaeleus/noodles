@@ -1,6 +1,6 @@
-use std::io::{self, BufRead, Read};
+use std::io;
 
-use byteorder::ReadBytesExt;
+use bytes::{Buf, Bytes};
 use noodles_sam::record::data::field::{value::Type, Tag};
 
 use crate::{
@@ -8,22 +8,21 @@ use crate::{
         preservation_map::{tag_ids_dictionary, Key},
         PreservationMap, SubstitutionMatrix, TagIdsDictionary,
     },
-    reader::num::read_itf8,
+    reader::num::get_itf8,
 };
 
-pub fn read_preservation_map<R>(reader: &mut R) -> io::Result<PreservationMap>
-where
-    R: Read,
-{
-    let data_len = read_itf8(reader).and_then(|n| {
+pub fn get_preservation_map(src: &mut Bytes) -> io::Result<PreservationMap> {
+    let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut buf = vec![0; data_len];
-    reader.read_exact(&mut buf)?;
+    if src.remaining() < data_len {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
 
-    let mut buf_reader = &buf[..];
-    let map_len = read_itf8(&mut buf_reader)?;
+    let mut buf = src.split_to(data_len);
+
+    let map_len = get_itf8(&mut buf)?;
 
     let mut read_names_included = true;
     let mut ap_data_series_delta = true;
@@ -32,23 +31,23 @@ where
     let mut tag_ids_dictionary = None;
 
     for _ in 0..map_len {
-        let key = read_key(&mut buf_reader)?;
+        let key = get_key(&mut buf)?;
 
         match key {
             Key::ReadNamesIncluded => {
-                read_names_included = read_bool(&mut buf_reader)?;
+                read_names_included = get_bool(&mut buf)?;
             }
             Key::ApDataSeriesDelta => {
-                ap_data_series_delta = read_bool(&mut buf_reader)?;
+                ap_data_series_delta = get_bool(&mut buf)?;
             }
             Key::ReferenceRequired => {
-                reference_required = read_bool(&mut buf_reader)?;
+                reference_required = get_bool(&mut buf)?;
             }
             Key::SubstitutionMatrix => {
-                substitution_matrix = read_substitution_matrix(&mut buf_reader).map(Some)?;
+                substitution_matrix = get_substitution_matrix(&mut buf).map(Some)?;
             }
             Key::TagIdsDictionary => {
-                tag_ids_dictionary = read_tag_ids_dictionary(&mut buf_reader).map(Some)?;
+                tag_ids_dictionary = get_tag_ids_dictionary(&mut buf).map(Some)?;
             }
         }
     }
@@ -66,60 +65,72 @@ where
     ))
 }
 
-fn read_key<R>(reader: &mut R) -> io::Result<Key>
+fn get_key<B>(src: &mut B) -> io::Result<Key>
 where
-    R: Read,
+    B: Buf,
 {
     let mut buf = [0; 2];
-    reader.read_exact(&mut buf)?;
+
+    if src.remaining() < buf.len() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    src.copy_to_slice(&mut buf);
+
     Key::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn read_bool<R>(reader: &mut R) -> io::Result<bool>
+fn get_bool<B>(src: &mut B) -> io::Result<bool>
 where
-    R: Read,
+    B: Buf,
 {
-    match reader.read_u8() {
-        Ok(0) => Ok(false),
-        Ok(1) => Ok(true),
-        Ok(_) => Err(io::Error::new(
+    if !src.has_remaining() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    match src.get_u8() {
+        0 => Ok(false),
+        1 => Ok(true),
+        _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid bool value",
         )),
-        Err(e) => Err(e),
     }
 }
 
-fn read_substitution_matrix<R>(reader: &mut R) -> io::Result<SubstitutionMatrix>
+fn get_substitution_matrix<B>(src: &mut B) -> io::Result<SubstitutionMatrix>
 where
-    R: Read,
+    B: Buf,
 {
     let mut buf = [0; 5];
-    reader.read_exact(&mut buf[..])?;
+
+    if src.remaining() < buf.len() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    src.copy_to_slice(&mut buf);
+
     SubstitutionMatrix::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-fn read_tag_ids_dictionary<R>(reader: &mut R) -> io::Result<TagIdsDictionary>
-where
-    R: Read,
-{
-    let data_len = read_itf8(reader)?;
-    let mut buf = vec![0; data_len as usize];
-    reader.read_exact(&mut buf)?;
+fn get_tag_ids_dictionary(src: &mut Bytes) -> io::Result<TagIdsDictionary> {
+    const NUL: u8 = 0x00;
 
-    let mut buf_reader = &buf[..];
+    let data_len = get_itf8(src).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    if src.remaining() < data_len {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let mut buf = src.split_to(data_len);
 
     let mut dictionary = Vec::new();
-    let mut keys_buf = Vec::new();
 
-    loop {
-        keys_buf.clear();
-
-        match buf_reader.read_until(0x00, &mut keys_buf) {
-            Ok(0) => break,
-            Ok(_) => {}
-            Err(e) => return Err(e),
-        }
+    while let Some(i) = buf.iter().position(|&b| b == NUL) {
+        let keys_buf = buf.split_to(i);
+        buf.advance(1); // Discard the NUL terminator.
 
         let mut line = Vec::new();
 
@@ -147,8 +158,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_preservation_map() -> io::Result<()> {
-        let data = [
+    fn test_get_preservation_map() -> io::Result<()> {
+        let mut data = Bytes::from_static(&[
             0x18, // data.len = 24
             0x05, // map.len = 5
             0x52, 0x4e, // key = "RN"
@@ -162,9 +173,9 @@ mod tests {
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
             0x54, 0x44, // key = "TD"
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
-        ];
-        let mut reader = &data[..];
-        let actual = read_preservation_map(&mut reader)?;
+        ]);
+
+        let actual = get_preservation_map(&mut data)?;
 
         let expected = PreservationMap::new(
             false,
@@ -183,44 +194,44 @@ mod tests {
     }
 
     #[test]
-    fn test_read_preservation_map_with_no_substitution_matrix() {
-        let data = [
+    fn test_get_preservation_map_with_no_substitution_matrix() {
+        let mut data = Bytes::from_static(&[
             0x08, // data.len = 8
             0x01, // map.len = 1
             0x54, 0x44, // key = "TD"
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
-        ];
-        let mut reader = &data[..];
-        assert!(read_preservation_map(&mut reader).is_err());
+        ]);
+
+        assert!(get_preservation_map(&mut data).is_err());
     }
 
     #[test]
-    fn test_read_preservation_map_with_no_tag_ids_dictionary() {
-        let data = [
+    fn test_get_preservation_map_with_no_tag_ids_dictionary() {
+        let mut data = Bytes::from_static(&[
             0x08, // data.len = 8
             0x01, // map.len = 1
             0x53, 0x4d, // key = "SM"
             // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
-        ];
-        let mut reader = &data[..];
-        assert!(read_preservation_map(&mut reader).is_err());
+        ]);
+
+        assert!(get_preservation_map(&mut data).is_err());
     }
 
     #[test]
-    fn test_read_bool() -> io::Result<()> {
+    fn test_get_bool() -> io::Result<()> {
         let data = [0x00];
         let mut reader = &data[..];
-        assert!(!read_bool(&mut reader)?);
+        assert!(!get_bool(&mut reader)?);
 
         let data = [0x01];
         let mut reader = &data[..];
-        assert!(read_bool(&mut reader)?);
+        assert!(get_bool(&mut reader)?);
 
         let data = [0x02];
         let mut reader = &data[..];
         assert!(matches!(
-            read_bool(&mut reader),
+            get_bool(&mut reader),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

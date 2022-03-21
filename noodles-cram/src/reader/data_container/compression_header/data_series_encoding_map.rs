@@ -1,37 +1,33 @@
-use std::io::{self, Read};
+use std::io;
 
-use super::read_encoding;
+use bytes::{Buf, Bytes};
+
+use super::get_encoding;
 use crate::{
     data_container::compression_header::{
         data_series_encoding_map::DataSeries, DataSeriesEncodingMap,
     },
-    reader::num::read_itf8,
+    reader::num::get_itf8,
 };
 
-pub fn read_data_series_encoding_map<R>(reader: &mut R) -> io::Result<DataSeriesEncodingMap>
-where
-    R: Read,
-{
-    let data_len = read_itf8(reader).and_then(|n| {
+pub fn get_data_series_encoding_map(src: &mut Bytes) -> io::Result<DataSeriesEncodingMap> {
+    let data_len = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut buf = vec![0; data_len];
-    reader.read_exact(&mut buf)?;
+    if src.remaining() < data_len {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
 
-    let mut buf_reader = &buf[..];
-    let map_len = read_itf8(&mut buf_reader)?;
+    let mut buf = src.split_to(data_len);
+
+    let map_len = get_itf8(&mut buf)?;
 
     let mut builder = DataSeriesEncodingMap::builder();
-    let mut key_buf = [0; 2];
 
     for _ in 0..map_len {
-        buf_reader.read_exact(&mut key_buf)?;
-
-        let key = DataSeries::try_from(key_buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        let encoding = read_encoding(&mut buf_reader)?;
+        let key = get_key(&mut buf)?;
+        let encoding = get_encoding(&mut buf)?;
 
         builder = match key {
             DataSeries::BamBitFlags => builder.set_bam_bit_flags_encoding(encoding),
@@ -83,25 +79,39 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
+fn get_key<B>(src: &mut B) -> io::Result<DataSeries>
+where
+    B: Buf,
+{
+    let mut buf = [0; 2];
+
+    if src.remaining() < buf.len() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    src.copy_to_slice(&mut buf);
+
+    DataSeries::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Vec<u8>> {
+    fn build_data(data_series_encoding_map: &DataSeriesEncodingMap) -> io::Result<Bytes> {
         use crate::writer::data_container::compression_header::data_series_encoding_map::write_data_series_encoding_map;
 
         let mut buf = Vec::new();
         write_data_series_encoding_map(&mut buf, data_series_encoding_map)?;
-        Ok(buf)
+        Ok(Bytes::from(buf))
     }
 
     #[test]
-    fn test_read_data_series_encoding_map() -> io::Result<()> {
+    fn test_get_data_series_encoding_map() -> io::Result<()> {
         let expected = DataSeriesEncodingMap::default();
 
-        let data = build_data(&expected)?;
-        let mut reader = &data[..];
-        let actual = read_data_series_encoding_map(&mut reader)?;
+        let mut data = build_data(&expected)?;
+        let actual = get_data_series_encoding_map(&mut data)?;
 
         assert_eq!(actual, expected);
 

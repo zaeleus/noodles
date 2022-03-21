@@ -1,7 +1,7 @@
 pub mod compression_header;
 pub mod slice;
 
-pub use self::{compression_header::read_compression_header, slice::read_slice};
+pub use self::{compression_header::get_compression_header, slice::read_slice};
 
 use std::io::{self, Read};
 
@@ -75,6 +75,6 @@ pub(crate) fn read_compression_header_from_block(src: &mut Bytes) -> io::Result<
 
     let block = read_block(src)?;
     let data = block.decompressed_data()?;
-    let mut data_reader = &data[..];
-    read_compression_header(&mut data_reader)
+    let mut buf = Bytes::from(data.to_vec());
+    get_compression_header(&mut buf)
 }

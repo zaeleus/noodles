@@ -3,22 +3,21 @@ mod encoding;
 mod preservation_map;
 mod tag_encoding_map;
 
-use std::io::{self, Read};
+use std::io;
+
+use bytes::Bytes;
 
 use self::{
-    data_series_encoding_map::read_data_series_encoding_map, encoding::read_encoding,
-    preservation_map::read_preservation_map, tag_encoding_map::read_tag_encoding_map,
+    data_series_encoding_map::get_data_series_encoding_map, encoding::get_encoding,
+    preservation_map::get_preservation_map, tag_encoding_map::get_tag_encoding_map,
 };
 
 use crate::data_container::CompressionHeader;
 
-pub fn read_compression_header<R>(reader: &mut R) -> io::Result<CompressionHeader>
-where
-    R: Read,
-{
-    let preservation_map = read_preservation_map(reader)?;
-    let data_series_encoding_map = read_data_series_encoding_map(reader)?;
-    let tag_encoding_map = read_tag_encoding_map(reader)?;
+pub fn get_compression_header(src: &mut Bytes) -> io::Result<CompressionHeader> {
+    let preservation_map = get_preservation_map(src)?;
+    let data_series_encoding_map = get_data_series_encoding_map(src)?;
+    let tag_encoding_map = get_tag_encoding_map(src)?;
 
     Ok(CompressionHeader::new(
         preservation_map,
