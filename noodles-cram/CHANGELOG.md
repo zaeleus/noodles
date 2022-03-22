@@ -49,6 +49,10 @@
       * quality scores as `sam::record::quality_scores::Score`, and
       * substitution as `substitution::Value`.
 
+  * cram/record/resolve: Merge adjacent CIGAR operations.
+
+    For example, instead of 1M1M2M, this is now 4M.
+
   * cram/record/tag/key: Change tag to a `sam::record::data::field::Tag`.
 
   * cram/writer: Make a reference sequence repository optional.
