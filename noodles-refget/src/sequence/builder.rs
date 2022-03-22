@@ -1,11 +1,13 @@
+use noodles_core::Position;
+
 use crate::{Client, Error, Sequence};
 
 /// A sequence endpoint builder.
 pub struct Builder {
     client: Client,
     id: String,
-    start: Option<u32>,
-    end: Option<u32>,
+    start: Option<Position>,
+    end: Option<Position>,
 }
 
 impl Builder {
@@ -23,16 +25,16 @@ impl Builder {
 
     /// Sets the start position.
     ///
-    /// This is 0-based, inclusive.
-    pub fn set_start(mut self, start: u32) -> Self {
+    /// This is 1-based, inclusive.
+    pub fn set_start(mut self, start: Position) -> Self {
         self.start = Some(start);
         self
     }
 
     /// Sets the end position.
     ///
-    /// This is 0-based, exclusive.
-    pub fn set_end(mut self, end: u32) -> Self {
+    /// This is 1-based, inclusive.
+    pub fn set_end(mut self, end: Position) -> Self {
         self.end = Some(end);
         self
     }
@@ -50,6 +52,7 @@ impl Builder {
         let mut query = Vec::new();
 
         if let Some(start) = self.start {
+            let start = usize::from(start) - 1;
             query.push(("start", start.to_string()));
         }
 
