@@ -24,6 +24,9 @@
       * template length (`AlignmentRecord::template_length`), and
       * quality scores (`AlignmentRecord::quality_scores`).
 
+  * sam/header/reference_sequence: Add mutable getter for MD5 checksum
+    (`ReferenceSequence::md5_checksum_mut`).
+
   * sam/reader: Implement `AlignmentReader`.
 
   * sam/record/data/field/value: Add integer types.

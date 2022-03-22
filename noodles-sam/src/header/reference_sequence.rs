@@ -240,6 +240,25 @@ impl ReferenceSequence {
         self.md5_checksum
     }
 
+    /// Returns a mutable reference to the MD5 checksum.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::header::{reference_sequence::Md5Checksum, ReferenceSequence};
+    ///
+    /// let mut reference_sequence = ReferenceSequence::new("sq0".parse()?, 13)?;
+    /// assert!(reference_sequence.md5_checksum().is_none());
+    ///
+    /// let checksum: Md5Checksum = "d7eba311421bbc9d3ada44709dd61534".parse()?;
+    /// *reference_sequence.md5_checksum_mut() = Some(checksum);
+    /// assert_eq!(reference_sequence.md5_checksum(), Some(checksum));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn md5_checksum_mut(&mut self) -> &mut Option<Md5Checksum> {
+        &mut self.md5_checksum
+    }
+
     /// Returns the species.
     ///
     /// # Examples
