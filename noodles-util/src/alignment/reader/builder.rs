@@ -13,7 +13,7 @@ use crate::alignment::Format;
 pub struct Builder<R> {
     inner: R,
     format: Option<Format>,
-    reference_sequence_repository: Option<fasta::Repository>,
+    reference_sequence_repository: fasta::Repository,
 }
 
 impl<R> Builder<R>
@@ -23,7 +23,7 @@ where
     pub(super) fn new(inner: R) -> Self {
         Self {
             inner,
-            reference_sequence_repository: None,
+            reference_sequence_repository: fasta::Repository::default(),
             format: None,
         }
     }
@@ -39,7 +39,7 @@ where
         mut self,
         reference_sequence_repository: fasta::Repository,
     ) -> Self {
-        self.reference_sequence_repository = Some(reference_sequence_repository);
+        self.reference_sequence_repository = reference_sequence_repository;
         self
     }
 
@@ -56,11 +56,9 @@ where
             Format::Cram => Box::new(cram::Reader::new(self.inner)),
         };
 
-        let reference_sequence_repository = self.reference_sequence_repository.unwrap_or_default();
-
         Ok(Reader {
             inner,
-            reference_sequence_repository,
+            reference_sequence_repository: self.reference_sequence_repository,
         })
     }
 }
