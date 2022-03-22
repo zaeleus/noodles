@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout();
     let mut writer = stdout.lock();
 
-    writer.write_all(sequence.sequence())?;
+    writer.write_all(&sequence.sequence())?;
     writeln!(writer)?;
 
     Ok(())

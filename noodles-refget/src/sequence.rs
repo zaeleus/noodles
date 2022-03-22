@@ -28,8 +28,8 @@ impl Sequence {
     }
 
     /// Returns the sequence.
-    pub fn sequence(&self) -> &[u8] {
-        &self.sequence
+    pub fn sequence(&self) -> Bytes {
+        self.sequence.clone()
     }
 
     /// Returns metadata related to the sequence.
