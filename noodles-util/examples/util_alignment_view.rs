@@ -9,7 +9,7 @@ use std::{
     env,
     ffi::{OsStr, OsString},
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, BufWriter},
     path::{Path, PathBuf},
 };
 
@@ -64,7 +64,7 @@ fn main() -> io::Result<()> {
 
     let stdout = io::stdout();
     let handle = stdout.lock();
-    let mut writer = sam::Writer::new(handle);
+    let mut writer = sam::Writer::new(BufWriter::new(handle));
 
     writer.write_header(&header)?;
 
