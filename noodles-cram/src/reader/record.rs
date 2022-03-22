@@ -146,21 +146,21 @@ where
     }
 
     fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
+        use bam::record::reference_sequence_id::UNMAPPED;
+
         let reference_id = if self.reference_sequence_id.is_many() {
             self.read_reference_id()?
         } else {
             i32::from(self.reference_sequence_id)
         };
 
-        record.reference_sequence_id =
-            if reference_id == bam::record::reference_sequence_id::UNMAPPED {
-                None
-            } else {
-                usize::try_from(reference_id)
-                    .map(bam::record::ReferenceSequenceId::from)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-            };
+        record.reference_sequence_id = match reference_id {
+            UNMAPPED => None,
+            _ => usize::try_from(reference_id)
+                .map(bam::record::ReferenceSequenceId::from)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+        };
 
         let read_length = self.read_read_length()?;
         record.read_length = read_length;
@@ -286,19 +286,18 @@ where
                 )
             })?;
 
-        let raw_read_name = decode_byte_array(
+        let buf = decode_byte_array(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
             None,
         )?;
 
-        if raw_read_name == MISSING {
-            Ok(None)
-        } else {
-            sam::record::ReadName::try_from(raw_read_name)
+        match &buf[..] {
+            MISSING => Ok(None),
+            _ => sam::record::ReadName::try_from(buf)
                 .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         }
     }
 
@@ -364,6 +363,8 @@ where
     fn read_next_fragment_reference_sequence_id(
         &mut self,
     ) -> io::Result<Option<bam::record::ReferenceSequenceId>> {
+        use bam::record::reference_sequence_id::UNMAPPED;
+
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -382,15 +383,12 @@ where
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .and_then(|id| {
-            if id == bam::record::reference_sequence_id::UNMAPPED {
-                Ok(None)
-            } else {
-                usize::try_from(id)
-                    .map(bam::record::ReferenceSequenceId::from)
-                    .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }
+        .and_then(|id| match id {
+            UNMAPPED => Ok(None),
+            _ => usize::try_from(id)
+                .map(bam::record::ReferenceSequenceId::from)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         })
     }
 
