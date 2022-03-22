@@ -2,10 +2,7 @@ mod external_data_readers;
 
 pub use external_data_readers::ExternalDataReaders;
 
-use std::{
-    error, fmt,
-    io::{self, Read},
-};
+use std::{error, fmt, io};
 
 use bytes::Buf;
 use noodles_bam as bam;
@@ -60,7 +57,7 @@ impl fmt::Display for ReadRecordError {
 
 pub struct Reader<'a, CDR, EDR>
 where
-    CDR: Read,
+    CDR: Buf,
     EDR: Buf,
 {
     compression_header: &'a CompressionHeader,
@@ -72,7 +69,7 @@ where
 
 impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
 where
-    CDR: Read,
+    CDR: Buf,
     EDR: Buf,
 {
     pub fn new(
@@ -972,7 +969,7 @@ fn decode_byte<CDR, EDR>(
     external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<u8>
 where
-    CDR: Read,
+    CDR: Buf,
     EDR: Buf,
 {
     match encoding {
@@ -1010,7 +1007,7 @@ fn decode_itf8<CDR, EDR>(
     external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<i32>
 where
-    CDR: Read,
+    CDR: Buf,
     EDR: Buf,
 {
     match encoding {
@@ -1046,7 +1043,7 @@ fn decode_byte_array<CDR, EDR>(
     buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
 where
-    CDR: Read,
+    CDR: Buf,
     EDR: Buf,
 {
     match encoding {

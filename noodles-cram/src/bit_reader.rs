@@ -1,26 +1,22 @@
-use std::io::{self, Read};
+use std::io;
 
-use byteorder::ReadBytesExt;
+use bytes::Buf;
 
-pub struct BitReader<R>
+pub struct BitReader<B>
 where
-    R: Read,
+    B: Buf,
 {
-    inner: R,
+    src: B,
     buf: u8,
     i: usize,
 }
 
-impl<R> BitReader<R>
+impl<B> BitReader<B>
 where
-    R: Read,
+    B: Buf,
 {
-    pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            buf: 0,
-            i: 8,
-        }
+    pub fn new(src: B) -> Self {
+        Self { src, buf: 0, i: 8 }
     }
 
     pub fn read_u32(&mut self, n: u32) -> io::Result<u32> {
@@ -36,7 +32,11 @@ where
 
     fn read_bit(&mut self) -> io::Result<u8> {
         if self.i >= 8 {
-            self.buf = self.inner.read_u8()?;
+            if !self.src.has_remaining() {
+                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+            }
+
+            self.buf = self.src.get_u8();
             self.i = 0;
         }
 
@@ -56,9 +56,9 @@ mod tests {
     fn test_read_u32() -> io::Result<()> {
         let data = [0b11001111, 0b01000000];
         let mut reader = BitReader::new(&data[..]);
-        assert_eq!(reader.read_u32(4)?, 0x0c);
-        assert_eq!(reader.read_u32(2)?, 0x03);
-        assert_eq!(reader.read_u32(6)?, 0x34);
+        assert_eq!(reader.read_u32(4)?, 0b1100);
+        assert_eq!(reader.read_u32(2)?, 0b11);
+        assert_eq!(reader.read_u32(6)?, 0b110100);
         Ok(())
     }
 }

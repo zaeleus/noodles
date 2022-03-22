@@ -1,7 +1,6 @@
-use std::{
-    collections::HashMap,
-    io::{self, Read},
-};
+use std::{collections::HashMap, io};
+
+use bytes::Buf;
 
 use crate::BitReader;
 
@@ -17,9 +16,9 @@ impl CanonicalHuffmanDecoder {
         Self { code_book }
     }
 
-    pub fn decode<R>(&self, reader: &mut BitReader<R>) -> io::Result<i32>
+    pub fn decode<B>(&self, reader: &mut BitReader<B>) -> io::Result<i32>
     where
-        R: Read,
+        B: Buf,
     {
         let mut code_book_by_len = HashMap::new();
 

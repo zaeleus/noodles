@@ -3,7 +3,7 @@ pub(crate) mod header;
 
 pub use self::{builder::Builder, header::Header};
 
-use std::io::{self, Cursor};
+use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
@@ -79,7 +79,6 @@ impl Slice {
         let core_data_reader = self
             .core_data_block
             .decompressed_data()
-            .map(Cursor::new)
             .map(BitReader::new)?;
 
         let mut external_data_readers = ExternalDataReaders::new();
