@@ -1087,10 +1087,17 @@ where
             let mut buf = Vec::new();
             reader.read_until(*stop_byte, &mut buf)?;
 
-            // Remove stop byte.
-            buf.pop();
+            if let Some(last_byte) = buf.last() {
+                if last_byte == stop_byte {
+                    buf.pop();
+                    return Ok(buf);
+                }
+            }
 
-            Ok(buf)
+            Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "missing byte array stop byte",
+            ))
         }
         _ => todo!("decode_byte_array: {:?}", encoding),
     }
@@ -1181,6 +1188,11 @@ mod tests {
             &Encoding::ByteArrayStop(0x00, 1),
             b"ndls",
         )?;
+
+        assert!(matches!(
+            t(&[0x6e, 0x64, 0x6c, 0x73], &Encoding::ByteArrayStop(0x00, 1), b""),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
