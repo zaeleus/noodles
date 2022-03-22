@@ -91,10 +91,11 @@ where
 
     for keys in tag_ids_dictionary.iter() {
         for key in keys {
-            let id = key.id();
-            buf.push((id >> 16) as u8);
-            buf.push((id >> 8) as u8);
-            buf.push(id as u8);
+            let tag = key.tag();
+            buf.extend_from_slice(tag.as_ref());
+
+            let ty = key.ty();
+            buf.push(u8::from(ty));
         }
 
         buf.push(NUL);
