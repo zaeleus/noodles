@@ -1,13 +1,15 @@
-use std::{collections::HashMap, io::Read};
+use std::collections::HashMap;
 
-pub struct ExternalDataReaders<R> {
-    low_readers: [Option<R>; 64],
-    high_readers: HashMap<i32, R>,
+use bytes::Buf;
+
+pub struct ExternalDataReaders<B> {
+    low_readers: [Option<B>; 64],
+    high_readers: HashMap<i32, B>,
 }
 
-impl<R> ExternalDataReaders<R>
+impl<B> ExternalDataReaders<B>
 where
-    R: Read,
+    B: Buf,
 {
     pub fn new() -> Self {
         Self {
@@ -16,7 +18,7 @@ where
         }
     }
 
-    pub fn insert(&mut self, id: i32, reader: R) {
+    pub fn insert(&mut self, id: i32, reader: B) {
         match id {
             0..=63 => {
                 self.low_readers[id as usize] = Some(reader);
@@ -27,7 +29,7 @@ where
         }
     }
 
-    pub fn get_mut(&mut self, id: &i32) -> Option<&mut R> {
+    pub fn get_mut(&mut self, id: &i32) -> Option<&mut B> {
         match *id {
             0..=63 => self.low_readers[*id as usize].as_mut(),
             _ => self.high_readers.get_mut(id),
@@ -35,9 +37,9 @@ where
     }
 }
 
-fn init_low_readers<R>() -> [Option<R>; 64]
+fn init_low_readers<B>() -> [Option<B>; 64]
 where
-    R: Read,
+    B: Buf,
 {
     [
         None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,

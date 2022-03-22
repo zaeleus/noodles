@@ -4,10 +4,10 @@ pub use external_data_readers::ExternalDataReaders;
 
 use std::{
     error, fmt,
-    io::{self, BufRead, Read},
+    io::{self, Read},
 };
 
-use byteorder::ReadBytesExt;
+use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
@@ -16,7 +16,7 @@ use noodles_sam::{
     AlignmentRecord,
 };
 
-use super::num::read_itf8;
+use super::num::get_itf8;
 use crate::{
     container::ReferenceSequenceId,
     data_container::{
@@ -61,7 +61,7 @@ impl fmt::Display for ReadRecordError {
 pub struct Reader<'a, CDR, EDR>
 where
     CDR: Read,
-    EDR: BufRead,
+    EDR: Buf,
 {
     compression_header: &'a CompressionHeader,
     core_data_reader: BitReader<CDR>,
@@ -73,7 +73,7 @@ where
 impl<'a, CDR, EDR> Reader<'a, CDR, EDR>
 where
     CDR: Read,
-    EDR: BufRead,
+    EDR: Buf,
 {
     pub fn new(
         compression_header: &'a CompressionHeader,
@@ -973,11 +973,11 @@ fn decode_byte<CDR, EDR>(
 ) -> io::Result<u8>
 where
     CDR: Read,
-    EDR: Read,
+    EDR: Buf,
 {
     match encoding {
         Encoding::External(block_content_id) => {
-            let reader = external_data_readers
+            let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
                     io::Error::new(
@@ -986,7 +986,11 @@ where
                     )
                 })?;
 
-            reader.read_u8()
+            if !src.has_remaining() {
+                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+            }
+
+            Ok(src.get_u8())
         }
         Encoding::Huffman(alphabet, bit_lens) => {
             if alphabet.len() == 1 {
@@ -1007,11 +1011,11 @@ fn decode_itf8<CDR, EDR>(
 ) -> io::Result<i32>
 where
     CDR: Read,
-    EDR: Read,
+    EDR: Buf,
 {
     match encoding {
         Encoding::External(block_content_id) => {
-            let reader = external_data_readers
+            let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
                     io::Error::new(
@@ -1020,7 +1024,7 @@ where
                     )
                 })?;
 
-            read_itf8(reader)
+            get_itf8(src)
         }
         Encoding::Huffman(alphabet, bit_lens) => {
             if alphabet.len() == 1 {
@@ -1043,11 +1047,11 @@ fn decode_byte_array<CDR, EDR>(
 ) -> io::Result<Vec<u8>>
 where
     CDR: Read,
-    EDR: BufRead,
+    EDR: Buf,
 {
     match encoding {
         Encoding::External(block_content_id) => {
-            let reader = external_data_readers
+            let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
                     io::Error::new(
@@ -1056,8 +1060,13 @@ where
                     )
                 })?;
 
-            let mut buf = buf.expect("missing buf");
-            reader.read_exact(&mut buf)?;
+            let mut buf = buf.unwrap();
+
+            if src.remaining() < buf.len() {
+                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+            }
+
+            src.copy_to_slice(&mut buf);
 
             Ok(buf)
         }
@@ -1075,7 +1084,7 @@ where
             Ok(value)
         }
         Encoding::ByteArrayStop(stop_byte, block_content_id) => {
-            let reader = external_data_readers
+            let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
                     io::Error::new(
@@ -1084,20 +1093,23 @@ where
                     )
                 })?;
 
-            let mut buf = Vec::new();
-            reader.read_until(*stop_byte, &mut buf)?;
-
-            if let Some(last_byte) = buf.last() {
-                if last_byte == stop_byte {
-                    buf.pop();
-                    return Ok(buf);
+            let len = match src.chunk().iter().position(|&b| b == *stop_byte) {
+                Some(i) => i,
+                None => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "missing byte array stop byte",
+                    ))
                 }
-            }
+            };
 
-            Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "missing byte array stop byte",
-            ))
+            let mut buf = vec![0; len];
+            src.copy_to_slice(&mut buf);
+
+            // Discard the stop byte.
+            src.advance(1);
+
+            Ok(buf)
         }
         _ => todo!("decode_byte_array: {:?}", encoding),
     }

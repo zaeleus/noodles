@@ -85,7 +85,7 @@ impl Slice {
         let mut external_data_readers = ExternalDataReaders::new();
 
         for block in self.external_blocks() {
-            let reader = block.decompressed_data().map(Cursor::new)?;
+            let reader = block.decompressed_data()?;
             external_data_readers.insert(block.content_id(), reader);
         }
 
