@@ -7,7 +7,11 @@ where
 {
     for chunk in sequence.as_ref().chunks(2) {
         let l = chunk[0];
+
+        // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of
+        // the last byte are undefined, but we recommend writing these as zero."
         let r = chunk.get(1).copied().unwrap_or(Base::Eq);
+
         let b = encode_base(l) << 4 | encode_base(r);
         dst.put_u8(b);
     }
