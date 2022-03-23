@@ -41,6 +41,8 @@ pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()
 where
     B: Buf,
 {
+    use self::data::read_data;
+
     *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
     *record.position_mut() = read_position(&mut buf)?;
 
@@ -309,21 +311,6 @@ fn is_missing_quality_scores(buf: &[u8]) -> bool {
     use crate::writer::alignment_record::NULL_QUALITY_SCORE;
 
     buf.iter().all(|&b| b == NULL_QUALITY_SCORE)
-}
-
-fn read_data<B>(buf: &mut B, data: &mut sam::record::Data) -> io::Result<()>
-where
-    B: Buf,
-{
-    use self::data::get_field;
-
-    data.clear();
-
-    while let Some(field) = get_field(buf)? {
-        data.insert(field);
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
