@@ -2,6 +2,7 @@
 
 pub mod data;
 mod quality_scores;
+mod sequence;
 
 use std::{
     io::{self, Read},
@@ -42,7 +43,7 @@ pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()
 where
     B: Buf,
 {
-    use self::{data::get_data, quality_scores::get_quality_scores};
+    use self::{data::get_data, quality_scores::get_quality_scores, sequence::get_sequence};
 
     *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
     *record.position_mut() = get_position(&mut buf)?;
@@ -221,61 +222,6 @@ where
         let op = decode_cigar_op(buf.get_u32_le())?;
         cigar.as_mut().push(op);
     }
-
-    Ok(())
-}
-
-fn get_sequence<B>(
-    buf: &mut B,
-    sequence: &mut sam::record::Sequence,
-    l_seq: usize,
-) -> io::Result<()>
-where
-    B: Buf,
-{
-    use sam::record::sequence::Base;
-
-    fn decode_base(n: u8) -> Base {
-        static BASES: [Base; 16] = [
-            Base::Eq,
-            Base::A,
-            Base::C,
-            Base::M,
-            Base::G,
-            Base::R,
-            Base::S,
-            Base::V,
-            Base::T,
-            Base::W,
-            Base::Y,
-            Base::H,
-            Base::K,
-            Base::D,
-            Base::B,
-            Base::N,
-        ];
-
-        BASES[usize::from(n & 0x0f)]
-    }
-
-    let seq_len = (l_seq + 1) / 2;
-
-    if buf.remaining() < seq_len {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let seq = buf.take(seq_len);
-
-    sequence.clear();
-
-    for &b in seq.chunk() {
-        sequence.push(decode_base(b >> 4));
-        sequence.push(decode_base(b));
-    }
-
-    sequence.as_mut().truncate(l_seq);
-
-    buf.advance(seq_len);
 
     Ok(())
 }
