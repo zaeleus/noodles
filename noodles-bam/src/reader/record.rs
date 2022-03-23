@@ -41,42 +41,42 @@ pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()
 where
     B: Buf,
 {
-    use self::data::read_data;
+    use self::data::get_data;
 
-    *record.reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    *record.position_mut() = read_position(&mut buf)?;
+    *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
+    *record.position_mut() = get_position(&mut buf)?;
 
     let l_read_name = NonZeroUsize::new(usize::from(buf.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
-    *record.mapping_quality_mut() = read_mapping_quality(&mut buf)?;
+    *record.mapping_quality_mut() = get_mapping_quality(&mut buf)?;
 
     // Discard bin.
     buf.advance(mem::size_of::<u16>());
 
     let n_cigar_op = usize::from(buf.get_u16_le());
 
-    *record.flags_mut() = read_flag(&mut buf)?;
+    *record.flags_mut() = get_flags(&mut buf)?;
 
     let l_seq = usize::try_from(buf.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.mate_reference_sequence_id_mut() = read_reference_sequence_id(&mut buf)?;
-    *record.mate_position_mut() = read_position(&mut buf)?;
+    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
+    *record.mate_position_mut() = get_position(&mut buf)?;
 
     *record.template_length_mut() = buf.get_i32_le();
 
-    read_read_name(&mut buf, record.read_name_mut(), l_read_name)?;
-    read_cigar(&mut buf, record.cigar_mut(), n_cigar_op)?;
-    read_seq(&mut buf, record.sequence_mut(), l_seq)?;
-    read_qual(&mut buf, record.quality_scores_mut(), l_seq)?;
+    get_read_name(&mut buf, record.read_name_mut(), l_read_name)?;
+    get_cigar(&mut buf, record.cigar_mut(), n_cigar_op)?;
+    get_sequence(&mut buf, record.sequence_mut(), l_seq)?;
+    get_quality_scores(&mut buf, record.quality_scores_mut(), l_seq)?;
 
-    read_data(&mut buf, record.data_mut())?;
+    get_data(&mut buf, record.data_mut())?;
 
     Ok(())
 }
 
-fn read_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<ReferenceSequenceId>>
+fn get_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<ReferenceSequenceId>>
 where
     B: Buf,
 {
@@ -95,7 +95,7 @@ where
     }
 }
 
-fn read_position<B>(buf: &mut B) -> io::Result<Option<Position>>
+fn get_position<B>(buf: &mut B) -> io::Result<Option<Position>>
 where
     B: Buf,
 {
@@ -113,7 +113,7 @@ where
     }
 }
 
-fn read_mapping_quality<B>(buf: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
+fn get_mapping_quality<B>(buf: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
 where
     B: Buf,
 {
@@ -131,7 +131,7 @@ where
     }
 }
 
-fn read_flag<B>(buf: &mut B) -> io::Result<sam::record::Flags>
+fn get_flags<B>(buf: &mut B) -> io::Result<sam::record::Flags>
 where
     B: Buf,
 {
@@ -142,7 +142,7 @@ where
     Ok(sam::record::Flags::from(buf.get_u16_le()))
 }
 
-fn read_read_name<B>(
+fn get_read_name<B>(
     buf: &mut B,
     read_name: &mut Option<sam::record::ReadName>,
     l_read_name: NonZeroUsize,
@@ -179,7 +179,7 @@ where
     Ok(())
 }
 
-fn read_cigar<B>(buf: &mut B, cigar: &mut sam::record::Cigar, n_cigar_op: usize) -> io::Result<()>
+fn get_cigar<B>(buf: &mut B, cigar: &mut sam::record::Cigar, n_cigar_op: usize) -> io::Result<()>
 where
     B: Buf,
 {
@@ -224,7 +224,11 @@ where
     Ok(())
 }
 
-fn read_seq<B>(buf: &mut B, sequence: &mut sam::record::Sequence, l_seq: usize) -> io::Result<()>
+fn get_sequence<B>(
+    buf: &mut B,
+    sequence: &mut sam::record::Sequence,
+    l_seq: usize,
+) -> io::Result<()>
 where
     B: Buf,
 {
@@ -275,7 +279,7 @@ where
     Ok(())
 }
 
-fn read_qual<B>(
+fn get_quality_scores<B>(
     buf: &mut B,
     quality_scores: &mut sam::record::QualityScores,
     l_seq: usize,
@@ -363,12 +367,12 @@ mod tests {
     }
 
     #[test]
-    fn test_read_qual_with_sequence_and_no_quality_scores() -> io::Result<()> {
+    fn test_get_quality_scores_with_sequence_and_no_quality_scores() -> io::Result<()> {
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut buf = &data[..];
 
         let mut quality_scores = sam::record::QualityScores::default();
-        read_qual(&mut buf, &mut quality_scores, 4)?;
+        get_quality_scores(&mut buf, &mut quality_scores, 4)?;
 
         assert!(quality_scores.is_empty());
 
