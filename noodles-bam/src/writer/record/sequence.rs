@@ -35,3 +35,47 @@ fn encode_base(base: Base) -> u8 {
         _ => 15,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_put_sequence() -> Result<(), sam::record::sequence::ParseError> {
+        fn t(buf: &mut Vec<u8>, sequence: &sam::record::Sequence, expected: &[u8]) {
+            buf.clear();
+            put_sequence(buf, sequence);
+            assert_eq!(buf, expected);
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, &sam::record::Sequence::default(), &[]);
+        t(&mut buf, &"ACG".parse()?, &[0x12, 0x40]);
+        t(&mut buf, &"ACGT".parse()?, &[0x12, 0x48]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_base() {
+        assert_eq!(encode_base(Base::Eq), 0);
+        assert_eq!(encode_base(Base::A), 1);
+        assert_eq!(encode_base(Base::C), 2);
+        assert_eq!(encode_base(Base::M), 3);
+        assert_eq!(encode_base(Base::G), 4);
+        assert_eq!(encode_base(Base::R), 5);
+        assert_eq!(encode_base(Base::S), 6);
+        assert_eq!(encode_base(Base::V), 7);
+        assert_eq!(encode_base(Base::T), 8);
+        assert_eq!(encode_base(Base::W), 9);
+        assert_eq!(encode_base(Base::Y), 10);
+        assert_eq!(encode_base(Base::H), 11);
+        assert_eq!(encode_base(Base::K), 12);
+        assert_eq!(encode_base(Base::D), 13);
+        assert_eq!(encode_base(Base::B), 14);
+        assert_eq!(encode_base(Base::N), 15);
+
+        assert_eq!(encode_base(Base::X), 15);
+    }
+}
