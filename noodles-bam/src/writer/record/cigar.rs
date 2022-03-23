@@ -26,7 +26,7 @@ fn encode_op(op: Op) -> io::Result<u32> {
         Ok(len << 4 | k)
     } else {
         Err(io::Error::new(
-            io::ErrorKind::InvalidData,
+            io::ErrorKind::InvalidInput,
             "invalid CIGAR op length",
         ))
     }
@@ -68,7 +68,7 @@ mod tests {
         let op = Op::new(Kind::Match, 1 << 28);
         assert!(matches!(
             encode_op(op),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 
         Ok(())
