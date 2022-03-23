@@ -52,11 +52,12 @@ impl Builder {
         let mut query = Vec::new();
 
         if let Some(start) = self.start {
-            let start = usize::from(start) - 1;
+            let start = u32::try_from(usize::from(start) - 1).map_err(|_| Error::Input)?;
             query.push(("start", start.to_string()));
         }
 
         if let Some(end) = self.end {
+            let end = u32::try_from(usize::from(end)).map_err(|_| Error::Input)?;
             query.push(("end", end.to_string()));
         }
 
