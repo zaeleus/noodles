@@ -1,5 +1,6 @@
 //! BAM record field readers.
 
+mod cigar;
 pub mod data;
 mod quality_scores;
 mod sequence;
@@ -43,7 +44,10 @@ pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()
 where
     B: Buf,
 {
-    use self::{data::get_data, quality_scores::get_quality_scores, sequence::get_sequence};
+    use self::{
+        cigar::get_cigar, data::get_data, quality_scores::get_quality_scores,
+        sequence::get_sequence,
+    };
 
     *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
     *record.position_mut() = get_position(&mut buf)?;
@@ -177,51 +181,6 @@ where
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
     };
-
-    Ok(())
-}
-
-fn get_cigar<B>(buf: &mut B, cigar: &mut sam::record::Cigar, n_cigar_op: usize) -> io::Result<()>
-where
-    B: Buf,
-{
-    use sam::record::cigar::{op::Kind, Op};
-
-    fn decode_cigar_op(n: u32) -> io::Result<Op> {
-        let kind = match n & 0x0f {
-            0 => Kind::Match,
-            1 => Kind::Insertion,
-            2 => Kind::Deletion,
-            3 => Kind::Skip,
-            4 => Kind::SoftClip,
-            5 => Kind::HardClip,
-            6 => Kind::Pad,
-            7 => Kind::SequenceMatch,
-            8 => Kind::SequenceMismatch,
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid CIGAR op kind",
-                ))
-            }
-        };
-
-        let len =
-            usize::try_from(n >> 4).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        Ok(Op::new(kind, len))
-    }
-
-    if buf.remaining() < mem::size_of::<u32>() * n_cigar_op {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    cigar.clear();
-
-    for _ in 0..n_cigar_op {
-        let op = decode_cigar_op(buf.get_u32_le())?;
-        cigar.as_mut().push(op);
-    }
 
     Ok(())
 }
