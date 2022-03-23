@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/writer/compression_level: Enable compression level 0 (no compression)
+    for libdeflate.
+
 ### Changed
 
   * bgzf: Update to libdeflater 0.8.0 (libdeflate 1.10).

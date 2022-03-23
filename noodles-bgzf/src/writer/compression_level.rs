@@ -1,8 +1,5 @@
 use std::{error, fmt};
 
-#[cfg(feature = "libdeflate")]
-const MIN: u8 = 1;
-#[cfg(not(feature = "libdeflate"))]
 const MIN: u8 = 0;
 
 #[cfg(feature = "libdeflate")]
@@ -23,7 +20,6 @@ impl CompressionLevel {
     /// use noodles_bgzf::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::none();
     /// ```
-    #[cfg(not(feature = "libdeflate"))]
     pub fn none() -> Self {
         Self(0)
     }
@@ -111,7 +107,6 @@ impl From<CompressionLevel> for flate2::Compression {
 mod tests {
     use super::*;
 
-    #[cfg(not(feature = "libdeflate"))]
     #[test]
     fn test_none() {
         assert_eq!(CompressionLevel::none(), CompressionLevel(0));
