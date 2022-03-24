@@ -14,6 +14,8 @@
 
 ### Changed
 
+  * cram/crai/record: Change alignment start to an `Option<Position>`.
+
   * cram/record: Move `mapping_quality`, `read_name`, and `quality_scores` to
     the implementation of `sam::AlignmentReader`.
 

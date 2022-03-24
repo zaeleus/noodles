@@ -1,6 +1,7 @@
 use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
 use noodles_bam as bam;
+use noodles_core::Position;
 use noodles_sam::AlignmentRecord;
 
 use super::{
@@ -93,15 +94,15 @@ fn push_index_records(
 
 #[derive(Debug)]
 struct SliceReferenceSequenceAlignmentRangeInclusive {
-    start: usize,
-    end: usize,
+    start: Option<Position>,
+    end: Option<Position>,
 }
 
 impl Default for SliceReferenceSequenceAlignmentRangeInclusive {
     fn default() -> Self {
         Self {
-            start: usize::MAX,
-            end: 0,
+            start: Position::new(usize::MAX),
+            end: None,
         }
     }
 }
@@ -126,13 +127,10 @@ fn push_index_records_for_multi_reference_slice(
             .entry(reference_sequence_id)
             .or_default();
 
-        let alignment_start = record
-            .alignment_start()
-            .map(usize::from)
-            .unwrap_or_default();
+        let alignment_start = record.alignment_start();
         range.start = cmp::min(range.start, alignment_start);
 
-        let alignment_end = record.alignment_end().map(usize::from).unwrap_or_default();
+        let alignment_end = record.alignment_end();
         range.end = cmp::max(range.end, alignment_end);
     }
 
@@ -140,27 +138,23 @@ fn push_index_records_for_multi_reference_slice(
         reference_sequence_ids.keys().copied().collect();
     sorted_reference_sequence_ids.sort_unstable();
 
-    let reference_sequence_ids: Vec<_> = sorted_reference_sequence_ids
-        .iter()
-        .map(|&reference_sequence_id| {
+    for reference_sequence_id in sorted_reference_sequence_ids {
+        let (alignment_start, alignment_span) = if reference_sequence_id.is_some() {
             let range = &reference_sequence_ids[&reference_sequence_id];
 
-            let (alignment_start, alignment_span) = if reference_sequence_id.is_some() {
-                let alignment_start = range.start;
-                let alignment_span = range.end - alignment_start + 1;
-                (alignment_start, alignment_span)
+            if let (Some(start), Some(end)) = (range.start, range.end) {
+                let span = usize::from(end) - usize::from(start) + 1;
+                (Some(start), span)
             } else {
-                (0, 0)
-            };
+                todo!("unhandled interval: {:?}", range);
+            }
+        } else {
+            (None, 0)
+        };
 
-            (reference_sequence_id, alignment_start, alignment_span)
-        })
-        .collect();
-
-    for (reference_sequence_id, alignment_start, alignment_span) in reference_sequence_ids {
         let record = crai::Record::new(
             reference_sequence_id,
-            alignment_start as i32,
+            alignment_start,
             alignment_span as i32,
             container_position,
             landmark as u64,
@@ -192,22 +186,18 @@ fn push_index_record_for_single_reference_slice(
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-            let alignment_start = slice_header
-                .alignment_start()
-                .map(usize::from)
-                .unwrap_or_default();
-
+            let alignment_start = slice_header.alignment_start();
             let alignment_span = slice_header.alignment_span();
 
             (reference_sequence_id, alignment_start, alignment_span)
         }
-        ReferenceSequenceId::None => (None, 0, 0),
+        ReferenceSequenceId::None => (None, None, 0),
         ReferenceSequenceId::Many => unreachable!(),
     };
 
     let record = crai::Record::new(
         reference_sequence_id,
-        alignment_start as i32,
+        alignment_start,
         alignment_span as i32,
         container_position,
         landmark,

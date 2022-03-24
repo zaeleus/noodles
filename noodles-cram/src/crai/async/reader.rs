@@ -102,6 +102,7 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_bam as bam;
+    use noodles_core::Position;
 
     use super::*;
     use crate::crai::Record;
@@ -115,7 +116,7 @@ mod tests {
 
         let expected = vec![Record::new(
             Some(bam::record::ReferenceSequenceId::from(0)),
-            10946,
+            Position::new(10946),
             6765,
             17711,
             233,

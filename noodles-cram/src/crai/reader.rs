@@ -85,6 +85,7 @@ mod tests {
 
     use flate2::write::GzEncoder;
     use noodles_bam as bam;
+    use noodles_core::Position;
 
     use crate::crai::Record;
 
@@ -108,7 +109,7 @@ mod tests {
         let expected = vec![
             Record::new(
                 Some(bam::record::ReferenceSequenceId::from(0)),
-                10946,
+                Position::new(10946),
                 6765,
                 17711,
                 233,
@@ -116,7 +117,7 @@ mod tests {
             ),
             Record::new(
                 Some(bam::record::ReferenceSequenceId::from(0)),
-                17711,
+                Position::new(17711),
                 121393,
                 317811,
                 233,

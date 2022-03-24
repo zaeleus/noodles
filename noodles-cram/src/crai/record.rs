@@ -7,6 +7,7 @@ pub use self::field::Field;
 use std::{error, fmt, num, str::FromStr};
 
 use noodles_bam as bam;
+use noodles_core::Position;
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
@@ -15,7 +16,7 @@ const MAX_FIELDS: usize = 6;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    alignment_start: i32,
+    alignment_start: Option<Position>,
     alignment_span: i32,
     offset: u64,
     landmark: u64,
@@ -29,11 +30,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -42,7 +44,7 @@ impl Record {
     /// ```
     pub fn new(
         reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-        alignment_start: i32,
+        alignment_start: Option<Position>,
         alignment_span: i32,
         offset: u64,
         landmark: u64,
@@ -64,11 +66,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -90,20 +93,21 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
     ///     317811,
     /// );
     ///
-    /// assert_eq!(record.alignment_start(), 10946);
+    /// assert_eq!(record.alignment_start(), Position::new(10946));
     /// ```
-    pub fn alignment_start(&self) -> i32 {
+    pub fn alignment_start(&self) -> Option<Position> {
         self.alignment_start
     }
 
@@ -113,11 +117,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -136,11 +141,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -159,11 +165,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -182,11 +189,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam::record::ReferenceSequenceId;
+    /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let record = crai::Record::new(
     ///     Some(ReferenceSequenceId::from(0)),
-    ///     10946,
+    ///     Position::new(10946),
     ///     6765,
     ///     17711,
     ///     233,
@@ -210,14 +218,12 @@ impl fmt::Display for Record {
             write!(f, "{}\t", UNMAPPED)?;
         };
 
+        let alignment_start = self.alignment_start().map(usize::from).unwrap_or_default();
+
         write!(
             f,
             "{}\t{}\t{}\t{}\t{}",
-            self.alignment_start,
-            self.alignment_span,
-            self.offset,
-            self.landmark,
-            self.slice_length
+            alignment_start, self.alignment_span, self.offset, self.landmark, self.slice_length
         )
     }
 }
@@ -265,7 +271,7 @@ impl FromStr for Record {
                 }
             })?;
 
-        let alignment_start = parse_i32(&mut fields, Field::AlignmentStart)?;
+        let alignment_start = parse_position(&mut fields, Field::AlignmentStart)?;
         let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let landmark = parse_u64(&mut fields, Field::Landmark)?;
@@ -302,13 +308,24 @@ where
         .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
 }
 
+fn parse_position<'a, I>(fields: &mut I, field: Field) -> Result<Option<Position>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or(ParseError::Missing(field))
+        .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
+        .map(Position::new)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_fmt() {
-        let record = Record::new(None, 10946, 6765, 17711, 233, 317811);
+        let record = Record::new(None, Position::new(10946), 6765, 17711, 233, 317811);
         let actual = record.to_string();
         let expected = "-1\t10946\t6765\t17711\t233\t317811";
         assert_eq!(actual, expected);
@@ -320,7 +337,7 @@ mod tests {
 
         let expected = Record {
             reference_sequence_id: Some(bam::record::ReferenceSequenceId::from(0)),
-            alignment_start: 10946,
+            alignment_start: Position::new(10946),
             alignment_span: 6765,
             offset: 17711,
             landmark: 233,
