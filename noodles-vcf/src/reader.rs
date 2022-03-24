@@ -279,7 +279,7 @@ where
     /// let header = reader.read_header()?.parse()?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
-    /// let region = Region::mapped("sq0", 8..=13);
+    /// let region = Region::new("sq0", 8..=13);
     /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
@@ -373,27 +373,20 @@ pub(crate) fn resolve_region(
     index: &tabix::Index,
     region: &Region,
 ) -> io::Result<(usize, String, Interval)> {
-    if let Some(r) = region.as_mapped() {
-        let i = index
-            .reference_sequence_names()
-            .get_index_of(r.name())
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!(
-                        "region reference sequence does not exist in reference sequences: {:?}",
-                        region
-                    ),
-                )
-            })?;
+    let i = index
+        .reference_sequence_names()
+        .get_index_of(region.name())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "region reference sequence does not exist in reference sequences: {:?}",
+                    region
+                ),
+            )
+        })?;
 
-        Ok((i, r.name().into(), r.interval()))
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "region is not mapped",
-        ))
-    }
+    Ok((i, region.name().into(), region.interval()))
 }
 
 #[cfg(test)]

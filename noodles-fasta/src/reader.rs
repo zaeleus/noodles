@@ -184,14 +184,14 @@ where
     ///
     /// let mut reader = fasta::Reader::new(Cursor::new(data));
     ///
-    /// let region = Region::mapped("sq1", ..);
+    /// let region = Region::new("sq1", ..);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1", None),
     ///     Sequence::from(b"ACGT".to_vec()),
     /// ));
     ///
-    /// let region = Region::mapped("sq1", 2..=3);
+    /// let region = Region::new("sq1", 2..=3);
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1:2-3", None),
@@ -344,24 +344,17 @@ where
 }
 
 fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, Interval)> {
-    if let Some(r) = region.as_mapped() {
-        let i = index
-            .iter()
-            .position(|r| r.name() == region.name())
-            .ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("invalid reference sequence name: {}", r.name()),
-                )
-            })?;
+    let i = index
+        .iter()
+        .position(|record| record.name() == region.name())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("invalid reference sequence name: {}", region.name()),
+            )
+        })?;
 
-        Ok((i, r.interval()))
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "region is not mapped",
-        ))
-    }
+    Ok((i, region.interval()))
 }
 
 // Shifts a 1-based interval to a 0-based range for slicing.

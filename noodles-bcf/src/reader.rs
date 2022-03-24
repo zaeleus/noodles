@@ -250,7 +250,7 @@ where
     /// let string_maps: StringMaps = reader.read_header()?.parse()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
-    /// let region = Region::mapped("sq0", 8..=13);
+    /// let region = Region::new("sq0", 8..=13);
     /// let query = reader.query(string_maps.contigs(), &index, &region)?;
     ///
     /// for result in query {
@@ -338,21 +338,16 @@ pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
 ) -> io::Result<(usize, Interval)> {
-    if let Some(r) = region.as_mapped() {
-        let i = contig_string_map.get_index_of(r.name()).ok_or_else(|| {
+    let i = contig_string_map
+        .get_index_of(region.name())
+        .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("region does not exist in contigs: {:?}", region),
             )
         })?;
 
-        Ok((i, r.interval()))
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "region is not mapped",
-        ))
-    }
+    Ok((i, region.interval()))
 }
 
 #[cfg(test)]

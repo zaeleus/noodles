@@ -25,7 +25,7 @@ where
     R: BufRead + Seek,
 {
     fn get(&mut self, name: &str) -> Option<io::Result<Record>> {
-        let region = Region::mapped(name, ..);
+        let region = Region::new(name, ..);
         Some(self.reader.query(&self.index, &region))
     }
 }

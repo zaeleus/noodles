@@ -300,7 +300,7 @@ where
     ///
     /// let reference_sequences = header.reference_sequences();
     /// let index = bai::read("sample.bam.bai")?;
-    /// let region = Region::mapped("sq0", 17711..=28657);
+    /// let region = Region::new("sq0", 17711..=28657);
     /// let query = reader.query(reference_sequences, &index, &region)?;
     ///
     /// for result in query {
@@ -484,8 +484,9 @@ pub(crate) fn resolve_region(
     reference_sequences: &ReferenceSequences,
     region: &Region,
 ) -> io::Result<(usize, Interval)> {
-    if let Some(r) = region.as_mapped() {
-        let i = reference_sequences.get_index_of(r.name()).ok_or_else(|| {
+    let i = reference_sequences
+        .get_index_of(region.name())
+        .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!(
@@ -495,13 +496,7 @@ pub(crate) fn resolve_region(
             )
         })?;
 
-        Ok((i, r.interval()))
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "region is not mapped",
-        ))
-    }
+    Ok((i, region.interval()))
 }
 
 #[cfg(test)]

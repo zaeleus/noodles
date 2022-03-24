@@ -279,7 +279,7 @@ where
     /// let header = reader.read_header().await?.parse()?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
-    /// let region = Region::mapped("sq0", 8..=13);
+    /// let region = Region::new("sq0", 8..=13);
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {

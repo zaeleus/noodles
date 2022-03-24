@@ -6,6 +6,12 @@
 
   * core: Add a 1-based position wrapper (`Position`).
 
+### Changed
+
+  * core/region: Replace `Region` with `region::Mapped`.
+
+    A `Region` can now only represent a span over a single reference sequence.
+
 ### Fixed
 
   * core: Remove dependency on noodles-sam in manifest.

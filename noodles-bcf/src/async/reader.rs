@@ -317,7 +317,7 @@ where
     /// let string_maps: StringMaps = reader.read_header().await?.parse()?;
     ///
     /// let index = csi::r#async::read("sample.bcf.csi").await?;
-    /// let region = Region::mapped("sq0", 8..=13);
+    /// let region = Region::new("sq0", 8..=13);
     /// let mut query = reader.query(string_maps.contigs(), &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {

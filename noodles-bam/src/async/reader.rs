@@ -332,7 +332,7 @@ where
     ///
     /// let reference_sequences = header.reference_sequences();
     /// let index = bai::r#async::read("sample.bam.bai").await?;
-    /// let region = Region::mapped("sq0", 8..=13);
+    /// let region = Region::new("sq0", 8..=13);
     /// let mut query = reader.query(reference_sequences, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {

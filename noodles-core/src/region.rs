@@ -1,113 +1,108 @@
 //! Genomic region.
 
-mod mapped;
-
-pub use self::mapped::{Interval, Mapped};
-
 use std::{
     error, fmt, num,
     ops::{Bound, RangeBounds},
     str::FromStr,
 };
 
-static UNMAPPED_NAME: &str = "*";
-static ALL_NAME: &str = ".";
+/// An interval.
+pub type Interval = (Bound<i32>, Bound<i32>);
 
 /// A genomic region.
-///
-/// Genomic regions can either be mapped to a reference sequence, unmapped (*), or an inclusion of
-/// all records (.).
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Region {
-    /// A mapped region.
-    Mapped(Mapped),
-    /// An unmapped region.
-    Unmapped,
-    /// All records.
-    All,
+pub struct Region {
+    name: String,
+    start: Bound<i32>,
+    end: Bound<i32>,
 }
 
 impl Region {
-    /// Creates a new mapped region.
+    /// Creates a region.
     ///
     /// Positions are assumed to be 1-based.
     ///
     /// # Examples
     ///
     /// ```
-    /// # use std::ops::Bound;
     /// use noodles_core::Region;
-    /// let region = Region::mapped("sq0", 1..=5);
-    /// assert!(matches!(region, Region::Mapped(_)));
+    /// let region = Region::new("sq0", 1..=5);
     /// ```
-    pub fn mapped<I, B>(name: I, interval: B) -> Self
+    pub fn new<I, B>(name: I, interval: B) -> Self
     where
         I: Into<String>,
         B: RangeBounds<i32>,
     {
-        Self::Mapped(Mapped::new(name, interval))
+        Self {
+            name: name.into(),
+            end: interval.end_bound().cloned(),
+            start: interval.start_bound().cloned(),
+        }
     }
 
     /// Returns the reference name of the region.
     ///
-    /// If the region is unmapped, this returns "*". If the region represents
-    /// all records, this returns ".".
-    ///
     /// # Examples
     ///
     /// ```
     /// use noodles_core::Region;
-    ///
-    /// let region = Region::mapped("sq0", 1..=5);
+    /// let region = Region::new("sq0", 1..=5);
     /// assert_eq!(region.name(), "sq0");
-    ///
-    /// assert_eq!(Region::Unmapped.name(), "*");
-    /// assert_eq!(Region::All.name(), ".");
     /// ```
     pub fn name(&self) -> &str {
-        match self {
-            Self::Mapped(m) => m.name(),
-            Self::Unmapped => UNMAPPED_NAME,
-            Self::All => ALL_NAME,
-        }
+        &self.name
     }
 
-    /// Returns whether the region is mapped.
+    /// Returns the start position of the region (1-based).
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::ops::Bound;
     /// use noodles_core::Region;
-    /// assert!(Region::mapped("sq0", 5..=8).is_mapped());
-    /// assert!(!Region::Unmapped.is_mapped());
+    /// let region = Region::new("sq0", 5..=8);
+    /// assert_eq!(region.start(), Bound::Included(5));
     /// ```
-    pub fn is_mapped(&self) -> bool {
-        matches!(self, Self::Mapped(_))
+    pub fn start(&self) -> Bound<i32> {
+        self.start
     }
 
-    /// Returns the region as a mapped region if it is mapped.
+    /// Returns the end position of the region (1-based).
     ///
     /// # Examples
     ///
     /// ```
+    /// # use std::ops::Bound;
     /// use noodles_core::Region;
-    /// assert!(Region::mapped("sq0", 5..=8).as_mapped().is_some());
-    /// assert!(Region::Unmapped.as_mapped().is_none());
+    /// let region = Region::new("sq0", 5..=8);
+    /// assert_eq!(region.end(), Bound::Included(8));
     /// ```
-    pub fn as_mapped(&self) -> Option<&Mapped> {
-        match self {
-            Self::Mapped(m) => Some(m),
-            _ => None,
-        }
+    pub fn end(&self) -> Bound<i32> {
+        self.end
+    }
+
+    /// Returns the start and end positions as an interval.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::ops::Bound;
+    /// use noodles_core::Region;
+    /// let region = Region::new("sq0", 5..=8);
+    /// assert_eq!(region.interval(), (Bound::Included(5), Bound::Included(8)));
+    /// ```
+    pub fn interval(&self) -> Interval {
+        (self.start, self.end)
     }
 }
 
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Mapped(m) => write!(f, "{}", m),
-            Self::Unmapped => write!(f, "{}", UNMAPPED_NAME),
-            Self::All => write!(f, "{}", ALL_NAME),
+        match self.interval() {
+            (Bound::Unbounded, Bound::Unbounded) => write!(f, "{}", self.name()),
+            (Bound::Included(s), Bound::Unbounded) => write!(f, "{}:{}", self.name(), s),
+            (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", self.name(), s, e),
+            _ => todo!(),
         }
     }
 }
@@ -147,20 +142,16 @@ impl FromStr for Region {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(ParseError::Empty);
-        } else if s == UNMAPPED_NAME {
-            return Ok(Self::Unmapped);
-        } else if s == ALL_NAME {
-            return Ok(Self::All);
         }
 
         if let Some((name, suffix)) = s.rsplit_once(':') {
             if let Ok(interval) = parse_interval(suffix) {
-                Ok(Self::mapped(name, interval))
+                Ok(Self::new(name, interval))
             } else {
                 Err(ParseError::Invalid)
             }
         } else {
-            Ok(Self::mapped(s, ..))
+            Ok(Self::new(s, ..))
         }
     }
 }
@@ -197,22 +188,17 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Region::mapped("sq0", ..).to_string(), "sq0");
-        assert_eq!(Region::mapped("sq0", 3..).to_string(), "sq0:3");
-        assert_eq!(Region::mapped("sq0", 3..=5).to_string(), "sq0:3-5");
-        assert_eq!(Region::Unmapped.to_string(), "*");
-        assert_eq!(Region::All.to_string(), ".");
+        assert_eq!(Region::new("sq0", ..).to_string(), "sq0");
+        assert_eq!(Region::new("sq0", 3..).to_string(), "sq0:3");
+        assert_eq!(Region::new("sq0", 3..=5).to_string(), "sq0:3-5");
     }
 
     #[test]
     fn test_from_str() {
-        assert_eq!("*".parse(), Ok(Region::Unmapped));
-        assert_eq!(".".parse(), Ok(Region::All));
-
-        assert_eq!("sq0".parse(), Ok(Region::mapped("sq0", ..)));
-        assert_eq!("sq1:".parse(), Ok(Region::mapped("sq1", ..)));
-        assert_eq!("sq2:5".parse(), Ok(Region::mapped("sq2", 5..)));
-        assert_eq!("sq3:5-8".parse(), Ok(Region::mapped("sq3", 5..=8)));
+        assert_eq!("sq0".parse(), Ok(Region::new("sq0", ..)));
+        assert_eq!("sq1:".parse(), Ok(Region::new("sq1", ..)));
+        assert_eq!("sq2:5".parse(), Ok(Region::new("sq2", 5..)));
+        assert_eq!("sq3:5-8".parse(), Ok(Region::new("sq3", 5..=8)));
 
         assert_eq!("".parse::<Region>(), Err(ParseError::Empty));
     }
