@@ -17,7 +17,7 @@ const MAX_FIELDS: usize = 6;
 pub struct Record {
     reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
     alignment_start: Option<Position>,
-    alignment_span: i32,
+    alignment_span: usize,
     offset: u64,
     landmark: u64,
     slice_length: u64,
@@ -45,7 +45,7 @@ impl Record {
     pub fn new(
         reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
         alignment_start: Option<Position>,
-        alignment_span: i32,
+        alignment_span: usize,
         offset: u64,
         landmark: u64,
         slice_length: u64,
@@ -131,7 +131,7 @@ impl Record {
     ///
     /// assert_eq!(record.alignment_span(), 6765);
     /// ```
-    pub fn alignment_span(&self) -> i32 {
+    pub fn alignment_span(&self) -> usize {
         self.alignment_span
     }
 
@@ -272,7 +272,7 @@ impl FromStr for Record {
             })?;
 
         let alignment_start = parse_position(&mut fields, Field::AlignmentStart)?;
-        let alignment_span = parse_i32(&mut fields, Field::AlignmentSpan)?;
+        let alignment_span = parse_span(&mut fields, Field::AlignmentSpan)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let landmark = parse_u64(&mut fields, Field::Landmark)?;
         let slice_length = parse_u64(&mut fields, Field::SliceLength)?;
@@ -317,6 +317,16 @@ where
         .ok_or(ParseError::Missing(field))
         .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
         .map(Position::new)
+}
+
+fn parse_span<'a, I>(fields: &mut I, field: Field) -> Result<usize, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or(ParseError::Missing(field))
+        .and_then(|s| s.parse().map_err(|e| ParseError::Invalid(field, e)))
 }
 
 #[cfg(test)]

@@ -155,7 +155,7 @@ fn push_index_records_for_multi_reference_slice(
         let record = crai::Record::new(
             reference_sequence_id,
             alignment_start,
-            alignment_span as i32,
+            alignment_span,
             container_position,
             landmark as u64,
             slice_length as u64,
@@ -198,7 +198,7 @@ fn push_index_record_for_single_reference_slice(
     let record = crai::Record::new(
         reference_sequence_id,
         alignment_start,
-        alignment_span as i32,
+        alignment_span,
         container_position,
         landmark,
         slice_length,
