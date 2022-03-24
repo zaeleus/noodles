@@ -1,10 +1,12 @@
 mod cigar;
 pub(crate) mod data;
 mod quality_scores;
+mod read_name;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::put_cigar, data::put_data, quality_scores::put_quality_scores, sequence::put_sequence,
+    cigar::put_cigar, data::put_data, quality_scores::put_quality_scores, read_name::put_read_name,
+    sequence::put_sequence,
 };
 
 use std::io;
@@ -195,23 +197,6 @@ where
     B: BufMut,
 {
     dst.put_i32_le(template_length);
-}
-
-pub(super) fn put_read_name<B>(dst: &mut B, read_name: Option<&sam::record::ReadName>)
-where
-    B: BufMut,
-{
-    use sam::record::read_name::MISSING;
-
-    const NUL: u8 = 0x00;
-
-    if let Some(read_name) = read_name {
-        dst.put(read_name.as_ref());
-    } else {
-        dst.put(MISSING);
-    }
-
-    dst.put_u8(NUL);
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
