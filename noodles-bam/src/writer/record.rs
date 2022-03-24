@@ -1,8 +1,11 @@
 mod cigar;
 pub(crate) mod data;
+mod quality_scores;
 mod sequence;
 
-pub(crate) use self::{cigar::put_cigar, data::put_data, sequence::put_sequence};
+pub(crate) use self::{
+    cigar::put_cigar, data::put_data, quality_scores::put_quality_scores, sequence::put_sequence,
+};
 
 use std::io;
 
@@ -209,15 +212,6 @@ where
     }
 
     dst.put_u8(NUL);
-}
-
-pub(super) fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::QualityScores)
-where
-    B: BufMut,
-{
-    for &score in quality_scores.as_ref() {
-        dst.put_u8(u8::from(score));
-    }
 }
 
 // § 5.3 "C source code for computing bin number and overlapping bins" (2021-06-03)
