@@ -54,3 +54,44 @@ fn decode_base(n: u8) -> Base {
         _ => unreachable!(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(mut src: &[u8], expected: &sam::record::Sequence) -> io::Result<()> {
+            let mut actual = sam::record::Sequence::default();
+            get_sequence(&mut src, &mut actual, expected.len())?;
+            assert_eq!(&actual, expected);
+            Ok(())
+        }
+
+        t(&[], &sam::record::Sequence::default())?;
+        t(&[0x12, 0x40], &"ACG".parse()?)?;
+        t(&[0x12, 0x48], &"ACGT".parse()?)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_base() {
+        assert_eq!(decode_base(0), Base::Eq);
+        assert_eq!(decode_base(1), Base::A);
+        assert_eq!(decode_base(2), Base::C);
+        assert_eq!(decode_base(3), Base::M);
+        assert_eq!(decode_base(4), Base::G);
+        assert_eq!(decode_base(5), Base::R);
+        assert_eq!(decode_base(6), Base::S);
+        assert_eq!(decode_base(7), Base::V);
+        assert_eq!(decode_base(8), Base::T);
+        assert_eq!(decode_base(9), Base::W);
+        assert_eq!(decode_base(10), Base::Y);
+        assert_eq!(decode_base(11), Base::H);
+        assert_eq!(decode_base(12), Base::K);
+        assert_eq!(decode_base(13), Base::D);
+        assert_eq!(decode_base(14), Base::B);
+        assert_eq!(decode_base(15), Base::N);
+    }
+}
