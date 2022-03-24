@@ -11,7 +11,8 @@ pub(super) fn get_read_name<B>(
 where
     B: Buf,
 {
-    const MISSING: u8 = b'*';
+    const NUL: u8 = 0x00;
+    const MISSING: [u8; 2] = [b'*', NUL];
 
     let len = usize::from(l_read_name);
 
@@ -19,8 +20,8 @@ where
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    *read_name = if len == 2 && buf.chunk()[0] == MISSING {
-        buf.advance(2);
+    *read_name = if buf.take(len).chunk() == MISSING {
+        buf.advance(MISSING.len());
         None
     } else {
         let mut read_name_buf = read_name.take().map(Vec::from).unwrap_or_default();
@@ -29,8 +30,17 @@ where
         read_name_buf.resize(len - 1, Default::default());
         buf.copy_to_slice(&mut read_name_buf);
 
-        // Discard the NUL terminator.
-        buf.advance(1);
+        let terminator = buf.get_u8();
+
+        if terminator != NUL {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "invalid read name terminator: expected {:#04x}, got {:#04x}",
+                    NUL, terminator
+                ),
+            ));
+        }
 
         sam::record::ReadName::try_from(read_name_buf)
             .map(Some)
@@ -59,6 +69,17 @@ mod tests {
         t(&[b'r', 0x00], "r".parse().map(Some)?)?;
         t(&[b'r', b'1', 0x00], "r1".parse().map(Some)?)?;
 
+        // An invalid NUL-terminator.
+        let data = [b'*', b'*'];
+        let mut src = &data[..];
+        let l_read_name = NonZeroUsize::try_from(data.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        assert!(matches!(
+            get_read_name(&mut src, &mut None, l_read_name),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        // An invalid character.
         let data = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
         let mut src = &data[..];
         let l_read_name = NonZeroUsize::try_from(data.len())
