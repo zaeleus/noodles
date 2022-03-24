@@ -929,9 +929,7 @@ where
 
         match n {
             MISSING => Ok(None),
-            _ => sam::record::MappingQuality::try_from(n)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            _ => Ok(sam::record::MappingQuality::new(n)),
         }
     }
 

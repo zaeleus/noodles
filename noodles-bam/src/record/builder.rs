@@ -78,7 +78,7 @@ impl Builder {
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build();
     ///
-    /// assert_eq!(record.mapping_quality().map(u8::from), Some(34));
+    /// assert_eq!(record.mapping_quality(), MappingQuality::new(34));
     /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {

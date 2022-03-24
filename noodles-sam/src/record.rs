@@ -222,12 +222,11 @@ impl Record {
     /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
-    /// *record.mapping_quality_mut() = MappingQuality::try_from(8).map(Some)?;
-    /// assert_eq!(record.mapping_quality().map(u8::from), Some(8));
+    /// *record.mapping_quality_mut() = MappingQuality::new(8);
+    /// assert_eq!(record.mapping_quality(), MappingQuality::new(8));
     ///
     /// *record.mapping_quality_mut() = None;
     /// assert!(record.mapping_quality().is_none());
-    /// # Ok::<_, sam::record::mapping_quality::ParseError>(())
     /// ```
     pub fn mapping_quality_mut(&mut self) -> &mut Option<MappingQuality> {
         &mut self.mapping_quality

@@ -146,10 +146,9 @@ impl Record {
     /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = bam::Record::default();
-    /// *record.mapping_quality_mut() = MappingQuality::try_from(13).map(Some)?;
+    /// *record.mapping_quality_mut() = MappingQuality::new(13);
     ///
-    /// assert_eq!(record.mapping_quality().map(u8::from), Some(13));
-    /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
+    /// assert_eq!(record.mapping_quality(), MappingQuality::new(13));
     /// ```
     pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
         &mut self.mapping_quality

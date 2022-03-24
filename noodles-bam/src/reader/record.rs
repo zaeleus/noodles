@@ -131,9 +131,7 @@ where
 
     match buf.get_u8() {
         MISSING => Ok(None),
-        n => sam::record::MappingQuality::try_from(n)
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        n => Ok(sam::record::MappingQuality::new(n)),
     }
 }
 

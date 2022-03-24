@@ -13,6 +13,25 @@ pub const MISSING: u8 = 255;
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct MappingQuality(u8);
 
+impl MappingQuality {
+    /// Creates a mapping quality if the given value is not missing.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::record::MappingQuality;
+    /// assert!(MappingQuality::new(8).is_some());
+    /// assert!(MappingQuality::new(255).is_none());
+    /// ```
+    pub const fn new(n: u8) -> Option<Self> {
+        if n == MISSING {
+            None
+        } else {
+            Some(Self(n))
+        }
+    }
+}
+
 /// An error returned when a raw SAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {

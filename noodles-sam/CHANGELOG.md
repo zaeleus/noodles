@@ -53,6 +53,8 @@
 
   * sam/record/cigar: Implement `AsMut<Vec<Op>>`.
 
+  * sam/record/mapping_quality: Add `new` method.
+
   * sam/record/quality_scores/score: Implement `Default` + `Ord` +
     `PartialOrd`.
 
