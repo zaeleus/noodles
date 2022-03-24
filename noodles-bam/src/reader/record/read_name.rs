@@ -39,3 +39,35 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(mut src: &[u8], expected: Option<sam::record::ReadName>) -> io::Result<()> {
+            let mut actual = None;
+            let l_read_name = NonZeroUsize::try_from(src.len())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            get_read_name(&mut src, &mut actual, l_read_name)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[b'*', 0x00], None)?;
+        t(&[b'r', 0x00], "r".parse().map(Some)?)?;
+        t(&[b'r', b'1', 0x00], "r1".parse().map(Some)?)?;
+
+        let data = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
+        let mut src = &data[..];
+        let l_read_name = NonZeroUsize::try_from(data.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        assert!(matches!(
+            get_read_name(&mut src, &mut None, l_read_name),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        Ok(())
+    }
+}
