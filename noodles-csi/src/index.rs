@@ -16,7 +16,7 @@ use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Index {
     min_shift: u8,
-    depth: i32,
+    depth: u8,
     aux: Vec<u8>,
     reference_sequences: Vec<ReferenceSequence>,
     n_no_coor: Option<u64>,
@@ -57,7 +57,7 @@ impl Index {
     /// let index = csi::Index::default();
     /// assert_eq!(index.depth(), 5);
     /// ```
-    pub fn depth(&self) -> i32 {
+    pub fn depth(&self) -> u8 {
         self.depth
     }
 

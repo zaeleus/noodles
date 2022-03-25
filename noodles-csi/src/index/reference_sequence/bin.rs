@@ -25,7 +25,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::max_id(5), 37449);
     /// ```
-    pub fn max_id(depth: i32) -> u32 {
+    pub fn max_id(depth: u8) -> u32 {
         bin_limit(depth) as u32
     }
 
@@ -37,7 +37,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::metadata_id(5), 37450);
     /// ```
-    pub fn metadata_id(depth: i32) -> u32 {
+    pub fn metadata_id(depth: u8) -> u32 {
         Self::max_id(depth) + 1
     }
 
@@ -102,7 +102,7 @@ impl Bin {
 }
 
 // `CSIv1.pdf` (2020-07-21)
-fn bin_limit(depth: i32) -> i32 {
+fn bin_limit(depth: u8) -> i32 {
     assert!(depth <= 10);
     (1 << ((depth + 1) * 3)) / 7
 }

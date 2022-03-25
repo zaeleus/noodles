@@ -99,7 +99,7 @@ where
     }
 }
 
-async fn read_header<R>(reader: &mut R) -> io::Result<(u8, i32, Vec<u8>)>
+async fn read_header<R>(reader: &mut R) -> io::Result<(u8, u8, Vec<u8>)>
 where
     R: AsyncRead + Unpin,
 {
@@ -108,7 +108,11 @@ where
         .await
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
 
-    let depth = reader.read_i32_le().await?;
+    let depth = reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
     let aux = read_aux(reader).await?;
 
     Ok((min_shift, depth, aux))
@@ -130,7 +134,7 @@ where
 
 async fn read_reference_sequences<R>(
     reader: &mut R,
-    depth: i32,
+    depth: u8,
 ) -> io::Result<Vec<ReferenceSequence>>
 where
     R: AsyncRead + Unpin,
@@ -149,7 +153,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R, depth: i32) -> io::Result<ReferenceSequence>
+async fn read_reference_sequence<R>(reader: &mut R, depth: u8) -> io::Result<ReferenceSequence>
 where
     R: AsyncRead + Unpin,
 {
@@ -157,7 +161,7 @@ where
     Ok(ReferenceSequence::new(bins, metadata))
 }
 
-async fn read_bins<R>(reader: &mut R, depth: i32) -> io::Result<(Vec<Bin>, Option<Metadata>)>
+async fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: AsyncRead + Unpin,
 {

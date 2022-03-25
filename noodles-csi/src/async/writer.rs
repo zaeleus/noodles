@@ -111,12 +111,12 @@ where
     writer.write_all(crate::MAGIC_NUMBER).await
 }
 
-async fn write_header<W>(writer: &mut W, min_shift: u8, depth: i32, aux: &[u8]) -> io::Result<()>
+async fn write_header<W>(writer: &mut W, min_shift: u8, depth: u8, aux: &[u8]) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
     writer.write_i32_le(i32::from(min_shift)).await?;
-    writer.write_i32_le(depth).await?;
+    writer.write_i32_le(i32::from(depth)).await?;
     write_aux(writer, aux).await?;
     Ok(())
 }
@@ -136,7 +136,7 @@ where
 
 async fn write_reference_sequences<W>(
     writer: &mut W,
-    depth: i32,
+    depth: u8,
     reference_sequences: &[ReferenceSequence],
 ) -> io::Result<()>
 where
@@ -151,7 +151,7 @@ where
 
 async fn write_reference_sequence<W>(
     writer: &mut W,
-    depth: i32,
+    depth: u8,
     reference_sequence: &ReferenceSequence,
 ) -> io::Result<()>
 where
@@ -168,7 +168,7 @@ where
 
 async fn write_bins<W>(
     writer: &mut W,
-    depth: i32,
+    depth: u8,
     bins: &[Bin],
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
@@ -241,7 +241,7 @@ where
     Ok(())
 }
 
-async fn write_metadata<W>(writer: &mut W, depth: i32, metadata: &Metadata) -> io::Result<()>
+async fn write_metadata<W>(writer: &mut W, depth: u8, metadata: &Metadata) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {

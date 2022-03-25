@@ -5,7 +5,7 @@ use super::{Index, ReferenceSequence};
 /// A coordinate-sorted index (CSI) builder.
 pub struct Builder {
     min_shift: u8,
-    depth: i32,
+    depth: u8,
     aux: Vec<u8>,
     reference_sequences: Vec<ReferenceSequence>,
     unplaced_unmapped_record_count: Option<u64>,
@@ -35,7 +35,7 @@ impl Builder {
     /// let index = csi::Index::builder().set_depth(8).build();
     /// assert_eq!(index.depth(), 8);
     /// ```
-    pub fn set_depth(mut self, depth: i32) -> Self {
+    pub fn set_depth(mut self, depth: u8) -> Self {
         self.depth = depth;
         self
     }

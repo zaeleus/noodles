@@ -56,7 +56,10 @@ where
             u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
-        let depth = self.inner.read_i32::<LittleEndian>()?;
+        let depth = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+            u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         let aux = read_aux(&mut self.inner)?;
         let reference_sequences = read_reference_sequences(&mut self.inner, depth)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
@@ -106,7 +109,7 @@ where
     Ok(aux)
 }
 
-fn read_reference_sequences<R>(reader: &mut R, depth: i32) -> io::Result<Vec<ReferenceSequence>>
+fn read_reference_sequences<R>(reader: &mut R, depth: u8) -> io::Result<Vec<ReferenceSequence>>
 where
     R: Read,
 {
@@ -125,7 +128,7 @@ where
     Ok(reference_sequences)
 }
 
-fn read_bins<R>(reader: &mut R, depth: i32) -> io::Result<(Vec<Bin>, Option<Metadata>)>
+fn read_bins<R>(reader: &mut R, depth: u8) -> io::Result<(Vec<Bin>, Option<Metadata>)>
 where
     R: Read,
 {

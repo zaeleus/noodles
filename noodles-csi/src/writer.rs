@@ -56,11 +56,11 @@ where
         let min_shift = i32::from(index.min_shift());
         self.inner.write_i32::<LittleEndian>(min_shift)?;
 
-        let depth = index.depth();
+        let depth = i32::from(index.depth());
         self.inner.write_i32::<LittleEndian>(depth)?;
 
         write_aux(&mut self.inner, index.aux())?;
-        write_reference_sequences(&mut self.inner, depth, index.reference_sequences())?;
+        write_reference_sequences(&mut self.inner, index.depth(), index.reference_sequences())?;
 
         if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
             self.inner.write_u64::<LittleEndian>(n_no_coor)?;
@@ -92,7 +92,7 @@ where
 
 fn write_reference_sequences<W>(
     writer: &mut W,
-    depth: i32,
+    depth: u8,
     reference_sequences: &[ReferenceSequence],
 ) -> io::Result<()>
 where
@@ -116,7 +116,7 @@ where
 
 fn write_bins<W>(
     writer: &mut W,
-    depth: i32,
+    depth: u8,
     bins: &[Bin],
     metadata: Option<&Metadata>,
 ) -> io::Result<()>
@@ -168,7 +168,7 @@ where
     Ok(())
 }
 
-fn write_metadata<W>(writer: &mut W, depth: i32, metadata: &Metadata) -> io::Result<()>
+fn write_metadata<W>(writer: &mut W, depth: u8, metadata: &Metadata) -> io::Result<()>
 where
     W: Write,
 {
