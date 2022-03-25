@@ -146,7 +146,7 @@ impl BinningIndex<ReferenceSequence> for Index {
 
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<i32> + Clone,
+        B: RangeBounds<Position> + Clone,
     {
         let reference_sequence = self
             .reference_sequences()
@@ -184,19 +184,13 @@ impl Default for Index {
 
 fn resolve_interval<B>(interval: B) -> io::Result<(Position, Position)>
 where
-    B: RangeBounds<i32>,
+    B: RangeBounds<Position>,
 {
     let start = match interval.start_bound() {
-        Bound::Included(n) => usize::try_from(*n)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|m| {
-                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?,
-        Bound::Excluded(n) => usize::try_from(n + 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|m| {
-                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?,
+        Bound::Included(position) => *position,
+        Bound::Excluded(position) => position
+            .checked_add(1)
+            .expect("attempt to add with overflow"),
         Bound::Unbounded => Position::MIN,
     };
 
@@ -208,16 +202,9 @@ where
     }
 
     let end = match interval.end_bound() {
-        Bound::Included(n) => usize::try_from(*n)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|m| {
-                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?,
-        Bound::Excluded(n) => usize::try_from(n - 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|m| {
-                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            })?,
+        Bound::Included(position) => *position,
+        Bound::Excluded(position) => Position::try_from(usize::from(*position) - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
         Bound::Unbounded => MAX_POSITION,
     };
 

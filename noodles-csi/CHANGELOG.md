@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * csi/binning_index: Change interval bounds to `Position`.
+
   * csi/index: Change `min_shift` and `depth` to a `u8`.
 
   * csi/index/reference_sequence: `ReferenceSequence::query` returns an

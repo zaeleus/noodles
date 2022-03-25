@@ -303,7 +303,7 @@ where
             self,
             chunks,
             reference_sequence_name,
-            interval,
+            region.interval(),
             header,
         ))
     }

@@ -62,16 +62,20 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
+    /// use noodles_core::Position;
     /// use noodles_csi::index::ReferenceSequence;
+    ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
-    /// let query_bins = reference_sequence.query(14, 5, 8..=13)?;
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    ///
+    /// let query_bins = reference_sequence.query(14, 5, start..=end)?;
     /// assert!(query_bins.is_empty());
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query<B>(&self, min_shift: u8, depth: u8, interval: B) -> io::Result<Vec<&Bin>>
     where
-        B: RangeBounds<i32>,
+        B: RangeBounds<Position>,
     {
         let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
@@ -184,14 +188,18 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(not(target_pointer_width = "16"))]
     #[test]
-    fn test_query() {
+    fn test_query() -> Result<(), noodles_core::position::TryFromIntError> {
         let reference_sequence = ReferenceSequence::new(Vec::new(), None);
+        let end = usize::try_from(i32::MAX).and_then(Position::try_from)?;
 
         assert!(matches!(
-            reference_sequence.query(MIN_SHIFT, DEPTH, ..=i32::MAX),
+            reference_sequence.query(MIN_SHIFT, DEPTH, ..=end),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
+
+        Ok(())
     }
 
     #[test]

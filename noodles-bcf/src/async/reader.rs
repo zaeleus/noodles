@@ -339,8 +339,15 @@ where
         use crate::reader::resolve_region;
 
         let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
+
         let chunks = index.query(reference_sequence_id, interval)?;
-        Ok(query(self, chunks, reference_sequence_id, interval))
+
+        Ok(query(
+            self,
+            chunks,
+            reference_sequence_id,
+            region.interval(),
+        ))
     }
 }
 

@@ -7,6 +7,7 @@ pub use reference_sequence_ext::ReferenceSequenceExt;
 use std::{io, ops::RangeBounds};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 
 use super::index::reference_sequence::bin::Chunk;
 
@@ -24,7 +25,7 @@ where
     /// Returns the chunks that overlap with the given region.
     fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<i32> + Clone;
+        B: RangeBounds<Position> + Clone;
 
     /// Returns the start position of the first record in the last linear bin.
     ///

@@ -87,16 +87,20 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_bam::bai::index::ReferenceSequence;
+    /// use noodles_core::Position;
+    ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
-    /// let query_bins = reference_sequence.query(8..=13)?;
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    ///
+    /// let query_bins = reference_sequence.query(start..=end)?;
     /// assert!(query_bins.is_empty());
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query<B>(&self, interval: B) -> io::Result<Vec<&Bin>>
     where
-        B: RangeBounds<i32>,
+        B: RangeBounds<Position>,
     {
         let (start, end) = resolve_interval(interval)?;
         let region_bins = region_to_bins(start, end);
@@ -221,14 +225,18 @@ fn region_to_bins(start: Position, end: Position) -> BitVec {
 mod tests {
     use super::*;
 
+    #[cfg(not(target_pointer_width = "16"))]
     #[test]
-    fn test_query() {
+    fn test_query() -> Result<(), noodles_core::position::TryFromIntError> {
         let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
+        let end = usize::try_from(i32::MAX).and_then(Position::try_from)?;
 
         assert!(matches!(
-            reference_sequence.query(..=i32::MAX),
+            reference_sequence.query(..=end),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
+
+        Ok(())
     }
 
     #[test]

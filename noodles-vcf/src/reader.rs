@@ -5,11 +5,14 @@ mod records;
 
 pub use self::{query::Query, records::Records};
 
-use std::io::{self, BufRead, Read, Seek};
+use std::{
+    io::{self, BufRead, Read, Seek},
+    ops::Bound,
+};
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Region};
+use noodles_core::{Position, Region};
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
@@ -303,7 +306,7 @@ where
             self,
             chunks,
             reference_sequence_name,
-            interval,
+            region.interval(),
             header,
         ))
     }
@@ -369,10 +372,19 @@ where
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(crate) fn resolve_region(
     index: &tabix::Index,
     region: &Region,
-) -> io::Result<(usize, String, Interval)> {
+) -> io::Result<(usize, String, (Bound<Position>, Bound<Position>))> {
+    fn cast_bound_i32_to_bound_position(bound: Bound<i32>) -> Bound<Position> {
+        match bound {
+            Bound::Included(n) => Bound::Included(Position::try_from(n as usize).unwrap()),
+            Bound::Excluded(n) => Bound::Excluded(Position::try_from(n as usize).unwrap()),
+            Bound::Unbounded => Bound::Unbounded,
+        }
+    }
+
     let i = index
         .reference_sequence_names()
         .get_index_of(region.name())
@@ -386,7 +398,12 @@ pub(crate) fn resolve_region(
             )
         })?;
 
-    Ok((i, region.name().into(), region.interval()))
+    let interval = (
+        cast_bound_i32_to_bound_position(region.start()),
+        cast_bound_i32_to_bound_position(region.end()),
+    );
+
+    Ok((i, region.name().into(), interval))
 }
 
 #[cfg(test)]

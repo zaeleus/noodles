@@ -352,8 +352,15 @@ where
         RS: ReferenceSequenceExt,
     {
         let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
+
         let chunks = index.query(reference_sequence_id, interval)?;
-        Ok(query(self, chunks, reference_sequence_id, interval))
+
+        Ok(query(
+            self,
+            chunks,
+            reference_sequence_id,
+            region.interval(),
+        ))
     }
 }
 
