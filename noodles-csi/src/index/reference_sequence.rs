@@ -5,17 +5,14 @@ mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
-use std::{
-    error, fmt,
-    ops::{Bound, RangeBounds},
-};
+use std::{io, ops::RangeBounds};
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 
+use super::resolve_interval;
 use crate::binning_index::ReferenceSequenceExt;
-
-const MIN_POSITION: i64 = 1;
 
 /// A CSI reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -24,39 +21,11 @@ pub struct ReferenceSequence {
     metadata: Option<Metadata>,
 }
 
-/// An error returned when a query fails.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum QueryError {
-    /// The start position is invalid.
-    InvalidStartPosition(i64, i64),
-    /// The end position is invalid.
-    InvalidEndPosition(i64, i64),
-}
-
-impl error::Error for QueryError {}
-
-impl fmt::Display for QueryError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidStartPosition(min_position, start) => {
-                write!(
-                    f,
-                    "expected start position >= {}, got {}",
-                    min_position, start
-                )
-            }
-            Self::InvalidEndPosition(max_position, end) => {
-                write!(f, "expected end position <= {}, got {}", max_position, end)
-            }
-        }
-    }
-}
-
 impl ReferenceSequence {
-    fn max_position(min_shift: u8, depth: u8) -> i64 {
-        let min_shift = i64::from(min_shift);
-        let depth = i64::from(depth);
-        (1 << (min_shift + 3 * depth)) - 1
+    pub(super) fn max_position(min_shift: u8, depth: u8) -> io::Result<Position> {
+        assert!(min_shift > 0);
+        let n = (1 << (usize::from(min_shift) + 3 * usize::from(depth))) - 1;
+        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     }
 
     /// Creates a CSI reference sequence.
@@ -93,43 +62,23 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_csi::index::reference_sequence;
+    /// # use std::io;
     /// use noodles_csi::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), None);
     /// let query_bins = reference_sequence.query(14, 5, 8..=13)?;
     /// assert!(query_bins.is_empty());
-    /// # Ok::<(), reference_sequence::QueryError>(())
+    /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn query<B>(&self, min_shift: u8, depth: u8, interval: B) -> Result<Vec<&Bin>, QueryError>
+    pub fn query<B>(&self, min_shift: u8, depth: u8, interval: B) -> io::Result<Vec<&Bin>>
     where
-        B: RangeBounds<i64>,
+        B: RangeBounds<i32>,
     {
-        let start = match interval.start_bound() {
-            Bound::Included(s) => *s,
-            Bound::Excluded(s) => *s + 1,
-            Bound::Unbounded => MIN_POSITION,
-        };
-
-        if start < MIN_POSITION {
-            return Err(QueryError::InvalidStartPosition(MIN_POSITION, start));
-        }
-
-        let max_position = Self::max_position(min_shift, depth);
-
-        let end = match interval.end_bound() {
-            Bound::Included(e) => *e,
-            Bound::Excluded(e) => *e - 1,
-            Bound::Unbounded => max_position,
-        };
-
-        if end > max_position {
-            return Err(QueryError::InvalidEndPosition(max_position, end));
-        }
+        let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
         let max_bin_id = Bin::max_id(depth);
         let mut region_bins = BitVec::from_elem(max_bin_id as usize, false);
 
-        reg2bins(start - 1, end, min_shift, depth, &mut region_bins);
+        reg2bins(start, end, min_shift, depth, &mut region_bins);
 
         let query_bins = self
             .bins()
@@ -196,10 +145,11 @@ impl ReferenceSequenceExt for ReferenceSequence {
 }
 
 // `CSIv1.pdf` (2020-07-21)
-// [beg, end), 0-based
 #[allow(clippy::many_single_char_names)]
-fn reg2bins(beg: i64, mut end: i64, min_shift: u8, depth: u8, bins: &mut BitVec) {
-    end -= 1;
+fn reg2bins(start: Position, end: Position, min_shift: u8, depth: u8, bins: &mut BitVec) {
+    // [beg, end), 0-based
+    let beg = usize::from(start) - 1;
+    let end = usize::from(end) - 1;
 
     let mut l = 0;
     let mut t = 0;
@@ -227,29 +177,25 @@ mod tests {
     const DEPTH: u8 = 5;
 
     #[test]
-    fn test_max_position() {
-        let max_position = ReferenceSequence::max_position(MIN_SHIFT, DEPTH);
-        assert_eq!(max_position, 536870911);
+    fn test_max_position() -> Result<(), Box<dyn std::error::Error>> {
+        let actual = ReferenceSequence::max_position(MIN_SHIFT, DEPTH)?;
+        let expected = Position::try_from(536870911)?;
+        assert_eq!(actual, expected);
+        Ok(())
     }
 
     #[test]
     fn test_query() {
         let reference_sequence = ReferenceSequence::new(Vec::new(), None);
 
-        assert_eq!(
-            reference_sequence.query(MIN_SHIFT, DEPTH, 0..=8),
-            Err(QueryError::InvalidStartPosition(1, 0))
-        );
-
-        let end = i64::from(i32::MAX);
-        assert_eq!(
-            reference_sequence.query(MIN_SHIFT, DEPTH, 1..=end),
-            Err(QueryError::InvalidEndPosition(536870911, end))
-        );
+        assert!(matches!(
+            reference_sequence.query(MIN_SHIFT, DEPTH, ..=i32::MAX),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
     }
 
     #[test]
-    fn test_reg2bins() {
+    fn test_reg2bins() -> Result<(), noodles_core::position::TryFromIntError> {
         // +------------------------------------------------------------------------------------...
         // | 0                                                                                  ...
         // | 0-1023                                                                             ...
@@ -264,7 +210,7 @@ mod tests {
         const MIN_SHIFT: u8 = 4;
         const DEPTH: u8 = 2;
 
-        fn t(start: i64, end: i64, expected_bin_ids: &[u32]) {
+        fn t(start: Position, end: Position, expected_bin_ids: &[u32]) {
             let max_bin_id = Bin::max_id(DEPTH);
 
             let mut actual = BitVec::from_elem(max_bin_id as usize, false);
@@ -279,9 +225,21 @@ mod tests {
             assert_eq!(actual, expected);
         }
 
-        t(0, 16, &[0, 1, 9]);
-        t(8, 13, &[0, 1, 9]);
-        t(35, 67, &[0, 1, 11, 12, 13]);
-        t(48, 143, &[0, 1, 2, 12, 13, 14, 15, 16, 17]);
+        t(Position::try_from(1)?, Position::try_from(16)?, &[0, 1, 9]);
+        t(Position::try_from(9)?, Position::try_from(13)?, &[0, 1, 9]);
+
+        t(
+            Position::try_from(36)?,
+            Position::try_from(67)?,
+            &[0, 1, 11, 12, 13],
+        );
+
+        t(
+            Position::try_from(49)?,
+            Position::try_from(143)?,
+            &[0, 1, 2, 12, 13, 14, 15, 16, 17],
+        );
+
+        Ok(())
     }
 }

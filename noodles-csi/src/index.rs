@@ -10,6 +10,8 @@ use std::{
     ops::{Bound, RangeBounds},
 };
 
+use noodles_core::Position;
+
 use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 
 /// A coordinate-sorted index (CSI).
@@ -123,14 +125,6 @@ impl BinningIndex<ReferenceSequence> for Index {
     where
         B: RangeBounds<i32> + Clone,
     {
-        fn cast_bound_i32_to_bound_i64(bound: Bound<&i32>) -> Bound<i64> {
-            match bound {
-                Bound::Included(v) => Bound::Included(i64::from(*v)),
-                Bound::Excluded(v) => Bound::Excluded(i64::from(*v)),
-                Bound::Unbounded => Bound::Unbounded,
-            }
-        }
-
         let reference_sequence = self
             .reference_sequences()
             .get(reference_sequence_id)
@@ -141,13 +135,8 @@ impl BinningIndex<ReferenceSequence> for Index {
                 )
             })?;
 
-        let query_interval = (
-            cast_bound_i32_to_bound_i64(interval.start_bound()),
-            cast_bound_i32_to_bound_i64(interval.end_bound()),
-        );
-
         let query_bins = reference_sequence
-            .query(self.min_shift(), self.depth(), query_interval)
+            .query(self.min_shift(), self.depth(), interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -163,5 +152,56 @@ impl BinningIndex<ReferenceSequence> for Index {
 impl Default for Index {
     fn default() -> Self {
         Self::builder().build()
+    }
+}
+
+fn resolve_interval<B>(min_shift: u8, depth: u8, interval: B) -> io::Result<(Position, Position)>
+where
+    B: RangeBounds<i32>,
+{
+    let start = match interval.start_bound() {
+        Bound::Included(n) => usize::try_from(*n)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Excluded(n) => usize::try_from(n + 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Unbounded => Position::MIN,
+    };
+
+    let max_position = ReferenceSequence::max_position(min_shift, depth)?;
+
+    if start > max_position {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid start bound",
+        ));
+    }
+
+    let end = match interval.end_bound() {
+        Bound::Included(n) => usize::try_from(*n)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Excluded(n) => usize::try_from(n - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Unbounded => max_position,
+    };
+
+    if end > max_position {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid end bound",
+        ))
+    } else {
+        Ok((start, end))
     }
 }

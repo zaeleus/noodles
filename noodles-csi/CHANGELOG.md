@@ -6,6 +6,14 @@
 
   * csi/index: Change `min_shift` and `depth` to a `u8`.
 
+  * csi/index/reference_sequence: `ReferenceSequence::query` returns an
+    `io::Error` instead of `QueryError`.
+
+### Fixed
+
+  * csi/index/reference_sequence: Ensure the start position is not out of range
+    for a query.
+
 ## 0.5.1 - 2022-03-02
 
 ### Fixed
