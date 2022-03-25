@@ -279,7 +279,7 @@ where
     /// let header = reader.read_header().await?.parse()?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
-    /// let region = Region::new("sq0", 8..=13);
+    /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
@@ -297,13 +297,13 @@ where
         let (reference_sequence_id, reference_sequence_name, interval) =
             resolve_region(index, region)?;
 
-        let chunks = index.query(reference_sequence_id, interval)?;
+        let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(query(
             self,
             chunks,
             reference_sequence_name,
-            region.interval(),
+            interval,
             header,
         ))
     }

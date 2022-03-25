@@ -39,7 +39,7 @@
 //!
 //! let reference_sequences = header.reference_sequences();
 //! let index = bai::read("sample.bam.bai")?;
-//! let region = Region::new("sq0", 17711..=28657);
+//! let region = "sq0:5-8".parse()?;
 //! let query = reader.query(&reference_sequences, &index, &region)?;
 //!
 //! for result in query {

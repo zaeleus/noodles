@@ -171,7 +171,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
+    /// # use std::io::Cursor;
     /// use noodles_core::Region;
     /// use noodles_fasta::{self as fasta, fai, record::{Definition, Sequence}};
     ///
@@ -191,13 +191,13 @@ where
     ///     Sequence::from(b"ACGT".to_vec()),
     /// ));
     ///
-    /// let region = Region::new("sq1", 2..=3);
+    /// let region = "sq1:2-3".parse()?;
     /// let record = reader.query(&index, &region)?;
     /// assert_eq!(record, fasta::Record::new(
     ///     Definition::new("sq1:2-3", None),
     ///     Sequence::from(b"CG".to_vec()),
     /// ));
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
         use crate::record::{Definition, Sequence};
@@ -213,7 +213,7 @@ where
         let mut raw_sequence = Vec::new();
         self.read_sequence(&mut raw_sequence)?;
 
-        let range = interval_to_slice_range(interval, raw_sequence.len())?;
+        let range = interval_to_slice_range(interval, raw_sequence.len());
         let sequence = Sequence::from(raw_sequence[range].to_vec());
 
         Ok(Record::new(definition, sequence))
@@ -358,36 +358,20 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
 }
 
 // Shifts a 1-based interval to a 0-based range for slicing.
-fn interval_to_slice_range(interval: Interval, len: usize) -> io::Result<Range<usize>> {
+fn interval_to_slice_range(interval: Interval, len: usize) -> Range<usize> {
     let start = match interval.start_bound() {
-        Bound::Included(&s) => usize::try_from(s)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|s| {
-                s.checked_sub(1).ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "invalid start position")
-                })
-            })?,
-        Bound::Excluded(&s) => {
-            usize::try_from(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-        }
-        Bound::Unbounded => 0,
+        Bound::Included(position) => usize::from(*position) - 1,
+        Bound::Excluded(position) => usize::from(*position),
+        Bound::Unbounded => usize::MIN,
     };
 
     let end = match interval.end_bound() {
-        Bound::Included(&e) => {
-            usize::try_from(e).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-        }
-        Bound::Excluded(&e) => usize::try_from(e)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|e| {
-                e.checked_sub(1).ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "invalid end position")
-                })
-            })?,
+        Bound::Included(position) => usize::from(*position),
+        Bound::Excluded(position) => usize::from(*position) - 1,
         Bound::Unbounded => len,
     };
 
-    Ok(start..end)
+    start..end
 }
 
 #[cfg(test)]
@@ -491,23 +475,28 @@ mod tests {
     }
 
     #[test]
-    fn test_interval_to_slice_range() -> io::Result<()> {
+    fn test_interval_to_slice_range() -> Result<(), noodles_core::position::TryFromIntError> {
+        use noodles_core::Position;
+
         const LENGTH: usize = 4;
 
         let interval = (Bound::Unbounded, Bound::Unbounded);
-        let range = interval_to_slice_range(interval, LENGTH)?;
+        let range = interval_to_slice_range(interval, LENGTH);
         assert_eq!(range, 0..4);
 
-        let interval = (Bound::Included(2), Bound::Unbounded);
-        let range = interval_to_slice_range(interval, LENGTH)?;
+        let interval = (Bound::Included(Position::try_from(2)?), Bound::Unbounded);
+        let range = interval_to_slice_range(interval, LENGTH);
         assert_eq!(range, 1..4);
 
-        let interval = (Bound::Unbounded, Bound::Included(3));
-        let range = interval_to_slice_range(interval, LENGTH)?;
+        let interval = (Bound::Unbounded, Bound::Included(Position::try_from(3)?));
+        let range = interval_to_slice_range(interval, LENGTH);
         assert_eq!(range, 0..3);
 
-        let interval = (Bound::Included(2), Bound::Included(3));
-        let range = interval_to_slice_range(interval, LENGTH)?;
+        let interval = (
+            Bound::Included(Position::try_from(2)?),
+            Bound::Included(Position::try_from(3)?),
+        );
+        let range = interval_to_slice_range(interval, LENGTH);
         assert_eq!(range, 1..3);
 
         Ok(())

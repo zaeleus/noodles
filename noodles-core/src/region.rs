@@ -6,15 +6,17 @@ use std::{
     str::FromStr,
 };
 
+use super::Position;
+
 /// An interval.
-pub type Interval = (Bound<i32>, Bound<i32>);
+pub type Interval = (Bound<Position>, Bound<Position>);
 
 /// A genomic region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Region {
     name: String,
-    start: Bound<i32>,
-    end: Bound<i32>,
+    start: Bound<Position>,
+    end: Bound<Position>,
 }
 
 impl Region {
@@ -25,13 +27,17 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use noodles_core::Region;
-    /// let region = Region::new("sq0", 1..=5);
+    /// use noodles_core::{Region, Position};
+    ///
+    /// let start = Position::try_from(5)?;
+    /// let end = Position::try_from(8)?;
+    /// let region = Region::new("sq0", start..=end);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn new<I, B>(name: I, interval: B) -> Self
     where
         I: Into<String>,
-        B: RangeBounds<i32>,
+        B: RangeBounds<Position>,
     {
         Self {
             name: name.into(),
@@ -45,9 +51,14 @@ impl Region {
     /// # Examples
     ///
     /// ```
-    /// use noodles_core::Region;
-    /// let region = Region::new("sq0", 1..=5);
+    /// use noodles_core::{Position, Region};
+    ///
+    /// let start = Position::try_from(5)?;
+    /// let end = Position::try_from(8)?;
+    /// let region = Region::new("sq0", start..=end);
+    ///
     /// assert_eq!(region.name(), "sq0");
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn name(&self) -> &str {
         &self.name
@@ -59,11 +70,15 @@ impl Region {
     ///
     /// ```
     /// # use std::ops::Bound;
-    /// use noodles_core::Region;
-    /// let region = Region::new("sq0", 5..=8);
-    /// assert_eq!(region.start(), Bound::Included(5));
+    /// use noodles_core::{Position, Region};
+    ///
+    /// let start = Position::try_from(5)?;
+    /// let region = Region::new("sq0", start..);
+    ///
+    /// assert_eq!(region.start(), Bound::Included(start));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn start(&self) -> Bound<i32> {
+    pub fn start(&self) -> Bound<Position> {
         self.start
     }
 
@@ -73,11 +88,15 @@ impl Region {
     ///
     /// ```
     /// # use std::ops::Bound;
-    /// use noodles_core::Region;
-    /// let region = Region::new("sq0", 5..=8);
-    /// assert_eq!(region.end(), Bound::Included(8));
+    /// use noodles_core::{Position, Region};
+    ///
+    /// let end = Position::try_from(8)?;
+    /// let region = Region::new("sq0", ..=end);
+    ///
+    /// assert_eq!(region.end(), Bound::Included(end));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn end(&self) -> Bound<i32> {
+    pub fn end(&self) -> Bound<Position> {
         self.end
     }
 
@@ -87,9 +106,17 @@ impl Region {
     ///
     /// ```
     /// # use std::ops::Bound;
-    /// use noodles_core::Region;
-    /// let region = Region::new("sq0", 5..=8);
-    /// assert_eq!(region.interval(), (Bound::Included(5), Bound::Included(8)));
+    /// use noodles_core::{Position, Region};
+    ///
+    /// let start = Position::try_from(5)?;
+    /// let end = Position::try_from(8)?;
+    /// let region = Region::new("sq0", start..=end);
+    ///
+    /// assert_eq!(
+    ///     region.interval(),
+    ///     (Bound::Included(start), Bound::Included(end))
+    /// );
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn interval(&self) -> Interval {
         (self.start, self.end)
@@ -187,19 +214,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), crate::position::TryFromIntError> {
         assert_eq!(Region::new("sq0", ..).to_string(), "sq0");
-        assert_eq!(Region::new("sq0", 3..).to_string(), "sq0:3");
-        assert_eq!(Region::new("sq0", 3..=5).to_string(), "sq0:3-5");
+
+        let start = Position::try_from(5)?;
+        assert_eq!(Region::new("sq0", start..).to_string(), "sq0:5");
+
+        let end = Position::try_from(8)?;
+        assert_eq!(Region::new("sq0", start..=end).to_string(), "sq0:5-8");
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), crate::position::TryFromIntError> {
         assert_eq!("sq0".parse(), Ok(Region::new("sq0", ..)));
         assert_eq!("sq1:".parse(), Ok(Region::new("sq1", ..)));
-        assert_eq!("sq2:5".parse(), Ok(Region::new("sq2", 5..)));
-        assert_eq!("sq3:5-8".parse(), Ok(Region::new("sq3", 5..=8)));
+
+        let start = Position::try_from(5)?;
+        assert_eq!("sq2:5".parse(), Ok(Region::new("sq2", start..)));
+
+        let end = Position::try_from(8)?;
+        assert_eq!("sq3:5-8".parse(), Ok(Region::new("sq3", start..=end)));
 
         assert_eq!("".parse::<Region>(), Err(ParseError::Empty));
+
+        Ok(())
     }
 }

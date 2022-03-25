@@ -332,7 +332,7 @@ where
     ///
     /// let reference_sequences = header.reference_sequences();
     /// let index = bai::r#async::read("sample.bam.bai").await?;
-    /// let region = Region::new("sq0", 8..=13);
+    /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(reference_sequences, &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
@@ -352,15 +352,8 @@ where
         RS: ReferenceSequenceExt,
     {
         let (reference_sequence_id, interval) = resolve_region(reference_sequences, region)?;
-
-        let chunks = index.query(reference_sequence_id, interval)?;
-
-        Ok(query(
-            self,
-            chunks,
-            reference_sequence_id,
-            region.interval(),
-        ))
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+        Ok(query(self, chunks, reference_sequence_id, interval))
     }
 }
 

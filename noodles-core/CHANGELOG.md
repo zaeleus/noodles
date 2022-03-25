@@ -12,6 +12,8 @@
 
     A `Region` can now only represent a span over a single reference sequence.
 
+  * core/region: Change interval to `Position` bounds.
+
 ### Fixed
 
   * core: Remove dependency on noodles-sam in manifest.

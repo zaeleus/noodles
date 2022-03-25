@@ -317,7 +317,7 @@ where
     /// let string_maps: StringMaps = reader.read_header().await?.parse()?;
     ///
     /// let index = csi::r#async::read("sample.bcf.csi").await?;
-    /// let region = Region::new("sq0", 8..=13);
+    /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(string_maps.contigs(), &index, &region)?;
     ///
     /// while let Some(record) = query.try_next().await? {
@@ -339,15 +339,8 @@ where
         use crate::reader::resolve_region;
 
         let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
-
-        let chunks = index.query(reference_sequence_id, interval)?;
-
-        Ok(query(
-            self,
-            chunks,
-            reference_sequence_id,
-            region.interval(),
-        ))
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+        Ok(query(self, chunks, reference_sequence_id, interval))
     }
 }
 

@@ -282,7 +282,7 @@ where
     /// let header = reader.read_header()?.parse()?;
     ///
     /// let index = tabix::read("sample.vcf.gz.tbi")?;
-    /// let region = Region::new("sq0", 8..=13);
+    /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///
     /// for result in query {
@@ -300,13 +300,13 @@ where
         let (reference_sequence_id, reference_sequence_name, interval) =
             resolve_region(index, region)?;
 
-        let chunks = index.query(reference_sequence_id, interval)?;
+        let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
             self,
             chunks,
             reference_sequence_name,
-            region.interval(),
+            interval,
             header,
         ))
     }
@@ -376,11 +376,11 @@ where
 pub(crate) fn resolve_region(
     index: &tabix::Index,
     region: &Region,
-) -> io::Result<(usize, String, (Bound<Position>, Bound<Position>))> {
-    fn cast_bound_i32_to_bound_position(bound: Bound<i32>) -> Bound<Position> {
+) -> io::Result<(usize, String, (Bound<i32>, Bound<i32>))> {
+    fn cast_bound_position_to_bound_i32(bound: Bound<Position>) -> Bound<i32> {
         match bound {
-            Bound::Included(n) => Bound::Included(Position::try_from(n as usize).unwrap()),
-            Bound::Excluded(n) => Bound::Excluded(Position::try_from(n as usize).unwrap()),
+            Bound::Included(position) => Bound::Included(usize::from(position) as i32),
+            Bound::Excluded(position) => Bound::Excluded(usize::from(position) as i32),
             Bound::Unbounded => Bound::Unbounded,
         }
     }
@@ -399,8 +399,8 @@ pub(crate) fn resolve_region(
         })?;
 
     let interval = (
-        cast_bound_i32_to_bound_position(region.start()),
-        cast_bound_i32_to_bound_position(region.end()),
+        cast_bound_position_to_bound_i32(region.start()),
+        cast_bound_position_to_bound_i32(region.end()),
     );
 
     Ok((i, region.name().into(), interval))

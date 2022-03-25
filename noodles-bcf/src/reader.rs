@@ -251,7 +251,7 @@ where
     /// let string_maps: StringMaps = reader.read_header()?.parse()?;
     ///
     /// let index = csi::read("sample.bcf.csi")?;
-    /// let region = Region::new("sq0", 8..=13);
+    /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(string_maps.contigs(), &index, &region)?;
     ///
     /// for result in query {
@@ -271,13 +271,8 @@ where
         RS: ReferenceSequenceExt,
     {
         let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
-        let chunks = index.query(reference_sequence_id, interval)?;
-        Ok(Query::new(
-            self,
-            chunks,
-            reference_sequence_id,
-            region.interval(),
-        ))
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+        Ok(Query::new(self, chunks, reference_sequence_id, interval))
     }
 }
 
@@ -344,11 +339,11 @@ where
 pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
-) -> io::Result<(usize, (Bound<Position>, Bound<Position>))> {
-    fn cast_bound_i32_to_bound_position(bound: Bound<i32>) -> Bound<Position> {
+) -> io::Result<(usize, (Bound<i32>, Bound<i32>))> {
+    fn cast_bound_position_to_bound_i32(bound: Bound<Position>) -> Bound<i32> {
         match bound {
-            Bound::Included(n) => Bound::Included(Position::try_from(n as usize).unwrap()),
-            Bound::Excluded(n) => Bound::Excluded(Position::try_from(n as usize).unwrap()),
+            Bound::Included(position) => Bound::Included(usize::from(position) as i32),
+            Bound::Excluded(position) => Bound::Excluded(usize::from(position) as i32),
             Bound::Unbounded => Bound::Unbounded,
         }
     }
@@ -363,8 +358,8 @@ pub(crate) fn resolve_region(
         })?;
 
     let interval = (
-        cast_bound_i32_to_bound_position(region.start()),
-        cast_bound_i32_to_bound_position(region.end()),
+        cast_bound_position_to_bound_i32(region.start()),
+        cast_bound_position_to_bound_i32(region.end()),
     );
 
     Ok((i, interval))
