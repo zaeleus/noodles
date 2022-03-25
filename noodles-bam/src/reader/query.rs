@@ -4,6 +4,7 @@ use std::{
 };
 
 use noodles_bgzf::{self as bgzf, VirtualPosition};
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::AlignmentRecord;
 
@@ -23,7 +24,7 @@ enum State {
 pub struct Query<'a, R, B>
 where
     R: Read + Seek,
-    B: RangeBounds<i32> + Copy,
+    B: RangeBounds<Position> + Copy,
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
 
@@ -40,7 +41,7 @@ where
 impl<'a, R, B> Query<'a, R, B>
 where
     R: Read + Seek,
-    B: RangeBounds<i32> + Copy,
+    B: RangeBounds<Position> + Copy,
 {
     pub(super) fn new(
         reader: &'a mut Reader<bgzf::Reader<R>>,
@@ -73,7 +74,7 @@ where
 impl<'a, R, B> Iterator for Query<'a, R, B>
 where
     R: Read + Seek,
-    B: RangeBounds<i32> + Copy,
+    B: RangeBounds<Position> + Copy,
 {
     type Item = io::Result<Record>;
 
@@ -125,30 +126,22 @@ pub(crate) fn intersects<B>(
     interval: B,
 ) -> io::Result<bool>
 where
-    B: RangeBounds<i32>,
+    B: RangeBounds<Position>,
 {
     let id = match record.reference_sequence_id() {
         Some(reference_sequence_id) => usize::from(reference_sequence_id),
         None => return Ok(false),
     };
 
-    // FIXME: Use positions.
-    let start = record
-        .alignment_start()
-        .map(usize::from)
-        .expect("missing alignment start") as i32;
-
-    let end = record
-        .alignment_end()
-        .map(usize::from)
-        .expect("missing alignment end") as i32;
+    let start = record.alignment_start().expect("missing alignment start");
+    let end = record.alignment_end().expect("missing alignment end");
 
     Ok(id == reference_sequence_id && in_interval(start, end, interval))
 }
 
-fn in_interval<B>(alignment_start: i32, alignment_end: i32, region_interval: B) -> bool
+fn in_interval<B>(alignment_start: Position, alignment_end: Position, region_interval: B) -> bool
 where
-    B: RangeBounds<i32>,
+    B: RangeBounds<Position>,
 {
     let a = match region_interval.start_bound() {
         Bound::Included(start) => *start <= alignment_end,

@@ -2,6 +2,7 @@ use std::ops::RangeBounds;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
@@ -20,7 +21,7 @@ enum State {
 struct Context<'a, R, B>
 where
     R: AsyncRead + AsyncSeek,
-    B: RangeBounds<i32> + Copy + 'a,
+    B: RangeBounds<Position> + Copy + 'a,
 {
     reader: &'a mut Reader<bgzf::AsyncReader<R>>,
 
@@ -41,7 +42,7 @@ pub fn query<'a, R, B>(
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where
     R: AsyncRead + AsyncSeek + Unpin,
-    B: RangeBounds<i32> + Copy + 'a,
+    B: RangeBounds<Position> + Copy + 'a,
 {
     let ctx = Context {
         reader,
