@@ -314,7 +314,7 @@ where
         reference_sequences: &ReferenceSequences,
         index: &I,
         region: &Region,
-    ) -> io::Result<Query<'_, R>>
+    ) -> io::Result<Query<'_, R, Interval>>
     where
         I: BinningIndex<RS>,
         RS: ReferenceSequenceExt,

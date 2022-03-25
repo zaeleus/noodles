@@ -7,7 +7,7 @@ use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
 use crate::{
-    reader::query::{intersects, next_chunk, resolve_interval},
+    reader::query::{intersects, next_chunk},
     Record,
 };
 
@@ -17,9 +17,10 @@ enum State {
     Done,
 }
 
-struct Context<'a, R>
+struct Context<'a, R, B>
 where
     R: AsyncRead + AsyncSeek,
+    B: RangeBounds<i32> + Copy + 'a,
 {
     reader: &'a mut Reader<bgzf::AsyncReader<R>>,
 
@@ -27,24 +28,21 @@ where
     i: usize,
 
     reference_sequence_id: usize,
-    start: i32,
-    end: i32,
+    interval: B,
 
     state: State,
 }
 
-pub fn query<R, B>(
-    reader: &mut Reader<bgzf::AsyncReader<R>>,
+pub fn query<'a, R, B>(
+    reader: &'a mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
     interval: B,
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where
     R: AsyncRead + AsyncSeek + Unpin,
-    B: RangeBounds<i32>,
+    B: RangeBounds<i32> + Copy + 'a,
 {
-    let (start, end) = resolve_interval(interval);
-
     let ctx = Context {
         reader,
 
@@ -52,8 +50,7 @@ where
         i: 0,
 
         reference_sequence_id,
-        start,
-        end,
+        interval,
 
         state: State::Seek,
     };
@@ -76,7 +73,7 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, ctx.reference_sequence_id, ctx.start, ctx.end)? {
+                        if intersects(&record, ctx.reference_sequence_id, ctx.interval)? {
                             return Ok(Some((record, ctx)));
                         }
                     }

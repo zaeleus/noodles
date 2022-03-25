@@ -20,9 +20,10 @@ enum State {
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R>
+pub struct Query<'a, R, B>
 where
     R: Read + Seek,
+    B: RangeBounds<i32> + Copy,
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
 
@@ -30,28 +31,23 @@ where
     i: usize,
 
     reference_sequence_id: usize,
-    start: i32,
-    end: i32,
+    interval: B,
 
     state: State,
     record: Record,
 }
 
-impl<'a, R> Query<'a, R>
+impl<'a, R, B> Query<'a, R, B>
 where
     R: Read + Seek,
+    B: RangeBounds<i32> + Copy,
 {
-    pub(super) fn new<B>(
+    pub(super) fn new(
         reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: B,
-    ) -> Self
-    where
-        B: RangeBounds<i32>,
-    {
-        let (start, end) = resolve_interval(interval);
-
+    ) -> Self {
         Self {
             reader,
 
@@ -59,8 +55,7 @@ where
             i: 0,
 
             reference_sequence_id,
-            start,
-            end,
+            interval,
 
             state: State::Seek,
             record: Record::default(),
@@ -75,9 +70,10 @@ where
     }
 }
 
-impl<'a, R> Iterator for Query<'a, R>
+impl<'a, R, B> Iterator for Query<'a, R, B>
 where
     R: Read + Seek,
+    B: RangeBounds<i32> + Copy,
 {
     type Item = io::Result<Record>;
 
@@ -102,8 +98,7 @@ where
                             self.state = State::Seek;
                         }
 
-                        match intersects(&record, self.reference_sequence_id, self.start, self.end)
-                        {
+                        match intersects(&record, self.reference_sequence_id, self.interval) {
                             Ok(true) => return Some(Ok(record)),
                             Ok(false) => {}
                             Err(e) => return Some(Err(e)),
@@ -118,30 +113,20 @@ where
     }
 }
 
-pub(crate) fn resolve_interval<B>(interval: B) -> (i32, i32)
-where
-    B: RangeBounds<i32>,
-{
-    match (interval.start_bound(), interval.end_bound()) {
-        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-        _ => todo!(),
-    }
-}
-
 pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     let chunk = chunks.get(*i).copied();
     *i += 1;
     chunk
 }
 
-pub(crate) fn intersects(
+pub(crate) fn intersects<B>(
     record: &Record,
     reference_sequence_id: usize,
-    interval_start: i32,
-    interval_end: i32,
-) -> io::Result<bool> {
+    interval: B,
+) -> io::Result<bool>
+where
+    B: RangeBounds<i32>,
+{
     let id = match record.reference_sequence_id() {
         Some(reference_sequence_id) => usize::from(reference_sequence_id),
         None => return Ok(false),
@@ -158,9 +143,24 @@ pub(crate) fn intersects(
         .map(usize::from)
         .expect("missing alignment end") as i32;
 
-    Ok(id == reference_sequence_id && in_interval(start, end, interval_start, interval_end))
+    Ok(id == reference_sequence_id && in_interval(start, end, interval))
 }
 
-pub fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
-    a_start <= b_end && b_start <= a_end
+fn in_interval<B>(alignment_start: i32, alignment_end: i32, region_interval: B) -> bool
+where
+    B: RangeBounds<i32>,
+{
+    let a = match region_interval.start_bound() {
+        Bound::Included(start) => *start <= alignment_end,
+        Bound::Excluded(start) => *start < alignment_end,
+        Bound::Unbounded => true,
+    };
+
+    let b = match region_interval.end_bound() {
+        Bound::Included(end) => alignment_start <= *end,
+        Bound::Excluded(end) => alignment_start < *end,
+        Bound::Unbounded => true,
+    };
+
+    a && b
 }
