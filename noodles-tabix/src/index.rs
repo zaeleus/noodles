@@ -15,8 +15,17 @@ use std::{
 };
 
 use indexmap::IndexSet;
+use noodles_core::Position;
 use noodles_csi::{
     binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
+};
+
+const MIN_SHIFT: u8 = 14;
+const DEPTH: u8 = 5;
+
+const MAX_POSITION: Position = match Position::new((1 << (MIN_SHIFT + 3 * DEPTH)) - 1) {
+    Some(position) => position,
+    None => panic!(),
 };
 
 /// A set of reference sequence names.
@@ -159,12 +168,7 @@ impl BinningIndex<ReferenceSequence> for Index {
             .copied()
             .collect();
 
-        let start = match interval.start_bound() {
-            Bound::Included(s) => *s,
-            Bound::Excluded(s) => *s + 1,
-            Bound::Unbounded => 1,
-        };
-
+        let (start, _) = resolve_interval(interval)?;
         let min_offset = reference_sequence.min_offset(start);
         let merged_chunks = optimize_chunks(&chunks, min_offset);
 
@@ -175,5 +179,54 @@ impl BinningIndex<ReferenceSequence> for Index {
 impl Default for Index {
     fn default() -> Self {
         Builder::default().build()
+    }
+}
+
+fn resolve_interval<B>(interval: B) -> io::Result<(Position, Position)>
+where
+    B: RangeBounds<i32>,
+{
+    let start = match interval.start_bound() {
+        Bound::Included(n) => usize::try_from(*n)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Excluded(n) => usize::try_from(n + 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Unbounded => Position::MIN,
+    };
+
+    if start > MAX_POSITION {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid start bound",
+        ));
+    }
+
+    let end = match interval.end_bound() {
+        Bound::Included(n) => usize::try_from(*n)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Excluded(n) => usize::try_from(n - 1)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            .and_then(|m| {
+                Position::try_from(m).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?,
+        Bound::Unbounded => MAX_POSITION,
+    };
+
+    if end > MAX_POSITION {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid end bound",
+        ))
+    } else {
+        Ok((start, end))
     }
 }

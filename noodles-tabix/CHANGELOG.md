@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/index/reference_sequence: `ReferenceSequence::query` returns an
+    `io::Error` instead of `QueryError`.
+
+### Fixed
+
+  * tabix/index/reference_sequence: Ensure the start position is not out of
+    range for a query (`2^29 - 1`).
+
 ## 0.8.1 - 2022-03-02
 
 ### Fixed

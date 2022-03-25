@@ -61,9 +61,10 @@ impl Builder {
         builder.add_chunk(chunk);
     }
 
+    // FIXME: Change to `Position`.
     fn update_linear_index(&mut self, start: i32, end: i32, chunk: Chunk) {
-        let linear_index_start_offset = ((start - 1) / WINDOW_SIZE) as usize;
-        let linear_index_end_offset = ((end - 1) / WINDOW_SIZE) as usize;
+        let linear_index_start_offset = (((start as usize) - 1) / WINDOW_SIZE) as usize;
+        let linear_index_end_offset = (((end as usize) - 1) / WINDOW_SIZE) as usize;
 
         if linear_index_end_offset >= self.intervals.len() {
             self.intervals
