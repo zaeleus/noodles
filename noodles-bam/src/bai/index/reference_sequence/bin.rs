@@ -6,7 +6,7 @@ pub(crate) use self::builder::Builder;
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use super::DEPTH;
+use crate::bai::index::DEPTH;
 
 pub(crate) const MAX_ID: u32 = ((1 << (3 * (DEPTH + 1))) - 1) / 7;
 

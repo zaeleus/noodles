@@ -15,6 +15,9 @@
 
 ### Changed
 
+  * bam/bai/index/reference_sequence: `ReferenceSequence::query` returns an
+    `io::Error` instead of `QueryError`.
+
   * bam/record: Move `cigar`, `data`, `flags`, `mapping_quality`,
     `read_name`, `sequence`, `template_length`, and `quality_scores` to the
     implementation of `sam::AlignmentReader`.
@@ -55,6 +58,9 @@
 ### Fixed
 
   * bam/async/writer/record: Calculate bin number for record.
+
+  * bam/bai/index/reference_sequence: Ensure the start position is not out of
+    range for a query (`2^29 - 1`).
 
   * bam/bai/index/reference_sequence/builder: Calculate bin number for record.
 

@@ -7,49 +7,16 @@ pub(crate) use self::builder::Builder;
 
 pub use self::bin::Bin;
 
-use std::{
-    error, fmt,
-    ops::{Bound, RangeBounds},
-};
+use std::{io, ops::RangeBounds};
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 use noodles_csi::{binning_index::ReferenceSequenceExt, index::reference_sequence::Metadata};
 
-const MIN_SHIFT: i32 = 14;
-const DEPTH: i32 = 5;
-const MIN_POSITION: i32 = 1;
-const MAX_POSITION: i32 = 1 << (MIN_SHIFT + 3 * DEPTH);
+use super::{resolve_interval, MIN_SHIFT};
 
-const WINDOW_SIZE: i32 = 1 << MIN_SHIFT;
-
-/// An error returned when a query fails.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum QueryError {
-    /// The start position is invalid.
-    InvalidStartPosition(i32),
-    /// The end position is invalid.
-    InvalidEndPosition(i32),
-}
-
-impl error::Error for QueryError {}
-
-impl fmt::Display for QueryError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidStartPosition(start) => {
-                write!(
-                    f,
-                    "expected start position >= {}, got {}",
-                    MIN_POSITION, start
-                )
-            }
-            Self::InvalidEndPosition(end) => {
-                write!(f, "expected end position <= {}, got {}", MAX_POSITION, end)
-            }
-        }
-    }
-}
+const WINDOW_SIZE: usize = 1 << MIN_SHIFT;
 
 /// A reference sequence in the BAM index.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -120,38 +87,19 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
-    /// # use noodles_bam::bai::index::reference_sequence;
+    /// # use std::io;
     /// use noodles_bam::bai::index::ReferenceSequence;
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
     /// let query_bins = reference_sequence.query(8..=13)?;
     /// assert!(query_bins.is_empty());
-    /// # Ok::<(), reference_sequence::QueryError>(())
+    /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn query<B>(&self, interval: B) -> Result<Vec<&Bin>, QueryError>
+    pub fn query<B>(&self, interval: B) -> io::Result<Vec<&Bin>>
     where
         B: RangeBounds<i32>,
     {
-        let start = match interval.start_bound() {
-            Bound::Included(s) => *s,
-            Bound::Excluded(s) => *s + 1,
-            Bound::Unbounded => MIN_POSITION,
-        };
-
-        if start < MIN_POSITION {
-            return Err(QueryError::InvalidStartPosition(start));
-        }
-
-        let end = match interval.end_bound() {
-            Bound::Included(e) => *e,
-            Bound::Excluded(e) => *e - 1,
-            Bound::Unbounded => MAX_POSITION,
-        };
-
-        if end > MAX_POSITION {
-            return Err(QueryError::InvalidEndPosition(end));
-        }
-
-        let region_bins = region_to_bins((start - 1) as usize, end as usize);
+        let (start, end) = resolve_interval(interval)?;
+        let region_bins = region_to_bins(start, end);
 
         let query_bins = self
             .bins()
@@ -171,11 +119,19 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use noodles_bam::bai::index::ReferenceSequence;
+    /// use noodles_core::Position;
+    ///
     /// let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
-    /// assert_eq!(reference_sequence.min_offset(13), bgzf::VirtualPosition::from(0));
+    /// let start = Position::try_from(13)?;
+    ///
+    /// assert_eq!(
+    ///     reference_sequence.min_offset(start),
+    ///     bgzf::VirtualPosition::from(0)
+    /// );
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn min_offset(&self, start: i32) -> bgzf::VirtualPosition {
-        let i = ((start - 1) / WINDOW_SIZE) as usize;
+    pub fn min_offset(&self, start: Position) -> bgzf::VirtualPosition {
+        let i = (usize::from(start) - 1) / WINDOW_SIZE;
         self.intervals.get(i).copied().unwrap_or_default()
     }
 }
@@ -230,9 +186,10 @@ impl ReferenceSequenceExt for ReferenceSequence {
     }
 }
 
-// 0-based, [start, end)
-fn region_to_bins(start: usize, mut end: usize) -> BitVec {
-    end -= 1;
+fn region_to_bins(start: Position, end: Position) -> BitVec {
+    // 0-based, [start, end)
+    let start = usize::from(start) - 1;
+    let end = usize::from(end) - 1;
 
     let mut bins = BitVec::from_elem(bin::MAX_ID as usize, false);
     bins.set(0, true);
@@ -268,33 +225,32 @@ mod tests {
     fn test_query() {
         let reference_sequence = ReferenceSequence::new(Vec::new(), Vec::new(), None);
 
-        assert_eq!(
-            reference_sequence.query(0..=8),
-            Err(QueryError::InvalidStartPosition(0))
-        );
-
-        assert_eq!(
-            reference_sequence.query(1..=i32::MAX),
-            Err(QueryError::InvalidEndPosition(i32::MAX))
-        );
+        assert!(matches!(
+            reference_sequence.query(..=i32::MAX),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
+        ));
     }
 
     #[test]
-    fn test_region_to_bins() {
-        // [8, 13]
-        let actual = region_to_bins(7, 13);
+    fn test_region_to_bins() -> Result<(), noodles_core::position::TryFromIntError> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let actual = region_to_bins(start, end);
         let mut expected = BitVec::from_elem(bin::MAX_ID as usize, false);
         for &k in &[0, 1, 9, 73, 585, 4681] {
             expected.set(k, true);
         }
         assert_eq!(actual, expected);
 
-        // [63245986, 63245986]
-        let actual = region_to_bins(63245985, 63255986);
+        let start = Position::try_from(63245985)?;
+        let end = Position::try_from(63255986)?;
+        let actual = region_to_bins(start, end);
         let mut expected = BitVec::from_elem(bin::MAX_ID as usize, false);
         for &k in &[0, 1, 16, 133, 1067, 8541] {
             expected.set(k, true);
         }
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
