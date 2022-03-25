@@ -1,3 +1,4 @@
+use noodles_core::Position;
 use serde::Deserialize;
 
 use super::Reads;
@@ -8,8 +9,8 @@ pub struct Builder {
     client: Client,
     id: String,
     reference_name: Option<String>,
-    start: Option<u32>,
-    end: Option<u32>,
+    start: Option<Position>,
+    end: Option<Position>,
 }
 
 impl Builder {
@@ -37,16 +38,16 @@ impl Builder {
 
     /// Sets the start position.
     ///
-    /// This is 0-based, inclusive.
-    pub fn set_start(mut self, start: u32) -> Self {
+    /// This is 1-based, inclusive.
+    pub fn set_start(mut self, start: Position) -> Self {
         self.start = Some(start);
         self
     }
 
     /// Sets the end position.
     ///
-    /// This is 0-based, exclusive.
-    pub fn set_end(mut self, end: u32) -> Self {
+    /// This is 1-based, inclusive.
+    pub fn set_end(mut self, end: Position) -> Self {
         self.end = Some(end);
         self
     }
@@ -67,10 +68,12 @@ impl Builder {
         }
 
         if let Some(start) = self.start {
+            let start = u32::try_from(usize::from(start) - 1).map_err(|_| Error::Input)?;
             query.push(("start", start.to_string()));
         }
 
         if let Some(end) = self.end {
+            let end = u32::try_from(usize::from(end)).map_err(|_| Error::Input)?;
             query.push(("end", end.to_string()));
         }
 
