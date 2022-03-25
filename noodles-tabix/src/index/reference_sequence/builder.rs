@@ -1,6 +1,7 @@
-use std::{cmp, collections::HashMap};
+use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
@@ -15,7 +16,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn add_record(&mut self, start: i32, end: i32, chunk: Chunk) -> &mut Self {
+    pub fn add_record(&mut self, start: Position, end: Position, chunk: Chunk) -> &mut Self {
         self.update_bins(start, end, chunk);
         self.update_linear_index(start, end, chunk);
         self.update_metadata(chunk);
@@ -49,8 +50,8 @@ impl Builder {
         ReferenceSequence::new(bins, intervals, Some(metadata))
     }
 
-    fn update_bins(&mut self, start: i32, end: i32, chunk: Chunk) {
-        let bin_id = region_to_bin(start, end) as u32;
+    fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) {
+        let bin_id = region_to_bin(start, end).unwrap() as u32;
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
@@ -61,10 +62,9 @@ impl Builder {
         builder.add_chunk(chunk);
     }
 
-    // FIXME: Change to `Position`.
-    fn update_linear_index(&mut self, start: i32, end: i32, chunk: Chunk) {
-        let linear_index_start_offset = (((start as usize) - 1) / WINDOW_SIZE) as usize;
-        let linear_index_end_offset = (((end as usize) - 1) / WINDOW_SIZE) as usize;
+    fn update_linear_index(&mut self, start: Position, end: Position, chunk: Chunk) {
+        let linear_index_start_offset = (usize::from(start) - 1) / WINDOW_SIZE;
+        let linear_index_end_offset = (usize::from(end) - 1) / WINDOW_SIZE;
 
         if linear_index_end_offset >= self.intervals.len() {
             self.intervals
@@ -83,12 +83,13 @@ impl Builder {
     }
 }
 
-// 0-based, [start, end)
 #[allow(clippy::eq_op)]
-fn region_to_bin(start: i32, mut end: i32) -> i32 {
-    end -= 1;
+fn region_to_bin(start: Position, end: Position) -> io::Result<u16> {
+    // 0-based, [start, end)
+    let start = usize::from(start) - 1;
+    let end = usize::from(end) - 1;
 
-    if start >> 14 == end >> 14 {
+    let bin = if start >> 14 == end >> 14 {
         ((1 << 15) - 1) / 7 + (start >> 14)
     } else if start >> 17 == end >> 17 {
         ((1 << 12) - 1) / 7 + (start >> 17)
@@ -100,7 +101,9 @@ fn region_to_bin(start: i32, mut end: i32) -> i32 {
         ((1 << 3) - 1) / 7 + (start >> 26)
     } else {
         0
-    }
+    };
+
+    u16::try_from(bin).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
 }
 
 #[cfg(test)]
@@ -108,12 +111,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
         let mut builder = Builder::default();
 
         builder.add_record(
-            8,
-            13,
+            Position::try_from(8)?,
+            Position::try_from(13)?,
             Chunk::new(
                 bgzf::VirtualPosition::from(0),
                 bgzf::VirtualPosition::from(9),
@@ -121,8 +124,8 @@ mod tests {
         );
 
         builder.add_record(
-            121393,
-            196418,
+            Position::try_from(121393)?,
+            Position::try_from(196418)?,
             Chunk::new(
                 bgzf::VirtualPosition::from(9),
                 bgzf::VirtualPosition::from(3473408),
@@ -178,6 +181,8 @@ mod tests {
         }
 
         assert_eq!(actual.intervals(), expected.intervals());
+
+        Ok(())
     }
 
     #[test]
@@ -187,10 +192,15 @@ mod tests {
     }
 
     #[test]
-    fn test_region_to_bin() {
-        // [8, 13]
-        assert_eq!(region_to_bin(7, 13), 4681);
-        // [63245986, 63245986]
-        assert_eq!(region_to_bin(63245985, 63255986), 8541);
+    fn test_region_to_bin() -> Result<(), Box<dyn std::error::Error>> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        assert_eq!(region_to_bin(start, end)?, 4681);
+
+        let start = Position::try_from(63245986)?;
+        let end = Position::try_from(63245986)?;
+        assert_eq!(region_to_bin(start, end)?, 8541);
+
+        Ok(())
     }
 }

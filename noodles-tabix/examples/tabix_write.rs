@@ -5,6 +5,7 @@
 use std::io::{self, BufRead, Write};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_tabix as tabix;
 
@@ -21,7 +22,7 @@ fn compress_data(data: &[u8]) -> io::Result<Vec<u8>> {
     writer.finish()
 }
 
-fn parse_record(s: &str) -> io::Result<(&str, i32, i32)> {
+fn parse_record(s: &str) -> io::Result<(&str, Position, Position)> {
     let mut components = s.splitn(3, SEPARATOR);
 
     let reference_sequence_name = components

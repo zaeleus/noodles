@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * tabix/index/indexer: Change start and end to `Position`.
+
   * tabix/index/reference_sequence: `ReferenceSequence::query` returns an
     `io::Error` instead of `QueryError`.
 

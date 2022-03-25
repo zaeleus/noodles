@@ -1,3 +1,4 @@
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::{reference_sequence, Header, Index, ReferenceSequence, ReferenceSequenceNames};
@@ -30,21 +31,26 @@ impl Indexer {
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
+    /// use noodles_core::Position;
     /// use noodles_csi::index::reference_sequence::bin::Chunk;
     /// use noodles_tabix as tabix;
     ///
     /// let mut indexer = tabix::Index::indexer();
     ///
-    /// indexer.add_record("sq0", 8, 13, Chunk::new(
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    ///
+    /// indexer.add_record("sq0", start, end, Chunk::new(
     ///     bgzf::VirtualPosition::from(144),
     ///     bgzf::VirtualPosition::from(233),
     /// ));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn add_record(
         &mut self,
         reference_sequence_name: &str,
-        start: i32,
-        end: i32,
+        start: Position,
+        end: Position,
         chunk: Chunk,
     ) {
         if reference_sequence_name != self.current_reference_sequence_name {
