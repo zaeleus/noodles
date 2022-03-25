@@ -99,13 +99,18 @@ where
     }
 }
 
-async fn read_header<R>(reader: &mut R) -> io::Result<(i32, i32, Vec<u8>)>
+async fn read_header<R>(reader: &mut R) -> io::Result<(u8, i32, Vec<u8>)>
 where
     R: AsyncRead + Unpin,
 {
-    let min_shift = reader.read_i32_le().await?;
+    let min_shift = reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
     let depth = reader.read_i32_le().await?;
     let aux = read_aux(reader).await?;
+
     Ok((min_shift, depth, aux))
 }
 

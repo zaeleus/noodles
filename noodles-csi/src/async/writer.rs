@@ -111,11 +111,11 @@ where
     writer.write_all(crate::MAGIC_NUMBER).await
 }
 
-async fn write_header<W>(writer: &mut W, min_shift: i32, depth: i32, aux: &[u8]) -> io::Result<()>
+async fn write_header<W>(writer: &mut W, min_shift: u8, depth: i32, aux: &[u8]) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_i32_le(min_shift).await?;
+    writer.write_i32_le(i32::from(min_shift)).await?;
     writer.write_i32_le(depth).await?;
     write_aux(writer, aux).await?;
     Ok(())

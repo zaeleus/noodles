@@ -15,7 +15,7 @@ use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 /// A coordinate-sorted index (CSI).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Index {
-    min_shift: i32,
+    min_shift: u8,
     depth: i32,
     aux: Vec<u8>,
     reference_sequences: Vec<ReferenceSequence>,
@@ -44,7 +44,7 @@ impl Index {
     /// let index = csi::Index::default();
     /// assert_eq!(index.min_shift(), 14);
     /// ```
-    pub fn min_shift(&self) -> i32 {
+    pub fn min_shift(&self) -> u8 {
         self.min_shift
     }
 

@@ -4,7 +4,7 @@ use super::{Index, ReferenceSequence};
 
 /// A coordinate-sorted index (CSI) builder.
 pub struct Builder {
-    min_shift: i32,
+    min_shift: u8,
     depth: i32,
     aux: Vec<u8>,
     reference_sequences: Vec<ReferenceSequence>,
@@ -21,7 +21,7 @@ impl Builder {
     /// let index = csi::Index::builder().set_min_shift(13).build();
     /// assert_eq!(index.min_shift(), 13);
     /// ```
-    pub fn set_min_shift(mut self, min_shift: i32) -> Self {
+    pub fn set_min_shift(mut self, min_shift: u8) -> Self {
         self.min_shift = min_shift;
         self
     }

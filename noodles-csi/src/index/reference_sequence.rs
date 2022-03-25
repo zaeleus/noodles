@@ -53,7 +53,7 @@ impl fmt::Display for QueryError {
 }
 
 impl ReferenceSequence {
-    fn max_position(min_shift: i32, depth: i32) -> i64 {
+    fn max_position(min_shift: u8, depth: i32) -> i64 {
         let min_shift = i64::from(min_shift);
         let depth = i64::from(depth);
         (1 << (min_shift + 3 * depth)) - 1
@@ -100,7 +100,7 @@ impl ReferenceSequence {
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), reference_sequence::QueryError>(())
     /// ```
-    pub fn query<B>(&self, min_shift: i32, depth: i32, interval: B) -> Result<Vec<&Bin>, QueryError>
+    pub fn query<B>(&self, min_shift: u8, depth: i32, interval: B) -> Result<Vec<&Bin>, QueryError>
     where
         B: RangeBounds<i64>,
     {
@@ -198,12 +198,12 @@ impl ReferenceSequenceExt for ReferenceSequence {
 // `CSIv1.pdf` (2020-07-21)
 // [beg, end), 0-based
 #[allow(clippy::many_single_char_names)]
-fn reg2bins(beg: i64, mut end: i64, min_shift: i32, depth: i32, bins: &mut BitVec) {
+fn reg2bins(beg: i64, mut end: i64, min_shift: u8, depth: i32, bins: &mut BitVec) {
     end -= 1;
 
     let mut l = 0;
     let mut t = 0;
-    let mut s = min_shift + depth * 3;
+    let mut s = i32::from(min_shift) + depth * 3;
 
     while l <= depth {
         let b = t + (beg >> s);
@@ -223,7 +223,7 @@ fn reg2bins(beg: i64, mut end: i64, min_shift: i32, depth: i32, bins: &mut BitVe
 mod tests {
     use super::*;
 
-    const MIN_SHIFT: i32 = 14;
+    const MIN_SHIFT: u8 = 14;
     const DEPTH: i32 = 5;
 
     #[test]
@@ -261,7 +261,7 @@ mod tests {
         // | 0-15   | 16-31  | 32-47  | 48-63  | 64-79  | 80-95  | 96-111  | 112-127 | 128-143 |...
         // +--------+--------+--------+--------+--------+--------+---------+---------+---------+...
 
-        const MIN_SHIFT: i32 = 4;
+        const MIN_SHIFT: u8 = 4;
         const DEPTH: i32 = 2;
 
         fn t(start: i64, end: i64, expected_bin_ids: &[u32]) {

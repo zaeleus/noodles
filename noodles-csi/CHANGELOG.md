@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/index: Change `min_shift` to a `u8`.
+
 ## 0.5.1 - 2022-03-02
 
 ### Fixed

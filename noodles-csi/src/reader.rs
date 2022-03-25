@@ -52,7 +52,10 @@ where
     pub fn read_index(&mut self) -> io::Result<Index> {
         read_magic(&mut self.inner)?;
 
-        let min_shift = self.inner.read_i32::<LittleEndian>()?;
+        let min_shift = self.inner.read_i32::<LittleEndian>().and_then(|n| {
+            u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
+
         let depth = self.inner.read_i32::<LittleEndian>()?;
         let aux = read_aux(&mut self.inner)?;
         let reference_sequences = read_reference_sequences(&mut self.inner, depth)?;

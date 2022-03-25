@@ -53,7 +53,7 @@ where
     pub fn write_index(&mut self, index: &Index) -> io::Result<()> {
         write_magic(&mut self.inner)?;
 
-        let min_shift = index.min_shift();
+        let min_shift = i32::from(index.min_shift());
         self.inner.write_i32::<LittleEndian>(min_shift)?;
 
         let depth = index.depth();
