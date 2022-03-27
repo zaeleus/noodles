@@ -9,7 +9,7 @@ use super::{
     quality_scores,
     read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
-    sequence, Field, Flags, Record, EQ_FIELD, NULL_FIELD,
+    sequence, Field, Flags, QualityScores, Record, EQ_FIELD, NULL_FIELD,
 };
 use crate::AlignmentRecord;
 
@@ -136,9 +136,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
 
     builder = builder.set_sequence(seq);
 
-    let qual = parse_string(&mut fields, Field::QualityScores)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))?;
-
+    let qual = parse_qual(&mut fields)?;
     builder = builder.set_quality_scores(qual);
 
     if let Some(data) = parse_data(&mut fields)? {
@@ -273,6 +271,14 @@ where
     parse_string(fields, Field::MatePosition)
         .and_then(|s| s.parse().map_err(ParseError::InvalidMatePosition))
         .map(Position::new)
+}
+
+fn parse_qual<'a, I>(fields: &mut I) -> Result<QualityScores, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::QualityScores)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))
 }
 
 fn parse_data<'a, I>(fields: &mut I) -> Result<Option<Data>, ParseError>
