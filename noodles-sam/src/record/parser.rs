@@ -194,12 +194,9 @@ fn parse_qname<'a, I>(fields: &mut I) -> Result<Option<ReadName>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::Name).and_then(|s| {
-        if s == NULL_FIELD {
-            Ok(None)
-        } else {
-            s.parse().map(Some).map_err(ParseError::InvalidReadName)
-        }
+    parse_string(fields, Field::Name).and_then(|s| match s {
+        NULL_FIELD => Ok(None),
+        _ => s.parse().map(Some).map_err(ParseError::InvalidReadName),
     })
 }
 
@@ -207,14 +204,12 @@ fn parse_rname<'a, I>(fields: &mut I) -> Result<Option<ReferenceSequenceName>, P
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::ReferenceSequenceName).and_then(|s| {
-        if s == NULL_FIELD {
-            Ok(None)
-        } else {
-            s.parse()
-                .map(Some)
-                .map_err(ParseError::InvalidReferenceSequenceName)
-        }
+    parse_string(fields, Field::ReferenceSequenceName).and_then(|s| match s {
+        NULL_FIELD => Ok(None),
+        _ => s
+            .parse()
+            .map(Some)
+            .map_err(ParseError::InvalidReferenceSequenceName),
     })
 }
 
