@@ -133,6 +133,10 @@
 
     This is already treated as missing (`None`).
 
+  * sam/record/sequence: Remove missing state.
+
+    `Sequence` no longer parses `*` as missing. This is now an invalid input.
+
   * sam/record/quality_scores: Remove missing state.
 
     `QualityScores` no longer parses `*` as missing. This is now parsed as a

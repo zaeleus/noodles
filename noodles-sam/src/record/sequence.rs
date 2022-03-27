@@ -12,8 +12,6 @@ use std::{
 
 use noodles_core::position::SequenceIndex;
 
-use super::NULL_FIELD;
-
 /// A SAM record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<Base>);
@@ -152,15 +150,11 @@ impl From<Vec<Base>> for Sequence {
 
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.0.is_empty() {
-            write!(f, "{}", NULL_FIELD)
-        } else {
-            for base in &self.0 {
-                write!(f, "{}", base)?;
-            }
-
-            Ok(())
+        for base in self.as_ref() {
+            write!(f, "{}", base)?;
         }
+
+        Ok(())
     }
 }
 
@@ -188,10 +182,10 @@ impl FromStr for Sequence {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            NULL_FIELD => Ok(Self::default()),
-            _ => Self::try_from(s.as_bytes().to_vec()),
+        if s.is_empty() {
+            Err(ParseError::Empty)
+        } else {
+            Self::try_from(s.as_bytes().to_vec())
         }
     }
 }
@@ -249,8 +243,11 @@ mod tests {
         let expected = Sequence(vec![Base::A, Base::T, Base::C, Base::G]);
         assert_eq!("aTcG".parse::<Sequence>(), Ok(expected));
 
-        assert_eq!("*".parse::<Sequence>(), Ok(Sequence::default()));
-
         assert_eq!("".parse::<Sequence>(), Err(ParseError::Empty));
+
+        assert!(matches!(
+            "*".parse::<Sequence>(),
+            Err(ParseError::InvalidBase(_))
+        ));
     }
 }

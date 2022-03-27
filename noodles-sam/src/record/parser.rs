@@ -275,8 +275,10 @@ fn parse_seq<'a, I>(fields: &mut I) -> Result<Sequence, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::Sequence)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidSequence))
+    parse_string(fields, Field::Sequence).and_then(|s| match s {
+        NULL_FIELD => Ok(Sequence::default()),
+        _ => s.parse().map_err(ParseError::InvalidSequence),
+    })
 }
 
 fn parse_qual<'a, I>(fields: &mut I) -> Result<QualityScores, ParseError>
