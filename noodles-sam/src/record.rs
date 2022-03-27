@@ -598,7 +598,7 @@ impl fmt::Display for Record {
 
         write!(
             f,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}\t{qual}",
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}\t{seq}",
             qname = qname,
             flag = u16::from(self.flags()),
             rname = rname,
@@ -609,8 +609,14 @@ impl fmt::Display for Record {
             pnext = pnext,
             tlen = self.template_length(),
             seq = self.sequence(),
-            qual = self.quality_scores(),
         )?;
+
+        f.write_str("\t")?;
+        if self.quality_scores().is_empty() {
+            f.write_str(NULL_FIELD)?;
+        } else {
+            write!(f, "{}", self.quality_scores())?;
+        }
 
         if !self.data().is_empty() {
             write!(f, "\t{}", self.data())?;

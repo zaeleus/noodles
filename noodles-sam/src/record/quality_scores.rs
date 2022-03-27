@@ -12,8 +12,6 @@ use std::{
 
 use noodles_core::position::SequenceIndex;
 
-use super::NULL_FIELD;
-
 /// SAM record quality scores.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QualityScores(Vec<Score>);
@@ -147,15 +145,11 @@ impl AsMut<Vec<Score>> for QualityScores {
 
 impl fmt::Display for QualityScores {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            write!(f, "{}", NULL_FIELD)
-        } else {
-            for score in self.as_ref() {
-                write!(f, "{}", score)?;
-            }
-
-            Ok(())
+        for score in self.as_ref() {
+            write!(f, "{}", score)?;
         }
+
+        Ok(())
     }
 }
 
@@ -189,15 +183,14 @@ impl FromStr for QualityScores {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            NULL_FIELD => Ok(Self::default()),
-            _ => s
-                .chars()
+        if s.is_empty() {
+            Err(ParseError::Empty)
+        } else {
+            s.chars()
                 .map(Score::try_from)
                 .collect::<Result<Vec<_>, _>>()
                 .map(Self::from)
-                .map_err(ParseError::InvalidScore),
+                .map_err(ParseError::InvalidScore)
         }
     }
 }
@@ -248,13 +241,15 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), score::TryFromUByteError> {
+        let quality_scores = QualityScores::default();
+        assert!(quality_scores.to_string().is_empty());
+
         let quality_scores = [45, 35, 43, 50, 0]
             .iter()
             .cloned()
             .map(Score::try_from)
             .collect::<Result<Vec<_>, _>>()
             .map(QualityScores::from)?;
-
         assert_eq!(quality_scores.to_string(), "NDLS!");
 
         Ok(())
@@ -270,7 +265,10 @@ mod tests {
             .map(QualityScores::from)?;
         assert_eq!("NDLS!".parse(), Ok(expected));
 
-        assert_eq!("*".parse::<QualityScores>(), Ok(QualityScores::default()));
+        assert_eq!(
+            "*".parse::<QualityScores>(),
+            Ok(QualityScores::from(vec![Score::try_from(9)?]))
+        );
 
         assert_eq!("".parse::<QualityScores>(), Err(ParseError::Empty));
 

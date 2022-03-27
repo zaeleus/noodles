@@ -277,8 +277,10 @@ fn parse_qual<'a, I>(fields: &mut I) -> Result<QualityScores, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::QualityScores)
-        .and_then(|s| s.parse().map_err(ParseError::InvalidQualityScores))
+    parse_string(fields, Field::QualityScores).and_then(|s| match s {
+        NULL_FIELD => Ok(QualityScores::default()),
+        _ => s.parse().map_err(ParseError::InvalidQualityScores),
+    })
 }
 
 fn parse_data<'a, I>(fields: &mut I) -> Result<Option<Data>, ParseError>
