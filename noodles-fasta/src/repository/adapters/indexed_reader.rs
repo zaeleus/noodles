@@ -14,7 +14,7 @@ impl<R> IndexedReader<R>
 where
     R: BufRead + Seek,
 {
-    /// Create a indexed reader adapter.
+    /// Creates an indexed reader adapter.
     pub fn new(reader: Reader<R>, index: fai::Index) -> Self {
         Self { reader, index }
     }
