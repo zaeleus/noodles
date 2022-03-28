@@ -126,9 +126,7 @@ pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
         builder = builder.set_mate_position(pnext);
     }
 
-    let tlen = parse_string(&mut fields, Field::TemplateLength)
-        .and_then(|s| s.parse::<i32>().map_err(ParseError::InvalidTemplateLength))?;
-
+    let tlen = parse_tlen(&mut fields)?;
     builder = builder.set_template_length(tlen);
 
     let seq = parse_seq(&mut fields)?;
@@ -264,6 +262,14 @@ where
     parse_string(fields, Field::MatePosition)
         .and_then(|s| s.parse().map_err(ParseError::InvalidMatePosition))
         .map(Position::new)
+}
+
+fn parse_tlen<'a, I>(fields: &mut I) -> Result<i32, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    parse_string(fields, Field::TemplateLength)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidTemplateLength))
 }
 
 fn parse_seq<'a, I>(fields: &mut I) -> Result<Sequence, ParseError>
