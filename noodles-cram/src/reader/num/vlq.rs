@@ -2,7 +2,6 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-#[allow(dead_code)]
 pub fn read_uint7<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
