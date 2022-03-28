@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use super::{record::Sequence, Record};
 
@@ -77,17 +74,9 @@ fn write_record_sequence<W>(
 where
     W: Write,
 {
-    let mut start = 0;
-    let raw_sequence = sequence.as_ref();
-
-    while start < sequence.len() {
-        let end = cmp::min(start + line_bases, sequence.len());
-        let line = &raw_sequence[start..end];
-
-        writer.write_all(line)?;
+    for bases in sequence.as_ref().chunks(line_bases) {
+        writer.write_all(bases)?;
         writeln!(writer)?;
-
-        start = end;
     }
 
     Ok(())
