@@ -16,7 +16,7 @@ use noodles_core::Position;
 use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::alignment_record::NULL_QUALITY_SCORE;
-use crate::{record::ReferenceSequenceId, Record};
+use crate::Record;
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -92,18 +92,14 @@ where
     Ok(())
 }
 
-fn put_reference_sequence_id<B>(
-    dst: &mut B,
-    reference_sequence_id: Option<ReferenceSequenceId>,
-) -> io::Result<()>
+fn put_reference_sequence_id<B>(dst: &mut B, reference_sequence_id: Option<usize>) -> io::Result<()>
 where
     B: BufMut,
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
     let ref_id = if let Some(id) = reference_sequence_id {
-        i32::try_from(usize::from(id))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
     } else {
         UNMAPPED
     };
@@ -256,9 +252,7 @@ mod tests {
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{Flags, MappingQuality};
 
-        use crate::record::ReferenceSequenceId;
-
-        let reference_sequence_id = ReferenceSequenceId::from(1);
+        let reference_sequence_id = 1;
 
         let record = Record::builder()
             .set_reference_sequence_id(reference_sequence_id)

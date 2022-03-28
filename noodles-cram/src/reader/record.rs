@@ -157,7 +157,6 @@ where
         record.reference_sequence_id = match reference_id {
             UNMAPPED => None,
             _ => usize::try_from(reference_id)
-                .map(bam::record::ReferenceSequenceId::from)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
         };
@@ -360,9 +359,7 @@ where
         .map(NextMateFlags::from)
     }
 
-    fn read_next_fragment_reference_sequence_id(
-        &mut self,
-    ) -> io::Result<Option<bam::record::ReferenceSequenceId>> {
+    fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
         use bam::record::reference_sequence_id::UNMAPPED;
 
         let encoding = self
@@ -386,7 +383,6 @@ where
         .and_then(|id| match id {
             UNMAPPED => Ok(None),
             _ => usize::try_from(id)
-                .map(bam::record::ReferenceSequenceId::from)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         })

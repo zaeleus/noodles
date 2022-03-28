@@ -2,14 +2,13 @@ use std::io;
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
-use crate::{record::ReferenceSequenceId, Record};
-
 use super::{reference_sequence, Index, ReferenceSequence};
+use crate::Record;
 
 /// A BAM index builder.
 #[derive(Default)]
 pub struct Builder {
-    current_reference_sequence_id: Option<ReferenceSequenceId>,
+    current_reference_sequence_id: Option<usize>,
     reference_sequences_builders: Vec<reference_sequence::Builder>,
     unplaced_unmapped_record_count: u64,
 }
@@ -54,15 +53,12 @@ impl Builder {
         reference_sequence_builder.add_record(record, chunk)
     }
 
-    fn add_reference_sequences_builders_until(
-        &mut self,
-        reference_sequence_id: ReferenceSequenceId,
-    ) {
+    fn add_reference_sequences_builders_until(&mut self, reference_sequence_id: usize) {
         // FIXME
-        let id = usize::from(reference_sequence_id) as i32;
+        let id = reference_sequence_id as i32;
         let mut current_id = self
             .current_reference_sequence_id
-            .map(|id| usize::from(id) as i32)
+            .map(|id| id as i32)
             .unwrap_or(crate::record::reference_sequence_id::UNMAPPED);
 
         while current_id < id {
@@ -83,7 +79,7 @@ impl Builder {
     /// let index = bai::Index::builder().build(1);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index {
-        let last_reference_sequence_id = ReferenceSequenceId::from(reference_sequence_count - 1);
+        let last_reference_sequence_id = reference_sequence_count - 1;
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
         let reference_sequences = self

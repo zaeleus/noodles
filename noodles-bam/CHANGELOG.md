@@ -37,6 +37,9 @@
 
   * bam/record: Change position and mate position to `Position`.
 
+  * bam/record: Change reference sequence ID and mate reference sequence ID to
+    an `Option<usize>`.
+
   * bam/record/data/field: Replace `Value` with
     `sam::record::data::field::Value`.
 
@@ -76,6 +79,10 @@
   * bam/record: Remove bin number (`Record::bin`).
 
     This can be calculated from the alignment start and end instead.
+
+  * bam/record: Remove `ReferenceSequenceId`.
+
+    This was deprecated in noodles-bam 0.16.0. Use `usize` instead.
 
   * bam/record: Remove `QualityScores`.
 

@@ -1,4 +1,3 @@
-use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
@@ -12,13 +11,13 @@ pub struct Builder {
     id: i64,
     bam_flags: sam::record::Flags,
     flags: Flags,
-    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
     read_name: Option<sam::record::ReadName>,
     next_mate_flags: NextMateFlags,
-    next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
@@ -49,10 +48,7 @@ impl Builder {
     }
 
     /// Sets the reference sequence ID.
-    pub fn set_reference_sequence_id(
-        mut self,
-        reference_sequence_id: bam::record::ReferenceSequenceId,
-    ) -> Self {
+    pub fn set_reference_sequence_id(mut self, reference_sequence_id: usize) -> Self {
         self.reference_sequence_id = Some(reference_sequence_id);
         self
     }
@@ -90,7 +86,7 @@ impl Builder {
     /// Sets the reference sequence ID of the next fragment.
     pub fn set_next_fragment_reference_sequence_id(
         mut self,
-        next_fragment_reference_sequence_id: bam::record::ReferenceSequenceId,
+        next_fragment_reference_sequence_id: usize,
     ) -> Self {
         self.next_fragment_reference_sequence_id = Some(next_fragment_reference_sequence_id);
         self

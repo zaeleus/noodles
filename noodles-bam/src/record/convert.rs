@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{Record, ReferenceSequenceId};
+use super::Record;
 
 impl Record {
     /// Converts a SAM record to a BAM record.
@@ -116,10 +116,9 @@ impl Record {
 
 fn get_reference_sequence_name(
     reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence_id: Option<ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
 ) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
     reference_sequence_id
-        .map(usize::from)
         .map(|id| {
             reference_sequences
                 .get_index(id)
@@ -158,7 +157,7 @@ mod tests {
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
         use sam::record::{Flags, MappingQuality};
 
-        let reference_sequence_id = ReferenceSequenceId::from(1);
+        let reference_sequence_id = 1;
 
         let record = Record::builder()
             .set_reference_sequence_id(reference_sequence_id)

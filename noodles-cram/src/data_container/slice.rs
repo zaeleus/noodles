@@ -346,7 +346,6 @@ mod tests {
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_bam::record::ReferenceSequenceId;
         use sam::record::ReadName;
 
         use crate::record::Flags;
@@ -355,7 +354,7 @@ mod tests {
             Record::builder()
                 .set_id(1)
                 .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
+                .set_reference_sequence_id(2)
                 .set_read_length(4)
                 .set_alignment_start(Position::try_from(5)?)
                 .set_distance_to_next_fragment(0)
@@ -363,7 +362,7 @@ mod tests {
             Record::builder()
                 .set_id(2)
                 .set_flags(Flags::HAS_MATE_DOWNSTREAM)
-                .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
+                .set_reference_sequence_id(2)
                 .set_read_length(4)
                 .set_alignment_start(Position::try_from(8)?)
                 .set_distance_to_next_fragment(1)
@@ -371,7 +370,7 @@ mod tests {
             Record::builder().set_id(3).build(),
             Record::builder()
                 .set_id(4)
-                .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
+                .set_reference_sequence_id(2)
                 .set_read_length(4)
                 .set_alignment_start(Position::try_from(13)?)
                 .build(),

@@ -3,16 +3,16 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Record, ReferenceSequenceId};
+use super::Record;
 
 /// A BAM record builder.
 #[derive(Debug)]
 pub struct Builder {
-    reference_sequence_id: Option<ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
     position: Option<Position>,
     mapping_quality: Option<sam::record::MappingQuality>,
     flags: sam::record::Flags,
-    mate_reference_sequence_id: Option<ReferenceSequenceId>,
+    mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
@@ -28,18 +28,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
+    /// use noodles_bam as bam;
     ///
     /// let record = bam::Record::builder()
-    ///     .set_reference_sequence_id(ReferenceSequenceId::from(1))
+    ///     .set_reference_sequence_id(1)
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     record.reference_sequence_id(),
-    ///     Some(ReferenceSequenceId::from(1))
-    /// );
+    /// assert_eq!(record.reference_sequence_id(), Some(1));
     /// ```
-    pub fn set_reference_sequence_id(mut self, reference_sequence_id: ReferenceSequenceId) -> Self {
+    pub fn set_reference_sequence_id(mut self, reference_sequence_id: usize) -> Self {
         self.reference_sequence_id = Some(reference_sequence_id);
         self
     }
@@ -110,21 +107,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
+    /// use noodles_bam as bam;
     ///
     /// let record = bam::Record::builder()
-    ///     .set_mate_reference_sequence_id(ReferenceSequenceId::from(1))
+    ///     .set_mate_reference_sequence_id(1)
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     record.mate_reference_sequence_id(),
-    ///     Some(ReferenceSequenceId::from(1))
-    /// );
+    /// assert_eq!(record.mate_reference_sequence_id(), Some(1));
     /// ```
-    pub fn set_mate_reference_sequence_id(
-        mut self,
-        mate_reference_sequence_id: ReferenceSequenceId,
-    ) -> Self {
+    pub fn set_mate_reference_sequence_id(mut self, mate_reference_sequence_id: usize) -> Self {
         self.mate_reference_sequence_id = Some(mate_reference_sequence_id);
         self
     }

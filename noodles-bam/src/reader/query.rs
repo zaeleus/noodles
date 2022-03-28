@@ -129,7 +129,7 @@ where
     B: RangeBounds<Position>,
 {
     let id = match record.reference_sequence_id() {
-        Some(reference_sequence_id) => usize::from(reference_sequence_id),
+        Some(id) => id,
         None => return Ok(false),
     };
 

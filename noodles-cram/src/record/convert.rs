@@ -1,6 +1,5 @@
 use std::io;
 
-use noodles_bam as bam;
 use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
@@ -157,10 +156,9 @@ impl Record {
 fn get_reference_sequence_id(
     reference_sequences: &sam::header::ReferenceSequences,
     reference_sequence: &sam::header::ReferenceSequence,
-) -> io::Result<bam::record::ReferenceSequenceId> {
+) -> io::Result<usize> {
     reference_sequences
         .get_index_of(reference_sequence.name().as_str())
-        .map(bam::record::ReferenceSequenceId::from)
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
@@ -195,7 +193,7 @@ fn get_read_group_id(
 
 fn get_reference_sequence_name(
     reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
 ) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
     reference_sequence_id
         .map(usize::from)

@@ -4,7 +4,7 @@ pub mod builder;
 mod convert;
 pub mod reference_sequence_id;
 
-pub use self::{builder::Builder, reference_sequence_id::ReferenceSequenceId};
+pub use self::builder::Builder;
 
 use std::io;
 
@@ -39,11 +39,11 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 /// them.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    reference_sequence_id: Option<ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
     position: Option<Position>,
     mapping_quality: Option<sam::record::MappingQuality>,
     flags: sam::record::Flags,
-    mate_reference_sequence_id: Option<ReferenceSequenceId>,
+    mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
@@ -79,7 +79,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.reference_sequence_id().is_none());
     /// ```
-    pub fn reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
+    pub fn reference_sequence_id(&self) -> Option<usize> {
         self.reference_sequence_id
     }
 
@@ -88,17 +88,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
-    ///
+    /// use noodles_bam as bam;
     /// let mut record = bam::Record::default();
-    /// *record.reference_sequence_id_mut() = Some(ReferenceSequenceId::from(1));
-    ///
-    /// assert_eq!(
-    ///     record.reference_sequence_id(),
-    ///     Some(ReferenceSequenceId::from(1))
-    /// );
+    /// *record.reference_sequence_id_mut() = Some(1);
+    /// assert_eq!(record.reference_sequence_id(), Some(1));
     /// ```
-    pub fn reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
+    pub fn reference_sequence_id_mut(&mut self) -> &mut Option<usize> {
         &mut self.reference_sequence_id
     }
 
@@ -181,7 +176,7 @@ impl Record {
     /// let record = bam::Record::default();
     /// assert!(record.mate_reference_sequence_id().is_none());
     /// ```
-    pub fn mate_reference_sequence_id(&self) -> Option<ReferenceSequenceId> {
+    pub fn mate_reference_sequence_id(&self) -> Option<usize> {
         self.mate_reference_sequence_id
     }
 
@@ -190,17 +185,12 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReferenceSequenceId};
-    ///
+    /// use noodles_bam as bam;
     /// let mut record = bam::Record::default();
-    /// *record.mate_reference_sequence_id_mut() = Some(ReferenceSequenceId::from(1));
-    ///
-    /// assert_eq!(
-    ///     record.mate_reference_sequence_id(),
-    ///     Some(ReferenceSequenceId::from(1))
-    /// );
+    /// *record.mate_reference_sequence_id_mut() = Some(1);
+    /// assert_eq!(record.mate_reference_sequence_id(), Some(1));
     /// ```
-    pub fn mate_reference_sequence_id_mut(&mut self) -> &mut Option<ReferenceSequenceId> {
+    pub fn mate_reference_sequence_id_mut(&mut self) -> &mut Option<usize> {
         &mut self.mate_reference_sequence_id
     }
 
@@ -454,11 +444,9 @@ impl sam::AlignmentRecord for Record {
 
 fn get_reference_sequence(
     reference_sequences: &ReferenceSequences,
-    reference_sequence_id: Option<ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
 ) -> Option<io::Result<&ReferenceSequence>> {
-    reference_sequence_id.map(|reference_sequence_id| {
-        let id = usize::from(reference_sequence_id);
-
+    reference_sequence_id.map(|id| {
         reference_sequences
             .get_index(id)
             .map(|(_, rs)| rs)

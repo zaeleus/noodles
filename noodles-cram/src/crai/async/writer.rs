@@ -67,14 +67,13 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use noodles_bam::record::ReferenceSequenceId;
     /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let mut writer = crai::AsyncWriter::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
-    ///     Some(ReferenceSequenceId::from(0)),
+    ///     Some(0),
     ///     Position::new(10946),
     ///     6765,
     ///     17711,
@@ -119,20 +118,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_bam as bam;
         use noodles_core::Position;
 
         let mut buf = Vec::new();
 
-        let record = Record::new(
-            Some(bam::record::ReferenceSequenceId::from(0)),
-            Position::new(10946),
-            6765,
-            17711,
-            233,
-            317811,
-        );
-
+        let record = Record::new(Some(0), Position::new(10946), 6765, 17711, 233, 317811);
         write_record(&mut buf, &record).await?;
 
         let expected = b"0\t10946\t6765\t17711\t233\t317811\n";

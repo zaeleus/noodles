@@ -1,6 +1,5 @@
 use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
-use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::AlignmentRecord;
 
@@ -116,7 +115,7 @@ fn push_index_records_for_multi_reference_slice(
     slice_length: u64,
 ) -> io::Result<()> {
     let mut reference_sequence_ids: HashMap<
-        Option<bam::record::ReferenceSequenceId>,
+        Option<usize>,
         SliceReferenceSequenceAlignmentRangeInclusive,
     > = HashMap::new();
 
@@ -182,7 +181,6 @@ fn push_index_record_for_single_reference_slice(
     {
         ReferenceSequenceId::Some(id) => {
             let reference_sequence_id = usize::try_from(id)
-                .map(bam::record::ReferenceSequenceId::from)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 

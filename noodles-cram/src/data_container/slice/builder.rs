@@ -21,15 +21,13 @@ use crate::{
 
 use super::{Header, Slice};
 
-use noodles_bam as bam;
-
 const CORE_DATA_BLOCK_CONTENT_ID: i32 = 0;
 const MAX_RECORD_COUNT: usize = 10240;
 
 #[derive(Debug, Default)]
 pub struct Builder {
     records: Vec<Record>,
-    slice_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    slice_reference_sequence_id: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -155,7 +153,7 @@ fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
             .into_iter()
             .next()
             .map(|reference_sequence_id| match reference_sequence_id {
-                Some(id) => ReferenceSequenceId::Some(usize::from(id) as i32),
+                Some(id) => ReferenceSequenceId::Some(id as i32),
                 None => ReferenceSequenceId::None,
             })
             .expect("reference sequence IDs cannot be empty"),

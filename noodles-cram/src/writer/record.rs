@@ -155,10 +155,7 @@ where
         Ok(())
     }
 
-    fn write_reference_id(
-        &mut self,
-        reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
-    ) -> io::Result<()> {
+    fn write_reference_id(&mut self, reference_sequence_id: Option<usize>) -> io::Result<()> {
         use bam::record::reference_sequence_id::UNMAPPED;
 
         let encoding = self
@@ -173,8 +170,7 @@ where
             })?;
 
         let reference_id = if let Some(id) = reference_sequence_id {
-            i32::try_from(usize::from(id))
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+            i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
             UNMAPPED
         };
@@ -344,7 +340,7 @@ where
 
     fn write_next_fragment_reference_sequence_id(
         &mut self,
-        next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+        next_fragment_reference_sequence_id: Option<usize>,
     ) -> io::Result<()> {
         use bam::record::reference_sequence_id::UNMAPPED;
 
@@ -363,8 +359,7 @@ where
 
         let raw_next_fragment_reference_sequence_id =
             if let Some(id) = next_fragment_reference_sequence_id {
-                i32::try_from(usize::from(id))
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+                i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
             } else {
                 UNMAPPED
             };

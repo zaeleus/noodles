@@ -14,8 +14,8 @@
 
 ### Changed
 
-  * cram/crai/record: Change alignment start to an `Option<Position>` and
-    alignment span to a `usize`.
+  * cram/crai/record: Change reference sequence ID to an `Option<usize>`;
+    alignment start, `Option<Position>`; and alignment span, `usize`.
 
   * cram/record: Move `mapping_quality`, `read_name`, and `quality_scores` to
     the implementation of `sam::AlignmentReader`.
@@ -41,6 +41,9 @@
     downstream" flag is set.
 
   * cram/record: Change read group ID to an `Option<usize>`.
+
+  * cram/record: Change reference sequence ID and next fragment reference
+    sequence ID to an `Option<usize>`.
 
   * cram/record/convert: Accept `sam::Header` instead of `ReferenceSequences`.
 

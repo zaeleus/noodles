@@ -84,7 +84,6 @@ mod tests {
     use std::io::Write;
 
     use flate2::write::GzEncoder;
-    use noodles_bam as bam;
     use noodles_core::Position;
 
     use crate::crai::Record;
@@ -107,22 +106,8 @@ mod tests {
         let actual = reader.read_index()?;
 
         let expected = vec![
-            Record::new(
-                Some(bam::record::ReferenceSequenceId::from(0)),
-                Position::new(10946),
-                6765,
-                17711,
-                233,
-                317811,
-            ),
-            Record::new(
-                Some(bam::record::ReferenceSequenceId::from(0)),
-                Position::new(17711),
-                121393,
-                317811,
-                233,
-                317811,
-            ),
+            Record::new(Some(0), Position::new(10946), 6765, 17711, 233, 317811),
+            Record::new(Some(0), Position::new(17711), 121393, 317811, 233, 317811),
         ];
 
         assert_eq!(actual, expected);

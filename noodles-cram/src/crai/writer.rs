@@ -67,14 +67,13 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
     /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
     /// let mut writer = crai::Writer::new(Vec::new());
     ///
     /// let index = vec![crai::Record::new(
-    ///     Some(bam::record::ReferenceSequenceId::from(0)),
+    ///     Some(0),
     ///     Position::new(10946),
     ///     6765,
     ///     17711,
@@ -114,11 +113,10 @@ mod tests {
 
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_bam as bam;
         use noodles_core::Position;
 
         let index = vec![Record::new(
-            Some(bam::record::ReferenceSequenceId::from(0)),
+            Some(0),
             Position::new(10946),
             6765,
             17711,

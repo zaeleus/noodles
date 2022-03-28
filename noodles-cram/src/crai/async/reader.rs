@@ -101,7 +101,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_bam as bam;
     use noodles_core::Position;
 
     use super::*;
@@ -115,7 +114,7 @@ mod tests {
         let actual = read_index(&mut reader).await?;
 
         let expected = vec![Record::new(
-            Some(bam::record::ReferenceSequenceId::from(0)),
+            Some(0),
             Position::new(10946),
             6765,
             17711,

@@ -15,7 +15,6 @@ pub use self::{
 
 use std::io;
 
-use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam as sam;
 use once_cell::sync::OnceCell;
@@ -26,13 +25,13 @@ pub struct Record {
     pub(crate) id: i64,
     pub(crate) bam_bit_flags: sam::record::Flags,
     pub(crate) cram_bit_flags: Flags,
-    pub(crate) reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group: Option<usize>,
     pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
-    pub(crate) next_fragment_reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
@@ -73,7 +72,7 @@ impl Record {
     ///
     /// This is also called the reference ID. It is the position of the reference sequence in the
     /// SAM header.
-    pub fn reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
+    pub fn reference_sequence_id(&self) -> Option<usize> {
         self.reference_sequence_id
     }
 
@@ -100,7 +99,7 @@ impl Record {
     /// Returns the reference sequence ID of the next fragment.
     ///
     /// It is the position of the reference sequence in the SAM header.
-    pub fn next_fragment_reference_sequence_id(&self) -> Option<bam::record::ReferenceSequenceId> {
+    pub fn next_fragment_reference_sequence_id(&self) -> Option<usize> {
         self.next_fragment_reference_sequence_id
     }
 
@@ -233,11 +232,11 @@ fn calculate_alignment_span(read_length: usize, features: &Features) -> usize {
 
 fn get_reference_sequence(
     reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence_id: Option<bam::record::ReferenceSequenceId>,
+    reference_sequence_id: Option<usize>,
 ) -> Option<io::Result<&sam::header::ReferenceSequence>> {
     reference_sequence_id.map(|id| {
         reference_sequences
-            .get_index(usize::from(id))
+            .get_index(id)
             .map(|(_, rs)| rs)
             .ok_or_else(|| {
                 io::Error::new(io::ErrorKind::InvalidData, "invalid reference sequence ID")

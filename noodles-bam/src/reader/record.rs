@@ -17,7 +17,7 @@ use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use crate::{record::ReferenceSequenceId, Record};
+use crate::Record;
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
@@ -83,7 +83,7 @@ where
     Ok(())
 }
 
-fn get_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<ReferenceSequenceId>>
+fn get_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
@@ -96,7 +96,6 @@ where
     match buf.get_i32_le() {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
-            .map(ReferenceSequenceId::from)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
     }
