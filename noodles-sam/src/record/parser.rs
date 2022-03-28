@@ -235,7 +235,10 @@ fn parse_cigar<'a, I>(fields: &mut I) -> Result<Cigar, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
-    parse_string(fields, Field::Cigar).and_then(|s| s.parse().map_err(ParseError::InvalidCigar))
+    parse_string(fields, Field::Cigar).and_then(|s| match s {
+        NULL_FIELD => Ok(Cigar::default()),
+        _ => s.parse().map_err(ParseError::InvalidCigar),
+    })
 }
 
 fn parse_rnext<'a, I>(

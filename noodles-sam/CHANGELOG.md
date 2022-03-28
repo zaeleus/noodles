@@ -121,6 +121,10 @@
 
   * sam/record/data/field/value/ty: Rename `Int` to `Int32`.
 
+  * sam/record/cigar: Remove missing state.
+
+    `Cigar` no longer parses `*` as missing. This is now an invalid input.
+
   * sam/record/cigar/op: Change length to a `usize`.
 
   * sam/record/cigar/op/kind: Rename `SeqMatch` to `SequenceMatch` and

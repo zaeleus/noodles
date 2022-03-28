@@ -6,8 +6,6 @@ use std::{error, fmt, ops::Deref, str::FromStr};
 
 pub use self::op::Op;
 
-use super::NULL_FIELD;
-
 use self::op::Kind;
 
 /// A SAM record CIGAR.
@@ -115,15 +113,11 @@ impl AsMut<Vec<Op>> for Cigar {
 
 impl fmt::Display for Cigar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_empty() {
-            write!(f, "{}", NULL_FIELD)
-        } else {
-            for op in self.iter() {
-                write!(f, "{}", op)?;
-            }
-
-            Ok(())
+        for op in self.iter() {
+            write!(f, "{}", op)?;
         }
+
+        Ok(())
     }
 }
 
@@ -162,8 +156,6 @@ impl FromStr for Cigar {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
             return Err(ParseError::Empty);
-        } else if s == NULL_FIELD {
-            return Ok(Self::default());
         }
 
         let mut ops = Vec::new();
@@ -200,6 +192,9 @@ mod tests {
 
     #[test]
     fn test_fmt() {
+        let cigar = Cigar::default();
+        assert!(cigar.to_string().is_empty());
+
         let cigar = Cigar::from(vec![
             Op::new(Kind::Match, 1),
             Op::new(Kind::Skip, 13),
@@ -207,12 +202,6 @@ mod tests {
         ]);
 
         assert_eq!(cigar.to_string(), "1M13N144S");
-    }
-
-    #[test]
-    fn test_fmt_when_cigar_has_no_ops() {
-        let cigar = Cigar::default();
-        assert_eq!(cigar.to_string(), "*");
     }
 
     #[test]
@@ -226,9 +215,12 @@ mod tests {
             ]))
         );
 
-        assert_eq!("*".parse(), Ok(Cigar::default()));
-
         assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
         assert_eq!("8M13".parse::<Cigar>(), Err(ParseError::Invalid));
+
+        assert!(matches!(
+            "*".parse::<Cigar>(),
+            Err(ParseError::InvalidOp(_))
+        ));
     }
 }

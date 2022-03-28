@@ -598,13 +598,24 @@ impl fmt::Display for Record {
 
         write!(
             f,
-            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}\t{cigar}\t{rnext}\t{pnext}\t{tlen}",
+            "{qname}\t{flag}\t{rname}\t{pos}\t{mapq}",
             qname = qname,
             flag = u16::from(self.flags()),
             rname = rname,
             pos = pos,
             mapq = mapq,
-            cigar = self.cigar(),
+        )?;
+
+        f.write_str("\t")?;
+        if self.cigar().is_empty() {
+            f.write_str(NULL_FIELD)?;
+        } else {
+            write!(f, "{}", self.cigar())?;
+        }
+
+        write!(
+            f,
+            "\t{rnext}\t{pnext}\t{tlen}",
             rnext = rnext,
             pnext = pnext,
             tlen = self.template_length(),
