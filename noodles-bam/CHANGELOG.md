@@ -9,8 +9,6 @@
   * bam/record: Add mutable getter for position (`Record::position_mut`) and
     mate position (`Record::mate_position`).
 
-  * bam/record/sequence: Add `clear` method.
-
   * bam/writer: Implement `sam::AlignmentWriter`.
 
 ### Changed
