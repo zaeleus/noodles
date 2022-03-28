@@ -1,7 +1,10 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, record::cigar::Op};
+use noodles_sam::{
+    self as sam,
+    record::cigar::{op::Kind, Op},
+};
 
 pub fn put_cigar<B>(dst: &mut B, cigar: &sam::record::Cigar) -> io::Result<()>
 where
@@ -22,13 +25,27 @@ fn encode_op(op: Op) -> io::Result<u32> {
         u32::try_from(op.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if len <= MAX_LENGTH {
-        let k = op.kind() as u32;
+        let k = encode_kind(op.kind());
         Ok(len << 4 | k)
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "invalid CIGAR op length",
         ))
+    }
+}
+
+fn encode_kind(kind: Kind) -> u32 {
+    match kind {
+        Kind::Match => 0,
+        Kind::Insertion => 1,
+        Kind::Deletion => 2,
+        Kind::Skip => 3,
+        Kind::SoftClip => 4,
+        Kind::HardClip => 5,
+        Kind::Pad => 6,
+        Kind::SequenceMatch => 7,
+        Kind::SequenceMismatch => 8,
     }
 }
 
@@ -60,8 +77,6 @@ mod tests {
 
     #[test]
     fn test_encode_op() -> io::Result<()> {
-        use sam::record::cigar::op::Kind;
-
         let op = Op::new(Kind::Match, 1);
         assert_eq!(encode_op(op)?, 0x10);
 
@@ -72,5 +87,18 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_encode_kind() {
+        assert_eq!(encode_kind(Kind::Match), 0);
+        assert_eq!(encode_kind(Kind::Insertion), 1);
+        assert_eq!(encode_kind(Kind::Deletion), 2);
+        assert_eq!(encode_kind(Kind::Skip), 3);
+        assert_eq!(encode_kind(Kind::SoftClip), 4);
+        assert_eq!(encode_kind(Kind::HardClip), 5);
+        assert_eq!(encode_kind(Kind::Pad), 6);
+        assert_eq!(encode_kind(Kind::SequenceMatch), 7);
+        assert_eq!(encode_kind(Kind::SequenceMismatch), 8);
     }
 }
