@@ -27,7 +27,7 @@ where
         }
     }
 
-    /// Set the format of the output.
+    /// Sets the format of the output.
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = format;
         self
