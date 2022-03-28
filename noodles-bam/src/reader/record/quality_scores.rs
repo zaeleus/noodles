@@ -4,7 +4,7 @@ use bytes::Buf;
 use noodles_sam as sam;
 
 pub(super) fn get_quality_scores<B>(
-    buf: &mut B,
+    src: &mut B,
     quality_scores: &mut sam::record::QualityScores,
     l_seq: usize,
 ) -> io::Result<()>
@@ -13,13 +13,13 @@ where
 {
     use sam::record::quality_scores::Score;
 
-    if buf.remaining() < l_seq {
+    if src.remaining() < l_seq {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     quality_scores.clear();
 
-    let qual = buf.take(l_seq);
+    let qual = src.take(l_seq);
 
     if !is_missing_quality_scores(qual.chunk()) {
         for &b in qual.chunk() {
@@ -30,15 +30,15 @@ where
         }
     }
 
-    buf.advance(l_seq);
+    src.advance(l_seq);
 
     Ok(())
 }
 
-fn is_missing_quality_scores(buf: &[u8]) -> bool {
+fn is_missing_quality_scores(src: &[u8]) -> bool {
     use crate::writer::alignment_record::NULL_QUALITY_SCORE;
 
-    buf.iter().all(|&b| b == NULL_QUALITY_SCORE)
+    src.iter().all(|&b| b == NULL_QUALITY_SCORE)
 }
 
 #[cfg(test)]

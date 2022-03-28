@@ -7,21 +7,21 @@ use noodles_sam::{
 };
 
 pub(super) fn get_cigar<B>(
-    buf: &mut B,
+    src: &mut B,
     cigar: &mut sam::record::Cigar,
     n_cigar_op: usize,
 ) -> io::Result<()>
 where
     B: Buf,
 {
-    if buf.remaining() < mem::size_of::<u32>() * n_cigar_op {
+    if src.remaining() < mem::size_of::<u32>() * n_cigar_op {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
     cigar.clear();
 
     for _ in 0..n_cigar_op {
-        let op = decode_op(buf.get_u32_le())?;
+        let op = decode_op(src.get_u32_le())?;
         cigar.as_mut().push(op);
     }
 

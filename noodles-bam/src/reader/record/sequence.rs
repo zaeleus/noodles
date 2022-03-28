@@ -4,7 +4,7 @@ use bytes::Buf;
 use noodles_sam::{self as sam, record::sequence::Base};
 
 pub(super) fn get_sequence<B>(
-    buf: &mut B,
+    src: &mut B,
     sequence: &mut sam::record::Sequence,
     l_seq: usize,
 ) -> io::Result<()>
@@ -13,11 +13,11 @@ where
 {
     let seq_len = (l_seq + 1) / 2;
 
-    if buf.remaining() < seq_len {
+    if src.remaining() < seq_len {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let seq = buf.take(seq_len);
+    let seq = src.take(seq_len);
 
     sequence.clear();
 
@@ -28,7 +28,7 @@ where
 
     sequence.as_mut().truncate(l_seq);
 
-    buf.advance(seq_len);
+    src.advance(seq_len);
 
     Ok(())
 }

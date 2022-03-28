@@ -4,7 +4,7 @@ use bytes::Buf;
 use noodles_sam as sam;
 
 pub(super) fn get_read_name<B>(
-    buf: &mut B,
+    src: &mut B,
     read_name: &mut Option<sam::record::ReadName>,
     l_read_name: NonZeroUsize,
 ) -> io::Result<()>
@@ -16,21 +16,21 @@ where
 
     let len = usize::from(l_read_name);
 
-    if buf.remaining() < len {
+    if src.remaining() < len {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    *read_name = if buf.take(len).chunk() == MISSING {
-        buf.advance(MISSING.len());
+    *read_name = if src.take(len).chunk() == MISSING {
+        src.advance(MISSING.len());
         None
     } else {
         let mut read_name_buf = read_name.take().map(Vec::from).unwrap_or_default();
 
         // SAFETY: len is guaranteed to be > 0.
         read_name_buf.resize(len - 1, Default::default());
-        buf.copy_to_slice(&mut read_name_buf);
+        src.copy_to_slice(&mut read_name_buf);
 
-        let terminator = buf.get_u8();
+        let terminator = src.get_u8();
 
         if terminator != NUL {
             return Err(io::Error::new(

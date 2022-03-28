@@ -41,7 +41,7 @@ where
     Ok(block_size)
 }
 
-pub(crate) fn decode_record<B>(mut buf: B, record: &mut Record) -> io::Result<()>
+pub(crate) fn decode_record<B>(mut src: B, record: &mut Record) -> io::Result<()>
 where
     B: Buf,
 {
@@ -50,50 +50,50 @@ where
         read_name::get_read_name, sequence::get_sequence,
     };
 
-    *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
-    *record.position_mut() = get_position(&mut buf)?;
+    *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut src)?;
+    *record.position_mut() = get_position(&mut src)?;
 
-    let l_read_name = NonZeroUsize::new(usize::from(buf.get_u8()))
+    let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
-    *record.mapping_quality_mut() = get_mapping_quality(&mut buf)?;
+    *record.mapping_quality_mut() = get_mapping_quality(&mut src)?;
 
     // Discard bin.
-    buf.advance(mem::size_of::<u16>());
+    src.advance(mem::size_of::<u16>());
 
-    let n_cigar_op = usize::from(buf.get_u16_le());
+    let n_cigar_op = usize::from(src.get_u16_le());
 
-    *record.flags_mut() = get_flags(&mut buf)?;
+    *record.flags_mut() = get_flags(&mut src)?;
 
-    let l_seq = usize::try_from(buf.get_u32_le())
+    let l_seq = usize::try_from(src.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(&mut buf)?;
-    *record.mate_position_mut() = get_position(&mut buf)?;
+    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(&mut src)?;
+    *record.mate_position_mut() = get_position(&mut src)?;
 
-    *record.template_length_mut() = buf.get_i32_le();
+    *record.template_length_mut() = src.get_i32_le();
 
-    get_read_name(&mut buf, record.read_name_mut(), l_read_name)?;
-    get_cigar(&mut buf, record.cigar_mut(), n_cigar_op)?;
-    get_sequence(&mut buf, record.sequence_mut(), l_seq)?;
-    get_quality_scores(&mut buf, record.quality_scores_mut(), l_seq)?;
+    get_read_name(&mut src, record.read_name_mut(), l_read_name)?;
+    get_cigar(&mut src, record.cigar_mut(), n_cigar_op)?;
+    get_sequence(&mut src, record.sequence_mut(), l_seq)?;
+    get_quality_scores(&mut src, record.quality_scores_mut(), l_seq)?;
 
-    get_data(&mut buf, record.data_mut())?;
+    get_data(&mut src, record.data_mut())?;
 
     Ok(())
 }
 
-fn get_reference_sequence_id<B>(buf: &mut B) -> io::Result<Option<usize>>
+fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
     use crate::record::reference_sequence_id::UNMAPPED;
 
-    if buf.remaining() < mem::size_of::<i32>() {
+    if src.remaining() < mem::size_of::<i32>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    match buf.get_i32_le() {
+    match src.get_i32_le() {
         UNMAPPED => Ok(None),
         n => usize::try_from(n)
             .map(Some)
@@ -101,17 +101,17 @@ where
     }
 }
 
-fn get_position<B>(buf: &mut B) -> io::Result<Option<Position>>
+fn get_position<B>(src: &mut B) -> io::Result<Option<Position>>
 where
     B: Buf,
 {
     use crate::record::UNMAPPED_POSITION;
 
-    if buf.remaining() < mem::size_of::<i32>() {
+    if src.remaining() < mem::size_of::<i32>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    match buf.get_i32_le() {
+    match src.get_i32_le() {
         UNMAPPED_POSITION => Ok(None),
         n => usize::try_from(n + 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -119,31 +119,31 @@ where
     }
 }
 
-fn get_mapping_quality<B>(buf: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
+fn get_mapping_quality<B>(src: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
 where
     B: Buf,
 {
     use sam::record::mapping_quality::MISSING;
 
-    if buf.remaining() < mem::size_of::<u8>() {
+    if src.remaining() < mem::size_of::<u8>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    match buf.get_u8() {
+    match src.get_u8() {
         MISSING => Ok(None),
         n => Ok(sam::record::MappingQuality::new(n)),
     }
 }
 
-fn get_flags<B>(buf: &mut B) -> io::Result<sam::record::Flags>
+fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
 where
     B: Buf,
 {
-    if buf.remaining() < mem::size_of::<u16>() {
+    if src.remaining() < mem::size_of::<u16>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    Ok(sam::record::Flags::from(buf.get_u16_le()))
+    Ok(sam::record::Flags::from(src.get_u16_le()))
 }
 
 #[cfg(test)]
