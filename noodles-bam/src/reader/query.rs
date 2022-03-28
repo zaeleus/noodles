@@ -157,3 +157,51 @@ where
 
     a && b
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_in_interval() -> Result<(), noodles_core::position::TryFromIntError> {
+        fn p(n: usize) -> Result<Position, noodles_core::position::TryFromIntError> {
+            Position::try_from(n)
+        }
+
+        let start = p(5)?;
+        let end = p(8)?;
+
+        assert!(in_interval(start, end, p(4)?..p(7)?));
+        assert!(in_interval(start, end, p(4)?..=p(6)?));
+
+        assert!(in_interval(start, end, p(6)?..p(8)?));
+        assert!(in_interval(start, end, p(6)?..=p(7)?));
+
+        assert!(in_interval(start, end, p(7)?..p(10)?));
+        assert!(in_interval(start, end, p(7)?..=p(9)?));
+
+        assert!(in_interval(start, end, p(4)?..p(10)?));
+        assert!(in_interval(start, end, p(4)?..=p(9)?));
+
+        assert!(in_interval(start, end, p(4)?..));
+
+        assert!(in_interval(start, end, ..p(6)?));
+        assert!(in_interval(start, end, ..p(10)?));
+
+        assert!(in_interval(start, end, ..=p(5)?));
+        assert!(in_interval(start, end, ..=p(9)?));
+
+        assert!(!in_interval(start, end, p(2)?..p(5)?));
+        assert!(!in_interval(start, end, p(2)?..=p(4)?));
+
+        assert!(!in_interval(start, end, p(9)?..p(12)?));
+        assert!(!in_interval(start, end, p(9)?..=p(11)?));
+
+        assert!(!in_interval(start, end, p(9)?..));
+
+        assert!(!in_interval(start, end, ..p(5)?));
+        assert!(!in_interval(start, end, ..=p(4)?));
+
+        Ok(())
+    }
+}
