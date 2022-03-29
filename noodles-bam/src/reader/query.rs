@@ -99,10 +99,8 @@ where
                             self.state = State::Seek;
                         }
 
-                        match intersects(&record, self.reference_sequence_id, self.interval) {
-                            Ok(true) => return Some(Ok(record)),
-                            Ok(false) => {}
-                            Err(e) => return Some(Err(e)),
+                        if intersects(&record, self.reference_sequence_id, self.interval) {
+                            return Some(Ok(record));
                         }
                     }
                     Ok(None) => self.state = State::Seek,
@@ -120,23 +118,20 @@ pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     chunk
 }
 
-pub(crate) fn intersects<B>(
-    record: &Record,
-    reference_sequence_id: usize,
-    interval: B,
-) -> io::Result<bool>
+pub(crate) fn intersects<B>(record: &Record, reference_sequence_id: usize, interval: B) -> bool
 where
     B: RangeBounds<Position>,
 {
-    let id = match record.reference_sequence_id() {
-        Some(id) => id,
-        None => return Ok(false),
-    };
-
-    let start = record.alignment_start().expect("missing alignment start");
-    let end = record.alignment_end().expect("missing alignment end");
-
-    Ok(id == reference_sequence_id && in_interval(start, end, interval))
+    match (
+        record.reference_sequence_id(),
+        record.alignment_start(),
+        record.alignment_end(),
+    ) {
+        (Some(id), Some(start), Some(end)) => {
+            id == reference_sequence_id && in_interval(start, end, interval)
+        }
+        _ => false,
+    }
 }
 
 fn in_interval<B>(alignment_start: Position, alignment_end: Position, region_interval: B) -> bool
