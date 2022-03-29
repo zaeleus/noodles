@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-noodles-bam = { path = "../noodles-bam", version = "0.16.0" }
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.10.0" }
-noodles-cram = { path = "../noodles-cram", version = "0.13.0" }
-noodles-sam = { path = "../noodles-sam", version = "0.13.0" }
-noodles-fasta = { path = "../noodles-fasta", version = "0.8.0" }
+noodles-bam = { path = "../noodles-bam", version = "0.17.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.11.0" }
+noodles-cram = { path = "../noodles-cram", version = "0.14.0" }
+noodles-sam = { path = "../noodles-sam", version = "0.14.0" }
+noodles-fasta = { path = "../noodles-fasta", version = "0.9.0" }
