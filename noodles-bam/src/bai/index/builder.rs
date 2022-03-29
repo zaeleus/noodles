@@ -9,7 +9,7 @@ use crate::Record;
 #[derive(Default)]
 pub struct Builder {
     current_reference_sequence_id: Option<usize>,
-    reference_sequences_builders: Vec<reference_sequence::Builder>,
+    reference_sequence_builders: Vec<reference_sequence::Builder>,
     unplaced_unmapped_record_count: u64,
 }
 
@@ -48,7 +48,7 @@ impl Builder {
             }
         }
 
-        let reference_sequence_builder = self.reference_sequences_builders.last_mut().unwrap();
+        let reference_sequence_builder = self.reference_sequence_builders.last_mut().unwrap();
 
         reference_sequence_builder.add_record(record, chunk)
     }
@@ -62,7 +62,7 @@ impl Builder {
             .unwrap_or(crate::record::reference_sequence_id::UNMAPPED);
 
         while current_id < id {
-            self.reference_sequences_builders
+            self.reference_sequence_builders
                 .push(ReferenceSequence::builder());
             current_id += 1;
         }
@@ -83,7 +83,7 @@ impl Builder {
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
 
         let reference_sequences = self
-            .reference_sequences_builders
+            .reference_sequence_builders
             .into_iter()
             .map(|b| b.build())
             .collect();
