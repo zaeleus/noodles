@@ -60,6 +60,8 @@
 
   * bam/async/writer/record: Calculate bin number for record.
 
+  * bam/bai/index/builder: Handle indexing only unplaced, unmapped records.
+
   * bam/bai/index/reference_sequence: Ensure the start position is not out of
     range for a query (`2^29 - 1`).
 

@@ -27,10 +27,6 @@ pub struct ReferenceSequence {
 }
 
 impl ReferenceSequence {
-    pub(crate) fn builder() -> Builder {
-        Builder::default()
-    }
-
     /// Creates a BAM index reference seqeuence.
     ///
     /// # Examples

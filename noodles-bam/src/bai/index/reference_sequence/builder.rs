@@ -1,13 +1,11 @@
 use std::{cmp, collections::HashMap, io};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::AlignmentRecord;
+use noodles_sam::record::Flags;
 
-use crate::{
-    writer::record::{region_to_bin, UNMAPPED_BIN},
-    Record,
-};
+use crate::writer::record::region_to_bin;
 
 use super::{bin, Bin, Metadata, ReferenceSequence, MIN_SHIFT};
 
@@ -25,10 +23,16 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        self.update_bins(record, chunk)?;
-        self.update_linear_index(record, chunk)?;
-        self.update_metadata(record, chunk);
+    pub fn add_record(
+        &mut self,
+        start: Position,
+        end: Position,
+        flags: Flags,
+        chunk: Chunk,
+    ) -> io::Result<()> {
+        self.update_bins(start, end, chunk)?;
+        self.update_linear_index(start, end, chunk);
+        self.update_metadata(flags, chunk);
         Ok(())
     }
 
@@ -59,11 +63,8 @@ impl Builder {
         ReferenceSequence::new(bins, intervals, Some(metadata))
     }
 
-    fn update_bins(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        let bin_id = match (record.position(), record.alignment_end()) {
-            (Some(start), Some(end)) => region_to_bin(start, end).map(u32::from)?,
-            _ => u32::from(UNMAPPED_BIN),
-        };
+    fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) -> io::Result<()> {
+        let bin_id = region_to_bin(start, end).map(u32::from)?;
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();
@@ -76,21 +77,11 @@ impl Builder {
         Ok(())
     }
 
-    fn update_linear_index(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
+    fn update_linear_index(&mut self, start: Position, end: Position, chunk: Chunk) {
         const WINDOW_SIZE: usize = 1 << MIN_SHIFT;
 
-        let start = record
-            .alignment_start()
-            .map(usize::from)
-            .expect("missing alignment start");
-
-        let end = record
-            .alignment_end()
-            .map(usize::from)
-            .expect("missing alignment end");
-
-        let linear_index_start_offset = (start - 1) / WINDOW_SIZE;
-        let linear_index_end_offset = (end - 1) / WINDOW_SIZE;
+        let linear_index_start_offset = (usize::from(start) - 1) / WINDOW_SIZE;
+        let linear_index_end_offset = (usize::from(end) - 1) / WINDOW_SIZE;
 
         if linear_index_end_offset >= self.intervals.len() {
             self.intervals
@@ -100,12 +91,10 @@ impl Builder {
         for i in linear_index_start_offset..=linear_index_end_offset {
             self.intervals[i].get_or_insert(chunk.start());
         }
-
-        Ok(())
     }
 
-    fn update_metadata(&mut self, record: &Record, chunk: Chunk) {
-        if record.flags().is_unmapped() {
+    fn update_metadata(&mut self, flags: Flags, chunk: Chunk) {
+        if flags.is_unmapped() {
             self.unmapped_record_count += 1;
         } else {
             self.mapped_record_count += 1;
@@ -132,51 +121,27 @@ impl Default for Builder {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_sam::{self as sam, record::Flags};
 
     use super::*;
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::reference_sequence;
-
-        let reference_sequences = [("sq0".parse()?, 8)]
-            .into_iter()
-            .map(|(name, len): (reference_sequence::Name, i32)| {
-                let sn = name.to_string();
-                sam::header::ReferenceSequence::new(name, len).map(|rs| (sn, rs))
-            })
-            .collect::<Result<_, _>>()?;
-
         let mut builder = Builder::default();
 
-        let record = Record::try_from_sam_record(
-            &reference_sequences,
-            &sam::Record::builder()
-                .set_flags(Flags::empty())
-                .set_position(Position::try_from(2)?)
-                .set_cigar("4M".parse()?)
-                .build(),
-        )?;
-
         builder.add_record(
-            &record,
+            Position::try_from(2)?,
+            Position::try_from(5)?,
+            Flags::empty(),
             Chunk::new(
                 bgzf::VirtualPosition::from(55),
                 bgzf::VirtualPosition::from(89),
             ),
         )?;
 
-        let record = Record::try_from_sam_record(
-            &reference_sequences,
-            &sam::Record::builder()
-                .set_position(Position::try_from(6)?)
-                .set_cigar("2M".parse()?)
-                .build(),
-        )?;
-
         builder.add_record(
-            &record,
+            Position::try_from(6)?,
+            Position::try_from(7)?,
+            Flags::UNMAPPED,
             Chunk::new(
                 bgzf::VirtualPosition::from(89),
                 bgzf::VirtualPosition::from(144),

@@ -1,14 +1,16 @@
-use std::io;
+use std::{io, mem};
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_sam::AlignmentRecord;
 
-use super::{reference_sequence, Index, ReferenceSequence};
+use super::{reference_sequence, Index};
 use crate::Record;
 
 /// A BAM index builder.
 #[derive(Default)]
 pub struct Builder {
-    current_reference_sequence_id: Option<usize>,
+    current_reference_sequence_id: usize,
+    reference_sequence_builder: reference_sequence::Builder,
     reference_sequence_builders: Vec<reference_sequence::Builder>,
     unplaced_unmapped_record_count: u64,
 }
@@ -37,37 +39,37 @@ impl Builder {
     /// builder.add_record(&record, chunk);
     /// ```
     pub fn add_record(&mut self, record: &Record, chunk: Chunk) -> io::Result<()> {
-        if record.position().is_none() {
-            self.unplaced_unmapped_record_count += 1;
-            return Ok(());
-        }
-
-        if record.reference_sequence_id() != self.current_reference_sequence_id {
-            if let Some(reference_sequence_id) = record.reference_sequence_id() {
-                self.add_reference_sequences_builders_until(reference_sequence_id);
+        let (reference_sequence_id, start, end) = match (
+            record.reference_sequence_id(),
+            record.alignment_start(),
+            record.alignment_end(),
+        ) {
+            (Some(reference_sequence_id), Some(start), Some(end)) => {
+                (reference_sequence_id, start, end)
             }
+            _ => {
+                self.unplaced_unmapped_record_count += 1;
+                return Ok(());
+            }
+        };
+
+        if reference_sequence_id != self.current_reference_sequence_id {
+            self.add_reference_sequences_builders_until(reference_sequence_id);
         }
 
-        let reference_sequence_builder = self.reference_sequence_builders.last_mut().unwrap();
-
-        reference_sequence_builder.add_record(record, chunk)
+        self.reference_sequence_builder
+            .add_record(start, end, record.flags(), chunk)
     }
 
     fn add_reference_sequences_builders_until(&mut self, reference_sequence_id: usize) {
-        // FIXME
-        let id = reference_sequence_id as i32;
-        let mut current_id = self
-            .current_reference_sequence_id
-            .map(|id| id as i32)
-            .unwrap_or(crate::record::reference_sequence_id::UNMAPPED);
+        while self.current_reference_sequence_id < reference_sequence_id {
+            let reference_sequence_builder = mem::take(&mut self.reference_sequence_builder);
 
-        while current_id < id {
             self.reference_sequence_builders
-                .push(ReferenceSequence::builder());
-            current_id += 1;
-        }
+                .push(reference_sequence_builder);
 
-        self.current_reference_sequence_id = Some(reference_sequence_id);
+            self.current_reference_sequence_id += 1;
+        }
     }
 
     /// Builds a BAM index.
@@ -79,8 +81,16 @@ impl Builder {
     /// let index = bai::Index::builder().build(1);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index {
+        if reference_sequence_count == 0 {
+            return Index::new(Vec::new(), Some(self.unplaced_unmapped_record_count));
+        }
+
+        // SAFETY: `reference_sequence_count` is > 0.
         let last_reference_sequence_id = reference_sequence_count - 1;
         self.add_reference_sequences_builders_until(last_reference_sequence_id);
+
+        self.reference_sequence_builders
+            .push(self.reference_sequence_builder);
 
         let reference_sequences = self
             .reference_sequence_builders
