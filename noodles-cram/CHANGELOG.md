@@ -4,11 +4,11 @@
 
 ### Added
 
-  * cram/reader/data_container/compression_header/encoding: Add Golomb encoding
-    decoder.
+  * cram/reader/data_container/compression_header/encoding: Add Golomb and
+    Golomb-Rice encoding decoders.
 
-    This sees no usage in practice, but it is still in the spec (§ 13.8). It is
-    only added for completeness.
+    These see no usage in practice, but they are still in the spec (§ 13.8 and
+    § 13.9, respectively). They are only added for completeness.
 
 ## 0.14.0 - 2022-03-29
 

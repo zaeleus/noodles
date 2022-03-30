@@ -16,7 +16,7 @@ pub fn get_encoding(src: &mut Bytes) -> io::Result<Encoding> {
         5 => get_byte_array_stop_encoding(src),
         6 => get_beta_encoding(src),
         7 => get_subexp_encoding(src),
-        8 => unimplemented!("GOLOMB_RICE"),
+        8 => get_golomb_rice_encoding(src),
         9 => get_gamma_encoding(src),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -126,6 +126,15 @@ fn get_subexp_encoding(src: &mut Bytes) -> io::Result<Encoding> {
     let k = get_itf8(&mut args)?;
 
     Ok(Encoding::Subexp(offset, k))
+}
+
+fn get_golomb_rice_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+    let mut args = get_args(src)?;
+
+    let offset = get_itf8(&mut args)?;
+    let log2_m = get_itf8(&mut args)?;
+
+    Ok(Encoding::GolombRice(offset, log2_m))
 }
 
 fn get_gamma_encoding(src: &mut Bytes) -> io::Result<Encoding> {
@@ -263,6 +272,21 @@ mod tests {
 
         let encoding = get_encoding(&mut data)?;
         assert_eq!(encoding, Encoding::Subexp(0, 1));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_golomb_rice_encoding() -> io::Result<()> {
+        let mut data = Bytes::from_static(&[
+            8, // Golomb-Rice encoding ID
+            2, // args.len
+            1, // offset
+            3, // log2(M)
+        ]);
+
+        let encoding = get_encoding(&mut data)?;
+        assert_eq!(encoding, Encoding::GolombRice(1, 3));
 
         Ok(())
     }
