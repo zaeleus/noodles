@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/reader/data_container/compression_header/encoding: Add Golomb encoding
+    decoder.
+
+    This sees no usage in practice, but it is still in the spec (§ 13.8). It is
+    only added for completeness.
+
 ## 0.14.0 - 2022-03-29
 
 ### Added

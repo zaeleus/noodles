@@ -10,7 +10,7 @@ pub fn get_encoding(src: &mut Bytes) -> io::Result<Encoding> {
     match raw_kind {
         0 => Ok(Encoding::Null),
         1 => get_external_encoding(src),
-        2 => unimplemented!("GOLOMB"),
+        2 => get_golomb_encoding(src),
         3 => get_huffman_encoding(src),
         4 => get_byte_array_len_encoding(src),
         5 => get_byte_array_stop_encoding(src),
@@ -41,6 +41,15 @@ fn get_external_encoding(src: &mut Bytes) -> io::Result<Encoding> {
     let mut args = get_args(src)?;
     let block_content_id = get_itf8(&mut args)?;
     Ok(Encoding::External(block_content_id))
+}
+
+fn get_golomb_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+    let mut args = get_args(src)?;
+
+    let offset = get_itf8(&mut args)?;
+    let m = get_itf8(&mut args)?;
+
+    Ok(Encoding::Golomb(offset, m))
 }
 
 fn get_byte_array_len_encoding(src: &mut Bytes) -> io::Result<Encoding> {
@@ -151,6 +160,21 @@ mod tests {
 
         let encoding = get_encoding(&mut data)?;
         assert_eq!(encoding, Encoding::External(5));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_golomb_encoding() -> io::Result<()> {
+        let mut data = Bytes::from_static(&[
+            2,  // Golomb encoding ID
+            2,  // args.len
+            1,  // offset
+            10, // M
+        ]);
+
+        let encoding = get_encoding(&mut data)?;
+        assert_eq!(encoding, Encoding::Golomb(1, 10));
 
         Ok(())
     }
