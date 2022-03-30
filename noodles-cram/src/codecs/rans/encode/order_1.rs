@@ -10,7 +10,6 @@ use super::{
     LOWER_BOUND,
 };
 
-#[allow(dead_code)]
 pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     // Order-1 encoding does not support input smaller than 4 bytes.
     assert!(data.len() >= 4);
@@ -83,7 +82,6 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     Ok((freq, writer))
 }
 
-#[allow(dead_code)]
 pub fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>
 where
     W: Write,
