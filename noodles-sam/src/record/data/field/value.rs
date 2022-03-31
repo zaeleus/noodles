@@ -598,12 +598,6 @@ impl From<f32> for Value {
     }
 }
 
-impl From<String> for Value {
-    fn from(s: String) -> Self {
-        Value::String(s)
-    }
-}
-
 impl From<Vec<i8>> for Value {
     fn from(values: Vec<i8>) -> Self {
         Value::Int8Array(values)
@@ -643,6 +637,18 @@ impl From<Vec<u32>> for Value {
 impl From<Vec<f32>> for Value {
     fn from(values: Vec<f32>) -> Self {
         Value::FloatArray(values)
+    }
+}
+
+impl TryFrom<String> for Value {
+    type Error = ParseError;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        if is_valid_string(&s) {
+            Ok(Self::String(s))
+        } else {
+            Err(ParseError::InvalidStringValue)
+        }
     }
 }
 
@@ -810,8 +816,12 @@ fn is_valid_string_char(c: char) -> bool {
     matches!(c, ' ' | '!'..='~')
 }
 
+fn is_valid_string(s: &str) -> bool {
+    s.chars().all(is_valid_string_char)
+}
+
 fn parse_string(s: &str) -> Result<String, ParseError> {
-    if s.chars().all(is_valid_string_char) {
+    if is_valid_string(s) {
         Ok(s.into())
     } else {
         Err(ParseError::InvalidStringValue)
@@ -994,14 +1004,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_string_for_value() {
-        assert_eq!(
-            Value::from(String::from("noodles")),
-            Value::String(String::from("noodles"))
-        );
-    }
-
-    #[test]
     fn test_from_vec_i8_for_value() {
         assert_eq!(Value::from(vec![0i8]), Value::Int8Array(vec![0]));
     }
@@ -1034,6 +1036,14 @@ mod tests {
     #[test]
     fn test_from_vec_f32_for_value() {
         assert_eq!(Value::from(vec![0.0f32]), Value::FloatArray(vec![0.0]));
+    }
+
+    #[test]
+    fn test_try_from_string_for_value() {
+        assert_eq!(
+            Value::try_from(String::from("noodles")),
+            Ok(Value::String(String::from("noodles")))
+        );
     }
 
     #[test]

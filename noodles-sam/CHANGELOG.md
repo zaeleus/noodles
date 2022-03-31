@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/data/field/value: Change conversion from `String` to be
+    fallible.
+
+    This replaces `From<String>` with `TryFrom<String>`, which validates the
+    string value.
+
 ## 0.14.0 - 2022-03-29
 
 ### Added

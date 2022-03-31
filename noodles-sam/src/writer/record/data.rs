@@ -34,7 +34,7 @@ mod tests {
 
         let data = Data::try_from(vec![
             Field::new(Tag::AlignmentHitCount, Value::from(1)),
-            Field::new(Tag::Comment, Value::from(String::from("noodles"))),
+            Field::new(Tag::Comment, Value::try_from(String::from("noodles"))?),
         ])?;
 
         write_data(&mut buf, &data)?;
