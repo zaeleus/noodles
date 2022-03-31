@@ -14,7 +14,7 @@ where
     match encoding {
         Encoding::Null => write_null_encoding(writer),
         Encoding::External(block_content_id) => write_external_encoding(writer, *block_content_id),
-        Encoding::Golomb(..) => unimplemented!("GOLOMB"),
+        Encoding::Golomb(offset, m) => write_golomb_encoding(writer, *offset, *m),
         Encoding::Huffman(alphabet, bit_lens) => write_huffman_encoding(writer, alphabet, bit_lens),
         Encoding::ByteArrayLen(len_encoding, value_encoding) => {
             write_byte_array_len_encoding(writer, len_encoding, value_encoding)
@@ -54,6 +54,20 @@ where
     write_itf8(&mut args, block_content_id)?;
 
     write_itf8(writer, i32::from(encoding::Kind::External))?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+fn write_golomb_encoding<W>(writer: &mut W, offset: i32, m: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+    write_itf8(&mut args, offset)?;
+    write_itf8(&mut args, m)?;
+
+    write_itf8(writer, i32::from(encoding::Kind::Golomb))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -195,6 +209,23 @@ mod tests {
             1, // external encoding ID
             1, // args.len
             5, // block content ID
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_golomb_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_golomb_encoding(&mut buf, 1, 10)?;
+
+        let expected = [
+            2,  // Golomb encoding ID
+            2,  // args.len
+            1,  // offset
+            10, // m
         ];
 
         assert_eq!(buf, expected);
