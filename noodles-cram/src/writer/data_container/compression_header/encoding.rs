@@ -24,7 +24,9 @@ where
         }
         Encoding::Beta(offset, len) => write_beta_encoding(writer, *offset, *len),
         Encoding::Subexp(offset, k) => write_subexp_encoding(writer, *offset, *k),
-        Encoding::GolombRice(..) => unimplemented!("GOLOMB_RICE"),
+        Encoding::GolombRice(offset, log2_m) => {
+            write_golomb_rice_encoding(writer, *offset, *log2_m)
+        }
         Encoding::Gamma(offset) => write_gamma_encoding(writer, *offset),
     }
 }
@@ -164,6 +166,20 @@ where
     write_itf8(&mut args, k)?;
 
     write_itf8(writer, i32::from(encoding::Kind::Subexp))?;
+    write_args(writer, &args)?;
+
+    Ok(())
+}
+
+fn write_golomb_rice_encoding<W>(writer: &mut W, offset: i32, log2_m: i32) -> io::Result<()>
+where
+    W: Write,
+{
+    let mut args = Vec::new();
+    write_itf8(&mut args, offset)?;
+    write_itf8(&mut args, log2_m)?;
+
+    write_itf8(writer, i32::from(encoding::Kind::GolombRice))?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -321,6 +337,23 @@ mod tests {
             2, // args.len
             0, // offset
             1, // k
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_golomb_rice_encoding() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_golomb_rice_encoding(&mut buf, 1, 3)?;
+
+        let expected = [
+            8, // Golomb encoding ID
+            2, // args.len
+            1, // offset
+            3, // m
         ];
 
         assert_eq!(buf, expected);
