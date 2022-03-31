@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/record/data/field/value: Implement `TryFrom<char>`.
+
 ### Changed
 
   * sam/record/data/field/value: Change conversion from `String` to be

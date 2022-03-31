@@ -640,6 +640,18 @@ impl From<Vec<f32>> for Value {
     }
 }
 
+impl TryFrom<char> for Value {
+    type Error = ParseError;
+
+    fn try_from(c: char) -> Result<Self, Self::Error> {
+        if is_valid_char(c) {
+            Ok(Value::Char(c))
+        } else {
+            Err(ParseError::InvalidCharValue)
+        }
+    }
+}
+
 impl TryFrom<String> for Value {
     type Error = ParseError;
 
@@ -773,9 +785,13 @@ impl fmt::Display for ParseError {
     }
 }
 
+fn is_valid_char(c: char) -> bool {
+    c.is_ascii_graphic()
+}
+
 fn parse_char(s: &str) -> Result<char, ParseError> {
     if let Some(c) = s.chars().next() {
-        if c.is_ascii_graphic() {
+        if is_valid_char(c) {
             return Ok(c);
         }
     }
@@ -1036,6 +1052,12 @@ mod tests {
     #[test]
     fn test_from_vec_f32_for_value() {
         assert_eq!(Value::from(vec![0.0f32]), Value::FloatArray(vec![0.0]));
+    }
+
+    #[test]
+    fn test_try_from_char_for_value() {
+        assert_eq!(Value::try_from('n'), Ok(Value::Char('n')));
+        assert_eq!(Value::try_from('🍜'), Err(ParseError::InvalidCharValue));
     }
 
     #[test]
