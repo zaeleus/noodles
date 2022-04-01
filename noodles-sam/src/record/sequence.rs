@@ -222,6 +222,12 @@ impl TryFrom<Vec<u8>> for Sequence {
     }
 }
 
+impl From<Sequence> for Vec<Base> {
+    fn from(sequence: Sequence) -> Self {
+        sequence.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
