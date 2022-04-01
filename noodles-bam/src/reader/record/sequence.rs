@@ -18,14 +18,13 @@ where
     }
 
     let seq = src.take(seq_len);
+    let bases = seq
+        .chunk()
+        .iter()
+        .flat_map(|&b| [decode_base(b >> 4), decode_base(b)]);
 
     sequence.clear();
-
-    for &b in seq.chunk() {
-        sequence.push(decode_base(b >> 4));
-        sequence.push(decode_base(b));
-    }
-
+    sequence.as_mut().extend(bases);
     sequence.as_mut().truncate(l_seq);
 
     src.advance(seq_len);
