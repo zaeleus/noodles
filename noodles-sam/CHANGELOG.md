@@ -8,6 +8,8 @@
 
   * sam/record/quality_scores: Add conversion to `Vec<Score>`.
 
+  * sam/record/quality_scores: Implement `TryFrom<Vec<u8>>`.
+
 ### Changed
 
   * sam/record/data/field/value: Change conversion from `String` to be

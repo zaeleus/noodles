@@ -9,7 +9,7 @@ const START_CHAR: char = '!';
 const END_CHAR: char = '~';
 
 const MIN: u8 = b'!';
-const MAX: u8 = b'~' - MIN;
+pub(super) const MAX: u8 = b'~' - MIN;
 
 /// A SAM record quality scores score.
 ///
@@ -18,7 +18,7 @@ const MAX: u8 = b'~' - MIN;
 /// Quality scores can be represented as ASCII characters. Each score is offset by 33 (`!`) to only
 /// use the set of printable characters (`!`-`~`, excluding the space character).
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Score(u8);
+pub struct Score(pub(super) u8);
 
 impl fmt::Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -164,6 +164,8 @@ impl From<Vec<Score>> for QualityScores {
 pub enum ParseError {
     /// The input is empty.
     Empty,
+    /// The input is invalid.
+    Invalid,
     /// The raw quality scores has an invalid score.
     InvalidScore(score::TryFromCharError),
 }
@@ -174,6 +176,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => f.write_str("empty input"),
+            Self::Invalid => f.write_str("invalid input"),
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
         }
     }
@@ -191,6 +194,26 @@ impl FromStr for QualityScores {
                 .collect::<Result<Vec<_>, _>>()
                 .map(Self::from)
                 .map_err(ParseError::InvalidScore)
+        }
+    }
+}
+
+impl TryFrom<Vec<u8>> for QualityScores {
+    type Error = ParseError;
+
+    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
+        fn is_valid_score(n: u8) -> bool {
+            n <= score::MAX
+        }
+
+        if buf.is_empty() {
+            Err(ParseError::Empty)
+        } else if buf.iter().copied().all(is_valid_score) {
+            // SAFETY: Each score is guaranteed to be <= 93.
+            let scores = buf.into_iter().map(Score).collect();
+            Ok(Self(scores))
+        } else {
+            Err(ParseError::Invalid)
         }
     }
 }
@@ -232,48 +255,33 @@ mod tests {
     }
 
     #[test]
-    fn test_len() -> Result<(), score::TryFromUByteError> {
-        let sequence = [45, 35, 43, 50, 0]
-            .iter()
-            .cloned()
-            .map(Score::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .map(QualityScores::from)?;
-
-        assert_eq!(sequence.len(), 5);
-
+    fn test_len() -> Result<(), ParseError> {
+        let quality_scores = QualityScores::try_from(vec![45, 35, 43, 50, 0])?;
+        assert_eq!(quality_scores.len(), 5);
         Ok(())
     }
 
     #[test]
-    fn test_fmt() -> Result<(), score::TryFromUByteError> {
+    fn test_fmt() -> Result<(), ParseError> {
         let quality_scores = QualityScores::default();
         assert!(quality_scores.to_string().is_empty());
 
-        let quality_scores = [45, 35, 43, 50, 0]
-            .iter()
-            .cloned()
-            .map(Score::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .map(QualityScores::from)?;
+        let quality_scores = QualityScores::try_from(vec![45, 35, 43, 50, 0])?;
         assert_eq!(quality_scores.to_string(), "NDLS!");
 
         Ok(())
     }
 
     #[test]
-    fn test_from_str() -> Result<(), score::TryFromUByteError> {
-        let expected = [45, 35, 43, 50, 0]
-            .iter()
-            .cloned()
-            .map(Score::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .map(QualityScores::from)?;
-        assert_eq!("NDLS!".parse(), Ok(expected));
+    fn test_from_str() -> Result<(), ParseError> {
+        assert_eq!(
+            "NDLS!".parse(),
+            Ok(QualityScores::try_from(vec![45, 35, 43, 50, 0])?)
+        );
 
         assert_eq!(
             "*".parse::<QualityScores>(),
-            Ok(QualityScores::from(vec![Score::try_from(9)?]))
+            Ok(QualityScores::try_from(vec![9])?)
         );
 
         assert_eq!("".parse::<QualityScores>(), Err(ParseError::Empty));
