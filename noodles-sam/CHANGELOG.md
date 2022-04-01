@@ -6,6 +6,8 @@
 
   * sam/record/data/field/value: Implement `TryFrom<char>`.
 
+  * sam/record/quality_scores: Add conversion to `Vec<Score>`.
+
 ### Changed
 
   * sam/record/data/field/value: Change conversion from `String` to be

@@ -215,6 +215,12 @@ where
     }
 }
 
+impl From<QualityScores> for Vec<Score> {
+    fn from(quality_scores: QualityScores) -> Self {
+        quality_scores.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
