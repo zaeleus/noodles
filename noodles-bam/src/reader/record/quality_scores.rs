@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, mem};
 
 use bytes::Buf;
 use noodles_sam as sam;
@@ -11,26 +11,28 @@ pub(super) fn get_quality_scores<B>(
 where
     B: Buf,
 {
-    use sam::record::quality_scores::Score;
+    if l_seq == 0 {
+        quality_scores.clear();
+        return Ok(());
+    }
 
     if src.remaining() < l_seq {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    quality_scores.clear();
+    if is_missing_quality_scores(src.take(l_seq).chunk()) {
+        quality_scores.clear();
+        src.advance(l_seq);
+    } else {
+        let scores = Vec::from(mem::take(quality_scores));
 
-    let qual = src.take(l_seq);
+        let mut buf: Vec<_> = scores.into_iter().map(u8::from).collect();
+        buf.resize(l_seq, 0);
+        src.copy_to_slice(&mut buf);
 
-    if !is_missing_quality_scores(qual.chunk()) {
-        for &b in qual.chunk() {
-            let score =
-                Score::try_from(b).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            quality_scores.push(score);
-        }
+        *quality_scores = sam::record::QualityScores::try_from(buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
-
-    src.advance(l_seq);
 
     Ok(())
 }
