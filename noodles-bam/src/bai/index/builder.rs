@@ -110,33 +110,20 @@ mod tests {
     use noodles_bgzf as bgzf;
     use noodles_core::Position;
     use noodles_csi::BinningIndex;
-    use noodles_sam::{self as sam, record::Flags};
+    use noodles_sam::record::Flags;
 
     use super::*;
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::{reference_sequence, ReferenceSequence};
-
-        let reference_sequences = [("sq0".parse()?, 8), ("sq1".parse()?, 13)]
-            .into_iter()
-            .map(|(name, len): (reference_sequence::Name, i32)| {
-                let sn = name.to_string();
-                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
-            })
-            .collect::<Result<_, _>>()?;
-
         let mut builder = Builder::default();
 
-        let record = Record::try_from_sam_record(
-            &reference_sequences,
-            &sam::Record::builder()
-                .set_flags(Flags::empty())
-                .set_reference_sequence_name("sq0".parse()?)
-                .set_position(Position::try_from(2)?)
-                .set_cigar("4M".parse()?)
-                .build(),
-        )?;
+        let record = Record::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_position(Position::try_from(2)?)
+            .set_cigar("4M".parse()?)
+            .build();
 
         builder.add_record(
             &record,
@@ -154,7 +141,7 @@ mod tests {
             ),
         )?;
 
-        let index = builder.build(reference_sequences.len());
+        let index = builder.build(2);
         assert_eq!(index.reference_sequences().len(), 2);
         assert_eq!(index.unplaced_unmapped_record_count(), Some(1));
 
