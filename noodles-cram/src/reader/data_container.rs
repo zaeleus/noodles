@@ -10,7 +10,10 @@ use bytes::{Bytes, BytesMut};
 use super::container;
 use crate::{container::block::ContentType, data_container::CompressionHeader, DataContainer};
 
-pub fn read_data_container<R>(reader: &mut R) -> io::Result<Option<DataContainer>>
+pub fn read_data_container<R>(
+    reader: &mut R,
+    buf: &mut BytesMut,
+) -> io::Result<Option<DataContainer>>
 where
     R: Read,
 {
@@ -20,10 +23,9 @@ where
         return Ok(None);
     }
 
-    let mut buf = BytesMut::new();
     buf.resize(header.len(), 0);
-    reader.read_exact(&mut buf)?;
-    let mut buf = buf.freeze();
+    reader.read_exact(buf)?;
+    let mut buf = buf.split().freeze();
 
     let compression_header = read_compression_header_from_block(&mut buf)?;
 
@@ -40,6 +42,7 @@ where
 
 pub fn read_data_container_with_container_header<R>(
     reader: &mut R,
+    buf: &mut BytesMut,
 ) -> io::Result<Option<(crate::container::Header, DataContainer)>>
 where
     R: Read,
@@ -50,10 +53,9 @@ where
         return Ok(None);
     }
 
-    let mut buf = BytesMut::new();
     buf.resize(header.len(), 0);
-    reader.read_exact(&mut buf)?;
-    let mut buf = buf.freeze();
+    reader.read_exact(buf)?;
+    let mut buf = buf.split().freeze();
 
     let compression_header = read_compression_header_from_block(&mut buf)?;
 

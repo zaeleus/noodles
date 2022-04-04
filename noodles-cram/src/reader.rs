@@ -14,6 +14,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
+use bytes::BytesMut;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -52,6 +53,7 @@ where
     R: Read,
 {
     inner: R,
+    buf: BytesMut,
 }
 
 impl<R> Reader<R>
@@ -69,7 +71,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn new(reader: R) -> Self {
-        Self { inner: reader }
+        Self {
+            inner: reader,
+            buf: BytesMut::new(),
+        }
     }
 
     /// Returns a reference to the underlying reader.
@@ -159,7 +164,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let container = read_container(&mut self.inner)?;
+        let container = read_container(&mut self.inner, &mut self.buf)?;
 
         if let Some(block) = container.blocks().first() {
             read_file_header_block(block)
@@ -175,7 +180,7 @@ where
         &mut self,
     ) -> io::Result<Option<(crate::container::Header, DataContainer)>> {
         use self::data_container::read_data_container_with_container_header;
-        read_data_container_with_container_header(&mut self.inner)
+        read_data_container_with_container_header(&mut self.inner, &mut self.buf)
     }
 
     /// Reads a data container.
@@ -201,7 +206,7 @@ where
     pub fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
         use self::data_container::read_data_container;
 
-        read_data_container(&mut self.inner)
+        read_data_container(&mut self.inner, &mut self.buf)
     }
 
     /// Returns a iterator over records starting from the current stream position.
@@ -392,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_read_file_header_block() -> io::Result<()> {
-        use bytes::{BufMut, BytesMut};
+        use bytes::BufMut;
 
         let expected = "noodles";
 
