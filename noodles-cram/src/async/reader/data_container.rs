@@ -6,7 +6,10 @@ use crate::{
     reader::data_container::{read_compression_header_from_block, read_slice},
 };
 
-pub async fn read_data_container<R>(reader: &mut R) -> io::Result<Option<DataContainer>>
+pub async fn read_data_container<R>(
+    reader: &mut R,
+    buf: &mut BytesMut,
+) -> io::Result<Option<DataContainer>>
 where
     R: AsyncRead + Unpin,
 {
@@ -16,10 +19,9 @@ where
         return Ok(None);
     }
 
-    let mut buf = BytesMut::new();
     buf.resize(header.len(), 0);
-    reader.read_exact(&mut buf).await?;
-    let mut buf = buf.freeze();
+    reader.read_exact(buf).await?;
+    let mut buf = buf.split().freeze();
 
     let compression_header = read_compression_header_from_block(&mut buf)?;
 

@@ -2,6 +2,7 @@ mod container;
 mod data_container;
 mod num;
 
+use bytes::BytesMut;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 use crate::{file_definition::Version, DataContainer, FileDefinition};
@@ -9,6 +10,7 @@ use crate::{file_definition::Version, DataContainer, FileDefinition};
 /// An async CRAM reader.
 pub struct Reader<R> {
     inner: R,
+    buf: BytesMut,
 }
 
 impl<R> Reader<R>
@@ -25,7 +27,10 @@ where
     /// let reader = cram::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: BytesMut::new(),
+        }
     }
 
     /// Reads the CRAM file definition.
@@ -86,7 +91,7 @@ where
         use self::container::read_container;
         use crate::reader::read_file_header_block;
 
-        let container = read_container(&mut self.inner).await?;
+        let container = read_container(&mut self.inner, &mut self.buf).await?;
 
         if let Some(block) = container.blocks().first() {
             read_file_header_block(block)
@@ -126,7 +131,7 @@ where
     pub async fn read_data_container(&mut self) -> io::Result<Option<DataContainer>> {
         use self::data_container::read_data_container;
 
-        read_data_container(&mut self.inner).await
+        read_data_container(&mut self.inner, &mut self.buf).await
     }
 }
 
