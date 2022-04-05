@@ -153,7 +153,7 @@ fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
             .into_iter()
             .next()
             .map(|reference_sequence_id| match reference_sequence_id {
-                Some(id) => ReferenceSequenceId::Some(id as i32),
+                Some(id) => ReferenceSequenceId::Some(id),
                 None => ReferenceSequenceId::None,
             })
             .expect("reference sequence IDs cannot be empty"),

@@ -19,7 +19,8 @@ where
         i32::try_from(header.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
-    let reference_sequence_id = i32::from(header.reference_sequence_id());
+    let reference_sequence_id = i32::try_from(header.reference_sequence_id())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut crc_writer, reference_sequence_id)?;
 
     write_starting_position_on_the_reference(&mut crc_writer, header.start_position())?;

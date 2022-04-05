@@ -1,13 +1,12 @@
-use std::{error, fmt};
+use std::num;
 
-const MIN: i32 = 0;
 const UNMAPPED: i32 = -1;
 const MULTIPLE_REFERENCE_SEQUENCES: i32 = -2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ReferenceSequenceId {
     /// A reference sequence ID.
-    Some(i32),
+    Some(usize),
     /// Unmapped (-1).
     None,
     /// Multiple reference sequence IDs (-2).
@@ -34,39 +33,28 @@ impl Default for ReferenceSequenceId {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromIntError(i32);
-
-impl error::Error for TryFromIntError {}
-
-impl fmt::Display for TryFromIntError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid value: {}", self.0)
-    }
-}
-
 impl TryFrom<i32> for ReferenceSequenceId {
-    type Error = TryFromIntError;
+    type Error = num::TryFromIntError;
 
     fn try_from(n: i32) -> Result<Self, Self::Error> {
-        if n >= MIN {
-            Ok(Self::Some(n))
-        } else if n == UNMAPPED {
+        if n == UNMAPPED {
             Ok(Self::None)
         } else if n == MULTIPLE_REFERENCE_SEQUENCES {
             Ok(Self::Many)
         } else {
-            Err(TryFromIntError(n))
+            usize::try_from(n).map(Self::Some)
         }
     }
 }
 
-impl From<ReferenceSequenceId> for i32 {
-    fn from(reference_sequence_id: ReferenceSequenceId) -> Self {
+impl TryFrom<ReferenceSequenceId> for i32 {
+    type Error = num::TryFromIntError;
+
+    fn try_from(reference_sequence_id: ReferenceSequenceId) -> Result<Self, Self::Error> {
         match reference_sequence_id {
-            ReferenceSequenceId::Some(n) => n,
-            ReferenceSequenceId::None => UNMAPPED,
-            ReferenceSequenceId::Many => MULTIPLE_REFERENCE_SEQUENCES,
+            ReferenceSequenceId::Some(n) => i32::try_from(n),
+            ReferenceSequenceId::None => Ok(UNMAPPED),
+            ReferenceSequenceId::Many => Ok(MULTIPLE_REFERENCE_SEQUENCES),
         }
     }
 }
@@ -81,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_itf8_for_reference_sequence_id() {
+    fn test_try_from_i32_for_reference_sequence_id() {
         assert_eq!(
             ReferenceSequenceId::try_from(1),
             Ok(ReferenceSequenceId::Some(1))
@@ -102,14 +90,13 @@ mod tests {
             Ok(ReferenceSequenceId::Many)
         );
 
-        assert_eq!(ReferenceSequenceId::try_from(-3), Err(TryFromIntError(-3)));
+        assert!(ReferenceSequenceId::try_from(-3).is_err());
     }
 
     #[test]
-    fn test_from_reference_sequence_id_for_i32() {
-        assert_eq!(i32::from(ReferenceSequenceId::Some(1)), 1);
-        assert_eq!(i32::from(ReferenceSequenceId::Some(0)), 0);
-        assert_eq!(i32::from(ReferenceSequenceId::None), -1);
-        assert_eq!(i32::from(ReferenceSequenceId::Many), -2);
+    fn test_try_from_reference_sequence_id_for_i32() {
+        assert_eq!(i32::try_from(ReferenceSequenceId::Some(0)), Ok(0));
+        assert_eq!(i32::try_from(ReferenceSequenceId::None), Ok(-1));
+        assert_eq!(i32::try_from(ReferenceSequenceId::Many), Ok(-2));
     }
 }

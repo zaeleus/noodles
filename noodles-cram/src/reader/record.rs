@@ -146,19 +146,10 @@ where
     }
 
     fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
-        use bam::record::reference_sequence_id::UNMAPPED;
-
-        let reference_id = if self.reference_sequence_id.is_many() {
-            self.read_reference_id()?
-        } else {
-            i32::from(self.reference_sequence_id)
-        };
-
-        record.reference_sequence_id = match reference_id {
-            UNMAPPED => None,
-            _ => usize::try_from(reference_id)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
+        record.reference_sequence_id = match self.reference_sequence_id {
+            ReferenceSequenceId::Some(id) => Some(id),
+            ReferenceSequenceId::None => None,
+            ReferenceSequenceId::Many => self.read_reference_id()?,
         };
 
         let read_length = self.read_read_length()?;
@@ -170,8 +161,11 @@ where
         Ok(read_length)
     }
 
-    fn read_reference_id(&mut self) -> io::Result<i32> {
-        self.compression_header
+    fn read_reference_id(&mut self) -> io::Result<Option<usize>> {
+        use bam::record::reference_sequence_id::UNMAPPED;
+
+        let encoding = self
+            .compression_header
             .data_series_encoding_map()
             .reference_id_encoding()
             .ok_or_else(|| {
@@ -179,14 +173,19 @@ where
                     io::ErrorKind::InvalidData,
                     ReadRecordError::MissingDataSeriesEncoding(DataSeries::ReferenceId),
                 )
-            })
-            .and_then(|encoding| {
-                decode_itf8(
-                    encoding,
-                    &mut self.core_data_reader,
-                    &mut self.external_data_readers,
-                )
-            })
+            })?;
+
+        decode_itf8(
+            encoding,
+            &mut self.core_data_reader,
+            &mut self.external_data_readers,
+        )
+        .and_then(|n| match n {
+            UNMAPPED => Ok(None),
+            _ => usize::try_from(n)
+                .map(Some)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        })
     }
 
     fn read_read_length(&mut self) -> io::Result<usize> {

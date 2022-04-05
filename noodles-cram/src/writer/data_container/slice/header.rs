@@ -11,7 +11,8 @@ pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>
 where
     W: Write,
 {
-    let reference_sequence_id = i32::from(header.reference_sequence_id());
+    let reference_sequence_id = i32::try_from(header.reference_sequence_id())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, reference_sequence_id)?;
 
     write_alignment_start(writer, header.alignment_start())?;
