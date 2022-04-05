@@ -27,12 +27,10 @@ const MAX_RECORD_COUNT: usize = 10240;
 #[derive(Debug, Default)]
 pub struct Builder {
     records: Vec<Record>,
-    slice_reference_sequence_id: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AddRecordError {
-    ReferenceSequenceIdMismatch(Record),
     SliceFull(Record),
 }
 
@@ -50,16 +48,9 @@ impl Builder {
             return Err(AddRecordError::SliceFull(record));
         }
 
-        if self.records.is_empty() {
-            self.slice_reference_sequence_id = record.reference_sequence_id();
-        }
+        self.records.push(record);
 
-        if record.reference_sequence_id() == self.slice_reference_sequence_id {
-            self.records.push(record);
-            Ok(self.records.last().unwrap())
-        } else {
-            Err(AddRecordError::ReferenceSequenceIdMismatch(record))
-        }
+        Ok(self.records.last().unwrap())
     }
 
     pub fn build(

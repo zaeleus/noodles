@@ -13,6 +13,10 @@
     These see no usage in practice, but they are still in the spec (§ 13.8 and
     § 13.9, respectively). They are only added for completeness.
 
+### Changed
+
+  * cram/data_container/slice/builder: Slices can now be multi-reference.
+
 ## 0.14.0 - 2022-03-29
 
 ### Added

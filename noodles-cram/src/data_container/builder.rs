@@ -56,9 +56,6 @@ impl Builder {
                     self.slice_builders.push(slice_builder);
                     Err(AddRecordError::SliceFull(r))
                 }
-                slice::builder::AddRecordError::ReferenceSequenceIdMismatch(r) => {
-                    Err(AddRecordError::ContainerFull(r))
-                }
             },
         }
     }
