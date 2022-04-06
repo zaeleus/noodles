@@ -86,9 +86,7 @@ impl TryFrom<char> for Base {
     type Error = TryFromCharError;
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
-        u8::try_from(c)
-            .map_err(|_| TryFromCharError(c))
-            .and_then(Self::try_from)
+        Self::try_from(c as u8)
     }
 }
 
