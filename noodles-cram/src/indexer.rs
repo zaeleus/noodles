@@ -180,13 +180,9 @@ fn push_index_record_for_single_reference_slice(
     let (reference_sequence_id, alignment_start, alignment_span) = match slice_reference_sequence_id
     {
         ReferenceSequenceId::Some(id) => {
-            let reference_sequence_id = usize::try_from(id)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
+            let reference_sequence_id = Some(id);
             let alignment_start = slice_header.alignment_start();
             let alignment_span = slice_header.alignment_span();
-
             (reference_sequence_id, alignment_start, alignment_span)
         }
         ReferenceSequenceId::None => (None, None, 0),
