@@ -66,8 +66,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    freqs: &mut Vec<Vec<u32>>,
-    cumulative_freqs: &mut Vec<Vec<u32>>,
+    freqs: &mut [Vec<u32>],
+    cumulative_freqs: &mut [Vec<u32>],
 ) -> io::Result<()>
 where
     R: Read,

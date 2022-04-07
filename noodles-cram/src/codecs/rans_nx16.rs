@@ -219,8 +219,8 @@ where
 
 fn read_frequencies_nx16_1<R>(
     reader: &mut R,
-    freqs: &mut Vec<Vec<u32>>,
-    cumulative_freqs: &mut Vec<Vec<u32>>,
+    freqs: &mut [Vec<u32>],
+    cumulative_freqs: &mut [Vec<u32>],
 ) -> io::Result<u32>
 where
     R: Read,
@@ -255,8 +255,8 @@ where
 
 fn read_frequencies_nx16_1_inner<R>(
     reader: &mut R,
-    freqs: &mut Vec<Vec<u32>>,
-    cumulative_freqs: &mut Vec<Vec<u32>>,
+    freqs: &mut [Vec<u32>],
+    cumulative_freqs: &mut [Vec<u32>],
     bits: u32,
 ) -> io::Result<()>
 where

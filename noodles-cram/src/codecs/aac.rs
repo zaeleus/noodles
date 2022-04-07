@@ -108,7 +108,7 @@ where
     Ok(dst)
 }
 
-fn decode_ext<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+fn decode_ext<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
@@ -118,7 +118,7 @@ where
     decoder.read_exact(dst)
 }
 
-fn decode_rle_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+fn decode_rle_0<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
@@ -158,7 +158,7 @@ where
     Ok(())
 }
 
-fn decode_rle_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
+fn decode_rle_1<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {

@@ -307,9 +307,9 @@ where
 }
 
 fn decode_single_name(
-    b: &mut Vec<TokenReader>,
-    names: &mut Vec<String>,
-    tokens: &mut Vec<Vec<Option<Token>>>,
+    b: &mut [TokenReader],
+    names: &mut [String],
+    tokens: &mut [Vec<Option<Token>>],
     n: usize,
 ) -> io::Result<String> {
     let ty = b[0].read_type()?;
