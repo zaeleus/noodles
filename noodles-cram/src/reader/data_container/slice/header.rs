@@ -41,7 +41,7 @@ where
         get_embedded_reference_bases_block_content_id(src)?;
 
     let reference_md5 = get_reference_md5(src)?;
-    let optional_tags = get_optional_tags(src)?;
+    let optional_tags = get_optional_tags(src);
 
     let mut builder = slice::Header::builder()
         .set_reference_sequence_id(reference_sequence_id)
@@ -107,13 +107,13 @@ where
     Ok(buf)
 }
 
-fn get_optional_tags<B>(src: &mut B) -> io::Result<Vec<u8>>
+fn get_optional_tags<B>(src: &mut B) -> Vec<u8>
 where
     B: Buf,
 {
     let mut buf = vec![0; src.remaining()];
     src.copy_to_slice(&mut buf);
-    Ok(buf)
+    buf
 }
 
 #[cfg(test)]
