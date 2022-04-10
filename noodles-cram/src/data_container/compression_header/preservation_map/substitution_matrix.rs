@@ -51,11 +51,12 @@ impl Default for SubstitutionMatrix {
 
 impl From<Histogram> for SubstitutionMatrix {
     fn from(histogram: Histogram) -> Self {
-        let mut matrix = Self::default();
-        let bases = [Base::A, Base::C, Base::G, Base::T, Base::N];
+        const BASES: [Base; 5] = [Base::A, Base::C, Base::G, Base::T, Base::N];
 
-        for &reference_base in bases.iter() {
-            let mut base_frequency_pairs: Vec<_> = bases
+        let mut matrix = Self::default();
+
+        for reference_base in BASES {
+            let mut base_frequency_pairs: Vec<_> = BASES
                 .iter()
                 .zip(histogram.get_bins(reference_base).iter())
                 .filter(|(&read_base, _)| read_base != reference_base)
