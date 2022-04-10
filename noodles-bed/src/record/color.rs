@@ -1,4 +1,5 @@
-use crate::record::color::ParseError::Parse;
+//! BED record color.
+
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::{error, fmt, num};
@@ -16,9 +17,8 @@ impl fmt::Display for Color {
 /// An error returned when a raw BED record score fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
-    MissingR,
-    MissingG,
-    MissingB,
+    /// The input is invalid.
+    Invalid,
     /// The input failed to be parsed as an integer.
     Parse(num::ParseIntError),
 }
@@ -29,9 +29,7 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Parse(e) => write!(f, "parse error: {}", e),
-            Self::MissingR => f.write_str("missing r"),
-            Self::MissingG => f.write_str("missing g"),
-            Self::MissingB => f.write_str("missing b"),
+            Self::Invalid => f.write_str("invalid input")
         }
     }
 }
@@ -41,21 +39,34 @@ impl FromStr for Color {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut args = s.split(",");
-        let r = args
-            .next()
-            .ok_or(ParseError::MissingR)?
-            .parse::<u8>()
-            .map_err(ParseError::Parse)?;
-        let g = args
-            .next()
-            .ok_or(ParseError::MissingG)?
-            .parse::<u8>()
-            .map_err(ParseError::Parse)?;
-        let b = args
-            .next()
-            .ok_or(ParseError::MissingB)?
-            .parse::<u8>()
-            .map_err(ParseError::Parse)?;
-        Result::Ok(Color(r, g, b))
+        match (args.next(), args.next(), args.next()) {
+            (Some(arg1), Some(arg2), Some(arg3)) => {
+                let r = arg1
+                    .parse::<u8>()
+                    .map_err(ParseError::Parse)?;
+                let g =arg2
+                    .parse::<u8>()
+                    .map_err(ParseError::Parse)?;
+                let b = arg3
+                    .parse::<u8>()
+                    .map_err(ParseError::Parse)?;
+                Ok(Color(r, g, b))
+            },
+            _ => {
+                Err(ParseError::Invalid)
+            }
+        }
+
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(Color(125,125,125).to_string(), "125,125,125");
+    }
+
 }

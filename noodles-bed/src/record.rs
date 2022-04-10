@@ -331,18 +331,119 @@ impl<const N: u8> Record<N>
 where
     Self: BedN<12>,
 {
+    /// Returns the thick_start (`thick_start`).
+    ///
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_bed::record::Color;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_start(Position::try_from(1)?)
+    ///     .set_thick_end(Position::try_from(5)?)
+    ///     .set_item_rgb(Color::try_from(125,125,125)?)
+    ///     .set_block_sizes(&[2,2])
+    ///     .set_block_starts(&[Position::try_from(1)?, Position::try_from(1)?])
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.thick_start().map(u16::from), Some(1));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn thick_start(&self) -> Option<Position> {
         self.standard_fields.thick_start
     }
 
-    pub fn think_end(&self) -> Option<Position> {
+    /// Returns the thick_end (`thick_end`).
+    ///
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_bed::record::Color;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_start(Position::try_from(1)?)
+    ///     .set_thick_end(Position::try_from(5)?)
+    ///     .set_item_rgb(Color::try_from(125,125,125)?)
+    ///     .set_block_sizes(&[2,2])
+    ///     .set_block_starts(&[Position::try_from(1)?, Position::try_from(1)?])
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.thick_end().map(u16::from), Some(1));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn thick_end(&self) -> Option<Position> {
         self.standard_fields.thick_end
     }
 
+
+    /// Returns the item_rgb (`item_rgb`).
+    ///
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_bed::record::Color;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_start(Position::try_from(1)?)
+    ///     .set_thick_end(Position::try_from(5)?)
+    ///     .set_item_rgb(Color::try_from(125,125,125)?)
+    ///     .set_block_sizes(&[2,2])
+    ///     .set_block_starts(&[Position::try_from(1)?, Position::try_from(1)?])
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.item_rgb(), Some(Color(125,125,125)));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn item_rgb(&self) -> Option<&Color> {
         self.standard_fields.item_rgb.as_ref()
     }
 
+    /// Returns the block_sizes (`block_sizes`).
+    ///
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_bed::record::Color;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_start(Position::try_from(1)?)
+    ///     .set_thick_end(Position::try_from(5)?)
+    ///     .set_item_rgb(Color::try_from(125,125,125)?)
+    ///     .set_block_sizes(&[2,2])
+    ///     .set_block_starts(&[Position::try_from(1)?, Position::try_from(1)?])
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.block_sizes(), Some(&[2,2]));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn block_sizes(&self) -> Option<&[usize]> {
         self.standard_fields
             .block_sizes
@@ -350,6 +451,31 @@ where
             .map(|i| i.as_slice())
     }
 
+    /// Returns the block_starts (`block_starts`).
+    ///
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_bed::record::Color;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_start(Position::try_from(1)?)
+    ///     .set_thick_end(Position::try_from(5)?)
+    ///     .set_item_rgb(Color::try_from(125,125,125)?)
+    ///     .set_block_sizes(&[2,2])
+    ///     .set_block_starts(&[Position::try_from(1), Position::try_from(1)])
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.block_starts(), Some(&[Position::try_from(2)?,Position::try_from(2)?]));
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn block_starts(&self) -> Option<&[Position]> {
         self.standard_fields
             .block_starts
@@ -389,6 +515,15 @@ impl fmt::Display for Record<6> {
         Ok(())
     }
 }
+
+impl fmt::Display for Record<12> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        format_bed_12_fields(f, self)?;
+        format_optional_fields(f, self.optional_fields())?;
+        Ok(())
+    }
+}
+
 
 fn format_bed_3_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
 where
@@ -455,24 +590,25 @@ fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt:
 
     f.write_char(DELIMITER)?;
     if let Some(think_start) = record.thick_start() {
-        write!(f, "{}", think_start)?;
+        write!(f, "{}", usize::from(think_start) - 1)?;
     } else {
-        f.write_str(MISSING_STRING)?;
+        f.write_str(MISSING_NUMBER)?;
     }
 
     f.write_char(DELIMITER)?;
-    if let Some(thick_end) = record.think_end() {
+    if let Some(thick_end) = record.thick_end() {
         write!(f, "{}", thick_end)?;
     } else {
-        f.write_str(MISSING_STRING)?;
+        f.write_str(MISSING_NUMBER)?;
     }
 
     f.write_char(DELIMITER)?;
-    if let Some(item_rgb) = record.item_rgb() {
-        write!(f, "{}", item_rgb)?;
+    if let Some(color) = record.item_rgb() {
+        write!(f, "{}", color)?;
     } else {
-        f.write_str(MISSING_STRING)?;
+        f.write_str(MISSING_NUMBER)?;
     }
+
 
     f.write_char(DELIMITER)?;
     if let (Some(block_sizes), Some(block_starts)) = (record.block_sizes(), record.block_starts()) {
@@ -494,7 +630,7 @@ fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt:
     f.write_char(DELIMITER)?;
     if let Some(block_starts) = record.block_starts() {
         for i in block_starts {
-            write!(f, "{}", i)?;
+            write!(f, "{}",  usize::from(*i) - 1)?;
             f.write_char(COMMA_SEPARATOR)?;
         }
         Ok(())
@@ -552,6 +688,7 @@ pub enum ParseError {
     MissingStrand,
     /// The strand is invalid.
     InvalidStrand(strand::ParseError),
+    /// The color is invalid.
     InvalidColor(color::ParseError),
 }
 
@@ -710,14 +847,23 @@ where
     let mut block_size_split = fields
         .next()
         .ok_or(ParseError::MissingBlockSizes)?
-        .split(",");
+        .split(COMMA_SEPARATOR);
     let mut block_start_split = fields
         .next()
         .ok_or(ParseError::MissingBlockStarts)?
-        .split(",");
+        .split(COMMA_SEPARATOR);
     while let (Some(size), Some(start)) = (block_size_split.next(), block_start_split.next()) {
-        block_sizes.push(size.parse().map_err(ParseError::InvalidBlockSize)?);
-        block_starts.push(start.parse().map_err(ParseError::InvalidBlockSize)?);
+        if !size.is_empty() && !start.is_empty() {
+            block_sizes.push(size.parse().map_err(ParseError::InvalidBlockSize)?);
+            block_starts.push(start.parse().map_err(ParseError::InvalidBlockStarts)
+                .and_then(|n: usize| {
+                    n.checked_add(1)
+                        .ok_or(ParseError::InvalidStartPosition)
+                        .and_then(|m| {
+                            Position::try_from(m).map_err(|_| ParseError::InvalidStartPosition)
+                        })
+                })?);
+        }
     }
 
     standard_fields.block_starts = Some(block_starts);
@@ -808,7 +954,7 @@ where
         .next()
         .ok_or(ParseError::MissingStrand)
         .and_then(|s| match s {
-            MISSING_STRING => Ok(None),
+            MISSING_NUMBER => Ok(None),
             _ => s.parse().map(Some).map_err(ParseError::InvalidColor),
         })
 }
@@ -971,6 +1117,28 @@ mod tests {
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.strand = Some(Strand::Forward);
 
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_for_record_12() -> Result<(),  Box<dyn std::error::Error>> {
+        let actual = "chr1\t11873\t14409\tuc001aaa.3\t0\t+\t11873\t11873\t0\t3\t354,109,1189,\t0,739,1347,".parse::<Record<12>>();
+
+        let start = Position::try_from(11874)?;
+        let end = Position::try_from(14409)?;
+        let mut standard_fields = StandardFields::new("chr1", start, end);
+        standard_fields.name = "uc001aaa.3".parse().map(Some)?;
+        standard_fields.score = None;
+        standard_fields.strand = Some(Strand::Forward);
+        standard_fields.thick_start = Some(Position::try_from(11874)?);
+        standard_fields.thick_end = Some(Position::try_from(11873)?);
+        standard_fields.item_rgb = None;
+        standard_fields.block_sizes = Some(vec![354,109,1189]);
+        standard_fields.block_starts = Some(vec![Position::try_from(1)?,Position::try_from(740)?,Position::try_from(1348)?]);
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 
         assert_eq!(actual, expected);
