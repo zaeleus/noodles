@@ -1,11 +1,12 @@
 //! BED record and fields.
 
 pub mod builder;
+pub mod color;
 pub mod name;
 pub mod score;
 pub mod strand;
 
-pub use self::{builder::Builder, name::Name, score::Score, strand::Strand};
+pub use self::{builder::Builder, color::Color, name::Name, score::Score, strand::Strand};
 
 use std::{
     error,
@@ -14,12 +15,14 @@ use std::{
     ops::Deref,
     str::FromStr,
 };
+use std::cmp::min;
 
 use noodles_core::Position;
 
 const DELIMITER: char = '\t';
 const MISSING_STRING: &str = ".";
 const MISSING_NUMBER: &str = "0";
+const COMMA_SEPARATOR: char = ',';
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StandardFields {
@@ -29,6 +32,11 @@ struct StandardFields {
     name: Option<Name>,
     score: Option<Score>,
     strand: Option<Strand>,
+    thick_start: Option<Position>,
+    thick_end: Option<Position>,
+    item_rgb: Option<Color>,
+    block_sizes: Option<Vec<usize>>,
+    block_starts: Option<Vec<Position>>,
 }
 
 impl StandardFields {
@@ -43,6 +51,11 @@ impl StandardFields {
             name: None,
             score: None,
             strand: None,
+            thick_start: None,
+            thick_end: None,
+            item_rgb: None,
+            block_sizes: None,
+            block_starts: None,
         }
     }
 }
@@ -110,15 +123,21 @@ impl BedN<3> for Record<3> {}
 impl BedN<3> for Record<4> {}
 impl BedN<3> for Record<5> {}
 impl BedN<3> for Record<6> {}
+impl BedN<3> for Record<12> {}
 
 impl BedN<4> for Record<4> {}
 impl BedN<4> for Record<5> {}
 impl BedN<4> for Record<6> {}
+impl BedN<4> for Record<12> {}
 
 impl BedN<5> for Record<5> {}
 impl BedN<5> for Record<6> {}
+impl BedN<5> for Record<12> {}
 
 impl BedN<6> for Record<6> {}
+impl BedN<6> for Record<12> {}
+
+impl BedN<12> for Record<12> {}
 
 impl<const N: u8> Record<N>
 where
@@ -308,6 +327,37 @@ where
     }
 }
 
+impl<const N: u8> Record<N>
+where
+    Self: BedN<12>,
+{
+    pub fn thick_start(&self) -> Option<Position> {
+        self.standard_fields.thick_start
+    }
+
+    pub fn think_end(&self) -> Option<Position> {
+        self.standard_fields.thick_end
+    }
+
+    pub fn item_rgb(&self) -> Option<&Color> {
+        self.standard_fields.item_rgb.as_ref()
+    }
+
+    pub fn block_sizes(&self) -> Option<&[usize]> {
+        self.standard_fields
+            .block_sizes
+            .as_ref()
+            .map(|i| i.as_slice())
+    }
+
+    pub fn block_starts(&self) -> Option<&[Position]> {
+        self.standard_fields
+            .block_starts
+            .as_ref()
+            .map(|i| i.as_slice())
+    }
+}
+
 impl fmt::Display for Record<3> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_3_fields(f, self)?;
@@ -385,13 +435,69 @@ where
     }
 }
 
-fn format_bed_6_fields(f: &mut fmt::Formatter<'_>, record: &Record<6>) -> fmt::Result {
+fn format_bed_6_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+where
+    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6>,
+{
     format_bed_5_fields(f, record)?;
 
     f.write_char(DELIMITER)?;
 
     if let Some(strand) = record.strand() {
         write!(f, "{}", strand)
+    } else {
+        f.write_str(MISSING_STRING)
+    }
+}
+
+fn format_bed_12_fields(f: &mut fmt::Formatter<'_>, record: &Record<12>) -> fmt::Result {
+    format_bed_6_fields(f, record)?;
+
+    f.write_char(DELIMITER)?;
+    if let Some(think_start) = record.thick_start() {
+        write!(f, "{}", think_start)?;
+    } else {
+        f.write_str(MISSING_STRING)?;
+    }
+
+    f.write_char(DELIMITER)?;
+    if let Some(thick_end) = record.think_end() {
+        write!(f, "{}", thick_end)?;
+    } else {
+        f.write_str(MISSING_STRING)?;
+    }
+
+    f.write_char(DELIMITER)?;
+    if let Some(item_rgb) = record.item_rgb() {
+        write!(f, "{}", item_rgb)?;
+    } else {
+        f.write_str(MISSING_STRING)?;
+    }
+
+    f.write_char(DELIMITER)?;
+    if let (Some(block_sizes), Some(block_starts)) = (record.block_sizes(), record.block_starts()) {
+        write!(f, "{}", min(block_sizes.len(), block_starts.len()))?;
+    } else {
+        f.write_str(MISSING_STRING)?;
+    }
+
+    f.write_char(DELIMITER)?;
+    if let Some(block_sizes) = record.block_sizes() {
+        for i in block_sizes {
+            write!(f, "{}", i)?;
+            f.write_char(COMMA_SEPARATOR)?;
+        }
+    } else {
+        f.write_str(MISSING_STRING)?;
+    }
+
+    f.write_char(DELIMITER)?;
+    if let Some(block_starts) = record.block_starts() {
+        for i in block_starts {
+            write!(f, "{}", i)?;
+            f.write_char(COMMA_SEPARATOR)?;
+        }
+        Ok(())
     } else {
         f.write_str(MISSING_STRING)
     }
@@ -424,6 +530,18 @@ pub enum ParseError {
     InvalidEndPosition(num::ParseIntError),
     /// The name is missing.
     MissingName,
+    /// The number of blocks is missing.
+    MissingNumBlocks,
+    /// The num block is missing.
+    InvalidNumBlocks(num::ParseIntError),
+    /// The block size is missing.
+    MissingBlockSizes,
+    /// block size invalid.
+    InvalidBlockSize(num::ParseIntError),
+    /// the block start.
+    MissingBlockStarts,
+    /// Failed to parse an element from block start.
+    InvalidBlockStarts(num::ParseIntError),
     /// The name is invalid.
     InvalidName(name::ParseError),
     /// The score is missing.
@@ -434,6 +552,7 @@ pub enum ParseError {
     MissingStrand,
     /// The strand is invalid.
     InvalidStrand(strand::ParseError),
+    InvalidColor(color::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -452,6 +571,13 @@ impl fmt::Display for ParseError {
             Self::InvalidScore(e) => write!(f, "invalid score: {}", e),
             Self::MissingStrand => f.write_str("missing strand"),
             Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
+            Self::MissingNumBlocks => f.write_str("invalid numBlocks"),
+            Self::MissingBlockStarts => f.write_str("invalid strand"),
+            Self::MissingBlockSizes => f.write_str("missing block size"),
+            Self::InvalidBlockSize(e) => write!(f, "invalid block size: {}", e),
+            Self::InvalidBlockStarts(e) => write!(f, "invalid block start: {}", e),
+            Self::InvalidColor(e) => write!(f, "invalid color: {}", e),
+            Self::InvalidNumBlocks(e) => write!(f, "invalid num blocks: {}", e),
         }
     }
 }
@@ -500,6 +626,17 @@ impl FromStr for Record<6> {
     }
 }
 
+impl FromStr for Record<12> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.split(DELIMITER);
+        let standard_fields = parse_bed_12_fields(&mut fields)?;
+        let optional_fields = parse_optional_fields(&mut fields);
+        Ok(Self::new(standard_fields, optional_fields))
+    }
+}
+
 fn parse_bed_3_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
 where
     I: Iterator<Item = &'a str>,
@@ -531,6 +668,61 @@ where
 {
     let mut standard_fields = parse_bed_5_fields(fields)?;
     standard_fields.strand = parse_strand(fields)?;
+    Ok(standard_fields)
+}
+
+fn parse_bed_12_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut standard_fields = parse_bed_6_fields(fields)?;
+
+    standard_fields.thick_start = Some(
+        fields
+            .next()
+            .ok_or(ParseError::MissingStartPosition)
+            .and_then(|s| {
+                s.parse()
+                    .map_err(|_| ParseError::InvalidStartPosition)
+                    .and_then(|n: usize| {
+                        n.checked_add(1)
+                            .ok_or(ParseError::InvalidStartPosition)
+                            .and_then(|m| {
+                                Position::try_from(m).map_err(|_| ParseError::InvalidStartPosition)
+                            })
+                    })
+            })?,
+    );
+    standard_fields.thick_end = Some(
+        fields
+            .next()
+            .ok_or(ParseError::MissingEndPosition)
+            .and_then(|s| s.parse().map_err(ParseError::InvalidEndPosition))?,
+    );
+    standard_fields.item_rgb = parse_color(fields)?;
+
+    let num_blocks: usize = fields
+        .next()
+        .ok_or(ParseError::MissingNumBlocks)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidNumBlocks))?;
+    let mut block_sizes: Vec<usize> = Vec::with_capacity(num_blocks);
+    let mut block_starts: Vec<Position> = Vec::with_capacity(num_blocks);
+    let mut block_size_split = fields
+        .next()
+        .ok_or(ParseError::MissingBlockSizes)?
+        .split(",");
+    let mut block_start_split = fields
+        .next()
+        .ok_or(ParseError::MissingBlockStarts)?
+        .split(",");
+    while let (Some(size), Some(start)) = (block_size_split.next(), block_start_split.next()) {
+        block_sizes.push(size.parse().map_err(ParseError::InvalidBlockSize)?);
+        block_starts.push(start.parse().map_err(ParseError::InvalidBlockSize)?);
+    }
+
+    standard_fields.block_starts = Some(block_starts);
+    standard_fields.block_sizes = Some(block_sizes);
+
     Ok(standard_fields)
 }
 
@@ -605,6 +797,19 @@ where
         .and_then(|s| match s {
             MISSING_STRING => Ok(None),
             _ => s.parse().map(Some).map_err(ParseError::InvalidStrand),
+        })
+}
+
+fn parse_color<'a, I>(fields: &mut I) -> Result<Option<Color>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or(ParseError::MissingStrand)
+        .and_then(|s| match s {
+            MISSING_STRING => Ok(None),
+            _ => s.parse().map(Some).map_err(ParseError::InvalidColor),
         })
 }
 
