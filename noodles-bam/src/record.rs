@@ -229,7 +229,18 @@ impl Record {
         &mut self.mate_position
     }
 
-    pub(crate) fn template_length_mut(&mut self) -> &mut i32 {
+    /// Returns a mutable reference to the template length.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam::AlignmentRecord;
+    /// let mut record = bam::Record::default();
+    /// *record.template_length_mut() = 101;
+    /// assert_eq!(record.template_length(), 101);
+    /// ```
+    pub fn template_length_mut(&mut self) -> &mut i32 {
         &mut self.template_length
     }
 

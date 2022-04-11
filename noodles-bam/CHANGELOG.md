@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record: Add mutable getter for template length
+    (`Record::template_length_mut`).
+
 ## 0.17.0 - 2022-03-29
 
 ### Added
