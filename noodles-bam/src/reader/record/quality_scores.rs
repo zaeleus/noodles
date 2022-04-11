@@ -48,6 +48,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_get_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(mut src: &[u8], expected: &sam::record::QualityScores) -> io::Result<()> {
+            let mut actual = sam::record::QualityScores::default();
+            get_quality_scores(&mut src, &mut actual, expected.len())?;
+            assert_eq!(&actual, expected);
+            Ok(())
+        }
+
+        t(&[], &sam::record::QualityScores::default())?;
+        t(&[0x2d, 0x23, 0x2b, 0x32], &"NDLS".parse()?)?;
+
+        Ok(())
+    }
+
+    #[test]
     fn test_get_quality_scores_with_sequence_and_no_quality_scores() -> io::Result<()> {
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut buf = &data[..];
