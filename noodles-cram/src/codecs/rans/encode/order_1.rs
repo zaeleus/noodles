@@ -38,8 +38,8 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         let remainder = &data[4 * quarter - 1..];
 
         for syms in remainder.windows(2).rev() {
-            let freq_i = freq[syms[0] as usize][syms[1] as usize];
-            let cfreq_i = cfreq[syms[0] as usize][syms[1] as usize];
+            let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
+            let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, states[3], freq_i)?;
             states[3] = update(x, freq_i, cfreq_i);
         }
@@ -55,8 +55,8 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         let windows = [windows_0, windows_1, windows_2, windows_3];
 
         for (state, syms) in states.iter_mut().zip(windows.iter()) {
-            let freq_i = freq[syms[0] as usize][syms[1] as usize];
-            let cfreq_i = cfreq[syms[0] as usize][syms[1] as usize];
+            let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
+            let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, *state, freq_i)?;
             *state = update(x, freq_i, cfreq_i);
         }
@@ -64,7 +64,7 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
 
     // The last state updates are for the starting contexts, i.e., `(0, chunks[i][0])`.
     for (state, chunk) in states.iter_mut().zip(chunks.iter()) {
-        let sym = chunk[0] as usize;
+        let sym = usize::from(chunk[0]);
         let freq_i = freq[0][sym];
         let cfreq_i = cfreq[0][sym];
         let x = normalize(&mut buf, *state, freq_i)?;
@@ -123,12 +123,12 @@ fn build_contexts(data: &[u8], bin_count: usize) -> Vec<Vec<u32>> {
     let quarter = data.len() / 4;
 
     for i in 0..4 {
-        frequencies[0][data[i * quarter] as usize] += 1;
+        frequencies[0][usize::from(data[i * quarter])] += 1;
     }
 
     for window in data.windows(2) {
-        let sym_0 = window[0] as usize;
-        let sym_1 = window[1] as usize;
+        let sym_0 = usize::from(window[0]);
+        let sym_1 = usize::from(window[1]);
         frequencies[sym_0][sym_1] += 1;
     }
 

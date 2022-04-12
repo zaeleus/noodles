@@ -33,7 +33,11 @@ where
 
             output[i + j] = s;
 
-            state[j] = rans_advance_step(state[j], cumulative_freqs[s as usize], freqs[s as usize]);
+            state[j] = rans_advance_step(
+                state[j],
+                cumulative_freqs[usize::from(s)],
+                freqs[usize::from(s)],
+            );
             state[j] = rans_renorm(reader, state[j])?;
         }
 
@@ -58,7 +62,7 @@ where
     loop {
         let f = read_itf8(reader)? as u32;
 
-        freqs[sym as usize] = f;
+        freqs[usize::from(sym)] = f;
 
         if rle > 0 {
             rle -= 1;
@@ -94,7 +98,7 @@ pub fn build_cumulative_freqs_symbols_table_0(cumulative_freqs: &[u32]) -> [u8; 
     for (freq, cumulative_freq) in table.iter_mut().enumerate() {
         let freq = freq as u32;
 
-        while sym < 255 && freq >= cumulative_freqs[(sym + 1) as usize] {
+        while sym < 255 && freq >= cumulative_freqs[usize::from(sym + 1)] {
             sym += 1;
         }
 

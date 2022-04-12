@@ -24,8 +24,8 @@ pub fn encode(data: &[u8]) -> io::Result<(Vec<u32>, Vec<u8>)> {
         let j = i % states.len();
 
         let mut x = states[j];
-        let freq_i = freq[sym as usize];
-        let cfreq_i = cfreq[sym as usize];
+        let freq_i = freq[usize::from(sym)];
+        let cfreq_i = cfreq[usize::from(sym)];
 
         x = normalize(&mut buf, x, freq_i)?;
         states[j] = update(x, freq_i, cfreq_i);

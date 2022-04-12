@@ -24,14 +24,14 @@ where
     while i < output.len() / 4 {
         for j in 0..4 {
             let f = rans_get_cumulative_freq(state[j]);
-            let s = cumulative_freqs_symbols_tables[last_syms[j] as usize][f as usize];
+            let s = cumulative_freqs_symbols_tables[usize::from(last_syms[j])][f as usize];
 
             output[i + j * (output.len() / 4)] = s;
 
             state[j] = rans_advance_step(
                 state[j],
-                cumulative_freqs[last_syms[j] as usize][s as usize],
-                freqs[last_syms[j] as usize][s as usize],
+                cumulative_freqs[usize::from(last_syms[j])][usize::from(s)],
+                freqs[usize::from(last_syms[j])][usize::from(s)],
             );
             state[j] = rans_renorm(reader, state[j])?;
 
@@ -45,14 +45,14 @@ where
 
     while i < output.len() {
         let f = rans_get_cumulative_freq(state[3]);
-        let s = cumulative_freqs_symbols_tables[last_syms[3] as usize][f as usize];
+        let s = cumulative_freqs_symbols_tables[usize::from(last_syms[3])][f as usize];
 
         output[i] = s;
 
         state[3] = rans_advance_step(
             state[3],
-            cumulative_freqs[last_syms[3] as usize][s as usize],
-            freqs[last_syms[3] as usize][s as usize],
+            cumulative_freqs[usize::from(last_syms[3])][usize::from(s)],
+            freqs[usize::from(last_syms[3])][usize::from(s)],
         );
         state[3] = rans_renorm(reader, state[3])?;
 
@@ -79,8 +79,8 @@ where
     loop {
         order_0::read_frequencies_0(
             reader,
-            &mut freqs[sym as usize],
-            &mut cumulative_freqs[sym as usize],
+            &mut freqs[usize::from(sym)],
+            &mut cumulative_freqs[usize::from(sym)],
         )?;
 
         if rle > 0 {
