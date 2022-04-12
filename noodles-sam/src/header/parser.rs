@@ -78,6 +78,8 @@ impl fmt::Display for ParseError {
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
+    use record::Kind;
+
     let mut builder = Header::builder();
 
     let mut read_group_ids: HashSet<String> = HashSet::new();
@@ -88,7 +90,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
         let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
         builder = match record.kind() {
-            record::Kind::Header => {
+            Kind::Header => {
                 if i == 0 {
                     builder.set_header(
                         header::Header::try_from(record).map_err(ParseError::InvalidHeader)?,
@@ -97,7 +99,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                     return Err(ParseError::UnexpectedHeader);
                 }
             }
-            record::Kind::ReferenceSequence => {
+            Kind::ReferenceSequence => {
                 let reference_sequence = ReferenceSequence::try_from(record)
                     .map_err(ParseError::InvalidReferenceSequence)?;
 
@@ -109,7 +111,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_reference_sequence(reference_sequence)
             }
-            record::Kind::ReadGroup => {
+            Kind::ReadGroup => {
                 let read_group =
                     ReadGroup::try_from(record).map_err(ParseError::InvalidReadGroup)?;
 
@@ -119,7 +121,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_read_group(read_group)
             }
-            record::Kind::Program => {
+            Kind::Program => {
                 let program = Program::try_from(record).map_err(ParseError::InvalidProgram)?;
 
                 if !program_ids.insert(program.id().into()) {
@@ -128,7 +130,7 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_program(program)
             }
-            record::Kind::Comment => match record.value() {
+            Kind::Comment => match record.value() {
                 record::Value::String(comment) => builder.add_comment(comment),
                 _ => return Err(ParseError::InvalidComment),
             },
