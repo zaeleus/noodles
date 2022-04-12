@@ -4,7 +4,7 @@ pub mod reference_sequence_id;
 
 pub use self::{block::Block, header::Header, reference_sequence_id::ReferenceSequenceId};
 
-use std::{cmp, error, fmt, io};
+use std::{cmp, error, fmt, io, num};
 
 use bytes::{BufMut, BytesMut};
 use noodles_core::Position;
@@ -177,6 +177,7 @@ fn find_container_alignment_positions(
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TryFromSamHeaderError {
     ReferenceSequenceMissingMd5Checksum,
+    InvalidHeaderLength(num::TryFromIntError),
 }
 
 impl error::Error for TryFromSamHeaderError {}
@@ -187,6 +188,7 @@ impl fmt::Display for TryFromSamHeaderError {
             Self::ReferenceSequenceMissingMd5Checksum => {
                 f.write_str("reference sequence is missing MD5 checksum")
             }
+            Self::InvalidHeaderLength(e) => write!(f, "invalid header length: {}", e),
         }
     }
 }
@@ -200,7 +202,8 @@ impl TryFrom<&sam::Header> for Container {
         validate_reference_sequences(header.reference_sequences())?;
 
         let header_data = header.to_string().into_bytes();
-        let header_data_len = header_data.len() as i32;
+        let header_data_len =
+            i32::try_from(header_data.len()).map_err(TryFromSamHeaderError::InvalidHeaderLength)?;
 
         let mut data = BytesMut::new();
         data.put_i32_le(header_data_len);

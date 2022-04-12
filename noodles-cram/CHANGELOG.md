@@ -17,6 +17,11 @@
 
   * cram/data_container/slice/builder: Slices can now be multi-reference.
 
+### Fixed
+
+  * cram/container: Return error (`TryFromSamHeaderError::InvalidHeaderLength`)
+    when header length is too large.
+
 ## 0.14.0 - 2022-03-29
 
 ### Added
