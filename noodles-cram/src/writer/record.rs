@@ -1,5 +1,3 @@
-mod tag;
-
 use std::{
     collections::HashMap,
     error, fmt,
@@ -449,6 +447,8 @@ where
     }
 
     fn write_tag_data(&mut self, record: &Record) -> io::Result<()> {
+        use bam::writer::record::data::field::put_value;
+
         let preservation_map = self.compression_header.preservation_map();
         let tag_ids_dictionary = preservation_map.tag_ids_dictionary();
 
@@ -479,7 +479,7 @@ where
             })?;
 
             let mut buf = Vec::new();
-            tag::write_value(&mut buf, field.value())?;
+            put_value(&mut buf, field.value())?;
 
             encode_byte_array(
                 encoding,
