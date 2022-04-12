@@ -16,9 +16,11 @@ pub fn get_tag_encoding_map(src: &mut Bytes) -> io::Result<TagEncodingMap> {
 
     let mut buf = src.split_to(data_len);
 
-    let map_len = get_itf8(&mut buf)?;
+    let map_len = get_itf8(&mut buf).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    let mut map = HashMap::with_capacity(map_len as usize);
+    let mut map = HashMap::with_capacity(map_len);
 
     for _ in 0..map_len {
         let key = get_itf8(&mut buf)?;
