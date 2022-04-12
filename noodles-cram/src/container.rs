@@ -277,8 +277,13 @@ mod tests {
 
         assert_eq!(container.header(), &expected_header);
 
-        let mut data = 52_i32.to_le_bytes().to_vec();
-        data.extend(sam_header.to_string().bytes());
+        let header_data = sam_header.to_string().into_bytes();
+        let header_data_len = i32::try_from(header_data.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let mut data = BytesMut::new();
+        data.put_i32_le(header_data_len);
+        data.extend_from_slice(&header_data);
 
         let expected_blocks = vec![Block::builder()
             .set_compression_method(block::CompressionMethod::None)
