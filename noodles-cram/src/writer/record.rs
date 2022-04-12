@@ -468,6 +468,7 @@ where
         self.write_tag_line(tag_line)?;
 
         let tag_encoding_map = self.compression_header.tag_encoding_map();
+        let mut buf = Vec::new();
 
         for field in record.tags().values() {
             let key: tag_ids_dictionary::Key = field.into();
@@ -478,7 +479,7 @@ where
                 )
             })?;
 
-            let mut buf = Vec::new();
+            buf.clear();
             put_value(&mut buf, field.value())?;
 
             encode_byte_array(
