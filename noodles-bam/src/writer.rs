@@ -1,5 +1,7 @@
+//! BAM writer.
+
 pub(crate) mod alignment_record;
-pub(crate) mod record;
+pub mod record;
 
 use std::{
     ffi::CString,

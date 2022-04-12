@@ -1,5 +1,7 @@
+//! BAM record and field writers.
+
 mod cigar;
-pub(crate) mod data;
+pub mod data;
 mod quality_scores;
 mod read_name;
 mod sequence;

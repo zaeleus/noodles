@@ -55,7 +55,7 @@ mod r#async;
 pub mod bai;
 pub mod reader;
 pub mod record;
-mod writer;
+pub mod writer;
 
 pub use self::{reader::Reader, record::Record, writer::Writer};
 

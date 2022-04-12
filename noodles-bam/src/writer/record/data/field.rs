@@ -1,3 +1,5 @@
+//! BAM record data field component writers.
+
 mod tag;
 mod value;
 
@@ -6,9 +8,10 @@ use std::io;
 use bytes::BufMut;
 use noodles_sam::record::data::Field;
 
-use self::{tag::put_tag, value::put_value};
+use self::tag::put_tag;
+pub use self::value::put_value;
 
-pub fn put_field<B>(dst: &mut B, field: &Field) -> io::Result<()>
+pub(super) fn put_field<B>(dst: &mut B, field: &Field) -> io::Result<()>
 where
     B: BufMut,
 {
