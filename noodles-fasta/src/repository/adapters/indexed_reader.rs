@@ -15,6 +15,16 @@ where
     R: BufRead + Seek,
 {
     /// Creates an indexed reader adapter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta::{self as fasta, fai, repository::adapters::IndexedReader};
+    /// let reader = fasta::Reader::new(io::empty());
+    /// let index = fai::Index::default();
+    /// let adapter = IndexedReader::new(reader, index);
+    /// ```
     pub fn new(reader: Reader<R>, index: fai::Index) -> Self {
         Self { reader, index }
     }
