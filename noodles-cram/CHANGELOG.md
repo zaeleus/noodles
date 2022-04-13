@@ -4,6 +4,8 @@
 
 ### Added
 
+  * cram/reader: Add query iterator (`Reader::query`).
+
   * cram/reader/data_container/compression_header/encoding: Add Golomb and
     Golomb-Rice encoding decoders.
 

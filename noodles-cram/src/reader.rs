@@ -3,6 +3,7 @@
 pub(crate) mod container;
 pub(crate) mod data_container;
 pub(crate) mod num;
+mod query;
 pub(crate) mod record;
 mod records;
 
@@ -15,11 +16,13 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::BytesMut;
+use noodles_core::{region::Interval, Region};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use self::container::read_container;
-use super::{container::Block, file_definition::Version, FileDefinition, MAGIC_NUMBER};
+pub use self::query::Query;
+use super::{container::Block, crai, file_definition::Version, FileDefinition, MAGIC_NUMBER};
 use crate::data_container::DataContainer;
 
 /// A CRAM reader.
@@ -280,6 +283,57 @@ where
     /// ```
     pub fn position(&mut self) -> io::Result<u64> {
         self.inner.seek(SeekFrom::Current(0))
+    }
+
+    /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, crai};
+    /// use noodles_fasta as fasta;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::Reader::new)?;
+    /// reader.read_file_definition()?;
+    ///
+    /// let repository = fasta::Repository::default();
+    /// let header = reader.read_file_header()?.parse()?;
+    /// let index = crai::read("sample.cram.crai")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&repository, &header, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn query<'a>(
+        &'a mut self,
+        reference_sequence_repository: &'a fasta::Repository,
+        header: &'a sam::Header,
+        index: &'a crai::Index,
+        region: &Region,
+    ) -> io::Result<Query<'_, R, Interval>> {
+        let reference_sequence_id = header
+            .reference_sequences()
+            .get_index_of(region.name())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid reference sequence name",
+                )
+            })?;
+
+        Ok(Query::new(
+            self,
+            reference_sequence_repository,
+            header,
+            index,
+            reference_sequence_id,
+            region.interval(),
+        ))
     }
 }
 
