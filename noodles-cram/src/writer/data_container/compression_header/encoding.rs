@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use crate::{
-    data_container::compression_header::{encoding, Encoding},
+    data_container::compression_header::{encoding::Kind, Encoding},
     writer::num::write_itf8,
 };
 
@@ -31,6 +31,26 @@ where
     }
 }
 
+fn write_kind<W>(writer: &mut W, kind: Kind) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = match kind {
+        Kind::Null => 0,
+        Kind::External => 1,
+        Kind::Golomb => 2,
+        Kind::Huffman => 3,
+        Kind::ByteArrayLen => 4,
+        Kind::ByteArrayStop => 5,
+        Kind::Beta => 6,
+        Kind::Subexp => 7,
+        Kind::GolombRice => 8,
+        Kind::Gamma => 9,
+    };
+
+    write_itf8(writer, n)
+}
+
 fn write_args<W>(writer: &mut W, buf: &[u8]) -> io::Result<()>
 where
     W: Write,
@@ -45,7 +65,7 @@ fn write_null_encoding<W>(writer: &mut W) -> io::Result<()>
 where
     W: Write,
 {
-    write_itf8(writer, i32::from(encoding::Kind::Null))
+    write_kind(writer, Kind::Null)
 }
 
 fn write_external_encoding<W>(writer: &mut W, block_content_id: i32) -> io::Result<()>
@@ -55,7 +75,7 @@ where
     let mut args = Vec::new();
     write_itf8(&mut args, block_content_id)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::External))?;
+    write_kind(writer, Kind::External)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -69,7 +89,7 @@ where
     write_itf8(&mut args, offset)?;
     write_itf8(&mut args, m)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::Golomb))?;
+    write_kind(writer, Kind::Golomb)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -98,7 +118,7 @@ where
         write_itf8(&mut args, len)?;
     }
 
-    write_itf8(writer, i32::from(encoding::Kind::Huffman))?;
+    write_kind(writer, Kind::Huffman)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -117,7 +137,7 @@ where
     write_encoding(&mut args, len_encoding)?;
     write_encoding(&mut args, value_encoding)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::ByteArrayLen))?;
+    write_kind(writer, Kind::ByteArrayLen)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -135,7 +155,7 @@ where
     args.write_u8(stop_byte)?;
     write_itf8(&mut args, block_content_id)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::ByteArrayStop))?;
+    write_kind(writer, Kind::ByteArrayStop)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -151,7 +171,7 @@ where
     let len = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(&mut args, len)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::Beta))?;
+    write_kind(writer, Kind::Beta)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -165,7 +185,7 @@ where
     write_itf8(&mut args, offset)?;
     write_itf8(&mut args, k)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::Subexp))?;
+    write_kind(writer, Kind::Subexp)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -179,7 +199,7 @@ where
     write_itf8(&mut args, offset)?;
     write_itf8(&mut args, log2_m)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::GolombRice))?;
+    write_kind(writer, Kind::GolombRice)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -192,7 +212,7 @@ where
     let mut args = Vec::new();
     write_itf8(&mut args, offset)?;
 
-    write_itf8(writer, i32::from(encoding::Kind::Gamma))?;
+    write_kind(writer, Kind::Gamma)?;
     write_args(writer, &args)?;
 
     Ok(())
