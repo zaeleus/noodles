@@ -6,43 +6,13 @@
 
 use std::{
     env,
-    ffi::{OsStr, OsString},
     fs::File,
-    io::{self, BufReader, BufWriter},
-    path::{Path, PathBuf},
+    io::{self, BufWriter},
 };
 
 use noodles_cram as cram;
-use noodles_fasta::{self as fasta, fai, repository::adapters::IndexedReader};
+use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam::{self as sam, AlignmentWriter};
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
-
-fn create_reference_sequence_repository<P>(src: P) -> io::Result<fasta::Repository>
-where
-    P: AsRef<Path>,
-{
-    let src = src.as_ref();
-
-    let reader = File::open(src)
-        .map(BufReader::new)
-        .map(fasta::Reader::new)?;
-
-    let fai_src = push_ext(src.to_path_buf(), "fai");
-    let index = fai::read(fai_src)?;
-
-    let adapter = IndexedReader::new(reader, index);
-
-    Ok(fasta::Repository::new(adapter))
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
@@ -50,11 +20,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
     let fasta_src = args.next();
 
-    let repository = if let Some(src) = fasta_src {
-        create_reference_sequence_repository(src)?
-    } else {
-        fasta::Repository::default()
-    };
+    let repository = fasta_src
+        .map(|src| IndexedReader::builder().open(src))
+        .transpose()?
+        .map(fasta::Repository::new)
+        .unwrap_or_default();
 
     let mut reader = File::open(src).map(cram::Reader::new)?;
     reader.read_file_definition()?;

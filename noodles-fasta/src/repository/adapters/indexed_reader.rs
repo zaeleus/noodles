@@ -1,4 +1,11 @@
-use std::io::{self, BufRead, Seek};
+mod builder;
+
+pub use self::builder::Builder;
+
+use std::{
+    fs::File,
+    io::{self, BufRead, BufReader, Seek},
+};
 
 use noodles_core::Region;
 
@@ -8,6 +15,20 @@ use crate::{fai, repository::Adapter, Reader, Record};
 pub struct IndexedReader<R> {
     reader: Reader<R>,
     index: fai::Index,
+}
+
+impl IndexedReader<BufReader<File>> {
+    /// Creates an indexed reader adapter builder for paths on a filesystem.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta::repository::adapters::IndexedReader;
+    /// let builder = IndexedReader::builder();
+    /// ```
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
 }
 
 impl<R> IndexedReader<R>

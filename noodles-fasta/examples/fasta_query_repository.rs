@@ -1,38 +1,16 @@
-use std::{
-    env,
-    ffi::{OsStr, OsString},
-    fs::File,
-    io::{self, BufReader},
-    path::PathBuf,
-};
+use std::{env, io};
 
-use noodles_fasta::{self as fasta, fai, record::Definition, repository::adapters::IndexedReader};
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
+use noodles_fasta::{self as fasta, record::Definition, repository::adapters::IndexedReader};
 
 fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
 
-    let src = args.next().map(PathBuf::from).expect("missing src");
+    let src = args.next().expect("missing src");
     let name = args.next().expect("missing name");
 
-    let reader = File::open(&src)
-        .map(BufReader::new)
-        .map(fasta::Reader::new)?;
-
-    let fasta_src = push_ext(src, "fai");
-    let index = fai::read(fasta_src)?;
-
-    let adapter = IndexedReader::new(reader, index);
-    let repository = fasta::Repository::new(adapter);
+    let repository = IndexedReader::builder()
+        .open(src)
+        .map(fasta::Repository::new)?;
 
     let sequence = repository
         .get(&name)

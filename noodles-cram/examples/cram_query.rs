@@ -6,44 +6,15 @@
 
 use std::{
     env,
-    ffi::{OsStr, OsString},
     fs::File,
-    io::{self, BufReader, BufWriter, Write},
-    path::{Path, PathBuf},
+    io::{self, BufWriter, Write},
+    path::PathBuf,
 };
 
 use noodles_cram::{self as cram, crai};
-use noodles_fasta::{self as fasta, fai, repository::adapters::IndexedReader};
+use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam as sam;
 use sam::AlignmentWriter;
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
-
-fn create_reference_sequence_repository<P>(src: P) -> io::Result<fasta::Repository>
-where
-    P: AsRef<Path>,
-{
-    let src = src.as_ref();
-
-    let reader = File::open(src)
-        .map(BufReader::new)
-        .map(fasta::Reader::new)?;
-
-    let fai_src = push_ext(src.to_path_buf(), "fai");
-    let index = fai::read(fai_src)?;
-
-    let adapter = IndexedReader::new(reader, index);
-
-    Ok(fasta::Repository::new(adapter))
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
@@ -53,8 +24,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let fasta_src = args.next();
 
     let repository = fasta_src
-        .map(create_reference_sequence_repository)
+        .map(|src| IndexedReader::builder().open(src))
         .transpose()?
+        .map(fasta::Repository::new)
         .unwrap_or_default();
 
     let mut reader = File::open(&src).map(cram::Reader::new)?;

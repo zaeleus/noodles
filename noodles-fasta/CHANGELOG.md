@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/repository/adapters/indexed_reader: Add convenience buidler for
+    `BufReader<File>`.
+
 ## 0.9.0 - 2022-03-29
 
 ### Added

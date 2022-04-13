@@ -7,44 +7,13 @@
 
 use std::{
     env,
-    ffi::{OsStr, OsString},
     fs::File,
-    io::{self, BufReader, BufWriter},
-    path::{Path, PathBuf},
+    io::{self, BufWriter},
 };
 
-use fasta::repository::adapters::IndexedReader;
-use noodles_fasta::{self as fasta, fai};
+use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam::{self as sam, AlignmentWriter};
 use noodles_util::alignment;
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
-
-fn create_reference_sequence_repository<P>(src: P) -> io::Result<fasta::Repository>
-where
-    P: AsRef<Path>,
-{
-    let src = src.as_ref();
-
-    let reader = File::open(src)
-        .map(BufReader::new)
-        .map(fasta::Reader::new)?;
-
-    let fai_src = push_ext(src.to_path_buf(), "fai");
-    let index = fai::read(fai_src)?;
-
-    let adapter = IndexedReader::new(reader, index);
-
-    Ok(fasta::Repository::new(adapter))
-}
 
 fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
@@ -55,7 +24,10 @@ fn main() -> io::Result<()> {
     let mut builder = File::open(src).map(alignment::Reader::builder)?;
 
     if let Some(fasta_src) = fasta_src {
-        let repository = create_reference_sequence_repository(fasta_src)?;
+        let repository = IndexedReader::builder()
+            .open(fasta_src)
+            .map(fasta::Repository::new)?;
+
         builder = builder.set_reference_sequence_repository(repository);
     }
 
