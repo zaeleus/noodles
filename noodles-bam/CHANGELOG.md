@@ -4,8 +4,17 @@
 
 ### Added
 
+  * bam/async/writer: Add alignment record writer
+    (`Writer::write_alignment_record`).
+
   * bam/record: Add mutable getter for template length
     (`Record::template_length_mut`).
+
+### Deprecated
+
+  * bam/async/writer: Deprecate `Writer::write_sam_record`.
+
+    Use `Writer::write_alignment_record` instead.
 
 ## 0.17.0 - 2022-03-29
 

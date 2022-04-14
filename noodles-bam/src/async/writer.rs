@@ -183,12 +183,54 @@ where
     /// # Ok(())
     /// # }
     /// ```
+    #[deprecated(
+        since = "0.18.0",
+        note = "Use `Writer::write_alignment_record` instead."
+    )]
     pub async fn write_sam_record(
         &mut self,
         reference_sequences: &sam::header::ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
         encode_alignment_record(&mut self.buf, reference_sequences, record)?;
+
+        let block_size = u32::try_from(self.buf.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        self.inner.write_u32_le(block_size).await?;
+
+        self.inner.write_all(&self.buf).await?;
+
+        self.buf.clear();
+
+        Ok(())
+    }
+
+    /// Writes an alignment record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    ///
+    /// let header = sam::Header::default();
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(&header, &record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_alignment_record(
+        &mut self,
+        header: &sam::Header,
+        record: &dyn sam::AlignmentRecord,
+    ) -> io::Result<()> {
+        encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
