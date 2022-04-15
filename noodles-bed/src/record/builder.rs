@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use noodles_core::Position;
 
-use super::{BedN, Color, Name, OptionalFields, Record, Score, StandardFields, Strand};
+use super::{BedN, Block, Color, Name, OptionalFields, Record, Score, StandardFields, Strand};
 
 /// A BED record builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -18,6 +18,7 @@ pub struct Builder<const N: u8> {
     thick_start: Option<Position>,
     thick_end: Option<Position>,
     color: Option<Color>,
+    blocks: Vec<Block>,
     optional_fields: OptionalFields,
 }
 
@@ -28,6 +29,7 @@ impl BedN<3> for Builder<6> {}
 impl BedN<3> for Builder<7> {}
 impl BedN<3> for Builder<8> {}
 impl BedN<3> for Builder<9> {}
+impl BedN<3> for Builder<12> {}
 
 impl BedN<4> for Builder<4> {}
 impl BedN<4> for Builder<5> {}
@@ -35,26 +37,34 @@ impl BedN<4> for Builder<6> {}
 impl BedN<4> for Builder<7> {}
 impl BedN<4> for Builder<8> {}
 impl BedN<4> for Builder<9> {}
+impl BedN<4> for Builder<12> {}
 
 impl BedN<5> for Builder<5> {}
 impl BedN<5> for Builder<6> {}
 impl BedN<5> for Builder<7> {}
 impl BedN<5> for Builder<8> {}
 impl BedN<5> for Builder<9> {}
+impl BedN<5> for Builder<12> {}
 
 impl BedN<6> for Builder<6> {}
 impl BedN<6> for Builder<7> {}
 impl BedN<6> for Builder<8> {}
 impl BedN<6> for Builder<9> {}
+impl BedN<6> for Builder<12> {}
 
 impl BedN<7> for Builder<7> {}
 impl BedN<7> for Builder<8> {}
 impl BedN<7> for Builder<9> {}
+impl BedN<7> for Builder<12> {}
 
 impl BedN<8> for Builder<8> {}
 impl BedN<8> for Builder<9> {}
+impl BedN<8> for Builder<12> {}
 
 impl BedN<9> for Builder<9> {}
+impl BedN<9> for Builder<12> {}
+
+impl BedN<12> for Builder<12> {}
 
 impl<const N: u8> Builder<N>
 where
@@ -589,6 +599,77 @@ impl Builder<9> {
         standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
         standard_fields.thick_end = self.thick_end.unwrap_or(end_position);
         standard_fields.color = self.color;
+
+        Ok(Record::new(standard_fields, self.optional_fields))
+    }
+}
+
+impl<const N: u8> Builder<N>
+where
+    Self: BedN<12>,
+{
+    /// Sets the blocks (`[(blockStarts, blockSizes)]`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let blocks = vec![(0, 2)];
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_blocks(blocks.clone())
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.blocks(), &blocks);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn set_blocks(mut self, blocks: Vec<Block>) -> Self {
+        self.blocks = blocks;
+        self
+    }
+}
+
+impl Builder<12> {
+    /// Builds a BED12 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<12>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .build()?;
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn build(self) -> Result<Record<12>, BuildError> {
+        let reference_sequence_name = self
+            .reference_sequence_name
+            .ok_or(BuildError::MissingReferenceSequenceName)?;
+
+        let start_position = self
+            .start_position
+            .ok_or(BuildError::MissingStartPosition)?;
+
+        let end_position = self.end_position.ok_or(BuildError::MissingEndPosition)?;
+
+        let mut standard_fields =
+            StandardFields::new(reference_sequence_name, start_position, end_position);
+        standard_fields.name = self.name;
+        standard_fields.score = self.score;
+        standard_fields.strand = self.strand;
+        standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
+        standard_fields.thick_end = self.thick_end.unwrap_or(end_position);
+        standard_fields.color = self.color;
+        standard_fields.blocks = self.blocks;
 
         Ok(Record::new(standard_fields, self.optional_fields))
     }
