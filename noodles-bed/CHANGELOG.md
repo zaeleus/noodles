@@ -4,7 +4,8 @@
 
 ### Added
 
-  * bed/record: Add support for BED7+ (`Record<7>`) and BED8+ (`Record<8>`).
+  * bed/record: Add support for BED7+ (`Record<7>`), BED8+ (`Record<8>`), and
+    BED9+ (`Record<9>`).
 
 ## 0.2.0 - 2022-03-29
 
