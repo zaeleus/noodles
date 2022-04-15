@@ -30,6 +30,7 @@ struct StandardFields {
     score: Option<Score>,
     strand: Option<Strand>,
     thick_start: Position,
+    thick_end: Position,
 }
 
 impl StandardFields {
@@ -45,6 +46,7 @@ impl StandardFields {
             score: None,
             strand: None,
             thick_start: start_position,
+            thick_end: end_position,
         }
     }
 }
@@ -113,20 +115,27 @@ impl BedN<3> for Record<4> {}
 impl BedN<3> for Record<5> {}
 impl BedN<3> for Record<6> {}
 impl BedN<3> for Record<7> {}
+impl BedN<3> for Record<8> {}
 
 impl BedN<4> for Record<4> {}
 impl BedN<4> for Record<5> {}
 impl BedN<4> for Record<6> {}
 impl BedN<4> for Record<7> {}
+impl BedN<4> for Record<8> {}
 
 impl BedN<5> for Record<5> {}
 impl BedN<5> for Record<6> {}
 impl BedN<5> for Record<7> {}
+impl BedN<5> for Record<8> {}
 
 impl BedN<6> for Record<6> {}
 impl BedN<6> for Record<7> {}
+impl BedN<6> for Record<8> {}
 
 impl BedN<7> for Record<7> {}
+impl BedN<7> for Record<8> {}
+
+impl BedN<8> for Record<8> {}
 
 impl<const N: u8> Record<N>
 where
@@ -345,6 +354,35 @@ where
     }
 }
 
+impl<const N: u8> Record<N>
+where
+    Self: BedN<8>,
+{
+    /// Returns the thick end position (`thickEnd`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let thick_end = Position::try_from(13)?;
+    ///
+    /// let record = bed::Record::<8>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_end(thick_end)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.thick_end(), thick_end);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn thick_end(&self) -> Position {
+        self.standard_fields.thick_end
+    }
+}
+
 impl fmt::Display for Record<3> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_3_fields(f, self)?;
@@ -380,6 +418,14 @@ impl fmt::Display for Record<6> {
 impl fmt::Display for Record<7> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         format_bed_7_fields(f, self)?;
+        format_optional_fields(f, self.optional_fields())?;
+        Ok(())
+    }
+}
+
+impl fmt::Display for Record<8> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        format_bed_8_fields(f, self)?;
         format_optional_fields(f, self.optional_fields())?;
         Ok(())
     }
@@ -445,10 +491,19 @@ where
     }
 }
 
-fn format_bed_7_fields(f: &mut fmt::Formatter<'_>, record: &Record<7>) -> fmt::Result {
+fn format_bed_7_fields<const N: u8>(f: &mut fmt::Formatter<'_>, record: &Record<N>) -> fmt::Result
+where
+    Record<N>: BedN<3> + BedN<4> + BedN<5> + BedN<6> + BedN<7>,
+{
     format_bed_6_fields(f, record)?;
     f.write_char(DELIMITER)?;
     write!(f, "{}", usize::from(record.thick_start()) - 1)
+}
+
+fn format_bed_8_fields(f: &mut fmt::Formatter<'_>, record: &Record<8>) -> fmt::Result {
+    format_bed_7_fields(f, record)?;
+    f.write_char(DELIMITER)?;
+    write!(f, "{}", record.thick_end())
 }
 
 fn format_optional_fields(
@@ -492,6 +547,10 @@ pub enum ParseError {
     MissingThickStart,
     /// The this start position is invalid.
     InvalidThickStart,
+    /// The thick end position is missing.
+    MissingThickEnd,
+    /// The this end position is invalid.
+    InvalidThickEnd(num::ParseIntError),
 }
 
 impl error::Error for ParseError {}
@@ -512,6 +571,8 @@ impl fmt::Display for ParseError {
             Self::InvalidStrand(e) => write!(f, "invalid strand: {}", e),
             Self::MissingThickStart => f.write_str("missing thick start"),
             Self::InvalidThickStart => f.write_str("invalid thick start"),
+            Self::MissingThickEnd => f.write_str("missing thick end"),
+            Self::InvalidThickEnd(e) => write!(f, "invalid thick end: {}", e),
         }
     }
 }
@@ -571,6 +632,17 @@ impl FromStr for Record<7> {
     }
 }
 
+impl FromStr for Record<8> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut fields = s.split(DELIMITER);
+        let standard_fields = parse_bed_8_fields(&mut fields)?;
+        let optional_fields = parse_optional_fields(&mut fields);
+        Ok(Self::new(standard_fields, optional_fields))
+    }
+}
+
 fn parse_bed_3_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
 where
     I: Iterator<Item = &'a str>,
@@ -611,6 +683,15 @@ where
 {
     let mut standard_fields = parse_bed_6_fields(fields)?;
     standard_fields.thick_start = parse_thick_start(fields)?;
+    Ok(standard_fields)
+}
+
+fn parse_bed_8_fields<'a, I>(fields: &mut I) -> Result<StandardFields, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut standard_fields = parse_bed_7_fields(fields)?;
+    standard_fields.thick_end = parse_thick_end(fields)?;
     Ok(standard_fields)
 }
 
@@ -706,6 +787,16 @@ where
                         })
                 })
         })
+}
+
+fn parse_thick_end<'a, I>(fields: &mut I) -> Result<Position, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or(ParseError::MissingThickEnd)
+        .and_then(|s| s.parse().map_err(ParseError::InvalidThickEnd))
 }
 
 fn parse_optional_fields<'a, I>(fields: &mut I) -> OptionalFields
@@ -833,6 +924,29 @@ mod tests {
     }
 
     #[test]
+    fn test_fmt_for_record_8() -> Result<(), noodles_core::position::TryFromIntError> {
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+
+        let mut standard_fields = StandardFields::new("sq0", start, end);
+        standard_fields.thick_start = start;
+        standard_fields.thick_end = end;
+        let record: Record<8> = Record::new(standard_fields, OptionalFields::default());
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13");
+
+        let mut standard_fields = StandardFields::new("sq0", start, end);
+        standard_fields.thick_start = start;
+        standard_fields.thick_end = end;
+        let record: Record<8> = Record::new(
+            standard_fields,
+            OptionalFields::from(vec![String::from("ndls")]),
+        );
+        assert_eq!(record.to_string(), "sq0\t7\t13\t.\t0\t.\t7\t13\tndls");
+
+        Ok(())
+    }
+
+    #[test]
     fn test_from_str_for_record_3() -> Result<(), noodles_core::position::TryFromIntError> {
         let actual = "sq0\t7\t13".parse::<Record<3>>();
 
@@ -902,6 +1016,23 @@ mod tests {
         let end = Position::try_from(13)?;
         let mut standard_fields = StandardFields::new("sq0", start, end);
         standard_fields.thick_start = start;
+
+        let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_str_for_record_8() -> Result<(), noodles_core::position::TryFromIntError> {
+        let actual = "sq0\t7\t13\t.\t0\t.\t7\t13".parse::<Record<8>>();
+
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+        let mut standard_fields = StandardFields::new("sq0", start, end);
+        standard_fields.thick_start = start;
+        standard_fields.thick_end = end;
 
         let expected = Ok(Record::new(standard_fields, OptionalFields::default()));
 

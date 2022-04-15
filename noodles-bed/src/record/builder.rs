@@ -16,6 +16,7 @@ pub struct Builder<const N: u8> {
     score: Option<Score>,
     strand: Option<Strand>,
     thick_start: Option<Position>,
+    thick_end: Option<Position>,
     optional_fields: OptionalFields,
 }
 
@@ -24,20 +25,27 @@ impl BedN<3> for Builder<4> {}
 impl BedN<3> for Builder<5> {}
 impl BedN<3> for Builder<6> {}
 impl BedN<3> for Builder<7> {}
+impl BedN<3> for Builder<8> {}
 
 impl BedN<4> for Builder<4> {}
 impl BedN<4> for Builder<5> {}
 impl BedN<4> for Builder<6> {}
 impl BedN<4> for Builder<7> {}
+impl BedN<4> for Builder<8> {}
 
 impl BedN<5> for Builder<5> {}
 impl BedN<5> for Builder<6> {}
 impl BedN<5> for Builder<7> {}
+impl BedN<5> for Builder<8> {}
 
 impl BedN<6> for Builder<6> {}
 impl BedN<6> for Builder<7> {}
+impl BedN<6> for Builder<8> {}
 
 impl BedN<7> for Builder<7> {}
+impl BedN<7> for Builder<8> {}
+
+impl BedN<8> for Builder<8> {}
 
 impl<const N: u8> Builder<N>
 where
@@ -433,6 +441,75 @@ impl Builder<7> {
         standard_fields.score = self.score;
         standard_fields.strand = self.strand;
         standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
+
+        Ok(Record::new(standard_fields, self.optional_fields))
+    }
+}
+
+impl<const N: u8> Builder<N>
+where
+    Self: BedN<8>,
+{
+    /// Sets the thick end position (`thickEnd`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let thick_end = Position::try_from(13)?;
+    ///
+    /// let record = bed::Record::<8>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .set_thick_end(thick_end)
+    ///     .build()?;
+    ///
+    /// assert_eq!(record.thick_end(), thick_end);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn set_thick_end(mut self, thick_end: Position) -> Self {
+        self.thick_end = Some(thick_end);
+        self
+    }
+}
+
+impl Builder<8> {
+    /// Builds a BED8 record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bed as bed;
+    /// use noodles_core::Position;
+    ///
+    /// let record = bed::Record::<8>::builder()
+    ///     .set_reference_sequence_name("sq0")
+    ///     .set_start_position(Position::try_from(8)?)
+    ///     .set_end_position(Position::try_from(13)?)
+    ///     .build()?;
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn build(self) -> Result<Record<8>, BuildError> {
+        let reference_sequence_name = self
+            .reference_sequence_name
+            .ok_or(BuildError::MissingReferenceSequenceName)?;
+
+        let start_position = self
+            .start_position
+            .ok_or(BuildError::MissingStartPosition)?;
+
+        let end_position = self.end_position.ok_or(BuildError::MissingEndPosition)?;
+
+        let mut standard_fields =
+            StandardFields::new(reference_sequence_name, start_position, end_position);
+        standard_fields.name = self.name;
+        standard_fields.score = self.score;
+        standard_fields.strand = self.strand;
+        standard_fields.thick_start = self.thick_start.unwrap_or(start_position);
+        standard_fields.thick_end = self.thick_end.unwrap_or(end_position);
 
         Ok(Record::new(standard_fields, self.optional_fields))
     }
