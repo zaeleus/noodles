@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/data_container/slice: Template size for records with downstream mates
+    is now calculated from the leftmost to rightmost base, regardless of
+    orientation.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

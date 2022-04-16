@@ -278,9 +278,12 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         let mate = &mut left[i];
         set_mate(record, mate);
 
+        // "The TLEN field is positive for the leftmost segment of the template, negative for the
+        // rightmost, and the sign for any middle segment is undefined. If segments cover the same
+        // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
         let template_size = calculate_template_size(record, mate);
-        record.template_size = template_size;
-        mate.template_size = -template_size;
+        record.template_size = -template_size;
+        mate.template_size = template_size;
 
         i += 1;
     }
@@ -309,32 +312,22 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
-    let start = if record.bam_flags().is_reverse_complemented() {
-        record.alignment_end().map(usize::from).unwrap_or_default() as i32
-    } else {
-        record
-            .alignment_start()
-            .map(usize::from)
-            .unwrap_or_default() as i32
-    };
+    use std::cmp;
 
-    let end = if mate.bam_flags().is_reverse_complemented() {
-        mate.alignment_end().map(usize::from).unwrap_or_default() as i32
-    } else {
-        mate.alignment_start().map(usize::from).unwrap_or_default() as i32
-    };
+    let start = cmp::min(record.alignment_start(), mate.alignment_start())
+        .map(usize::from)
+        .expect("invalid start positions");
+
+    let end = cmp::max(record.alignment_end(), mate.alignment_end())
+        .map(usize::from)
+        .expect("invalid end positions");
 
     // "...the absolute value of TLEN equals the distance between the mapped end of the template
     // and the mapped start of the template, inclusively..."
-    let len = (end - start).abs() + 1;
-
-    // "The TLEN field is positive for the leftmost segment of the template, negative for the
-    // rightmost, and the sign for any middle segment is undefined. If segments cover the same
-    // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
     if start > end {
-        -len
+        (start - end + 1) as i32
     } else {
-        len
+        (end - start + 1) as i32
     }
 }
 
@@ -432,8 +425,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 101);
-        assert_eq!(calculate_template_size(&mate, &record), -101);
+        assert_eq!(calculate_template_size(&record, &mate), 150);
+        assert_eq!(calculate_template_size(&mate, &record), 150);
 
         // --> <--
         // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
@@ -450,7 +443,7 @@ mod tests {
             .build();
 
         assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), -150);
+        assert_eq!(calculate_template_size(&mate, &record), 150);
 
         // <-- -->
         let record = Record::builder()
@@ -464,8 +457,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 52);
-        assert_eq!(calculate_template_size(&mate, &record), -52);
+        assert_eq!(calculate_template_size(&record, &mate), 150);
+        assert_eq!(calculate_template_size(&mate, &record), 150);
 
         // <-- <--
         let record = Record::builder()
@@ -480,8 +473,8 @@ mod tests {
             .set_read_length(50)
             .build();
 
-        assert_eq!(calculate_template_size(&record, &mate), 101);
-        assert_eq!(calculate_template_size(&mate, &record), -101);
+        assert_eq!(calculate_template_size(&record, &mate), 150);
+        assert_eq!(calculate_template_size(&mate, &record), 150);
 
         Ok(())
     }
