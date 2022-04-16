@@ -1,0 +1,89 @@
+use std::vec;
+
+use futures::{stream, Stream};
+use noodles_fasta as fasta;
+use noodles_sam as sam;
+use tokio::io::{self, AsyncRead};
+
+use super::Reader;
+use crate::Record;
+
+struct Context<'a, R>
+where
+    R: AsyncRead + Unpin,
+{
+    reader: &'a mut Reader<R>,
+
+    reference_sequence_repository: &'a fasta::Repository,
+    header: &'a sam::Header,
+
+    records: vec::IntoIter<Record>,
+}
+
+pub fn records<'a, R>(
+    reader: &'a mut Reader<R>,
+    reference_sequence_repository: &'a fasta::Repository,
+    header: &'a sam::Header,
+) -> impl Stream<Item = io::Result<Record>> + 'a
+where
+    R: AsyncRead + Unpin,
+{
+    let ctx = Context {
+        reader,
+
+        reference_sequence_repository,
+        header,
+
+        records: Vec::new().into_iter(),
+    };
+
+    Box::pin(stream::try_unfold(ctx, |mut ctx| async {
+        loop {
+            match ctx.records.next() {
+                Some(record) => return Ok(Some((record, ctx))),
+                None => match read_next_container(&mut ctx).await {
+                    Some(Ok(records)) => ctx.records = records.into_iter(),
+                    Some(Err(e)) => return Err(e),
+                    None => return Ok(None),
+                },
+            }
+        }
+    }))
+}
+
+async fn read_next_container<R>(ctx: &mut Context<'_, R>) -> Option<io::Result<Vec<Record>>>
+where
+    R: AsyncRead + Unpin,
+{
+    let container = match ctx.reader.read_data_container().await {
+        Ok(Some(container)) => container,
+        Ok(None) => return None,
+        Err(e) => return Some(Err(e)),
+    };
+
+    let records = container
+        .slices()
+        .iter()
+        .map(|slice| {
+            let compression_header = container.compression_header();
+
+            slice.records(compression_header).and_then(|mut records| {
+                slice.resolve_records(
+                    ctx.reference_sequence_repository,
+                    ctx.header,
+                    compression_header,
+                    &mut records,
+                )?;
+
+                Ok(records)
+            })
+        })
+        .collect::<Result<Vec<_>, _>>();
+
+    let records = match records {
+        Ok(records) => records.into_iter().flatten().collect::<Vec<_>>(),
+        Err(e) => return Some(Err(e)),
+    };
+
+    Some(Ok(records))
+}

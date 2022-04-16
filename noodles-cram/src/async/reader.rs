@@ -1,11 +1,15 @@
 mod container;
 mod data_container;
 mod num;
+mod records;
 
 use bytes::BytesMut;
+use futures::Stream;
+use noodles_fasta as fasta;
+use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt, SeekFrom};
 
-use crate::{file_definition::Version, DataContainer, FileDefinition};
+use crate::{file_definition::Version, DataContainer, FileDefinition, Record};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
@@ -132,6 +136,43 @@ where
         use self::data_container::read_data_container;
 
         read_data_container(&mut self.inner, &mut self.buf).await
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position.
+    ///
+    /// The (input) stream position is expected to be at the start of a data container.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_cram as cram;
+    /// use noodles_fasta as fasta;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::AsyncReader::new)?;
+    /// reader.read_file_definition().await?;
+    ///
+    /// let repository = fasta::Repository::default();
+    /// let header = reader.read_file_header().await?.parse()?;
+    /// let mut records = reader.records(&repository, &header);
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records<'a>(
+        &'a mut self,
+        reference_sequence_repository: &'a fasta::Repository,
+        header: &'a sam::Header,
+    ) -> impl Stream<Item = io::Result<Record>> + 'a {
+        use self::records::records;
+
+        records(self, reference_sequence_repository, header)
     }
 }
 
