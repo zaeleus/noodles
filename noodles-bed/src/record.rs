@@ -691,11 +691,11 @@ pub enum ParseError {
     InvalidStrand(strand::ParseError),
     /// The thick start position is missing.
     MissingThickStart,
-    /// The this start position is invalid.
+    /// The thick start position is invalid.
     InvalidThickStart,
     /// The thick end position is missing.
     MissingThickEnd,
-    /// The this end position is invalid.
+    /// The thick end position is invalid.
     InvalidThickEnd(num::ParseIntError),
     /// The color is missing.
     MissingColor,
