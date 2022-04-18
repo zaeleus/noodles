@@ -195,12 +195,9 @@ fn write_records(
         slice_alignment_start,
     );
 
-    for record in records {
-        // FIXME: For simplicity, all records are written as detached.
-        record.cram_bit_flags.insert(Flags::DETACHED);
-        record.cram_bit_flags.remove(Flags::HAS_MATE_DOWNSTREAM);
-        record.distance_to_next_fragment = None;
+    set_mates(records);
 
+    for record in records {
         record_writer.write_record(record)?;
     }
 
@@ -225,6 +222,52 @@ fn write_records(
         .collect::<Result<_, _>>()?;
 
     Ok((core_data_block, external_blocks))
+}
+
+fn set_mates(records: &mut [Record]) {
+    assert!(!records.is_empty());
+
+    let mut indices = HashMap::new();
+    let mut i = records.len() - 1;
+
+    loop {
+        let record = &mut records[i];
+        let flags = record.flags();
+
+        if flags.is_segmented() {
+            let read_name = record.read_name().cloned();
+
+            if let Some(j) = indices.insert(read_name, i) {
+                let mid = i + 1;
+                let (left, right) = records.split_at_mut(mid);
+
+                let record = &mut left[i];
+                let mate = &mut right[j - mid];
+
+                set_downstream_mate(i, record, j, mate);
+            } else {
+                set_detached(record);
+            }
+        } else {
+            set_detached(record);
+        }
+
+        if i == 0 {
+            break;
+        }
+
+        i -= 1;
+    }
+}
+
+fn set_downstream_mate(i: usize, record: &mut Record, j: usize, mate: &mut Record) {
+    record.distance_to_next_fragment = Some(j - i - 1);
+    record.cram_bit_flags.insert(Flags::HAS_MATE_DOWNSTREAM);
+    mate.cram_bit_flags.remove(Flags::DETACHED);
+}
+
+fn set_detached(record: &mut Record) {
+    record.cram_bit_flags.insert(Flags::DETACHED)
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.3.2 "Reference MD5 calculation"

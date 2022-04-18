@@ -8,6 +8,8 @@
     is now calculated from the leftmost to rightmost base, regardless of
     orientation.
 
+  * cram/data_container/slice/builder: Match mate by read name.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added
