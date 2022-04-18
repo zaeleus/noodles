@@ -149,8 +149,8 @@ where
         record: &dyn AlignmentRecord,
     ) -> io::Result<()> {
         const DELIMITER: &[u8] = b"\t";
-        const EQ: &str = "=";
-        const MISSING: &str = "*";
+        const EQ: &[u8] = b"=";
+        const MISSING: &[u8] = b"*";
 
         let qname = record
             .read_name()
@@ -162,7 +162,7 @@ where
             .transpose()?;
 
         let rname = reference_sequence
-            .map(|rs| rs.name().as_str())
+            .map(|rs| rs.name().as_bytes())
             .unwrap_or(MISSING);
 
         let pos = record
@@ -185,7 +185,7 @@ where
                     }
                 }
 
-                mate_reference_sequence.name().as_str()
+                mate_reference_sequence.name().as_ref()
             })
             .unwrap_or(MISSING);
 
@@ -194,13 +194,13 @@ where
             .map(usize::from)
             .unwrap_or_default();
 
-        self.inner.write_all(qname.as_bytes())?;
+        self.inner.write_all(qname)?;
 
         self.inner.write_all(DELIMITER)?;
         write_int(&mut self.inner, u16::from(record.flags()))?;
 
         self.inner.write_all(DELIMITER)?;
-        self.inner.write_all(rname.as_bytes())?;
+        self.inner.write_all(rname)?;
 
         self.inner.write_all(DELIMITER)?;
         write_int(&mut self.inner, pos)?;
@@ -212,7 +212,7 @@ where
         write_cigar(&mut self.inner, record.cigar())?;
 
         self.inner.write_all(DELIMITER)?;
-        self.inner.write_all(rnext.as_bytes())?;
+        self.inner.write_all(rnext)?;
 
         self.inner.write_all(DELIMITER)?;
         write_int(&mut self.inner, pnext)?;
