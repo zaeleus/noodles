@@ -5,7 +5,7 @@
 use std::{
     env,
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, BufWriter},
 };
 
 use noodles_sam as sam;
@@ -16,9 +16,13 @@ fn main() -> io::Result<()> {
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
     reader.read_header()?;
 
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = sam::Writer::new(BufWriter::new(handle));
+
     for result in reader.records() {
         let record = result?;
-        println!("{}", record);
+        writer.write_record(&record)?;
     }
 
     Ok(())
