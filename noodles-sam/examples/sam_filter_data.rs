@@ -8,26 +8,16 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_sam::{
-    self as sam,
-    record::data::field::{Tag, Value},
-    AlignmentRecord,
-};
+use noodles_sam::{self as sam, record::data::field::Tag, AlignmentRecord};
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
-    use sam::record::data::field::value::Type;
-
-    let value = record
-        .data()
-        .get(Tag::AlignmentHitCount)
-        .map(|field| field.value());
-
-    match value {
-        Some(Value::Int32(n)) => Ok(*n == 1),
-        Some(v) => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("expected {:?}, got {:?}", Type::Int32, v),
-        )),
+    match record.data().get(Tag::AlignmentHitCount) {
+        Some(field) => field.value().as_int().map(|hits| hits == 1).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected integer, got {:?}", field.value()),
+            )
+        }),
         None => Ok(false),
     }
 }
