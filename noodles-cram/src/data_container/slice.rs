@@ -132,6 +132,8 @@ impl Slice {
 
         self.resolve_quality_scores(records);
 
+        resolve_data(header, records)?;
+
         Ok(())
     }
 
@@ -329,6 +331,33 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
     } else {
         (end - start + 1) as i32
     }
+}
+
+fn resolve_data(header: &sam::Header, records: &mut [Record]) -> io::Result<()> {
+    use sam::record::data::{
+        field::{Tag, Value},
+        Field,
+    };
+
+    for record in records {
+        if let Some(read_group_id) = record.read_group_id() {
+            let read_group_name = header
+                .read_groups()
+                .get_index(read_group_id)
+                .map(|(_, rg)| rg.id().to_string())
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID")
+                })?;
+
+            let value = Value::try_from(read_group_name)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let rg = Field::new(Tag::ReadGroup, value);
+
+            record.tags.insert(rg);
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

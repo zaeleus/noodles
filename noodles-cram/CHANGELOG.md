@@ -10,6 +10,12 @@
 
   * cram/data_container/slice/builder: Match mate by read name.
 
+### Fixed
+
+  * cram/data_container/slice: Resolve read group ID.
+
+    This adds the `RG` field with the corresponding read group ID to data.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added
