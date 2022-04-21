@@ -1,18 +1,13 @@
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-    io,
-};
+use std::{collections::HashMap, io};
 
 use md5::{Digest, Md5};
-use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
 use crate::{
     container::{
         block::{self, CompressionMethod},
-        Block, ReferenceSequenceId,
+        Block, ReferenceSequenceContext, ReferenceSequenceId,
     },
     data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
     record::Flags,
@@ -27,6 +22,7 @@ const MAX_RECORD_COUNT: usize = 10240;
 #[derive(Debug, Default)]
 pub struct Builder {
     records: Vec<Record>,
+    reference_sequence_context: ReferenceSequenceContext,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -48,6 +44,25 @@ impl Builder {
             return Err(AddRecordError::SliceFull(record));
         }
 
+        if self.is_empty() {
+            self.reference_sequence_context = match (
+                record.reference_sequence_id(),
+                record.alignment_start(),
+                record.alignment_end(),
+            ) {
+                (Some(id), Some(start), Some(end)) => {
+                    ReferenceSequenceContext::Some(id, start, end)
+                }
+                _ => ReferenceSequenceContext::None,
+            };
+        } else {
+            self.reference_sequence_context.update(
+                record.reference_sequence_id(),
+                record.alignment_start(),
+                record.alignment_end(),
+            );
+        };
+
         self.records.push(record);
 
         Ok(self.records.last().unwrap())
@@ -60,19 +75,9 @@ impl Builder {
         compression_header: &CompressionHeader,
         record_counter: i64,
     ) -> io::Result<Slice> {
-        let slice_reference_sequence_id = find_slice_reference_sequence_id(&self.records);
-
-        let (slice_alignment_start, slice_alignment_end) = if slice_reference_sequence_id.is_some()
-        {
-            find_slice_alignment_positions(&self.records)?
-        } else {
-            (None, None)
-        };
-
         let (core_data_block, external_blocks) = write_records(
             compression_header,
-            slice_reference_sequence_id,
-            slice_alignment_start,
+            self.reference_sequence_context,
             &mut self.records,
         )?;
 
@@ -83,12 +88,8 @@ impl Builder {
             block_content_ids.push(block.content_id());
         }
 
-        let reference_md5 = match (
-            slice_reference_sequence_id,
-            slice_alignment_start,
-            slice_alignment_end,
-        ) {
-            (ReferenceSequenceId::Some(id), Some(start), Some(end)) => {
+        let reference_md5 = match self.reference_sequence_context {
+            ReferenceSequenceContext::Some(id, start, end) => {
                 let reference_sequence_name = header
                     .reference_sequences()
                     .get_index(id as usize)
@@ -107,22 +108,28 @@ impl Builder {
         };
 
         let mut builder = Header::builder()
-            .set_reference_sequence_id(slice_reference_sequence_id)
             .set_record_count(self.records.len())
             .set_record_counter(record_counter)
             .set_block_count(block_content_ids.len())
             .set_block_content_ids(block_content_ids)
             .set_reference_md5(reference_md5);
 
-        if let (Some(alignment_start), Some(alignment_end)) =
-            (slice_alignment_start, slice_alignment_end)
-        {
-            let alignment_span = usize::from(alignment_end) - usize::from(alignment_start) + 1;
+        builder = match self.reference_sequence_context {
+            ReferenceSequenceContext::Some(id, start, end) => {
+                let span = usize::from(end) - usize::from(start) + 1;
 
-            builder = builder
-                .set_alignment_start(alignment_start)
-                .set_alignment_span(alignment_span);
-        }
+                builder
+                    .set_reference_sequence_id(ReferenceSequenceId::Some(id))
+                    .set_alignment_start(start)
+                    .set_alignment_span(span)
+            }
+            ReferenceSequenceContext::None => {
+                builder.set_reference_sequence_id(ReferenceSequenceId::None)
+            }
+            ReferenceSequenceContext::Many => {
+                builder.set_reference_sequence_id(ReferenceSequenceId::Many)
+            }
+        };
 
         let header = builder.build();
 
@@ -130,48 +137,9 @@ impl Builder {
     }
 }
 
-fn find_slice_reference_sequence_id(records: &[Record]) -> ReferenceSequenceId {
-    assert!(!records.is_empty());
-
-    let reference_sequence_ids: HashSet<_> = records
-        .iter()
-        .map(|record| record.reference_sequence_id())
-        .collect();
-
-    match reference_sequence_ids.len() {
-        0 => unreachable!(),
-        1 => reference_sequence_ids
-            .into_iter()
-            .next()
-            .map(|reference_sequence_id| match reference_sequence_id {
-                Some(id) => ReferenceSequenceId::Some(id),
-                None => ReferenceSequenceId::None,
-            })
-            .expect("reference sequence IDs cannot be empty"),
-        _ => ReferenceSequenceId::Many,
-    }
-}
-
-fn find_slice_alignment_positions(
-    records: &[Record],
-) -> io::Result<(Option<Position>, Option<Position>)> {
-    assert!(!records.is_empty());
-
-    let mut slice_alignment_start = Position::new(usize::MAX);
-    let mut slice_alignment_end = None;
-
-    for record in records {
-        slice_alignment_start = cmp::min(record.alignment_start(), slice_alignment_start);
-        slice_alignment_end = cmp::max(record.alignment_end(), slice_alignment_end);
-    }
-
-    Ok((slice_alignment_start, slice_alignment_end))
-}
-
 fn write_records(
     compression_header: &CompressionHeader,
-    slice_reference_sequence_id: ReferenceSequenceId,
-    slice_alignment_start: Option<Position>,
+    reference_sequence_context: ReferenceSequenceContext,
     records: &mut [Record],
 ) -> io::Result<(Block, Vec<Block>)> {
     let mut core_data_writer = BitWriter::new(Vec::new());
@@ -186,6 +154,14 @@ fn write_records(
     for &block_content_id in compression_header.tag_encoding_map().keys() {
         external_data_writers.insert(block_content_id, Vec::new());
     }
+
+    let (slice_reference_sequence_id, slice_alignment_start) = match reference_sequence_context {
+        ReferenceSequenceContext::Some(id, start, _) => {
+            (ReferenceSequenceId::Some(id), Some(start))
+        }
+        ReferenceSequenceContext::None => (ReferenceSequenceId::None, None),
+        ReferenceSequenceContext::Many => (ReferenceSequenceId::Many, None),
+    };
 
     let mut record_writer = writer::record::Writer::new(
         compression_header,
