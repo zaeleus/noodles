@@ -433,15 +433,14 @@ mod tests {
         assert_eq!(records[2].read_name(), Some(&read_name_3));
 
         assert_eq!(records[3].read_name(), Some(&read_name_1));
-        // FIXME
-        /* assert_eq!(
+        assert_eq!(
             records[3].next_fragment_reference_sequence_id(),
             records[0].reference_sequence_id()
         );
         assert_eq!(
             records[3].mate_alignment_start(),
             records[0].alignment_start(),
-        ); */
+        );
 
         Ok(())
     }
