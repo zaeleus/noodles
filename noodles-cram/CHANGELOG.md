@@ -16,6 +16,8 @@
 
     This adds the `RG` field with the corresponding read group ID to data.
 
+  * cram/data_container/slice: Resolve read name if none is set.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

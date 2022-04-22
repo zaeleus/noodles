@@ -243,11 +243,6 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut i = 0;
 
     while i < records.len() - 1 {
-        if mate_indices[i].is_none() {
-            i += 1;
-            continue;
-        }
-
         let record = &mut records[i];
 
         if record.read_name().is_none() {
@@ -259,6 +254,11 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             record.read_name = read_name;
+        }
+
+        if mate_indices[i].is_none() {
+            i += 1;
+            continue;
         }
 
         let mut j = i;
@@ -429,8 +429,8 @@ mod tests {
             records[3].alignment_start(),
         );
 
-        // FIXME
-        // assert_eq!(records[2].read_name(), b"3");
+        let read_name_3 = ReadName::try_from(b"3".to_vec())?;
+        assert_eq!(records[2].read_name(), Some(&read_name_3));
 
         assert_eq!(records[3].read_name(), Some(&read_name_1));
         // FIXME
