@@ -11,7 +11,6 @@ pub use self::{
 use std::{cmp, error, fmt, io, num};
 
 use bytes::{BufMut, BytesMut};
-use noodles_core::Position;
 use noodles_sam as sam;
 
 use super::{data_container::Slice, writer, DataContainer};
@@ -46,15 +45,8 @@ impl Container {
         let mut blocks = vec![block];
         let mut landmarks = Vec::new();
 
-        let container_reference_sequence_id =
-            find_container_reference_sequence_id(data_container.slices())?;
-
-        let (container_alignment_start, container_alignment_end) =
-            if container_reference_sequence_id.is_some() {
-                find_container_alignment_positions(data_container.slices())?
-            } else {
-                (None, None)
-            };
+        let container_reference_sequence_context =
+            build_container_reference_sequence_context(data_container.slices())?;
 
         let mut container_record_count = 0;
         let container_record_counter = data_container
@@ -99,22 +91,26 @@ impl Container {
 
         let mut builder = Header::builder()
             .set_length(len)
-            .set_reference_sequence_id(container_reference_sequence_id)
             .set_record_count(container_record_count)
             .set_record_counter(container_record_counter)
             .set_base_count(base_count)
             .set_block_count(blocks.len())
             .set_landmarks(landmarks);
 
-        if let (Some(alignment_start), Some(alignment_end)) =
-            (container_alignment_start, container_alignment_end)
-        {
-            let alignment_span = usize::from(alignment_end) - usize::from(alignment_start) + 1;
-
-            builder = builder
-                .set_start_position(alignment_start)
-                .set_alignment_span(alignment_span);
-        }
+        builder = match container_reference_sequence_context {
+            ReferenceSequenceContext::Some(context) => builder
+                .set_reference_sequence_id(ReferenceSequenceId::Some(
+                    context.reference_sequence_id(),
+                ))
+                .set_start_position(context.alignment_start())
+                .set_alignment_span(context.alignment_span()),
+            ReferenceSequenceContext::None => {
+                builder.set_reference_sequence_id(ReferenceSequenceId::None)
+            }
+            ReferenceSequenceContext::Many => {
+                builder.set_reference_sequence_id(ReferenceSequenceId::Many)
+            }
+        };
 
         let header = builder.build();
 
@@ -134,11 +130,14 @@ impl Container {
     }
 }
 
-fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<ReferenceSequenceId> {
+fn build_container_reference_sequence_context(
+    slices: &[Slice],
+) -> io::Result<ReferenceSequenceContext> {
     assert!(!slices.is_empty());
 
     let first_slice = slices.first().expect("slices cannot be empty");
-    let container_reference_sequence_context = first_slice.header().reference_sequence_context();
+    let mut container_reference_sequence_context =
+        first_slice.header().reference_sequence_context();
 
     for slice in slices.iter().skip(1) {
         let slice_reference_sequence_context = slice.header().reference_sequence_context();
@@ -151,7 +150,24 @@ fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<Referenc
                 ReferenceSequenceContext::Some(container_context),
                 ReferenceSequenceContext::Some(slice_context),
             ) if container_context.reference_sequence_id()
-                == slice_context.reference_sequence_id() => {}
+                == slice_context.reference_sequence_id() =>
+            {
+                let alignment_start = cmp::min(
+                    container_context.alignment_start(),
+                    slice_context.alignment_start(),
+                );
+
+                let alignment_end = cmp::max(
+                    container_context.alignment_end(),
+                    slice_context.alignment_end(),
+                );
+
+                container_reference_sequence_context = ReferenceSequenceContext::some(
+                    container_context.reference_sequence_id(),
+                    alignment_start,
+                    alignment_end,
+                );
+            }
             (ReferenceSequenceContext::None, ReferenceSequenceContext::None) => {}
             (ReferenceSequenceContext::Many, ReferenceSequenceContext::Many) => {}
             _ => {
@@ -166,38 +182,7 @@ fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<Referenc
         }
     }
 
-    match container_reference_sequence_context {
-        ReferenceSequenceContext::Some(context) => {
-            Ok(ReferenceSequenceId::Some(context.reference_sequence_id()))
-        }
-        ReferenceSequenceContext::None => Ok(ReferenceSequenceId::None),
-        ReferenceSequenceContext::Many => Ok(ReferenceSequenceId::Many),
-    }
-}
-
-fn find_container_alignment_positions(
-    slices: &[Slice],
-) -> io::Result<(Option<Position>, Option<Position>)> {
-    assert!(!slices.is_empty());
-
-    let mut container_alignment_start = Position::new(usize::MAX);
-    let mut container_alignment_end = None;
-
-    for slice in slices {
-        match slice.header().reference_sequence_context() {
-            ReferenceSequenceContext::Some(context) => {
-                let slice_alignment_start = Some(context.alignment_start());
-                container_alignment_start =
-                    cmp::min(container_alignment_start, slice_alignment_start);
-
-                let slice_alignment_end = Some(context.alignment_end());
-                container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    Ok((container_alignment_start, container_alignment_end))
+    Ok(container_reference_sequence_context)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
