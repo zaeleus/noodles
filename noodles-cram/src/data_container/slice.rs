@@ -418,6 +418,7 @@ mod tests {
             records[0].mate_alignment_start(),
             records[1].alignment_start(),
         );
+        assert_eq!(records[0].template_size(), 12);
 
         assert_eq!(records[1].read_name(), Some(&read_name_1));
         assert_eq!(
@@ -428,6 +429,7 @@ mod tests {
             records[1].mate_alignment_start(),
             records[3].alignment_start(),
         );
+        assert_eq!(records[1].template_size(), -12);
 
         let read_name_3 = ReadName::try_from(b"3".to_vec())?;
         assert_eq!(records[2].read_name(), Some(&read_name_3));
@@ -441,6 +443,7 @@ mod tests {
             records[3].mate_alignment_start(),
             records[0].alignment_start(),
         );
+        assert_eq!(records[3].template_size(), -12);
 
         Ok(())
     }
