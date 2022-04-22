@@ -1,10 +1,10 @@
-use std::io;
+use std::{io, num::NonZeroUsize};
 
 use bytes::Buf;
 use noodles_core::Position;
 
 use crate::{
-    container::ReferenceSequenceId,
+    container::ReferenceSequenceContext,
     data_container::slice,
     reader::num::{get_itf8, get_ltf8},
 };
@@ -13,17 +13,7 @@ pub fn get_header<B>(src: &mut B) -> io::Result<slice::Header>
 where
     B: Buf,
 {
-    let reference_sequence_id = get_itf8(src).and_then(|n| {
-        ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let alignment_start = get_itf8(src)
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(Position::new)?;
-
-    let alignment_span = get_itf8(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let reference_sequence_context = get_reference_sequence_context(src)?;
 
     let record_count = get_itf8(src).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -44,8 +34,7 @@ where
     let optional_tags = get_optional_tags(src);
 
     let mut builder = slice::Header::builder()
-        .set_reference_sequence_id(reference_sequence_id)
-        .set_alignment_span(alignment_span)
+        .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(record_count)
         .set_record_counter(record_counter)
         .set_block_count(block_count)
@@ -53,15 +42,60 @@ where
         .set_reference_md5(reference_md5)
         .set_optional_tags(optional_tags);
 
-    if let Some(position) = alignment_start {
-        builder = builder.set_alignment_start(position);
-    }
-
     if let Some(id) = embedded_reference_bases_block_content_id {
         builder = builder.set_embedded_reference_bases_block_content_id(id);
     }
 
     Ok(builder.build())
+}
+
+fn get_reference_sequence_context<B>(src: &mut B) -> io::Result<ReferenceSequenceContext>
+where
+    B: Buf,
+{
+    const UNMAPPED: i32 = -1;
+    const MULTIREF: i32 = -2;
+
+    match get_itf8(src)? {
+        UNMAPPED => {
+            // Discard alignment start and span.
+            get_itf8(src)?;
+            get_itf8(src)?;
+            Ok(ReferenceSequenceContext::None)
+        }
+        MULTIREF => {
+            // Discard alignment start and span.
+            get_itf8(src)?;
+            get_itf8(src)?;
+            Ok(ReferenceSequenceContext::Many)
+        }
+        n => {
+            let reference_sequence_id =
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let alignment_start = get_itf8(src).and_then(|m| {
+                usize::try_from(m)
+                    .and_then(Position::try_from)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })?;
+
+            let alignment_span = get_itf8(src).and_then(|m| {
+                usize::try_from(m)
+                    .and_then(NonZeroUsize::try_from)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            })?;
+
+            let alignment_end = alignment_start
+                .checked_add(usize::from(alignment_span) - 1)
+                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+
+            Ok(ReferenceSequenceContext::some(
+                reference_sequence_id,
+                alignment_start,
+                alignment_end,
+            ))
+        }
+    }
 }
 
 fn get_block_content_ids<B>(src: &mut B) -> io::Result<Vec<i32>>
@@ -139,9 +173,11 @@ mod tests {
         let actual = get_header(&mut reader)?;
 
         let expected = slice::Header::builder()
-            .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_alignment_start(Position::try_from(3)?)
-            .set_alignment_span(5)
+            .set_reference_sequence_context(ReferenceSequenceContext::some(
+                2,
+                Position::try_from(3)?,
+                Position::try_from(7)?,
+            ))
             .set_record_count(8)
             .set_record_counter(13)
             .set_block_count(1)

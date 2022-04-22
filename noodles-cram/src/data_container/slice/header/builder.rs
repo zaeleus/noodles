@@ -1,13 +1,9 @@
-use noodles_core::Position;
-
 use super::Header;
-use crate::container::ReferenceSequenceId;
+use crate::container::ReferenceSequenceContext;
 
 #[derive(Default)]
 pub struct Builder {
-    reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Option<Position>,
-    alignment_span: usize,
+    reference_sequence_context: ReferenceSequenceContext,
     record_count: usize,
     record_counter: i64,
     block_count: usize,
@@ -18,18 +14,11 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn set_reference_sequence_id(mut self, reference_sequence_id: ReferenceSequenceId) -> Self {
-        self.reference_sequence_id = reference_sequence_id;
-        self
-    }
-
-    pub fn set_alignment_start(mut self, alignment_start: Position) -> Self {
-        self.alignment_start = Some(alignment_start);
-        self
-    }
-
-    pub fn set_alignment_span(mut self, alignment_span: usize) -> Self {
-        self.alignment_span = alignment_span;
+    pub fn set_reference_sequence_context(
+        mut self,
+        reference_sequence_context: ReferenceSequenceContext,
+    ) -> Self {
+        self.reference_sequence_context = reference_sequence_context;
         self
     }
 
@@ -70,9 +59,7 @@ impl Builder {
 
     pub fn build(self) -> Header {
         Header {
-            reference_sequence_id: self.reference_sequence_id,
-            alignment_start: self.alignment_start,
-            alignment_span: self.alignment_span,
+            reference_sequence_context: self.reference_sequence_context,
             record_count: self.record_count,
             record_counter: self.record_counter,
             block_count: self.block_count,

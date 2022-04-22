@@ -59,6 +59,10 @@ impl ReferenceSequenceContext {
         ))
     }
 
+    pub fn is_many(&self) -> bool {
+        matches!(self, Self::Many)
+    }
+
     pub fn update(
         &mut self,
         reference_sequence_id: Option<usize>,

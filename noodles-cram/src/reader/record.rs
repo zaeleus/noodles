@@ -15,7 +15,7 @@ use noodles_sam::{
 
 use super::num::get_itf8;
 use crate::{
-    container::ReferenceSequenceId,
+    container::ReferenceSequenceContext,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries, encoding::Encoding,
@@ -63,7 +63,7 @@ where
     compression_header: &'a CompressionHeader,
     core_data_reader: BitReader<CDR>,
     external_data_readers: ExternalDataReaders<EDR>,
-    reference_sequence_id: ReferenceSequenceId,
+    reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
@@ -76,14 +76,18 @@ where
         compression_header: &'a CompressionHeader,
         core_data_reader: BitReader<CDR>,
         external_data_readers: ExternalDataReaders<EDR>,
-        reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Option<Position>,
+        reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
+        let initial_alignment_start = match reference_sequence_context {
+            ReferenceSequenceContext::Some(context) => Some(context.alignment_start()),
+            _ => None,
+        };
+
         Self {
             compression_header,
             core_data_reader,
             external_data_readers,
-            reference_sequence_id,
+            reference_sequence_context,
             prev_alignment_start: initial_alignment_start,
         }
     }
@@ -146,10 +150,10 @@ where
     }
 
     fn read_positional_data(&mut self, record: &mut Record) -> io::Result<usize> {
-        record.reference_sequence_id = match self.reference_sequence_id {
-            ReferenceSequenceId::Some(id) => Some(id),
-            ReferenceSequenceId::None => None,
-            ReferenceSequenceId::Many => self.read_reference_id()?,
+        record.reference_sequence_id = match self.reference_sequence_context {
+            ReferenceSequenceContext::Some(context) => Some(context.reference_sequence_id()),
+            ReferenceSequenceContext::None => None,
+            ReferenceSequenceContext::Many => self.read_reference_id()?,
         };
 
         let read_length = self.read_read_length()?;

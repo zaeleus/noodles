@@ -1,8 +1,7 @@
 use std::io::{self, Write};
 
-use noodles_core::Position;
-
 use crate::{
+    container::ReferenceSequenceContext,
     data_container::slice,
     writer::num::{write_itf8, write_ltf8},
 };
@@ -11,15 +10,7 @@ pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>
 where
     W: Write,
 {
-    let reference_sequence_id = i32::try_from(header.reference_sequence_id())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, reference_sequence_id)?;
-
-    write_alignment_start(writer, header.alignment_start())?;
-
-    let alignment_span = i32::try_from(header.alignment_span())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, alignment_span)?;
+    write_reference_sequence_context(writer, header.reference_sequence_context())?;
 
     let record_count = i32::try_from(header.record_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -47,16 +38,40 @@ where
     Ok(())
 }
 
-fn write_alignment_start<W>(writer: &mut W, alignment_start: Option<Position>) -> io::Result<()>
+fn write_reference_sequence_context<W>(
+    writer: &mut W,
+    reference_sequence_context: ReferenceSequenceContext,
+) -> io::Result<()>
 where
     W: Write,
 {
-    let n = alignment_start.map(usize::from).unwrap_or_default();
+    const MISSING: i32 = 0;
+    const UNMAPPED: i32 = -1;
+    const MULTIREF: i32 = -2;
 
-    let alignment_start =
-        i32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let (reference_sequence_id, alignment_start, alignment_span) = match reference_sequence_context
+    {
+        ReferenceSequenceContext::Some(context) => {
+            let id = i32::try_from(context.reference_sequence_id())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    write_itf8(writer, alignment_start)
+            let start = i32::try_from(usize::from(context.alignment_start()))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+            let span = i32::try_from(context.alignment_span())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+            (id, start, span)
+        }
+        ReferenceSequenceContext::None => (UNMAPPED, MISSING, MISSING),
+        ReferenceSequenceContext::Many => (MULTIREF, MISSING, MISSING),
+    };
+
+    write_itf8(writer, reference_sequence_id)?;
+    write_itf8(writer, alignment_start)?;
+    write_itf8(writer, alignment_span)?;
+
+    Ok(())
 }
 
 fn write_block_content_ids<W>(writer: &mut W, block_content_ids: &[i32]) -> io::Result<()>

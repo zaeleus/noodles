@@ -109,29 +109,14 @@ impl Builder {
             _ => [0; 16],
         };
 
-        let mut builder = Header::builder()
+        let header = Header::builder()
+            .set_reference_sequence_context(self.reference_sequence_context)
             .set_record_count(self.records.len())
             .set_record_counter(record_counter)
             .set_block_count(block_content_ids.len())
             .set_block_content_ids(block_content_ids)
-            .set_reference_md5(reference_md5);
-
-        builder = match self.reference_sequence_context {
-            ReferenceSequenceContext::Some(context) => builder
-                .set_reference_sequence_id(ReferenceSequenceId::Some(
-                    context.reference_sequence_id(),
-                ))
-                .set_alignment_start(context.alignment_start())
-                .set_alignment_span(context.alignment_span()),
-            ReferenceSequenceContext::None => {
-                builder.set_reference_sequence_id(ReferenceSequenceId::None)
-            }
-            ReferenceSequenceContext::Many => {
-                builder.set_reference_sequence_id(ReferenceSequenceId::Many)
-            }
-        };
-
-        let header = builder.build();
+            .set_reference_md5(reference_md5)
+            .build();
 
         Ok(Slice::new(header, core_data_block, external_blocks))
     }

@@ -2,15 +2,11 @@ mod builder;
 
 pub use builder::Builder;
 
-use noodles_core::Position;
-
-use crate::container::ReferenceSequenceId;
+use crate::container::ReferenceSequenceContext;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
-    reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Option<Position>,
-    alignment_span: usize,
+    reference_sequence_context: ReferenceSequenceContext,
     record_count: usize,
     record_counter: i64,
     block_count: usize,
@@ -25,23 +21,8 @@ impl Header {
         Builder::default()
     }
 
-    pub fn reference_sequence_id(&self) -> ReferenceSequenceId {
-        self.reference_sequence_id
-    }
-
-    pub fn alignment_start(&self) -> Option<Position> {
-        self.alignment_start
-    }
-
-    pub fn alignment_span(&self) -> usize {
-        self.alignment_span
-    }
-
-    pub fn alignment_end(&self) -> Option<Position> {
-        self.alignment_start().and_then(|start| {
-            let end = usize::from(start) + self.alignment_span() + 1;
-            Position::new(end)
-        })
+    pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {
+        self.reference_sequence_context
     }
 
     pub fn record_count(&self) -> usize {

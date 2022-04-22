@@ -71,7 +71,7 @@ fn push_index_records(
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
-    if slice.header().reference_sequence_id().is_many() {
+    if slice.header().reference_sequence_context().is_many() {
         push_index_records_for_multi_reference_slice(
             index,
             compression_header,
@@ -173,21 +173,19 @@ fn push_index_record_for_single_reference_slice(
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
-    use crate::container::ReferenceSequenceId;
+    use crate::container::ReferenceSequenceContext;
 
-    let slice_reference_sequence_id = slice_header.reference_sequence_id();
-
-    let (reference_sequence_id, alignment_start, alignment_span) = match slice_reference_sequence_id
-    {
-        ReferenceSequenceId::Some(id) => {
-            let reference_sequence_id = Some(id);
-            let alignment_start = slice_header.alignment_start();
-            let alignment_span = slice_header.alignment_span();
-            (reference_sequence_id, alignment_start, alignment_span)
-        }
-        ReferenceSequenceId::None => (None, None, 0),
-        ReferenceSequenceId::Many => unreachable!(),
-    };
+    let (reference_sequence_id, alignment_start, alignment_span) =
+        match slice_header.reference_sequence_context() {
+            ReferenceSequenceContext::Some(context) => {
+                let reference_sequence_id = Some(context.reference_sequence_id());
+                let alignment_start = Some(context.alignment_start());
+                let alignment_span = context.alignment_span();
+                (reference_sequence_id, alignment_start, alignment_span)
+            }
+            ReferenceSequenceContext::None => (None, None, 0),
+            ReferenceSequenceContext::Many => unreachable!(),
+        };
 
     let record = crai::Record::new(
         reference_sequence_id,

@@ -11,7 +11,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::CompressionHeader;
 use crate::{
-    container::Block,
+    container::{Block, ReferenceSequenceContext},
     record::resolve::{resolve_bases, resolve_quality_scores},
     BitReader, Record,
 };
@@ -92,8 +92,7 @@ impl Slice {
             compression_header,
             core_data_reader,
             external_data_readers,
-            self.header.reference_sequence_id(),
-            self.header.alignment_start(),
+            self.header.reference_sequence_context(),
         );
 
         let record_count = self.header().record_count();
@@ -185,11 +184,12 @@ impl Slice {
 
                 Some(sequence)
             } else if let Some(ref sequence) = embedded_reference_sequence {
-                let offset = self
-                    .header()
-                    .alignment_start()
-                    .map(usize::from)
-                    .expect("invalid slice alignment start");
+                let offset = match self.header().reference_sequence_context() {
+                    ReferenceSequenceContext::Some(context) => {
+                        usize::from(context.alignment_start())
+                    }
+                    _ => panic!("invalid slice alignment start"),
+                };
 
                 let start = usize::from(alignment_start) - offset + 1;
                 alignment_start = Position::try_from(start)

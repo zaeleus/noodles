@@ -138,23 +138,41 @@ fn find_container_reference_sequence_id(slices: &[Slice]) -> io::Result<Referenc
     assert!(!slices.is_empty());
 
     let first_slice = slices.first().expect("slices cannot be empty");
-    let container_reference_sequence_id = first_slice.header().reference_sequence_id();
+    let container_reference_sequence_context = first_slice.header().reference_sequence_context();
 
     for slice in slices.iter().skip(1) {
-        let slice_reference_sequence_id = slice.header().reference_sequence_id();
+        let slice_reference_sequence_context = slice.header().reference_sequence_context();
 
-        if slice_reference_sequence_id != container_reference_sequence_id {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!(
-                    "invalid slice reference sequence ID: expected {:?}, got {:?}",
-                    container_reference_sequence_id, slice_reference_sequence_id
-                ),
-            ));
+        match (
+            container_reference_sequence_context,
+            slice_reference_sequence_context,
+        ) {
+            (
+                ReferenceSequenceContext::Some(container_context),
+                ReferenceSequenceContext::Some(slice_context),
+            ) if container_context.reference_sequence_id()
+                == slice_context.reference_sequence_id() => {}
+            (ReferenceSequenceContext::None, ReferenceSequenceContext::None) => {}
+            (ReferenceSequenceContext::Many, ReferenceSequenceContext::Many) => {}
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!(
+                        "invalid slice reference sequence context: expected {:?}, got {:?}",
+                        container_reference_sequence_context, slice_reference_sequence_context
+                    ),
+                ));
+            }
         }
     }
 
-    Ok(container_reference_sequence_id)
+    match container_reference_sequence_context {
+        ReferenceSequenceContext::Some(context) => {
+            Ok(ReferenceSequenceId::Some(context.reference_sequence_id()))
+        }
+        ReferenceSequenceContext::None => Ok(ReferenceSequenceId::None),
+        ReferenceSequenceContext::Many => Ok(ReferenceSequenceId::Many),
+    }
 }
 
 fn find_container_alignment_positions(
@@ -166,13 +184,17 @@ fn find_container_alignment_positions(
     let mut container_alignment_end = None;
 
     for slice in slices {
-        let slice_header = slice.header();
+        match slice.header().reference_sequence_context() {
+            ReferenceSequenceContext::Some(context) => {
+                let slice_alignment_start = Some(context.alignment_start());
+                container_alignment_start =
+                    cmp::min(container_alignment_start, slice_alignment_start);
 
-        let slice_alignment_start = slice_header.alignment_start();
-        container_alignment_start = cmp::min(container_alignment_start, slice_alignment_start);
-
-        let slice_alignment_end = slice_header.alignment_end();
-        container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
+                let slice_alignment_end = Some(context.alignment_end());
+                container_alignment_end = cmp::max(container_alignment_end, slice_alignment_end);
+            }
+            _ => unreachable!(),
+        }
     }
 
     Ok((container_alignment_start, container_alignment_end))
