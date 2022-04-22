@@ -7,7 +7,7 @@ use noodles_sam::{self as sam, AlignmentRecord};
 use crate::{
     container::{
         block::{self, CompressionMethod},
-        Block, ReferenceSequenceContext, ReferenceSequenceId,
+        Block, ReferenceSequenceContext,
     },
     data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
     record::Flags,
@@ -140,21 +140,11 @@ fn write_records(
         external_data_writers.insert(block_content_id, Vec::new());
     }
 
-    let (slice_reference_sequence_id, slice_alignment_start) = match reference_sequence_context {
-        ReferenceSequenceContext::Some(context) => (
-            ReferenceSequenceId::Some(context.reference_sequence_id()),
-            Some(context.alignment_start()),
-        ),
-        ReferenceSequenceContext::None => (ReferenceSequenceId::None, None),
-        ReferenceSequenceContext::Many => (ReferenceSequenceId::Many, None),
-    };
-
     let mut record_writer = writer::record::Writer::new(
         compression_header,
         &mut core_data_writer,
         &mut external_data_writers,
-        slice_reference_sequence_id,
-        slice_alignment_start,
+        reference_sequence_context,
     );
 
     set_mates(records);

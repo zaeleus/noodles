@@ -16,7 +16,7 @@ use noodles_sam::{
 
 use super::num::write_itf8;
 use crate::{
-    container::ReferenceSequenceId,
+    container::ReferenceSequenceContext,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary, Encoding,
@@ -58,7 +58,7 @@ pub struct Writer<'a, W, X> {
     compression_header: &'a CompressionHeader,
     core_data_writer: &'a mut BitWriter<W>,
     external_data_writers: &'a mut HashMap<i32, X>,
-    reference_sequence_id: ReferenceSequenceId,
+    reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
@@ -71,14 +71,18 @@ where
         compression_header: &'a CompressionHeader,
         core_data_writer: &'a mut BitWriter<W>,
         external_data_writers: &'a mut HashMap<i32, X>,
-        reference_sequence_id: ReferenceSequenceId,
-        initial_alignment_start: Option<Position>,
+        reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
+        let initial_alignment_start = match reference_sequence_context {
+            ReferenceSequenceContext::Some(context) => Some(context.alignment_start()),
+            _ => None,
+        };
+
         Self {
             compression_header,
             core_data_writer,
             external_data_writers,
-            reference_sequence_id,
+            reference_sequence_context,
             prev_alignment_start: initial_alignment_start,
         }
     }
@@ -142,7 +146,7 @@ where
     }
 
     fn write_positional_data(&mut self, record: &Record) -> io::Result<()> {
-        if self.reference_sequence_id.is_many() {
+        if self.reference_sequence_context.is_many() {
             self.write_reference_id(record.reference_sequence_id())?;
         }
 
