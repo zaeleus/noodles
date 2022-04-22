@@ -271,7 +271,6 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             let mate = &mut right[mate_index - mid];
             set_mate(record, mate);
 
-            mate_indices[j] = None;
             j = mate_index;
         }
 
@@ -284,8 +283,16 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         // rightmost, and the sign for any middle segment is undefined. If segments cover the same
         // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
         let template_size = calculate_template_size(record, mate);
-        record.template_size = -template_size;
-        mate.template_size = template_size;
+        records[i].template_size = template_size;
+
+        let mut j = i;
+
+        while let Some(mate_index) = mate_indices[j] {
+            let record = &mut records[mate_index];
+            record.template_size = -template_size;
+            mate_indices[j] = None;
+            j = mate_index;
+        }
 
         i += 1;
     }
