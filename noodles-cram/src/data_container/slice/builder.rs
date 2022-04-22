@@ -51,7 +51,7 @@ impl Builder {
                 record.alignment_end(),
             ) {
                 (Some(id), Some(start), Some(end)) => {
-                    ReferenceSequenceContext::Some(id, start, end)
+                    ReferenceSequenceContext::some(id, start, end)
                 }
                 _ => ReferenceSequenceContext::None,
             };
@@ -89,10 +89,10 @@ impl Builder {
         }
 
         let reference_md5 = match self.reference_sequence_context {
-            ReferenceSequenceContext::Some(id, start, end) => {
+            ReferenceSequenceContext::Some(context) => {
                 let reference_sequence_name = header
                     .reference_sequences()
-                    .get_index(id as usize)
+                    .get_index(context.reference_sequence_id())
                     .map(|(_, rs)| rs.name())
                     .expect("invalid reference sequence ID");
 
@@ -101,7 +101,9 @@ impl Builder {
                     .expect("missing reference sequence")
                     .expect("invalid reference sequence");
 
+                let (start, end) = (context.alignment_start(), context.alignment_end());
                 let sequence = &reference_sequence[start..=end];
+
                 calculate_normalized_sequence_digest(sequence)
             }
             _ => [0; 16],
@@ -115,14 +117,12 @@ impl Builder {
             .set_reference_md5(reference_md5);
 
         builder = match self.reference_sequence_context {
-            ReferenceSequenceContext::Some(id, start, end) => {
-                let span = usize::from(end) - usize::from(start) + 1;
-
-                builder
-                    .set_reference_sequence_id(ReferenceSequenceId::Some(id))
-                    .set_alignment_start(start)
-                    .set_alignment_span(span)
-            }
+            ReferenceSequenceContext::Some(context) => builder
+                .set_reference_sequence_id(ReferenceSequenceId::Some(
+                    context.reference_sequence_id(),
+                ))
+                .set_alignment_start(context.alignment_start())
+                .set_alignment_span(context.alignment_span()),
             ReferenceSequenceContext::None => {
                 builder.set_reference_sequence_id(ReferenceSequenceId::None)
             }
@@ -156,9 +156,10 @@ fn write_records(
     }
 
     let (slice_reference_sequence_id, slice_alignment_start) = match reference_sequence_context {
-        ReferenceSequenceContext::Some(id, start, _) => {
-            (ReferenceSequenceId::Some(id), Some(start))
-        }
+        ReferenceSequenceContext::Some(context) => (
+            ReferenceSequenceId::Some(context.reference_sequence_id()),
+            Some(context.alignment_start()),
+        ),
         ReferenceSequenceContext::None => (ReferenceSequenceId::None, None),
         ReferenceSequenceContext::Many => (ReferenceSequenceId::Many, None),
     };
