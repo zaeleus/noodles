@@ -160,6 +160,46 @@ impl Slice {
             None
         };
 
+        // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
+        // expected to check for reference MD5 checksums and report any missing or
+        // mismatching entries."
+        if compression_header
+            .preservation_map()
+            .is_reference_required()
+        {
+            if let ReferenceSequenceContext::Some(context) =
+                self.header().reference_sequence_context()
+            {
+                let reference_sequence_name = header
+                    .reference_sequences()
+                    .get_index(context.reference_sequence_id())
+                    .map(|(_, rs)| rs.name())
+                    .expect("invalid slice reference sequence ID");
+
+                let sequence = reference_sequence_repository
+                    .get(reference_sequence_name)
+                    .transpose()?
+                    .expect("invalid slice reference sequence name");
+
+                let start = context.alignment_start();
+                let end = context.alignment_end();
+
+                let actual_md5 =
+                    builder::calculate_normalized_sequence_digest(&sequence[start..=end]);
+                let expected_md5 = self.header().reference_md5();
+
+                if actual_md5 != expected_md5 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!(
+                            "reference sequence checksum mismatch: expected {:?}, got {:?}",
+                            expected_md5, actual_md5
+                        ),
+                    ));
+                }
+            }
+        }
+
         for record in records {
             if record.bam_flags().is_unmapped() || record.cram_flags().decode_sequence_as_unknown()
             {

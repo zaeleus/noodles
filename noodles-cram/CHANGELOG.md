@@ -8,6 +8,12 @@
     is now calculated from the leftmost to rightmost base, regardless of
     orientation.
 
+  * cram/data_container/slice: Verify reference sequence checksum.
+
+    § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations
+    are expected to check for reference MD5 checksums and report any missing or
+    mismatching entries."
+
   * cram/data_container/slice/builder: Match mate by read name.
 
 ### Fixed
