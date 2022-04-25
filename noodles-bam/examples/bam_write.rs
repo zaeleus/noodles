@@ -1,6 +1,6 @@
 //! Creates a new BAM file.
 //!
-//! This writes a SAM header, reference sequences, and three unmapped records to stdout.
+//! This writes a SAM header, reference sequences, and one unmapped record to stdout.
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
@@ -26,10 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;
 
-    for _ in 0..3 {
-        let record = bam::Record::default();
-        writer.write_record(&record)?;
-    }
+    let record = bam::Record::default();
+    writer.write_record(&record)?;
 
     Ok(())
 }
