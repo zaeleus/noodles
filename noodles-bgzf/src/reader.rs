@@ -253,13 +253,16 @@ where
 /// from the end of the block.
 ///
 /// This returns the length of the uncompressed data (`ISIZE`).
-fn read_trailer<R>(reader: &mut R) -> io::Result<u32>
+fn read_trailer<R>(reader: &mut R) -> io::Result<usize>
 where
     R: Read,
 {
     let mut trailer = [0; gz::TRAILER_SIZE];
     reader.read_exact(&mut trailer)?;
-    let r#isize = LittleEndian::read_u32(&trailer[4..]);
+
+    let r#isize = usize::try_from(LittleEndian::read_u32(&trailer[4..]))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     Ok(r#isize)
 }
 
@@ -308,9 +311,7 @@ where
     buf.resize(cdata_len, Default::default());
     reader.read_exact(buf)?;
 
-    let ulen = read_trailer(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
+    let ulen = read_trailer(reader)?;
 
     Ok((clen, ulen))
 }
