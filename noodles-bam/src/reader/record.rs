@@ -36,49 +36,46 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf)?;
 
-    decode_record(&buf[..], record)?;
+    decode_record(buf, record)?;
 
     Ok(block_size)
 }
 
-pub(crate) fn decode_record<B>(mut src: B, record: &mut Record) -> io::Result<()>
-where
-    B: Buf,
-{
+pub(crate) fn decode_record(src: &mut BytesMut, record: &mut Record) -> io::Result<()> {
     use self::{
         cigar::get_cigar, data::get_data, quality_scores::get_quality_scores,
         read_name::get_read_name, sequence::get_sequence,
     };
 
-    *record.reference_sequence_id_mut() = get_reference_sequence_id(&mut src)?;
-    *record.position_mut() = get_position(&mut src)?;
+    *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
+    *record.position_mut() = get_position(src)?;
 
     let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
-    *record.mapping_quality_mut() = get_mapping_quality(&mut src)?;
+    *record.mapping_quality_mut() = get_mapping_quality(src)?;
 
     // Discard bin.
     src.advance(mem::size_of::<u16>());
 
     let n_cigar_op = usize::from(src.get_u16_le());
 
-    *record.flags_mut() = get_flags(&mut src)?;
+    *record.flags_mut() = get_flags(src)?;
 
     let l_seq = usize::try_from(src.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(&mut src)?;
-    *record.mate_position_mut() = get_position(&mut src)?;
+    *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src)?;
+    *record.mate_position_mut() = get_position(src)?;
 
     *record.template_length_mut() = src.get_i32_le();
 
-    get_read_name(&mut src, record.read_name_mut(), l_read_name)?;
-    get_cigar(&mut src, record.cigar_mut(), n_cigar_op)?;
-    get_sequence(&mut src, record.sequence_mut(), l_seq)?;
-    get_quality_scores(&mut src, record.quality_scores_mut(), l_seq)?;
+    get_read_name(src, record.read_name_mut(), l_read_name)?;
+    get_cigar(src, record.cigar_mut(), n_cigar_op)?;
+    get_sequence(src, record.sequence_mut(), l_seq)?;
+    get_quality_scores(src, record.quality_scores_mut(), l_seq)?;
 
-    get_data(&mut src, record.data_mut())?;
+    get_data(src, record.data_mut())?;
 
     Ok(())
 }
@@ -181,17 +178,18 @@ mod tests {
 
     #[test]
     fn test_decode_record_with_invalid_l_read_name() {
-        let data = [
-            0xff, 0xff, 0xff, 0xff, // ref_id = -1
-            0xff, 0xff, 0xff, 0xff, // pos = -1
-            0x00, // l_read_name = 0
-        ];
+        let mut data = BytesMut::from(
+            &[
+                0xff, 0xff, 0xff, 0xff, // ref_id = -1
+                0xff, 0xff, 0xff, 0xff, // pos = -1
+                0x00, // l_read_name = 0
+            ][..],
+        );
 
-        let mut reader = &data[..];
         let mut record = Record::default();
 
         assert!(matches!(
-            decode_record(&mut reader, &mut record),
+            decode_record(&mut data, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }

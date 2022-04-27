@@ -24,7 +24,7 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    decode_record(&buf[..], record)?;
+    decode_record(buf, record)?;
 
     Ok(block_size)
 }
