@@ -66,13 +66,13 @@ impl Record {
             builder = builder.set_tags(data);
         }
 
-        builder = builder.set_bases(record.sequence().clone());
+        builder = builder.set_bases(record.sequence());
 
         if !bam_flags.is_unmapped() {
             let features = Features::from_cigar(
                 flags,
                 record.cigar(),
-                record.sequence(),
+                &record.sequence(),
                 record.quality_scores(),
             );
 

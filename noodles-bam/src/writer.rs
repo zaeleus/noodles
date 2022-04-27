@@ -486,7 +486,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let expected = "ATCG".parse()?;
-        assert_eq!(record.sequence(), &expected);
+        assert_eq!(record.sequence(), expected);
 
         assert!(record.quality_scores().is_empty());
 
@@ -513,7 +513,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let expected = "ATCG".parse()?;
-        assert_eq!(record.sequence(), &expected);
+        assert_eq!(record.sequence(), expected);
 
         assert_eq!(record.quality_scores(), sam_record.quality_scores());
 

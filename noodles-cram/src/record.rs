@@ -204,8 +204,8 @@ impl sam::AlignmentRecord for Record {
         self.template_size
     }
 
-    fn sequence(&self) -> &sam::record::Sequence {
-        &self.bases
+    fn sequence(&self) -> sam::record::Sequence {
+        self.bases.clone()
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

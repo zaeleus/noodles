@@ -70,7 +70,7 @@ where
     let quality_scores = record.quality_scores();
 
     // seq
-    put_sequence(dst, sequence);
+    put_sequence(dst, &sequence);
 
     if sequence.len() == quality_scores.len() {
         put_quality_scores(dst, quality_scores);

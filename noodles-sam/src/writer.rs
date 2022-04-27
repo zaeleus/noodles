@@ -221,7 +221,7 @@ where
         write_int(&mut self.inner, record.template_length())?;
 
         self.inner.write_all(DELIMITER)?;
-        write_sequence(&mut self.inner, record.sequence())?;
+        write_sequence(&mut self.inner, &record.sequence())?;
 
         self.inner.write_all(DELIMITER)?;
         write_quality_scores(&mut self.inner, record.quality_scores())?;

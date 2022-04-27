@@ -297,7 +297,7 @@ impl Record {
     /// let mut record = bam::Record::default();
     /// *record.sequence_mut() = sequence.clone();
     ///
-    /// assert_eq!(record.sequence(), &sequence);
+    /// assert_eq!(record.sequence(), sequence);
     /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut sam::record::Sequence {
@@ -440,8 +440,8 @@ impl sam::AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> &sam::record::Sequence {
-        &self.sequence
+    fn sequence(&self) -> sam::record::Sequence {
+        self.sequence.clone()
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

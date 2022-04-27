@@ -71,7 +71,7 @@ pub trait AlignmentRecord {
     fn template_length(&self) -> i32;
 
     /// Returns the sequence.
-    fn sequence(&self) -> &Sequence;
+    fn sequence(&self) -> Sequence;
 
     /// Returns the quality scores.
     fn quality_scores(&self) -> &QualityScores;
@@ -130,7 +130,7 @@ where
         (**self).template_length()
     }
 
-    fn sequence(&self) -> &Sequence {
+    fn sequence(&self) -> Sequence {
         (**self).sequence()
     }
 

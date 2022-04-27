@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment_record: Change `AlignmentRecord::sequence` to return a copy.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

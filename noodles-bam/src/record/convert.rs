@@ -98,8 +98,10 @@ impl Record {
 
         builder = builder.set_template_length(self.template_length());
 
-        if !self.sequence().is_empty() {
-            builder = builder.set_sequence(self.sequence().clone());
+        let sequence = self.sequence();
+
+        if !sequence.is_empty() {
+            builder = builder.set_sequence(sequence);
         }
 
         if !self.quality_scores().is_empty() {

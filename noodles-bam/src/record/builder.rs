@@ -213,7 +213,7 @@ impl Builder {
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.sequence(), &sequence);
+    /// assert_eq!(record.sequence(), sequence);
     /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: sam::record::Sequence) -> Self {
