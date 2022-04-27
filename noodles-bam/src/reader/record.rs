@@ -13,7 +13,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use bytes::Buf;
+use bytes::{Buf, BytesMut};
 use noodles_core::Position;
 use noodles_sam as sam;
 
@@ -21,7 +21,7 @@ use crate::Record;
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
-    buf: &mut Vec<u8>,
+    buf: &mut BytesMut,
     record: &mut Record,
 ) -> io::Result<usize>
 where
@@ -169,8 +169,9 @@ mod tests {
         ];
 
         let mut reader = &data[..];
+        let mut buf = BytesMut::new();
         let mut record = Record::default();
-        let block_size = read_record(&mut reader, &mut Vec::new(), &mut record)?;
+        let block_size = read_record(&mut reader, &mut buf, &mut record)?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, Record::default());
