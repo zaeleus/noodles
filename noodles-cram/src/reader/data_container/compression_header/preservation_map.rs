@@ -202,7 +202,10 @@ mod tests {
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
         ]);
 
-        assert!(get_preservation_map(&mut data).is_err());
+        assert!(matches!(
+            get_preservation_map(&mut data),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
     }
 
     #[test]
@@ -215,7 +218,10 @@ mod tests {
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
         ]);
 
-        assert!(get_preservation_map(&mut data).is_err());
+        assert!(matches!(
+            get_preservation_map(&mut data),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
     }
 
     #[test]
