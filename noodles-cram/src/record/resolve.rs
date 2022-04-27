@@ -4,7 +4,7 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, record::sequence::Base};
+use noodles_sam::{self as sam, alignment::record::sequence::Base};
 
 use crate::data_container::compression_header::SubstitutionMatrix;
 
@@ -19,8 +19,8 @@ pub(crate) fn resolve_bases(
     features: &Features,
     alignment_start: Position,
     read_length: usize,
-) -> io::Result<sam::record::Sequence> {
-    let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
+) -> io::Result<sam::alignment::record::Sequence> {
+    let mut buf = sam::alignment::record::Sequence::from(vec![Base::N; read_length]);
 
     let mut it = features.with_positions(alignment_start);
 
@@ -215,7 +215,7 @@ mod tests {
         let substitution_matrix = Default::default();
         let alignment_start = Position::try_from(1)?;
 
-        let t = |features: &Features, expected: &sam::record::Sequence| {
+        let t = |features: &Features, expected: &sam::alignment::record::Sequence| {
             let actual = resolve_bases(
                 Some(&reference_sequence),
                 &substitution_matrix,

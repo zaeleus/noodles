@@ -441,8 +441,8 @@ impl sam::AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> sam::record::Sequence {
-        sam::record::Sequence::from(&self.sequence)
+    fn sequence(&self) -> sam::alignment::record::Sequence {
+        (&self.sequence).into()
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

@@ -1,8 +1,5 @@
 use noodles_core::Position;
-use noodles_sam::{
-    self as sam,
-    record::{quality_scores::Score, sequence::Base},
-};
+use noodles_sam::{self as sam, alignment::record::sequence::Base, record::quality_scores::Score};
 
 use super::{Feature, Features, Flags, NextMateFlags, Record};
 
@@ -22,7 +19,7 @@ pub struct Builder {
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
     tags: sam::record::Data,
-    bases: sam::record::Sequence,
+    bases: sam::alignment::record::Sequence,
     features: Features,
     mapping_quality: Option<sam::record::MappingQuality>,
     quality_scores: sam::record::QualityScores,
@@ -123,7 +120,7 @@ impl Builder {
     }
 
     /// Sets the read bases.
-    pub fn set_bases(mut self, bases: sam::record::Sequence) -> Self {
+    pub fn set_bases(mut self, bases: sam::alignment::record::Sequence) -> Self {
         self.bases = bases;
         self
     }
@@ -207,7 +204,7 @@ impl Default for Builder {
             template_size: 0,
             distance_to_next_fragment: None,
             tags: sam::record::Data::default(),
-            bases: sam::record::Sequence::default(),
+            bases: sam::alignment::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,
             quality_scores: sam::record::QualityScores::default(),

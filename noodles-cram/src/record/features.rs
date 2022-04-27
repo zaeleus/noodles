@@ -21,7 +21,7 @@ impl Features {
     pub fn from_cigar(
         flags: Flags,
         cigar: &sam::record::Cigar,
-        sequence: &sam::record::Sequence,
+        sequence: &sam::alignment::record::Sequence,
         quality_scores: &sam::record::QualityScores,
     ) -> Self {
         cigar_to_features(flags, cigar, sequence, quality_scores)
@@ -58,7 +58,7 @@ impl From<Vec<Feature>> for Features {
 fn cigar_to_features(
     flags: Flags,
     cigar: &sam::record::Cigar,
-    sequence: &sam::record::Sequence,
+    sequence: &sam::alignment::record::Sequence,
     quality_scores: &sam::record::QualityScores,
 ) -> Features {
     use sam::record::cigar::op::Kind;
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_cigar_to_features() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{quality_scores::Score, sequence::Base};
+        use sam::{alignment::record::sequence::Base, record::quality_scores::Score};
 
         let flags = Flags::default();
 
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn test_cigar_to_features_with_quality_scores_stored_as_array(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{quality_scores::Score, sequence::Base};
+        use sam::{alignment::record::sequence::Base, record::quality_scores::Score};
 
         let flags = Flags::QUALITY_SCORES_STORED_AS_ARRAY;
 

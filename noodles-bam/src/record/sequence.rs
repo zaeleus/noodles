@@ -77,7 +77,7 @@ impl AsRef<[u8]> for Sequence {
 }
 
 /// An error returned when a raw alignment record sequence fails to parse.
-pub type ParseError = sam::record::sequence::ParseError;
+pub type ParseError = sam::alignment::record::sequence::ParseError;
 
 impl FromStr for Sequence {
     type Err = ParseError;
@@ -88,8 +88,8 @@ impl FromStr for Sequence {
     }
 }
 
-impl From<&sam::record::Sequence> for Sequence {
-    fn from(sequence: &sam::record::Sequence) -> Self {
+impl From<&sam::alignment::record::Sequence> for Sequence {
+    fn from(sequence: &sam::alignment::record::Sequence) -> Self {
         use crate::writer::record::put_sequence;
 
         let len = sequence.len();
@@ -100,12 +100,12 @@ impl From<&sam::record::Sequence> for Sequence {
     }
 }
 
-impl From<&Sequence> for sam::record::Sequence {
+impl From<&Sequence> for sam::alignment::record::Sequence {
     fn from(bam_sequence: &Sequence) -> Self {
         use crate::reader::alignment_record::get_sequence;
 
         let mut data = &bam_sequence.buf[..];
-        let mut sam_sequence = sam::record::Sequence::default();
+        let mut sam_sequence = sam::alignment::record::Sequence::default();
         // FIXME
         get_sequence(&mut data, &mut sam_sequence, bam_sequence.len()).unwrap();
 
@@ -118,7 +118,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sam_record_sequence_for_sequence() -> Result<(), sam::record::sequence::ParseError> {
+    fn test_sam_alignment_record_sequence_for_sequence(
+    ) -> Result<(), sam::alignment::record::sequence::ParseError> {
         let sam_sequence = "ACGT".parse()?;
         let actual = Sequence::from(&sam_sequence);
 
@@ -133,13 +134,13 @@ mod tests {
     }
 
     #[test]
-    fn test_from_sequence_for_sam_record_sequence() -> Result<(), sam::record::sequence::ParseError>
-    {
+    fn test_from_sequence_for_sam_alignment_record_sequence(
+    ) -> Result<(), sam::alignment::record::sequence::ParseError> {
         let bam_sequence = Sequence {
             buf: BytesMut::from(&[0x12, 0x48][..]),
             len: 4,
         };
-        let actual = sam::record::Sequence::from(&bam_sequence);
+        let actual = sam::alignment::record::Sequence::from(&bam_sequence);
 
         let expected = "ACGT".parse()?;
 

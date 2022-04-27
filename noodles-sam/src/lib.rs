@@ -34,6 +34,7 @@
 #[cfg(feature = "async")]
 mod r#async;
 
+pub mod alignment;
 mod alignment_reader;
 mod alignment_record;
 mod alignment_writer;

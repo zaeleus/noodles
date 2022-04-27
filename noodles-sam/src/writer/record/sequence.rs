@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::record::Sequence;
+use crate::alignment::record::Sequence;
 
 pub fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
 where
@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_write_sequence() -> io::Result<()> {
-        use crate::record::sequence::Base;
+        use crate::alignment::record::sequence::Base;
 
         let mut buf = Vec::new();
         write_sequence(&mut buf, &Sequence::default())?;

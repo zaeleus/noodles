@@ -1,13 +1,9 @@
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::{self as sam, record::sequence::Base};
+use noodles_sam::alignment::record::{sequence::Base, Sequence};
 
-pub fn get_sequence<B>(
-    src: &mut B,
-    sequence: &mut sam::record::Sequence,
-    l_seq: usize,
-) -> io::Result<()>
+pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
 where
     B: Buf,
 {
@@ -60,14 +56,14 @@ mod tests {
 
     #[test]
     fn test_get_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: &sam::record::Sequence) -> io::Result<()> {
-            let mut actual = sam::record::Sequence::default();
+        fn t(mut src: &[u8], expected: &Sequence) -> io::Result<()> {
+            let mut actual = Sequence::default();
             get_sequence(&mut src, &mut actual, expected.len())?;
             assert_eq!(&actual, expected);
             Ok(())
         }
 
-        t(&[], &sam::record::Sequence::default())?;
+        t(&[], &Sequence::default())?;
         t(&[0x12, 0x40], &"ACG".parse()?)?;
         t(&[0x12, 0x48], &"ACGT".parse()?)?;
 

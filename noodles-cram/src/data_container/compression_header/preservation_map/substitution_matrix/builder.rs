@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::Sequence;
+        use sam::alignment::record::Sequence;
 
         use crate::record::feature::substitution::{self, Base};
 

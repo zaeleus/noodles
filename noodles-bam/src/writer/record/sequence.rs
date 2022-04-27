@@ -1,7 +1,7 @@
 use bytes::BufMut;
-use noodles_sam::{self as sam, record::sequence::Base};
+use noodles_sam::alignment::record::{sequence::Base, Sequence};
 
-pub fn put_sequence<B>(dst: &mut B, sequence: &sam::record::Sequence)
+pub fn put_sequence<B>(dst: &mut B, sequence: &Sequence)
 where
     B: BufMut,
 {
@@ -42,11 +42,13 @@ fn encode_base(base: Base) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam as sam;
+
     use super::*;
 
     #[test]
-    fn test_put_sequence() -> Result<(), sam::record::sequence::ParseError> {
-        fn t(buf: &mut Vec<u8>, sequence: &sam::record::Sequence, expected: &[u8]) {
+    fn test_put_sequence() -> Result<(), sam::alignment::record::sequence::ParseError> {
+        fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) {
             buf.clear();
             put_sequence(buf, sequence);
             assert_eq!(buf, expected);
@@ -54,7 +56,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &sam::record::Sequence::default(), &[]);
+        t(&mut buf, &Sequence::default(), &[]);
         t(&mut buf, &"ACG".parse()?, &[0x12, 0x40]);
         t(&mut buf, &"ACGT".parse()?, &[0x12, 0x48]);
 

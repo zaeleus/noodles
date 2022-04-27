@@ -1,4 +1,4 @@
-//! SAM record sequence and bases.
+//! Alignment record sequence and bases.
 
 pub mod base;
 
@@ -12,7 +12,7 @@ use std::{
 
 use noodles_core::position::SequenceIndex;
 
-/// A SAM record sequence.
+/// An alignment record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<Base>);
 
@@ -22,7 +22,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Sequence;
+    /// use noodles_sam::alignment::record::Sequence;
     /// let sequence = Sequence::default();
     /// assert!(sequence.is_empty());
     /// ```
@@ -35,7 +35,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Sequence;
+    /// use noodles_sam::alignment::record::Sequence;
     /// let sequence = Sequence::default();
     /// assert_eq!(sequence.len(), 0);
     /// ```
@@ -50,7 +50,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
+    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence = Sequence::from(vec![Base::N]);
     /// assert!(!sequence.is_empty());
@@ -68,7 +68,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::record::{sequence::Base, Sequence};
+    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
     ///
     /// let sequence: Sequence = "ATCG".parse()?;
     ///
@@ -92,7 +92,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::record::{sequence::Base, Sequence};
+    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence: Sequence = "ATCG".parse()?;
     ///
@@ -116,7 +116,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{sequence::Base, Sequence};
+    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence = Sequence::default();
     /// sequence.push(Base::N);
@@ -158,7 +158,7 @@ impl fmt::Display for Sequence {
     }
 }
 
-/// An error returned when a raw SAM record sequence fails to parse.
+/// An error returned when a raw alignment record sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is empty.

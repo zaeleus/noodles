@@ -6,6 +6,18 @@
 
   * sam/alignment_record: Change `AlignmentRecord::sequence` to return a copy.
 
+  * sam/alignment/record: Move `sam::record::Sequence` under `sam::alignment`.
+
+### Deprecated
+
+  * sam/record: Deprecate `sam::record::sequence`.
+
+    Use `sam::alignment::record::sequence` instead.
+
+  * sam/record: Deprecate `sam::record::Sequence`.
+
+    Use `sam::alignment::record::Sequence` instead.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

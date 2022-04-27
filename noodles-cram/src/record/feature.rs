@@ -6,7 +6,7 @@ pub mod substitution;
 pub use self::code::Code;
 
 use noodles_core::Position;
-use noodles_sam::record::{quality_scores::Score, sequence::Base};
+use noodles_sam::{alignment::record::sequence::Base, record::quality_scores::Score};
 
 /// A CRAM record feature.
 #[derive(Clone, Debug, Eq, PartialEq)]

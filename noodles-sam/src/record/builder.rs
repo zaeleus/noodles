@@ -227,7 +227,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Sequence, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -236,7 +236,7 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.sequence(), sequence);
-    /// Ok::<(),  sam::record::sequence::ParseError>(())
+    /// Ok::<(),  sam::alignment::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {
         self.sequence = sequence;

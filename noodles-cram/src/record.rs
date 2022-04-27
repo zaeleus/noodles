@@ -36,7 +36,7 @@ pub struct Record {
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
     pub(crate) tags: sam::record::Data,
-    pub(crate) bases: sam::record::Sequence,
+    pub(crate) bases: sam::alignment::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: sam::record::QualityScores,
@@ -128,7 +128,7 @@ impl Record {
     }
 
     /// Returns the read bases.
-    pub fn bases(&self) -> &sam::record::Sequence {
+    pub fn bases(&self) -> &sam::alignment::record::Sequence {
         &self.bases
     }
 
@@ -204,7 +204,7 @@ impl sam::AlignmentRecord for Record {
         self.template_size
     }
 
-    fn sequence(&self) -> sam::record::Sequence {
+    fn sequence(&self) -> sam::alignment::record::Sequence {
         self.bases.clone()
     }
 
@@ -251,7 +251,7 @@ mod tests {
     #[test]
     fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_core::Position;
-        use sam::record::sequence::Base;
+        use sam::alignment::record::sequence::Base;
 
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);

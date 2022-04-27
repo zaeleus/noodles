@@ -10,13 +10,25 @@ mod parser;
 pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;
-pub mod sequence;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
     mapping_quality::MappingQuality, parser::ParseError, quality_scores::QualityScores,
-    read_name::ReadName, reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
 };
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::sequence` instead."
+)]
+pub use super::alignment::record::sequence;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::Sequence` instead."
+)]
+// pub use super::alignment::record::Sequence;
+use super::alignment::record::Sequence;
 
 use std::{fmt, io, str::FromStr};
 
@@ -365,7 +377,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Sequence, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Sequence, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.sequence().is_empty());
@@ -374,7 +386,7 @@ impl Record {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), sequence);
-    /// # Ok::<(), sam::record::sequence::ParseError>(())
+    /// # Ok::<(), sam::alignment::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence

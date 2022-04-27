@@ -9,9 +9,9 @@ use super::{
     quality_scores,
     read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
-    sequence, Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
+    Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
-use crate::AlignmentRecord;
+use crate::{alignment::record::sequence, AlignmentRecord};
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;
