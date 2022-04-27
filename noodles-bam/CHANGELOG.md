@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record: Replace `sam::record::Sequence` with `Sequence`.
+
 ## 0.18.0 - 2022-04-14
 
 ### Added

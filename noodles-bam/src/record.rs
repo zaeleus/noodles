@@ -3,8 +3,9 @@
 pub mod builder;
 mod convert;
 pub mod reference_sequence_id;
+pub mod sequence;
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, sequence::Sequence};
 
 use std::io;
 
@@ -48,7 +49,7 @@ pub struct Record {
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
-    sequence: sam::record::Sequence,
+    sequence: Sequence,
     quality_scores: sam::record::QualityScores,
     data: sam::record::Data,
 }
@@ -289,18 +290,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Sequence, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::Sequence};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.sequence_mut() = sequence.clone();
     ///
-    /// assert_eq!(record.sequence(), sequence);
-    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
+    /// assert_eq!(record.sequence(), "ACGT".parse()?);
+    /// # Ok::<_, bam::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut sam::record::Sequence {
+    pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence
     }
 
@@ -441,7 +442,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn sequence(&self) -> sam::record::Sequence {
-        self.sequence.clone()
+        sam::record::Sequence::from(&self.sequence)
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

@@ -3,7 +3,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::Record;
+use super::{Record, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -17,7 +17,7 @@ pub struct Builder {
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
-    sequence: sam::record::Sequence,
+    sequence: Sequence,
     quality_scores: sam::record::QualityScores,
     data: sam::record::Data,
 }
@@ -204,8 +204,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Sequence, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::Sequence};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -213,10 +213,10 @@ impl Builder {
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.sequence(), sequence);
-    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
+    /// assert_eq!(record.sequence(), "ACGT".parse()?);
+    /// # Ok::<_, bam::record::sequence::ParseError>(())
     /// ```
-    pub fn set_sequence(mut self, sequence: sam::record::Sequence) -> Self {
+    pub fn set_sequence(mut self, sequence: Sequence) -> Self {
         self.sequence = sequence;
         self
     }
@@ -303,7 +303,7 @@ impl Default for Builder {
             template_length: 0,
             read_name: None,
             cigar: sam::record::Cigar::default(),
-            sequence: sam::record::Sequence::default(),
+            sequence: Sequence::default(),
             quality_scores: sam::record::QualityScores::default(),
             data: sam::record::Data::default(),
         }
