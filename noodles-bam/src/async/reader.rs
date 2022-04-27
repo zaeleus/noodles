@@ -4,6 +4,7 @@ mod record;
 
 pub use self::builder::Builder;
 
+use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
@@ -44,7 +45,7 @@ use crate::{
 /// ```
 pub struct Reader<R> {
     inner: R,
-    buf: Vec<u8>,
+    buf: BytesMut,
 }
 
 impl<R> Reader<R>
@@ -368,7 +369,7 @@ impl<R> From<R> for Reader<R> {
     fn from(inner: R) -> Self {
         Self {
             inner,
-            buf: Vec::new(),
+            buf: BytesMut::new(),
         }
     }
 }

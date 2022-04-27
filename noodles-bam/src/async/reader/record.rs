@@ -1,12 +1,13 @@
 //! Async BAM record field readers.
 
+use bytes::BytesMut;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::Record;
 
 pub(super) async fn read_record<R>(
     reader: &mut R,
-    buf: &mut Vec<u8>,
+    buf: &mut BytesMut,
     record: &mut Record,
 ) -> io::Result<usize>
 where
@@ -51,7 +52,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let mut buf = Vec::new();
+        let mut buf = BytesMut::new();
         let mut record = Record::default();
         let block_size = read_record(&mut reader, &mut buf, &mut record).await?;
 
