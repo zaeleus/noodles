@@ -6,7 +6,7 @@ use noodles_sam::{
     record::cigar::{op::Kind, Op},
 };
 
-pub(super) fn get_cigar<B>(
+pub fn get_cigar<B>(
     src: &mut B,
     cigar: &mut sam::record::Cigar,
     n_cigar_op: usize,

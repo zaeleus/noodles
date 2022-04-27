@@ -1,10 +1,6 @@
 //! BAM record field readers.
 
-mod cigar;
 pub mod data;
-mod quality_scores;
-mod read_name;
-mod sequence;
 
 use std::{
     io::{self, Read},
@@ -42,9 +38,8 @@ where
 }
 
 pub(crate) fn decode_record(src: &mut BytesMut, record: &mut Record) -> io::Result<()> {
-    use self::{
-        cigar::get_cigar, data::get_data, quality_scores::get_quality_scores,
-        read_name::get_read_name, sequence::get_sequence,
+    use super::alignment_record::{
+        get_cigar, get_data, get_quality_scores, get_read_name, get_sequence,
     };
 
     *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;

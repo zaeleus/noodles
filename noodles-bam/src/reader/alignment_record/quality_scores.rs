@@ -3,7 +3,7 @@ use std::{io, mem};
 use bytes::Buf;
 use noodles_sam as sam;
 
-pub(super) fn get_quality_scores<B>(
+pub fn get_quality_scores<B>(
     src: &mut B,
     quality_scores: &mut sam::record::QualityScores,
     l_seq: usize,

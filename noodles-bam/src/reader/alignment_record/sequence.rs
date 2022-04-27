@@ -3,7 +3,7 @@ use std::io;
 use bytes::Buf;
 use noodles_sam::{self as sam, record::sequence::Base};
 
-pub(super) fn get_sequence<B>(
+pub fn get_sequence<B>(
     src: &mut B,
     sequence: &mut sam::record::Sequence,
     l_seq: usize,

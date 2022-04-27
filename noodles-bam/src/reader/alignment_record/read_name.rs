@@ -3,7 +3,7 @@ use std::{io, num::NonZeroUsize};
 use bytes::Buf;
 use noodles_sam as sam;
 
-pub(super) fn get_read_name<B>(
+pub fn get_read_name<B>(
     src: &mut B,
     read_name: &mut Option<sam::record::ReadName>,
     l_read_name: NonZeroUsize,
