@@ -62,6 +62,27 @@ impl Sequence {
         self.0.clear();
     }
 
+    /// Returns an interator over the bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
+    ///
+    /// let sequence: Sequence = "ACGT".parse()?;
+    /// let mut bases = sequence.bases();
+    ///
+    /// assert_eq!(bases.next(), Some(Base::A));
+    /// assert_eq!(bases.next(), Some(Base::C));
+    /// assert_eq!(bases.next(), Some(Base::G));
+    /// assert_eq!(bases.next(), Some(Base::T));
+    /// assert!(bases.next().is_none());
+    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
+    /// ```
+    pub fn bases(&self) -> impl Iterator<Item = Base> + '_ {
+        self.0.iter().copied()
+    }
+
     /// Returns a reference to the base at the given index.
     ///
     /// # Examples
