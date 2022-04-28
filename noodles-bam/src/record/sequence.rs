@@ -100,8 +100,8 @@ impl From<&sam::alignment::record::Sequence> for Sequence {
     }
 }
 
-impl From<&Sequence> for sam::alignment::record::Sequence {
-    fn from(bam_sequence: &Sequence) -> Self {
+impl From<Sequence> for sam::alignment::record::Sequence {
+    fn from(bam_sequence: Sequence) -> Self {
         use crate::reader::alignment_record::get_sequence;
 
         let mut data = &bam_sequence.buf[..];
@@ -140,7 +140,7 @@ mod tests {
             buf: BytesMut::from(&[0x12, 0x48][..]),
             len: 4,
         };
-        let actual = sam::alignment::record::Sequence::from(&bam_sequence);
+        let actual = sam::alignment::record::Sequence::from(bam_sequence);
 
         let expected = "ACGT".parse()?;
 

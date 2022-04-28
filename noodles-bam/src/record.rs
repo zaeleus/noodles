@@ -442,7 +442,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn sequence(&self) -> sam::alignment::record::Sequence {
-        (&self.sequence).into()
+        self.sequence.clone().into()
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {
