@@ -28,7 +28,7 @@ where
     Ok(())
 }
 
-fn decode_base(n: u8) -> Base {
+pub fn decode_base(n: u8) -> Base {
     match n & 0x0f {
         0 => Base::Eq,
         1 => Base::A,

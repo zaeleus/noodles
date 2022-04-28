@@ -1,9 +1,9 @@
 //! BAM record sequence.
 
-use std::str::FromStr;
+use std::{io, str::FromStr};
 
 use bytes::BytesMut;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::record::sequence::Base};
 
 /// A raw BAM record sequence buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -67,6 +67,34 @@ impl Sequence {
     /// ```
     pub fn clear(&mut self) {
         self.buf.clear();
+    }
+
+    /// Returns an interator over the bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::record::sequence::Base;
+    ///
+    /// let sequence: bam::record::Sequence = "ACGT".parse()?;
+    /// let mut bases = sequence.bases();
+    ///
+    /// assert_eq!(bases.next().transpose()?, Some(Base::A));
+    /// assert_eq!(bases.next().transpose()?, Some(Base::C));
+    /// assert_eq!(bases.next().transpose()?, Some(Base::G));
+    /// assert_eq!(bases.next().transpose()?, Some(Base::T));
+    /// assert!(bases.next().is_none());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn bases(&self) -> impl Iterator<Item = io::Result<Base>> + '_ {
+        use crate::reader::alignment_record::sequence::decode_base;
+
+        self.buf
+            .iter()
+            .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
+            .map(Ok)
+            .take(self.len)
     }
 }
 
