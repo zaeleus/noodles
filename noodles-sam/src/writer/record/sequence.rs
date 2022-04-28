@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::alignment::record::Sequence;
+use crate::alignment::record::{AlignmentSequence, Sequence};
 
 pub fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
 where

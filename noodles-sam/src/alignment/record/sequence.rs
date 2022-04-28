@@ -12,77 +12,13 @@ use std::{
 
 use noodles_core::position::SequenceIndex;
 
+use super::AlignmentSequence;
+
 /// An alignment record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence(Vec<Base>);
 
 impl Sequence {
-    /// Returns whether the sequence is empty.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::Sequence;
-    /// let sequence = Sequence::default();
-    /// assert!(sequence.is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Returns the number of bases in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::Sequence;
-    /// let sequence = Sequence::default();
-    /// assert_eq!(sequence.len(), 0);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Removes all bases from the sequence.
-    ///
-    /// This does not affect the capacity of this sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
-    ///
-    /// let mut sequence = Sequence::from(vec![Base::N]);
-    /// assert!(!sequence.is_empty());
-    ///
-    /// sequence.clear();
-    /// assert!(sequence.is_empty());
-    /// ```
-    pub fn clear(&mut self) {
-        self.0.clear();
-    }
-
-    /// Returns an interator over the bases in the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
-    ///
-    /// let sequence: Sequence = "ACGT".parse()?;
-    /// let mut bases = sequence.bases();
-    ///
-    /// assert_eq!(bases.next(), Some(Base::A));
-    /// assert_eq!(bases.next(), Some(Base::C));
-    /// assert_eq!(bases.next(), Some(Base::G));
-    /// assert_eq!(bases.next(), Some(Base::T));
-    /// assert!(bases.next().is_none());
-    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
-    /// ```
-    pub fn bases(&self) -> impl Iterator<Item = Base> + '_ {
-        self.0.iter().copied()
-    }
-
     /// Returns a reference to the base at the given index.
     ///
     /// # Examples
@@ -148,6 +84,74 @@ impl Sequence {
     /// ````
     pub fn push(&mut self, base: Base) {
         self.0.push(base);
+    }
+}
+
+impl AlignmentSequence for Sequence {
+    /// Returns the number of bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{AlignmentSequence, Sequence};
+    /// let sequence = Sequence::default();
+    /// assert_eq!(sequence.len(), 0);
+    /// ```
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns whether the sequence is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{AlignmentSequence, Sequence};
+    /// let sequence = Sequence::default();
+    /// assert!(sequence.is_empty());
+    /// ```
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Removes all bases from the sequence.
+    ///
+    /// This does not affect the capacity of this sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence, Sequence};
+    ///
+    /// let mut sequence = Sequence::from(vec![Base::N]);
+    /// assert!(!sequence.is_empty());
+    ///
+    /// sequence.clear();
+    /// assert!(sequence.is_empty());
+    /// ```
+    fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    /// Returns an interator over the bases in the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence, Sequence};
+    ///
+    /// let sequence: Sequence = "ACGT".parse()?;
+    /// let mut bases = sequence.bases();
+    ///
+    /// assert_eq!(bases.next(), Some(Base::A));
+    /// assert_eq!(bases.next(), Some(Base::C));
+    /// assert_eq!(bases.next(), Some(Base::G));
+    /// assert_eq!(bases.next(), Some(Base::T));
+    /// assert!(bases.next().is_none());
+    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
+    /// ```
+    fn bases(&self) -> Box<dyn Iterator<Item = Base> + '_> {
+        Box::new(self.0.iter().copied())
     }
 }
 

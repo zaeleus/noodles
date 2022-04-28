@@ -340,7 +340,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{record::Data, AlignmentRecord, AlignmentWriter};
+    use noodles_sam::{
+        alignment::record::AlignmentSequence, record::Data, AlignmentRecord, AlignmentWriter,
+    };
 
     use crate::{Reader, Record};
 

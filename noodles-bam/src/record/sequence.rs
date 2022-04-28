@@ -3,7 +3,10 @@
 use std::{io, str::FromStr};
 
 use bytes::BytesMut;
-use noodles_sam::{self as sam, alignment::record::sequence::Base};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{sequence::Base, AlignmentSequence},
+};
 
 /// A raw BAM record sequence buffer.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

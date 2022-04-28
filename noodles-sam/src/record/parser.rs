@@ -11,7 +11,10 @@ use super::{
     reference_sequence_name::{self, ReferenceSequenceName},
     Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
-use crate::{alignment::record::sequence, AlignmentRecord};
+use crate::{
+    alignment::record::{sequence, AlignmentSequence},
+    AlignmentRecord,
+};
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 12;

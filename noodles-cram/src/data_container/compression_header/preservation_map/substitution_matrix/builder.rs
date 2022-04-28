@@ -32,7 +32,7 @@ impl Builder {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_sam as sam;
+    use noodles_sam::{self as sam, alignment::record::AlignmentSequence};
 
     use super::*;
 

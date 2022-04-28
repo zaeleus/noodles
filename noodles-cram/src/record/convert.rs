@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AlignmentRecord};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
 

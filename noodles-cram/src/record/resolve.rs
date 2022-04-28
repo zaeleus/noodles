@@ -4,7 +4,10 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, alignment::record::sequence::Base};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{sequence::Base, AlignmentSequence},
+};
 
 use crate::data_container::compression_header::SubstitutionMatrix;
 

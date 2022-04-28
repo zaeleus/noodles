@@ -329,6 +329,7 @@ impl Default for Builder {
 mod tests {
     use super::*;
     use crate::{
+        alignment::record::AlignmentSequence,
         record::{cigar, data},
         AlignmentRecord,
     };
