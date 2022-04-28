@@ -476,6 +476,8 @@ impl Default for Record {
 
 #[cfg(test)]
 mod tests {
+    use sam::alignment::record::AlignmentSequence;
+
     use super::*;
 
     #[test]

@@ -1,6 +1,6 @@
 //! BAM record sequence.
 
-use std::{io, str::FromStr};
+use std::str::FromStr;
 
 use bytes::BytesMut;
 use noodles_sam::{
@@ -15,13 +15,14 @@ pub struct Sequence {
     pub(crate) len: usize,
 }
 
-impl Sequence {
+impl AlignmentSequence for Sequence {
     /// Returns the number of bases in the sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::record::AlignmentSequence;
     ///
     /// let sequence = bam::record::Sequence::default();
     /// assert_eq!(sequence.len(), 0);
@@ -30,7 +31,7 @@ impl Sequence {
     /// assert_eq!(sequence.len(), 4);
     /// # Ok::<(), bam::record::sequence::ParseError>(())
     /// ```
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.len
     }
 
@@ -40,6 +41,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::record::AlignmentSequence;
     ///
     /// let sequence = bam::record::Sequence::default();
     /// assert!(sequence.is_empty());
@@ -48,7 +50,7 @@ impl Sequence {
     /// assert!(!sequence.is_empty());
     /// # Ok::<(), bam::record::sequence::ParseError>(())
     /// ```
-    pub fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.buf.is_empty()
     }
 
@@ -60,6 +62,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::record::AlignmentSequence;
     ///
     /// let mut sequence: bam::record::Sequence = "ACGT".parse()?;
     /// assert!(!sequence.is_empty());
@@ -68,7 +71,7 @@ impl Sequence {
     /// assert!(sequence.is_empty());
     /// # Ok::<(), bam::record::sequence::ParseError>(())
     /// ```
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.buf.clear();
     }
 
@@ -78,26 +81,27 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::record::sequence::Base;
+    /// use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence};
     ///
     /// let sequence: bam::record::Sequence = "ACGT".parse()?;
     /// let mut bases = sequence.bases();
     ///
-    /// assert_eq!(bases.next().transpose()?, Some(Base::A));
-    /// assert_eq!(bases.next().transpose()?, Some(Base::C));
-    /// assert_eq!(bases.next().transpose()?, Some(Base::G));
-    /// assert_eq!(bases.next().transpose()?, Some(Base::T));
+    /// assert_eq!(bases.next(), Some(Base::A));
+    /// assert_eq!(bases.next(), Some(Base::C));
+    /// assert_eq!(bases.next(), Some(Base::G));
+    /// assert_eq!(bases.next(), Some(Base::T));
     /// assert!(bases.next().is_none());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn bases(&self) -> impl Iterator<Item = io::Result<Base>> + '_ {
+    fn bases(&self) -> Box<dyn Iterator<Item = Base> + '_> {
         use crate::reader::alignment_record::sequence::decode_base;
 
-        self.buf
-            .iter()
-            .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
-            .map(Ok)
-            .take(self.len)
+        Box::new(
+            self.buf
+                .iter()
+                .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
+                .take(self.len),
+        )
     }
 }
 
