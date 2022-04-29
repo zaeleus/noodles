@@ -20,3 +20,20 @@ where
     put_value(dst, field.value())?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_put_field() -> io::Result<()> {
+        use noodles_sam::record::data::field::{Tag, Value};
+
+        let mut buf = Vec::new();
+        let field = Field::new(Tag::AlignmentHitCount, Value::from(1));
+        put_field(&mut buf, &field)?;
+        assert_eq!(buf, [b'N', b'H', b'C', 0x01]);
+
+        Ok(())
+    }
+}
