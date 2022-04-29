@@ -27,8 +27,7 @@ pub use super::alignment::record::sequence;
     since = "0.15.0",
     note = "Use `noodles_sam::alignment::record::Sequence` instead."
 )]
-// pub use super::alignment::record::Sequence;
-use super::alignment::record::Sequence;
+pub use super::alignment::record::Sequence;
 
 use std::{fmt, io, str::FromStr};
 
