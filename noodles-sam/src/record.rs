@@ -34,7 +34,7 @@ use std::{fmt, io, str::FromStr};
 use noodles_core::Position;
 
 use super::{
-    alignment::record::AlignmentSequence,
+    alignment::record::{AlignmentQualityScores, AlignmentSequence},
     header::{ReferenceSequence, ReferenceSequences},
     AlignmentRecord,
 };
@@ -403,6 +403,7 @@ impl Record {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
+    ///     alignment::record::AlignmentQualityScores,
     ///     record::{quality_scores, QualityScores},
     ///     AlignmentRecord,
     /// };

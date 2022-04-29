@@ -1,7 +1,11 @@
 use std::io;
 
 use bytes::BytesMut;
-use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AlignmentRecord};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{AlignmentQualityScores, AlignmentSequence},
+    AlignmentRecord,
+};
 
 use super::Record;
 

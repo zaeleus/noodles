@@ -12,7 +12,7 @@ use super::{
     Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
 use crate::{
-    alignment::record::{sequence, AlignmentSequence},
+    alignment::record::{sequence, AlignmentQualityScores, AlignmentSequence},
     AlignmentRecord,
 };
 

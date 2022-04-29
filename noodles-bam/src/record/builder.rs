@@ -312,7 +312,7 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::AlignmentSequence;
+    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
 
     use super::*;
 
