@@ -27,3 +27,25 @@ where
 
     Ok(Some(Field::new(tag, value)))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_field() -> io::Result<()> {
+        use noodles_sam::record::data::field::{Tag, Value};
+
+        let data = [];
+        let mut reader = &data[..];
+        assert!(get_field(&mut reader)?.is_none());
+
+        let data = [b'N', b'H', b'C', 0x01];
+        let mut reader = &data[..];
+        let actual = get_field(&mut reader)?;
+        let expected = Field::new(Tag::AlignmentHitCount, Value::from(1));
+        assert_eq!(actual, Some(expected));
+
+        Ok(())
+    }
+}
