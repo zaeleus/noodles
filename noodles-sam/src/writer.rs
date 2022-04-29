@@ -2,8 +2,10 @@ mod record;
 
 use std::io::{self, Write};
 
+use crate::AnyAlignmentRecord;
+
 use self::record::{write_cigar, write_data, write_quality_scores, write_sequence};
-use super::{AlignmentRecord, AlignmentWriter, Header, Record};
+use super::{AlignmentWriter, Header, Record};
 
 /// A SAM writer.
 ///
@@ -146,7 +148,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &Header,
-        record: &dyn AlignmentRecord,
+        record: &dyn AnyAlignmentRecord,
     ) -> io::Result<()> {
         const DELIMITER: &[u8] = b"\t";
         const EQ: &[u8] = b"=";
@@ -221,7 +223,7 @@ where
         write_int(&mut self.inner, record.template_length())?;
 
         self.inner.write_all(DELIMITER)?;
-        write_sequence(&mut self.inner, &record.sequence())?;
+        write_sequence(&mut self.inner, record.sequence())?;
 
         self.inner.write_all(DELIMITER)?;
         write_quality_scores(&mut self.inner, record.quality_scores())?;

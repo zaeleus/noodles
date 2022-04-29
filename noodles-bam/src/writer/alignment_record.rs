@@ -1,9 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    self as sam, alignment::record::AlignmentSequence, header::ReferenceSequences, AlignmentRecord,
-};
+use noodles_sam::{self as sam, header::ReferenceSequences, AnyAlignmentRecord};
 
 use super::record::{
     put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,
@@ -13,14 +11,13 @@ use super::record::{
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 pub(crate) const NULL_QUALITY_SCORE: u8 = 255;
 
-pub fn encode_alignment_record<B, R>(
+pub fn encode_alignment_record<B>(
     dst: &mut B,
     reference_sequences: &ReferenceSequences,
-    record: &R,
+    record: &dyn AnyAlignmentRecord,
 ) -> io::Result<()>
 where
     B: BufMut,
-    R: AlignmentRecord + ?Sized,
 {
     // ref_id
     let reference_sequence_name = record
@@ -75,7 +72,7 @@ where
     let quality_scores = record.quality_scores();
 
     // seq
-    put_sequence(dst, &sequence);
+    put_sequence(dst, sequence);
 
     if sequence.len() == quality_scores.len() {
         put_quality_scores(dst, quality_scores);

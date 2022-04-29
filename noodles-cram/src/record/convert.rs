@@ -1,15 +1,15 @@
 use std::io;
 
-use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AnyAlignmentRecord};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
 
 impl Record {
     /// Converts an alignment record to a CRAM record.
-    pub fn try_from_alignment_record<R>(header: &sam::Header, record: &R) -> io::Result<Self>
-    where
-        R: AlignmentRecord + ?Sized,
-    {
+    pub fn try_from_alignment_record(
+        header: &sam::Header,
+        record: &dyn AnyAlignmentRecord,
+    ) -> io::Result<Self> {
         let mut builder = Self::builder();
 
         let bam_flags = record.flags();
@@ -66,18 +66,17 @@ impl Record {
             builder = builder.set_tags(data);
         }
 
-        builder = builder.set_bases(record.sequence());
+        let bases: Vec<_> = record.sequence().bases().collect();
+        let sequence = sam::alignment::record::Sequence::from(bases);
 
         if !bam_flags.is_unmapped() {
-            let features = Features::from_cigar(
-                flags,
-                record.cigar(),
-                &record.sequence(),
-                record.quality_scores(),
-            );
+            let features =
+                Features::from_cigar(flags, record.cigar(), &sequence, record.quality_scores());
 
             builder = builder.set_features(features);
         }
+
+        builder = builder.set_bases(sequence);
 
         if let Some(mapping_quality) = record.mapping_quality() {
             builder = builder.set_mapping_quality(mapping_quality);

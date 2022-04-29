@@ -101,7 +101,7 @@ impl Record {
         let sequence = self.sequence();
 
         if !sequence.is_empty() {
-            builder = builder.set_sequence(sequence);
+            builder = builder.set_sequence(sequence.clone().into());
         }
 
         if !self.quality_scores().is_empty() {

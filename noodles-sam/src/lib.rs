@@ -44,8 +44,12 @@ pub mod record;
 mod writer;
 
 pub use self::{
-    alignment_reader::AlignmentReader, alignment_record::AlignmentRecord,
-    alignment_writer::AlignmentWriter, header::Header, reader::Reader, record::Record,
+    alignment_reader::AlignmentReader,
+    alignment_record::{AlignmentRecord, AnyAlignmentRecord},
+    alignment_writer::AlignmentWriter,
+    header::Header,
+    reader::Reader,
+    record::Record,
     writer::Writer,
 };
 

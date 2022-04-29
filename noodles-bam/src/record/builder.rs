@@ -213,7 +213,7 @@ impl Builder {
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.sequence(), "ACGT".parse()?);
+    /// assert_eq!(record.sequence(), &sequence);
     /// # Ok::<_, bam::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {

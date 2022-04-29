@@ -298,7 +298,7 @@ impl Record {
     /// let mut record = bam::Record::default();
     /// *record.sequence_mut() = sequence.clone();
     ///
-    /// assert_eq!(record.sequence(), "ACGT".parse()?);
+    /// assert_eq!(record.sequence(), &sequence);
     /// # Ok::<_, bam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
@@ -349,6 +349,8 @@ impl Record {
 }
 
 impl sam::AlignmentRecord for Record {
+    type Sequence = Sequence;
+
     fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
     }
@@ -441,8 +443,8 @@ impl sam::AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> sam::alignment::record::Sequence {
-        self.sequence.clone().into()
+    fn sequence(&self) -> &Self::Sequence {
+        &self.sequence
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

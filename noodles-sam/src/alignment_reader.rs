@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_fasta as fasta;
 
-use super::{AlignmentRecord, Header};
+use super::{alignment_record::AnyAlignmentRecord, Header};
 
 /// An alignment format reader.
 pub trait AlignmentReader {
@@ -14,5 +14,5 @@ pub trait AlignmentReader {
         &'a mut self,
         reference_sequence_repository: &'a fasta::Repository,
         header: &'a Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn AlignmentRecord>>> + 'a>;
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn AnyAlignmentRecord>>> + 'a>;
 }

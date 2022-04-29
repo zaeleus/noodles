@@ -1,17 +1,17 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::{sequence::Base, Sequence};
+use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence};
 
-pub fn put_sequence<B>(dst: &mut B, sequence: &Sequence)
+pub fn put_sequence<B, S>(dst: &mut B, sequence: &S)
 where
     B: BufMut,
+    S: AlignmentSequence + ?Sized,
 {
-    for chunk in sequence.as_ref().chunks(2) {
-        let l = chunk[0];
+    let mut bases = sequence.bases();
 
+    while let Some(l) = bases.next() {
         // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of
         // the last byte are undefined, but we recommend writing these as zero."
-        let r = chunk.get(1).copied().unwrap_or(Base::Eq);
-
+        let r = bases.next().unwrap_or(Base::Eq);
         let b = encode_base(l) << 4 | encode_base(r);
         dst.put_u8(b);
     }
@@ -48,6 +48,8 @@ mod tests {
 
     #[test]
     fn test_put_sequence() -> Result<(), sam::alignment::record::sequence::ParseError> {
+        use sam::alignment::record::Sequence;
+
         fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) {
             buf.clear();
             put_sequence(buf, sequence);

@@ -42,7 +42,7 @@ fn main() -> io::Result<()> {
 
     for result in reader.records(&header) {
         let record = result?;
-        writer.write_alignment_record(&header, &record)?;
+        writer.write_alignment_record(&header, record.as_ref())?;
     }
 
     Ok(())

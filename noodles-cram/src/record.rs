@@ -149,6 +149,8 @@ impl Default for Record {
 }
 
 impl sam::AlignmentRecord for Record {
+    type Sequence = sam::alignment::record::Sequence;
+
     fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
     }
@@ -204,8 +206,8 @@ impl sam::AlignmentRecord for Record {
         self.template_size
     }
 
-    fn sequence(&self) -> sam::alignment::record::Sequence {
-        self.bases.clone()
+    fn sequence(&self) -> &Self::Sequence {
+        &self.bases
     }
 
     fn quality_scores(&self) -> &sam::record::QualityScores {

@@ -260,7 +260,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &dyn sam::AlignmentRecord,
+        record: &dyn sam::AnyAlignmentRecord,
     ) -> io::Result<()> {
         encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
 
@@ -488,7 +488,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let expected = "ATCG".parse()?;
-        assert_eq!(record.sequence(), expected);
+        assert_eq!(record.sequence(), &expected);
 
         assert!(record.quality_scores().is_empty());
 
@@ -515,7 +515,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         let expected = "ATCG".parse()?;
-        assert_eq!(record.sequence(), expected);
+        assert_eq!(record.sequence(), &expected);
 
         assert_eq!(record.quality_scores(), sam_record.quality_scores());
 

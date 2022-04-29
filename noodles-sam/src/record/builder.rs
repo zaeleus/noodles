@@ -235,7 +235,7 @@ impl Builder {
     ///     .set_sequence(sequence.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.sequence(), sequence);
+    /// assert_eq!(record.sequence(), &sequence);
     /// Ok::<(),  sam::alignment::record::sequence::ParseError>(())
     /// ```
     pub fn set_sequence(mut self, sequence: Sequence) -> Self {
@@ -398,7 +398,7 @@ mod tests {
 
         assert_eq!(record.mate_position(), Position::new(17));
         assert_eq!(record.template_length(), 4);
-        assert_eq!(record.sequence(), sequence);
+        assert_eq!(record.sequence(), &sequence);
         assert_eq!(record.quality_scores(), &quality_scores);
         assert_eq!(record.data().len(), 1);
 

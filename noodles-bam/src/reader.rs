@@ -392,12 +392,10 @@ where
         &'a mut self,
         _: &'a fasta::Repository,
         _: &'a sam::Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a> {
-        Box::new(
-            self.records().map(|result| {
-                result.map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
-            }),
-        )
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn sam::AnyAlignmentRecord>>> + 'a> {
+        Box::new(self.records().map(|result| {
+            result.map(|record| Box::new(record) as Box<dyn sam::AnyAlignmentRecord>)
+        }))
     }
 }
 

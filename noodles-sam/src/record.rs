@@ -389,7 +389,7 @@ impl Record {
     /// let sequence: Sequence = "ACGT".parse()?;
     /// *record.sequence_mut() = sequence.clone();
     ///
-    /// assert_eq!(record.sequence(), sequence);
+    /// assert_eq!(record.sequence(), &sequence);
     /// # Ok::<(), sam::alignment::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
@@ -448,6 +448,8 @@ impl Record {
 }
 
 impl AlignmentRecord for Record {
+    type Sequence = Sequence;
+
     fn read_name(&self) -> Option<&ReadName> {
         self.read_name.as_ref()
     }
@@ -532,8 +534,8 @@ impl AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> Sequence {
-        self.sequence.clone()
+    fn sequence(&self) -> &Self::Sequence {
+        &self.sequence
     }
 
     fn quality_scores(&self) -> &QualityScores {
