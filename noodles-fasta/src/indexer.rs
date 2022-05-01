@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_index_record_with_empty_seqeunce() {
+    fn test_index_record_with_empty_sequence() {
         let data = b">sq0\n";
         let mut indexer = Indexer::new(&data[..]);
 
