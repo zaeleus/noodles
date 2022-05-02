@@ -142,7 +142,7 @@ impl AlignmentQualityScores for QualityScores {
         self.0.clear();
     }
 
-    /// Returns an iterator over the bases in the sequence.
+    /// Returns an iterator over the scores.
     ///
     /// # Examples
     ///
