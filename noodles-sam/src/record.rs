@@ -14,7 +14,7 @@ pub use self::{
     read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
 };
 
-/* #[deprecated(
+#[deprecated(
     since = "0.15.0",
     note = "Use `noodles_sam::alignment::record::mapping_quality` instead."
 )]
@@ -24,9 +24,7 @@ pub use super::alignment::record::mapping_quality;
     since = "0.15.0",
     note = "Use `noodles_sam::alignment::record::MappingQuality` instead."
 )]
-pub use super::alignment::record::MappingQuality; */
-use super::alignment::record::mapping_quality;
-use super::alignment::record::MappingQuality;
+pub use super::alignment::record::MappingQuality;
 
 #[deprecated(
     since = "0.15.0",
