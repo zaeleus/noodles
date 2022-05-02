@@ -3,7 +3,7 @@ use std::io;
 use noodles_core::Position;
 
 use super::{
-    alignment::record::{AlignmentSequence, Flags, MappingQuality, QualityScores},
+    alignment::record::{AlignmentQualityScores, AlignmentSequence, Flags, MappingQuality},
     header::{ReferenceSequence, ReferenceSequences},
     record::{Cigar, Data, ReadName},
 };
@@ -12,6 +12,9 @@ use super::{
 pub trait AlignmentRecord {
     /// The sequence returned.
     type Sequence: AlignmentSequence;
+
+    /// The quality scores returned.
+    type QualityScores: AlignmentQualityScores;
 
     /// Returns the read name.
     ///
@@ -78,7 +81,7 @@ pub trait AlignmentRecord {
     fn sequence(&self) -> &Self::Sequence;
 
     /// Returns the quality scores.
-    fn quality_scores(&self) -> &QualityScores;
+    fn quality_scores(&self) -> &Self::QualityScores;
 
     /// Returns the data fields.
     fn data(&self) -> &Data;
@@ -89,6 +92,7 @@ where
     R: AlignmentRecord + ?Sized,
 {
     type Sequence = R::Sequence;
+    type QualityScores = R::QualityScores;
 
     fn read_name(&self) -> Option<&ReadName> {
         (**self).read_name()
@@ -140,7 +144,7 @@ where
         (**self).sequence()
     }
 
-    fn quality_scores(&self) -> &QualityScores {
+    fn quality_scores(&self) -> &Self::QualityScores {
         (**self).quality_scores()
     }
 
@@ -194,7 +198,7 @@ pub trait AnyAlignmentRecord {
     fn sequence(&self) -> &dyn AlignmentSequence;
 
     /// Returns the quality scores.
-    fn quality_scores(&self) -> &QualityScores;
+    fn quality_scores(&self) -> &dyn AlignmentQualityScores;
 
     /// Returns the data fields.
     fn data(&self) -> &Data;
@@ -258,8 +262,8 @@ where
         self.sequence()
     }
 
-    fn quality_scores(&self) -> &QualityScores {
-        (*self).quality_scores()
+    fn quality_scores(&self) -> &dyn AlignmentQualityScores {
+        self.quality_scores()
     }
 
     fn data(&self) -> &Data {

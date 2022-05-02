@@ -353,6 +353,7 @@ impl Record {
 
 impl sam::AlignmentRecord for Record {
     type Sequence = Sequence;
+    type QualityScores = sam::alignment::record::QualityScores;
 
     fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
@@ -450,7 +451,7 @@ impl sam::AlignmentRecord for Record {
         &self.sequence
     }
 
-    fn quality_scores(&self) -> &sam::alignment::record::QualityScores {
+    fn quality_scores(&self) -> &Self::QualityScores {
         &self.quality_scores
     }
 

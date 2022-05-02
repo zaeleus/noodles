@@ -1,10 +1,6 @@
 use std::io;
 
-use noodles_sam::{
-    self as sam,
-    alignment::record::{AlignmentQualityScores, AlignmentSequence},
-    AnyAlignmentRecord,
-};
+use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AnyAlignmentRecord};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
 
@@ -73,10 +69,11 @@ impl Record {
         let bases: Vec<_> = record.sequence().bases().collect();
         let sequence = sam::alignment::record::Sequence::from(bases);
 
-        if !bam_flags.is_unmapped() {
-            let features =
-                Features::from_cigar(flags, record.cigar(), &sequence, record.quality_scores());
+        let scores: Vec<_> = record.quality_scores().scores().collect();
+        let quality_scores = sam::alignment::record::QualityScores::from(scores);
 
+        if !bam_flags.is_unmapped() {
+            let features = Features::from_cigar(flags, record.cigar(), &sequence, &quality_scores);
             builder = builder.set_features(features);
         }
 
@@ -91,7 +88,7 @@ impl Record {
                 flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
             }
 
-            builder = builder.set_quality_scores(record.quality_scores().clone());
+            builder = builder.set_quality_scores(quality_scores);
         }
 
         Ok(builder.set_flags(flags).build())
@@ -146,7 +143,8 @@ impl Record {
         }
 
         if !self.quality_scores().is_empty() {
-            builder = builder.set_quality_scores(self.quality_scores().clone());
+            builder =
+                builder.set_quality_scores(sam::AlignmentRecord::quality_scores(self).clone());
         }
 
         let data = build_data(header.read_groups(), self.tags(), self.read_group_id())?;

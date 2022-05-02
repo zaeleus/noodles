@@ -1,11 +1,12 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::QualityScores;
+use noodles_sam::alignment::record::AlignmentQualityScores;
 
-pub fn put_quality_scores<B>(dst: &mut B, quality_scores: &QualityScores)
+pub fn put_quality_scores<B, S>(dst: &mut B, quality_scores: &S)
 where
     B: BufMut,
+    S: AlignmentQualityScores + ?Sized,
 {
-    for &score in quality_scores.as_ref() {
+    for score in quality_scores.scores() {
         dst.put_u8(u8::from(score));
     }
 }
@@ -18,6 +19,8 @@ mod tests {
 
     #[test]
     fn test_put_quality_scores() -> Result<(), sam::alignment::record::quality_scores::ParseError> {
+        use sam::alignment::record::QualityScores;
+
         fn t(buf: &mut Vec<u8>, quality_scores: &QualityScores, expected: &[u8]) {
             buf.clear();
             put_quality_scores(buf, quality_scores);
