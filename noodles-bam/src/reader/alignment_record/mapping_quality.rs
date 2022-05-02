@@ -18,3 +18,22 @@ where
         n => Ok(MappingQuality::new(n)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_mapping_quality() -> io::Result<()> {
+        fn t(mut buf: &[u8], expected: Option<MappingQuality>) -> io::Result<()> {
+            let actual = get_mapping_quality(&mut buf)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[0xff], None)?;
+        t(&[0x08], MappingQuality::new(8))?;
+
+        Ok(())
+    }
+}
