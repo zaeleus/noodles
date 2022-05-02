@@ -161,7 +161,7 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::{alignment::record::MappingQuality, record::Flags};
+        use sam::alignment::record::{Flags, MappingQuality};
 
         let reference_sequence_id = 1;
 
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_try_into_sam_record() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::{alignment::record::MappingQuality, record::Flags};
+        use sam::alignment::record::{Flags, MappingQuality};
 
         let bam_record = build_record()?;
         let reference_sequences = build_reference_sequences()?;

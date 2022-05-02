@@ -52,7 +52,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::PAIRED.is_paired());
     /// assert!(!Flags::UNMAPPED.is_paired());
     /// ```
@@ -66,7 +66,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::SEGMENTED.is_segmented());
     /// assert!(!Flags::UNMAPPED.is_segmented());
     /// ```
@@ -79,7 +79,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::PROPER_PAIR.is_proper_pair());
     /// assert!(!Flags::UNMAPPED.is_proper_pair());
     /// ```
@@ -93,7 +93,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
     /// assert!(!Flags::UNMAPPED.is_properly_aligned());
     /// ```
@@ -106,7 +106,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::UNMAPPED.is_unmapped());
     /// assert!(!Flags::PAIRED.is_unmapped());
     /// ```
@@ -119,7 +119,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
     /// assert!(!Flags::UNMAPPED.is_mate_unmapped());
     /// ```
@@ -131,7 +131,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::REVERSE_COMPLEMENTED.is_reverse_complemented());
     /// assert!(!Flags::UNMAPPED.is_reverse_complemented());
     /// ```
@@ -144,7 +144,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::MATE_REVERSE_COMPLEMENTED.is_mate_reverse_complemented());
     /// assert!(!Flags::UNMAPPED.is_mate_reverse_complemented());
     /// ```
@@ -157,7 +157,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::READ_1.is_read_1());
     /// assert!(!Flags::UNMAPPED.is_read_1());
     /// ```
@@ -171,7 +171,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::FIRST_SEGMENT.is_first_segment());
     /// assert!(!Flags::UNMAPPED.is_first_segment());
     /// ```
@@ -184,7 +184,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::READ_2.is_read_2());
     /// assert!(!Flags::UNMAPPED.is_read_2());
     /// ```
@@ -198,7 +198,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::READ_2.is_read_2());
     /// assert!(!Flags::UNMAPPED.is_read_2());
     /// ```
@@ -211,7 +211,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::SECONDARY.is_secondary());
     /// assert!(!Flags::UNMAPPED.is_secondary());
     /// ```
@@ -224,7 +224,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::QC_FAIL.is_qc_fail());
     /// assert!(!Flags::UNMAPPED.is_qc_fail());
     /// ```
@@ -238,7 +238,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::DUPLICATE.is_duplicate());
     /// assert!(!Flags::UNMAPPED.is_duplicate());
     /// ```
@@ -251,7 +251,7 @@ impl Flags {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Flags;
+    /// use noodles_sam::alignment::record::Flags;
     /// assert!(Flags::SUPPLEMENTARY.is_supplementary());
     /// assert!(!Flags::UNMAPPED.is_supplementary());
     /// ```

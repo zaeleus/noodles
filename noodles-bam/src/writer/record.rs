@@ -176,7 +176,7 @@ where
     Ok(())
 }
 
-pub(super) fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
+pub(super) fn put_flags<B>(dst: &mut B, flags: sam::alignment::record::Flags)
 where
     B: BufMut,
 {
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::{alignment::record::MappingQuality, record::Flags};
+        use sam::alignment::record::{Flags, MappingQuality};
 
         let reference_sequence_id = 1;
 

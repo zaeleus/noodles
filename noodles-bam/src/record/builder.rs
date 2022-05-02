@@ -11,7 +11,7 @@ pub struct Builder {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
     mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    flags: sam::record::Flags,
+    flags: sam::alignment::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
@@ -92,7 +92,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Flags, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::Flags, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
@@ -100,7 +100,7 @@ impl Builder {
     ///
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
-    pub fn set_flags(mut self, flags: sam::record::Flags) -> Self {
+    pub fn set_flags(mut self, flags: sam::alignment::record::Flags) -> Self {
         self.flags = flags;
         self
     }
@@ -306,7 +306,7 @@ impl Default for Builder {
             reference_sequence_id: None,
             position: None,
             mapping_quality: None,
-            flags: sam::record::Flags::UNMAPPED,
+            flags: sam::alignment::record::Flags::UNMAPPED,
             mate_reference_sequence_id: None,
             mate_position: None,
             template_length: 0,
@@ -332,7 +332,7 @@ mod tests {
         assert!(builder.reference_sequence_id.is_none());
         assert!(builder.position.is_none());
         assert!(builder.mapping_quality.is_none());
-        assert_eq!(builder.flags, sam::record::Flags::UNMAPPED);
+        assert_eq!(builder.flags, sam::alignment::record::Flags::UNMAPPED);
         assert!(builder.mate_reference_sequence_id.is_none());
         assert!(builder.mate_position.is_none());
         assert_eq!(builder.template_length, 0);

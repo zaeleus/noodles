@@ -344,11 +344,11 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
     let mate_bam_flags = mate.bam_flags();
 
     if mate_bam_flags.is_reverse_complemented() {
-        record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
+        record.bam_bit_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
     }
 
     if mate_bam_flags.is_unmapped() {
-        record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
+        record.bam_bit_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
     }
 
     if mate.read_name().is_none() {
@@ -490,7 +490,7 @@ mod tests {
 
     #[test]
     fn test_calculate_template_size() -> Result<(), noodles_core::position::TryFromIntError> {
-        use sam::record::Flags;
+        use sam::alignment::record::Flags;
 
         // --> -->
         let record = Record::builder()

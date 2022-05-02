@@ -414,7 +414,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         assert!(record.read_name().is_none());
-        assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
+        assert_eq!(record.flags(), sam::alignment::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.position().is_none());
         assert!(record.mapping_quality().is_none());

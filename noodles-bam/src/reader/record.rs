@@ -113,7 +113,7 @@ where
     }
 }
 
-fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
+fn get_flags<B>(src: &mut B) -> io::Result<sam::alignment::record::Flags>
 where
     B: Buf,
 {
@@ -121,7 +121,7 @@ where
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    Ok(sam::record::Flags::from(src.get_u16_le()))
+    Ok(sam::alignment::record::Flags::from(src.get_u16_le()))
 }
 
 #[cfg(test)]

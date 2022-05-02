@@ -43,7 +43,7 @@ pub struct Record {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
     mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    flags: sam::record::Flags,
+    flags: sam::alignment::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
@@ -156,12 +156,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Flags, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::Flags, AlignmentRecord};
     /// let mut record = bam::Record::default();
     /// *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
-    pub fn flags_mut(&mut self) -> &mut sam::record::Flags {
+    pub fn flags_mut(&mut self) -> &mut sam::alignment::record::Flags {
         &mut self.flags
     }
 
@@ -378,7 +378,7 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
-    fn flags(&self) -> sam::record::Flags {
+    fn flags(&self) -> sam::alignment::record::Flags {
         self.flags
     }
 
@@ -492,7 +492,7 @@ mod tests {
         assert!(record.reference_sequence_id.is_none());
         assert!(record.position.is_none());
         assert!(record.mapping_quality.is_none());
-        assert_eq!(record.flags, sam::record::Flags::UNMAPPED);
+        assert_eq!(record.flags, sam::alignment::record::Flags::UNMAPPED);
         assert!(record.mate_reference_sequence_id.is_none());
         assert!(record.mate_position.is_none());
         assert_eq!(record.template_length, 0);

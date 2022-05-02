@@ -113,7 +113,7 @@ where
         Ok(())
     }
 
-    fn write_bam_bit_flags(&mut self, bam_flags: sam::record::Flags) -> io::Result<()> {
+    fn write_bam_bit_flags(&mut self, bam_flags: sam::alignment::record::Flags) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()

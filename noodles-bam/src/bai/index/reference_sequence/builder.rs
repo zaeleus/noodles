@@ -3,7 +3,7 @@ use std::{cmp, collections::HashMap, io};
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::record::Flags;
+use noodles_sam::alignment::record::Flags;
 
 use crate::writer::record::region_to_bin;
 

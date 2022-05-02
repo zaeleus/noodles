@@ -2,8 +2,8 @@
 
 use noodles_core::Position;
 
-use super::{Cigar, Data, Flags, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence};
-use crate::alignment::record::MappingQuality;
+use super::{Cigar, Data, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence};
+use crate::alignment::record::{Flags, MappingQuality};
 
 /// A SAM record builder.
 #[derive(Debug)]
@@ -62,7 +62,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Flags, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)

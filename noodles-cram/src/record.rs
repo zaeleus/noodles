@@ -23,7 +23,7 @@ use once_cell::sync::OnceCell;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) id: i64,
-    pub(crate) bam_bit_flags: sam::record::Flags,
+    pub(crate) bam_bit_flags: sam::alignment::record::Flags,
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
@@ -57,7 +57,7 @@ impl Record {
     /// Returns the BAM flags.
     ///
     /// This is also called the BAM bit flags.
-    pub fn bam_flags(&self) -> sam::record::Flags {
+    pub fn bam_flags(&self) -> sam::alignment::record::Flags {
         self.bam_bit_flags
     }
 
@@ -162,7 +162,7 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
-    fn flags(&self) -> sam::record::Flags {
+    fn flags(&self) -> sam::alignment::record::Flags {
         self.bam_bit_flags
     }
 

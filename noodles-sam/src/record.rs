@@ -4,15 +4,20 @@ pub mod builder;
 pub mod cigar;
 pub mod data;
 mod field;
-mod flags;
 mod parser;
 pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags, parser::ParseError,
+    builder::Builder, cigar::Cigar, data::Data, field::Field, parser::ParseError,
     read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
 };
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::Flags` instead."
+)]
+pub use super::alignment::record::Flags;
 
 #[deprecated(
     since = "0.15.0",
@@ -102,7 +107,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Flags, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
@@ -145,7 +150,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Flags, AlignmentRecord};
     ///
     /// let mut record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
