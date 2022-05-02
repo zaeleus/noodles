@@ -40,7 +40,9 @@ where
 
 pub(crate) fn decode_record(src: &mut BytesMut, record: &mut Record) -> io::Result<()> {
     use self::sequence::get_sequence;
-    use super::alignment_record::{get_cigar, get_data, get_quality_scores, get_read_name};
+    use super::alignment_record::{
+        get_cigar, get_data, get_mapping_quality, get_quality_scores, get_read_name,
+    };
 
     *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
     *record.position_mut() = get_position(src)?;
@@ -108,22 +110,6 @@ where
         n => usize::try_from(n + 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .map(Position::new),
-    }
-}
-
-fn get_mapping_quality<B>(src: &mut B) -> io::Result<Option<sam::alignment::record::MappingQuality>>
-where
-    B: Buf,
-{
-    use sam::alignment::record::mapping_quality::MISSING;
-
-    if src.remaining() < mem::size_of::<u8>() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    match src.get_u8() {
-        MISSING => Ok(None),
-        n => Ok(sam::alignment::record::MappingQuality::new(n)),
     }
 }
 
