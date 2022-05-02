@@ -115,8 +115,8 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &Features, read_length: usize) -> sam::record::Cigar {
-    use noodles_sam::record::cigar::{op::Kind, Op};
+pub fn resolve_features(features: &Features, read_length: usize) -> sam::alignment::record::Cigar {
+    use noodles_sam::alignment::record::cigar::{op::Kind, Op};
 
     fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
         if let Some(last_op) = ops.last_mut() {
@@ -172,7 +172,7 @@ pub fn resolve_features(features: &Features, read_length: usize) -> sam::record:
         merge_or_insert_op(&mut ops, Kind::Match, len);
     }
 
-    sam::record::Cigar::from(
+    sam::alignment::record::Cigar::from(
         ops.into_iter()
             .map(|(kind, len)| Op::new(kind, len))
             .collect::<Vec<_>>(),
@@ -329,7 +329,7 @@ mod tests {
 
     #[test]
     fn test_resolve_features() -> Result<(), noodles_core::position::TryFromIntError> {
-        use noodles_sam::record::{
+        use noodles_sam::alignment::record::{
             cigar::{op::Kind, Op},
             Cigar,
         };

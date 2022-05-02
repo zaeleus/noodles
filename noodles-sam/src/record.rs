@@ -1,7 +1,6 @@
 //! SAM record and fields.
 
 pub mod builder;
-pub mod cigar;
 pub mod data;
 mod field;
 mod parser;
@@ -9,9 +8,22 @@ pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, field::Field, parser::ParseError,
-    read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
+    builder::Builder, data::Data, field::Field, parser::ParseError, read_name::ReadName,
+    reference_sequence_name::ReferenceSequenceName,
 };
+
+/* #[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::cigar` instead."
+)]
+pub use super::alignment::record::cigar;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::Cigar` instead."
+)]
+pub use super::alignment::record::Cigar; */
+use super::alignment::record::{cigar, Cigar};
 
 #[deprecated(
     since = "0.15.0",
@@ -277,7 +289,7 @@ impl Record {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     record::{cigar::{op::Kind, Op}, Cigar},
+    ///     alignment::record::{cigar::{op::Kind, Op}, Cigar},
     ///     AlignmentRecord,
     /// };
     ///

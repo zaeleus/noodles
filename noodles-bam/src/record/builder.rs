@@ -16,7 +16,7 @@ pub struct Builder {
     mate_position: Option<Position>,
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
-    cigar: sam::record::Cigar,
+    cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: sam::alignment::record::QualityScores,
     data: sam::record::Data,
@@ -186,7 +186,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Cigar, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -195,9 +195,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
+    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
-    pub fn set_cigar(mut self, cigar: sam::record::Cigar) -> Self {
+    pub fn set_cigar(mut self, cigar: sam::alignment::record::Cigar) -> Self {
         self.cigar = cigar;
         self
     }
@@ -311,7 +311,7 @@ impl Default for Builder {
             mate_position: None,
             template_length: 0,
             read_name: None,
-            cigar: sam::record::Cigar::default(),
+            cigar: sam::alignment::record::Cigar::default(),
             sequence: Sequence::default(),
             quality_scores: sam::alignment::record::QualityScores::default(),
             data: sam::record::Data::default(),

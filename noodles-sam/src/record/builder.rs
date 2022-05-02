@@ -143,7 +143,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Cigar, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -152,7 +152,7 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<(), sam::record::cigar::ParseError>(())
+    /// Ok::<(), sam::alignment::record::cigar::ParseError>(())
     /// ```
     pub fn set_cigar(mut self, cigar: Cigar) -> Self {
         self.cigar = cigar;

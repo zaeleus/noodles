@@ -1,12 +1,13 @@
 //! Alignment record.
 
+pub mod cigar;
 mod flags;
 pub mod mapping_quality;
 pub mod quality_scores;
 pub mod sequence;
 
 pub use self::{
-    flags::Flags, mapping_quality::MappingQuality, quality_scores::QualityScores,
+    cigar::Cigar, flags::Flags, mapping_quality::MappingQuality, quality_scores::QualityScores,
     sequence::Sequence,
 };
 

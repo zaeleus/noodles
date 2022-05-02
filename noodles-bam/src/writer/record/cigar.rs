@@ -1,12 +1,12 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    self as sam,
-    record::cigar::{op::Kind, Op},
+use noodles_sam::alignment::record::{
+    cigar::{op::Kind, Op},
+    Cigar,
 };
 
-pub fn put_cigar<B>(dst: &mut B, cigar: &sam::record::Cigar) -> io::Result<()>
+pub fn put_cigar<B>(dst: &mut B, cigar: &Cigar) -> io::Result<()>
 where
     B: BufMut,
 {
@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_put_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, cigar: &sam::record::Cigar, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, cigar: &Cigar, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_cigar(buf, cigar)?;
             assert_eq!(buf, expected);
@@ -64,7 +64,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &sam::record::Cigar::default(), &[])?;
+        t(&mut buf, &Cigar::default(), &[])?;
         t(&mut buf, &"4M".parse()?, &[0x40, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,

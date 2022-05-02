@@ -48,7 +48,7 @@ pub struct Record {
     mate_position: Option<Position>,
     template_length: i32,
     read_name: Option<sam::record::ReadName>,
-    cigar: sam::record::Cigar,
+    cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: sam::alignment::record::QualityScores,
     data: sam::record::Data,
@@ -271,7 +271,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Cigar, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -279,9 +279,9 @@ impl Record {
     /// *record.cigar_mut() = cigar.clone();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
+    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut sam::record::Cigar {
+    pub fn cigar_mut(&mut self) -> &mut sam::alignment::record::Cigar {
         &mut self.cigar
     }
 
@@ -415,7 +415,7 @@ impl sam::AlignmentRecord for Record {
         self.mapping_quality
     }
 
-    fn cigar(&self) -> &sam::record::Cigar {
+    fn cigar(&self) -> &sam::alignment::record::Cigar {
         &self.cigar
     }
 

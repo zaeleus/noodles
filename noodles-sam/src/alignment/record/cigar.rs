@@ -20,7 +20,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let mut cigar = Cigar::from(vec![Op::new(Kind::Match, 5)]);
     /// assert!(!cigar.is_empty());
@@ -41,7 +41,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let cigar = Cigar::from(vec![
     ///     Op::new(Kind::Match, 36),
@@ -73,7 +73,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let cigar = Cigar::from(vec![
     ///     Op::new(Kind::Match, 36),

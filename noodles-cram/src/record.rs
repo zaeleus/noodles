@@ -41,7 +41,7 @@ pub struct Record {
     pub(crate) mapping_quality: Option<sam::alignment::record::MappingQuality>,
     pub(crate) quality_scores: sam::alignment::record::QualityScores,
 
-    pub(crate) cigar: OnceCell<sam::record::Cigar>,
+    pub(crate) cigar: OnceCell<sam::alignment::record::Cigar>,
 }
 
 impl Record {
@@ -179,10 +179,10 @@ impl sam::AlignmentRecord for Record {
         self.mapping_quality
     }
 
-    fn cigar(&self) -> &sam::record::Cigar {
+    fn cigar(&self) -> &sam::alignment::record::Cigar {
         self.cigar.get_or_init(|| {
             if self.flags().is_unmapped() {
-                sam::record::Cigar::default()
+                sam::alignment::record::Cigar::default()
             } else {
                 resolve::resolve_features(self.features(), self.read_length())
             }

@@ -20,7 +20,7 @@ impl Features {
     /// Converts SAM record CIGAR operations to CRAM record features.
     pub fn from_cigar(
         flags: Flags,
-        cigar: &sam::record::Cigar,
+        cigar: &sam::alignment::record::Cigar,
         sequence: &sam::alignment::record::Sequence,
         quality_scores: &sam::alignment::record::QualityScores,
     ) -> Self {
@@ -57,11 +57,11 @@ impl From<Vec<Feature>> for Features {
 
 fn cigar_to_features(
     flags: Flags,
-    cigar: &sam::record::Cigar,
+    cigar: &sam::alignment::record::Cigar,
     sequence: &sam::alignment::record::Sequence,
     quality_scores: &sam::alignment::record::QualityScores,
 ) -> Features {
-    use sam::record::cigar::op::Kind;
+    use sam::alignment::record::cigar::op::Kind;
 
     let mut features = Features::default();
     let mut read_position = Position::MIN;

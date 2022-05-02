@@ -1,16 +1,12 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::{
-    self as sam,
-    record::cigar::{op::Kind, Op},
+use noodles_sam::alignment::record::{
+    cigar::{op::Kind, Op},
+    Cigar,
 };
 
-pub fn get_cigar<B>(
-    src: &mut B,
-    cigar: &mut sam::record::Cigar,
-    n_cigar_op: usize,
-) -> io::Result<()>
+pub fn get_cigar<B>(src: &mut B, cigar: &mut Cigar, n_cigar_op: usize) -> io::Result<()>
 where
     B: Buf,
 {
@@ -60,18 +56,18 @@ mod tests {
     fn test_get_cigar() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut src: &[u8],
-            actual: &mut sam::record::Cigar,
+            actual: &mut Cigar,
             n_cigar_op: usize,
-            expected: &sam::record::Cigar,
+            expected: &Cigar,
         ) -> io::Result<()> {
             get_cigar(&mut src, actual, n_cigar_op)?;
             assert_eq!(actual, expected);
             Ok(())
         }
 
-        let mut buf = sam::record::Cigar::default();
+        let mut buf = Cigar::default();
 
-        t(&[], &mut buf, 0, &sam::record::Cigar::default())?;
+        t(&[], &mut buf, 0, &Cigar::default())?;
         t(&[0x40, 0x00, 0x00, 0x00], &mut buf, 1, &"4M".parse()?)?;
         t(
             &[0x40, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00],
