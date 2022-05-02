@@ -221,6 +221,7 @@ where
                     AddRecordError::SliceFull(r) => {
                         record = r;
                     }
+                    _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
                 },
             }
         }

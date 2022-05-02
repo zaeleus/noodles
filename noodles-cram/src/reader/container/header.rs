@@ -31,7 +31,10 @@ where
 
     let number_of_records = read_itf8(reader)?;
     let record_counter = read_ltf8(reader)?;
-    let bases = read_ltf8(reader)?;
+
+    let bases = read_ltf8(reader).and_then(|n| {
+        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let number_of_blocks = read_itf8(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

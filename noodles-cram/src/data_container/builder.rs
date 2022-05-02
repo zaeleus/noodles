@@ -1,4 +1,4 @@
-use std::{io, mem};
+use std::{io, mem, num};
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -13,11 +13,12 @@ pub struct Builder {
     slice_builder: slice::Builder,
     slice_builders: Vec<slice::Builder>,
     record_counter: i64,
-    base_count: i64,
+    base_count: u64,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AddRecordError {
+    InvalidRecordReadLength(num::TryFromIntError),
     ContainerFull(Record),
     SliceFull(Record),
 }
@@ -36,7 +37,7 @@ impl Builder {
         self.slice_builder.is_empty() && self.slice_builders.is_empty()
     }
 
-    pub fn base_count(&self) -> i64 {
+    pub fn base_count(&self) -> u64 {
         self.base_count
     }
 
@@ -47,7 +48,8 @@ impl Builder {
 
         match self.slice_builder.add_record(record) {
             Ok(r) => {
-                self.base_count += r.read_length() as i64;
+                self.base_count += u64::try_from(r.read_length())
+                    .map_err(AddRecordError::InvalidRecordReadLength)?;
                 Ok(())
             }
             Err(e) => match e {

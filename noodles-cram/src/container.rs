@@ -29,7 +29,7 @@ impl Container {
 
     pub fn try_from_data_container(
         data_container: &DataContainer,
-        base_count: i64,
+        base_count: u64,
     ) -> io::Result<Self> {
         use super::writer::data_container::write_compression_header;
 

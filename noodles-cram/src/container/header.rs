@@ -20,7 +20,7 @@ pub struct Header {
     alignment_span: usize,
     record_count: i32,
     record_counter: i64,
-    base_count: i64,
+    base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
     crc32: u32,
@@ -67,7 +67,7 @@ impl Header {
         self.record_counter
     }
 
-    pub fn base_count(&self) -> i64 {
+    pub fn base_count(&self) -> u64 {
         self.base_count
     }
 

@@ -12,7 +12,7 @@ pub struct Builder {
     alignment_span: usize,
     record_count: i32,
     record_counter: i64,
-    base_count: i64,
+    base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
     crc32: u32,
@@ -49,7 +49,7 @@ impl Builder {
         self
     }
 
-    pub fn set_base_count(mut self, base_count: i64) -> Self {
+    pub fn set_base_count(mut self, base_count: u64) -> Self {
         self.base_count = base_count;
         self
     }

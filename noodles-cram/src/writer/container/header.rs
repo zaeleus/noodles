@@ -35,7 +35,8 @@ where
     let record_counter = header.record_counter();
     write_ltf8(&mut crc_writer, record_counter)?;
 
-    let bases = header.base_count();
+    let bases = i64::try_from(header.base_count())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_ltf8(&mut crc_writer, bases)?;
 
     let number_of_blocks = i32::try_from(header.block_count())
