@@ -24,7 +24,7 @@ pub struct Builder {
     tags: sam::record::Data,
     bases: sam::alignment::record::Sequence,
     features: Features,
-    mapping_quality: Option<sam::record::MappingQuality>,
+    mapping_quality: Option<sam::alignment::record::MappingQuality>,
     quality_scores: sam::alignment::record::QualityScores,
 }
 
@@ -147,7 +147,10 @@ impl Builder {
     }
 
     /// Sets the mapping quality.
-    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
+    pub fn set_mapping_quality(
+        mut self,
+        mapping_quality: sam::alignment::record::MappingQuality,
+    ) -> Self {
         self.mapping_quality = Some(mapping_quality);
         self
     }

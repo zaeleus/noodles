@@ -905,8 +905,10 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
-        use sam::record::mapping_quality::MISSING;
+    fn read_mapping_quality(
+        &mut self,
+    ) -> io::Result<Option<sam::alignment::record::MappingQuality>> {
+        use sam::alignment::record::mapping_quality::MISSING;
 
         let encoding = self
             .compression_header
@@ -928,7 +930,7 @@ where
 
         match n {
             MISSING => Ok(None),
-            _ => Ok(sam::record::MappingQuality::new(n)),
+            _ => Ok(sam::alignment::record::MappingQuality::new(n)),
         }
     }
 

@@ -161,7 +161,7 @@ mod tests {
     }
 
     fn build_record() -> Result<Record, Box<dyn std::error::Error>> {
-        use sam::record::{Flags, MappingQuality};
+        use sam::{alignment::record::MappingQuality, record::Flags};
 
         let reference_sequence_id = 1;
 
@@ -185,16 +185,18 @@ mod tests {
 
     #[test]
     fn test_try_into_sam_record() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::{alignment::record::MappingQuality, record::Flags};
+
         let bam_record = build_record()?;
         let reference_sequences = build_reference_sequences()?;
         let actual = bam_record.try_into_sam_record(&reference_sequences)?;
 
         let expected = sam::Record::builder()
             .set_read_name("r0".parse()?)
-            .set_flags(sam::record::Flags::SEGMENTED | sam::record::Flags::FIRST_SEGMENT)
+            .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
             .set_reference_sequence_name("sq1".parse()?)
             .set_position(Position::try_from(61062)?)
-            .set_mapping_quality(sam::record::MappingQuality::try_from(12)?)
+            .set_mapping_quality(MappingQuality::try_from(12)?)
             .set_cigar("4M".parse()?)
             .set_mate_reference_sequence_name("sq1".parse()?)
             .set_mate_position(Position::try_from(61153)?)

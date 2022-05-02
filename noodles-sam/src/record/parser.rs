@@ -5,14 +5,16 @@ use noodles_core::Position;
 use super::{
     cigar::{self, Cigar},
     data::{self, Data},
-    mapping_quality::{self, MappingQuality},
     quality_scores,
     read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
     Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
 use crate::{
-    alignment::record::{sequence, AlignmentQualityScores, AlignmentSequence},
+    alignment::record::{
+        mapping_quality::{self, MappingQuality},
+        sequence, AlignmentQualityScores, AlignmentSequence,
+    },
     AlignmentRecord,
 };
 

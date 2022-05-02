@@ -175,7 +175,7 @@ where
         let mapq = record
             .mapping_quality()
             .map(u8::from)
-            .unwrap_or(crate::record::mapping_quality::MISSING);
+            .unwrap_or(crate::alignment::record::mapping_quality::MISSING);
 
         let rnext = record
             .mate_reference_sequence(header.reference_sequences())

@@ -42,7 +42,7 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 pub struct Record {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
-    mapping_quality: Option<sam::record::MappingQuality>,
+    mapping_quality: Option<sam::alignment::record::MappingQuality>,
     flags: sam::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
@@ -139,14 +139,14 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = bam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::new(13);
     ///
     /// assert_eq!(record.mapping_quality(), MappingQuality::new(13));
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::alignment::record::MappingQuality> {
         &mut self.mapping_quality
     }
 
@@ -410,7 +410,7 @@ impl sam::AlignmentRecord for Record {
         self.cigar().reference_len()
     }
 
-    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+    fn mapping_quality(&self) -> Option<sam::alignment::record::MappingQuality> {
         self.mapping_quality
     }
 

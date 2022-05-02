@@ -5,16 +5,28 @@ pub mod cigar;
 pub mod data;
 mod field;
 mod flags;
-pub mod mapping_quality;
 mod parser;
 pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
-    mapping_quality::MappingQuality, parser::ParseError, read_name::ReadName,
-    reference_sequence_name::ReferenceSequenceName,
+    builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags, parser::ParseError,
+    read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
 };
+
+/* #[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::mapping_quality` instead."
+)]
+pub use super::alignment::record::mapping_quality;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::MappingQuality` instead."
+)]
+pub use super::alignment::record::MappingQuality; */
+use super::alignment::record::mapping_quality;
+use super::alignment::record::MappingQuality;
 
 #[deprecated(
     since = "0.15.0",
@@ -242,7 +254,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::new(8);
@@ -373,7 +385,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.template_length_mut() = 101;

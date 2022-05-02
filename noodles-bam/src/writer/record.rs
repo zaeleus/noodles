@@ -159,11 +159,11 @@ where
 
 pub(super) fn put_mapping_quality<B>(
     dst: &mut B,
-    mapping_quality: Option<sam::record::MappingQuality>,
+    mapping_quality: Option<sam::alignment::record::MappingQuality>,
 ) where
     B: BufMut,
 {
-    use sam::record::mapping_quality::MISSING;
+    use sam::alignment::record::mapping_quality::MISSING;
     let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
     dst.put_u8(mapq);
 }
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{Flags, MappingQuality};
+        use sam::{alignment::record::MappingQuality, record::Flags};
 
         let reference_sequence_id = 1;
 

@@ -1,9 +1,12 @@
 //! Alignment record.
 
+pub mod mapping_quality;
 pub mod quality_scores;
 pub mod sequence;
 
-pub use self::{quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    mapping_quality::MappingQuality, quality_scores::QualityScores, sequence::Sequence,
+};
 
 use std::io;
 

@@ -38,7 +38,7 @@ pub struct Record {
     pub(crate) tags: sam::record::Data,
     pub(crate) bases: sam::alignment::record::Sequence,
     pub(crate) features: Features,
-    pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
+    pub(crate) mapping_quality: Option<sam::alignment::record::MappingQuality>,
     pub(crate) quality_scores: sam::alignment::record::QualityScores,
 
     pub(crate) cigar: OnceCell<sam::record::Cigar>,
@@ -174,7 +174,7 @@ impl sam::AlignmentRecord for Record {
         calculate_alignment_span(self.read_length(), self.features())
     }
 
-    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+    fn mapping_quality(&self) -> Option<sam::alignment::record::MappingQuality> {
         self.mapping_quality
     }
 

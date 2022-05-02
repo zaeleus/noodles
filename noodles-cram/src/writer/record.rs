@@ -912,7 +912,7 @@ where
 
     fn write_mapping_quality(
         &mut self,
-        mapping_quality: Option<sam::record::MappingQuality>,
+        mapping_quality: Option<sam::alignment::record::MappingQuality>,
     ) -> io::Result<()> {
         let encoding = self
             .compression_header
@@ -928,7 +928,7 @@ where
         let mapping_quality = i32::from(
             mapping_quality
                 .map(u8::from)
-                .unwrap_or(sam::record::mapping_quality::MISSING),
+                .unwrap_or(sam::alignment::record::mapping_quality::MISSING),
         );
 
         encode_itf8(

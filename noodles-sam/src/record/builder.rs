@@ -2,10 +2,8 @@
 
 use noodles_core::Position;
 
-use super::{
-    Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Record, ReferenceSequenceName,
-    Sequence,
-};
+use super::{Cigar, Data, Flags, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence};
+use crate::alignment::record::MappingQuality;
 
 /// A SAM record builder.
 #[derive(Debug)]
@@ -126,14 +124,14 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::MappingQuality, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build();
     ///
     /// assert_eq!(record.mapping_quality(), MappingQuality::new(34));
-    /// # Ok::<(), sam::record::mapping_quality::ParseError>(())
+    /// # Ok::<(), sam::alignment::record::mapping_quality::ParseError>(())
     /// ```
     pub fn set_mapping_quality(mut self, mapping_quality: MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);

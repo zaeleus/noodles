@@ -10,7 +10,7 @@ use super::{Record, Sequence};
 pub struct Builder {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
-    mapping_quality: Option<sam::record::MappingQuality>,
+    mapping_quality: Option<sam::alignment::record::MappingQuality>,
     flags: sam::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
@@ -69,16 +69,19 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::MappingQuality, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build();
     ///
     /// assert_eq!(record.mapping_quality(), MappingQuality::new(34));
-    /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::mapping_quality::ParseError>(())
     /// ```
-    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
+    pub fn set_mapping_quality(
+        mut self,
+        mapping_quality: sam::alignment::record::MappingQuality,
+    ) -> Self {
         self.mapping_quality = Some(mapping_quality);
         self
     }

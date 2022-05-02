@@ -111,11 +111,11 @@ where
     }
 }
 
-fn get_mapping_quality<B>(src: &mut B) -> io::Result<Option<sam::record::MappingQuality>>
+fn get_mapping_quality<B>(src: &mut B) -> io::Result<Option<sam::alignment::record::MappingQuality>>
 where
     B: Buf,
 {
-    use sam::record::mapping_quality::MISSING;
+    use sam::alignment::record::mapping_quality::MISSING;
 
     if src.remaining() < mem::size_of::<u8>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
@@ -123,7 +123,7 @@ where
 
     match src.get_u8() {
         MISSING => Ok(None),
-        n => Ok(sam::record::MappingQuality::new(n)),
+        n => Ok(sam::alignment::record::MappingQuality::new(n)),
     }
 }
 
