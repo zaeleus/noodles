@@ -154,15 +154,15 @@ impl AlignmentQualityScores for QualityScores {
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     /// let mut scores = quality_scores.scores();
     ///
-    /// assert_eq!(scores.next().transpose()?, Some(Score::try_from('N')?));
-    /// assert_eq!(scores.next().transpose()?, Some(Score::try_from('D')?));
-    /// assert_eq!(scores.next().transpose()?, Some(Score::try_from('L')?));
-    /// assert_eq!(scores.next().transpose()?, Some(Score::try_from('S')?));
+    /// assert_eq!(scores.next(), Some(Score::try_from('N')?));
+    /// assert_eq!(scores.next(), Some(Score::try_from('D')?));
+    /// assert_eq!(scores.next(), Some(Score::try_from('L')?));
+    /// assert_eq!(scores.next(), Some(Score::try_from('S')?));
     /// assert!(scores.next().is_none());
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    fn scores(&self) -> Box<dyn Iterator<Item = std::io::Result<Score>> + '_> {
-        Box::new(self.0.iter().copied().map(Ok))
+    fn scores(&self) -> Box<dyn Iterator<Item = Score> + '_> {
+        Box::new(self.0.iter().copied())
     }
 }
 

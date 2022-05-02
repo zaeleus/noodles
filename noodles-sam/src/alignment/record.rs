@@ -8,8 +8,6 @@ pub use self::{
     mapping_quality::MappingQuality, quality_scores::QualityScores, sequence::Sequence,
 };
 
-use std::io;
-
 use self::{quality_scores::Score, sequence::Base};
 
 /// An alignment record sequence.
@@ -39,5 +37,5 @@ pub trait AlignmentQualityScores {
     fn clear(&mut self);
 
     /// Returns an iterator over the scores.
-    fn scores(&self) -> Box<dyn Iterator<Item = io::Result<Score>> + '_>;
+    fn scores(&self) -> Box<dyn Iterator<Item = Score> + '_>;
 }
