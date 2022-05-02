@@ -127,6 +127,9 @@ impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.interval() {
             (Bound::Unbounded, Bound::Unbounded) => write!(f, "{}", self.name()),
+            (Bound::Unbounded, Bound::Included(e)) => {
+                write!(f, "{}:{}-{}", self.name(), Position::MIN, e)
+            }
             (Bound::Included(s), Bound::Unbounded) => write!(f, "{}:{}", self.name(), s),
             (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", self.name(), s, e),
             _ => todo!(),
@@ -215,12 +218,12 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), crate::position::TryFromIntError> {
-        assert_eq!(Region::new("sq0", ..).to_string(), "sq0");
-
         let start = Position::try_from(5)?;
-        assert_eq!(Region::new("sq0", start..).to_string(), "sq0:5");
-
         let end = Position::try_from(8)?;
+
+        assert_eq!(Region::new("sq0", ..).to_string(), "sq0");
+        assert_eq!(Region::new("sq0", ..=end).to_string(), "sq0:1-8");
+        assert_eq!(Region::new("sq0", start..).to_string(), "sq0:5");
         assert_eq!(Region::new("sq0", start..=end).to_string(), "sq0:5-8");
 
         Ok(())

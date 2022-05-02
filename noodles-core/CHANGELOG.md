@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * core/region: Add display formatter for `(Unbounded, Included)`.
+
 ## 0.6.0 - 2022-03-29
 
 ### Added
