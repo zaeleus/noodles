@@ -248,7 +248,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::QualityScores, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::QualityScores, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -257,7 +257,7 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// Ok::<(), sam::record::quality_scores::ParseError>(())
+    /// Ok::<(), sam::alignment::record::quality_scores::ParseError>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;

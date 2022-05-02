@@ -39,7 +39,7 @@ pub struct Record {
     pub(crate) bases: sam::alignment::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
-    pub(crate) quality_scores: sam::record::QualityScores,
+    pub(crate) quality_scores: sam::alignment::record::QualityScores,
 
     pub(crate) cigar: OnceCell<sam::record::Cigar>,
 }
@@ -210,7 +210,7 @@ impl sam::AlignmentRecord for Record {
         &self.bases
     }
 
-    fn quality_scores(&self) -> &sam::record::QualityScores {
+    fn quality_scores(&self) -> &sam::alignment::record::QualityScores {
         &self.quality_scores
     }
 

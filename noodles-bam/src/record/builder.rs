@@ -18,7 +18,7 @@ pub struct Builder {
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
     sequence: Sequence,
-    quality_scores: sam::record::QualityScores,
+    quality_scores: sam::alignment::record::QualityScores,
     data: sam::record::Data,
 }
 
@@ -227,7 +227,10 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::{quality_scores::Score, QualityScores}, AlignmentRecord};
+    /// use noodles_sam::{
+    ///     alignment::record::{quality_scores::Score, QualityScores},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -236,9 +239,12 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
     /// ```
-    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
+    pub fn set_quality_scores(
+        mut self,
+        quality_scores: sam::alignment::record::QualityScores,
+    ) -> Self {
         self.quality_scores = quality_scores;
         self
     }
@@ -304,7 +310,7 @@ impl Default for Builder {
             read_name: None,
             cigar: sam::record::Cigar::default(),
             sequence: Sequence::default(),
-            quality_scores: sam::record::QualityScores::default(),
+            quality_scores: sam::alignment::record::QualityScores::default(),
             data: sam::record::Data::default(),
         }
     }

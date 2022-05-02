@@ -3,9 +3,9 @@ use std::io;
 use noodles_core::Position;
 
 use super::{
-    alignment::record::AlignmentSequence,
+    alignment::record::{AlignmentSequence, QualityScores},
     header::{ReferenceSequence, ReferenceSequences},
-    record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName},
+    record::{Cigar, Data, Flags, MappingQuality, ReadName},
 };
 
 /// An alignment record.

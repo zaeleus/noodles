@@ -1,11 +1,11 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::{self as sam, alignment::record::AlignmentQualityScores};
+use noodles_sam::alignment::record::{AlignmentQualityScores, QualityScores};
 
 pub fn get_quality_scores<B>(
     src: &mut B,
-    quality_scores: &mut sam::record::QualityScores,
+    quality_scores: &mut QualityScores,
     l_seq: usize,
 ) -> io::Result<()>
 where
@@ -30,7 +30,7 @@ where
         buf.resize(l_seq, 0);
         src.copy_to_slice(&mut buf);
 
-        *quality_scores = sam::record::QualityScores::try_from(buf)
+        *quality_scores = QualityScores::try_from(buf)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     }
 
@@ -49,14 +49,14 @@ mod tests {
 
     #[test]
     fn test_get_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: &sam::record::QualityScores) -> io::Result<()> {
-            let mut actual = sam::record::QualityScores::default();
+        fn t(mut src: &[u8], expected: &QualityScores) -> io::Result<()> {
+            let mut actual = QualityScores::default();
             get_quality_scores(&mut src, &mut actual, expected.len())?;
             assert_eq!(&actual, expected);
             Ok(())
         }
 
-        t(&[], &sam::record::QualityScores::default())?;
+        t(&[], &QualityScores::default())?;
         t(&[0x2d, 0x23, 0x2b, 0x32], &"NDLS".parse()?)?;
 
         Ok(())
@@ -67,7 +67,7 @@ mod tests {
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut buf = &data[..];
 
-        let mut quality_scores = sam::record::QualityScores::default();
+        let mut quality_scores = QualityScores::default();
         get_quality_scores(&mut buf, &mut quality_scores, 4)?;
 
         assert!(quality_scores.is_empty());

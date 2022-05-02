@@ -1,13 +1,13 @@
 //! Alignment record.
 
+pub mod quality_scores;
 pub mod sequence;
 
-pub use self::sequence::Sequence;
+pub use self::{quality_scores::QualityScores, sequence::Sequence};
 
 use std::io;
 
-use self::sequence::Base;
-use crate::record::quality_scores::Score;
+use self::{quality_scores::Score, sequence::Base};
 
 /// An alignment record sequence.
 pub trait AlignmentSequence {

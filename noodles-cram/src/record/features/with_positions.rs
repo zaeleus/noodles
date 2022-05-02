@@ -92,8 +92,9 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_sam::alignment::record::{quality_scores::Score, sequence::Base};
+
         use crate::record::Features;
-        use noodles_sam::{alignment::record::sequence::Base, record::quality_scores::Score};
 
         let features = Features::from(vec![
             Feature::Bases(Position::MIN, vec![Base::A, Base::C]),

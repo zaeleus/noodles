@@ -8,7 +8,9 @@ use bytes::Buf;
 use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
-    self as sam, alignment::record::sequence::Base, record::quality_scores::Score, AlignmentRecord,
+    self as sam,
+    alignment::record::{quality_scores::Score, sequence::Base},
+    AlignmentRecord,
 };
 
 use super::num::get_itf8;

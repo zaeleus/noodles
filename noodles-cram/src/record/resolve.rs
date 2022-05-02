@@ -180,10 +180,14 @@ pub fn resolve_features(features: &Features, read_length: usize) -> sam::record:
 }
 
 /// Resolves the quality scores.
-pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
-    use sam::record::quality_scores::Score;
+pub fn resolve_quality_scores(
+    features: &[Feature],
+    read_len: usize,
+) -> sam::alignment::record::QualityScores {
+    use sam::alignment::record::quality_scores::Score;
 
-    let mut quality_scores = sam::record::QualityScores::from(vec![Score::default(); read_len]);
+    let mut quality_scores =
+        sam::alignment::record::QualityScores::from(vec![Score::default(); read_len]);
 
     for feature in features {
         let read_position = feature.position();
@@ -208,7 +212,7 @@ pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::rec
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use sam::record::quality_scores::Score;
+    use sam::alignment::record::quality_scores::Score;
 
     use super::*;
 
@@ -383,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{quality_scores::Score, QualityScores};
+        use sam::alignment::record::{quality_scores::Score, QualityScores};
 
         let features = [
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(5)?),

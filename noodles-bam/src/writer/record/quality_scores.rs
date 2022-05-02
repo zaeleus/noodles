@@ -1,7 +1,7 @@
 use bytes::BufMut;
-use noodles_sam as sam;
+use noodles_sam::alignment::record::QualityScores;
 
-pub fn put_quality_scores<B>(dst: &mut B, quality_scores: &sam::record::QualityScores)
+pub fn put_quality_scores<B>(dst: &mut B, quality_scores: &QualityScores)
 where
     B: BufMut,
 {
@@ -12,11 +12,13 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_sam as sam;
+
     use super::*;
 
     #[test]
-    fn test_put_quality_scores() -> Result<(), sam::record::quality_scores::ParseError> {
-        fn t(buf: &mut Vec<u8>, quality_scores: &sam::record::QualityScores, expected: &[u8]) {
+    fn test_put_quality_scores() -> Result<(), sam::alignment::record::quality_scores::ParseError> {
+        fn t(buf: &mut Vec<u8>, quality_scores: &QualityScores, expected: &[u8]) {
             buf.clear();
             put_quality_scores(buf, quality_scores);
             assert_eq!(buf, expected);
@@ -24,7 +26,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &sam::record::QualityScores::default(), &[]);
+        t(&mut buf, &QualityScores::default(), &[]);
         t(&mut buf, &"NDLS".parse()?, &[0x2d, 0x23, 0x2b, 0x32]);
 
         Ok(())

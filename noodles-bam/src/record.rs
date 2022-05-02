@@ -50,7 +50,7 @@ pub struct Record {
     read_name: Option<sam::record::ReadName>,
     cigar: sam::record::Cigar,
     sequence: Sequence,
-    quality_scores: sam::record::QualityScores,
+    quality_scores: sam::alignment::record::QualityScores,
     data: sam::record::Data,
 }
 
@@ -311,7 +311,10 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::{quality_scores::Score, QualityScores}, AlignmentRecord};
+    /// use noodles_sam::{
+    ///     alignment::record::{quality_scores::Score, QualityScores},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -319,9 +322,9 @@ impl Record {
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut sam::record::QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut sam::alignment::record::QualityScores {
         &mut self.quality_scores
     }
 
@@ -447,7 +450,7 @@ impl sam::AlignmentRecord for Record {
         &self.sequence
     }
 
-    fn quality_scores(&self) -> &sam::record::QualityScores {
+    fn quality_scores(&self) -> &sam::alignment::record::QualityScores {
         &self.quality_scores
     }
 

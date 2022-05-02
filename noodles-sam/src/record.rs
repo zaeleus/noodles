@@ -7,14 +7,13 @@ mod field;
 mod flags;
 pub mod mapping_quality;
 mod parser;
-pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
-    mapping_quality::MappingQuality, parser::ParseError, quality_scores::QualityScores,
-    read_name::ReadName, reference_sequence_name::ReferenceSequenceName,
+    mapping_quality::MappingQuality, parser::ParseError, read_name::ReadName,
+    reference_sequence_name::ReferenceSequenceName,
 };
 
 #[deprecated(
@@ -28,6 +27,18 @@ pub use super::alignment::record::sequence;
     note = "Use `noodles_sam::alignment::record::Sequence` instead."
 )]
 pub use super::alignment::record::Sequence;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::quality_scores` instead."
+)]
+pub use super::alignment::record::quality_scores;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::QualityScores` instead."
+)]
+pub use super::alignment::record::QualityScores;
 
 use std::{fmt, io, str::FromStr};
 
@@ -403,8 +414,7 @@ impl Record {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record::AlignmentQualityScores,
-    ///     record::{quality_scores, QualityScores},
+    ///     alignment::record::{AlignmentQualityScores, QualityScores},
     ///     AlignmentRecord,
     /// };
     ///
@@ -415,7 +425,7 @@ impl Record {
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<(), quality_scores::ParseError>(())
+    /// # Ok::<(), sam::alignment::record::quality_scores::ParseError>(())
     /// ```
     pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
         &mut self.quality_scores
