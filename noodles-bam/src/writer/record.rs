@@ -2,13 +2,14 @@
 
 mod cigar;
 pub mod data;
+mod mapping_quality;
 mod quality_scores;
 mod read_name;
 mod sequence;
 
 pub(crate) use self::{
-    cigar::put_cigar, data::put_data, quality_scores::put_quality_scores, read_name::put_read_name,
-    sequence::put_sequence,
+    cigar::put_cigar, data::put_data, mapping_quality::put_mapping_quality,
+    quality_scores::put_quality_scores, read_name::put_read_name, sequence::put_sequence,
 };
 
 use std::io;
@@ -155,17 +156,6 @@ where
     dst.put_u8(l_read_name);
 
     Ok(())
-}
-
-pub(super) fn put_mapping_quality<B>(
-    dst: &mut B,
-    mapping_quality: Option<sam::alignment::record::MappingQuality>,
-) where
-    B: BufMut,
-{
-    use sam::alignment::record::mapping_quality::MISSING;
-    let mapq = mapping_quality.map(u8::from).unwrap_or(MISSING);
-    dst.put_u8(mapq);
 }
 
 pub(super) fn put_bin<B>(
