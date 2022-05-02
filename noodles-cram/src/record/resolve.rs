@@ -399,13 +399,7 @@ mod tests {
         ];
 
         let actual = resolve_quality_scores(&features, 6);
-
-        let expected = [5, 0, 8, 0, 13, 21]
-            .into_iter()
-            .map(Score::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .map(QualityScores::from)?;
-
+        let expected = QualityScores::try_from(vec![5, 0, 8, 0, 13, 21])?;
         assert_eq!(actual, expected);
 
         Ok(())
