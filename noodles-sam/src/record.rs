@@ -1,16 +1,27 @@
 //! SAM record and fields.
 
 pub mod builder;
-pub mod data;
 mod field;
 mod parser;
 pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
-    builder::Builder, data::Data, field::Field, parser::ParseError, read_name::ReadName,
+    builder::Builder, field::Field, parser::ParseError, read_name::ReadName,
     reference_sequence_name::ReferenceSequenceName,
 };
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::data` instead."
+)]
+pub use super::alignment::record::data;
+
+#[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::Data` instead."
+)]
+pub use super::alignment::record::Data;
 
 #[deprecated(
     since = "0.15.0",
@@ -462,15 +473,16 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::data, AlignmentRecord};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     alignment::record::data::{field::{Tag, Value}, Field},
+    ///     AlignmentRecord,
+    /// };
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.data().is_empty());
     ///
-    /// let field = data::Field::new(
-    ///     data::field::Tag::AlignmentHitCount,
-    ///     data::field::Value::Int32(1),
-    /// );
+    /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     ///
     /// let data = record.data_mut();
     /// data.insert(field.clone());
@@ -737,7 +749,7 @@ mod tests {
 
     #[test]
     fn test_fmt_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use super::data::{
+        use crate::alignment::record::data::{
             field::{Tag, Value},
             Field,
         };

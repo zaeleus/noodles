@@ -21,7 +21,7 @@ pub struct Builder {
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
-    tags: sam::record::Data,
+    tags: sam::alignment::record::Data,
     bases: sam::alignment::record::Sequence,
     features: Features,
     mapping_quality: Option<sam::alignment::record::MappingQuality>,
@@ -111,13 +111,13 @@ impl Builder {
     }
 
     /// Sets the tag dictionary.
-    pub fn set_tags(mut self, tags: sam::record::Data) -> Self {
+    pub fn set_tags(mut self, tags: sam::alignment::record::Data) -> Self {
         self.tags = tags;
         self
     }
 
     /// Adds a tag to the tag dictionary.
-    pub fn add_tag(mut self, tag: sam::record::data::Field) -> Self {
+    pub fn add_tag(mut self, tag: sam::alignment::record::data::Field) -> Self {
         self.tags.insert(tag);
         self
     }
@@ -212,7 +212,7 @@ impl Default for Builder {
             next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
-            tags: sam::record::Data::default(),
+            tags: sam::alignment::record::Data::default(),
             bases: sam::alignment::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,

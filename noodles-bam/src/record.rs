@@ -52,7 +52,7 @@ pub struct Record {
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: sam::record::Data,
+    data: sam::alignment::record::Data,
 }
 
 impl Record {
@@ -333,7 +333,7 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// use noodles_sam::{
-    ///     record::data::{field::{Tag, Value}, Field},
+    ///     alignment::record::data::{field::{Tag, Value}, Field},
     ///     AlignmentRecord
     /// };
     ///
@@ -344,7 +344,7 @@ impl Record {
     ///
     /// assert_eq!(record.data().len(), 1);
     /// ```
-    pub fn data_mut(&mut self) -> &mut sam::record::Data {
+    pub fn data_mut(&mut self) -> &mut sam::alignment::record::Data {
         &mut self.data
     }
 }
@@ -453,7 +453,7 @@ impl sam::AlignmentRecord for Record {
         self.quality_scores.get()
     }
 
-    fn data(&self) -> &sam::record::Data {
+    fn data(&self) -> &sam::alignment::record::Data {
         &self.data
     }
 }

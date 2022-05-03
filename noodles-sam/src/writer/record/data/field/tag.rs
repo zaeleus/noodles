@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::record::data::field::Tag;
+use crate::alignment::record::data::field::Tag;
 
 pub fn write_tag<W>(writer: &mut W, tag: Tag) -> io::Result<()>
 where

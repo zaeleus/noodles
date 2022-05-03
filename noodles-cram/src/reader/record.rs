@@ -451,9 +451,9 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
+    fn read_tag_data(&mut self) -> io::Result<sam::alignment::record::Data> {
         use bam::reader::record::data::field::get_value;
-        use sam::record::data::Field;
+        use sam::alignment::record::data::Field;
 
         let tag_line = self.read_tag_line()?;
 
@@ -491,7 +491,7 @@ where
             fields.push(field);
         }
 
-        sam::record::Data::try_from(fields)
+        sam::alignment::record::Data::try_from(fields)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 

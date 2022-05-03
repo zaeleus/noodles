@@ -19,7 +19,7 @@ pub struct Builder {
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: sam::record::Data,
+    data: sam::alignment::record::Data,
 }
 
 impl Builder {
@@ -252,7 +252,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::Data, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -261,9 +261,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.data(), &data);
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
-    pub fn set_data(mut self, data: sam::record::Data) -> Self {
+    pub fn set_data(mut self, data: sam::alignment::record::Data) -> Self {
         self.data = data;
         self
     }
@@ -308,7 +308,7 @@ impl Default for Builder {
             cigar: sam::alignment::record::Cigar::default(),
             sequence: Sequence::default(),
             quality_scores: QualityScores::default(),
-            data: sam::record::Data::default(),
+            data: sam::alignment::record::Data::default(),
         }
     }
 }

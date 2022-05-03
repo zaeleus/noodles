@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::value::Subtype;
+use noodles_sam::alignment::record::data::field::value::Subtype;
 
 pub fn get_subtype<B>(src: &mut B) -> io::Result<Subtype>
 where

@@ -2,8 +2,8 @@
 
 use noodles_core::Position;
 
-use super::{Cigar, Data, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence};
-use crate::alignment::record::{Flags, MappingQuality};
+use super::{Cigar, QualityScores, ReadName, Record, ReferenceSequenceName, Sequence};
+use crate::alignment::record::{Data, Flags, MappingQuality};
 
 /// A SAM record builder.
 #[derive(Debug)]
@@ -267,11 +267,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, record::Data, AlignmentRecord};
+    /// use noodles_sam::{self as sam, alignment::record::Data, AlignmentRecord};
     /// let data: Data = "NH:i:1".parse()?;
     /// let record = sam::Record::builder().set_data(data.clone()).build();
     /// assert_eq!(record.data(), &data);
-    /// # Ok::<(), sam::record::data::ParseError>(())
+    /// # Ok::<(), sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;

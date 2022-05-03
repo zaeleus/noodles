@@ -341,8 +341,7 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_sam::{
-        alignment::record::{AlignmentQualityScores, AlignmentSequence},
-        record::Data,
+        alignment::record::{AlignmentQualityScores, AlignmentSequence, Data},
         AlignmentRecord, AlignmentWriter,
     };
 
@@ -526,7 +525,7 @@ mod tests {
 
     #[test]
     fn test_write_alignment_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::record::data::{
+        use noodles_sam::alignment::record::data::{
             field::{Tag, Value},
             Field,
         };

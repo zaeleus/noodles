@@ -6,7 +6,7 @@ pub use self::{subtype::get_subtype, ty::get_type};
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::record::data::field::{
+use noodles_sam::alignment::record::data::field::{
     value::{Subtype, Type},
     Value,
 };
@@ -20,7 +20,7 @@ use noodles_sam::record::data::field::{
 /// ```
 /// # use std::io;
 /// use noodles_bam::reader::record::data::field::get_value;
-/// use noodles_sam::record::data::field::{value::Type, Value};
+/// use noodles_sam::alignment::record::data::field::{value::Type, Value};
 ///
 /// let data = [0x01, 0x00, 0x00, 0x00];
 /// let mut reader = &data[..];

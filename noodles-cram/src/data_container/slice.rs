@@ -381,7 +381,7 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 }
 
 fn resolve_data(header: &sam::Header, records: &mut [Record]) -> io::Result<()> {
-    use sam::record::data::{
+    use sam::alignment::record::data::{
         field::{Tag, Value},
         Field,
     };

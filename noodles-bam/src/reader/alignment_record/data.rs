@@ -1,9 +1,9 @@
 use std::io;
 
 use bytes::Buf;
-use noodles_sam as sam;
+use noodles_sam::alignment::record::Data;
 
-pub fn get_data<B>(src: &mut B, data: &mut sam::record::Data) -> io::Result<()>
+pub fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
 where
     B: Buf,
 {
@@ -24,19 +24,15 @@ mod tests {
 
     #[test]
     fn test_get_data() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(
-            mut src: &[u8],
-            actual: &mut sam::record::Data,
-            expected: &sam::record::Data,
-        ) -> io::Result<()> {
+        fn t(mut src: &[u8], actual: &mut Data, expected: &Data) -> io::Result<()> {
             get_data(&mut src, actual)?;
             assert_eq!(actual, expected);
             Ok(())
         }
 
-        let mut buf = sam::record::Data::default();
+        let mut buf = Data::default();
 
-        t(&[], &mut buf, &sam::record::Data::default())?;
+        t(&[], &mut buf, &Data::default())?;
 
         t(
             &[b'N', b'H', b'C', 0x01], // NH:C:0

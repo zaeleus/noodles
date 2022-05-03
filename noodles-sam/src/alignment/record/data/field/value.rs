@@ -58,10 +58,10 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Type, Value};
+    /// use noodles_sam::alignment::record::data::field::{value::Type, Value};
     /// let value = Value::from_str_type("rg0", Type::String)?;
     /// assert_eq!(value, Value::String(String::from("rg0")));
-    /// # Ok::<_, noodles_sam::record::data::field::value::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::field::value::ParseError>(())
     /// ```
     pub fn from_str_type(s: &str, ty: Type) -> Result<Self, ParseError> {
         match ty {
@@ -80,7 +80,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Type, Value};
+    /// use noodles_sam::alignment::record::data::field::{value::Type, Value};
     /// assert_eq!(Value::Int32(0).ty(), Type::Int32);
     /// ```
     pub fn ty(&self) -> Type {
@@ -112,7 +112,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::{value::Subtype, Value};
+    /// use noodles_sam::alignment::record::data::field::{value::Subtype, Value};
     /// assert_eq!(Value::UInt8Array(vec![0]).subtype(), Some(Subtype::UInt8));
     /// assert_eq!(Value::Int32(0).subtype(), None);
     /// ```
@@ -134,7 +134,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Char('a').as_char(), Some('a'));
     /// assert_eq!(Value::Int32(0).as_char(), None);
     /// ```
@@ -150,7 +150,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Char('a').is_char());
     /// assert!(!Value::Int32(0).is_char());
     /// ```
@@ -163,7 +163,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Int32(0).as_int32(), Some(0));
     /// assert_eq!(Value::Char('a').as_int32(), None);
     /// ```
@@ -179,7 +179,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int32(0).is_int32());
     /// assert!(!Value::Char('a').is_int32());
     /// ```
@@ -195,7 +195,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Int32(0).as_int(), Some(0));
     /// assert_eq!(Value::Char('n').as_int(), None);
     /// ```
@@ -216,7 +216,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int32(0).is_int());
     /// assert!(!Value::Char('n').is_int());
     /// ```
@@ -238,7 +238,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Float(0.0).as_float(), Some(0.0));
     /// assert_eq!(Value::Int32(0).as_float(), None);
     /// ```
@@ -254,7 +254,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Float(0.0).is_float());
     /// assert!(!Value::Int32(0).is_float());
     /// ```
@@ -267,7 +267,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::String(String::from("noodles")).as_str(), Some("noodles"));
     /// assert_eq!(Value::Int32(0).as_str(), None);
     /// ```
@@ -283,7 +283,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::String(String::from("noodles")).is_str());
     /// assert!(!Value::Int32(0).is_str());
     /// ```
@@ -296,7 +296,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Hex(String::from("CAFE")).as_hex(), Some("CAFE"));
     /// assert_eq!(Value::Int32(0).as_hex(), None);
     /// ```
@@ -312,7 +312,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Hex(String::from("CAFE")).is_hex());
     /// assert!(!Value::Int32(0).is_hex());
     /// ```
@@ -325,7 +325,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Int8Array(vec![0]).as_int8_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_int8_array(), None);
     /// ```
@@ -341,7 +341,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int8Array(vec![0]).is_int8_array());
     /// assert!(!Value::Int32(0).is_int8_array());
     /// ```
@@ -355,7 +355,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::UInt8Array(vec![0]).as_uint8_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_uint8_array(), None);
     /// ```
@@ -371,7 +371,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::UInt8Array(vec![0]).is_uint8_array());
     /// assert!(!Value::Int32(0).is_uint8_array());
     /// ```
@@ -384,7 +384,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Int16Array(vec![0]).as_int16_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_int16_array(), None);
     /// ```
@@ -400,7 +400,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int16Array(vec![0]).is_int16_array());
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
@@ -414,7 +414,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::UInt16Array(vec![0]).as_uint16_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_uint16_array(), None);
     /// ```
@@ -430,7 +430,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::UInt16Array(vec![0]).is_uint16_array());
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
@@ -443,7 +443,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::Int32Array(vec![0]).as_int32_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_int32_array(), None);
     /// ```
@@ -459,7 +459,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int32Array(vec![0]).is_int32_array());
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```
@@ -473,7 +473,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::UInt32Array(vec![0]).as_uint32_array(), Some(&[0][..]));
     /// assert_eq!(Value::Int32(0).as_uint32_array(), None);
     /// ```
@@ -489,7 +489,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::UInt32Array(vec![0]).is_uint32_array());
     /// assert!(!Value::Int32(0).is_int32_array());
     /// ```
@@ -503,7 +503,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert_eq!(Value::FloatArray(vec![0.0]).as_float_array(), Some(&[0.0][..]));
     /// assert_eq!(Value::Int32(0).as_float_array(), None);
     /// ```
@@ -519,7 +519,7 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::data::field::Value;
+    /// use noodles_sam::alignment::record::data::field::Value;
     /// assert!(Value::Int32Array(vec![0]).is_int32_array());
     /// assert!(!Value::Int32(0).is_int16_array());
     /// ```

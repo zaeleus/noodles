@@ -8,7 +8,7 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_sam::{self as sam, record::data::field::Tag, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::record::data::field::Tag, AlignmentRecord};
 
 fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
     match record.data().get(Tag::AlignmentHitCount) {

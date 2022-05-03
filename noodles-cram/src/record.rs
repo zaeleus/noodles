@@ -35,7 +35,7 @@ pub struct Record {
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
-    pub(crate) tags: sam::record::Data,
+    pub(crate) tags: sam::alignment::record::Data,
     pub(crate) bases: sam::alignment::record::Sequence,
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::alignment::record::MappingQuality>,
@@ -123,7 +123,7 @@ impl Record {
     }
 
     /// Returns the tag dictionary.
-    pub fn tags(&self) -> &sam::record::Data {
+    pub fn tags(&self) -> &sam::alignment::record::Data {
         &self.tags
     }
 
@@ -215,7 +215,7 @@ impl sam::AlignmentRecord for Record {
         &self.quality_scores
     }
 
-    fn data(&self) -> &sam::record::Data {
+    fn data(&self) -> &sam::alignment::record::Data {
         &self.tags
     }
 }

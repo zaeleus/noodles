@@ -35,7 +35,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Data;
+    /// use noodles_sam::alignment::record::Data;
     /// let data = Data::default();
     /// assert_eq!(data.len(), 0);
     /// ```
@@ -48,7 +48,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::Data;
+    /// use noodles_sam::alignment::record::Data;
     /// let data = Data::default();
     /// assert!(data.is_empty());
     /// ```
@@ -63,7 +63,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let mut data = Data::try_from(vec![
     ///     Field::new(Tag::AlignmentHitCount, Value::Int32(1)),
@@ -74,7 +74,7 @@ impl Data {
     /// data.clear();
     ///
     /// assert!(data.is_empty());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
         self.standard_field_indices.fill(None);
@@ -87,14 +87,14 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh.clone()])?;
     ///
     /// assert_eq!(data.get(Tag::AlignmentHitCount), Some(&nh));
     /// assert!(data.get(Tag::ReadGroup).is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn get(&self, tag: field::Tag) -> Option<&Field> {
         self.get_index_of(tag).and_then(|j| self.fields.get(j))
@@ -105,14 +105,14 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh])?;
     ///
     /// assert_eq!(data.get_index_of(Tag::AlignmentHitCount), Some(0));
     /// assert!(data.get_index_of(Tag::ReadGroup).is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn get_index_of(&self, tag: field::Tag) -> Option<usize> {
         match tag_to_index(tag) {
@@ -126,7 +126,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh])?;
@@ -134,7 +134,7 @@ impl Data {
     /// let mut keys = data.keys();
     /// assert_eq!(keys.next(), Some(Tag::AlignmentHitCount));
     /// assert!(keys.next().is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn keys(&self) -> impl Iterator<Item = field::Tag> + '_ {
         self.fields.iter().map(|field| field.tag())
@@ -145,7 +145,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let data = Data::try_from(vec![nh.clone()])?;
@@ -153,7 +153,7 @@ impl Data {
     /// let mut values = data.values();
     /// assert_eq!(values.next(), Some(&nh));
     /// assert!(values.next().is_none());
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn values(&self) -> impl Iterator<Item = &Field> {
         self.fields.iter()
@@ -169,7 +169,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     /// let mut data = Data::default();
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// data.insert(nh);
@@ -194,7 +194,7 @@ impl Data {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::{data::{field::{Tag, Value}, Field}, Data};
+    /// use noodles_sam::alignment::record::{data::{field::{Tag, Value}, Field}, Data};
     ///
     /// let nh = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// let rg = Field::new(Tag::ReadGroup, Value::String(String::from("rg0")));
@@ -206,7 +206,7 @@ impl Data {
     ///
     /// let expected = Data::try_from(vec![md, rg])?;
     /// assert_eq!(data, expected);
-    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
     pub fn remove(&mut self, tag: field::Tag) -> Option<Field> {
         self.swap_remove(tag)
