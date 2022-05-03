@@ -136,7 +136,7 @@ where
 
 pub(super) fn put_l_read_name<B>(
     dst: &mut B,
-    read_name: Option<&sam::record::ReadName>,
+    read_name: Option<&sam::alignment::record::ReadName>,
 ) -> io::Result<()>
 where
     B: BufMut,
@@ -145,7 +145,7 @@ where
 
     let mut read_name_len = read_name
         .map(|name| name.len())
-        .unwrap_or(sam::record::read_name::MISSING.len());
+        .unwrap_or(sam::alignment::record::read_name::MISSING.len());
 
     // + NUL terminator
     read_name_len += mem::size_of::<u8>();

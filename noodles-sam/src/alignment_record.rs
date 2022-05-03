@@ -4,10 +4,9 @@ use noodles_core::Position;
 
 use super::{
     alignment::record::{
-        AlignmentQualityScores, AlignmentSequence, Cigar, Data, Flags, MappingQuality,
+        AlignmentQualityScores, AlignmentSequence, Cigar, Data, Flags, MappingQuality, ReadName,
     },
     header::{ReferenceSequence, ReferenceSequences},
-    record::ReadName,
 };
 
 /// An alignment record.

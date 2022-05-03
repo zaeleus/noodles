@@ -1,11 +1,11 @@
 use std::{io, num::NonZeroUsize};
 
 use bytes::Buf;
-use noodles_sam as sam;
+use noodles_sam::alignment::record::ReadName;
 
 pub fn get_read_name<B>(
     src: &mut B,
-    read_name: &mut Option<sam::record::ReadName>,
+    read_name: &mut Option<ReadName>,
     l_read_name: NonZeroUsize,
 ) -> io::Result<()>
 where
@@ -42,7 +42,7 @@ where
             ));
         }
 
-        sam::record::ReadName::try_from(read_name_buf)
+        ReadName::try_from(read_name_buf)
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
     };
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_get_read_name() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut src: &[u8], expected: Option<sam::record::ReadName>) -> io::Result<()> {
+        fn t(mut src: &[u8], expected: Option<ReadName>) -> io::Result<()> {
             let mut actual = None;
             let l_read_name = NonZeroUsize::try_from(src.len())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

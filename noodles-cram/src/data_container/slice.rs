@@ -415,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::ReadName;
+        use sam::alignment::record::ReadName;
 
         use crate::record::Flags;
 

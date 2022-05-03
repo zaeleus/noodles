@@ -3,11 +3,10 @@
 pub mod builder;
 mod field;
 mod parser;
-pub mod read_name;
 pub mod reference_sequence_name;
 
 pub use self::{
-    builder::Builder, field::Field, parser::ParseError, read_name::ReadName,
+    builder::Builder, field::Field, parser::ParseError,
     reference_sequence_name::ReferenceSequenceName,
 };
 
@@ -52,6 +51,13 @@ pub use super::alignment::record::mapping_quality;
     note = "Use `noodles_sam::alignment::record::MappingQuality` instead."
 )]
 pub use super::alignment::record::MappingQuality;
+
+/* #[deprecated(
+    since = "0.15.0",
+    note = "Use `noodles_sam::alignment::record::ReadName` instead."
+)]
+pub use super::alignment::record::ReadName; */
+use super::alignment::record::ReadName;
 
 #[deprecated(
     since = "0.15.0",

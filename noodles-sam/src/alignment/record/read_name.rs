@@ -24,9 +24,9 @@ impl ReadName {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::ReadName;
+    /// use noodles_sam::alignment::record::ReadName;
     /// let read_name = ReadName::try_new("r1")?;
-    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
     pub fn try_new<I>(data: I) -> Result<Self, ParseError>
     where
@@ -40,10 +40,10 @@ impl ReadName {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::record::ReadName;
+    /// use noodles_sam::alignment::record::ReadName;
     /// let read_name: ReadName = "r1".parse()?;
     /// assert_eq!(read_name.len(), 2);
-    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
     #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {

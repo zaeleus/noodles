@@ -15,7 +15,7 @@ pub struct Builder {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::record::ReadName>,
+    read_name: Option<sam::alignment::record::ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -164,7 +164,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::ReadName, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r0".parse()?;
     ///
@@ -173,9 +173,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<(), noodles_sam::record::read_name::ParseError>(())
+    /// # Ok::<(), noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::alignment::record::ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }

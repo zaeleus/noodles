@@ -50,7 +50,7 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.read_name().map(|name| name.as_ref()), Some("r0"));
-    /// Ok::<(), sam::record::read_name::ParseError>(())
+    /// Ok::<(), sam::alignment::record::read_name::ParseError>(())
     /// ```
     pub fn set_read_name(mut self, read_name: ReadName) -> Self {
         self.read_name = Some(read_name);

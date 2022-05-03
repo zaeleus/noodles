@@ -29,7 +29,7 @@ pub struct Record {
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group: Option<usize>,
-    pub(crate) read_name: Option<sam::record::ReadName>,
+    pub(crate) read_name: Option<sam::alignment::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
@@ -152,7 +152,7 @@ impl sam::AlignmentRecord for Record {
     type Sequence = sam::alignment::record::Sequence;
     type QualityScores = sam::alignment::record::QualityScores;
 
-    fn read_name(&self) -> Option<&sam::record::ReadName> {
+    fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
         self.read_name.as_ref()
     }
 

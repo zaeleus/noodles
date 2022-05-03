@@ -271,8 +271,11 @@ where
         )
     }
 
-    fn write_read_name(&mut self, read_name: Option<&sam::record::ReadName>) -> io::Result<()> {
-        use sam::record::read_name::MISSING;
+    fn write_read_name(
+        &mut self,
+        read_name: Option<&sam::alignment::record::ReadName>,
+    ) -> io::Result<()> {
+        use sam::alignment::record::read_name::MISSING;
 
         let encoding = self
             .compression_header

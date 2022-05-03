@@ -274,8 +274,8 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<sam::record::ReadName>> {
-        use sam::record::read_name::MISSING;
+    fn read_read_name(&mut self) -> io::Result<Option<sam::alignment::record::ReadName>> {
+        use sam::alignment::record::read_name::MISSING;
 
         let encoding = self
             .compression_header
@@ -297,7 +297,7 @@ where
 
         match &buf[..] {
             MISSING => Ok(None),
-            _ => sam::record::ReadName::try_from(buf)
+            _ => sam::alignment::record::ReadName::try_from(buf)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         }

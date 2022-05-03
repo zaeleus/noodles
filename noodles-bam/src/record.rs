@@ -49,7 +49,7 @@ pub struct Record {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::record::ReadName>,
+    read_name: Option<sam::alignment::record::ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -253,7 +253,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{record::ReadName, AlignmentRecord};
+    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r1".parse()?;
     ///
@@ -261,9 +261,9 @@ impl Record {
     /// *record.read_name_mut() = Some(read_name.clone());
     ///
     /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<sam::record::ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<sam::alignment::record::ReadName> {
         &mut self.read_name
     }
 
@@ -352,7 +352,7 @@ impl sam::AlignmentRecord for Record {
     type Sequence = Sequence;
     type QualityScores = sam::alignment::record::QualityScores;
 
-    fn read_name(&self) -> Option<&sam::record::ReadName> {
+    fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
         self.read_name.as_ref()
     }
 

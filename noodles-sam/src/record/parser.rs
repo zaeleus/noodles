@@ -6,13 +6,13 @@ use super::{
     cigar::{self, Cigar},
     data::{self, Data},
     quality_scores,
-    read_name::{self, ReadName},
     reference_sequence_name::{self, ReferenceSequenceName},
     Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
 use crate::{
     alignment::record::{
         mapping_quality::{self, MappingQuality},
+        read_name::{self, ReadName},
         sequence, AlignmentQualityScores, AlignmentSequence,
     },
     AlignmentRecord,
