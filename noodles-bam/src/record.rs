@@ -2,11 +2,12 @@
 
 pub mod builder;
 mod convert;
+pub mod data;
 pub mod quality_scores;
 pub mod reference_sequence_id;
 pub mod sequence;
 
-pub use self::{builder::Builder, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{builder::Builder, data::Data, quality_scores::QualityScores, sequence::Sequence};
 
 use std::io;
 
@@ -52,7 +53,7 @@ pub struct Record {
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: sam::alignment::record::Data,
+    data: Data,
 }
 
 impl Record {
@@ -331,20 +332,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{
-    ///     alignment::record::data::{field::{Tag, Value}, Field},
-    ///     AlignmentRecord
-    /// };
+    /// use noodles_bam::{self as bam, record::Data};
+    /// use noodles_sam::AlignmentRecord;
+    ///
+    /// let data: Data = "NH:i:1".parse()?;
     ///
     /// let mut record = bam::Record::default();
+    /// *record.data_mut() = data.clone();
     ///
-    /// let nh = Field::new(Tag::AlignmentHitCount, Value::UInt8(1));
-    /// record.data_mut().insert(nh);
-    ///
-    /// assert_eq!(record.data().len(), 1);
+    /// assert_eq!(record.data(), &data.into());
+    /// # Ok::<_, bam::record::data::ParseError>(())
     /// ```
-    pub fn data_mut(&mut self) -> &mut sam::alignment::record::Data {
+    pub fn data_mut(&mut self) -> &mut Data {
         &mut self.data
     }
 }
@@ -454,7 +453,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn data(&self) -> &sam::alignment::record::Data {
-        &self.data
+        self.data.try_get().unwrap()
     }
 }
 

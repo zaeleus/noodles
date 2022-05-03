@@ -3,7 +3,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{QualityScores, Record, Sequence};
+use super::{Data, QualityScores, Record, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -19,7 +19,7 @@ pub struct Builder {
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
-    data: sam::alignment::record::Data,
+    data: Data,
 }
 
 impl Builder {
@@ -251,8 +251,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::Data};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -260,10 +260,10 @@ impl Builder {
     ///     .set_data(data.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.data(), &data);
-    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
+    /// assert_eq!(record.data(), &data.into());
+    /// # Ok::<_, bam::record::data::ParseError>(())
     /// ```
-    pub fn set_data(mut self, data: sam::alignment::record::Data) -> Self {
+    pub fn set_data(mut self, data: Data) -> Self {
         self.data = data;
         self
     }
@@ -308,7 +308,7 @@ impl Default for Builder {
             cigar: sam::alignment::record::Cigar::default(),
             sequence: Sequence::default(),
             quality_scores: QualityScores::default(),
-            data: sam::alignment::record::Data::default(),
+            data: Data::default(),
         }
     }
 }
