@@ -3,7 +3,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Record, Sequence};
+use super::{QualityScores, Record, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub struct Builder {
     read_name: Option<sam::record::ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
-    quality_scores: sam::alignment::record::QualityScores,
+    quality_scores: QualityScores,
     data: sam::record::Data,
 }
 
@@ -229,11 +229,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{
-    ///     alignment::record::{quality_scores::Score, QualityScores},
-    ///     AlignmentRecord,
-    /// };
+    /// use noodles_bam::{self as bam, record::QualityScores};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -241,13 +238,10 @@ impl Builder {
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores.into());
+    /// # Ok::<_, bam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn set_quality_scores(
-        mut self,
-        quality_scores: sam::alignment::record::QualityScores,
-    ) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
         self.quality_scores = quality_scores;
         self
     }
@@ -313,7 +307,7 @@ impl Default for Builder {
             read_name: None,
             cigar: sam::alignment::record::Cigar::default(),
             sequence: Sequence::default(),
-            quality_scores: sam::alignment::record::QualityScores::default(),
+            quality_scores: QualityScores::default(),
             data: sam::record::Data::default(),
         }
     }
@@ -321,7 +315,7 @@ impl Default for Builder {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
+    use sam::alignment::record::AlignmentSequence;
 
     use super::*;
 

@@ -2,10 +2,11 @@
 
 pub mod builder;
 mod convert;
+pub mod quality_scores;
 pub mod reference_sequence_id;
 pub mod sequence;
 
-pub use self::{builder::Builder, sequence::Sequence};
+pub use self::{builder::Builder, quality_scores::QualityScores, sequence::Sequence};
 
 use std::io;
 
@@ -50,7 +51,7 @@ pub struct Record {
     read_name: Option<sam::record::ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
-    quality_scores: sam::alignment::record::QualityScores,
+    quality_scores: QualityScores,
     data: sam::record::Data,
 }
 
@@ -310,21 +311,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{
-    ///     alignment::record::{quality_scores::Score, QualityScores},
-    ///     AlignmentRecord,
-    /// };
+    /// use noodles_bam::{self as bam, record::QualityScores};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores.into());
+    /// # Ok::<_, bam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut sam::alignment::record::QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
         &mut self.quality_scores
     }
 
@@ -452,7 +450,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn quality_scores(&self) -> &Self::QualityScores {
-        &self.quality_scores
+        self.quality_scores.get()
     }
 
     fn data(&self) -> &sam::record::Data {
@@ -482,7 +480,7 @@ impl Default for Record {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
+    use sam::alignment::record::AlignmentSequence;
 
     use super::*;
 

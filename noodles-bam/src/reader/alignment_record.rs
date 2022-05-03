@@ -1,7 +1,7 @@
 mod cigar;
 mod data;
 mod mapping_quality;
-mod quality_scores;
+pub mod quality_scores;
 mod read_name;
 pub mod sequence;
 
