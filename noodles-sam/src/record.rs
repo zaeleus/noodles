@@ -12,7 +12,7 @@ pub use self::{
     reference_sequence_name::ReferenceSequenceName,
 };
 
-/* #[deprecated(
+#[deprecated(
     since = "0.15.0",
     note = "Use `noodles_sam::alignment::record::cigar` instead."
 )]
@@ -22,8 +22,7 @@ pub use super::alignment::record::cigar;
     since = "0.15.0",
     note = "Use `noodles_sam::alignment::record::Cigar` instead."
 )]
-pub use super::alignment::record::Cigar; */
-use super::alignment::record::{cigar, Cigar};
+pub use super::alignment::record::Cigar;
 
 #[deprecated(
     since = "0.15.0",
