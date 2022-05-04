@@ -4,6 +4,9 @@
 
 ### Changed
 
+  * bgzf/async/reader: Verify the expected CRC32 checksum of the uncompressed
+    data.
+
   * bgzf/reader: Verify the expected CRC32 checksum of the uncompressed data.
 
 ## 0.11.0 - 2022-03-29

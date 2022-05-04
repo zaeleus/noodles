@@ -1,11 +1,12 @@
 use std::{
     future::Future,
-    io, mem,
+    io,
     pin::Pin,
     task::{Context, Poll},
 };
 
 use bytes::{Buf, Bytes};
+use flate2::Crc;
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
@@ -44,7 +45,7 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
     let cdata = src.split_to(src.len() - gz::TRAILER_SIZE);
 
     // trailer
-    src.advance(mem::size_of::<u32>()); // CRC32
+    let crc32 = src.get_u32_le();
     let r#isize = usize::try_from(src.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
@@ -56,5 +57,15 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
 
     inflate_data(&cdata, block.buffer_mut())?;
 
-    Ok(block)
+    let mut crc = Crc::new();
+    crc.update(block.buffer());
+
+    if crc.sum() == crc32 {
+        Ok(block)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "block data checksum mismatch",
+        ))
+    }
 }
