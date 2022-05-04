@@ -29,8 +29,9 @@ impl QualityScores {
     }
 
     /// Returns alignment record quality scores.
-    pub fn get(&self) -> &sam::alignment::record::QualityScores {
-        self.cell.get_or_init(|| get_quality_scores(&self.buf))
+    pub fn try_get(&self) -> Result<&sam::alignment::record::QualityScores, ParseError> {
+        self.cell
+            .get_or_try_init(|| sam::alignment::record::QualityScores::try_from(self.buf.to_vec()))
     }
 }
 
@@ -58,27 +59,17 @@ impl From<sam::alignment::record::QualityScores> for QualityScores {
     }
 }
 
-impl From<QualityScores> for sam::alignment::record::QualityScores {
-    fn from(bam_quality_scores: QualityScores) -> Self {
+impl TryFrom<QualityScores> for sam::alignment::record::QualityScores {
+    type Error = ParseError;
+
+    fn try_from(bam_quality_scores: QualityScores) -> Result<Self, Self::Error> {
         if let Some(sam_quality_scores) = bam_quality_scores.cell.into_inner() {
-            sam_quality_scores
+            Ok(sam_quality_scores)
         } else {
             let buf = bam_quality_scores.buf;
-            get_quality_scores(&buf)
+            Self::try_from(buf.to_vec())
         }
     }
-}
-
-fn get_quality_scores(buf: &[u8]) -> sam::alignment::record::QualityScores {
-    use sam::alignment::record::quality_scores::Score;
-
-    let scores: Vec<_> = buf
-        .iter()
-        .copied()
-        .map(|n| Score::try_from(n).unwrap())
-        .collect();
-
-    sam::alignment::record::QualityScores::from(scores)
 }
 
 #[cfg(test)]
@@ -98,7 +89,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_quality_scores_for_sam_alignment_record_quality_scores(
+    fn test_from_try_quality_scores_for_sam_alignment_record_quality_scores(
     ) -> Result<(), sam::alignment::record::quality_scores::ParseError> {
         let sam_quality_scores: sam::alignment::record::QualityScores = "NDLS".parse()?;
 
@@ -106,14 +97,14 @@ mod tests {
             buf: BytesMut::new(),
             cell: OnceCell::from(sam_quality_scores.clone()),
         };
-        let actual = sam::alignment::record::QualityScores::from(bam_quality_scores);
+        let actual = sam::alignment::record::QualityScores::try_from(bam_quality_scores)?;
         assert_eq!(actual, sam_quality_scores);
 
         let bam_quality_scores = QualityScores {
             buf: BytesMut::from(&[45, 35, 43, 50][..]),
             cell: OnceCell::new(),
         };
-        let actual = sam::alignment::record::QualityScores::from(bam_quality_scores);
+        let actual = sam::alignment::record::QualityScores::try_from(bam_quality_scores)?;
         assert_eq!(actual, sam_quality_scores);
 
         Ok(())

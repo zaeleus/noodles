@@ -28,24 +28,20 @@ pub fn get_quality_scores(
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::record::AlignmentQualityScores;
-
     use super::*;
 
     #[test]
-    fn test_get_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_get_quality_scores() -> io::Result<()> {
         let data = [0x2d, 0x23, 0x2b, 0x32];
         let mut reader = BytesMut::from(&data[..]);
         let mut quality_scores = QualityScores::default();
         get_quality_scores(&mut reader, &mut quality_scores, data.len())?;
         assert_eq!(&quality_scores.buf[..], data);
-        assert_eq!(quality_scores.get(), &"NDLS".parse()?);
 
         let data = [0xff, 0xff, 0xff, 0xff];
         let mut reader = BytesMut::from(&data[..]);
         get_quality_scores(&mut reader, &mut quality_scores, data.len())?;
         assert!(quality_scores.buf.is_empty());
-        assert!(quality_scores.get().is_empty());
 
         Ok(())
     }

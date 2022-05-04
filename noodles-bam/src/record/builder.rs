@@ -238,7 +238,7 @@ impl Builder {
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores.into());
+    /// assert_eq!(record.quality_scores(), &quality_scores.try_into()?);
     /// # Ok::<_, bam::record::quality_scores::ParseError>(())
     /// ```
     pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {

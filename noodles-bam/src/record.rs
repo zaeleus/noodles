@@ -324,7 +324,7 @@ impl Record {
     /// let mut record = bam::Record::default();
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores.into());
+    /// assert_eq!(record.quality_scores(), &quality_scores.try_into()?);
     /// # Ok::<_, bam::record::quality_scores::ParseError>(())
     /// ```
     pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
@@ -453,7 +453,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn quality_scores(&self) -> &Self::QualityScores {
-        self.quality_scores.get()
+        self.quality_scores.try_get().unwrap()
     }
 
     fn data(&self) -> &sam::alignment::record::Data {
