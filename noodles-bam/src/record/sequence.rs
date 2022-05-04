@@ -73,6 +73,7 @@ impl AlignmentSequence for Sequence {
     /// ```
     fn clear(&mut self) {
         self.buf.clear();
+        self.len = 0;
     }
 
     /// Returns an interator over the bases in the sequence.
