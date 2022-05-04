@@ -210,53 +210,53 @@ where
     T: AlignmentRecord,
 {
     fn read_name(&self) -> Option<&ReadName> {
-        (*self).read_name()
+        self.read_name()
     }
 
     fn reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        (*self).reference_sequence(reference_sequences)
+        self.reference_sequence(reference_sequences)
     }
 
     fn flags(&self) -> Flags {
-        (*self).flags()
+        self.flags()
     }
 
     fn alignment_start(&self) -> Option<Position> {
-        (*self).alignment_start()
+        self.alignment_start()
     }
 
     fn alignment_span(&self) -> usize {
-        (*self).alignment_span()
+        self.alignment_span()
     }
 
     fn alignment_end(&self) -> Option<Position> {
-        (*self).alignment_end()
+        self.alignment_end()
     }
 
     fn mapping_quality(&self) -> Option<MappingQuality> {
-        (*self).mapping_quality()
+        self.mapping_quality()
     }
 
     fn cigar(&self) -> &Cigar {
-        (*self).cigar()
+        self.cigar()
     }
 
     fn mate_reference_sequence<'rs>(
         &self,
         reference_sequences: &'rs ReferenceSequences,
     ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        (*self).mate_reference_sequence(reference_sequences)
+        self.mate_reference_sequence(reference_sequences)
     }
 
     fn mate_alignment_start(&self) -> Option<Position> {
-        (*self).mate_alignment_start()
+        self.mate_alignment_start()
     }
 
     fn template_length(&self) -> i32 {
-        (*self).template_length()
+        self.template_length()
     }
 
     fn sequence(&self) -> &dyn AlignmentSequence {
@@ -268,6 +268,6 @@ where
     }
 
     fn data(&self) -> &Data {
-        (*self).data()
+        self.data()
     }
 }
