@@ -1,6 +1,7 @@
 //! BAM record and fields.
 
 pub mod builder;
+pub mod cigar;
 mod convert;
 pub mod data;
 pub mod quality_scores;
@@ -9,7 +10,7 @@ pub mod reference_sequence_id;
 pub mod sequence;
 
 pub use self::{
-    builder::Builder, data::Data, quality_scores::QualityScores, read_name::ReadName,
+    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
     sequence::Sequence,
 };
 
@@ -54,7 +55,7 @@ pub struct Record {
     mate_position: Option<Position>,
     template_length: i32,
     read_name: Option<ReadName>,
-    cigar: sam::alignment::record::Cigar,
+    cigar: Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
     data: Data,
@@ -276,18 +277,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::Cigar};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.cigar_mut() = cigar.clone();
     ///
-    /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// assert_eq!(record.cigar(), &cigar.try_into()?);
+    /// Ok::<_, bam::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut sam::alignment::record::Cigar {
+    pub fn cigar_mut(&mut self) -> &mut Cigar {
         &mut self.cigar
     }
 
@@ -417,7 +418,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn cigar(&self) -> &sam::alignment::record::Cigar {
-        &self.cigar
+        self.cigar.try_get().unwrap()
     }
 
     /// Returns the associated reference sequence of the mate.

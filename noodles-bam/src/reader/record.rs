@@ -1,5 +1,6 @@
 //! BAM record field readers.
 
+mod cigar;
 pub mod data;
 mod quality_scores;
 mod read_name;
@@ -42,10 +43,10 @@ where
 
 pub(crate) fn decode_record(src: &mut BytesMut, record: &mut Record) -> io::Result<()> {
     use self::{
-        data::get_data, quality_scores::get_quality_scores, read_name::get_read_name,
-        sequence::get_sequence,
+        cigar::get_cigar, data::get_data, quality_scores::get_quality_scores,
+        read_name::get_read_name, sequence::get_sequence,
     };
-    use super::alignment_record::{get_cigar, get_mapping_quality};
+    use super::alignment_record::get_mapping_quality;
 
     *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
     *record.position_mut() = get_position(src)?;
