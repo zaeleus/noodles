@@ -3,7 +3,8 @@ use std::{
     io::{self, BufRead, Read, Seek, SeekFrom},
 };
 
-use byteorder::{ByteOrder, LittleEndian};
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
+use flate2::Crc;
 
 use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
 
@@ -251,19 +252,17 @@ where
 ///
 /// The position of the stream is expected to be at the start of the block trailer, i.e., 8 bytes
 /// from the end of the block.
-///
-/// This returns the length of the uncompressed data (`ISIZE`).
-fn read_trailer<R>(reader: &mut R) -> io::Result<usize>
+fn read_trailer<R>(reader: &mut R) -> io::Result<(u32, usize)>
 where
     R: Read,
 {
-    let mut trailer = [0; gz::TRAILER_SIZE];
-    reader.read_exact(&mut trailer)?;
+    let crc32 = reader.read_u32::<LittleEndian>()?;
 
-    let r#isize = usize::try_from(LittleEndian::read_u32(&trailer[4..]))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let r#isize = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-    Ok(r#isize)
+    Ok((crc32, r#isize))
 }
 
 #[cfg(feature = "libdeflate")]
@@ -286,12 +285,12 @@ pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
     decoder.read_exact(writer)
 }
 
-fn read_compressed_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<(usize, usize)>
+fn read_compressed_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<(usize, (u32, usize))>
 where
     R: Read,
 {
     let clen = match read_header(reader) {
-        Ok(0) => return Ok((0, 0)),
+        Ok(0) => return Ok((0, (0, 0))),
         Ok(bs) => bs as usize,
         Err(e) => return Err(e),
     };
@@ -311,18 +310,18 @@ where
     buf.resize(cdata_len, Default::default());
     reader.read_exact(buf)?;
 
-    let ulen = read_trailer(reader)?;
+    let trailer = read_trailer(reader)?;
 
-    Ok((clen, ulen))
+    Ok((clen, trailer))
 }
 
 fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
 where
     R: Read,
 {
-    let (clen, ulen) = match read_compressed_block(reader, cdata) {
-        Ok((0, 0)) => return Ok(0),
-        Ok((clen, ulen)) => (clen, ulen),
+    let (clen, crc32, ulen) = match read_compressed_block(reader, cdata) {
+        Ok((0, (_, 0))) => return Ok(0),
+        Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
         Err(e) => return Err(e),
     };
 
@@ -332,7 +331,17 @@ where
 
     inflate_data(cdata, block.buffer_mut())?;
 
-    Ok(clen)
+    let mut crc = Crc::new();
+    crc.update(block.buffer());
+
+    if crc.sum() == crc32 {
+        Ok(clen)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "block data checksum mismatch",
+        ))
+    }
 }
 
 fn read_block_into<R>(
@@ -344,9 +353,9 @@ fn read_block_into<R>(
 where
     R: Read,
 {
-    let (clen, ulen) = match read_compressed_block(reader, cdata) {
-        Ok((0, 0)) => return Ok(0),
-        Ok((clen, ulen)) => (clen, ulen),
+    let (clen, crc32, ulen) = match read_compressed_block(reader, cdata) {
+        Ok((0, (_, 0))) => return Ok(0),
+        Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
         Err(e) => return Err(e),
     };
 
@@ -356,7 +365,17 @@ where
 
     inflate_data(cdata, &mut buf[..ulen])?;
 
-    Ok(clen)
+    let mut crc = Crc::new();
+    crc.update(&buf[..ulen]);
+
+    if crc.sum() == crc32 {
+        Ok(clen)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "block data checksum mismatch",
+        ))
+    }
 }
 
 /// This is effectively the same as `std::io::default_read_exact`.
@@ -435,8 +454,11 @@ mod tests {
     #[test]
     fn test_read_trailer() -> io::Result<()> {
         let (_, mut reader) = BGZF_EOF.split_at(BGZF_EOF.len() - gz::TRAILER_SIZE);
-        let r#isize = read_trailer(&mut reader)?;
+
+        let (crc32, r#isize) = read_trailer(&mut reader)?;
+        assert_eq!(crc32, 0);
         assert_eq!(r#isize, 0);
+
         Ok(())
     }
 
