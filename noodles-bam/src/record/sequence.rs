@@ -138,15 +138,20 @@ impl From<&sam::alignment::record::Sequence> for Sequence {
 
 impl From<Sequence> for sam::alignment::record::Sequence {
     fn from(bam_sequence: Sequence) -> Self {
-        use crate::reader::alignment_record::get_sequence;
-
-        let mut data = &bam_sequence.buf[..];
-        let mut sam_sequence = sam::alignment::record::Sequence::default();
-        // FIXME
-        get_sequence(&mut data, &mut sam_sequence, bam_sequence.len()).unwrap();
-
-        sam_sequence
+        get_sequence(&bam_sequence.buf, bam_sequence.len)
     }
+}
+
+fn get_sequence(buf: &[u8], len: usize) -> sam::alignment::record::Sequence {
+    use crate::reader::alignment_record::sequence::decode_base;
+
+    let bases: Vec<_> = buf
+        .iter()
+        .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
+        .take(len)
+        .collect();
+
+    sam::alignment::record::Sequence::from(bases)
 }
 
 #[cfg(test)]

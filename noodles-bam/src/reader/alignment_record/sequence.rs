@@ -3,6 +3,7 @@ use std::io;
 use bytes::Buf;
 use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence, Sequence};
 
+#[allow(dead_code)]
 pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
 where
     B: Buf,
