@@ -242,7 +242,7 @@ impl TryFrom<Vec<u8>> for QualityScores {
         }
 
         if buf.is_empty() {
-            Err(ParseError::Empty)
+            Ok(Self::default())
         } else if buf.iter().copied().all(is_valid_score) {
             // SAFETY: Each score is guaranteed to be <= 93.
             let scores = buf.into_iter().map(Score).collect();

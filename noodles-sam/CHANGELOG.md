@@ -8,6 +8,8 @@
 
   * sam/alignment/record: Move `sam::record::Sequence` under `sam::alignment`.
 
+  * sam/alignment/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
+
 ### Deprecated
 
   * sam/record: Deprecate `sam::record::sequence`.
@@ -22,7 +24,7 @@
 
 ### Added
 
-  * sam/record/data/field/value: Implement `TryFrom<char>`.
+  * sam/record/data/field/value: Implement `TryFrom<>`.
 
   * sam/record/sequence: Add conversion to `Vec<Base>`.
 
