@@ -3,7 +3,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Data, QualityScores, Record, Sequence};
+use super::{Data, QualityScores, ReadName, Record, Sequence};
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct Builder {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::alignment::record::ReadName>,
+    read_name: Option<ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -163,8 +163,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::ReadName};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let read_name: ReadName = "r0".parse()?;
     ///
@@ -172,10 +172,10 @@ impl Builder {
     ///     .set_read_name(read_name.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<(), noodles_sam::alignment::record::read_name::ParseError>(())
+    /// assert_eq!(record.read_name(), Some(&read_name.into()));
+    /// # Ok::<(), bam::record::read_name::ParseError>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: sam::alignment::record::ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }

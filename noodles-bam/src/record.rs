@@ -4,10 +4,14 @@ pub mod builder;
 mod convert;
 pub mod data;
 pub mod quality_scores;
+pub mod read_name;
 pub mod reference_sequence_id;
 pub mod sequence;
 
-pub use self::{builder::Builder, data::Data, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{
+    builder::Builder, data::Data, quality_scores::QualityScores, read_name::ReadName,
+    sequence::Sequence,
+};
 
 use std::io;
 
@@ -49,7 +53,7 @@ pub struct Record {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::alignment::record::ReadName>,
+    read_name: Option<ReadName>,
     cigar: sam::alignment::record::Cigar,
     sequence: Sequence,
     quality_scores: QualityScores,
@@ -252,18 +256,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
+    /// use noodles_bam::{self as bam, record::ReadName};
+    /// use noodles_sam::AlignmentRecord;
     ///
     /// let read_name: ReadName = "r1".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.read_name_mut() = Some(read_name.clone());
     ///
-    /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
+    /// assert_eq!(record.read_name(), Some(&read_name.into()));
+    /// # Ok::<_, bam::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<sam::alignment::record::ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
         &mut self.read_name
     }
 
@@ -353,7 +357,7 @@ impl sam::AlignmentRecord for Record {
     type QualityScores = sam::alignment::record::QualityScores;
 
     fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
-        self.read_name.as_ref()
+        self.read_name.as_ref().map(|name| name.try_get().unwrap())
     }
 
     /// Returns the associated reference sequence.
