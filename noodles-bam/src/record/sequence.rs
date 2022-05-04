@@ -7,12 +7,22 @@ use noodles_sam::{
     self as sam,
     alignment::record::{sequence::Base, AlignmentSequence},
 };
+use once_cell::sync::OnceCell;
 
-/// A raw BAM record sequence buffer.
+/// A lazy BAM record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Sequence {
     pub(crate) buf: BytesMut,
     pub(crate) len: usize,
+    cell: OnceCell<sam::alignment::record::Sequence>,
+}
+
+impl Sequence {
+    /// Returns an alignment sequence.
+    pub fn get(&self) -> &sam::alignment::record::Sequence {
+        self.cell
+            .get_or_init(|| get_sequence(&self.buf[..], self.len))
+    }
 }
 
 impl AlignmentSequence for Sequence {
@@ -32,7 +42,10 @@ impl AlignmentSequence for Sequence {
     /// # Ok::<(), bam::record::sequence::ParseError>(())
     /// ```
     fn len(&self) -> usize {
-        self.len
+        self.cell
+            .get()
+            .map(|sequence| sequence.len())
+            .unwrap_or(self.len)
     }
 
     /// Returns whether the sequence is empty.
@@ -51,7 +64,10 @@ impl AlignmentSequence for Sequence {
     /// # Ok::<(), bam::record::sequence::ParseError>(())
     /// ```
     fn is_empty(&self) -> bool {
-        self.buf.is_empty()
+        self.cell
+            .get()
+            .map(|sequence| sequence.is_empty())
+            .unwrap_or(self.buf.is_empty())
     }
 
     /// Removes all bases from the sequence.
@@ -74,6 +90,7 @@ impl AlignmentSequence for Sequence {
     fn clear(&mut self) {
         self.buf.clear();
         self.len = 0;
+        self.cell.take();
     }
 
     /// Returns an interator over the bases in the sequence.
@@ -97,12 +114,17 @@ impl AlignmentSequence for Sequence {
     fn bases(&self) -> Box<dyn Iterator<Item = Base> + '_> {
         use crate::reader::alignment_record::sequence::decode_base;
 
-        Box::new(
-            self.buf
-                .iter()
-                .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
-                .take(self.len),
-        )
+        self.cell
+            .get()
+            .map(|sequence| sequence.bases())
+            .unwrap_or_else(|| {
+                Box::new(
+                    self.buf
+                        .iter()
+                        .flat_map(|&b| [decode_base(b >> 4), decode_base(b)])
+                        .take(self.len),
+                )
+            })
     }
 }
 
@@ -119,26 +141,31 @@ impl FromStr for Sequence {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let sam_sequence = s.parse()?;
-        Ok(Self::from(&sam_sequence))
+        let sam_sequence: sam::alignment::record::Sequence = s.parse()?;
+        Ok(Self::from(sam_sequence))
     }
 }
 
-impl From<&sam::alignment::record::Sequence> for Sequence {
-    fn from(sequence: &sam::alignment::record::Sequence) -> Self {
-        use crate::writer::record::put_sequence;
+impl From<sam::alignment::record::Sequence> for Sequence {
+    fn from(sequence: sam::alignment::record::Sequence) -> Self {
+        let cell = OnceCell::new();
+        cell.set(sequence).ok();
 
-        let len = sequence.len();
-        let mut buf = BytesMut::with_capacity((len + 1) / 2);
-        put_sequence(&mut buf, sequence);
-
-        Sequence { buf, len }
+        Self {
+            buf: BytesMut::new(),
+            len: 0,
+            cell,
+        }
     }
 }
 
 impl From<Sequence> for sam::alignment::record::Sequence {
     fn from(bam_sequence: Sequence) -> Self {
-        get_sequence(&bam_sequence.buf, bam_sequence.len)
+        if let Some(sam_sequence) = bam_sequence.cell.into_inner() {
+            sam_sequence
+        } else {
+            get_sequence(&bam_sequence.buf, bam_sequence.len)
+        }
     }
 }
 
@@ -161,15 +188,12 @@ mod tests {
     #[test]
     fn test_sam_alignment_record_sequence_for_sequence(
     ) -> Result<(), sam::alignment::record::sequence::ParseError> {
-        let sam_sequence = "ACGT".parse()?;
-        let actual = Sequence::from(&sam_sequence);
+        let sam_sequence: sam::alignment::record::Sequence = "ACGT".parse()?;
 
-        let expected = Sequence {
-            buf: BytesMut::from(&[0x12, 0x48][..]),
-            len: 4,
-        };
-
-        assert_eq!(actual, expected);
+        let actual = Sequence::from(sam_sequence.clone());
+        assert!(actual.buf.is_empty());
+        assert_eq!(actual.len, 0);
+        assert_eq!(actual.cell.get(), Some(&sam_sequence));
 
         Ok(())
     }
@@ -177,15 +201,23 @@ mod tests {
     #[test]
     fn test_from_sequence_for_sam_alignment_record_sequence(
     ) -> Result<(), sam::alignment::record::sequence::ParseError> {
+        let sam_sequence: sam::alignment::record::Sequence = "ACGT".parse()?;
+
+        let bam_sequence = Sequence {
+            buf: BytesMut::new(),
+            len: 0,
+            cell: OnceCell::from(sam_sequence.clone()),
+        };
+        let actual = sam::alignment::record::Sequence::from(bam_sequence);
+        assert_eq!(actual, sam_sequence);
+
         let bam_sequence = Sequence {
             buf: BytesMut::from(&[0x12, 0x48][..]),
             len: 4,
+            cell: OnceCell::new(),
         };
         let actual = sam::alignment::record::Sequence::from(bam_sequence);
-
-        let expected = "ACGT".parse()?;
-
-        assert_eq!(actual, expected);
+        assert_eq!(actual, sam_sequence);
 
         Ok(())
     }
