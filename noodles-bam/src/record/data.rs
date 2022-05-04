@@ -39,6 +39,33 @@ impl Data {
             Ok(data)
         })
     }
+
+    /// Returns a mutable reference to the alignment record data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::{self as bam, record::Data};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     alignment::record::data::{field::{Tag, Value}, Field}
+    /// };
+    ///
+    /// let nh = Field::new(Tag::AlignmentHitCount, Value::from(1u8));
+    /// let expected = sam::alignment::record::Data::try_from(vec![nh.clone()])?;
+    ///
+    /// let mut bam_data = Data::default();
+    /// let actual = bam_data.try_get_mut()?;
+    /// actual.insert(nh);
+    ///
+    /// assert_eq!(actual, &expected);
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_get_mut(&mut self) -> io::Result<&mut sam::alignment::record::Data> {
+        self.try_get()?;
+        // SAFETY: `self.cell` was initialized by the previous access.
+        Ok(self.cell.get_mut().unwrap())
+    }
 }
 
 /// An error returned when raw alignment record data fails to parse.
