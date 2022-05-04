@@ -14,6 +14,27 @@ pub struct QualityScores {
 }
 
 impl QualityScores {
+    /// Returns the number of scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::record::QualityScores;
+    ///
+    /// let quality_scores = QualityScores::default();
+    /// assert_eq!(quality_scores.len(), 0);
+    ///
+    /// let quality_scores: QualityScores = "NDLS".parse()?;
+    /// assert_eq!(quality_scores.len(), 4);
+    /// # Ok::<_, noodles_bam::record::quality_scores::ParseError>(())
+    /// ```
+    pub fn len(&self) -> usize {
+        self.cell
+            .get()
+            .map(|quality_scores| quality_scores.len())
+            .unwrap_or(self.buf.len())
+    }
+
     /// Returns whether there are any scores.
     pub fn is_empty(&self) -> bool {
         self.cell
