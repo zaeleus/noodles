@@ -4,21 +4,18 @@
 
 ### Changed
 
-  * sam/alignment_record: Change `AlignmentRecord::sequence` to return a copy.
-
-  * sam/alignment/record: Move `sam::record::Sequence` under `sam::alignment`.
+  * sam/alignment/record: Move fields (`Cigar`, `Data`, `Flags`,
+    `MappingQuality`, `QualityScores`, `ReadName`, and `Sequence`) under
+    `sam::alignment::record`.
 
   * sam/alignment/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
 
 ### Deprecated
 
-  * sam/record: Deprecate `sam::record::sequence`.
+  * sam/record: Deprecate `sam::record::sequence` and `sam::record::Sequence`.
 
-    Use `sam::alignment::record::sequence` instead.
-
-  * sam/record: Deprecate `sam::record::Sequence`.
-
-    Use `sam::alignment::record::Sequence` instead.
+    Use `sam::alignment::record::sequence` and
+    `sam::alignment::record::Sequence`, respectively, instead.
 
 ## 0.15.0 - 2022-04-14
 

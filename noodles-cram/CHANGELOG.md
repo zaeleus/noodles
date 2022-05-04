@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/async/reader: Add records stream (`AsyncReader::records`).
+
 ### Changed
 
   * cram/data_container/slice: Template size for records with downstream mates
