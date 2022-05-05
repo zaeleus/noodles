@@ -31,7 +31,7 @@
 
 ### Added
 
-  * sam/record/data/field/value: Implement `TryFrom<>`.
+  * sam/record/data/field/value: Implement `TryFrom<char>`.
 
   * sam/record/sequence: Add conversion to `Vec<Base>`.
 
