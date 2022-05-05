@@ -354,7 +354,7 @@ mod tests {
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let read_name: ReadName = "r0".parse()?;
         let reference_sequence_name: ReferenceSequenceName = "sq0".parse()?;
-        let cigar = Cigar::from(vec![cigar::Op::new(cigar::op::Kind::Match, 4)]);
+        let cigar = Cigar::try_from(vec![cigar::Op::new(cigar::op::Kind::Match, 4)])?;
         let mate_reference_sequence_name = reference_sequence_name.clone();
         let sequence: Sequence = "ATCG".parse()?;
         let quality_scores: QualityScores = "NDLS".parse()?;

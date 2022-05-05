@@ -184,7 +184,8 @@ impl sam::AlignmentRecord for Record {
             if self.flags().is_unmapped() {
                 sam::alignment::record::Cigar::default()
             } else {
-                resolve::resolve_features(self.features(), self.read_length())
+                // FIXME
+                resolve::resolve_features(self.features(), self.read_length()).unwrap()
             }
         })
     }

@@ -22,11 +22,12 @@ impl Cigar {
     /// ```
     /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let mut cigar = Cigar::from(vec![Op::new(Kind::Match, 5)]);
+    /// let mut cigar = Cigar::try_from(vec![Op::new(Kind::Match, 5)])?;
     /// assert!(!cigar.is_empty());
     ///
     /// cigar.clear();
     /// assert!(cigar.is_empty());
+    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -43,13 +44,14 @@ impl Cigar {
     /// ```
     /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::from(vec![
+    /// let cigar = Cigar::try_from(vec![
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::Deletion, 4),
     ///     Op::new(Kind::SoftClip, 8),
-    /// ]);
+    /// ])?;
     ///
     /// assert_eq!(cigar.reference_len(), 40);
+    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
     pub fn reference_len(&self) -> usize {
         self.iter()
@@ -75,13 +77,14 @@ impl Cigar {
     /// ```
     /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
     ///
-    /// let cigar = Cigar::from(vec![
+    /// let cigar = Cigar::try_from(vec![
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::Deletion, 4),
     ///     Op::new(Kind::SoftClip, 8),
-    /// ]);
+    /// ])?;
     ///
     /// assert_eq!(cigar.read_len(), 44);
+    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
     pub fn read_len(&self) -> usize {
         self.iter()
@@ -121,9 +124,11 @@ impl fmt::Display for Cigar {
     }
 }
 
-impl From<Vec<Op>> for Cigar {
-    fn from(ops: Vec<Op>) -> Self {
-        Self(ops)
+impl TryFrom<Vec<Op>> for Cigar {
+    type Error = ParseError;
+
+    fn try_from(ops: Vec<Op>) -> Result<Self, Self::Error> {
+        Ok(Self(ops))
     }
 }
 
@@ -170,7 +175,7 @@ impl FromStr for Cigar {
         }
 
         if start == s.len() {
-            Ok(Self::from(ops))
+            Self::try_from(ops)
         } else {
             Err(ParseError::Invalid)
         }
@@ -182,37 +187,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_is_empty() {
+    fn test_is_empty() -> Result<(), ParseError> {
         let cigar = Cigar::default();
         assert!(cigar.is_empty());
 
-        let cigar = Cigar::from(vec![Op::new(Kind::Match, 1)]);
+        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 1)])?;
         assert!(!cigar.is_empty());
+
+        Ok(())
     }
 
     #[test]
-    fn test_fmt() {
+    fn test_fmt() -> Result<(), ParseError> {
         let cigar = Cigar::default();
         assert!(cigar.to_string().is_empty());
 
-        let cigar = Cigar::from(vec![
+        let cigar = Cigar::try_from(vec![
             Op::new(Kind::Match, 1),
             Op::new(Kind::Skip, 13),
             Op::new(Kind::SoftClip, 144),
-        ]);
-
+        ])?;
         assert_eq!(cigar.to_string(), "1M13N144S");
+
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), ParseError> {
         assert_eq!(
             "1M13N144S".parse(),
-            Ok(Cigar::from(vec![
+            Ok(Cigar::try_from(vec![
                 Op::new(Kind::Match, 1),
                 Op::new(Kind::Skip, 13),
                 Op::new(Kind::SoftClip, 144),
-            ]))
+            ])?)
         );
 
         assert_eq!("".parse::<Cigar>(), Err(ParseError::Empty));
@@ -222,5 +230,7 @@ mod tests {
             "*".parse::<Cigar>(),
             Err(ParseError::InvalidOp(_))
         ));
+
+        Ok(())
     }
 }

@@ -115,7 +115,10 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(features: &Features, read_length: usize) -> sam::alignment::record::Cigar {
+pub fn resolve_features(
+    features: &Features,
+    read_length: usize,
+) -> io::Result<sam::alignment::record::Cigar> {
     use noodles_sam::alignment::record::cigar::{op::Kind, Op};
 
     fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
@@ -172,11 +175,12 @@ pub fn resolve_features(features: &Features, read_length: usize) -> sam::alignme
         merge_or_insert_op(&mut ops, Kind::Match, len);
     }
 
-    sam::alignment::record::Cigar::from(
+    sam::alignment::record::Cigar::try_from(
         ops.into_iter()
             .map(|(kind, len)| Op::new(kind, len))
             .collect::<Vec<_>>(),
     )
+    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 /// Resolves the quality scores.
@@ -328,7 +332,7 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_features() -> Result<(), noodles_core::position::TryFromIntError> {
+    fn test_resolve_features() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_sam::alignment::record::{
             cigar::{op::Kind, Op},
             Cigar,
@@ -336,8 +340,8 @@ mod tests {
 
         let features = Features::default();
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::Match, 4)])
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::Match, 4)])?
         );
 
         let features = Features::from(vec![Feature::SoftClip(
@@ -345,8 +349,8 @@ mod tests {
             vec![Base::A, Base::T],
         )]);
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::SoftClip, 2), Op::new(Kind::Match, 2)])?
         );
 
         let features = Features::from(vec![Feature::SoftClip(
@@ -354,14 +358,14 @@ mod tests {
             vec![Base::G],
         )]);
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::Match, 3), Op::new(Kind::SoftClip, 1)])?
         );
 
         let features = Features::from(vec![Feature::HardClip(Position::try_from(1)?, 2)]);
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)]),
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::HardClip, 2), Op::new(Kind::Match, 4)])?
         );
 
         let features = Features::from(vec![
@@ -369,8 +373,8 @@ mod tests {
             Feature::Substitution(Position::try_from(3)?, substitution::Value::Code(0)),
         ]);
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)])
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::SoftClip, 1), Op::new(Kind::Match, 3)])?
         );
 
         let features = Features::from(vec![Feature::Substitution(
@@ -378,8 +382,8 @@ mod tests {
             substitution::Value::Code(0),
         )]);
         assert_eq!(
-            resolve_features(&features, 4),
-            Cigar::from(vec![Op::new(Kind::Match, 4)])
+            resolve_features(&features, 4)?,
+            Cigar::try_from(vec![Op::new(Kind::Match, 4)])?
         );
 
         Ok(())

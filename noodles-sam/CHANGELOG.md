@@ -8,6 +8,11 @@
     `MappingQuality`, `QualityScores`, `ReadName`, and `Sequence`) under
     `sam::alignment::record`.
 
+  * sam/alignment/record/cigar: Change conversion from `Vec<Op>` to be
+    fallible.
+
+    Replace usages of `From<Vec<Op>>` with `TryFrom<Vec<Op>>`.
+
   * sam/alignment/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
 
   * sam/writer/record: Restrict position to [0, 2^31-1].

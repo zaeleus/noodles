@@ -312,13 +312,14 @@ impl Record {
     /// let mut record = sam::Record::default();
     /// assert!(record.cigar().is_empty());
     ///
-    /// let cigar = Cigar::from(vec![
+    /// let cigar = Cigar::try_from(vec![
     ///     Op::new(Kind::Match, 36),
     ///     Op::new(Kind::SoftClip, 2),
-    /// ]);
+    /// ])?;
     /// *record.cigar_mut() = cigar.clone();
     ///
     /// assert_eq!(record.cigar(), &cigar);
+    /// # Ok::<_, sam::alignment::record::cigar::ParseError>(())
     /// ```
     pub fn cigar_mut(&mut self) -> &mut Cigar {
         &mut self.cigar

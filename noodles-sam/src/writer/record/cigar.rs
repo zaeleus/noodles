@@ -41,7 +41,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_cigar() -> io::Result<()> {
+    fn test_write_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use crate::alignment::record::cigar::Op;
 
         let mut buf = Vec::new();
@@ -49,7 +49,7 @@ mod tests {
         assert_eq!(buf, b"*");
 
         buf.clear();
-        let cigar = Cigar::from(vec![Op::new(Kind::Match, 8)]);
+        let cigar = Cigar::try_from(vec![Op::new(Kind::Match, 8)])?;
         write_cigar(&mut buf, &cigar)?;
         assert_eq!(buf, b"8M");
 
