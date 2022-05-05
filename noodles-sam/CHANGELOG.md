@@ -10,6 +10,11 @@
 
   * sam/alignment/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
 
+  * sam/writer/record: Restrict position to [0, 2^31-1].
+
+    This is defined in _Sequence Alignment/Map Format Specification_
+    (2021-06-03) § 1.4 "The alignment section: mandatory fields".
+
 ### Deprecated
 
   * sam/record: Deprecate `sam::record::sequence` and `sam::record::Sequence`.

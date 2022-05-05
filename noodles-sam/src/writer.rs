@@ -4,7 +4,7 @@ use std::io::{self, Write};
 
 use crate::AnyAlignmentRecord;
 
-use self::record::{write_cigar, write_data, write_quality_scores, write_sequence};
+use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
 use super::{AlignmentWriter, Header, Record};
 
 /// A SAM writer.
@@ -167,11 +167,6 @@ where
             .map(|rs| rs.name().as_bytes())
             .unwrap_or(MISSING);
 
-        let pos = record
-            .alignment_start()
-            .map(usize::from)
-            .unwrap_or_default();
-
         let mapq = record
             .mapping_quality()
             .map(u8::from)
@@ -191,11 +186,6 @@ where
             })
             .unwrap_or(MISSING);
 
-        let pnext = record
-            .mate_alignment_start()
-            .map(usize::from)
-            .unwrap_or_default();
-
         self.inner.write_all(qname)?;
 
         self.inner.write_all(DELIMITER)?;
@@ -205,7 +195,7 @@ where
         self.inner.write_all(rname)?;
 
         self.inner.write_all(DELIMITER)?;
-        write_int(&mut self.inner, pos)?;
+        write_position(&mut self.inner, record.alignment_start())?;
 
         self.inner.write_all(DELIMITER)?;
         write_int(&mut self.inner, mapq)?;
@@ -217,7 +207,7 @@ where
         self.inner.write_all(rnext)?;
 
         self.inner.write_all(DELIMITER)?;
-        write_int(&mut self.inner, pnext)?;
+        write_position(&mut self.inner, record.mate_alignment_start())?;
 
         self.inner.write_all(DELIMITER)?;
         write_int(&mut self.inner, record.template_length())?;
