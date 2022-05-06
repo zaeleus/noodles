@@ -1,18 +1,10 @@
 //! BAM record and fields.
 
 pub mod builder;
-pub mod cigar;
 mod convert;
-pub mod data;
-pub mod quality_scores;
-pub mod read_name;
 pub mod reference_sequence_id;
-pub mod sequence;
 
-pub use self::{
-    builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, read_name::ReadName,
-    sequence::Sequence,
-};
+pub use self::builder::Builder;
 
 use std::io;
 
@@ -54,11 +46,11 @@ pub struct Record {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<ReadName>,
-    cigar: Cigar,
-    sequence: Sequence,
-    quality_scores: QualityScores,
-    data: Data,
+    read_name: Option<sam::alignment::record::ReadName>,
+    cigar: sam::alignment::record::Cigar,
+    sequence: sam::alignment::record::Sequence,
+    quality_scores: sam::alignment::record::QualityScores,
+    data: sam::alignment::record::Data,
 }
 
 impl Record {
@@ -257,8 +249,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReadName};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r1".parse()?;
     ///
@@ -266,9 +258,9 @@ impl Record {
     /// *record.read_name_mut() = Some(read_name.clone());
     ///
     /// assert_eq!(record.read_name(), Some(&read_name.into()));
-    /// # Ok::<_, bam::record::read_name::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<sam::alignment::record::ReadName> {
         &mut self.read_name
     }
 
@@ -277,18 +269,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Cigar};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.cigar_mut() = cigar.clone();
     ///
-    /// assert_eq!(record.cigar(), &cigar.try_into()?);
-    /// Ok::<_, bam::record::cigar::ParseError>(())
+    /// assert_eq!(record.cigar(), &cigar);
+    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut Cigar {
+    pub fn cigar_mut(&mut self) -> &mut sam::alignment::record::Cigar {
         &mut self.cigar
     }
 
@@ -297,8 +289,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Sequence};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -306,9 +298,9 @@ impl Record {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<_, bam::record::sequence::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut Sequence {
+    pub fn sequence_mut(&mut self) -> &mut sam::alignment::record::Sequence {
         &mut self.sequence
     }
 
@@ -317,18 +309,18 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::QualityScores};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::QualityScores, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
     /// let mut record = bam::Record::default();
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores.try_into()?);
-    /// # Ok::<_, bam::record::quality_scores::ParseError>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores);
+    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut sam::alignment::record::QualityScores {
         &mut self.quality_scores
     }
 
@@ -337,8 +329,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Data};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -346,19 +338,19 @@ impl Record {
     /// *record.data_mut() = data.clone();
     ///
     /// assert_eq!(record.data(), &data.into());
-    /// # Ok::<_, bam::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
-    pub fn data_mut(&mut self) -> &mut Data {
+    pub fn data_mut(&mut self) -> &mut sam::alignment::record::Data {
         &mut self.data
     }
 }
 
 impl sam::AlignmentRecord for Record {
-    type Sequence = Sequence;
+    type Sequence = sam::alignment::record::Sequence;
     type QualityScores = sam::alignment::record::QualityScores;
 
     fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
-        self.read_name.as_ref().map(|name| name.try_get().unwrap())
+        self.read_name.as_ref()
     }
 
     /// Returns the associated reference sequence.
@@ -418,7 +410,7 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn cigar(&self) -> &sam::alignment::record::Cigar {
-        self.cigar.try_get().unwrap()
+        &self.cigar
     }
 
     /// Returns the associated reference sequence of the mate.
@@ -454,11 +446,11 @@ impl sam::AlignmentRecord for Record {
     }
 
     fn quality_scores(&self) -> &Self::QualityScores {
-        self.quality_scores.try_get().unwrap()
+        &self.quality_scores
     }
 
     fn data(&self) -> &sam::alignment::record::Data {
-        self.data.try_get().unwrap()
+        &self.data
     }
 }
 
@@ -484,7 +476,7 @@ impl Default for Record {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::AlignmentSequence;
+    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
 
     use super::*;
 

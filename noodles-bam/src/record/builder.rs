@@ -3,7 +3,7 @@
 use noodles_core::Position;
 use noodles_sam as sam;
 
-use super::{Cigar, Data, QualityScores, ReadName, Record, Sequence};
+use super::Record;
 
 /// A BAM record builder.
 #[derive(Debug)]
@@ -15,11 +15,11 @@ pub struct Builder {
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<ReadName>,
-    cigar: Cigar,
-    sequence: Sequence,
-    quality_scores: QualityScores,
-    data: Data,
+    read_name: Option<sam::alignment::record::ReadName>,
+    cigar: sam::alignment::record::Cigar,
+    sequence: sam::alignment::record::Sequence,
+    quality_scores: sam::alignment::record::QualityScores,
+    data: sam::alignment::record::Data,
 }
 
 impl Builder {
@@ -163,8 +163,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::ReadName};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r0".parse()?;
     ///
@@ -172,10 +172,10 @@ impl Builder {
     ///     .set_read_name(read_name.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.read_name(), Some(&read_name.into()));
-    /// # Ok::<(), bam::record::read_name::ParseError>(())
+    /// assert_eq!(record.read_name(), Some(&read_name));
+    /// # Ok::<(), noodles_sam::alignment::record::read_name::ParseError>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::alignment::record::ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }
@@ -185,8 +185,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Cigar};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -194,10 +194,10 @@ impl Builder {
     ///     .set_cigar(cigar.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.cigar(), &cigar.try_into()?);
-    /// Ok::<_, bam::record::cigar::ParseError>(())
+    /// assert_eq!(record.cigar(), &cigar);
+    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
     /// ```
-    pub fn set_cigar(mut self, cigar: Cigar) -> Self {
+    pub fn set_cigar(mut self, cigar: sam::alignment::record::Cigar) -> Self {
         self.cigar = cigar;
         self
     }
@@ -207,8 +207,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Sequence};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -217,9 +217,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<_, bam::record::sequence::ParseError>(())
+    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
     /// ```
-    pub fn set_sequence(mut self, sequence: Sequence) -> Self {
+    pub fn set_sequence(mut self, sequence: sam::alignment::record::Sequence) -> Self {
         self.sequence = sequence;
         self
     }
@@ -229,8 +229,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::QualityScores};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::QualityScores, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -238,10 +238,13 @@ impl Builder {
     ///     .set_quality_scores(quality_scores.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.quality_scores(), &quality_scores.try_into()?);
-    /// # Ok::<_, bam::record::quality_scores::ParseError>(())
+    /// assert_eq!(record.quality_scores(), &quality_scores);
+    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
     /// ```
-    pub fn set_quality_scores(mut self, quality_scores: QualityScores) -> Self {
+    pub fn set_quality_scores(
+        mut self,
+        quality_scores: sam::alignment::record::QualityScores,
+    ) -> Self {
         self.quality_scores = quality_scores;
         self
     }
@@ -251,8 +254,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, record::Data};
-    /// use noodles_sam::AlignmentRecord;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -260,10 +263,10 @@ impl Builder {
     ///     .set_data(data.clone())
     ///     .build();
     ///
-    /// assert_eq!(record.data(), &data.into());
-    /// # Ok::<_, bam::record::data::ParseError>(())
+    /// assert_eq!(record.data(), &data);
+    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
     /// ```
-    pub fn set_data(mut self, data: Data) -> Self {
+    pub fn set_data(mut self, data: sam::alignment::record::Data) -> Self {
         self.data = data;
         self
     }
@@ -305,17 +308,17 @@ impl Default for Builder {
             mate_position: None,
             template_length: 0,
             read_name: None,
-            cigar: Cigar::default(),
-            sequence: Sequence::default(),
-            quality_scores: QualityScores::default(),
-            data: Data::default(),
+            cigar: sam::alignment::record::Cigar::default(),
+            sequence: sam::alignment::record::Sequence::default(),
+            quality_scores: sam::alignment::record::QualityScores::default(),
+            data: sam::alignment::record::Data::default(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::AlignmentSequence;
+    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
 
     use super::*;
 

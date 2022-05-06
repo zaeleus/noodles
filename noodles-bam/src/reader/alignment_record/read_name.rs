@@ -3,7 +3,6 @@ use std::{io, num::NonZeroUsize};
 use bytes::Buf;
 use noodles_sam::alignment::record::ReadName;
 
-#[allow(dead_code)]
 pub fn get_read_name<B>(
     src: &mut B,
     read_name: &mut Option<ReadName>,

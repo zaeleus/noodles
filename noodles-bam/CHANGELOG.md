@@ -1,12 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Changed
-
-  * bam/record: Vector fields are lazily decoded: cigar, read name, sequence,
-    quality scores, and data.
-
 ## 0.18.0 - 2022-04-14
 
 ### Added

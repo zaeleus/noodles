@@ -3,7 +3,6 @@ use std::{io, mem};
 use bytes::Buf;
 use noodles_sam::alignment::record::{AlignmentQualityScores, QualityScores};
 
-#[allow(dead_code)]
 pub fn get_quality_scores<B>(
     src: &mut B,
     quality_scores: &mut QualityScores,
@@ -38,7 +37,7 @@ where
     Ok(())
 }
 
-pub fn is_missing_quality_scores(src: &[u8]) -> bool {
+fn is_missing_quality_scores(src: &[u8]) -> bool {
     use crate::writer::alignment_record::NULL_QUALITY_SCORE;
 
     src.iter().all(|&b| b == NULL_QUALITY_SCORE)
