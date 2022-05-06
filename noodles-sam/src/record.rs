@@ -504,9 +504,6 @@ impl Record {
 }
 
 impl AlignmentRecord for Record {
-    type Sequence = Sequence;
-    type QualityScores = QualityScores;
-
     fn read_name(&self) -> Option<&ReadName> {
         self.read_name.as_ref()
     }
@@ -591,11 +588,11 @@ impl AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> &Self::Sequence {
+    fn sequence(&self) -> &Sequence {
         &self.sequence
     }
 
-    fn quality_scores(&self) -> &Self::QualityScores {
+    fn quality_scores(&self) -> &QualityScores {
         &self.quality_scores
     }
 

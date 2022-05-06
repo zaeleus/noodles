@@ -4,19 +4,14 @@ use noodles_core::Position;
 
 use super::{
     alignment::record::{
-        AlignmentQualityScores, AlignmentSequence, Cigar, Data, Flags, MappingQuality, ReadName,
+        AlignmentQualityScores, AlignmentSequence, Cigar, Data, Flags, MappingQuality,
+        QualityScores, ReadName, Sequence,
     },
     header::{ReferenceSequence, ReferenceSequences},
 };
 
 /// An alignment record.
 pub trait AlignmentRecord {
-    /// The sequence returned.
-    type Sequence: AlignmentSequence;
-
-    /// The quality scores returned.
-    type QualityScores: AlignmentQualityScores;
-
     /// Returns the read name.
     ///
     /// This is also called the query name.
@@ -79,10 +74,10 @@ pub trait AlignmentRecord {
     fn template_length(&self) -> i32;
 
     /// Returns the sequence.
-    fn sequence(&self) -> &Self::Sequence;
+    fn sequence(&self) -> &Sequence;
 
     /// Returns the quality scores.
-    fn quality_scores(&self) -> &Self::QualityScores;
+    fn quality_scores(&self) -> &QualityScores;
 
     /// Returns the data fields.
     fn data(&self) -> &Data;
@@ -92,9 +87,6 @@ impl<R> AlignmentRecord for Box<R>
 where
     R: AlignmentRecord + ?Sized,
 {
-    type Sequence = R::Sequence;
-    type QualityScores = R::QualityScores;
-
     fn read_name(&self) -> Option<&ReadName> {
         (**self).read_name()
     }
@@ -141,11 +133,11 @@ where
         (**self).template_length()
     }
 
-    fn sequence(&self) -> &Self::Sequence {
+    fn sequence(&self) -> &Sequence {
         (**self).sequence()
     }
 
-    fn quality_scores(&self) -> &Self::QualityScores {
+    fn quality_scores(&self) -> &QualityScores {
         (**self).quality_scores()
     }
 
