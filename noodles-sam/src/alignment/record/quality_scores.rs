@@ -12,22 +12,64 @@ use std::{
 
 use noodles_core::position::SequenceIndex;
 
-use crate::alignment::record::AlignmentQualityScores;
-
 /// SAM record quality scores.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QualityScores(Vec<Score>);
 
 impl QualityScores {
+    /// Returns the number of scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert_eq!(quality_scores.len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns whether there are any scores.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::QualityScores;
+    /// let quality_scores = QualityScores::default();
+    /// assert!(quality_scores.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Removes all scores.
+    ///
+    /// This does not affect the capacity of the list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
+    ///
+    /// let mut quality_scores = QualityScores::from(vec![Score::try_from('!')?]);
+    /// assert!(!quality_scores.is_empty());
+    ///
+    /// quality_scores.clear();
+    /// assert!(quality_scores.is_empty());
+    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::score::TryFromCharError>(())
+    /// ```
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
     /// Returns a reference to the score at the given index.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{
-    ///     quality_scores::Score, AlignmentQualityScores, QualityScores
-    /// };
+    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -51,9 +93,7 @@ impl QualityScores {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{
-    ///     quality_scores::Score, AlignmentQualityScores, QualityScores
-    /// };
+    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
     ///
     /// let mut quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -77,9 +117,7 @@ impl QualityScores {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{
-    ///     quality_scores::Score, AlignmentQualityScores, QualityScores
-    /// };
+    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
     ///
     /// let mut quality_scores = QualityScores::from(vec![Score::try_from('N')?]);
     /// quality_scores.push(Score::try_from('D')?);
@@ -90,79 +128,6 @@ impl QualityScores {
     /// ```
     pub fn push(&mut self, score: Score) {
         self.0.push(score);
-    }
-}
-
-impl AlignmentQualityScores for QualityScores {
-    /// Returns the number of scores.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{AlignmentQualityScores, QualityScores};
-    /// let quality_scores = QualityScores::default();
-    /// assert_eq!(quality_scores.len(), 0);
-    /// ```
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Returns whether there are any scores.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{AlignmentQualityScores, QualityScores};
-    /// let quality_scores = QualityScores::default();
-    /// assert!(quality_scores.is_empty());
-    /// ```
-    fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Removes all scores.
-    ///
-    /// This does not affect the capacity of the list.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{
-    ///     quality_scores::Score, AlignmentQualityScores, QualityScores
-    /// };
-    ///
-    /// let mut quality_scores = QualityScores::from(vec![Score::try_from('!')?]);
-    /// assert!(!quality_scores.is_empty());
-    ///
-    /// quality_scores.clear();
-    /// assert!(quality_scores.is_empty());
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::score::TryFromCharError>(())
-    /// ```
-    fn clear(&mut self) {
-        self.0.clear();
-    }
-
-    /// Returns an iterator over the scores.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::{
-    ///     quality_scores::Score, AlignmentQualityScores, QualityScores,
-    /// };
-    ///
-    /// let quality_scores: QualityScores = "NDLS".parse()?;
-    /// let mut scores = quality_scores.scores();
-    ///
-    /// assert_eq!(scores.next(), Some(Score::try_from('N')?));
-    /// assert_eq!(scores.next(), Some(Score::try_from('D')?));
-    /// assert_eq!(scores.next(), Some(Score::try_from('L')?));
-    /// assert_eq!(scores.next(), Some(Score::try_from('S')?));
-    /// assert!(scores.next().is_none());
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
-    /// ```
-    fn scores(&self) -> Box<dyn Iterator<Item = Score> + '_> {
-        Box::new(self.0.iter().copied())
     }
 }
 

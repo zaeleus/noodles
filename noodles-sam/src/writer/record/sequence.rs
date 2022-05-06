@@ -1,17 +1,16 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::alignment::record::AlignmentSequence;
+use crate::alignment::record::Sequence;
 
-pub fn write_sequence<W, S>(writer: &mut W, sequence: &S) -> io::Result<()>
+pub fn write_sequence<W>(writer: &mut W, sequence: &Sequence) -> io::Result<()>
 where
     W: Write,
-    S: AlignmentSequence + ?Sized,
 {
     if sequence.is_empty() {
         writer.write_all(&[MISSING])?;
     } else {
-        for base in sequence.bases() {
+        for &base in sequence.as_ref() {
             let n = u8::from(base);
             writer.write_all(&[n])?;
         }

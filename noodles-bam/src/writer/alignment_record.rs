@@ -1,11 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{
-    self as sam,
-    alignment::record::{AlignmentQualityScores, AlignmentSequence},
-    header::ReferenceSequences,
-};
+use noodles_sam::{self as sam, header::ReferenceSequences};
 
 use super::record::{
     put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,

@@ -473,8 +473,6 @@ impl Default for Record {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::{AlignmentQualityScores, AlignmentSequence};
-
     use super::*;
 
     #[test]

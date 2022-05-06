@@ -1,12 +1,11 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::{sequence::Base, AlignmentSequence};
+use noodles_sam::alignment::record::{sequence::Base, Sequence};
 
-pub fn put_sequence<B, S>(dst: &mut B, sequence: &S)
+pub fn put_sequence<B>(dst: &mut B, sequence: &Sequence)
 where
     B: BufMut,
-    S: AlignmentSequence + ?Sized,
 {
-    let mut bases = sequence.bases();
+    let mut bases = sequence.as_ref().iter().copied();
 
     while let Some(l) = bases.next() {
         // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of

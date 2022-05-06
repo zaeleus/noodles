@@ -13,7 +13,7 @@ use crate::{
     alignment::record::{
         mapping_quality::{self, MappingQuality},
         read_name::{self, ReadName},
-        sequence, AlignmentQualityScores, AlignmentSequence,
+        sequence,
     },
     AlignmentRecord,
 };

@@ -88,7 +88,6 @@ use std::{fmt, io, str::FromStr};
 use noodles_core::Position;
 
 use super::{
-    alignment::record::{AlignmentQualityScores, AlignmentSequence},
     header::{ReferenceSequence, ReferenceSequences},
     AlignmentRecord,
 };
@@ -432,11 +431,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     alignment::record::{AlignmentSequence, Sequence},
-    ///     AlignmentRecord
-    /// };
+    /// use noodles_sam::{self as sam, alignment::record::Sequence, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.sequence().is_empty());
@@ -456,11 +451,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     alignment::record::{AlignmentQualityScores, QualityScores},
-    ///     AlignmentRecord,
-    /// };
+    /// use noodles_sam::{self as sam, alignment::record::QualityScores, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.quality_scores().is_empty());

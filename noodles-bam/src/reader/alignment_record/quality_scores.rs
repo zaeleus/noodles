@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::alignment::record::{AlignmentQualityScores, QualityScores};
+use noodles_sam::alignment::record::QualityScores;
 
 pub fn get_quality_scores<B>(
     src: &mut B,

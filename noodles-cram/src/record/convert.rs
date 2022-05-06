@@ -1,10 +1,6 @@
 use std::io;
 
-use noodles_sam::{
-    self as sam,
-    alignment::record::{AlignmentQualityScores, AlignmentSequence},
-    AlignmentRecord,
-};
+use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
 
@@ -70,18 +66,18 @@ impl Record {
             builder = builder.set_tags(data);
         }
 
-        let bases: Vec<_> = record.sequence().bases().collect();
-        let sequence = sam::alignment::record::Sequence::from(bases);
-
-        let scores: Vec<_> = record.quality_scores().scores().collect();
-        let quality_scores = sam::alignment::record::QualityScores::from(scores);
+        builder = builder.set_bases(record.sequence().clone());
 
         if !bam_flags.is_unmapped() {
-            let features = Features::from_cigar(flags, record.cigar(), &sequence, &quality_scores);
+            let features = Features::from_cigar(
+                flags,
+                record.cigar(),
+                record.sequence(),
+                record.quality_scores(),
+            );
+
             builder = builder.set_features(features);
         }
-
-        builder = builder.set_bases(sequence);
 
         if let Some(mapping_quality) = record.mapping_quality() {
             builder = builder.set_mapping_quality(mapping_quality);
@@ -92,7 +88,7 @@ impl Record {
                 flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
             }
 
-            builder = builder.set_quality_scores(quality_scores);
+            builder = builder.set_quality_scores(record.quality_scores().clone());
         }
 
         Ok(builder.set_flags(flags).build())
@@ -147,8 +143,7 @@ impl Record {
         }
 
         if !self.quality_scores().is_empty() {
-            builder =
-                builder.set_quality_scores(sam::AlignmentRecord::quality_scores(self).clone());
+            builder = builder.set_quality_scores(self.quality_scores().clone());
         }
 
         let data = build_data(header.read_groups(), self.tags(), self.read_group_id())?;
