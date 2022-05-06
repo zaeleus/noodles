@@ -1,6 +1,5 @@
 use std::io;
 
-use bytes::BytesMut;
 use noodles_sam::{self as sam, AlignmentRecord};
 
 use super::Record;
@@ -30,11 +29,12 @@ impl Record {
             reader::record::decode_record, writer::alignment_record::encode_alignment_record,
         };
 
-        let mut buf = BytesMut::new();
+        let mut buf = Vec::new();
         encode_alignment_record(&mut buf, reference_sequences, sam_record)?;
 
+        let mut src = &buf[..];
         let mut record = Self::default();
-        decode_record(&mut buf, &mut record)?;
+        decode_record(&mut src, &mut record)?;
 
         Ok(record)
     }

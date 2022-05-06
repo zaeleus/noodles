@@ -9,7 +9,7 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use bytes::{Buf, BytesMut};
+use bytes::Buf;
 use noodles_core::Position;
 use noodles_sam::{self as sam, reader::record::Fields};
 
@@ -17,7 +17,7 @@ use crate::Record;
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
-    buf: &mut BytesMut,
+    buf: &mut Vec<u8>,
     record: &mut Record,
 ) -> io::Result<usize>
 where
@@ -32,14 +32,15 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf)?;
 
-    decode_record(buf, record)?;
+    let mut src = &buf[..];
+    decode_record(&mut src, record)?;
 
     Ok(block_size)
 }
 
 pub(super) fn read_record_with_fields<R>(
     reader: &mut R,
-    buf: &mut BytesMut,
+    buf: &mut Vec<u8>,
     record: &mut Record,
     fields: Fields,
 ) -> io::Result<usize>
@@ -55,20 +56,23 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf)?;
 
-    decode_record_with_fields(buf, record, fields)?;
+    let mut src = &buf[..];
+    decode_record_with_fields(&mut src, record, fields)?;
 
     Ok(block_size)
 }
 
-pub(crate) fn decode_record(src: &mut BytesMut, record: &mut Record) -> io::Result<()> {
+pub(crate) fn decode_record<B>(src: &mut B, record: &mut Record) -> io::Result<()>
+where
+    B: Buf,
+{
     decode_record_with_fields(src, record, Fields::all())
 }
 
-fn decode_record_with_fields(
-    src: &mut BytesMut,
-    record: &mut Record,
-    fields: Fields,
-) -> io::Result<()> {
+fn decode_record_with_fields<B>(src: &mut B, record: &mut Record, fields: Fields) -> io::Result<()>
+where
+    B: Buf,
+{
     use super::alignment_record::{
         get_cigar, get_data, get_mapping_quality, get_quality_scores, get_read_name, get_sequence,
     };
@@ -229,7 +233,7 @@ mod tests {
         ];
 
         let mut reader = &data[..];
-        let mut buf = BytesMut::new();
+        let mut buf = Vec::new();
         let mut record = Record::default();
         let block_size = read_record(&mut reader, &mut buf, &mut record)?;
 
@@ -241,18 +245,17 @@ mod tests {
 
     #[test]
     fn test_decode_record_with_invalid_l_read_name() {
-        let mut data = BytesMut::from(
-            &[
-                0xff, 0xff, 0xff, 0xff, // ref_id = -1
-                0xff, 0xff, 0xff, 0xff, // pos = -1
-                0x00, // l_read_name = 0
-            ][..],
-        );
+        let data = vec![
+            0xff, 0xff, 0xff, 0xff, // ref_id = -1
+            0xff, 0xff, 0xff, 0xff, // pos = -1
+            0x00, // l_read_name = 0
+        ];
+        let mut src = &data[..];
 
         let mut record = Record::default();
 
         assert!(matches!(
-            decode_record(&mut data, &mut record),
+            decode_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }

@@ -14,7 +14,6 @@ use std::{
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use bytes::BytesMut;
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Region};
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
@@ -58,7 +57,7 @@ use super::{bai, Record, MAGIC_NUMBER};
 /// ```
 pub struct Reader<R> {
     inner: R,
-    buf: BytesMut,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R>
@@ -404,7 +403,7 @@ impl<R> From<R> for Reader<R> {
     fn from(inner: R) -> Self {
         Self {
             inner,
-            buf: BytesMut::new(),
+            buf: Vec::new(),
         }
     }
 }
