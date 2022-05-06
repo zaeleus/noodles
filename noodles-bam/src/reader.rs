@@ -265,12 +265,15 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
+    /// use noodles_sam::reader::record::Fields;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
     /// reader.read_reference_sequences()?;
     ///
-    /// for result in reader.records() {
+    /// let fields = Fields::REFERENCE_SEQUENCE_ID | Fields::FLAGS;
+    ///
+    /// for result in reader.records_with_fields(fields) {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }
