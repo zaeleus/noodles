@@ -1,7 +1,11 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, header::ReferenceSequences, AnyAlignmentRecord};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{AlignmentQualityScores, AlignmentSequence},
+    header::ReferenceSequences,
+};
 
 use super::record::{
     put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,
@@ -14,7 +18,7 @@ pub(crate) const NULL_QUALITY_SCORE: u8 = 255;
 pub fn encode_alignment_record<B>(
     dst: &mut B,
     reference_sequences: &ReferenceSequences,
-    record: &dyn AnyAlignmentRecord,
+    record: &dyn sam::AlignmentRecord,
 ) -> io::Result<()>
 where
     B: BufMut,

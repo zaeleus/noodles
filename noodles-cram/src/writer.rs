@@ -15,7 +15,6 @@ use std::{
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use sam::AnyAlignmentRecord;
 
 use self::container::write_container;
 use super::{
@@ -265,7 +264,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &dyn AnyAlignmentRecord,
+        record: &dyn sam::AlignmentRecord,
     ) -> io::Result<()> {
         let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(header, r)

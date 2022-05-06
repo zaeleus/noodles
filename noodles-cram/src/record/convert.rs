@@ -1,6 +1,10 @@
 use std::io;
 
-use noodles_sam::{self as sam, alignment::record::AlignmentSequence, AnyAlignmentRecord};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{AlignmentQualityScores, AlignmentSequence},
+    AlignmentRecord,
+};
 
 use super::{resolve::resolve_features, Features, Flags, Record};
 
@@ -8,7 +12,7 @@ impl Record {
     /// Converts an alignment record to a CRAM record.
     pub fn try_from_alignment_record(
         header: &sam::Header,
-        record: &dyn AnyAlignmentRecord,
+        record: &dyn AlignmentRecord,
     ) -> io::Result<Self> {
         let mut builder = Self::builder();
 

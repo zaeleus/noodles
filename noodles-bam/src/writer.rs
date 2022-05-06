@@ -260,7 +260,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &dyn sam::AnyAlignmentRecord,
+        record: &dyn sam::AlignmentRecord,
     ) -> io::Result<()> {
         encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
 

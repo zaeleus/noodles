@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{AnyAlignmentRecord, Header};
+use super::{AlignmentRecord, Header};
 
 /// An alignment format writer.
 ///
@@ -13,7 +13,7 @@ pub trait AlignmentWriter {
     fn write_alignment_record(
         &mut self,
         header: &Header,
-        record: &dyn AnyAlignmentRecord,
+        record: &dyn AlignmentRecord,
     ) -> io::Result<()>;
 
     /// Shuts down an alignment format writer.

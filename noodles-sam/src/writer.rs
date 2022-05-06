@@ -2,7 +2,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use crate::AnyAlignmentRecord;
+use crate::AlignmentRecord;
 
 use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
 use super::{AlignmentWriter, Header, Record};
@@ -148,7 +148,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &Header,
-        record: &dyn AnyAlignmentRecord,
+        record: &dyn AlignmentRecord,
     ) -> io::Result<()> {
         const DELIMITER: &[u8] = b"\t";
         const EQ: &[u8] = b"=";

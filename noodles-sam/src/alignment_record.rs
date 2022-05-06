@@ -3,10 +3,7 @@ use std::io;
 use noodles_core::Position;
 
 use super::{
-    alignment::record::{
-        AlignmentQualityScores, AlignmentSequence, Cigar, Data, Flags, MappingQuality,
-        QualityScores, ReadName, Sequence,
-    },
+    alignment::record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
     header::{ReferenceSequence, ReferenceSequences},
 };
 
@@ -143,123 +140,5 @@ where
 
     fn data(&self) -> &Data {
         (**self).data()
-    }
-}
-
-/// Any alignment record.
-pub trait AnyAlignmentRecord {
-    /// Returns the read name.
-    fn read_name(&self) -> Option<&ReadName>;
-
-    /// Returns the associated reference sequence.
-    fn reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs ReferenceSequences,
-    ) -> Option<io::Result<&'rs ReferenceSequence>>;
-
-    /// Returns the flags.
-    fn flags(&self) -> Flags;
-
-    /// Returns the start position.
-    fn alignment_start(&self) -> Option<Position>;
-
-    /// Calculates the alignment span over the reference sequence.
-    fn alignment_span(&self) -> usize;
-
-    /// Calculates the end position.
-    fn alignment_end(&self) -> Option<Position>;
-
-    /// Returns the mapping quality.
-    fn mapping_quality(&self) -> Option<MappingQuality>;
-
-    /// Returns the CIGAR operations.
-    fn cigar(&self) -> &Cigar;
-
-    /// Returns the associated reference sequence of the mate.
-    fn mate_reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs ReferenceSequences,
-    ) -> Option<io::Result<&'rs ReferenceSequence>>;
-
-    /// Returns the start position of the mate.
-    fn mate_alignment_start(&self) -> Option<Position>;
-
-    /// Returns the template length.
-    fn template_length(&self) -> i32;
-
-    /// Returns the sequence.
-    fn sequence(&self) -> &dyn AlignmentSequence;
-
-    /// Returns the quality scores.
-    fn quality_scores(&self) -> &dyn AlignmentQualityScores;
-
-    /// Returns the data fields.
-    fn data(&self) -> &Data;
-}
-
-impl<T> AnyAlignmentRecord for T
-where
-    T: AlignmentRecord,
-{
-    fn read_name(&self) -> Option<&ReadName> {
-        self.read_name()
-    }
-
-    fn reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs ReferenceSequences,
-    ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        self.reference_sequence(reference_sequences)
-    }
-
-    fn flags(&self) -> Flags {
-        self.flags()
-    }
-
-    fn alignment_start(&self) -> Option<Position> {
-        self.alignment_start()
-    }
-
-    fn alignment_span(&self) -> usize {
-        self.alignment_span()
-    }
-
-    fn alignment_end(&self) -> Option<Position> {
-        self.alignment_end()
-    }
-
-    fn mapping_quality(&self) -> Option<MappingQuality> {
-        self.mapping_quality()
-    }
-
-    fn cigar(&self) -> &Cigar {
-        self.cigar()
-    }
-
-    fn mate_reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs ReferenceSequences,
-    ) -> Option<io::Result<&'rs ReferenceSequence>> {
-        self.mate_reference_sequence(reference_sequences)
-    }
-
-    fn mate_alignment_start(&self) -> Option<Position> {
-        self.mate_alignment_start()
-    }
-
-    fn template_length(&self) -> i32 {
-        self.template_length()
-    }
-
-    fn sequence(&self) -> &dyn AlignmentSequence {
-        self.sequence()
-    }
-
-    fn quality_scores(&self) -> &dyn AlignmentQualityScores {
-        self.quality_scores()
-    }
-
-    fn data(&self) -> &Data {
-        self.data()
     }
 }

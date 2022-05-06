@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_fasta as fasta;
 
-use super::{AlignmentReader, AnyAlignmentRecord, Header};
+use super::{AlignmentReader, AlignmentRecord, Header};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -251,10 +251,10 @@ where
         &'a mut self,
         _: &'a fasta::Repository,
         _: &'a Header,
-    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn AnyAlignmentRecord>>> + 'a> {
+    ) -> Box<dyn Iterator<Item = io::Result<Box<dyn AlignmentRecord>>> + 'a> {
         Box::new(
             self.records()
-                .map(|result| result.map(|record| Box::new(record) as Box<dyn AnyAlignmentRecord>)),
+                .map(|result| result.map(|record| Box::new(record) as Box<dyn AlignmentRecord>)),
         )
     }
 }
