@@ -10,6 +10,7 @@ use std::io::{self, BufRead, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_fasta as fasta;
 
+use self::record::Fields;
 use super::{AlignmentReader, AlignmentRecord, Header};
 
 const LINE_FEED: char = '\n';
@@ -203,7 +204,34 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+        self.records_with_fields(Fields::all())
+    }
+
+    /// Returns an iterator over records starting from the current stream position and decodes only
+    /// the given fields.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_sam::{self as sam, reader::record::Fields};
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::Reader::new(&data[..]);
+    /// reader.read_header()?;
+    ///
+    /// let mut records = reader.records_with_fields(Fields::FLAGS);
+    /// assert!(records.next().is_some());
+    /// assert!(records.next().is_none());
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn records_with_fields(&mut self, fields: Fields) -> Records<'_, R> {
+        Records::new(self, fields)
     }
 }
 

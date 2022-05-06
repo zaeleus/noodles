@@ -7,6 +7,9 @@
   * sam/record: Add `Record::parse_with_fields` to decode only a subset of
     fields.
 
+  * sam/reader: Add `Record::records_with_fields` to decode only a subset of
+    fields.
+
 ### Changed
 
   * sam/record/cigar: Change conversion from `Vec<Op>` to be
