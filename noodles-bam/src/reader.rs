@@ -189,7 +189,7 @@ where
         read_record(&mut self.inner, &mut self.buf, record)
     }
 
-    /// Reads a single record and decode only the given fields.
+    /// Reads a single record and decodes only the given fields.
     ///
     /// The record block size (`bs`) if read from the underlying stream and `bs` bytes are read
     /// into an internal buffer. This buffer is used to populate the given record, decoding only
