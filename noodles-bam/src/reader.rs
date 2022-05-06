@@ -199,6 +199,9 @@ where
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
     ///
+    /// It is more ergonomic to read records using an iterator (see [`Self::records_with_fields`]),
+    /// but using this method directly allows the reuse of a single [`Record`] buffer.
+    ///
     /// If successful, the record block size is returned. If a block size of 0 is returned, the
     /// stream reached EOF.
     ///
@@ -248,7 +251,33 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+        self.records_with_fields(Fields::all())
+    }
+
+    /// Returns an iterator over records starting from the current stream position and decodes only
+    /// given fields.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// for result in reader.records() {
+    ///     let record = result?;
+    ///     println!("{:?}", record);
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn records_with_fields(&mut self, fields: Fields) -> Records<'_, R> {
+        Records::new(self, fields)
     }
 }
 
