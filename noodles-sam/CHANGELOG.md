@@ -4,28 +4,17 @@
 
 ### Changed
 
-  * sam/alignment/record: Move fields (`Cigar`, `Data`, `Flags`,
-    `MappingQuality`, `QualityScores`, `ReadName`, and `Sequence`) under
-    `sam::alignment::record`.
-
-  * sam/alignment/record/cigar: Change conversion from `Vec<Op>` to be
+  * sam/record/cigar: Change conversion from `Vec<Op>` to be
     fallible.
 
     Replace usages of `From<Vec<Op>>` with `TryFrom<Vec<Op>>`.
 
-  * sam/alignment/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
+  * sam/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
 
   * sam/writer/record: Restrict position to [0, 2^31-1].
 
     This is defined in _Sequence Alignment/Map Format Specification_
     (2021-06-03) § 1.4 "The alignment section: mandatory fields".
-
-### Deprecated
-
-  * sam/record: Deprecate `sam::record::sequence` and `sam::record::Sequence`.
-
-    Use `sam::alignment::record::sequence` and
-    `sam::alignment::record::Sequence`, respectively, instead.
 
 ## 0.15.0 - 2022-04-14
 

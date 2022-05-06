@@ -25,7 +25,7 @@ use std::{
 };
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::record::ReadName, AlignmentRecord};
+use noodles_sam::{self as sam, record::ReadName, AlignmentRecord};
 
 fn read_read_names<P>(src: P) -> io::Result<HashSet<ReadName>>
 where

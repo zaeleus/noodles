@@ -10,16 +10,16 @@ use super::Record;
 pub struct Builder {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
-    mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    flags: sam::alignment::record::Flags,
+    mapping_quality: Option<sam::record::MappingQuality>,
+    flags: sam::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::alignment::record::ReadName>,
-    cigar: sam::alignment::record::Cigar,
-    sequence: sam::alignment::record::Sequence,
-    quality_scores: sam::alignment::record::QualityScores,
-    data: sam::alignment::record::Data,
+    read_name: Option<sam::record::ReadName>,
+    cigar: sam::record::Cigar,
+    sequence: sam::record::Sequence,
+    quality_scores: sam::record::QualityScores,
+    data: sam::record::Data,
 }
 
 impl Builder {
@@ -69,19 +69,16 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_mapping_quality(MappingQuality::try_from(34)?)
     ///     .build();
     ///
     /// assert_eq!(record.mapping_quality(), MappingQuality::new(34));
-    /// # Ok::<_, noodles_sam::alignment::record::mapping_quality::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::mapping_quality::ParseError>(())
     /// ```
-    pub fn set_mapping_quality(
-        mut self,
-        mapping_quality: sam::alignment::record::MappingQuality,
-    ) -> Self {
+    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);
         self
     }
@@ -92,7 +89,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Flags, AlignmentRecord};
+    /// use noodles_sam::{record::Flags, AlignmentRecord};
     ///
     /// let record = bam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
@@ -100,7 +97,7 @@ impl Builder {
     ///
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
-    pub fn set_flags(mut self, flags: sam::alignment::record::Flags) -> Self {
+    pub fn set_flags(mut self, flags: sam::record::Flags) -> Self {
         self.flags = flags;
         self
     }
@@ -164,7 +161,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
+    /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r0".parse()?;
     ///
@@ -173,9 +170,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.read_name(), Some(&read_name));
-    /// # Ok::<(), noodles_sam::alignment::record::read_name::ParseError>(())
+    /// # Ok::<(), noodles_sam::record::read_name::ParseError>(())
     /// ```
-    pub fn set_read_name(mut self, read_name: sam::alignment::record::ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }
@@ -186,7 +183,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
+    /// use noodles_sam::{record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -195,9 +192,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
-    pub fn set_cigar(mut self, cigar: sam::alignment::record::Cigar) -> Self {
+    pub fn set_cigar(mut self, cigar: sam::record::Cigar) -> Self {
         self.cigar = cigar;
         self
     }
@@ -208,7 +205,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Sequence, AlignmentRecord};
+    /// use noodles_sam::{record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -217,9 +214,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
-    pub fn set_sequence(mut self, sequence: sam::alignment::record::Sequence) -> Self {
+    pub fn set_sequence(mut self, sequence: sam::record::Sequence) -> Self {
         self.sequence = sequence;
         self
     }
@@ -230,7 +227,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::QualityScores, AlignmentRecord};
+    /// use noodles_sam::{record::QualityScores, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -239,12 +236,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn set_quality_scores(
-        mut self,
-        quality_scores: sam::alignment::record::QualityScores,
-    ) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
         self.quality_scores = quality_scores;
         self
     }
@@ -255,7 +249,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
+    /// use noodles_sam::{record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -264,9 +258,9 @@ impl Builder {
     ///     .build();
     ///
     /// assert_eq!(record.data(), &data);
-    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn set_data(mut self, data: sam::alignment::record::Data) -> Self {
+    pub fn set_data(mut self, data: sam::record::Data) -> Self {
         self.data = data;
         self
     }
@@ -303,15 +297,15 @@ impl Default for Builder {
             reference_sequence_id: None,
             position: None,
             mapping_quality: None,
-            flags: sam::alignment::record::Flags::UNMAPPED,
+            flags: sam::record::Flags::UNMAPPED,
             mate_reference_sequence_id: None,
             mate_position: None,
             template_length: 0,
             read_name: None,
-            cigar: sam::alignment::record::Cigar::default(),
-            sequence: sam::alignment::record::Sequence::default(),
-            quality_scores: sam::alignment::record::QualityScores::default(),
-            data: sam::alignment::record::Data::default(),
+            cigar: sam::record::Cigar::default(),
+            sequence: sam::record::Sequence::default(),
+            quality_scores: sam::record::QualityScores::default(),
+            data: sam::record::Data::default(),
         }
     }
 }
@@ -327,7 +321,7 @@ mod tests {
         assert!(builder.reference_sequence_id.is_none());
         assert!(builder.position.is_none());
         assert!(builder.mapping_quality.is_none());
-        assert_eq!(builder.flags, sam::alignment::record::Flags::UNMAPPED);
+        assert_eq!(builder.flags, sam::record::Flags::UNMAPPED);
         assert!(builder.mate_reference_sequence_id.is_none());
         assert!(builder.mate_position.is_none());
         assert_eq!(builder.template_length, 0);

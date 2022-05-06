@@ -23,25 +23,25 @@ use once_cell::sync::OnceCell;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
     pub(crate) id: i64,
-    pub(crate) bam_bit_flags: sam::alignment::record::Flags,
+    pub(crate) bam_bit_flags: sam::record::Flags,
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
     pub(crate) read_length: usize,
     pub(crate) alignment_start: Option<Position>,
     pub(crate) read_group: Option<usize>,
-    pub(crate) read_name: Option<sam::alignment::record::ReadName>,
+    pub(crate) read_name: Option<sam::record::ReadName>,
     pub(crate) next_mate_bit_flags: NextMateFlags,
     pub(crate) next_fragment_reference_sequence_id: Option<usize>,
     pub(crate) next_mate_alignment_start: Option<Position>,
     pub(crate) template_size: i32,
     pub(crate) distance_to_next_fragment: Option<usize>,
-    pub(crate) tags: sam::alignment::record::Data,
-    pub(crate) bases: sam::alignment::record::Sequence,
+    pub(crate) tags: sam::record::Data,
+    pub(crate) bases: sam::record::Sequence,
     pub(crate) features: Features,
-    pub(crate) mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    pub(crate) quality_scores: sam::alignment::record::QualityScores,
+    pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
+    pub(crate) quality_scores: sam::record::QualityScores,
 
-    pub(crate) cigar: OnceCell<sam::alignment::record::Cigar>,
+    pub(crate) cigar: OnceCell<sam::record::Cigar>,
 }
 
 impl Record {
@@ -57,7 +57,7 @@ impl Record {
     /// Returns the BAM flags.
     ///
     /// This is also called the BAM bit flags.
-    pub fn bam_flags(&self) -> sam::alignment::record::Flags {
+    pub fn bam_flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
 
@@ -123,12 +123,12 @@ impl Record {
     }
 
     /// Returns the tag dictionary.
-    pub fn tags(&self) -> &sam::alignment::record::Data {
+    pub fn tags(&self) -> &sam::record::Data {
         &self.tags
     }
 
     /// Returns the read bases.
-    pub fn bases(&self) -> &sam::alignment::record::Sequence {
+    pub fn bases(&self) -> &sam::record::Sequence {
         &self.bases
     }
 
@@ -149,7 +149,7 @@ impl Default for Record {
 }
 
 impl sam::AlignmentRecord for Record {
-    fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
+    fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
     }
 
@@ -160,7 +160,7 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
-    fn flags(&self) -> sam::alignment::record::Flags {
+    fn flags(&self) -> sam::record::Flags {
         self.bam_bit_flags
     }
 
@@ -172,14 +172,14 @@ impl sam::AlignmentRecord for Record {
         calculate_alignment_span(self.read_length(), self.features())
     }
 
-    fn mapping_quality(&self) -> Option<sam::alignment::record::MappingQuality> {
+    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
     }
 
-    fn cigar(&self) -> &sam::alignment::record::Cigar {
+    fn cigar(&self) -> &sam::record::Cigar {
         self.cigar.get_or_init(|| {
             if self.flags().is_unmapped() {
-                sam::alignment::record::Cigar::default()
+                sam::record::Cigar::default()
             } else {
                 // FIXME
                 resolve::resolve_features(self.features(), self.read_length()).unwrap()
@@ -205,15 +205,15 @@ impl sam::AlignmentRecord for Record {
         self.template_size
     }
 
-    fn sequence(&self) -> &sam::alignment::record::Sequence {
+    fn sequence(&self) -> &sam::record::Sequence {
         &self.bases
     }
 
-    fn quality_scores(&self) -> &sam::alignment::record::QualityScores {
+    fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.quality_scores
     }
 
-    fn data(&self) -> &sam::alignment::record::Data {
+    fn data(&self) -> &sam::record::Data {
         &self.tags
     }
 }
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn test_calculate_alignment_span() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_core::Position;
-        use sam::alignment::record::sequence::Base;
+        use sam::record::sequence::Base;
 
         let features = Features::default();
         assert_eq!(calculate_alignment_span(4, &features), 4);

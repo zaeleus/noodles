@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::alignment::record::data::field::value::Subtype;
+use crate::record::data::field::value::Subtype;
 
 pub fn write_subtype<W>(writer: &mut W, subtype: Subtype) -> io::Result<()>
 where

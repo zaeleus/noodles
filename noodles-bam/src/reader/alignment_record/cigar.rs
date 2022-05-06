@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::alignment::record::{
+use noodles_sam::record::{
     cigar::{op::Kind, Op},
     Cigar,
 };

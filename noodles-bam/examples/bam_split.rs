@@ -49,8 +49,8 @@ fn write_headers(writers: &mut Writers, header: &sam::Header) -> io::Result<()> 
     Ok(())
 }
 
-fn find_read_group(data: &sam::alignment::record::Data) -> io::Result<Option<String>> {
-    use sam::alignment::record::data::field::{value::Type, Tag};
+fn find_read_group(data: &sam::record::Data) -> io::Result<Option<String>> {
+    use sam::record::data::field::{value::Type, Tag};
 
     match data.get(Tag::ReadGroup) {
         Some(field) => field

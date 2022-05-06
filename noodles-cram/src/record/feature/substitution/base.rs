@@ -34,11 +34,11 @@ impl fmt::Display for TryFromError {
 
 impl error::Error for TryFromError {}
 
-impl TryFrom<sam::alignment::record::sequence::Base> for Base {
+impl TryFrom<sam::record::sequence::Base> for Base {
     type Error = TryFromError;
 
-    fn try_from(base: sam::alignment::record::sequence::Base) -> Result<Self, Self::Error> {
-        use sam::alignment::record::sequence::Base as SamBase;
+    fn try_from(base: sam::record::sequence::Base) -> Result<Self, Self::Error> {
+        use sam::record::sequence::Base as SamBase;
 
         match base {
             SamBase::A => Ok(Self::A),
@@ -66,9 +66,9 @@ impl TryFrom<u8> for Base {
     }
 }
 
-impl From<Base> for sam::alignment::record::sequence::Base {
+impl From<Base> for sam::record::sequence::Base {
     fn from(base: Base) -> Self {
-        use sam::alignment::record::sequence::Base as SamBase;
+        use sam::record::sequence::Base as SamBase;
 
         match base {
             Base::A => SamBase::A,
@@ -94,7 +94,7 @@ impl From<Base> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::record::sequence::Base as SamBase;
+    use sam::record::sequence::Base as SamBase;
 
     use super::*;
 

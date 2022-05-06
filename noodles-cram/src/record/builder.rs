@@ -1,7 +1,7 @@
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record::{quality_scores::Score, sequence::Base},
+    record::{quality_scores::Score, sequence::Base},
 };
 
 use super::{Feature, Features, Flags, NextMateFlags, Record};
@@ -9,23 +9,23 @@ use super::{Feature, Features, Flags, NextMateFlags, Record};
 /// A CRAM record builder.
 pub struct Builder {
     id: i64,
-    bam_flags: sam::alignment::record::Flags,
+    bam_flags: sam::record::Flags,
     flags: Flags,
     reference_sequence_id: Option<usize>,
     read_length: usize,
     alignment_start: Option<Position>,
     read_group_id: Option<usize>,
-    read_name: Option<sam::alignment::record::ReadName>,
+    read_name: Option<sam::record::ReadName>,
     next_mate_flags: NextMateFlags,
     next_fragment_reference_sequence_id: Option<usize>,
     next_mate_alignment_start: Option<Position>,
     template_size: i32,
     distance_to_next_fragment: Option<usize>,
-    tags: sam::alignment::record::Data,
-    bases: sam::alignment::record::Sequence,
+    tags: sam::record::Data,
+    bases: sam::record::Sequence,
     features: Features,
-    mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    quality_scores: sam::alignment::record::QualityScores,
+    mapping_quality: Option<sam::record::MappingQuality>,
+    quality_scores: sam::record::QualityScores,
 }
 
 impl Builder {
@@ -36,7 +36,7 @@ impl Builder {
     }
 
     /// Sets the BAM flags.
-    pub fn set_bam_flags(mut self, bam_flags: sam::alignment::record::Flags) -> Self {
+    pub fn set_bam_flags(mut self, bam_flags: sam::record::Flags) -> Self {
         self.bam_flags = bam_flags;
         self
     }
@@ -72,7 +72,7 @@ impl Builder {
     }
 
     /// Sets the read name.
-    pub fn set_read_name(mut self, read_name: sam::alignment::record::ReadName) -> Self {
+    pub fn set_read_name(mut self, read_name: sam::record::ReadName) -> Self {
         self.read_name = Some(read_name);
         self
     }
@@ -111,19 +111,19 @@ impl Builder {
     }
 
     /// Sets the tag dictionary.
-    pub fn set_tags(mut self, tags: sam::alignment::record::Data) -> Self {
+    pub fn set_tags(mut self, tags: sam::record::Data) -> Self {
         self.tags = tags;
         self
     }
 
     /// Adds a tag to the tag dictionary.
-    pub fn add_tag(mut self, tag: sam::alignment::record::data::Field) -> Self {
+    pub fn add_tag(mut self, tag: sam::record::data::Field) -> Self {
         self.tags.insert(tag);
         self
     }
 
     /// Sets the read bases.
-    pub fn set_bases(mut self, bases: sam::alignment::record::Sequence) -> Self {
+    pub fn set_bases(mut self, bases: sam::record::Sequence) -> Self {
         self.bases = bases;
         self
     }
@@ -147,19 +147,13 @@ impl Builder {
     }
 
     /// Sets the mapping quality.
-    pub fn set_mapping_quality(
-        mut self,
-        mapping_quality: sam::alignment::record::MappingQuality,
-    ) -> Self {
+    pub fn set_mapping_quality(mut self, mapping_quality: sam::record::MappingQuality) -> Self {
         self.mapping_quality = Some(mapping_quality);
         self
     }
 
     /// Sets the per-base quality scores.
-    pub fn set_quality_scores(
-        mut self,
-        quality_scores: sam::alignment::record::QualityScores,
-    ) -> Self {
+    pub fn set_quality_scores(mut self, quality_scores: sam::record::QualityScores) -> Self {
         self.quality_scores = quality_scores;
         self
     }
@@ -200,7 +194,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             id: 0,
-            bam_flags: sam::alignment::record::Flags::UNMAPPED,
+            bam_flags: sam::record::Flags::UNMAPPED,
             flags: Flags::default(),
             reference_sequence_id: None,
             read_length: 0,
@@ -212,11 +206,11 @@ impl Default for Builder {
             next_mate_alignment_start: None,
             template_size: 0,
             distance_to_next_fragment: None,
-            tags: sam::alignment::record::Data::default(),
-            bases: sam::alignment::record::Sequence::default(),
+            tags: sam::record::Data::default(),
+            bases: sam::record::Sequence::default(),
             features: Features::default(),
             mapping_quality: None,
-            quality_scores: sam::alignment::record::QualityScores::default(),
+            quality_scores: sam::record::QualityScores::default(),
         }
     }
 }
@@ -230,7 +224,7 @@ mod tests {
         let builder = Builder::default();
 
         assert_eq!(builder.id, 0);
-        assert_eq!(builder.bam_flags, sam::alignment::record::Flags::UNMAPPED);
+        assert_eq!(builder.bam_flags, sam::record::Flags::UNMAPPED);
         assert_eq!(builder.flags, Flags::default());
         assert!(builder.reference_sequence_id.is_none());
         assert_eq!(builder.read_length, 0);

@@ -20,14 +20,14 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let mut cigar = Cigar::try_from(vec![Op::new(Kind::Match, 5)])?;
     /// assert!(!cigar.is_empty());
     ///
     /// cigar.clear();
     /// assert!(cigar.is_empty());
-    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -42,7 +42,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let cigar = Cigar::try_from(vec![
     ///     Op::new(Kind::Match, 36),
@@ -51,7 +51,7 @@ impl Cigar {
     /// ])?;
     ///
     /// assert_eq!(cigar.reference_len(), 40);
-    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn reference_len(&self) -> usize {
         self.iter()
@@ -75,7 +75,7 @@ impl Cigar {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{cigar::{op::Kind, Op}, Cigar};
+    /// use noodles_sam::record::{cigar::{op::Kind, Op}, Cigar};
     ///
     /// let cigar = Cigar::try_from(vec![
     ///     Op::new(Kind::Match, 36),
@@ -84,7 +84,7 @@ impl Cigar {
     /// ])?;
     ///
     /// assert_eq!(cigar.read_len(), 44);
-    /// # Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
     pub fn read_len(&self) -> usize {
         self.iter()

@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use crate::{
-    alignment::record::{cigar::op::Kind, Cigar},
+    record::{cigar::op::Kind, Cigar},
     writer::write_int,
 };
 
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn test_write_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::alignment::record::cigar::Op;
+        use crate::record::cigar::Op;
 
         let mut buf = Vec::new();
         write_cigar(&mut buf, &Cigar::default())?;

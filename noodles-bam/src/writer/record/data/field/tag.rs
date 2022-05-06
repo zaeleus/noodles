@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::data::field::Tag;
+use noodles_sam::record::data::field::Tag;
 
 pub fn put_tag<B>(dst: &mut B, tag: Tag)
 where

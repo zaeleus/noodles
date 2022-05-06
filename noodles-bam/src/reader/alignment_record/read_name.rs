@@ -1,7 +1,7 @@
 use std::{io, num::NonZeroUsize};
 
 use bytes::Buf;
-use noodles_sam::alignment::record::ReadName;
+use noodles_sam::record::ReadName;
 
 pub fn get_read_name<B>(
     src: &mut B,

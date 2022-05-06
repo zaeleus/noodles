@@ -8,7 +8,7 @@ pub use self::value::get_value;
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::alignment::record::data::Field;
+use noodles_sam::record::data::Field;
 
 pub(crate) fn get_field<B>(src: &mut B) -> io::Result<Option<Field>>
 where
@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn test_get_field() -> io::Result<()> {
-        use noodles_sam::alignment::record::data::field::{Tag, Value};
+        use noodles_sam::record::data::field::{Tag, Value};
 
         let data = [];
         let mut reader = &data[..];

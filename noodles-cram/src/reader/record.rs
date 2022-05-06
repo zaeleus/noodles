@@ -9,7 +9,7 @@ use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record::{quality_scores::Score, sequence::Base},
+    record::{quality_scores::Score, sequence::Base},
     AlignmentRecord,
 };
 
@@ -119,7 +119,7 @@ where
         Ok(record)
     }
 
-    fn read_bam_bit_flags(&mut self) -> io::Result<sam::alignment::record::Flags> {
+    fn read_bam_bit_flags(&mut self) -> io::Result<sam::record::Flags> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -131,7 +131,7 @@ where
             &mut self.external_data_readers,
         )
         .and_then(|n| u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(sam::alignment::record::Flags::from)
+        .map(sam::record::Flags::from)
     }
 
     fn read_cram_bit_flags(&mut self) -> io::Result<Flags> {
@@ -274,8 +274,8 @@ where
         Ok(())
     }
 
-    fn read_read_name(&mut self) -> io::Result<Option<sam::alignment::record::ReadName>> {
-        use sam::alignment::record::read_name::MISSING;
+    fn read_read_name(&mut self) -> io::Result<Option<sam::record::ReadName>> {
+        use sam::record::read_name::MISSING;
 
         let encoding = self
             .compression_header
@@ -297,7 +297,7 @@ where
 
         match &buf[..] {
             MISSING => Ok(None),
-            _ => sam::alignment::record::ReadName::try_from(buf)
+            _ => sam::record::ReadName::try_from(buf)
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         }
@@ -306,7 +306,7 @@ where
     fn read_mate_data(
         &mut self,
         record: &mut Record,
-        mut bam_flags: sam::alignment::record::Flags,
+        mut bam_flags: sam::record::Flags,
         flags: Flags,
     ) -> io::Result<()> {
         if flags.is_detached() {
@@ -314,11 +314,11 @@ where
             record.next_mate_bit_flags = next_mate_bit_flags;
 
             if next_mate_bit_flags.is_on_negative_strand() {
-                bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
+                bam_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
             if next_mate_bit_flags.is_unmapped() {
-                bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
+                bam_flags |= sam::record::Flags::MATE_UNMAPPED;
             }
 
             record.bam_bit_flags = bam_flags;
@@ -451,9 +451,9 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_tag_data(&mut self) -> io::Result<sam::alignment::record::Data> {
+    fn read_tag_data(&mut self) -> io::Result<sam::record::Data> {
         use bam::reader::record::data::field::get_value;
-        use sam::alignment::record::data::Field;
+        use sam::record::data::Field;
 
         let tag_line = self.read_tag_line()?;
 
@@ -491,7 +491,7 @@ where
             fields.push(field);
         }
 
-        sam::alignment::record::Data::try_from(fields)
+        sam::record::Data::try_from(fields)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
@@ -905,10 +905,8 @@ where
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
     }
 
-    fn read_mapping_quality(
-        &mut self,
-    ) -> io::Result<Option<sam::alignment::record::MappingQuality>> {
-        use sam::alignment::record::mapping_quality::MISSING;
+    fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
+        use sam::record::mapping_quality::MISSING;
 
         let encoding = self
             .compression_header
@@ -930,7 +928,7 @@ where
 
         match n {
             MISSING => Ok(None),
-            _ => Ok(sam::alignment::record::MappingQuality::new(n)),
+            _ => Ok(sam::record::MappingQuality::new(n)),
         }
     }
 

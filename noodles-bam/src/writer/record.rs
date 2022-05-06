@@ -132,7 +132,7 @@ where
 
 pub(super) fn put_l_read_name<B>(
     dst: &mut B,
-    read_name: Option<&sam::alignment::record::ReadName>,
+    read_name: Option<&sam::record::ReadName>,
 ) -> io::Result<()>
 where
     B: BufMut,
@@ -141,7 +141,7 @@ where
 
     let mut read_name_len = read_name
         .map(|name| name.len())
-        .unwrap_or(sam::alignment::record::read_name::MISSING.len());
+        .unwrap_or(sam::record::read_name::MISSING.len());
 
     // + NUL terminator
     read_name_len += mem::size_of::<u8>();
@@ -172,7 +172,7 @@ where
     Ok(())
 }
 
-pub(super) fn put_flags<B>(dst: &mut B, flags: sam::alignment::record::Flags)
+pub(super) fn put_flags<B>(dst: &mut B, flags: sam::record::Flags)
 where
     B: BufMut,
 {
@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::alignment::record::{Flags, MappingQuality};
+        use sam::record::{Flags, MappingQuality};
 
         let reference_sequence_id = 1;
 

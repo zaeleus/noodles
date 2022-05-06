@@ -19,7 +19,7 @@ impl MappingQuality {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::MappingQuality;
+    /// use noodles_sam::record::MappingQuality;
     /// assert!(MappingQuality::new(8).is_some());
     /// assert!(MappingQuality::new(255).is_none());
     /// ```

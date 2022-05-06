@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use bytes::Buf;
-use noodles_sam::alignment::record::data::field::value::Type;
+use noodles_sam::record::data::field::value::Type;
 
 pub fn get_type<B>(src: &mut B) -> io::Result<Type>
 where

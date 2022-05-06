@@ -344,11 +344,11 @@ fn set_mate(mut record: &mut Record, mate: &mut Record) {
     let mate_bam_flags = mate.bam_flags();
 
     if mate_bam_flags.is_reverse_complemented() {
-        record.bam_bit_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
+        record.bam_bit_flags |= sam::record::Flags::MATE_REVERSE_COMPLEMENTED;
     }
 
     if mate_bam_flags.is_unmapped() {
-        record.bam_bit_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
+        record.bam_bit_flags |= sam::record::Flags::MATE_UNMAPPED;
     }
 
     if mate.read_name().is_none() {
@@ -381,7 +381,7 @@ fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
 }
 
 fn resolve_data(header: &sam::Header, records: &mut [Record]) -> io::Result<()> {
-    use sam::alignment::record::data::{
+    use sam::record::data::{
         field::{Tag, Value},
         Field,
     };
@@ -415,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_resolve_mates() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::alignment::record::ReadName;
+        use sam::record::ReadName;
 
         use crate::record::Flags;
 
@@ -490,7 +490,7 @@ mod tests {
 
     #[test]
     fn test_calculate_template_size() -> Result<(), noodles_core::position::TryFromIntError> {
-        use sam::alignment::record::Flags;
+        use sam::record::Flags;
 
         // --> -->
         let record = Record::builder()

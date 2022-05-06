@@ -10,7 +10,7 @@ use noodles_bam as bam;
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record::{quality_scores::Score, sequence::Base},
+    record::{quality_scores::Score, sequence::Base},
     AlignmentRecord,
 };
 
@@ -113,7 +113,7 @@ where
         Ok(())
     }
 
-    fn write_bam_bit_flags(&mut self, bam_flags: sam::alignment::record::Flags) -> io::Result<()> {
+    fn write_bam_bit_flags(&mut self, bam_flags: sam::record::Flags) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -271,11 +271,8 @@ where
         )
     }
 
-    fn write_read_name(
-        &mut self,
-        read_name: Option<&sam::alignment::record::ReadName>,
-    ) -> io::Result<()> {
-        use sam::alignment::record::read_name::MISSING;
+    fn write_read_name(&mut self, read_name: Option<&sam::record::ReadName>) -> io::Result<()> {
+        use sam::record::read_name::MISSING;
 
         let encoding = self
             .compression_header
@@ -915,7 +912,7 @@ where
 
     fn write_mapping_quality(
         &mut self,
-        mapping_quality: Option<sam::alignment::record::MappingQuality>,
+        mapping_quality: Option<sam::record::MappingQuality>,
     ) -> io::Result<()> {
         let encoding = self
             .compression_header
@@ -931,7 +928,7 @@ where
         let mapping_quality = i32::from(
             mapping_quality
                 .map(u8::from)
-                .unwrap_or(sam::alignment::record::mapping_quality::MISSING),
+                .unwrap_or(sam::record::mapping_quality::MISSING),
         );
 
         encode_itf8(

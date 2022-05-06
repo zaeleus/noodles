@@ -1,87 +1,22 @@
 //! SAM record and fields.
 
 pub mod builder;
+pub mod cigar;
+pub mod data;
 mod field;
+mod flags;
+pub mod mapping_quality;
 mod parser;
+pub mod quality_scores;
+pub mod read_name;
 pub mod reference_sequence_name;
+pub mod sequence;
 
 pub use self::{
-    builder::Builder, field::Field, parser::ParseError,
-    reference_sequence_name::ReferenceSequenceName,
+    builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
+    mapping_quality::MappingQuality, parser::ParseError, quality_scores::QualityScores,
+    read_name::ReadName, reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
 };
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::data` instead."
-)]
-pub use super::alignment::record::data;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::Data` instead."
-)]
-pub use super::alignment::record::Data;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::cigar` instead."
-)]
-pub use super::alignment::record::cigar;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::Cigar` instead."
-)]
-pub use super::alignment::record::Cigar;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::Flags` instead."
-)]
-pub use super::alignment::record::Flags;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::mapping_quality` instead."
-)]
-pub use super::alignment::record::mapping_quality;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::MappingQuality` instead."
-)]
-pub use super::alignment::record::MappingQuality;
-
-/* #[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::ReadName` instead."
-)]
-pub use super::alignment::record::ReadName; */
-use super::alignment::record::ReadName;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::sequence` instead."
-)]
-pub use super::alignment::record::sequence;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::Sequence` instead."
-)]
-pub use super::alignment::record::Sequence;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::quality_scores` instead."
-)]
-pub use super::alignment::record::quality_scores;
-
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_sam::alignment::record::QualityScores` instead."
-)]
-pub use super::alignment::record::QualityScores;
 
 use std::{fmt, io, str::FromStr};
 
@@ -134,7 +69,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::Flags, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
     ///
     /// let record = sam::Record::builder()
     ///     .set_read_name("r0".parse()?)
@@ -177,7 +112,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::Flags, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::Flags, AlignmentRecord};
     ///
     /// let mut record = sam::Record::builder()
     ///     .set_flags(Flags::PAIRED | Flags::READ_1)
@@ -284,7 +219,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::new(8);
@@ -304,7 +239,7 @@ impl Record {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record::{cigar::{op::Kind, Op}, Cigar},
+    ///     record::{cigar::{op::Kind, Op}, Cigar},
     ///     AlignmentRecord,
     /// };
     ///
@@ -318,7 +253,7 @@ impl Record {
     /// *record.cigar_mut() = cigar.clone();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// # Ok::<_, sam::alignment::record::cigar::ParseError>(())
+    /// # Ok::<_, sam::record::cigar::ParseError>(())
     /// ```
     pub fn cigar_mut(&mut self) -> &mut Cigar {
         &mut self.cigar
@@ -416,7 +351,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// *record.template_length_mut() = 101;
@@ -431,7 +366,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::Sequence, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::Sequence, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.sequence().is_empty());
@@ -440,7 +375,7 @@ impl Record {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<(), sam::alignment::record::sequence::ParseError>(())
+    /// # Ok::<(), sam::record::sequence::ParseError>(())
     /// ```
     pub fn sequence_mut(&mut self) -> &mut Sequence {
         &mut self.sequence
@@ -451,7 +386,7 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, alignment::record::QualityScores, AlignmentRecord};
+    /// use noodles_sam::{self as sam, record::QualityScores, AlignmentRecord};
     ///
     /// let mut record = sam::Record::default();
     /// assert!(record.quality_scores().is_empty());
@@ -460,7 +395,7 @@ impl Record {
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<(), sam::alignment::record::quality_scores::ParseError>(())
+    /// # Ok::<(), sam::record::quality_scores::ParseError>(())
     /// ```
     pub fn quality_scores_mut(&mut self) -> &mut QualityScores {
         &mut self.quality_scores
@@ -473,7 +408,7 @@ impl Record {
     /// ```
     /// use noodles_sam::{
     ///     self as sam,
-    ///     alignment::record::data::{field::{Tag, Value}, Field},
+    ///     record::data::{field::{Tag, Value}, Field},
     ///     AlignmentRecord,
     /// };
     ///
@@ -744,7 +679,7 @@ mod tests {
 
     #[test]
     fn test_fmt_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::alignment::record::data::{
+        use crate::record::data::{
             field::{Tag, Value},
             Field,
         };

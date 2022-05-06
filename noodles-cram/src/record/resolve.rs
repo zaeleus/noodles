@@ -4,7 +4,7 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, alignment::record::sequence::Base};
+use noodles_sam::{self as sam, record::sequence::Base};
 
 use crate::data_container::compression_header::SubstitutionMatrix;
 
@@ -19,8 +19,8 @@ pub(crate) fn resolve_bases(
     features: &Features,
     alignment_start: Position,
     read_length: usize,
-) -> io::Result<sam::alignment::record::Sequence> {
-    let mut buf = sam::alignment::record::Sequence::from(vec![Base::N; read_length]);
+) -> io::Result<sam::record::Sequence> {
+    let mut buf = sam::record::Sequence::from(vec![Base::N; read_length]);
 
     let mut it = features.with_positions(alignment_start);
 
@@ -112,11 +112,8 @@ fn copy_from_raw_bases(dst: &mut [Base], src: &[u8]) -> io::Result<()> {
 }
 
 /// Resolves the read features as CIGAR operations.
-pub fn resolve_features(
-    features: &Features,
-    read_length: usize,
-) -> io::Result<sam::alignment::record::Cigar> {
-    use noodles_sam::alignment::record::cigar::{op::Kind, Op};
+pub fn resolve_features(features: &Features, read_length: usize) -> io::Result<sam::record::Cigar> {
+    use noodles_sam::record::cigar::{op::Kind, Op};
 
     fn merge_or_insert_op(ops: &mut Vec<(Kind, usize)>, kind: Kind, len: usize) {
         if let Some(last_op) = ops.last_mut() {
@@ -172,7 +169,7 @@ pub fn resolve_features(
         merge_or_insert_op(&mut ops, Kind::Match, len);
     }
 
-    sam::alignment::record::Cigar::try_from(
+    sam::record::Cigar::try_from(
         ops.into_iter()
             .map(|(kind, len)| Op::new(kind, len))
             .collect::<Vec<_>>(),
@@ -181,14 +178,10 @@ pub fn resolve_features(
 }
 
 /// Resolves the quality scores.
-pub fn resolve_quality_scores(
-    features: &[Feature],
-    read_len: usize,
-) -> sam::alignment::record::QualityScores {
-    use sam::alignment::record::quality_scores::Score;
+pub fn resolve_quality_scores(features: &[Feature], read_len: usize) -> sam::record::QualityScores {
+    use sam::record::quality_scores::Score;
 
-    let mut quality_scores =
-        sam::alignment::record::QualityScores::from(vec![Score::default(); read_len]);
+    let mut quality_scores = sam::record::QualityScores::from(vec![Score::default(); read_len]);
 
     for feature in features {
         let read_position = feature.position();
@@ -213,7 +206,7 @@ pub fn resolve_quality_scores(
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use sam::alignment::record::quality_scores::Score;
+    use sam::record::quality_scores::Score;
 
     use super::*;
 
@@ -223,7 +216,7 @@ mod tests {
         let substitution_matrix = Default::default();
         let alignment_start = Position::try_from(1)?;
 
-        let t = |features: &Features, expected: &sam::alignment::record::Sequence| {
+        let t = |features: &Features, expected: &sam::record::Sequence| {
             let actual = resolve_bases(
                 Some(&reference_sequence),
                 &substitution_matrix,
@@ -330,7 +323,7 @@ mod tests {
 
     #[test]
     fn test_resolve_features() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::alignment::record::{
+        use noodles_sam::record::{
             cigar::{op::Kind, Op},
             Cigar,
         };
@@ -388,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_resolve_quality_scores() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::alignment::record::{quality_scores::Score, QualityScores};
+        use sam::record::{quality_scores::Score, QualityScores};
 
         let features = [
             Feature::ReadBase(Position::try_from(1)?, Base::A, Score::try_from(5)?),

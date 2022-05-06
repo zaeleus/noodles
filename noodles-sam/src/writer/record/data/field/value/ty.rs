@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::alignment::record::data::field::value::Type;
+use crate::record::data::field::value::Type;
 
 pub fn write_type<W>(writer: &mut W, mut ty: Type) -> io::Result<()>
 where

@@ -170,7 +170,7 @@ where
         let mapq = record
             .mapping_quality()
             .map(u8::from)
-            .unwrap_or(crate::alignment::record::mapping_quality::MISSING);
+            .unwrap_or(crate::record::mapping_quality::MISSING);
 
         let rnext = record
             .mate_reference_sequence(header.reference_sequences())
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_write_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::alignment::record::{
+        use crate::record::{
             data::{
                 field::{Tag, Value},
                 Field,

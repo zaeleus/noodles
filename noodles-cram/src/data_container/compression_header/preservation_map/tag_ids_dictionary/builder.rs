@@ -25,7 +25,7 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::record::data::{
+    use noodles_sam::record::data::{
         field::{value::Type, Tag, Value},
         Field,
     };

@@ -110,7 +110,7 @@ mod tests {
     use noodles_bgzf as bgzf;
     use noodles_core::Position;
     use noodles_csi::BinningIndex;
-    use noodles_sam::alignment::record::Flags;
+    use noodles_sam::record::Flags;
 
     use super::*;
 

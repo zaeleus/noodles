@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::alignment::record::{sequence::Base, Sequence};
+use noodles_sam::record::{sequence::Base, Sequence};
 
 pub fn get_sequence<B>(src: &mut B, sequence: &mut Sequence, l_seq: usize) -> io::Result<()>
 where

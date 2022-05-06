@@ -60,7 +60,7 @@ impl Record {
         // distance to next fragment
 
         if !record.data().is_empty() {
-            use sam::alignment::record::data::field::Tag;
+            use sam::record::data::field::Tag;
             let mut data = record.data().clone();
             data.remove(Tag::ReadGroup);
             builder = builder.set_tags(data);
@@ -169,9 +169,9 @@ fn get_reference_sequence_id(
 
 fn get_read_group_id(
     read_groups: &sam::header::ReadGroups,
-    data: &sam::alignment::record::Data,
+    data: &sam::record::Data,
 ) -> io::Result<Option<usize>> {
-    use sam::alignment::record::data::field::Tag;
+    use sam::record::data::field::Tag;
 
     let rg = match data.get(Tag::ReadGroup) {
         Some(field) => field,
@@ -210,10 +210,10 @@ fn get_reference_sequence_name(
 
 fn build_data(
     read_groups: &sam::header::ReadGroups,
-    tags: &sam::alignment::record::Data,
+    tags: &sam::record::Data,
     read_group_id: Option<usize>,
-) -> io::Result<sam::alignment::record::Data> {
-    use sam::alignment::record::data::{
+) -> io::Result<sam::record::Data> {
+    use sam::record::data::{
         field::{Tag as SamTag, Value},
         Field,
     };

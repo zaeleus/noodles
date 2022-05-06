@@ -340,7 +340,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::{alignment::record::Data, AlignmentRecord, AlignmentWriter};
+    use noodles_sam::{record::Data, AlignmentRecord, AlignmentWriter};
 
     use crate::{Reader, Record};
 
@@ -410,7 +410,7 @@ mod tests {
         reader.read_record(&mut record)?;
 
         assert!(record.read_name().is_none());
-        assert_eq!(record.flags(), sam::alignment::record::Flags::UNMAPPED);
+        assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
         assert!(record.position().is_none());
         assert!(record.mapping_quality().is_none());
@@ -522,7 +522,7 @@ mod tests {
 
     #[test]
     fn test_write_alignment_record_with_data() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::alignment::record::data::{
+        use noodles_sam::record::data::{
             field::{Tag, Value},
             Field,
         };

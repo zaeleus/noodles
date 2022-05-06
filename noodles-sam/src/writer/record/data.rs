@@ -3,7 +3,7 @@ mod field;
 use std::io::{self, Write};
 
 use self::field::write_field;
-use crate::alignment::record::Data;
+use crate::record::Data;
 
 pub fn write_data<W>(writer: &mut W, data: &Data) -> io::Result<()>
 where
@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_write_data() -> Result<(), Box<dyn std::error::Error>> {
-        use crate::alignment::record::data::{
+        use crate::record::data::{
             field::{Tag, Value},
             Field,
         };

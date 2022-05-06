@@ -1,6 +1,6 @@
 use noodles_sam::{
     self as sam,
-    alignment::record::data::field::{value::Type, Tag},
+    record::data::field::{value::Type, Tag},
 };
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -29,8 +29,8 @@ impl Key {
     }
 }
 
-impl From<&sam::alignment::record::data::Field> for Key {
-    fn from(field: &sam::alignment::record::data::Field) -> Self {
+impl From<&sam::record::data::Field> for Key {
+    fn from(field: &sam::record::data::Field) -> Self {
         Self::new(field.tag(), field.value().ty())
     }
 }

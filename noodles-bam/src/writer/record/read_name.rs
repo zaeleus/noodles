@@ -1,11 +1,11 @@
 use bytes::BufMut;
-use noodles_sam::{self as sam, alignment::record::ReadName};
+use noodles_sam::{self as sam, record::ReadName};
 
 pub fn put_read_name<B>(dst: &mut B, read_name: Option<&ReadName>)
 where
     B: BufMut,
 {
-    use sam::alignment::record::read_name::MISSING;
+    use sam::record::read_name::MISSING;
 
     const NUL: u8 = 0x00;
 
@@ -23,7 +23,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_read_name() -> Result<(), sam::alignment::record::read_name::ParseError> {
+    fn test_put_read_name() -> Result<(), sam::record::read_name::ParseError> {
         fn t(buf: &mut Vec<u8>, read_name: Option<&ReadName>, expected: &[u8]) {
             buf.clear();
             put_read_name(buf, read_name);

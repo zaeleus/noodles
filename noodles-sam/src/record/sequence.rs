@@ -22,7 +22,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::Sequence;
+    /// use noodles_sam::record::Sequence;
     /// let sequence = Sequence::default();
     /// assert_eq!(sequence.len(), 0);
     /// ```
@@ -35,7 +35,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::Sequence;
+    /// use noodles_sam::record::Sequence;
     /// let sequence = Sequence::default();
     /// assert!(sequence.is_empty());
     /// ```
@@ -50,7 +50,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
+    /// use noodles_sam::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence = Sequence::from(vec![Base::N]);
     /// assert!(!sequence.is_empty());
@@ -68,7 +68,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
+    /// use noodles_sam::record::{sequence::Base, Sequence};
     ///
     /// let sequence: Sequence = "ATCG".parse()?;
     ///
@@ -92,7 +92,7 @@ impl Sequence {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
+    /// use noodles_sam::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence: Sequence = "ATCG".parse()?;
     ///
@@ -116,7 +116,7 @@ impl Sequence {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{sequence::Base, Sequence};
+    /// use noodles_sam::record::{sequence::Base, Sequence};
     ///
     /// let mut sequence = Sequence::default();
     /// sequence.push(Base::N);

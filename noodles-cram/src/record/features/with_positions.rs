@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_sam::alignment::record::{quality_scores::Score, sequence::Base};
+        use noodles_sam::record::{quality_scores::Score, sequence::Base};
 
         use crate::record::Features;
 

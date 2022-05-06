@@ -22,7 +22,7 @@ impl QualityScores {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::QualityScores;
+    /// use noodles_sam::record::QualityScores;
     /// let quality_scores = QualityScores::default();
     /// assert_eq!(quality_scores.len(), 0);
     /// ```
@@ -35,7 +35,7 @@ impl QualityScores {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::QualityScores;
+    /// use noodles_sam::record::QualityScores;
     /// let quality_scores = QualityScores::default();
     /// assert!(quality_scores.is_empty());
     /// ```
@@ -50,14 +50,14 @@ impl QualityScores {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
     /// let mut quality_scores = QualityScores::from(vec![Score::try_from('!')?]);
     /// assert!(!quality_scores.is_empty());
     ///
     /// quality_scores.clear();
     /// assert!(quality_scores.is_empty());
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::score::TryFromCharError>(())
+    /// # Ok::<_, noodles_sam::record::quality_scores::score::TryFromCharError>(())
     /// ```
     pub fn clear(&mut self) {
         self.0.clear();
@@ -69,7 +69,7 @@ impl QualityScores {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -93,7 +93,7 @@ impl QualityScores {
     ///
     /// ```
     /// use noodles_core::Position;
-    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
     /// let mut quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -117,7 +117,7 @@ impl QualityScores {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::{quality_scores::Score, QualityScores};
+    /// use noodles_sam::record::{quality_scores::Score, QualityScores};
     ///
     /// let mut quality_scores = QualityScores::from(vec![Score::try_from('N')?]);
     /// quality_scores.push(Score::try_from('D')?);

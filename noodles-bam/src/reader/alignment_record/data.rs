@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::Buf;
-use noodles_sam::alignment::record::Data;
+use noodles_sam::record::Data;
 
 pub fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
 where

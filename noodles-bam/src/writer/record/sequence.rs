@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::{sequence::Base, Sequence};
+use noodles_sam::record::{sequence::Base, Sequence};
 
 pub fn put_sequence<B>(dst: &mut B, sequence: &Sequence)
 where
@@ -46,8 +46,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_sequence() -> Result<(), sam::alignment::record::sequence::ParseError> {
-        use sam::alignment::record::Sequence;
+    fn test_put_sequence() -> Result<(), sam::record::sequence::ParseError> {
+        use sam::record::Sequence;
 
         fn t(buf: &mut Vec<u8>, sequence: &Sequence, expected: &[u8]) {
             buf.clear();

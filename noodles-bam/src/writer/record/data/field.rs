@@ -6,7 +6,7 @@ mod value;
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::alignment::record::data::Field;
+use noodles_sam::record::data::Field;
 
 use self::tag::put_tag;
 pub use self::value::put_value;
@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_put_field() -> io::Result<()> {
-        use noodles_sam::alignment::record::data::field::{Tag, Value};
+        use noodles_sam::record::data::field::{Tag, Value};
 
         let mut buf = Vec::new();
         let field = Field::new(Tag::AlignmentHitCount, Value::from(1));

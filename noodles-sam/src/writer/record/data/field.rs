@@ -4,7 +4,7 @@ mod value;
 use std::io::{self, Write};
 
 use self::{tag::write_tag, value::write_value};
-use crate::alignment::record::data::Field;
+use crate::record::data::Field;
 
 pub fn write_field<W>(writer: &mut W, field: &Field) -> io::Result<()>
 where
@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_write_field() -> io::Result<()> {
-        use crate::alignment::record::data::field::{Tag, Value};
+        use crate::record::data::field::{Tag, Value};
 
         let mut buf = Vec::new();
         let field = Field::new(Tag::AlignmentHitCount, Value::from(1));

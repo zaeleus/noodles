@@ -1,5 +1,5 @@
 use bytes::BufMut;
-use noodles_sam::alignment::record::QualityScores;
+use noodles_sam::record::QualityScores;
 
 pub fn put_quality_scores<B>(dst: &mut B, quality_scores: &QualityScores)
 where
@@ -15,8 +15,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_quality_scores(
-    ) -> Result<(), noodles_sam::alignment::record::quality_scores::ParseError> {
+    fn test_put_quality_scores() -> Result<(), noodles_sam::record::quality_scores::ParseError> {
         fn t(buf: &mut Vec<u8>, quality_scores: &QualityScores, expected: &[u8]) {
             buf.clear();
             put_quality_scores(buf, quality_scores);

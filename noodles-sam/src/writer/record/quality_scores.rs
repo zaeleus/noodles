@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::alignment::record::QualityScores;
+use crate::record::QualityScores;
 
 pub fn write_quality_scores<W>(writer: &mut W, quality_scores: &QualityScores) -> io::Result<()>
 where

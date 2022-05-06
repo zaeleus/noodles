@@ -22,7 +22,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::data::{field::{Tag, Value}, Field};
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// ```
     pub fn new(tag: Tag, value: Value) -> Self {
@@ -34,7 +34,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::data::{field::{Tag, Value}, Field};
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// assert_eq!(field.tag(), Tag::AlignmentHitCount);
     /// ```
@@ -47,7 +47,7 @@ impl Field {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::alignment::record::data::{field::{Tag, Value}, Field};
+    /// use noodles_sam::record::data::{field::{Tag, Value}, Field};
     /// let field = Field::new(Tag::AlignmentHitCount, Value::Int32(1));
     /// assert!(matches!(field.value(), Value::Int32(n) if *n == 1));
     /// ```

@@ -82,7 +82,7 @@ fn count(counts: &mut Counts, record: &bam::Record) {
                         let mapq = record
                             .mapping_quality()
                             .map(u8::from)
-                            .unwrap_or(sam::alignment::record::mapping_quality::MISSING);
+                            .unwrap_or(sam::record::mapping_quality::MISSING);
 
                         if mapq >= 5 {
                             counts.mate_reference_sequence_id_mismatch_hq += 1;

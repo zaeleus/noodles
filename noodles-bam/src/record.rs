@@ -41,16 +41,16 @@ pub(crate) const UNMAPPED_POSITION: i32 = -1;
 pub struct Record {
     reference_sequence_id: Option<usize>,
     position: Option<Position>,
-    mapping_quality: Option<sam::alignment::record::MappingQuality>,
-    flags: sam::alignment::record::Flags,
+    mapping_quality: Option<sam::record::MappingQuality>,
+    flags: sam::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_position: Option<Position>,
     template_length: i32,
-    read_name: Option<sam::alignment::record::ReadName>,
-    cigar: sam::alignment::record::Cigar,
-    sequence: sam::alignment::record::Sequence,
-    quality_scores: sam::alignment::record::QualityScores,
-    data: sam::alignment::record::Data,
+    read_name: Option<sam::record::ReadName>,
+    cigar: sam::record::Cigar,
+    sequence: sam::record::Sequence,
+    quality_scores: sam::record::QualityScores,
+    data: sam::record::Data,
 }
 
 impl Record {
@@ -138,14 +138,14 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::MappingQuality, AlignmentRecord};
+    /// use noodles_sam::{record::MappingQuality, AlignmentRecord};
     ///
     /// let mut record = bam::Record::default();
     /// *record.mapping_quality_mut() = MappingQuality::new(13);
     ///
     /// assert_eq!(record.mapping_quality(), MappingQuality::new(13));
     /// ```
-    pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::alignment::record::MappingQuality> {
+    pub fn mapping_quality_mut(&mut self) -> &mut Option<sam::record::MappingQuality> {
         &mut self.mapping_quality
     }
 
@@ -155,12 +155,12 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Flags, AlignmentRecord};
+    /// use noodles_sam::{record::Flags, AlignmentRecord};
     /// let mut record = bam::Record::default();
     /// *record.flags_mut() = Flags::PAIRED | Flags::READ_1;
     /// assert_eq!(record.flags(), Flags::PAIRED | Flags::READ_1);
     /// ```
-    pub fn flags_mut(&mut self) -> &mut sam::alignment::record::Flags {
+    pub fn flags_mut(&mut self) -> &mut sam::record::Flags {
         &mut self.flags
     }
 
@@ -250,7 +250,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::ReadName, AlignmentRecord};
+    /// use noodles_sam::{record::ReadName, AlignmentRecord};
     ///
     /// let read_name: ReadName = "r1".parse()?;
     ///
@@ -258,9 +258,9 @@ impl Record {
     /// *record.read_name_mut() = Some(read_name.clone());
     ///
     /// assert_eq!(record.read_name(), Some(&read_name.into()));
-    /// # Ok::<_, noodles_sam::alignment::record::read_name::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::read_name::ParseError>(())
     /// ```
-    pub fn read_name_mut(&mut self) -> &mut Option<sam::alignment::record::ReadName> {
+    pub fn read_name_mut(&mut self) -> &mut Option<sam::record::ReadName> {
         &mut self.read_name
     }
 
@@ -270,7 +270,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Cigar, AlignmentRecord};
+    /// use noodles_sam::{record::Cigar, AlignmentRecord};
     ///
     /// let cigar: Cigar = "36M".parse()?;
     ///
@@ -278,9 +278,9 @@ impl Record {
     /// *record.cigar_mut() = cigar.clone();
     ///
     /// assert_eq!(record.cigar(), &cigar);
-    /// Ok::<_, noodles_sam::alignment::record::cigar::ParseError>(())
+    /// Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
-    pub fn cigar_mut(&mut self) -> &mut sam::alignment::record::Cigar {
+    pub fn cigar_mut(&mut self) -> &mut sam::record::Cigar {
         &mut self.cigar
     }
 
@@ -290,7 +290,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Sequence, AlignmentRecord};
+    /// use noodles_sam::{record::Sequence, AlignmentRecord};
     ///
     /// let sequence: Sequence = "ACGT".parse()?;
     ///
@@ -298,9 +298,9 @@ impl Record {
     /// *record.sequence_mut() = sequence.clone();
     ///
     /// assert_eq!(record.sequence(), &sequence);
-    /// # Ok::<_, noodles_sam::alignment::record::sequence::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::sequence::ParseError>(())
     /// ```
-    pub fn sequence_mut(&mut self) -> &mut sam::alignment::record::Sequence {
+    pub fn sequence_mut(&mut self) -> &mut sam::record::Sequence {
         &mut self.sequence
     }
 
@@ -310,7 +310,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::QualityScores, AlignmentRecord};
+    /// use noodles_sam::{record::QualityScores, AlignmentRecord};
     ///
     /// let quality_scores: QualityScores = "NDLS".parse()?;
     ///
@@ -318,9 +318,9 @@ impl Record {
     /// *record.quality_scores_mut() = quality_scores.clone();
     ///
     /// assert_eq!(record.quality_scores(), &quality_scores);
-    /// # Ok::<_, noodles_sam::alignment::record::quality_scores::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::quality_scores::ParseError>(())
     /// ```
-    pub fn quality_scores_mut(&mut self) -> &mut sam::alignment::record::QualityScores {
+    pub fn quality_scores_mut(&mut self) -> &mut sam::record::QualityScores {
         &mut self.quality_scores
     }
 
@@ -330,7 +330,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{alignment::record::Data, AlignmentRecord};
+    /// use noodles_sam::{record::Data, AlignmentRecord};
     ///
     /// let data: Data = "NH:i:1".parse()?;
     ///
@@ -338,15 +338,15 @@ impl Record {
     /// *record.data_mut() = data.clone();
     ///
     /// assert_eq!(record.data(), &data.into());
-    /// # Ok::<_, noodles_sam::alignment::record::data::ParseError>(())
+    /// # Ok::<_, noodles_sam::record::data::ParseError>(())
     /// ```
-    pub fn data_mut(&mut self) -> &mut sam::alignment::record::Data {
+    pub fn data_mut(&mut self) -> &mut sam::record::Data {
         &mut self.data
     }
 }
 
 impl sam::AlignmentRecord for Record {
-    fn read_name(&self) -> Option<&sam::alignment::record::ReadName> {
+    fn read_name(&self) -> Option<&sam::record::ReadName> {
         self.read_name.as_ref()
     }
 
@@ -370,7 +370,7 @@ impl sam::AlignmentRecord for Record {
         get_reference_sequence(reference_sequences, self.reference_sequence_id())
     }
 
-    fn flags(&self) -> sam::alignment::record::Flags {
+    fn flags(&self) -> sam::record::Flags {
         self.flags
     }
 
@@ -402,11 +402,11 @@ impl sam::AlignmentRecord for Record {
         self.cigar().reference_len()
     }
 
-    fn mapping_quality(&self) -> Option<sam::alignment::record::MappingQuality> {
+    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
     }
 
-    fn cigar(&self) -> &sam::alignment::record::Cigar {
+    fn cigar(&self) -> &sam::record::Cigar {
         &self.cigar
     }
 
@@ -438,15 +438,15 @@ impl sam::AlignmentRecord for Record {
         self.template_length
     }
 
-    fn sequence(&self) -> &sam::alignment::record::Sequence {
+    fn sequence(&self) -> &sam::record::Sequence {
         &self.sequence
     }
 
-    fn quality_scores(&self) -> &sam::alignment::record::QualityScores {
+    fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.quality_scores
     }
 
-    fn data(&self) -> &sam::alignment::record::Data {
+    fn data(&self) -> &sam::record::Data {
         &self.data
     }
 }
@@ -482,7 +482,7 @@ mod tests {
         assert!(record.reference_sequence_id.is_none());
         assert!(record.position.is_none());
         assert!(record.mapping_quality.is_none());
-        assert_eq!(record.flags, sam::alignment::record::Flags::UNMAPPED);
+        assert_eq!(record.flags, sam::record::Flags::UNMAPPED);
         assert!(record.mate_reference_sequence_id.is_none());
         assert!(record.mate_position.is_none());
         assert_eq!(record.template_length, 0);

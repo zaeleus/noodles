@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_header(&header)?;
 
     let record = sam::Record::builder()
-        .set_flags(sam::alignment::record::Flags::empty())
+        .set_flags(sam::record::Flags::empty())
         .set_reference_sequence_name("sq0".parse()?)
         .set_position(Position::MIN)
         .set_cigar("4M".parse()?)
