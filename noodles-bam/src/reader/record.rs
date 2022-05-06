@@ -69,7 +69,11 @@ where
     decode_record_with_fields(src, record, Fields::all())
 }
 
-fn decode_record_with_fields<B>(src: &mut B, record: &mut Record, fields: Fields) -> io::Result<()>
+pub(crate) fn decode_record_with_fields<B>(
+    src: &mut B,
+    record: &mut Record,
+    fields: Fields,
+) -> io::Result<()>
 where
     B: Buf,
 {

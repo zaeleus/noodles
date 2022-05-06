@@ -9,10 +9,13 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
-use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
+use noodles_sam::{
+    header::{ReferenceSequence, ReferenceSequences},
+    reader::record::Fields,
+};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
-use self::{query::query, record::read_record};
+use self::{query::query, record::read_record_with_fields};
 use crate::{
     reader::{bytes_with_nul_to_string, resolve_region},
     Record, MAGIC_NUMBER,
@@ -189,7 +192,49 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        read_record(&mut self.inner, &mut self.buf, record).await
+        self.read_record_with_fields(record, Fields::all()).await
+    }
+
+    /// Reads a single record and decodes only the given fields.
+    ///
+    /// The record block size (`bs`) if read from the underlying (input) stream and `bs` bytes are
+    /// read into an internal buffer. This buffer is used to populate the given record, decoding
+    /// only the given fields. No behavior is guaranteed for the excluded fields, i.e., care must
+    /// be taken not to use them.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use noodles_sam::reader::record::Fields;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// reader.read_header().await?;
+    /// reader.read_reference_sequences().await?;
+    ///
+    /// let mut record = bam::Record::default();
+    /// let fields = Fields::REFERENCE_SEQUENCE_ID | Fields::FLAGS;
+    /// reader.read_record_with_fields(&mut record, fields).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_record_with_fields(
+        &mut self,
+        record: &mut Record,
+        fields: Fields,
+    ) -> io::Result<usize> {
+        read_record_with_fields(&mut self.inner, &mut self.buf, record, fields).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -224,7 +269,7 @@ where
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, Record::default()),
             |(reader, buf, mut record)| async {
-                read_record(reader, buf, &mut record)
+                read_record_with_fields(reader, buf, &mut record, Fields::all())
                     .await
                     .map(|n| match n {
                         0 => None,
