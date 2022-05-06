@@ -26,6 +26,7 @@ use super::{
     header::{ReferenceSequence, ReferenceSequences},
     AlignmentRecord,
 };
+use crate::reader::record::Fields;
 
 pub(crate) const NULL_FIELD: &str = "*";
 const EQ_FIELD: &str = "=";
@@ -84,6 +85,25 @@ impl Record {
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
+    }
+
+    /// Parses a raw record and decodes only the given fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_sam::{self as sam, reader::record::Fields, record::Flags, AlignmentRecord};
+    ///
+    /// let s = "r0\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*";
+    /// let record = sam::Record::parse_with_fields(s, Fields::FLAGS)?;
+    ///
+    /// assert!(record.read_name().is_none());
+    /// assert_eq!(record.flags(), Flags::UNMAPPED);
+    ///
+    /// Ok::<_, sam::record::ParseError>(())
+    /// ```
+    pub fn parse_with_fields(s: &str, fields: Fields) -> Result<Self, ParseError> {
+        parser::parse_with_fields(s, fields)
     }
 
     /// Returns a mutable reference to the read name.
