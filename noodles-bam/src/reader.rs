@@ -22,9 +22,9 @@ use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     header::{ReferenceSequence, ReferenceSequences},
+    reader::record::Fields,
 };
 
-use self::record::read_record;
 use super::{bai, Record, MAGIC_NUMBER};
 
 /// A BAM reader.
@@ -186,7 +186,45 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        use self::record::read_record;
         read_record(&mut self.inner, &mut self.buf, record)
+    }
+
+    /// Reads a single record and decode only the given fields.
+    ///
+    /// The record block size (`bs`) if read from the underlying stream and `bs` bytes are read
+    /// into an internal buffer. This buffer is used to populate the given record, decoding only
+    /// the given fields. No behavior is guaranteed for the excluded fields, i.e., care must be
+    /// taken not to use them.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    /// use noodles_sam::reader::record::Fields;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// let mut record = bam::Record::default();
+    /// reader.read_record_with_fields(&mut record, Fields::REFERENCE_SEQUENCE_ID | Fields::FLAGS)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_record_with_fields(
+        &mut self,
+        record: &mut Record,
+        fields: Fields,
+    ) -> io::Result<usize> {
+        use self::record::read_record_with_fields;
+        read_record_with_fields(&mut self.inner, &mut self.buf, record, fields)
     }
 
     /// Returns an iterator over records starting from the current stream position.

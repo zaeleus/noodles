@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/reader: Add `Reader::read_record_with_fields` to read a record and
+    decode a subset of fields.
+
 ## 0.18.0 - 2022-04-14
 
 ### Added
