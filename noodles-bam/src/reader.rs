@@ -156,8 +156,8 @@ where
 
     /// Reads a single record.
     ///
-    /// The record block size (`bs`) is read from the underlying stream, and `bs` additional bytes
-    /// are read into the given record.
+    /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
+    /// into an internal buffer. This buffer is used to populate the given record.
     ///
     /// The stream is expected to be directly after the reference sequences or at the start of
     /// another record.
