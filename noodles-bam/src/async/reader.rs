@@ -266,10 +266,48 @@ where
     /// # }
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+        self.records_with_fields(Fields::all())
+    }
+
+    /// Returns an (async) stream over records starting from the current (input) stream position
+    /// and decodes only given fields.
+    ///
+    /// The (input) stream is expected to be directly after the reference sequences or at the start
+    /// of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bam as bam;
+    /// use noodles_sam::reader::record::Fields;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// reader.read_header().await?;
+    /// reader.read_reference_sequences().await?;
+    ///
+    /// let fields = Fields::REFERENCE_SEQUENCE_ID | Fields::FLAGS;
+    /// let mut records = reader.records_with_fields(fields);
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records_with_fields(
+        &mut self,
+        fields: Fields,
+    ) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, Record::default()),
-            |(reader, buf, mut record)| async {
-                read_record_with_fields(reader, buf, &mut record, Fields::all())
+            move |(reader, buf, mut record)| async move {
+                read_record_with_fields(reader, buf, &mut record, fields)
                     .await
                     .map(|n| match n {
                         0 => None,

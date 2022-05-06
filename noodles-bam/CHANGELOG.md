@@ -4,8 +4,9 @@
 
 ### Added
 
-  * bam/async/reader: Add `Reader::read_record_with_fields` and to read records
-    and only decode a subset of fields.
+  * bam/async/reader: Add `AsyncReader::read_record_with_fields` and
+    `AsyncReader::records_with_fields` to read records and only decode a subset
+    of fields.
 
   * bam/reader: Add `Reader::read_record_with_fields` and
     `Reader::records_with_fields` to read records and only decode a subset of
