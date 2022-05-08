@@ -95,8 +95,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_alignment_record(&header, &record)?;
 
-    let record = cram::Record::default();
-    writer.write_record(&header, record)?;
+    let record = sam::Record::default();
+    writer.write_alignment_record(&header, &record)?;
 
     writer.try_finish(&header)?;
 
