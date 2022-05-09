@@ -7,11 +7,14 @@ pub fn get_tag<B>(src: &mut B) -> io::Result<Tag>
 where
     B: Buf,
 {
-    if src.remaining() < 2 {
+    let mut buf = [0; 2];
+
+    if src.remaining() < buf.len() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let buf = [src.get_u8(), src.get_u8()];
+    src.copy_to_slice(&mut buf);
+
     Tag::try_from(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
