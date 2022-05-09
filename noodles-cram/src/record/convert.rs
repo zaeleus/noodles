@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::{resolve::resolve_features, Features, Flags, Record};
+use super::{Features, Flags, Record};
 
 impl Record {
     /// Converts an alignment record to a CRAM record.
@@ -121,7 +121,11 @@ impl Record {
         }
 
         if !self.bam_flags().is_unmapped() {
-            let cigar = resolve_features(self.features(), self.read_length())?;
+            let cigar = self
+                .features()
+                .try_into_cigar(self.read_length())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
             builder = builder.set_cigar(cigar);
         }
 

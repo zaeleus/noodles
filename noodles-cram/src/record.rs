@@ -182,7 +182,7 @@ impl sam::AlignmentRecord for Record {
                 sam::record::Cigar::default()
             } else {
                 // FIXME
-                resolve::resolve_features(self.features(), self.read_length()).unwrap()
+                self.features().try_into_cigar(self.read_length()).unwrap()
             }
         })
     }

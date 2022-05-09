@@ -28,6 +28,12 @@
 
   * cram/data_container/slice: Resolve read name if none is set.
 
+### Deprecated
+
+  * cram/record/resolve: Deprecate `resolve_features`.
+
+    Use `Features::try_into_cigar` instead.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added
