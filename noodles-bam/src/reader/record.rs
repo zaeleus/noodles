@@ -1,6 +1,11 @@
 //! BAM record field readers.
 
+mod cigar;
 pub mod data;
+mod mapping_quality;
+mod quality_scores;
+mod read_name;
+mod sequence;
 
 use std::{
     io::{self, Read},
@@ -77,8 +82,9 @@ pub(crate) fn decode_record_with_fields<B>(
 where
     B: Buf,
 {
-    use super::alignment_record::{
-        get_cigar, get_data, get_mapping_quality, get_quality_scores, get_read_name, get_sequence,
+    use self::{
+        cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality,
+        quality_scores::get_quality_scores, read_name::get_read_name, sequence::get_sequence,
     };
 
     if fields.contains(Fields::REFERENCE_SEQUENCE_ID) {

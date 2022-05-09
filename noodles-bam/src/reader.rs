@@ -1,6 +1,5 @@
 //! BAM reader and iterators.
 
-pub(crate) mod alignment_record;
 pub(crate) mod query;
 pub mod record;
 mod records;
