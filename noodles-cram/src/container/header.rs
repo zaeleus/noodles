@@ -17,7 +17,6 @@ pub struct Header {
     base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
-    crc32: u32,
 }
 
 #[allow(clippy::len_without_is_empty)]

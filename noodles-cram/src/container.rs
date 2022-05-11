@@ -281,7 +281,6 @@ mod tests {
             .set_base_count(0)
             .set_block_count(1)
             .set_landmarks(vec![0])
-            .set_crc32(0)
             .build();
 
         assert_eq!(container.header(), &expected_header);

@@ -67,8 +67,7 @@ where
         .set_record_counter(record_counter)
         .set_base_count(bases)
         .set_block_count(number_of_blocks)
-        .set_landmarks(landmarks)
-        .set_crc32(crc32);
+        .set_landmarks(landmarks);
 
     if let Some(position) = starting_position_on_the_reference {
         builder = builder.set_start_position(position);
@@ -147,7 +146,6 @@ mod tests {
             .set_base_count(21)
             .set_block_count(34)
             .set_landmarks(vec![55, 89])
-            .set_crc32(0xda9c9fb4)
             .build();
 
         assert_eq!(actual, Some(expected));

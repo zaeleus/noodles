@@ -15,7 +15,6 @@ pub struct Builder {
     base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
-    crc32: u32,
 }
 
 impl Builder {
@@ -64,11 +63,6 @@ impl Builder {
         self
     }
 
-    pub fn set_crc32(mut self, crc32: u32) -> Self {
-        self.crc32 = crc32;
-        self
-    }
-
     pub fn build(self) -> Header {
         Header {
             length: self.length,
@@ -80,7 +74,6 @@ impl Builder {
             base_count: self.base_count,
             block_count: self.block_count,
             landmarks: self.landmarks,
-            crc32: self.crc32,
         }
     }
 }
