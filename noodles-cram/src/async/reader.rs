@@ -95,7 +95,15 @@ where
         use self::container::read_container;
         use crate::reader::read_file_header_block;
 
-        let container = read_container(&mut self.inner, &mut self.buf).await?;
+        let container = match read_container(&mut self.inner, &mut self.buf).await? {
+            Some(container) => container,
+            None => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "missing header container",
+                ))
+            }
+        };
 
         if let Some(block) = container.blocks().first() {
             read_file_header_block(block)

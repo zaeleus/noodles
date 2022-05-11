@@ -13,11 +13,10 @@ pub async fn read_data_container<R>(
 where
     R: AsyncRead + Unpin,
 {
-    let header = super::container::read_header(reader).await?;
-
-    if header.is_eof() {
-        return Ok(None);
-    }
+    let header = match super::container::read_header(reader).await? {
+        Some(header) => header,
+        None => return Ok(None),
+    };
 
     buf.resize(header.len(), 0);
     reader.read_exact(buf).await?;

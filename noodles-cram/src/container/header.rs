@@ -6,12 +6,6 @@ use noodles_core::Position;
 
 use super::ReferenceSequenceId;
 
-// § 9 End of file container (2020-06-22)
-const EOF_LEN: usize = 15;
-const EOF_START_POSITION: usize = 4_542_278;
-const EOF_BLOCK_COUNT: usize = 1;
-const EOF_CRC32: u32 = 0x4f_d9_bd_05;
-
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
     length: usize,
@@ -66,21 +60,5 @@ impl Header {
 
     pub fn landmarks(&self) -> &[usize] {
         &self.landmarks
-    }
-
-    pub fn is_eof(&self) -> bool {
-        self.length == EOF_LEN
-            && self.reference_sequence_id.is_none()
-            && self
-                .start_position
-                .map(|position| usize::from(position) == EOF_START_POSITION)
-                .unwrap_or(false)
-            && self.alignment_span == 0
-            && self.record_count == 0
-            && self.record_counter == 0
-            && self.base_count == 0
-            && self.block_count == EOF_BLOCK_COUNT
-            && self.landmarks.is_empty()
-            && self.crc32 == EOF_CRC32
     }
 }

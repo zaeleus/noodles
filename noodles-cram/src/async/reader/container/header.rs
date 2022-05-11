@@ -6,10 +6,12 @@ use crate::{
     r#async::reader::num::{read_itf8, read_ltf8},
 };
 
-pub async fn read_header<R>(reader: &mut R) -> io::Result<container::Header>
+pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<container::Header>>
 where
     R: AsyncRead + Unpin,
 {
+    use crate::reader::container::header::is_eof;
+
     let length = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -41,6 +43,16 @@ where
     let landmarks = read_landmarks(reader).await?;
     let crc32 = reader.read_u32_le().await?;
 
+    if is_eof(
+        length,
+        reference_sequence_id,
+        starting_position_on_the_reference,
+        number_of_blocks,
+        crc32,
+    ) {
+        return Ok(None);
+    }
+
     let mut builder = container::Header::builder()
         .set_length(length)
         .set_reference_sequence_id(reference_sequence_id)
@@ -56,7 +68,7 @@ where
         builder = builder.set_start_position(position);
     }
 
-    Ok(builder.build())
+    Ok(Some(builder.build()))
 }
 
 async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
@@ -117,7 +129,7 @@ mod tests {
             .set_crc32(0xda9c9fb4)
             .build();
 
-        assert_eq!(actual, expected);
+        assert_eq!(actual, Some(expected));
 
         Ok(())
     }

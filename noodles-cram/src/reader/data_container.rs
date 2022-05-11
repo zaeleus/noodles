@@ -17,11 +17,10 @@ pub fn read_data_container<R>(
 where
     R: Read,
 {
-    let header = container::read_header(reader)?;
-
-    if header.is_eof() {
-        return Ok(None);
-    }
+    let header = match container::read_header(reader)? {
+        Some(header) => header,
+        None => return Ok(None),
+    };
 
     buf.resize(header.len(), 0);
     reader.read_exact(buf)?;
@@ -47,11 +46,10 @@ pub fn read_data_container_with_container_header<R>(
 where
     R: Read,
 {
-    let header = container::read_header(reader)?;
-
-    if header.is_eof() {
-        return Ok(None);
-    }
+    let header = match container::read_header(reader)? {
+        Some(header) => header,
+        None => return Ok(None),
+    };
 
     buf.resize(header.len(), 0);
     reader.read_exact(buf)?;

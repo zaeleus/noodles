@@ -167,7 +167,15 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let container = read_container(&mut self.inner, &mut self.buf)?;
+        let container = match read_container(&mut self.inner, &mut self.buf)? {
+            Some(container) => container,
+            None => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "missing header container",
+                ))
+            }
+        };
 
         if let Some(block) = container.blocks().first() {
             read_file_header_block(block)

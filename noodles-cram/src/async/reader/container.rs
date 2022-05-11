@@ -7,11 +7,14 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{reader::container::read_block, Container};
 
-pub async fn read_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<Container>
+pub async fn read_container<R>(reader: &mut R, buf: &mut BytesMut) -> io::Result<Option<Container>>
 where
     R: AsyncRead + Unpin,
 {
-    let header = read_header(reader).await?;
+    let header = match read_header(reader).await? {
+        Some(header) => header,
+        None => return Ok(None),
+    };
 
     buf.resize(header.len(), 0);
     reader.read_exact(buf).await?;
@@ -25,5 +28,5 @@ where
         blocks.push(block);
     }
 
-    Ok(Container::new(header, blocks))
+    Ok(Some(Container::new(header, blocks)))
 }
