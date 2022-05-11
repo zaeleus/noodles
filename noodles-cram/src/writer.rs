@@ -118,9 +118,9 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn try_finish(&mut self, header: &sam::Header) -> io::Result<()> {
+        use self::container::write_eof_container;
         self.flush(header)?;
-        let eof_container = Container::eof();
-        write_container(&mut self.inner, &eof_container)
+        write_eof_container(&mut self.inner)
     }
 
     /// Writes a CRAM file definition.

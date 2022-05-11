@@ -32,17 +32,6 @@ impl Header {
         Builder::default()
     }
 
-    /// Creates a container header used in the EOF container.
-    pub fn eof() -> Self {
-        Self {
-            length: EOF_LEN,
-            start_position: Position::new(EOF_START_POSITION),
-            block_count: EOF_BLOCK_COUNT,
-            crc32: EOF_CRC32,
-            ..Default::default()
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.length
     }
@@ -93,16 +82,5 @@ impl Header {
             && self.block_count == EOF_BLOCK_COUNT
             && self.landmarks.is_empty()
             && self.crc32 == EOF_CRC32
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_is_eof() {
-        let header = Header::eof();
-        assert!(header.is_eof());
     }
 }

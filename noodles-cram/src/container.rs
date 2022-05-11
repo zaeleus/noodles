@@ -22,11 +22,6 @@ pub struct Container {
 }
 
 impl Container {
-    /// Creates an EOF container.
-    pub fn eof() -> Self {
-        Self::new(Header::eof(), vec![Block::eof()])
-    }
-
     pub fn try_from_data_container(
         data_container: &DataContainer,
         base_count: u64,

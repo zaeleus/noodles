@@ -24,10 +24,6 @@ use crate::{
     num::itf8,
 };
 
-// § 9 End of file container (2020-06-22)
-const EOF_DATA: [u8; 6] = [0x01, 0x00, 0x01, 0x00, 0x01, 0x00];
-const EOF_CRC32: u32 = 0x4b_01_63_ee;
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Block {
     compression_method: CompressionMethod,
@@ -42,16 +38,6 @@ pub struct Block {
 impl Block {
     pub fn builder() -> Builder {
         Builder::default()
-    }
-
-    /// Creates a block used in the EOF container.
-    pub fn eof() -> Self {
-        Self::builder()
-            .set_content_type(ContentType::CompressionHeader)
-            .set_uncompressed_len(EOF_DATA.len())
-            .set_data(Bytes::from_static(&EOF_DATA))
-            .set_crc32(EOF_CRC32)
-            .build()
     }
 
     pub fn compression_method(&self) -> CompressionMethod {
