@@ -60,7 +60,7 @@ mod indexer;
 pub mod reader;
 pub mod record;
 pub mod repository;
-mod writer;
+pub mod writer;
 
 pub use self::{reader::Reader, record::Record, repository::Repository, writer::Writer};
 

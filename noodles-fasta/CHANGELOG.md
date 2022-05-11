@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/writer: Add builder ([#87]).
+
+    This allows overriding the line base count.
+
+[#87]: https://github.com/zaeleus/noodles/issues/87
+
 ## 0.10.0 - 2022-04-14
 
 ### Added

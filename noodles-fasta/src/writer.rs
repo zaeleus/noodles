@@ -1,18 +1,35 @@
+//! FASTA writer.
+
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::io::{self, Write};
 
 use super::{record::Sequence, Record};
 
-const LINE_BASES: u64 = 80;
-
 /// A FASTA writer.
 pub struct Writer<W> {
     inner: W,
+    line_base_count: usize,
 }
 
 impl<W> Writer<W>
 where
     W: Write,
 {
+    /// Creates a FASTA writer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let writer = fasta::Writer::builder(Vec::new()).build();
+    /// ```
+    pub fn builder(inner: W) -> Builder<W> {
+        Builder::new(inner)
+    }
+
     /// Creates a FASTA writer.
     ///
     /// # Examples
@@ -22,7 +39,7 @@ where
     /// let writer = fasta::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self::builder(inner).build()
     }
 
     /// Returns a reference to the underlying writer.
@@ -61,7 +78,7 @@ where
     /// ```
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
         writeln!(self.inner, "{}", record.definition())?;
-        write_record_sequence(&mut self.inner, record.sequence(), LINE_BASES as usize)?;
+        write_record_sequence(&mut self.inner, record.sequence(), self.line_base_count)?;
         Ok(())
     }
 }
@@ -85,6 +102,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_new() {
+        let writer = Writer::new(Vec::new());
+        assert_eq!(writer.line_base_count, 80);
+    }
 
     #[test]
     fn test_write_record_sequence() -> io::Result<()> {
