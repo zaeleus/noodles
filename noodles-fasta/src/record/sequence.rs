@@ -79,6 +79,17 @@ impl From<Bytes> for Sequence {
     }
 }
 
+impl FromIterator<u8> for Sequence {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = u8>,
+    {
+        let mut buf = Vec::new();
+        buf.extend(iter);
+        Self::from(buf)
+    }
+}
+
 impl<I> Index<I> for Sequence
 where
     I: SequenceIndex<u8>,

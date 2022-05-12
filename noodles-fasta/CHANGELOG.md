@@ -8,6 +8,8 @@
 
     This allows overriding the line base count.
 
+  * fasta/record/sequence: Implement `FromIterator<u8>`.
+
 [#87]: https://github.com/zaeleus/noodles/issues/87
 
 ## 0.10.0 - 2022-04-14
