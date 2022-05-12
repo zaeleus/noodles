@@ -4,14 +4,14 @@
 
 ### Added
 
-  * fasta/writer: Add builder ([#87]).
-
-    This allows overriding the line base count.
-
   * fasta/record/sequence: Implement `FromIterator<u8>`.
 
   * fasta/record/sequence: Add iterator to complement a sequence
     (`Sequence::complement`) ([#86]).
+
+  * fasta/writer: Add builder ([#87]).
+
+    This allows overriding the line base count.
 
 [#86]: https://github.com/zaeleus/noodles/issues/86
 [#87]: https://github.com/zaeleus/noodles/issues/87
