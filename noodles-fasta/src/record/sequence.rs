@@ -1,3 +1,9 @@
+//! FASTA record sequence.
+
+pub mod complement;
+
+pub use self::complement::Complement;
+
 use std::ops::Index;
 
 use bytes::Bytes;
@@ -58,6 +64,35 @@ impl Sequence {
         I: SequenceIndex<u8>,
     {
         index.get(self.as_ref())
+    }
+
+    /// Returns an iterator that complements the sequence.
+    ///
+    /// # Examples
+    ///
+    /// ## Complement a sequence
+    ///
+    /// ```
+    /// use noodles_fasta::record::Sequence;
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let actual: Sequence = sequence.complement().collect::<Result<_, _>>()?;
+    /// let expected = Sequence::from(b"TGCA".to_vec());
+    /// assert_eq!(actual, expected);
+    /// # Ok::<_, noodles_fasta::record::sequence::complement::ComplementError>(())
+    /// ```
+    ///
+    /// ## Reverse complement a sequence
+    ///
+    /// ```
+    /// use noodles_fasta::record::Sequence;
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    /// let actual: Sequence = sequence.complement().rev().collect::<Result<_, _>>()?;
+    /// let expected = sequence.clone();
+    /// assert_eq!(actual, expected);
+    /// # Ok::<_, noodles_fasta::record::sequence::complement::ComplementError>(())
+    /// ```
+    pub fn complement(&self) -> Complement<'_> {
+        Complement::new(self.0.iter())
     }
 }
 

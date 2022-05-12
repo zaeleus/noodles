@@ -1,7 +1,7 @@
 //! FASTA record and definition.
 
 pub mod definition;
-mod sequence;
+pub mod sequence;
 
 pub use self::{definition::Definition, sequence::Sequence};
 
