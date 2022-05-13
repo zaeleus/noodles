@@ -22,6 +22,9 @@
 
 ### Fixed
 
+  * cram/data_container/builder: Disable encoding alignment start positions as
+    deltas when the container has multi-reference slices.
+
   * cram/data_container/slice: Resolve read group ID.
 
     This adds the `RG` field with the corresponding read group ID to data.

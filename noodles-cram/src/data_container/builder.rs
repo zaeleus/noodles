@@ -72,7 +72,17 @@ impl Builder {
             self.slice_builders.push(self.slice_builder);
         }
 
-        let compression_header = build_compression_header(options, &self.slice_builders);
+        let mut options = options.clone();
+
+        if self
+            .slice_builders
+            .iter()
+            .any(|b| b.reference_sequence_context().is_many())
+        {
+            options.encode_alignment_start_positions_as_deltas = false;
+        }
+
+        let compression_header = build_compression_header(&options, &self.slice_builders);
 
         let record_counter = self.record_counter;
         let slices = self

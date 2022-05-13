@@ -39,6 +39,10 @@ impl Builder {
         &self.records
     }
 
+    pub fn reference_sequence_context(&self) -> ReferenceSequenceContext {
+        self.reference_sequence_context
+    }
+
     pub fn add_record(&mut self, record: Record) -> Result<&Record, AddRecordError> {
         if self.records.len() >= MAX_RECORD_COUNT {
             return Err(AddRecordError::SliceFull(record));

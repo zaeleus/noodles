@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Options {
     pub preserve_read_names: bool,
     pub encode_alignment_start_positions_as_deltas: bool,
