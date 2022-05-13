@@ -1,6 +1,7 @@
 mod builder;
 mod container;
 pub(crate) mod data_container;
+mod header_container;
 pub(crate) mod num;
 mod options;
 pub(crate) mod record;
@@ -175,9 +176,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        Container::try_from(header)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-            .and_then(|container| write_container(&mut self.inner, &container))
+        use self::header_container::write_header_container;
+        write_header_container(&mut self.inner, header)
     }
 
     /// Writes a CRAM record.
