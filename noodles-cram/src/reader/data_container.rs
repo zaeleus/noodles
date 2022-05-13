@@ -1,4 +1,5 @@
 pub mod compression_header;
+pub mod header;
 pub mod slice;
 
 pub use self::{compression_header::get_compression_header, slice::read_slice};
@@ -7,7 +8,7 @@ use std::io::{self, Read};
 
 use bytes::{Bytes, BytesMut};
 
-use super::container;
+use self::header::read_header;
 use crate::{container::block::ContentType, data_container::CompressionHeader, DataContainer};
 
 pub fn read_data_container<R>(
@@ -17,7 +18,7 @@ pub fn read_data_container<R>(
 where
     R: Read,
 {
-    let header = match container::read_header(reader)? {
+    let header = match read_header(reader)? {
         Some(header) => header,
         None => return Ok(None),
     };
@@ -46,7 +47,7 @@ pub fn read_data_container_with_container_header<R>(
 where
     R: Read,
 {
-    let header = match container::read_header(reader)? {
+    let header = match read_header(reader)? {
         Some(header) => header,
         None => return Ok(None),
     };

@@ -10,7 +10,7 @@ pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<container::Head
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::container::header::is_eof;
+    use crate::reader::data_container::header::is_eof;
 
     let length = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
