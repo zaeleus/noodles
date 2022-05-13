@@ -2,6 +2,7 @@
 
 pub(crate) mod container;
 pub(crate) mod data_container;
+mod header_container;
 pub(crate) mod num;
 mod query;
 pub(crate) mod record;
@@ -20,7 +21,6 @@ use noodles_core::{region::Interval, Region};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::container::read_container;
 pub use self::query::Query;
 use super::{container::Block, crai, file_definition::Version, FileDefinition, MAGIC_NUMBER};
 use crate::data_container::DataContainer;
@@ -167,24 +167,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<String> {
-        let container = match read_container(&mut self.inner, &mut self.buf)? {
-            Some(container) => container,
-            None => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "missing header container",
-                ))
-            }
-        };
-
-        if let Some(block) = container.blocks().first() {
-            read_file_header_block(block)
-        } else {
-            Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid header container: missing block for SAM header",
-            ))
-        }
+        use self::header_container::read_header_container;
+        read_header_container(&mut self.inner, &mut self.buf)
     }
 
     pub(crate) fn read_data_container_with_container_header(
