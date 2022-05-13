@@ -13,6 +13,8 @@ pub fn write_header_container<W>(writer: &mut W, header: &sam::Header) -> io::Re
 where
     W: Write,
 {
+    validate_reference_sequences(header.reference_sequences())?;
+
     let header_data = header.to_string().into_bytes();
     let header_data_len = i32::try_from(header_data.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -29,6 +31,21 @@ where
 
     write_header(writer, block.len())?;
     write_block(writer, &block)?;
+
+    Ok(())
+}
+
+fn validate_reference_sequences(
+    reference_sequences: &sam::header::ReferenceSequences,
+) -> io::Result<()> {
+    for reference_sequence in reference_sequences.values() {
+        if reference_sequence.md5_checksum().is_none() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "header reference sequence record is missing MD5 checksum",
+            ));
+        }
+    }
 
     Ok(())
 }
@@ -77,6 +94,32 @@ mod tests {
         ]);
 
         assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_validate_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::header::{reference_sequence::Md5Checksum, ReferenceSequence};
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(
+                ReferenceSequence::builder()
+                    .set_name("sq0".parse()?)
+                    .set_length(8)
+                    .set_md5_checksum(Md5Checksum::from([
+                        0xd7, 0xeb, 0xa3, 0x11, 0x42, 0x1b, 0xbc, 0x9d, 0x3a, 0xda, 0x44, 0x70,
+                        0x9d, 0xd6, 0x15, 0x34,
+                    ]))
+                    .build()?,
+            )
+            .build();
+        assert!(validate_reference_sequences(header.reference_sequences()).is_ok());
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+            .build();
+        assert!(validate_reference_sequences(header.reference_sequences()).is_err());
 
         Ok(())
     }
