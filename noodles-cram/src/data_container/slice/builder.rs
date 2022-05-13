@@ -77,7 +77,7 @@ impl Builder {
         reference_sequence_repostitory: &fasta::repository::Repository,
         header: &sam::Header,
         compression_header: &CompressionHeader,
-        record_counter: i64,
+        record_counter: u64,
     ) -> io::Result<Slice> {
         let (core_data_block, external_blocks) = write_records(
             compression_header,

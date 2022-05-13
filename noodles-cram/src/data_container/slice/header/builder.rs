@@ -5,7 +5,7 @@ use crate::container::ReferenceSequenceContext;
 pub struct Builder {
     reference_sequence_context: ReferenceSequenceContext,
     record_count: usize,
-    record_counter: i64,
+    record_counter: u64,
     block_count: usize,
     block_content_ids: Vec<i32>,
     embedded_reference_bases_block_content_id: Option<i32>,
@@ -27,7 +27,7 @@ impl Builder {
         self
     }
 
-    pub fn set_record_counter(mut self, record_counter: i64) -> Self {
+    pub fn set_record_counter(mut self, record_counter: u64) -> Self {
         self.record_counter = record_counter;
         self
     }

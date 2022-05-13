@@ -16,7 +16,9 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_itf8(writer, record_count)?;
 
-    write_ltf8(writer, header.record_counter())?;
+    let record_counter = i64::try_from(header.record_counter())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_ltf8(writer, record_counter)?;
 
     let block_count = i32::try_from(header.block_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

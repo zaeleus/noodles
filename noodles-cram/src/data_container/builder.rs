@@ -93,7 +93,7 @@ impl Builder {
                     reference_sequence_repository,
                     header,
                     &compression_header,
-                    record_counter,
+                    record_counter as u64,
                 )
             })
             .collect::<Result<_, _>>()?;
