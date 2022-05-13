@@ -4,10 +4,10 @@ pub mod complement;
 
 pub use self::complement::Complement;
 
-use std::ops::Index;
+use std::ops::{Index, RangeBounds};
 
 use bytes::Bytes;
-use noodles_core::position::SequenceIndex;
+use noodles_core::{position::SequenceIndex, Position};
 
 /// A FASTA record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -64,6 +64,53 @@ impl Sequence {
         I: SequenceIndex<u8>,
     {
         index.get(self.as_ref())
+    }
+
+    /// Returns a subset of the sequence within the given range.
+    ///
+    /// Unlike [`Self::get`], this returns the slice as a [`Sequence`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::Position;
+    /// use noodles_fasta::record::Sequence;
+    ///
+    /// let sequence = Sequence::from(b"ACGT".to_vec());
+    ///
+    /// let start = Position::try_from(2)?;
+    /// let end = Position::try_from(3)?;
+    /// let actual = sequence.slice(start..=end);
+    ///
+    /// let expected = Sequence::from(b"CG".to_vec());
+    ///
+    /// assert_eq!(actual, Some(expected));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn slice<R>(&self, range: R) -> Option<Self>
+    where
+        R: RangeBounds<Position>,
+    {
+        use std::ops::Bound;
+
+        let start = match range.start_bound() {
+            Bound::Included(s) => usize::from(*s) - 1,
+            Bound::Excluded(s) => usize::from(*s),
+            Bound::Unbounded => 0,
+        };
+
+        let end = match range.end_bound() {
+            Bound::Included(e) => usize::from(*e),
+            Bound::Excluded(e) => usize::from(*e) - 1,
+            Bound::Unbounded => self.len(),
+        };
+
+        if start <= end && end <= self.len() {
+            let buf = self.0.slice(start..end);
+            Some(Self::from(buf))
+        } else {
+            None
+        }
     }
 
     /// Returns an iterator that complements the sequence.

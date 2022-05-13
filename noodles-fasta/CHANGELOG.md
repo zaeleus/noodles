@@ -9,6 +9,9 @@
   * fasta/record/sequence: Add iterator to complement a sequence
     (`Sequence::complement`) ([#86]).
 
+  * fasta/record/sequence: Add method to return a slice as a `Sequence`
+    (`Sequence::slice`).
+
   * fasta/writer: Add builder ([#87]).
 
     This allows overriding the line base count.
