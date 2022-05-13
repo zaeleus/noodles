@@ -17,11 +17,7 @@ use std::{
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-use self::container::write_container;
-use super::{
-    container::Container, file_definition::Version, DataContainer, FileDefinition, Record,
-    MAGIC_NUMBER,
-};
+use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAGIC_NUMBER};
 
 /// A CRAM writer.
 ///
@@ -227,6 +223,8 @@ where
     }
 
     fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
+        use self::data_container::write_data_container;
+
         if self.data_container_builder.is_empty() {
             return Ok(());
         }
@@ -244,10 +242,7 @@ where
             header,
         )?;
 
-        let container = Container::try_from_data_container(&data_container, base_count)?;
-        write_container(&mut self.inner, &container)?;
-
-        Ok(())
+        write_data_container(&mut self.inner, &data_container, base_count)
     }
 }
 

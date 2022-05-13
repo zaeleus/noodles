@@ -27,6 +27,6 @@ pub use self::{
 #[cfg(feature = "async")]
 pub use self::r#async::Reader as AsyncReader;
 
-pub(crate) use self::{bit_reader::BitReader, bit_writer::BitWriter, container::Container};
+pub(crate) use self::{bit_reader::BitReader, bit_writer::BitWriter};
 
 static MAGIC_NUMBER: &[u8] = b"CRAM";
