@@ -1,5 +1,6 @@
 mod container;
 mod data_container;
+mod header_container;
 mod num;
 mod records;
 
@@ -92,27 +93,8 @@ where
     /// # }
     /// ```
     pub async fn read_file_header(&mut self) -> io::Result<String> {
-        use self::container::read_container;
-        use crate::reader::read_file_header_block;
-
-        let container = match read_container(&mut self.inner, &mut self.buf).await? {
-            Some(container) => container,
-            None => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "missing header container",
-                ))
-            }
-        };
-
-        if let Some(block) = container.blocks().first() {
-            read_file_header_block(block)
-        } else {
-            Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid header container: missing block for SAM header",
-            ))
-        }
+        use self::header_container::read_header_container;
+        read_header_container(&mut self.inner, &mut self.buf).await
     }
 
     /// Reads a data container.

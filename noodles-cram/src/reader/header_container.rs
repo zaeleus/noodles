@@ -22,7 +22,7 @@ where
     read_raw_sam_header_from_block(&mut buf)
 }
 
-fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
+pub fn read_raw_sam_header_from_block(src: &mut Bytes) -> io::Result<String> {
     use super::container::read_block;
     use crate::container::block::ContentType;
 

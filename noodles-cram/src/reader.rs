@@ -2,7 +2,7 @@
 
 pub(crate) mod container;
 pub(crate) mod data_container;
-mod header_container;
+pub(crate) mod header_container;
 pub(crate) mod num;
 mod query;
 pub(crate) mod record;
@@ -10,19 +10,15 @@ mod records;
 
 pub use self::records::Records;
 
-use std::{
-    io::{self, Read, Seek, SeekFrom},
-    str,
-};
+use std::io::{self, Read, Seek, SeekFrom};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::BytesMut;
 use noodles_core::{region::Interval, Region};
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::query::Query;
-use super::{container::Block, crai, file_definition::Version, FileDefinition, MAGIC_NUMBER};
+use super::{crai, file_definition::Version, FileDefinition, MAGIC_NUMBER};
 use crate::data_container::DataContainer;
 
 /// A CRAM reader.
@@ -391,34 +387,8 @@ where
     Ok(buf)
 }
 
-pub(crate) fn read_file_header_block(block: &Block) -> io::Result<String> {
-    use crate::container::block::ContentType;
-
-    if block.content_type() != ContentType::FileHeader {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                ContentType::FileHeader,
-                block.content_type()
-            ),
-        ));
-    }
-
-    let data = block.decompressed_data()?;
-    let mut reader = &data[..];
-
-    let _header_len = reader.read_i32::<LittleEndian>()?;
-
-    str::from_utf8(reader)
-        .map(|s| s.into())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::container::block::ContentType;
-
     use super::*;
 
     #[test]
@@ -439,44 +409,6 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
-    }
-
-    #[test]
-    fn test_read_file_header_block() -> io::Result<()> {
-        use bytes::BufMut;
-
-        let expected = "noodles";
-
-        let header_data = expected.as_bytes();
-        let header_data_len = header_data.len() as i32;
-
-        let mut data = BytesMut::new();
-        data.put_i32_le(header_data_len);
-        data.extend_from_slice(header_data);
-
-        let block = Block::builder()
-            .set_content_type(ContentType::FileHeader)
-            .set_uncompressed_len(data.len())
-            .set_data(data.freeze())
-            .build();
-
-        let actual = read_file_header_block(&block)?;
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_file_header_block_with_invalid_content_type() {
-        let block = Block::builder()
-            .set_content_type(ContentType::ExternalData)
-            .build();
-
-        assert!(matches!(
-            read_file_header_block(&block),
-            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
-        ));
     }
 
     #[test]
