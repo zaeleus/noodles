@@ -8,7 +8,7 @@ use super::{Feature, Features, Flags, NextMateFlags, Record};
 
 /// A CRAM record builder.
 pub struct Builder {
-    id: i64,
+    id: u64,
     bam_flags: sam::record::Flags,
     flags: Flags,
     reference_sequence_id: Option<usize>,
@@ -30,7 +30,7 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the CRAM record ID.
-    pub fn set_id(mut self, id: i64) -> Self {
+    pub fn set_id(mut self, id: u64) -> Self {
         self.id = id;
         self
     }

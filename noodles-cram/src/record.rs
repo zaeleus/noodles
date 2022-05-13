@@ -22,7 +22,7 @@ use once_cell::sync::OnceCell;
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Record {
-    pub(crate) id: i64,
+    pub(crate) id: u64,
     pub(crate) bam_bit_flags: sam::record::Flags,
     pub(crate) cram_bit_flags: Flags,
     pub(crate) reference_sequence_id: Option<usize>,
@@ -50,7 +50,7 @@ impl Record {
         Builder::default()
     }
 
-    pub(crate) fn id(&self) -> i64 {
+    pub(crate) fn id(&self) -> u64 {
         self.id
     }
 
