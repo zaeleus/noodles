@@ -100,7 +100,7 @@ fn build_container(
         .set_length(len)
         .set_reference_sequence_context(container_reference_sequence_context)
         .set_record_count(container_record_count)
-        .set_record_counter(container_record_counter as i64)
+        .set_record_counter(container_record_counter)
         .set_base_count(base_count)
         .set_block_count(blocks.len())
         .set_landmarks(landmarks)

@@ -15,7 +15,7 @@ pub struct DataContainer {
 }
 
 impl DataContainer {
-    pub(crate) fn builder(record_counter: i64) -> Builder {
+    pub(crate) fn builder(record_counter: u64) -> Builder {
         Builder::new(record_counter)
     }
 

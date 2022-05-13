@@ -98,7 +98,7 @@ impl Slice {
         let record_count = self.header().record_count();
         let mut records = Vec::with_capacity(record_count);
 
-        let start_id = self.header().record_counter() as u64;
+        let start_id = self.header().record_counter();
         let end_id = start_id + (record_count as u64);
 
         for id in start_id..end_id {

@@ -23,7 +23,8 @@ where
     let number_of_records = header.record_count();
     write_itf8(&mut crc_writer, number_of_records)?;
 
-    let record_counter = header.record_counter();
+    let record_counter = i64::try_from(header.record_counter())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_ltf8(&mut crc_writer, record_counter)?;
 
     let bases = i64::try_from(header.base_count())

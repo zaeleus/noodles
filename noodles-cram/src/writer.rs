@@ -51,7 +51,7 @@ where
     reference_sequence_repository: fasta::Repository,
     options: Options,
     data_container_builder: crate::data_container::Builder,
-    record_counter: i64,
+    record_counter: u64,
 }
 
 impl<W> Writer<W>

@@ -7,7 +7,7 @@ pub struct Builder {
     length: usize,
     reference_sequence_context: ReferenceSequenceContext,
     record_count: i32,
-    record_counter: i64,
+    record_counter: u64,
     base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
@@ -32,7 +32,7 @@ impl Builder {
         self
     }
 
-    pub fn set_record_counter(mut self, record_counter: i64) -> Self {
+    pub fn set_record_counter(mut self, record_counter: u64) -> Self {
         self.record_counter = record_counter;
         self
     }

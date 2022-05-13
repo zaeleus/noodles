@@ -9,7 +9,7 @@ pub struct Header {
     length: usize,
     reference_sequence_context: ReferenceSequenceContext,
     record_count: i32,
-    record_counter: i64,
+    record_counter: u64,
     base_count: u64,
     block_count: usize,
     landmarks: Vec<usize>,
@@ -33,7 +33,7 @@ impl Header {
         self.record_count
     }
 
-    pub fn record_counter(&self) -> i64 {
+    pub fn record_counter(&self) -> u64 {
         self.record_counter
     }
 

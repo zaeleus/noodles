@@ -34,7 +34,10 @@ where
     let alignment_span = read_itf8(&mut crc_reader)?;
 
     let number_of_records = read_itf8(&mut crc_reader)?;
-    let record_counter = read_ltf8(&mut crc_reader)?;
+
+    let record_counter = read_ltf8(&mut crc_reader).and_then(|n| {
+        u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     let bases = read_ltf8(&mut crc_reader).and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

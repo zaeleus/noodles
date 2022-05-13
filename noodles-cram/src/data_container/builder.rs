@@ -12,7 +12,7 @@ const MAX_SLICE_COUNT: usize = 1;
 pub struct Builder {
     slice_builder: slice::Builder,
     slice_builders: Vec<slice::Builder>,
-    record_counter: i64,
+    record_counter: u64,
     base_count: u64,
 }
 
@@ -24,7 +24,7 @@ pub enum AddRecordError {
 }
 
 impl Builder {
-    pub fn new(record_counter: i64) -> Self {
+    pub fn new(record_counter: u64) -> Self {
         Self {
             slice_builder: Slice::builder(),
             slice_builders: Vec::new(),
@@ -93,7 +93,7 @@ impl Builder {
                     reference_sequence_repository,
                     header,
                     &compression_header,
-                    record_counter as u64,
+                    record_counter,
                 )
             })
             .collect::<Result<_, _>>()?;
