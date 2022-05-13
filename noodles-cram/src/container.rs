@@ -1,11 +1,9 @@
 pub mod block;
 mod header;
 pub mod reference_sequence_context;
-pub mod reference_sequence_id;
 
 pub use self::{
     block::Block, header::Header, reference_sequence_context::ReferenceSequenceContext,
-    reference_sequence_id::ReferenceSequenceId,
 };
 
 use std::{cmp, error, fmt, io, num};
