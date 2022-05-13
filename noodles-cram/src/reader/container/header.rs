@@ -1,3 +1,4 @@
+use flate2::CrcReader;
 use noodles_core::Position;
 
 use std::io::{self, Read};
@@ -19,42 +20,58 @@ pub fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: Read,
 {
-    let length = reader.read_i32::<LittleEndian>().and_then(|n| {
+    let mut crc_reader = CrcReader::new(reader);
+
+    let length = crc_reader.read_i32::<LittleEndian>().and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence_id = read_itf8(reader).and_then(|n| {
+    let reference_sequence_id = read_itf8(&mut crc_reader).and_then(|n| {
         ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let starting_position_on_the_reference = read_itf8(reader)
+    let starting_position_on_the_reference = read_itf8(&mut crc_reader)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
         .map(Position::new)?;
 
-    let alignment_span = read_itf8(reader).and_then(|n| {
+    let alignment_span = read_itf8(&mut crc_reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let number_of_records = read_itf8(reader)?;
-    let record_counter = read_ltf8(reader)?;
+    let number_of_records = read_itf8(&mut crc_reader)?;
+    let record_counter = read_ltf8(&mut crc_reader)?;
 
-    let bases = read_ltf8(reader).and_then(|n| {
+    let bases = read_ltf8(&mut crc_reader).and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let number_of_blocks = read_itf8(reader).and_then(|n| {
+    let number_of_blocks = read_itf8(&mut crc_reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let landmarks = read_landmarks(reader)?;
-    let crc32 = reader.read_u32::<LittleEndian>()?;
+    let landmarks = read_landmarks(&mut crc_reader)?;
+
+    let actual_crc32 = crc_reader.crc().sum();
+
+    let reader = crc_reader.into_inner();
+    let expected_crc32 = reader.read_u32::<LittleEndian>()?;
+
+    if actual_crc32 != expected_crc32 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "container header checksum mismatch: expected {:08x}, got {:08x}",
+                expected_crc32, actual_crc32
+            ),
+        ));
+    }
 
     if is_eof(
         length,
         reference_sequence_id,
         starting_position_on_the_reference,
         number_of_blocks,
-        crc32,
+        expected_crc32,
     ) {
         return Ok(None);
     }
@@ -131,7 +148,7 @@ mod tests {
             0x02, // landmark count = 2
             0x37, // landmarks[0] = 55
             0x59, // landmarks[1] = 89
-            0xb4, 0x9f, 0x9c, 0xda, // CRC32
+            0x21, 0xf7, 0x9c, 0xed, // CRC32
         ];
         let mut reader = &data[..];
         let actual = read_header(&mut reader)?;
@@ -173,5 +190,28 @@ mod tests {
         assert!(actual.is_none());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_read_header_with_a_checksum_mismatch() {
+        // EOF container header
+        let data = [
+            0x0f, 0x00, 0x00, 0x00, // length = 15 bytes
+            0xff, 0xff, 0xff, 0xff, 0x0f, // reference sequence ID = None (-1)
+            0xe0, 0x45, 0x4f, 0x46, // starting position on the reference = 4542278
+            0x00, // alignment span = 0
+            0x00, // number of records = 0
+            0x00, // record counter = 0
+            0x00, // bases = 0
+            0x01, // number of blocks = 1
+            0x00, // landmark count = 0
+            0x00, 0x00, 0x00, 0x00, // CRC32 (invalid)
+        ];
+        let mut reader = &data[..];
+
+        assert!(matches!(
+            read_header(&mut reader),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
     }
 }

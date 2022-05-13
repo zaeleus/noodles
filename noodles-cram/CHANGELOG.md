@@ -20,6 +20,9 @@
 
   * cram/data_container/slice/builder: Match mate by read name.
 
+  * cram/reader/container/header: Verify the expected CRC32 checksum of the
+    container header.
+
 ### Fixed
 
   * cram/data_container/builder: Disable encoding alignment start positions as
