@@ -2,7 +2,7 @@ mod builder;
 
 pub use builder::Builder;
 
-use crate::container::ReferenceSequenceContext;
+use crate::data_container::ReferenceSequenceContext;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {

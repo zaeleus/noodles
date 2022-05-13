@@ -7,9 +7,12 @@ use noodles_sam::{self as sam, AlignmentRecord};
 use crate::{
     container::{
         block::{self, CompressionMethod},
-        Block, ReferenceSequenceContext,
+        Block,
     },
-    data_container::{compression_header::data_series_encoding_map::DataSeries, CompressionHeader},
+    data_container::{
+        compression_header::data_series_encoding_map::DataSeries, CompressionHeader,
+        ReferenceSequenceContext,
+    },
     record::Flags,
     writer, BitWriter, Record,
 };

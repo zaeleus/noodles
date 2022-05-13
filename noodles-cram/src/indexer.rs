@@ -173,7 +173,7 @@ fn push_index_record_for_single_reference_slice(
     landmark: u64,
     slice_length: u64,
 ) -> io::Result<()> {
-    use crate::container::ReferenceSequenceContext;
+    use crate::data_container::ReferenceSequenceContext;
 
     let (reference_sequence_id, alignment_start, alignment_span) =
         match slice_header.reference_sequence_context() {

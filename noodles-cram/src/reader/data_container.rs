@@ -43,7 +43,7 @@ where
 pub fn read_data_container_with_container_header<R>(
     reader: &mut R,
     buf: &mut BytesMut,
-) -> io::Result<Option<(crate::container::Header, DataContainer)>>
+) -> io::Result<Option<(crate::data_container::Header, DataContainer)>>
 where
     R: Read,
 {

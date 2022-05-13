@@ -2,11 +2,14 @@
 
 pub(crate) mod builder;
 pub(crate) mod compression_header;
+mod header;
+mod reference_sequence_context;
 pub(crate) mod slice;
 
+pub(crate) use self::{
+    builder::Builder, header::Header, reference_sequence_context::ReferenceSequenceContext,
+};
 pub use self::{compression_header::CompressionHeader, slice::Slice};
-
-pub(crate) use self::builder::Builder;
 
 /// A CRAM data container.
 pub struct DataContainer {

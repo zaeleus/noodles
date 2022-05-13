@@ -4,11 +4,11 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use crate::{
-    container::{self, ReferenceSequenceContext},
+    data_container::{Header, ReferenceSequenceContext},
     writer::num::{write_itf8, write_ltf8},
 };
 
-pub fn write_header<W>(writer: &mut W, header: &container::Header) -> io::Result<()>
+pub fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where
     W: Write,
 {

@@ -15,13 +15,12 @@ use noodles_sam::{
 
 use super::num::get_itf8;
 use crate::{
-    container::ReferenceSequenceContext,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries, encoding::Encoding,
             preservation_map::tag_ids_dictionary,
         },
-        CompressionHeader,
+        CompressionHeader, ReferenceSequenceContext,
     },
     huffman::CanonicalHuffmanDecoder,
     record::{

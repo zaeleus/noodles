@@ -1,11 +1,11 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container,
+    data_container::Header,
     r#async::reader::num::{read_itf8, read_ltf8},
 };
 
-pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<container::Header>>
+pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
 where
     R: AsyncRead + Unpin,
 {
@@ -49,7 +49,7 @@ where
     let reference_sequence_context =
         build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
 
-    let header = container::Header::builder()
+    let header = Header::builder()
         .set_length(length)
         .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(number_of_records)
@@ -88,7 +88,7 @@ mod tests {
     use noodles_core::Position;
 
     use super::*;
-    use crate::container::ReferenceSequenceContext;
+    use crate::data_container::ReferenceSequenceContext;
 
     #[tokio::test]
     async fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
@@ -110,7 +110,7 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_header(&mut reader).await?;
 
-        let expected = container::Header::builder()
+        let expected = Header::builder()
             .set_length(144)
             .set_reference_sequence_context(ReferenceSequenceContext::some(
                 2,

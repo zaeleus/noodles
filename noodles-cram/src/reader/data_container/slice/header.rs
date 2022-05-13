@@ -4,8 +4,7 @@ use bytes::Buf;
 use noodles_core::Position;
 
 use crate::{
-    container::ReferenceSequenceContext,
-    data_container::slice,
+    data_container::{slice, ReferenceSequenceContext},
     reader::num::{get_itf8, get_ltf8},
 };
 

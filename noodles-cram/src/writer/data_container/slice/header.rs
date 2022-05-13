@@ -1,8 +1,7 @@
 use std::io::{self, Write};
 
 use crate::{
-    container::ReferenceSequenceContext,
-    data_container::slice,
+    data_container::{slice, ReferenceSequenceContext},
     writer::num::{write_itf8, write_ltf8},
 };
 

@@ -16,12 +16,11 @@ use noodles_sam::{
 
 use super::num::write_itf8;
 use crate::{
-    container::ReferenceSequenceContext,
     data_container::{
         compression_header::{
             data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary, Encoding,
         },
-        CompressionHeader,
+        CompressionHeader, ReferenceSequenceContext,
     },
     record::{
         feature::{self, substitution},

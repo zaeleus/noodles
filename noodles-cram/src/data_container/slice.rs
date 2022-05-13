@@ -9,9 +9,9 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentRecord};
 
-use super::CompressionHeader;
+use super::{CompressionHeader, ReferenceSequenceContext};
 use crate::{
-    container::{Block, ReferenceSequenceContext},
+    container::Block,
     record::resolve::{resolve_bases, resolve_quality_scores},
     BitReader, Record,
 };

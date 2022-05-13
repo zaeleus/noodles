@@ -8,7 +8,7 @@ use flate2::CrcReader;
 use noodles_core::Position;
 
 use crate::{
-    container::{Header, ReferenceSequenceContext},
+    data_container::{Header, ReferenceSequenceContext},
     reader::num::{read_itf8, read_ltf8},
 };
 

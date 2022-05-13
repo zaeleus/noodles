@@ -8,8 +8,8 @@ use std::{
 
 use self::compression_header::write_compression_header;
 use crate::{
-    container::{Block, Header, ReferenceSequenceContext},
-    data_container::Slice,
+    container::Block,
+    data_container::{Header, ReferenceSequenceContext, Slice},
     DataContainer,
 };
 
