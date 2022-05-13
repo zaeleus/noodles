@@ -2,10 +2,9 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
-use noodles_core::Position;
 
 use crate::{
-    container,
+    container::{self, ReferenceSequenceContext},
     writer::num::{write_itf8, write_ltf8},
 };
 
@@ -19,15 +18,7 @@ where
         i32::try_from(header.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     crc_writer.write_i32::<LittleEndian>(length)?;
 
-    let reference_sequence_id = i32::try_from(header.reference_sequence_id())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, reference_sequence_id)?;
-
-    write_starting_position_on_the_reference(&mut crc_writer, header.start_position())?;
-
-    let alignment_span = i32::try_from(header.alignment_span())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, alignment_span)?;
+    write_reference_sequence_context(&mut crc_writer, header.reference_sequence_context())?;
 
     let number_of_records = header.record_count();
     write_itf8(&mut crc_writer, number_of_records)?;
@@ -52,19 +43,40 @@ where
     Ok(())
 }
 
-fn write_starting_position_on_the_reference<W>(
+fn write_reference_sequence_context<W>(
     writer: &mut W,
-    start_position: Option<Position>,
+    reference_sequence_context: ReferenceSequenceContext,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    let n = start_position.map(usize::from).unwrap_or_default();
+    const MISSING: i32 = 0;
+    const UNMAPPED: i32 = -1;
+    const MULTIREF: i32 = -2;
 
-    let starting_position_on_the_reference =
-        i32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let (reference_sequence_id, alignment_start, alignment_span) = match reference_sequence_context
+    {
+        ReferenceSequenceContext::Some(context) => {
+            let id = i32::try_from(context.reference_sequence_id())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    write_itf8(writer, starting_position_on_the_reference)
+            let start = i32::try_from(usize::from(context.alignment_start()))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+            let span = i32::try_from(context.alignment_span())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+            (id, start, span)
+        }
+        ReferenceSequenceContext::None => (UNMAPPED, MISSING, MISSING),
+        ReferenceSequenceContext::Many => (MULTIREF, MISSING, MISSING),
+    };
+
+    write_itf8(writer, reference_sequence_id)?;
+    write_itf8(writer, alignment_start)?;
+    write_itf8(writer, alignment_span)?;
+
+    Ok(())
 }
 
 fn write_landmarks<W>(writer: &mut W, landmarks: &[usize]) -> io::Result<()>

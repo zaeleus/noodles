@@ -84,30 +84,15 @@ impl Container {
 
         let len = blocks.iter().map(|b| b.len()).sum();
 
-        let mut builder = Header::builder()
+        let header = Header::builder()
             .set_length(len)
+            .set_reference_sequence_context(container_reference_sequence_context)
             .set_record_count(container_record_count)
             .set_record_counter(container_record_counter)
             .set_base_count(base_count)
             .set_block_count(blocks.len())
-            .set_landmarks(landmarks);
-
-        builder = match container_reference_sequence_context {
-            ReferenceSequenceContext::Some(context) => builder
-                .set_reference_sequence_id(ReferenceSequenceId::Some(
-                    context.reference_sequence_id(),
-                ))
-                .set_start_position(context.alignment_start())
-                .set_alignment_span(context.alignment_span()),
-            ReferenceSequenceContext::None => {
-                builder.set_reference_sequence_id(ReferenceSequenceId::None)
-            }
-            ReferenceSequenceContext::Many => {
-                builder.set_reference_sequence_id(ReferenceSequenceId::Many)
-            }
-        };
-
-        let header = builder.build();
+            .set_landmarks(landmarks)
+            .build();
 
         Ok(Self::new(header, blocks))
     }
@@ -227,7 +212,7 @@ impl TryFrom<&sam::Header> for Container {
 
         let container_header = Header::builder()
             .set_length(len)
-            .set_reference_sequence_id(ReferenceSequenceId::None)
+            .set_reference_sequence_context(ReferenceSequenceContext::None)
             .set_block_count(blocks.len())
             .set_landmarks(landmarks)
             .build();
@@ -274,8 +259,7 @@ mod tests {
 
         let expected_header = Header::builder()
             .set_length(65)
-            .set_reference_sequence_id(ReferenceSequenceId::None)
-            .set_alignment_span(0)
+            .set_reference_sequence_context(ReferenceSequenceContext::None)
             .set_record_count(0)
             .set_record_counter(0)
             .set_base_count(0)

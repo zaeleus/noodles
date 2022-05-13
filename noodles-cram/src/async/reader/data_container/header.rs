@@ -1,8 +1,7 @@
-use noodles_core::Position;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::{self, ReferenceSequenceId},
+    container,
     r#async::reader::num::{read_itf8, read_ltf8},
 };
 
@@ -10,24 +9,15 @@ pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<container::Head
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::data_container::header::is_eof;
+    use crate::reader::data_container::header::{build_reference_sequence_context, is_eof};
 
     let length = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence_id = read_itf8(reader).await.and_then(|n| {
-        ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let starting_position_on_the_reference = read_itf8(reader)
-        .await
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(Position::new)?;
-
-    let alignment_span = read_itf8(reader).await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let reference_sequence_id = read_itf8(reader).await?;
+    let alignment_start = read_itf8(reader).await?;
+    let alignment_span = read_itf8(reader).await?;
 
     let number_of_records = read_itf8(reader).await?;
     let record_counter = read_ltf8(reader).await?;
@@ -46,28 +36,27 @@ where
     if is_eof(
         length,
         reference_sequence_id,
-        starting_position_on_the_reference,
+        alignment_start,
         number_of_blocks,
         crc32,
     ) {
         return Ok(None);
     }
 
-    let mut builder = container::Header::builder()
+    let reference_sequence_context =
+        build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
+
+    let header = container::Header::builder()
         .set_length(length)
-        .set_reference_sequence_id(reference_sequence_id)
-        .set_alignment_span(alignment_span)
+        .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
         .set_base_count(bases)
         .set_block_count(number_of_blocks)
-        .set_landmarks(landmarks);
+        .set_landmarks(landmarks)
+        .build();
 
-    if let Some(position) = starting_position_on_the_reference {
-        builder = builder.set_start_position(position);
-    }
-
-    Ok(Some(builder.build()))
+    Ok(Some(header))
 }
 
 async fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
@@ -93,7 +82,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
+    use crate::container::ReferenceSequenceContext;
 
     #[tokio::test]
     async fn test_read_header() -> Result<(), Box<dyn std::error::Error>> {
@@ -117,9 +109,11 @@ mod tests {
 
         let expected = container::Header::builder()
             .set_length(144)
-            .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_start_position(Position::try_from(3)?)
-            .set_alignment_span(5)
+            .set_reference_sequence_context(ReferenceSequenceContext::some(
+                2,
+                Position::try_from(3)?,
+                Position::try_from(7)?,
+            ))
             .set_record_count(8)
             .set_record_counter(13)
             .set_base_count(21)

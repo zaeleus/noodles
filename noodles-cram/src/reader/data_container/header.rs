@@ -1,18 +1,21 @@
+use std::{
+    io::{self, Read},
+    num::NonZeroUsize,
+};
+
+use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 use noodles_core::Position;
 
-use std::io::{self, Read};
-
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use crate::{
-    container::{Header, ReferenceSequenceId},
+    container::{Header, ReferenceSequenceContext},
     reader::num::{read_itf8, read_ltf8},
 };
 
 // § 9 "End of file container" (2022-04-12)
 const EOF_LENGTH: usize = 15;
-const EOF_ALIGNMENT_START: usize = 4_542_278;
+const EOF_REFERENCE_SEQUENCE_ID: i32 = -1;
+const EOF_ALIGNMENT_START: i32 = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
@@ -26,17 +29,9 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence_id = read_itf8(&mut crc_reader).and_then(|n| {
-        ReferenceSequenceId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let starting_position_on_the_reference = read_itf8(&mut crc_reader)
-        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
-        .map(Position::new)?;
-
-    let alignment_span = read_itf8(&mut crc_reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let reference_sequence_id = read_itf8(&mut crc_reader)?;
+    let alignment_start = read_itf8(&mut crc_reader)?;
+    let alignment_span = read_itf8(&mut crc_reader)?;
 
     let number_of_records = read_itf8(&mut crc_reader)?;
     let record_counter = read_ltf8(&mut crc_reader)?;
@@ -69,28 +64,27 @@ where
     if is_eof(
         length,
         reference_sequence_id,
-        starting_position_on_the_reference,
+        alignment_start,
         number_of_blocks,
         expected_crc32,
     ) {
         return Ok(None);
     }
 
-    let mut builder = Header::builder()
+    let reference_sequence_context =
+        build_reference_sequence_context(reference_sequence_id, alignment_start, alignment_span)?;
+
+    let header = Header::builder()
         .set_length(length)
-        .set_reference_sequence_id(reference_sequence_id)
-        .set_alignment_span(alignment_span)
+        .set_reference_sequence_context(reference_sequence_context)
         .set_record_count(number_of_records)
         .set_record_counter(record_counter)
         .set_base_count(bases)
         .set_block_count(number_of_blocks)
-        .set_landmarks(landmarks);
+        .set_landmarks(landmarks)
+        .build();
 
-    if let Some(position) = starting_position_on_the_reference {
-        builder = builder.set_start_position(position);
-    }
-
-    Ok(Some(builder.build()))
+    Ok(Some(header))
 }
 
 fn read_landmarks<R>(reader: &mut R) -> io::Result<Vec<usize>>
@@ -116,18 +110,52 @@ where
 
 pub(crate) fn is_eof(
     length: usize,
-    reference_sequence_id: ReferenceSequenceId,
-    alignment_start: Option<Position>,
+    reference_sequence_id: i32,
+    alignment_start: i32,
     block_count: usize,
     crc32: u32,
 ) -> bool {
     length == EOF_LENGTH
-        && reference_sequence_id.is_none()
-        && alignment_start
-            .map(|position| usize::from(position) == EOF_ALIGNMENT_START)
-            .unwrap_or(false)
+        && reference_sequence_id == EOF_REFERENCE_SEQUENCE_ID
+        && alignment_start == EOF_ALIGNMENT_START
         && block_count == EOF_BLOCK_COUNT
         && crc32 == EOF_CRC32
+}
+
+pub(crate) fn build_reference_sequence_context(
+    raw_reference_sequence_id: i32,
+    raw_alignment_start: i32,
+    raw_alignment_span: i32,
+) -> io::Result<ReferenceSequenceContext> {
+    const UNMAPPED: i32 = -1;
+    const MULTIREF: i32 = -2;
+
+    match raw_reference_sequence_id {
+        UNMAPPED => Ok(ReferenceSequenceContext::None),
+        MULTIREF => Ok(ReferenceSequenceContext::Many),
+        n => {
+            let reference_sequence_id =
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let alignment_start = usize::try_from(raw_alignment_start)
+                .and_then(Position::try_from)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let alignment_span = usize::try_from(raw_alignment_span)
+                .and_then(NonZeroUsize::try_from)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            let alignment_end = alignment_start
+                .checked_add(usize::from(alignment_span) - 1)
+                .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidData))?;
+
+            Ok(ReferenceSequenceContext::some(
+                reference_sequence_id,
+                alignment_start,
+                alignment_end,
+            ))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -155,9 +183,11 @@ mod tests {
 
         let expected = Header::builder()
             .set_length(144)
-            .set_reference_sequence_id(ReferenceSequenceId::try_from(2)?)
-            .set_start_position(Position::try_from(3)?)
-            .set_alignment_span(5)
+            .set_reference_sequence_context(ReferenceSequenceContext::some(
+                2,
+                Position::try_from(3)?,
+                Position::try_from(7)?,
+            ))
             .set_record_count(8)
             .set_record_counter(13)
             .set_base_count(21)
