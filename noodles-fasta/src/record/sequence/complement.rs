@@ -39,6 +39,8 @@ impl<'a> DoubleEndedIterator for Complement<'a> {
     }
 }
 
+impl<'a> ExactSizeIterator for Complement<'a> {}
+
 impl<'a> FusedIterator for Complement<'a> {}
 
 fn complement(b: u8) -> Result<u8, ComplementError> {
