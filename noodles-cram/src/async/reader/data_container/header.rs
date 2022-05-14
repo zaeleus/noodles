@@ -2,7 +2,10 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
     data_container::Header,
-    r#async::reader::num::{read_itf8, read_ltf8},
+    r#async::reader::{
+        num::{read_itf8, read_ltf8},
+        CrcReader,
+    },
 };
 
 pub async fn read_header<R>(reader: &mut R) -> io::Result<Option<Header>>
@@ -11,37 +14,53 @@ where
 {
     use crate::reader::data_container::header::{build_reference_sequence_context, is_eof};
 
-    let length = reader.read_i32_le().await.and_then(|n| {
+    let mut crc_reader = CrcReader::new(reader);
+
+    let length = crc_reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let reference_sequence_id = read_itf8(reader).await?;
-    let alignment_start = read_itf8(reader).await?;
-    let alignment_span = read_itf8(reader).await?;
+    let reference_sequence_id = read_itf8(&mut crc_reader).await?;
+    let alignment_start = read_itf8(&mut crc_reader).await?;
+    let alignment_span = read_itf8(&mut crc_reader).await?;
 
-    let number_of_records = read_itf8(reader).await?;
+    let number_of_records = read_itf8(&mut crc_reader).await?;
 
-    let record_counter = read_ltf8(reader).await.and_then(|n| {
+    let record_counter = read_ltf8(&mut crc_reader).await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let bases = read_ltf8(reader).await.and_then(|n| {
+    let bases = read_ltf8(&mut crc_reader).await.and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let number_of_blocks = read_itf8(reader).await.and_then(|n| {
+    let number_of_blocks = read_itf8(&mut crc_reader).await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let landmarks = read_landmarks(reader).await?;
-    let crc32 = reader.read_u32_le().await?;
+    let landmarks = read_landmarks(&mut crc_reader).await?;
+
+    let actual_crc32 = crc_reader.crc().sum();
+
+    let reader = crc_reader.into_inner();
+    let expected_crc32 = reader.read_u32_le().await?;
+
+    if actual_crc32 != expected_crc32 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "container header checksum mismatch: expected {:08x}, got {:08x}",
+                expected_crc32, actual_crc32
+            ),
+        ));
+    }
 
     if is_eof(
         length,
         reference_sequence_id,
         alignment_start,
         number_of_blocks,
-        crc32,
+        actual_crc32,
     ) {
         return Ok(None);
     }
@@ -104,7 +123,7 @@ mod tests {
             0x02, // landmark count = 2
             0x37, // landmarks[0] = 55
             0x59, // landmarks[1] = 89
-            0xb4, 0x9f, 0x9c, 0xda, // CRC32
+            0x21, 0xf7, 0x9c, 0xed, // CRC32
         ];
 
         let mut reader = &data[..];

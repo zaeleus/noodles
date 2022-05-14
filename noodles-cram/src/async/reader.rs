@@ -1,7 +1,10 @@
+mod crc_reader;
 mod data_container;
 mod header_container;
 mod num;
 mod records;
+
+pub use self::crc_reader::CrcReader;
 
 use bytes::BytesMut;
 use futures::Stream;

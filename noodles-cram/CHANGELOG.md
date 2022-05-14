@@ -8,6 +8,9 @@
 
 ### Changed
 
+  * cram/async/reader/container/header: Verify the expected CRC32 checksum of
+    the container header.
+
   * cram/data_container/slice: Template size for records with downstream mates
     is now calculated from the leftmost to rightmost base, regardless of
     orientation.
