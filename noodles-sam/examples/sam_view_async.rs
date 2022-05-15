@@ -22,10 +22,12 @@ async fn main() -> io::Result<()> {
 
     reader.read_header().await?;
 
+    let mut writer = sam::AsyncWriter::new(io::stdout());
+
     let mut records = reader.records();
 
     while let Some(record) = records.try_next().await? {
-        println!("{}", record);
+        writer.write_record(&record).await?;
     }
 
     Ok(())
