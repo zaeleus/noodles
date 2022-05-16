@@ -7,9 +7,10 @@ mod client;
 mod format;
 pub mod reads;
 mod ticket;
+pub mod variants;
 
 pub(crate) use self::ticket::Ticket;
-pub use self::{client::Client, format::Format, reads::Reads};
+pub use self::{client::Client, format::Format, reads::Reads, variants::Variants};
 
 use std::{error, fmt};
 
