@@ -2,6 +2,7 @@
 
 //! **noodles-htsget** is an htsget client.
 
+pub(crate) mod chunks;
 mod client;
 mod format;
 pub mod reads;
