@@ -47,10 +47,7 @@ use crate::data_container::DataContainer;
 ///
 /// # Ok::<_, Box<dyn std::error::Error>>(())
 /// ```
-pub struct Reader<R>
-where
-    R: Read,
-{
+pub struct Reader<R> {
     inner: R,
     buf: BytesMut,
 }
