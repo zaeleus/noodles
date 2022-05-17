@@ -70,13 +70,23 @@ impl Builder {
         }
 
         let response = request.send().await.map_err(Error::Request)?;
-        let data: TicketResponse = response.json().await.map_err(Error::Request)?;
 
-        Ok(Response::new(self.client, self.id, data.htsget))
+        if response.status().is_client_error() {
+            let data: ErrorResponse = response.json().await.map_err(Error::Request)?;
+            Err(Error::Response(data.htsget))
+        } else {
+            let data: TicketResponse = response.json().await.map_err(Error::Request)?;
+            Ok(Response::new(self.client, self.id, data.htsget))
+        }
     }
 }
 
 #[derive(Deserialize)]
 pub struct TicketResponse {
     htsget: Ticket,
+}
+
+#[derive(Deserialize)]
+pub struct ErrorResponse {
+    htsget: crate::response::Error,
 }

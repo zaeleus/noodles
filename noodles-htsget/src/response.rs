@@ -1,3 +1,7 @@
+mod error;
+
+pub use self::error::Error;
+
 use bytes::Bytes;
 use futures::Stream;
 

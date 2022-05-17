@@ -26,6 +26,8 @@ pub enum Error {
     Url(url::ParseError),
     /// The request failed to process.
     Request(reqwest::Error),
+    /// The response is an error.
+    Response(response::Error),
     /// The data failed to decode.
     Decode(base64::DecodeError),
     /// The data URL is invalid.
@@ -40,6 +42,7 @@ impl fmt::Display for Error {
             Self::Input => f.write_str("invalid input"),
             Self::Url(e) => write!(f, "URL error: {}", e),
             Self::Request(e) => write!(f, "request error: {}", e),
+            Self::Response(e) => e.fmt(f),
             Self::Decode(e) => write!(f, "decode error: {}", e),
             Self::InvalidDataUrl => f.write_str("invalid data URL"),
         }
