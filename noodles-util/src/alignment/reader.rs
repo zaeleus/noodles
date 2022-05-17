@@ -6,6 +6,7 @@ use std::io::{self, BufReader, Read, Seek};
 
 use noodles_bam::{self as bam, bai};
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
 use noodles_cram::{self as cram, crai};
 use noodles_csi as csi;
 use noodles_fasta as fasta;
@@ -117,5 +118,42 @@ where
                 inner.alignment_records(&self.reference_sequence_repository, header)
             }
         }
+    }
+
+    /// Returns an interator over records that intersect the given region.
+    pub fn query<'a>(
+        &'a mut self,
+        header: &'a sam::Header,
+        region: &'a Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a> {
+        let index = self.index.as_ref().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "cannot query without an index")
+        })?;
+
+        let iter: Box<dyn Iterator<Item = _>> = match &mut self.inner {
+            Inner::Bam(inner) => match index {
+                Index::Bai(bai) => {
+                    Box::new(inner.query(header.reference_sequences(), bai, region)?.map(
+                        |result| {
+                            result.map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
+                        },
+                    ))
+                }
+                _ => todo!(),
+            },
+            Inner::Cram(inner) => match index {
+                Index::Crai(crai) => Box::new(
+                    inner
+                        .query(&self.reference_sequence_repository, header, crai, region)?
+                        .map(|result| {
+                            result.map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
+                        }),
+                ),
+                _ => todo!(),
+            },
+            _ => todo!(),
+        };
+
+        Ok(iter)
     }
 }
