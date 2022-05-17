@@ -1,4 +1,8 @@
-use std::io::{self, BufReader, Read, Seek};
+use std::{
+    fs::File,
+    io::{self, BufReader, Read, Seek},
+    path::Path,
+};
 
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
@@ -10,19 +14,14 @@ use super::Reader;
 use crate::alignment::Format;
 
 /// An alignment reader builder.
-pub struct Builder<R> {
-    inner: R,
+pub struct Builder {
     format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
 }
 
-impl<R> Builder<R>
-where
-    R: Read + Seek,
-{
-    pub(super) fn new(inner: R) -> Self {
+impl Builder {
+    pub(super) fn new() -> Self {
         Self {
-            inner,
             reference_sequence_repository: fasta::Repository::default(),
             format: None,
         }
@@ -35,9 +34,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::Reader::builder(io::empty()).set_format(Format::Sam);
+    /// let builder = alignment::Reader::builder().set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
@@ -49,13 +47,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_fasta as fasta;
     /// use noodles_util::alignment::{self, Format};
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::Reader::builder(io::empty())
+    /// let builder = alignment::Reader::builder()
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -66,7 +63,28 @@ where
         self
     }
 
-    /// Builds an alignment reader.
+    /// Builds an alignment reader from a path.
+    ///
+    /// By default, the format will be autodetected. This can be overridden by using
+    /// [`set_format`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// use noodles_util::alignment;
+    /// let reader = alignment::Reader::builder().build_from_path("sample.bam")?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<File>>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::open(path)?;
+        self.build_from_reader(file)
+    }
+
+    /// Builds an alignment reader from a reader.
     ///
     /// By default, the format will be autodetected. This can be overridden by using
     /// [`set_format`].
@@ -76,21 +94,24 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let reader = alignment::Reader::builder(io::empty()).build()?;
+    /// let reader = alignment::Reader::builder().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build(mut self) -> io::Result<Reader<R>> {
+    pub fn build_from_reader<R>(self, mut reader: R) -> io::Result<Reader<R>>
+    where
+        R: Read + Seek,
+    {
         use super::Inner;
 
         let format = self
             .format
             .map(Ok)
-            .unwrap_or_else(|| detect_format(&mut self.inner))?;
+            .unwrap_or_else(|| detect_format(&mut reader))?;
 
         let inner = match format {
-            Format::Sam => Inner::Sam(sam::Reader::new(BufReader::new(self.inner))),
-            Format::Bam => Inner::Bam(bam::Reader::new(self.inner)),
-            Format::Cram => Inner::Cram(cram::Reader::new(self.inner)),
+            Format::Sam => Inner::Sam(sam::Reader::new(BufReader::new(reader))),
+            Format::Bam => Inner::Bam(bam::Reader::new(reader)),
+            Format::Cram => Inner::Cram(cram::Reader::new(reader)),
         };
 
         Ok(Reader {

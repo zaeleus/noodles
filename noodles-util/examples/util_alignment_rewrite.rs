@@ -37,11 +37,9 @@ fn main() -> io::Result<()> {
         .map(fasta::Repository::new)
         .unwrap_or_default();
 
-    let mut reader = File::open(src).and_then(|f| {
-        alignment::Reader::builder(f)
-            .set_reference_sequence_repository(repository.clone())
-            .build()
-    })?;
+    let mut reader = alignment::Reader::builder()
+        .set_reference_sequence_repository(repository.clone())
+        .build_from_path(src)?;
 
     let header = reader.read_header()?;
 

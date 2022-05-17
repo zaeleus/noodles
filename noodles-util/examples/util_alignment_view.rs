@@ -7,7 +7,6 @@
 
 use std::{
     env,
-    fs::File,
     io::{self, BufWriter},
 };
 
@@ -21,7 +20,7 @@ fn main() -> io::Result<()> {
     let src = args.next().expect("missing src");
     let fasta_src = args.next();
 
-    let mut builder = File::open(src).map(alignment::Reader::builder)?;
+    let mut builder = alignment::Reader::builder();
 
     if let Some(fasta_src) = fasta_src {
         let repository = IndexedReader::builder()
@@ -31,7 +30,7 @@ fn main() -> io::Result<()> {
         builder = builder.set_reference_sequence_repository(repository);
     }
 
-    let mut reader = builder.build()?;
+    let mut reader = builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout();

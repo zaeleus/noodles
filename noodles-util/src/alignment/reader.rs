@@ -22,10 +22,7 @@ pub struct Reader<R> {
     reference_sequence_repository: fasta::Repository,
 }
 
-impl<R> Reader<R>
-where
-    R: Read + Seek,
-{
+impl Reader<()> {
     /// Creates an alignment reader builder.
     ///
     /// # Examples
@@ -33,12 +30,17 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_util::alignment;
-    /// let builder = alignment::Reader::builder(io::empty());
+    /// let builder = alignment::Reader::builder();
     /// ```
-    pub fn builder(inner: R) -> Builder<R> {
-        Builder::new(inner)
+    pub fn builder() -> Builder {
+        Builder::new()
     }
+}
 
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
     /// Reads and parses an alignment header.
     ///
     /// # Examples
@@ -48,11 +50,11 @@ where
     /// use noodles_sam::{self as sam, header::header::Version};
     /// use noodles_util::alignment;
     ///
-    /// let mut data = Cursor::new(b"@HD\tVN:1.6
+    /// let data = Cursor::new(b"@HD\tVN:1.6
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::Reader::builder(data).build()?;
+    /// let mut reader = alignment::Reader::builder().build_from_reader(data)?;
     /// let actual = reader.read_header()?;
     ///
     /// let expected = sam::Header::builder()
@@ -79,11 +81,11 @@ where
     /// use noodles_sam::{self as sam, header::header::Version};
     /// use noodles_util::alignment;
     ///
-    /// let mut data = Cursor::new(b"@HD\tVN:1.6
+    /// let data = Cursor::new(b"@HD\tVN:1.6
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ");
     ///
-    /// let mut reader = alignment::Reader::builder(data).build()?;
+    /// let mut reader = alignment::Reader::builder().build_from_reader(data)?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
