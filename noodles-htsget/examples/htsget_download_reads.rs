@@ -14,19 +14,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let base_url = args.next().expect("missing base URL").parse()?;
     let id = args.next().expect("missing ID");
-    let reference_name = args.next().expect("missing reference name");
-    let start = args.next().expect("missing start").parse()?;
-    let end = args.next().expect("missing end").parse()?;
+    let region = args.next().map(|s| s.parse()).transpose()?;
 
     let client = htsget::Client::new(base_url);
 
-    let reads = client
-        .reads(id)
-        .set_reference_name(reference_name)
-        .set_start(start)
-        .set_end(end)
-        .send()
-        .await?;
+    let mut request = client.reads(id);
+
+    if let Some(region) = region {
+        request = request.set_region(region);
+    }
+
+    let reads = request.send().await?;
 
     let mut chunks = reads.chunks();
     let mut stdout = io::stdout();
