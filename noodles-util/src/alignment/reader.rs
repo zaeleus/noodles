@@ -4,9 +4,10 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufReader, Read, Seek};
 
-use noodles_bam as bam;
+use noodles_bam::{self as bam, bai};
 use noodles_bgzf as bgzf;
-use noodles_cram as cram;
+use noodles_cram::{self as cram, crai};
+use noodles_csi as csi;
 use noodles_fasta as fasta;
 use noodles_sam::{self as sam, AlignmentReader};
 
@@ -16,10 +17,17 @@ enum Inner<R> {
     Cram(cram::Reader<R>),
 }
 
+enum Index {
+    Bai(bai::Index),
+    Crai(crai::Index),
+    Csi(csi::Index),
+}
+
 /// An alignment reader.
 pub struct Reader<R> {
     inner: Inner<R>,
     reference_sequence_repository: fasta::Repository,
+    index: Option<Index>,
 }
 
 impl Reader<()> {

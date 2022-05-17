@@ -1,12 +1,14 @@
 use std::{
+    ffi::{OsStr, OsString},
     fs::File,
     io::{self, BufReader, Read, Seek},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
-use noodles_bam as bam;
+use noodles_bam::{self as bam, bai};
 use noodles_bgzf as bgzf;
-use noodles_cram as cram;
+use noodles_cram::{self as cram, crai};
+use noodles_csi as csi;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -17,6 +19,7 @@ use crate::alignment::Format;
 pub struct Builder {
     format: Option<Format>,
     reference_sequence_repository: fasta::Repository,
+    index_src: Option<PathBuf>,
 }
 
 impl Builder {
@@ -24,6 +27,7 @@ impl Builder {
         Self {
             reference_sequence_repository: fasta::Repository::default(),
             format: None,
+            index_src: None,
         }
     }
 
@@ -66,7 +70,7 @@ impl Builder {
     /// Builds an alignment reader from a path.
     ///
     /// By default, the format will be autodetected. This can be overridden by using
-    /// [`set_format`].
+    /// [`set_format`]. An associated index will also attempt to be loaded.
     ///
     /// # Examples
     ///
@@ -76,10 +80,11 @@ impl Builder {
     /// let reader = alignment::Reader::builder().build_from_path("sample.bam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<File>>
+    pub fn build_from_path<P>(mut self, path: P) -> io::Result<Reader<File>>
     where
         P: AsRef<Path>,
     {
+        self.index_src = find_index_src(&path);
         let file = File::open(path)?;
         self.build_from_reader(file)
     }
@@ -101,7 +106,7 @@ impl Builder {
     where
         R: Read + Seek,
     {
-        use super::Inner;
+        use super::{Index, Inner};
 
         let format = self
             .format
@@ -114,9 +119,21 @@ impl Builder {
             Format::Cram => Inner::Cram(cram::Reader::new(reader)),
         };
 
+        let mut index = None;
+
+        if let Some(index_src) = self.index_src {
+            index = match index_src.extension().and_then(|ext| ext.to_str()) {
+                Some("bai") => bai::read(index_src).map(Index::Bai).map(Some)?,
+                Some("crai") => crai::read(index_src).map(Index::Crai).map(Some)?,
+                Some("csi") => csi::read(index_src).map(Index::Csi).map(Some)?,
+                _ => None,
+            }
+        }
+
         Ok(Reader {
             inner,
             reference_sequence_repository: self.reference_sequence_repository,
+            index,
         })
     }
 }
@@ -148,4 +165,33 @@ where
     }
 
     Ok(Format::Sam)
+}
+
+fn find_index_src<P>(src: P) -> Option<PathBuf>
+where
+    P: AsRef<Path>,
+{
+    const EXTENSIONS: [&str; 3] = ["bai", "crai", "csi"];
+
+    let src = src.as_ref();
+
+    for ext in EXTENSIONS {
+        let index_src = push_ext(src.into(), ext);
+
+        if index_src.exists() {
+            return Some(index_src);
+        }
+    }
+
+    None
+}
+
+fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
+where
+    S: AsRef<OsStr>,
+{
+    let mut s = OsString::from(path);
+    s.push(".");
+    s.push(ext);
+    PathBuf::from(s)
 }
