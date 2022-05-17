@@ -18,7 +18,7 @@ pub struct Builder<R> {
 
 impl<R> Builder<R>
 where
-    R: Read + Seek + 'static,
+    R: Read + Seek,
 {
     pub(super) fn new(inner: R) -> Self {
         Self {
@@ -79,16 +79,18 @@ where
     /// let reader = alignment::Reader::builder(io::empty()).build()?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build(mut self) -> io::Result<Reader> {
+    pub fn build(mut self) -> io::Result<Reader<R>> {
+        use super::Inner;
+
         let format = self
             .format
             .map(Ok)
             .unwrap_or_else(|| detect_format(&mut self.inner))?;
 
-        let inner: Box<dyn sam::AlignmentReader> = match format {
-            Format::Sam => Box::new(sam::Reader::new(BufReader::new(self.inner))),
-            Format::Bam => Box::new(bam::Reader::new(self.inner)),
-            Format::Cram => Box::new(cram::Reader::new(self.inner)),
+        let inner = match format {
+            Format::Sam => Inner::Sam(sam::Reader::new(BufReader::new(self.inner))),
+            Format::Bam => Inner::Bam(bam::Reader::new(self.inner)),
+            Format::Cram => Inner::Cram(cram::Reader::new(self.inner)),
         };
 
         Ok(Reader {
