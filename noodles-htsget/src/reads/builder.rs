@@ -1,8 +1,7 @@
 use noodles_core::Position;
 use serde::Deserialize;
 
-use super::Reads;
-use crate::{Client, Error, Ticket};
+use crate::{Client, Error, Response, Ticket};
 
 /// A reads endpoint builder.
 pub struct Builder {
@@ -53,7 +52,7 @@ impl Builder {
     }
 
     /// Sends the request.
-    pub async fn send(self) -> crate::Result<Reads> {
+    pub async fn send(self) -> crate::Result<Response> {
         let endpoint = self
             .client
             .base_url()
@@ -82,7 +81,7 @@ impl Builder {
         let response = request.send().await.map_err(Error::Request)?;
         let data: TicketResponse = response.json().await.map_err(Error::Request)?;
 
-        Ok(Reads::new(self.client, self.id, data.htsget))
+        Ok(Response::new(self.client, self.id, data.htsget))
     }
 }
 

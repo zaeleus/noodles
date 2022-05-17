@@ -6,11 +6,12 @@ pub(crate) mod chunks;
 mod client;
 mod format;
 pub mod reads;
+mod response;
 mod ticket;
 pub mod variants;
 
 pub(crate) use self::ticket::Ticket;
-pub use self::{client::Client, format::Format, reads::Reads, variants::Variants};
+pub use self::{client::Client, format::Format, response::Response};
 
 use std::{error, fmt};
 
