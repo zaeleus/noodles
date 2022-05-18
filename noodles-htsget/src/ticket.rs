@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use super::Format;
+use super::{Class, Format};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub(crate) struct BlockUrl {
     url: Url,
     #[serde(default)]
     headers: HashMap<String, String>,
-    class: Option<String>,
+    class: Option<Class>,
 }
 
 impl BlockUrl {
