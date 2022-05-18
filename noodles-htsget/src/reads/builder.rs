@@ -12,9 +12,9 @@ impl Builder {
         Self { inner }
     }
 
-    /// Sets the region to query.
-    pub fn set_region(mut self, region: Region) -> Self {
-        self.inner = self.inner.set_region(region);
+    /// Adds a region to query.
+    pub fn add_region(mut self, region: Region) -> Self {
+        self.inner = self.inner.add_region(region);
         self
     }
 

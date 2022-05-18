@@ -26,10 +26,8 @@ impl Builder {
         }
     }
 
-    pub fn set_region(mut self, region: Region) -> Self {
-        let regions = self.payload.regions_mut();
-        regions.clear();
-        regions.push(region);
+    pub fn add_region(mut self, region: Region) -> Self {
+        self.payload.regions_mut().push(region);
         self
     }
 

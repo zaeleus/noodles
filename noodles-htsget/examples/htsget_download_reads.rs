@@ -14,14 +14,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let base_url = args.next().expect("missing base URL").parse()?;
     let id = args.next().expect("missing ID");
-    let region = args.next().map(|s| s.parse()).transpose()?;
 
     let client = htsget::Client::new(base_url);
 
     let mut request = client.reads(id);
 
-    if let Some(region) = region {
-        request = request.set_region(region);
+    for arg in args {
+        let region = arg.parse()?;
+        request = request.add_region(region);
     }
 
     let reads = request.send().await?;
