@@ -1,4 +1,5 @@
+mod builder;
 mod kind;
 mod payload;
 
-pub use self::{kind::Kind, payload::Payload};
+pub use self::{builder::Builder, kind::Kind, payload::Payload};

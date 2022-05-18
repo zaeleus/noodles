@@ -1,8 +1,6 @@
 use url::Url;
 
-use crate::variants;
-
-use super::reads;
+use super::{reads, request, request::Kind, variants};
 
 /// A htsget client.
 #[derive(Clone, Debug)]
@@ -50,7 +48,8 @@ impl Client {
     where
         I: Into<String>,
     {
-        reads::Builder::new(self.clone(), id)
+        let builder = request::Builder::new(self.clone(), Kind::Reads, id);
+        reads::Builder::new(builder)
     }
 
     /// Creates a variants request for the given ID.
@@ -67,6 +66,7 @@ impl Client {
     where
         I: Into<String>,
     {
-        variants::Builder::new(self.clone(), id)
+        let builder = request::Builder::new(self.clone(), Kind::Variants, id);
+        variants::Builder::new(builder)
     }
 }
