@@ -30,7 +30,7 @@ impl Builder {
 
     /// Sends the request.
     pub async fn send(self) -> crate::Result<Response> {
-        use std::ops::Bound;
+        use crate::resolve_interval;
 
         let endpoint = self
             .client
@@ -44,24 +44,14 @@ impl Builder {
 
             query.push(("referenceName", region.name().into()));
 
-            let normalized_start = match region.start() {
-                Bound::Included(position) => Some(usize::from(position) - 1),
-                Bound::Excluded(position) => Some(usize::from(position)),
-                Bound::Unbounded => None,
-            };
+            let (resolved_start, resolved_end) = resolve_interval(region.interval());
 
-            let normalized_end = match region.end() {
-                Bound::Included(position) => Some(usize::from(position)),
-                Bound::Excluded(position) => Some(usize::from(position) - 1),
-                Bound::Unbounded => None,
-            };
-
-            if let Some(position) = normalized_start {
+            if let Some(position) = resolved_start {
                 let start = u32::try_from(position).map_err(|_| Error::Input)?;
                 query.push(("start", start.to_string()));
             }
 
-            if let Some(position) = normalized_end {
+            if let Some(position) = resolved_end {
                 let end = u32::try_from(position).map_err(|_| Error::Input)?;
                 query.push(("end", end.to_string()));
             }
