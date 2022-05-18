@@ -1,21 +1,21 @@
-use noodles_core::Region;
+mod regions;
 
+use noodles_core::Region;
+use serde::Serialize;
+
+use self::regions::Regions;
 use super::Kind;
 use crate::Format;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Payload {
     format: Format,
-    regions: Vec<Region>,
+    regions: Regions,
 }
 
 impl Payload {
-    pub fn regions(&self) -> &[Region] {
-        &self.regions
-    }
-
     pub fn regions_mut(&mut self) -> &mut Vec<Region> {
-        &mut self.regions
+        &mut self.regions.0
     }
 }
 
@@ -28,7 +28,7 @@ impl From<Kind> for Payload {
 
         Self {
             format,
-            regions: Vec::new(),
+            regions: Regions::default(),
         }
     }
 }
