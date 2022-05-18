@@ -1,4 +1,4 @@
-use noodles_core::Position;
+use noodles_core::Region;
 use serde::Deserialize;
 
 use crate::{Client, Error, Response, Ticket};
@@ -7,9 +7,7 @@ use crate::{Client, Error, Response, Ticket};
 pub struct Builder {
     client: Client,
     id: String,
-    reference_name: Option<String>,
-    start: Option<Position>,
-    end: Option<Position>,
+    region: Option<Region>,
 }
 
 impl Builder {
@@ -20,39 +18,20 @@ impl Builder {
         Self {
             client,
             id: id.into(),
-            reference_name: None,
-            start: None,
-            end: None,
+            region: None,
         }
     }
 
-    /// Sets the reference name.
-    pub fn set_reference_name<N>(mut self, reference_name: N) -> Self
-    where
-        N: Into<String>,
-    {
-        self.reference_name = Some(reference_name.into());
-        self
-    }
-
-    /// Sets the start position.
-    ///
-    /// This is 1-based, inclusive.
-    pub fn set_start(mut self, start: Position) -> Self {
-        self.start = Some(start);
-        self
-    }
-
-    /// Sets the end position.
-    ///
-    /// This is 1-based, inclusive.
-    pub fn set_end(mut self, end: Position) -> Self {
-        self.end = Some(end);
+    /// Sets the region to query.
+    pub fn set_region(mut self, region: Region) -> Self {
+        self.region = Some(region);
         self
     }
 
     /// Sends the request.
     pub async fn send(self) -> crate::Result<Response> {
+        use crate::resolve_interval;
+
         let endpoint = self
             .client
             .base_url()
@@ -60,23 +39,25 @@ impl Builder {
             .map_err(Error::Url)?;
         let mut request = self.client.http_client().get(endpoint);
 
-        let mut query = Vec::new();
+        if let Some(region) = self.region {
+            let mut query = Vec::with_capacity(3);
 
-        if let Some(reference_name) = self.reference_name {
-            query.push(("referenceName", reference_name));
+            query.push(("referenceName", region.name().into()));
+
+            let (resolved_start, resolved_end) = resolve_interval(region.interval());
+
+            if let Some(position) = resolved_start {
+                let start = u32::try_from(position).map_err(|_| Error::Input)?;
+                query.push(("start", start.to_string()));
+            }
+
+            if let Some(position) = resolved_end {
+                let end = u32::try_from(position).map_err(|_| Error::Input)?;
+                query.push(("end", end.to_string()));
+            }
+
+            request = request.query(&query);
         }
-
-        if let Some(start) = self.start {
-            let start = u32::try_from(usize::from(start) - 1).map_err(|_| Error::Input)?;
-            query.push(("start", start.to_string()));
-        }
-
-        if let Some(end) = self.end {
-            let end = u32::try_from(usize::from(end)).map_err(|_| Error::Input)?;
-            query.push(("end", end.to_string()));
-        }
-
-        request = request.query(&query);
 
         let response = request.send().await.map_err(Error::Request)?;
         let data: TicketResponse = response.json().await.map_err(Error::Request)?;
