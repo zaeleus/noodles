@@ -2,7 +2,7 @@ use noodles_core::Region;
 use serde::Deserialize;
 use url::Url;
 
-use super::{Kind, Payload};
+use super::{Class, Kind, Payload};
 use crate::{Client, Error, Response, Ticket};
 
 /// A request builder.
@@ -26,6 +26,11 @@ impl Builder {
         }
     }
 
+    pub fn set_class(mut self, class: Class) -> Self {
+        *self.payload.class_mut() = Some(class);
+        self
+    }
+
     pub fn add_region(mut self, region: Region) -> Self {
         self.payload.regions_mut().push(region);
         self
@@ -33,7 +38,16 @@ impl Builder {
 
     pub async fn send(self) -> crate::Result<Response> {
         let endpoint = build_endpoint(self.client.base_url(), self.kind, &self.id)?;
-        let request = self.client.http_client().post(endpoint).json(&self.payload);
+        let mut request = self.client.http_client().post(endpoint);
+
+        request = match self.payload.class() {
+            Some(Class::Header) => {
+                let mut payload = Payload::from(self.kind);
+                *payload.class_mut() = Some(Class::Header);
+                request.json(&payload)
+            }
+            None => request.json(&self.payload),
+        };
 
         let response = request.send().await.map_err(Error::Request)?;
 
