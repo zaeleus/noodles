@@ -1,13 +1,13 @@
 use noodles_core::Region;
 use serde::Deserialize;
 
-use crate::{Client, Error, Response, Ticket};
+use crate::{request::Payload, Client, Error, Response, Ticket};
 
 /// A reads endpoint builder.
 pub struct Builder {
     client: Client,
     id: String,
-    region: Option<Region>,
+    payload: Payload,
 }
 
 impl Builder {
@@ -15,16 +15,20 @@ impl Builder {
     where
         I: Into<String>,
     {
+        use crate::request::Kind;
+
         Self {
             client,
             id: id.into(),
-            region: None,
+            payload: Payload::from(Kind::Reads),
         }
     }
 
     /// Sets the region to query.
     pub fn set_region(mut self, region: Region) -> Self {
-        self.region = Some(region);
+        let regions = self.payload.regions_mut();
+        regions.clear();
+        regions.push(region);
         self
     }
 
@@ -39,7 +43,7 @@ impl Builder {
             .map_err(Error::Url)?;
         let mut request = self.client.http_client().get(endpoint);
 
-        if let Some(region) = self.region {
+        if let Some(region) = self.payload.regions().first() {
             let mut query = Vec::with_capacity(3);
 
             query.push(("referenceName", region.name().into()));

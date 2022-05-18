@@ -7,6 +7,7 @@ mod class;
 mod client;
 mod format;
 pub mod reads;
+pub(crate) mod request;
 mod response;
 mod ticket;
 pub mod variants;
