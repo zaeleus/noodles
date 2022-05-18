@@ -3,7 +3,14 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use super::{Class, Format};
+use super::Format;
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum Class {
+    Header,
+    Body,
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub(crate) struct BlockUrl {
