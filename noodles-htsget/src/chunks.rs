@@ -3,7 +3,7 @@ use std::pin::Pin;
 use bytes::Bytes;
 use futures::{stream, Stream, TryStreamExt};
 
-use super::{ticket::BlockUrl, Client, Error};
+use super::{response::ticket::BlockUrl, Client, Error};
 
 pub(crate) fn chunks<'a>(
     client: &'a Client,

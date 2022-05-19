@@ -7,11 +7,9 @@ mod client;
 mod format;
 pub mod reads;
 pub(crate) mod request;
-mod response;
-mod ticket;
+pub(crate) mod response;
 pub mod variants;
 
-pub(crate) use self::ticket::Ticket;
 pub use self::{client::Client, format::Format, response::Response};
 
 use std::{

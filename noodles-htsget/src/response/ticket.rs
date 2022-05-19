@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use url::Url;
 
-use super::Format;
+use crate::Format;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "lowercase")]

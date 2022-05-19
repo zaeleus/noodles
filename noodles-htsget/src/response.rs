@@ -1,11 +1,13 @@
 mod error;
+pub(crate) mod ticket;
 
 pub use self::error::Error;
+pub(crate) use self::ticket::Ticket;
 
 use bytes::Bytes;
 use futures::Stream;
 
-use super::{Client, Ticket};
+use super::Client;
 
 /// An htsget response.
 #[derive(Debug)]
