@@ -2,7 +2,7 @@ use noodles_core::Region;
 
 use crate::{
     request::{self, Class},
-    Response,
+    Format, Response,
 };
 
 /// A reads endpoint builder.
@@ -13,6 +13,12 @@ pub struct Builder {
 impl Builder {
     pub(crate) fn new(inner: request::Builder) -> Self {
         Self { inner }
+    }
+
+    /// Sets the data format.
+    pub fn set_format(mut self, format: Format) -> Self {
+        self.inner = self.inner.set_format(format);
+        self
     }
 
     /// Sets the data steam filter.

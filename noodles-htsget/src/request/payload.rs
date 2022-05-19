@@ -19,6 +19,10 @@ pub struct Payload {
 }
 
 impl Payload {
+    pub fn format_mut(&mut self) -> &mut Format {
+        &mut self.format
+    }
+
     pub fn class(&self) -> Option<Class> {
         self.class
     }

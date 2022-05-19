@@ -3,7 +3,7 @@ use serde::Deserialize;
 use url::Url;
 
 use super::{Class, Kind, Payload};
-use crate::{Client, Error, Response, Ticket};
+use crate::{Client, Error, Format, Response, Ticket};
 
 /// A request builder.
 pub struct Builder {
@@ -24,6 +24,11 @@ impl Builder {
             id: id.into(),
             payload: Payload::from(kind),
         }
+    }
+
+    pub fn set_format(mut self, format: Format) -> Self {
+        *self.payload.format_mut() = format;
+        self
     }
 
     pub fn set_class(mut self, class: Class) -> Self {
