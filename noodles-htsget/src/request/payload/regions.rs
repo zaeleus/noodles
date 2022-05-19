@@ -1,6 +1,6 @@
 use noodles_core::Region;
 use serde::{
-    ser::{SerializeMap, SerializeSeq},
+    ser::{self, SerializeMap, SerializeSeq},
     Serialize, Serializer,
 };
 
@@ -44,12 +44,12 @@ impl<'a> Serialize for HtsgetRegion<'a> {
         let (resolved_start, resolved_end) = resolve_interval(self.0.interval());
 
         if let Some(position) = resolved_start {
-            let start = u32::try_from(position).unwrap();
+            let start = u32::try_from(position).map_err(ser::Error::custom)?;
             map.serialize_entry("start", &start)?;
         }
 
         if let Some(position) = resolved_end {
-            let end = u32::try_from(position).unwrap();
+            let end = u32::try_from(position).map_err(ser::Error::custom)?;
             map.serialize_entry("end", &end)?;
         }
 
