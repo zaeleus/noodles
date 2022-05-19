@@ -10,6 +10,8 @@ use crate::Format;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Payload {
     format: Format,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     class: Option<Class>,
 
     #[serde(skip_serializing_if = "Regions::is_empty")]
@@ -53,7 +55,26 @@ mod tests {
 
     #[test]
     fn test_serialize() {
+        let payload = Payload::from(Kind::Reads);
+
+        assert_ser_tokens(
+            &payload,
+            &[
+                Token::Struct {
+                    name: "Payload",
+                    len: 1,
+                },
+                Token::Str("format"),
+                Token::UnitVariant {
+                    name: "Format",
+                    variant: "BAM",
+                },
+                Token::StructEnd,
+            ],
+        );
+
         let mut payload = Payload::from(Kind::Reads);
+        *payload.class_mut() = Some(Class::Header);
 
         assert_ser_tokens(
             &payload,
@@ -68,11 +89,16 @@ mod tests {
                     variant: "BAM",
                 },
                 Token::Str("class"),
-                Token::None,
+                Token::Some,
+                Token::UnitVariant {
+                    name: "Class",
+                    variant: "header",
+                },
                 Token::StructEnd,
             ],
         );
 
+        let mut payload = Payload::from(Kind::Reads);
         payload.regions_mut().push(Region::new("sq0", ..));
 
         assert_ser_tokens(
@@ -80,15 +106,13 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Payload",
-                    len: 3,
+                    len: 2,
                 },
                 Token::Str("format"),
                 Token::UnitVariant {
                     name: "Format",
                     variant: "BAM",
                 },
-                Token::Str("class"),
-                Token::None,
                 Token::Str("regions"),
                 Token::Seq { len: Some(1) },
                 Token::Map { len: None },
