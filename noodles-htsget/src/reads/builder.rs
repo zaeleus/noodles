@@ -1,8 +1,9 @@
 use noodles_core::Region;
 
+use super::Format;
 use crate::{
     request::{self, Class},
-    Format, Response,
+    Response,
 };
 
 /// A reads endpoint builder.
@@ -17,7 +18,7 @@ impl Builder {
 
     /// Sets the data format.
     pub fn set_format(mut self, format: Format) -> Self {
-        self.inner = self.inner.set_format(format);
+        self.inner = self.inner.set_format(format.into());
         self
     }
 
