@@ -20,4 +20,5 @@ serde = { version = "1.0.136", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }
 
 [dev-dependencies]
+serde_test = "1.0.137"
 tokio = { version = "1.10.0", features = ["io-std", "macros", "rt-multi-thread"] }

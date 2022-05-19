@@ -7,6 +7,12 @@ use serde::{
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Regions(pub(super) Vec<Region>);
 
+impl Regions {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
 impl Serialize for Regions {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
