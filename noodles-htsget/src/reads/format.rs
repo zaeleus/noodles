@@ -15,3 +15,14 @@ impl From<Format> for crate::Format {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_format_for_crate_format() {
+        assert_eq!(crate::Format::from(Format::Bam), crate::Format::Bam);
+        assert_eq!(crate::Format::from(Format::Cram), crate::Format::Cram);
+    }
+}
