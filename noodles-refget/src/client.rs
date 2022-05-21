@@ -10,7 +10,7 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new refeget client.
+    /// Creates a new refget client.
     ///
     /// # Examples
     ///
