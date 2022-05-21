@@ -6,6 +6,24 @@
 
   * core/region: Add display formatter for `(Unbounded, Included)`.
 
+  * core/region: Add `Interval` container.
+
+    This provides the same functionality as the previous type alias, i.e.,
+    `RangeBounds<Position>`. It can now be used separate from `Region`.
+
+### Changed
+
+  * core/region: Replace `ParseError::InvalidStartPosition` and
+    `ParseError::InvalidEndPosition` with `ParseError::InvalidInterval`.
+
+    The specific errors are now part of `interval::ParseError`.
+
+### Removed
+
+  * core/region: Remove the `Interval` type alias.
+
+    Use the `Interval` struct instead.
+
 ## 0.6.0 - 2022-03-29
 
 ### Added

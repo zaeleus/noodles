@@ -1,22 +1,22 @@
 //! Genomic region.
 
+pub mod interval;
+
+pub use self::interval::Interval;
+
 use std::{
-    error, fmt, num,
+    error, fmt,
     ops::{Bound, RangeBounds},
     str::FromStr,
 };
 
 use super::Position;
 
-/// An interval.
-pub type Interval = (Bound<Position>, Bound<Position>);
-
 /// A genomic region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Region {
     name: String,
-    start: Bound<Position>,
-    end: Bound<Position>,
+    interval: Interval,
 }
 
 impl Region {
@@ -39,10 +39,14 @@ impl Region {
         I: Into<String>,
         B: RangeBounds<Position>,
     {
+        let bounds = (
+            interval.start_bound().cloned(),
+            interval.end_bound().cloned(),
+        );
+
         Self {
             name: name.into(),
-            end: interval.end_bound().cloned(),
-            start: interval.start_bound().cloned(),
+            interval: bounds.into(),
         }
     }
 
@@ -79,7 +83,7 @@ impl Region {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn start(&self) -> Bound<Position> {
-        self.start
+        self.interval.start_bound().cloned()
     }
 
     /// Returns the end position of the region (1-based).
@@ -97,7 +101,7 @@ impl Region {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn end(&self) -> Bound<Position> {
-        self.end
+        self.interval.end_bound().cloned()
     }
 
     /// Returns the start and end positions as an interval.
@@ -106,34 +110,30 @@ impl Region {
     ///
     /// ```
     /// # use std::ops::Bound;
-    /// use noodles_core::{Position, Region};
+    /// use noodles_core::{region::Interval, Position, Region};
     ///
     /// let start = Position::try_from(5)?;
     /// let end = Position::try_from(8)?;
     /// let region = Region::new("sq0", start..=end);
     ///
-    /// assert_eq!(
-    ///     region.interval(),
-    ///     (Bound::Included(start), Bound::Included(end))
-    /// );
+    /// assert_eq!(region.interval(), Interval::new(start, end));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn interval(&self) -> Interval {
-        (self.start, self.end)
+        self.interval
     }
 }
 
 impl fmt::Display for Region {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.interval() {
-            (Bound::Unbounded, Bound::Unbounded) => write!(f, "{}", self.name()),
-            (Bound::Unbounded, Bound::Included(e)) => {
-                write!(f, "{}:{}-{}", self.name(), Position::MIN, e)
-            }
-            (Bound::Included(s), Bound::Unbounded) => write!(f, "{}:{}", self.name(), s),
-            (Bound::Included(s), Bound::Included(e)) => write!(f, "{}:{}-{}", self.name(), s, e),
-            _ => todo!(),
+        f.write_str(self.name())?;
+
+        match (self.interval.start_bound(), self.interval.end_bound()) {
+            (Bound::Unbounded, Bound::Unbounded) => {}
+            (_, _) => write!(f, ":{}", self.interval)?,
         }
+
+        Ok(())
     }
 }
 
@@ -146,10 +146,8 @@ pub enum ParseError {
     Ambiguous,
     /// The input is invalid.
     Invalid,
-    /// The start position is invalid.
-    InvalidStartPosition(num::ParseIntError),
-    /// The end position is invalid.
-    InvalidEndPosition(num::ParseIntError),
+    /// The interval is invalid.
+    InvalidInterval(interval::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -160,8 +158,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::Ambiguous => f.write_str("ambiguous input"),
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidStartPosition(e) => write!(f, "invalid start position: {}", e),
-            Self::InvalidEndPosition(e) => write!(f, "invalid end position: {}", e),
+            Self::InvalidInterval(e) => write!(f, "invalid interval: {}", e),
         }
     }
 }
@@ -175,41 +172,12 @@ impl FromStr for Region {
         }
 
         if let Some((name, suffix)) = s.rsplit_once(':') {
-            if let Ok(interval) = parse_interval(suffix) {
-                Ok(Self::new(name, interval))
-            } else {
-                Err(ParseError::Invalid)
-            }
+            let interval: Interval = suffix.parse().map_err(ParseError::InvalidInterval)?;
+            Ok(Self::new(name, interval))
         } else {
             Ok(Self::new(s, ..))
         }
     }
-}
-
-fn parse_interval(s: &str) -> Result<Interval, ParseError> {
-    if s.is_empty() {
-        return Ok((Bound::Unbounded, Bound::Unbounded));
-    }
-
-    let mut components = s.splitn(2, '-');
-
-    let start = match components.next() {
-        Some(t) => t
-            .parse()
-            .map(Bound::Included)
-            .map_err(ParseError::InvalidStartPosition)?,
-        None => Bound::Unbounded,
-    };
-
-    let end = match components.next() {
-        Some(t) => t
-            .parse()
-            .map(Bound::Included)
-            .map_err(ParseError::InvalidEndPosition)?,
-        None => Bound::Unbounded,
-    };
-
-    Ok((start, end))
 }
 
 #[cfg(test)]

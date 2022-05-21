@@ -11,7 +11,7 @@ use std::{
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Region};
+use noodles_core::{region::Interval, Position, Region};
 
 use super::{fai, Record};
 
@@ -358,7 +358,10 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
 }
 
 // Shifts a 1-based interval to a 0-based range for slicing.
-fn interval_to_slice_range(interval: Interval, len: usize) -> Range<usize> {
+fn interval_to_slice_range<B>(interval: B, len: usize) -> Range<usize>
+where
+    B: RangeBounds<Position>,
+{
     let start = match interval.start_bound() {
         Bound::Included(position) => usize::from(*position) - 1,
         Bound::Excluded(position) => usize::from(*position),
@@ -480,7 +483,7 @@ mod tests {
 
         const LENGTH: usize = 4;
 
-        let interval = (Bound::Unbounded, Bound::Unbounded);
+        let interval: (Bound<Position>, Bound<Position>) = (Bound::Unbounded, Bound::Unbounded);
         let range = interval_to_slice_range(interval, LENGTH);
         assert_eq!(range, 0..4);
 
