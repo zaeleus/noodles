@@ -55,7 +55,7 @@ where
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    Ok(Value::Char(char::from(src.get_u8())))
+    Ok(Value::Character(char::from(src.get_u8())))
 }
 
 fn get_i8_value<B>(src: &mut B) -> io::Result<Value>
@@ -243,7 +243,7 @@ mod tests {
             Ok(())
         }
 
-        t(&[b'n'], Type::Character, Value::Char('n'))?;
+        t(&[b'n'], Type::Character, Value::Character('n'))?;
         t(&[0x00], Type::Int8, Value::Int8(0))?;
         t(&[0x00], Type::UInt8, Value::UInt8(0))?;
         t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;

@@ -18,7 +18,7 @@ where
     const ARRAY_VALUE_DELIMITER: u8 = b',';
 
     match value {
-        Value::Char(c) => writer.write_all(&[*c as u8]),
+        Value::Character(c) => writer.write_all(&[*c as u8]),
         Value::Int8(n) => write_int(writer, *n),
         Value::UInt8(n) => write_int(writer, *n),
         Value::Int16(n) => write_int(writer, *n),
@@ -114,7 +114,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Char('n'), &[b'n'])?;
+        t(&mut buf, &Value::Character('n'), &[b'n'])?;
         t(&mut buf, &Value::Int8(1), b"1")?;
         t(&mut buf, &Value::UInt8(2), b"2")?;
         t(&mut buf, &Value::Int16(3), b"3")?;

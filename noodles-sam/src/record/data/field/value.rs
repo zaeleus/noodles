@@ -17,7 +17,7 @@ const ARRAY_VALUE_DELIMITER: char = ',';
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     /// A character (`A`).
-    Char(char),
+    Character(char),
     /// An 8-bit integer (`c`).
     Int8(i8),
     /// An 8-bit unsigned integer (`C`).
@@ -65,7 +65,7 @@ impl Value {
     /// ```
     pub fn from_str_type(s: &str, ty: Type) -> Result<Self, ParseError> {
         match ty {
-            Type::Character => parse_char(s).map(Value::Char),
+            Type::Character => parse_char(s).map(Value::Character),
             Type::Int32 => parse_i32(s).map(Value::from),
             Type::Float => parse_f32(s).map(Value::Float),
             Type::String => parse_string(s).map(Value::String),
@@ -85,7 +85,7 @@ impl Value {
     /// ```
     pub fn ty(&self) -> Type {
         match *self {
-            Self::Char(_) => Type::Character,
+            Self::Character(_) => Type::Character,
             Self::Int8(_) => Type::Int8,
             Self::UInt8(_) => Type::UInt8,
             Self::Int16(_) => Type::Int16,
@@ -135,12 +135,12 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert_eq!(Value::Char('a').as_char(), Some('a'));
+    /// assert_eq!(Value::Character('a').as_char(), Some('a'));
     /// assert_eq!(Value::Int32(0).as_char(), None);
     /// ```
     pub fn as_char(&self) -> Option<char> {
         match *self {
-            Self::Char(c) => Some(c),
+            Self::Character(c) => Some(c),
             _ => None,
         }
     }
@@ -151,11 +151,11 @@ impl Value {
     ///
     /// ```
     /// use noodles_sam::record::data::field::Value;
-    /// assert!(Value::Char('a').is_char());
+    /// assert!(Value::Character('a').is_char());
     /// assert!(!Value::Int32(0).is_char());
     /// ```
     pub fn is_char(&self) -> bool {
-        matches!(self, Self::Char(_))
+        matches!(self, Self::Character(_))
     }
 
     /// Returns the value as a 32-bit integer if it is an integer.
@@ -165,7 +165,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Int32(0).as_int32(), Some(0));
-    /// assert_eq!(Value::Char('a').as_int32(), None);
+    /// assert_eq!(Value::Character('a').as_int32(), None);
     /// ```
     pub fn as_int32(&self) -> Option<i32> {
         match *self {
@@ -181,7 +181,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int32(0).is_int32());
-    /// assert!(!Value::Char('a').is_int32());
+    /// assert!(!Value::Character('a').is_int32());
     /// ```
     pub fn is_int32(&self) -> bool {
         matches!(self, Self::Int32(_))
@@ -197,7 +197,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert_eq!(Value::Int32(0).as_int(), Some(0));
-    /// assert_eq!(Value::Char('n').as_int(), None);
+    /// assert_eq!(Value::Character('n').as_int(), None);
     /// ```
     pub fn as_int(&self) -> Option<i64> {
         match *self {
@@ -218,7 +218,7 @@ impl Value {
     /// ```
     /// use noodles_sam::record::data::field::Value;
     /// assert!(Value::Int32(0).is_int());
-    /// assert!(!Value::Char('n').is_int());
+    /// assert!(!Value::Character('n').is_int());
     /// ```
     pub fn is_int(&self) -> bool {
         matches!(
@@ -645,7 +645,7 @@ impl TryFrom<char> for Value {
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
         if c.is_ascii_graphic() {
-            Ok(Value::Char(c))
+            Ok(Value::Character(c))
         } else {
             Err(ParseError::InvalidCharValue)
         }
@@ -667,7 +667,7 @@ impl TryFrom<String> for Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Char(c) => f.write_char(*c),
+            Self::Character(c) => f.write_char(*c),
             Self::Int8(n) => write!(f, "{}", n),
             Self::UInt8(n) => write!(f, "{}", n),
             Self::Int16(n) => write!(f, "{}", n),
@@ -909,7 +909,7 @@ mod tests {
 
     #[test]
     fn test_ty() {
-        assert_eq!(Value::Char('n').ty(), Type::Character);
+        assert_eq!(Value::Character('n').ty(), Type::Character);
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
@@ -925,7 +925,7 @@ mod tests {
 
     #[test]
     fn test_subtype() {
-        assert_eq!(Value::Char('n').subtype(), None);
+        assert_eq!(Value::Character('n').subtype(), None);
         assert_eq!(Value::Int32(0).subtype(), None);
         assert_eq!(Value::Float(0.0).subtype(), None);
         assert_eq!(Value::String(String::from("noodles")).subtype(), None);
@@ -1056,7 +1056,7 @@ mod tests {
 
     #[test]
     fn test_try_from_char_for_value() {
-        assert_eq!(Value::try_from('n'), Ok(Value::Char('n')));
+        assert_eq!(Value::try_from('n'), Ok(Value::Character('n')));
         assert_eq!(Value::try_from('🍜'), Err(ParseError::InvalidCharValue));
     }
 
@@ -1070,7 +1070,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Value::Char('n').to_string(), "n");
+        assert_eq!(Value::Character('n').to_string(), "n");
         assert_eq!(Value::Int32(13).to_string(), "13");
         assert_eq!(Value::Float(0.0).to_string(), "0");
 
@@ -1109,7 +1109,7 @@ mod tests {
     fn test_from_str_type() {
         assert_eq!(
             Value::from_str_type("n", Type::Character),
-            Ok(Value::Char('n'))
+            Ok(Value::Character('n'))
         );
         assert_eq!(
             Value::from_str_type("", Type::Character),

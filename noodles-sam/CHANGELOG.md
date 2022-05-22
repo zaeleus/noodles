@@ -17,6 +17,8 @@
 
     Replace usages of `From<Vec<Op>>` with `TryFrom<Vec<Op>>`.
 
+  * sam/record/data/field/value: Rename `Value::Char` to `Value::Character`.
+
   * sam/record/data/field/value/ty: Rename `Type::Char` to `Type::Character`.
 
   * sam/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.

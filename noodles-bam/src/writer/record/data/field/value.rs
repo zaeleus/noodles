@@ -27,7 +27,7 @@ where
     B: BufMut,
 {
     match value {
-        Value::Char(c) => dst.put_u8(*c as u8),
+        Value::Character(c) => dst.put_u8(*c as u8),
         Value::Int8(n) => dst.put_i8(*n),
         Value::UInt8(n) => dst.put_u8(*n),
         Value::Int16(n) => dst.put_i16_le(*n),
@@ -126,7 +126,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Char('n'), &[b'n'])?;
+        t(&mut buf, &Value::Character('n'), &[b'n'])?;
         t(&mut buf, &Value::Int8(1), &[0x01])?;
         t(&mut buf, &Value::UInt8(2), &[0x02])?;
         t(&mut buf, &Value::Int16(3), &[0x03, 0x00])?;
