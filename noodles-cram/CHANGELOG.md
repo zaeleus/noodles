@@ -85,7 +85,7 @@
     alignment start, `Option<Position>`; and alignment span, `usize`.
 
   * cram/record: Move `mapping_quality`, `read_name`, and `quality_scores` to
-    the implementation of `sam::AlignmentReader`.
+    the implementation of `sam::AlignmentRecord`.
 
   * cram/record: Rename `flags` to `cram_flags`.
 
