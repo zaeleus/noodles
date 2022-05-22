@@ -24,6 +24,11 @@
     This is defined in _Sequence Alignment/Map Format Specification_
     (2021-06-03) § 1.4 "The alignment section: mandatory fields".
 
+### Fixed
+
+  * sam/record/data/field/value: Ensure a field character value is a single
+    character.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

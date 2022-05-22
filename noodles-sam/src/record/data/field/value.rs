@@ -644,7 +644,7 @@ impl TryFrom<char> for Value {
     type Error = ParseError;
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
-        if is_valid_char(c) {
+        if c.is_ascii_graphic() {
             Ok(Value::Char(c))
         } else {
             Err(ParseError::InvalidCharValue)
@@ -785,18 +785,18 @@ impl fmt::Display for ParseError {
     }
 }
 
-fn is_valid_char(c: char) -> bool {
-    c.is_ascii_graphic()
+fn is_valid_char(n: u8) -> bool {
+    n.is_ascii_graphic()
 }
 
 fn parse_char(s: &str) -> Result<char, ParseError> {
-    if let Some(c) = s.chars().next() {
-        if is_valid_char(c) {
-            return Ok(c);
-        }
-    }
+    let buf = s.as_bytes();
 
-    Err(ParseError::InvalidCharValue)
+    if buf.len() == 1 && is_valid_char(buf[0]) {
+        Ok(char::from(buf[0]))
+    } else {
+        Err(ParseError::InvalidCharValue)
+    }
 }
 
 fn parse_i8(s: &str) -> Result<i8, ParseError> {
@@ -1110,6 +1110,10 @@ mod tests {
         assert_eq!(Value::from_str_type("n", Type::Char), Ok(Value::Char('n')));
         assert_eq!(
             Value::from_str_type("", Type::Char),
+            Err(ParseError::InvalidCharValue)
+        );
+        assert_eq!(
+            Value::from_str_type("ndls", Type::Char),
             Err(ParseError::InvalidCharValue)
         );
         assert_eq!(
