@@ -46,7 +46,7 @@
 
   * bam/record: Move `cigar`, `data`, `flags`, `mapping_quality`,
     `read_name`, `sequence`, `template_length`, and `quality_scores` to the
-    implementation of `sam::AlignmentReader`.
+    implementation of `sam::AlignmentRecord`.
 
   * bam/record: Wrap read name as `sam::record::ReadName`.
 
