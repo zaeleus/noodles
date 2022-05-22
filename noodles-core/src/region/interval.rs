@@ -2,7 +2,9 @@
 
 use std::{
     error, fmt,
-    ops::{Bound, RangeBounds},
+    ops::{
+        Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
+    },
     str::FromStr,
 };
 
@@ -96,10 +98,7 @@ impl FromStr for Interval {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Ok(Self {
-                start: Bound::Unbounded,
-                end: Bound::Unbounded,
-            });
+            return Ok(Self::from(..));
         }
 
         let mut components = s.splitn(2, '-');
@@ -120,7 +119,43 @@ impl FromStr for Interval {
             None => Bound::Unbounded,
         };
 
-        Ok(Self { start, end })
+        Ok(Self::from((start, end)))
+    }
+}
+
+impl From<Range<Position>> for Interval {
+    fn from(range: Range<Position>) -> Self {
+        Self::from((Bound::Included(range.start), Bound::Excluded(range.end)))
+    }
+}
+
+impl From<RangeFrom<Position>> for Interval {
+    fn from(range: RangeFrom<Position>) -> Self {
+        Self::from((Bound::Included(range.start), Bound::Unbounded))
+    }
+}
+
+impl From<RangeFull> for Interval {
+    fn from(_: RangeFull) -> Self {
+        Self::from((Bound::Unbounded, Bound::Unbounded))
+    }
+}
+
+impl From<RangeInclusive<Position>> for Interval {
+    fn from(range: RangeInclusive<Position>) -> Self {
+        Self::from((range.start_bound().cloned(), range.end_bound().cloned()))
+    }
+}
+
+impl From<RangeTo<Position>> for Interval {
+    fn from(range: RangeTo<Position>) -> Self {
+        Self::from((Bound::Unbounded, Bound::Excluded(range.end)))
+    }
+}
+
+impl From<RangeToInclusive<Position>> for Interval {
+    fn from(range: RangeToInclusive<Position>) -> Self {
+        Self::from((Bound::Unbounded, Bound::Included(range.end)))
     }
 }
 
