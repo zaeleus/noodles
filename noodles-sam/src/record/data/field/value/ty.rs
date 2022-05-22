@@ -10,7 +10,7 @@ use std::{
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Type {
     /// Character (`A`).
-    Char,
+    Character,
     /// 8-bit integer (`c`).
     Int8,
     /// 8-bit unsigned integer (`C`).
@@ -61,7 +61,7 @@ impl FromStr for Type {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "A" => Ok(Self::Char),
+            "A" => Ok(Self::Character),
             "c" => Ok(Self::Int8),
             "C" => Ok(Self::UInt8),
             "s" => Ok(Self::Int16),
@@ -82,7 +82,7 @@ impl TryFrom<u8> for Type {
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
         match n {
-            b'A' => Ok(Self::Char),
+            b'A' => Ok(Self::Character),
             b'c' => Ok(Self::Int8),
             b'C' => Ok(Self::UInt8),
             b's' => Ok(Self::Int16),
@@ -107,7 +107,7 @@ impl From<Type> for char {
 impl From<Type> for u8 {
     fn from(ty: Type) -> Self {
         match ty {
-            Type::Char => b'A',
+            Type::Character => b'A',
             Type::Int8 => b'c',
             Type::UInt8 => b'C',
             Type::Int16 => b's',
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Type::Char.to_string(), "A");
+        assert_eq!(Type::Character.to_string(), "A");
         assert_eq!(Type::Int8.to_string(), "c");
         assert_eq!(Type::UInt8.to_string(), "C");
         assert_eq!(Type::Int16.to_string(), "s");
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        assert_eq!("A".parse(), Ok(Type::Char));
+        assert_eq!("A".parse(), Ok(Type::Character));
         assert_eq!("c".parse(), Ok(Type::Int8));
         assert_eq!("C".parse(), Ok(Type::UInt8));
         assert_eq!("s".parse(), Ok(Type::Int16));
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_try_from_u8_for_type() {
-        assert_eq!(Type::try_from(b'A'), Ok(Type::Char));
+        assert_eq!(Type::try_from(b'A'), Ok(Type::Character));
         assert_eq!(Type::try_from(b'c'), Ok(Type::Int8));
         assert_eq!(Type::try_from(b'C'), Ok(Type::UInt8));
         assert_eq!(Type::try_from(b's'), Ok(Type::Int16));
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn test_from_type_for_char() {
-        assert_eq!(char::from(Type::Char), 'A');
+        assert_eq!(char::from(Type::Character), 'A');
         assert_eq!(char::from(Type::Int8), 'c');
         assert_eq!(char::from(Type::UInt8), 'C');
         assert_eq!(char::from(Type::Int16), 's');
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_from_type_for_u8() {
-        assert_eq!(u8::from(Type::Char), b'A');
+        assert_eq!(u8::from(Type::Character), b'A');
         assert_eq!(u8::from(Type::Int8), b'c');
         assert_eq!(u8::from(Type::UInt8), b'C');
         assert_eq!(u8::from(Type::Int16), b's');

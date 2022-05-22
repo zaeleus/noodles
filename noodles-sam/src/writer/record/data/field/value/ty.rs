@@ -32,7 +32,7 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, Type::Char, b"A")?;
+        t(&mut buf, Type::Character, b"A")?;
         t(&mut buf, Type::Int8, b"i")?;
         t(&mut buf, Type::UInt8, b"i")?;
         t(&mut buf, Type::Int16, b"i")?;

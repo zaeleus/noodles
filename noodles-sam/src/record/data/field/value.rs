@@ -65,7 +65,7 @@ impl Value {
     /// ```
     pub fn from_str_type(s: &str, ty: Type) -> Result<Self, ParseError> {
         match ty {
-            Type::Char => parse_char(s).map(Value::Char),
+            Type::Character => parse_char(s).map(Value::Char),
             Type::Int32 => parse_i32(s).map(Value::from),
             Type::Float => parse_f32(s).map(Value::Float),
             Type::String => parse_string(s).map(Value::String),
@@ -85,7 +85,7 @@ impl Value {
     /// ```
     pub fn ty(&self) -> Type {
         match *self {
-            Self::Char(_) => Type::Char,
+            Self::Char(_) => Type::Character,
             Self::Int8(_) => Type::Int8,
             Self::UInt8(_) => Type::UInt8,
             Self::Int16(_) => Type::Int16,
@@ -909,7 +909,7 @@ mod tests {
 
     #[test]
     fn test_ty() {
-        assert_eq!(Value::Char('n').ty(), Type::Char);
+        assert_eq!(Value::Char('n').ty(), Type::Character);
         assert_eq!(Value::Int32(0).ty(), Type::Int32);
         assert_eq!(Value::Float(0.0).ty(), Type::Float);
         assert_eq!(Value::String(String::from("noodles")).ty(), Type::String);
@@ -1107,17 +1107,20 @@ mod tests {
 
     #[test]
     fn test_from_str_type() {
-        assert_eq!(Value::from_str_type("n", Type::Char), Ok(Value::Char('n')));
         assert_eq!(
-            Value::from_str_type("", Type::Char),
+            Value::from_str_type("n", Type::Character),
+            Ok(Value::Char('n'))
+        );
+        assert_eq!(
+            Value::from_str_type("", Type::Character),
             Err(ParseError::InvalidCharValue)
         );
         assert_eq!(
-            Value::from_str_type("ndls", Type::Char),
+            Value::from_str_type("ndls", Type::Character),
             Err(ParseError::InvalidCharValue)
         );
         assert_eq!(
-            Value::from_str_type("🍜", Type::Char),
+            Value::from_str_type("🍜", Type::Character),
             Err(ParseError::InvalidCharValue)
         );
 

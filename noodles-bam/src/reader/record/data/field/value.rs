@@ -33,7 +33,7 @@ where
     B: Buf,
 {
     match ty {
-        Type::Char => get_char_value(src),
+        Type::Character => get_char_value(src),
         Type::Int8 => get_i8_value(src),
         Type::UInt8 => get_u8_value(src),
         Type::Int16 => get_i16_value(src),
@@ -243,7 +243,7 @@ mod tests {
             Ok(())
         }
 
-        t(&[b'n'], Type::Char, Value::Char('n'))?;
+        t(&[b'n'], Type::Character, Value::Char('n'))?;
         t(&[0x00], Type::Int8, Value::Int8(0))?;
         t(&[0x00], Type::UInt8, Value::UInt8(0))?;
         t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;
