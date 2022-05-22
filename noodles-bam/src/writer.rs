@@ -187,6 +187,7 @@ where
         reference_sequences: &ReferenceSequences,
         record: &sam::Record,
     ) -> io::Result<()> {
+        self.buf.clear();
         encode_alignment_record(&mut self.buf, reference_sequences, record)?;
 
         let block_size = u32::try_from(self.buf.len())
@@ -194,8 +195,6 @@ where
         self.inner.write_u32::<LittleEndian>(block_size)?;
 
         self.inner.write_all(&self.buf)?;
-
-        self.buf.clear();
 
         Ok(())
     }
@@ -262,6 +261,7 @@ where
         header: &sam::Header,
         record: &dyn sam::AlignmentRecord,
     ) -> io::Result<()> {
+        self.buf.clear();
         encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
 
         let block_size = u32::try_from(self.buf.len())
@@ -269,8 +269,6 @@ where
         self.inner.write_u32::<LittleEndian>(block_size)?;
 
         self.inner.write_all(&self.buf)?;
-
-        self.buf.clear();
 
         Ok(())
     }
