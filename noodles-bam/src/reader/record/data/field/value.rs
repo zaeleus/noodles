@@ -7,6 +7,7 @@ use std::{io, mem};
 
 use bytes::Buf;
 use noodles_sam::record::data::field::{
+    value::Character,
     value::{Subtype, Type},
     Value,
 };
@@ -55,7 +56,9 @@ where
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    Ok(Value::Character(char::from(src.get_u8())))
+    Character::try_from(src.get_u8())
+        .map(Value::Character)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn get_i8_value<B>(src: &mut B) -> io::Result<Value>
@@ -236,14 +239,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_value() -> io::Result<()> {
+    fn test_get_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut data: &[u8], ty: Type, expected: Value) -> io::Result<()> {
             let actual = get_value(&mut data, ty)?;
             assert_eq!(actual, expected);
             Ok(())
         }
 
-        t(&[b'n'], Type::Character, Value::Character('n'))?;
+        t(
+            &[b'n'],
+            Type::Character,
+            Value::Character(Character::try_from('n')?),
+        )?;
         t(&[0x00], Type::Int8, Value::Int8(0))?;
         t(&[0x00], Type::UInt8, Value::UInt8(0))?;
         t(&[0x00, 0x00], Type::Int16, Value::Int16(0))?;

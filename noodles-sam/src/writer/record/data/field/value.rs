@@ -7,7 +7,7 @@ use std::io::{self, Write};
 
 use self::subtype::write_subtype;
 use crate::{
-    record::data::field::{value::Subtype, Value},
+    record::data::field::{value::Character, value::Subtype, Value},
     writer::write_int,
 };
 
@@ -18,7 +18,7 @@ where
     const ARRAY_VALUE_DELIMITER: u8 = b',';
 
     match value {
-        Value::Character(c) => writer.write_all(&[*c as u8]),
+        Value::Character(c) => write_character(writer, *c),
         Value::Int8(n) => write_int(writer, *n),
         Value::UInt8(n) => write_int(writer, *n),
         Value::Int16(n) => write_int(writer, *n),
@@ -99,12 +99,20 @@ where
     }
 }
 
+pub fn write_character<W>(writer: &mut W, character: Character) -> io::Result<()>
+where
+    W: Write,
+{
+    let c = u8::from(character);
+    writer.write_all(&[c])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_write_value() -> io::Result<()> {
+    fn test_write_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_value(buf, value)?;
@@ -114,7 +122,11 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Character('n'), &[b'n'])?;
+        t(
+            &mut buf,
+            &Value::Character(Character::try_from('n')?),
+            &[b'n'],
+        )?;
         t(&mut buf, &Value::Int8(1), b"1")?;
         t(&mut buf, &Value::UInt8(2), b"2")?;
         t(&mut buf, &Value::Int16(3), b"3")?;

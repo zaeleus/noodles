@@ -12,6 +12,10 @@
     `Reader::records_with_fields` to read records and only decode a subset of
     fields.
 
+### Changed
+
+  * bam/reader/record/data/field/value: Validate character values.
+
 ## 0.18.0 - 2022-04-14
 
 ### Added

@@ -27,7 +27,7 @@ where
     B: BufMut,
 {
     match value {
-        Value::Character(c) => dst.put_u8(*c as u8),
+        Value::Character(c) => dst.put_u8(u8::from(*c)),
         Value::Int8(n) => dst.put_i8(*n),
         Value::UInt8(n) => dst.put_u8(*n),
         Value::Int16(n) => dst.put_i16_le(*n),
@@ -116,7 +116,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_put_value() -> io::Result<()> {
+    fn test_put_value() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_sam::record::data::field::value::Character;
+
         fn t(buf: &mut Vec<u8>, value: &Value, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             put_value(buf, value)?;
@@ -126,7 +128,11 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, &Value::Character('n'), &[b'n'])?;
+        t(
+            &mut buf,
+            &Value::Character(Character::try_from('n')?),
+            &[b'n'],
+        )?;
         t(&mut buf, &Value::Int8(1), &[0x01])?;
         t(&mut buf, &Value::UInt8(2), &[0x02])?;
         t(&mut buf, &Value::Int16(3), &[0x03, 0x00])?;

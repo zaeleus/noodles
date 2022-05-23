@@ -17,7 +17,16 @@
 
     Replace usages of `From<Vec<Op>>` with `TryFrom<Vec<Op>>`.
 
+  * sam/record/data/field/value: Validate character values.
+
+    This guarantees the character value is `!`..=`~`.
+
+  * sam/record/data/field/value: Add character value wrapper (`Character`).
+
   * sam/record/data/field/value: Rename `Value::Char` to `Value::Character`.
+
+  * sam/record/data/field/value: Rename `ParseError::InvalidCharValue` to
+    `Value::InvalidCharacterValue`.
 
   * sam/record/data/field/value/ty: Rename `Type::Char` to `Type::Character`.
 
@@ -28,10 +37,12 @@
     This is defined in _Sequence Alignment/Map Format Specification_
     (2021-06-03) § 1.4 "The alignment section: mandatory fields".
 
-### Fixed
+### Deprecated
 
-  * sam/record/data/field/value: Ensure a field character value is a single
-    character.
+  * sam/record/data/field/value: Deprecate `Value::as_char` and
+    `Value::is_char`.
+
+    Use `Value::as_character` and `Value::is_character`, respectively, instead.
 
 ## 0.15.0 - 2022-04-14
 
