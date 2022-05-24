@@ -11,11 +11,13 @@ pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;
 pub mod sequence;
+pub mod template_length;
 
 pub use self::{
     builder::Builder, cigar::Cigar, data::Data, field::Field, flags::Flags,
     mapping_quality::MappingQuality, parser::ParseError, quality_scores::QualityScores,
     read_name::ReadName, reference_sequence_name::ReferenceSequenceName, sequence::Sequence,
+    template_length::TemplateLength,
 };
 
 use std::{fmt, io, str::FromStr};
