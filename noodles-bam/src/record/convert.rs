@@ -5,40 +5,6 @@ use noodles_sam::{self as sam, AlignmentRecord};
 use super::Record;
 
 impl Record {
-    /// Converts a SAM record to a BAM record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, header::ReferenceSequences};
-    ///
-    /// let reference_sequences = ReferenceSequences::default();
-    /// let sam_record = sam::Record::default();
-    ///
-    /// let record = bam::Record::try_from_sam_record(&reference_sequences, &sam_record)?;
-    /// assert_eq!(record, bam::Record::default());
-    /// # Ok::<(), io::Error>(())
-    /// ```
-    pub fn try_from_sam_record(
-        reference_sequences: &sam::header::ReferenceSequences,
-        sam_record: &sam::Record,
-    ) -> io::Result<Self> {
-        use crate::{
-            reader::record::decode_record, writer::alignment_record::encode_alignment_record,
-        };
-
-        let mut buf = Vec::new();
-        encode_alignment_record(&mut buf, reference_sequences, sam_record)?;
-
-        let mut src = &buf[..];
-        let mut record = Self::default();
-        decode_record(&mut src, &mut record)?;
-
-        Ok(record)
-    }
-
     /// Converts this record to a SAM record.
     ///
     /// # Examples

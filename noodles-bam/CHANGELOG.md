@@ -16,6 +16,10 @@
 
   * bam/reader/record/data/field/value: Validate character values.
 
+### Removed
+
+  * bam/record/convert: Remove `Record::try_from_sam_record`.
+
 ## 0.18.0 - 2022-04-14
 
 ### Added
