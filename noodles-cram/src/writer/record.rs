@@ -157,7 +157,7 @@ where
     }
 
     fn write_reference_id(&mut self, reference_sequence_id: Option<usize>) -> io::Result<()> {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         let encoding = self
             .compression_header
@@ -343,7 +343,7 @@ where
         &mut self,
         next_fragment_reference_sequence_id: Option<usize>,
     ) -> io::Result<()> {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         let encoding = self
             .compression_header

@@ -177,7 +177,7 @@ fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
-    use crate::record::reference_sequence_id::UNMAPPED;
+    const UNMAPPED: i32 = -1;
 
     if src.remaining() < mem::size_of::<i32>() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));

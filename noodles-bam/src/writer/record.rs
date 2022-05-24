@@ -99,7 +99,7 @@ fn put_reference_sequence_id<B>(dst: &mut B, reference_sequence_id: Option<usize
 where
     B: BufMut,
 {
-    use crate::record::reference_sequence_id::UNMAPPED;
+    const UNMAPPED: i32 = -1;
 
     let ref_id = if let Some(id) = reference_sequence_id {
         i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?

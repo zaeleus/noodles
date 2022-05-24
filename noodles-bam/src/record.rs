@@ -2,6 +2,8 @@
 
 pub mod builder;
 mod convert;
+
+#[deprecated(since = "0.19.0")]
 pub mod reference_sequence_id;
 
 pub use self::builder::Builder;

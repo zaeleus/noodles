@@ -165,7 +165,7 @@ where
     }
 
     fn read_reference_id(&mut self) -> io::Result<Option<usize>> {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         let encoding = self
             .compression_header
@@ -362,7 +362,7 @@ where
     }
 
     fn read_next_fragment_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         let encoding = self
             .compression_header

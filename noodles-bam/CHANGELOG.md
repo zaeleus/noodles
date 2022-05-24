@@ -12,6 +12,12 @@
     `Reader::records_with_fields` to read records and only decode a subset of
     fields.
 
+### Deprecated
+
+  * bam/record: Deprecate the `reference_sequence_id` module.
+
+    This includes the `reference_sequence_id::UNMAPPED` constant.
+
 ### Changed
 
   * bam/reader/record/data/field/value: Validate character values.

@@ -6,7 +6,6 @@ pub use self::field::Field;
 
 use std::{error, fmt, num, str::FromStr};
 
-use noodles_bam as bam;
 use noodles_core::Position;
 
 const FIELD_DELIMITER: char = '\t';
@@ -200,7 +199,7 @@ impl Record {
 
 impl fmt::Display for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         if let Some(id) = self.reference_sequence_id() {
             write!(f, "{}\t", id)?;
@@ -247,7 +246,7 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use bam::record::reference_sequence_id::UNMAPPED;
+        const UNMAPPED: i32 = -1;
 
         let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 

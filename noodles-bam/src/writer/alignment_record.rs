@@ -108,7 +108,7 @@ fn put_reference_sequence_id<B>(
 where
     B: BufMut,
 {
-    use crate::record::reference_sequence_id;
+    const UNMAPPED: i32 = -1;
 
     let id = match reference_sequence_name {
         Some(name) => reference_sequences
@@ -122,7 +122,7 @@ where
             .and_then(|i| {
                 i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
             })?,
-        None => reference_sequence_id::UNMAPPED,
+        None => UNMAPPED,
     };
 
     dst.put_i32_le(id);
