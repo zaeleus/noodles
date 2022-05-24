@@ -4,10 +4,10 @@
 
 ### Added
 
-  * sam/record: Add `Record::parse_with_fields` to decode only a subset of
+  * sam/reader: Add `Record::records_with_fields` to decode only a subset of
     fields.
 
-  * sam/reader: Add `Record::records_with_fields` to decode only a subset of
+  * sam/record: Add `Record::parse_with_fields` to decode only a subset of
     fields.
 
 ### Changed
