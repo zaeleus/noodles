@@ -225,7 +225,7 @@ where
         record: &dyn sam::AlignmentRecord,
     ) -> io::Result<()> {
         self.buf.clear();
-        encode_alignment_record(&mut self.buf, header.reference_sequences(), record)?;
+        encode_alignment_record(&mut self.buf, header, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

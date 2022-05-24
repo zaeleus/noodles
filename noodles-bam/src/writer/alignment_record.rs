@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, header::ReferenceSequences};
+use noodles_sam as sam;
 
 use super::record::{
     put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,
@@ -13,7 +13,7 @@ pub(crate) const NULL_QUALITY_SCORE: u8 = 255;
 
 pub fn encode_alignment_record<B>(
     dst: &mut B,
-    reference_sequences: &ReferenceSequences,
+    header: &sam::Header,
     record: &dyn sam::AlignmentRecord,
 ) -> io::Result<()>
 where
@@ -21,11 +21,11 @@ where
 {
     // ref_id
     let reference_sequence_name = record
-        .reference_sequence(reference_sequences)
+        .reference_sequence(header.reference_sequences())
         .transpose()?
         .map(|rs| rs.name());
 
-    put_reference_sequence_id(dst, reference_sequences, reference_sequence_name)?;
+    put_reference_sequence_id(dst, header.reference_sequences(), reference_sequence_name)?;
 
     // pos
     put_position(dst, record.alignment_start())?;
@@ -51,11 +51,15 @@ where
 
     // next_ref_id
     let mate_reference_sequence_name = record
-        .mate_reference_sequence(reference_sequences)
+        .mate_reference_sequence(header.reference_sequences())
         .transpose()?
         .map(|rs| rs.name());
 
-    put_reference_sequence_id(dst, reference_sequences, mate_reference_sequence_name)?;
+    put_reference_sequence_id(
+        dst,
+        header.reference_sequences(),
+        mate_reference_sequence_name,
+    )?;
 
     // next_pos
     put_position(dst, record.mate_alignment_start())?;
@@ -98,7 +102,7 @@ where
 
 fn put_reference_sequence_id<B>(
     dst: &mut B,
-    reference_sequences: &ReferenceSequences,
+    reference_sequences: &sam::header::ReferenceSequences,
     reference_sequence_name: Option<&sam::record::ReferenceSequenceName>,
 ) -> io::Result<()>
 where
