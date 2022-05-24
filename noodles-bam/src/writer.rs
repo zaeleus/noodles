@@ -161,43 +161,6 @@ where
 
         Ok(())
     }
-
-    /// Writes a SAM record.
-    ///
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::io;
-    /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
-    ///
-    /// let mut writer = bam::Writer::new(Vec::new());
-    ///
-    /// let header = sam::Header::default();
-    /// let record = sam::Record::default();
-    /// writer.write_sam_record(header.reference_sequences(), &record)?;
-    /// # Ok::<(), io::Error>(())
-    #[deprecated(
-        since = "0.17.0",
-        note = "Use `Writer::write_alignment_record` instead."
-    )]
-    pub fn write_sam_record(
-        &mut self,
-        reference_sequences: &ReferenceSequences,
-        record: &sam::Record,
-    ) -> io::Result<()> {
-        self.buf.clear();
-        encode_alignment_record(&mut self.buf, reference_sequences, record)?;
-
-        let block_size = u32::try_from(self.buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32::<LittleEndian>(block_size)?;
-
-        self.inner.write_all(&self.buf)?;
-
-        Ok(())
-    }
 }
 
 impl<W> Writer<bgzf::Writer<W>>

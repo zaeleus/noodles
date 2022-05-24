@@ -20,6 +20,10 @@
 
   * bam/record/convert: Remove `Record::try_from_sam_record`.
 
+  * bam/writer: Remove `Writer::write_sam_record`.
+
+    Use `Writer::write_alignment_record` instead.
+
 ## 0.18.0 - 2022-04-14
 
 ### Added
