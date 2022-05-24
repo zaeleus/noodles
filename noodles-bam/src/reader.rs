@@ -23,7 +23,7 @@ use noodles_sam::{
     reader::record::Fields,
 };
 
-use super::{bai, Record, MAGIC_NUMBER};
+use super::{bai, LazyRecord, Record, MAGIC_NUMBER};
 
 /// A BAM reader.
 ///
@@ -226,6 +226,49 @@ where
     ) -> io::Result<usize> {
         use self::record::read_record_with_fields;
         read_record_with_fields(&mut self.inner, &mut self.buf, record, fields)
+    }
+
+    /// Reads a single record without eagerly decoding its fields.
+    ///
+    /// The record block size (`bs`) is read from the underlying stream and `bs` bytes are read
+    /// into the lazy record's buffer. No fields are decoded, meaning the record is not necessarily
+    /// valid. However, the structure of the byte stream is guaranteed to be record-like.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// let mut record = bam::LazyRecord::default();
+    /// reader.read_lazy_record(&mut record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_lazy_record(&mut self, record: &mut LazyRecord) -> io::Result<usize> {
+        let block_size = match self.inner.read_u32::<LittleEndian>() {
+            Ok(n) => {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
+            }
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+            Err(e) => return Err(e),
+        };
+
+        record.buf.resize(block_size, 0);
+        self.inner.read_exact(&mut record.buf)?;
+
+        record.index()?;
+
+        Ok(block_size)
     }
 
     /// Returns an iterator over records starting from the current stream position.

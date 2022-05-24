@@ -7,6 +7,11 @@ mod quality_scores;
 mod read_name;
 mod sequence;
 
+pub(crate) use self::{
+    cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality,
+    quality_scores::get_quality_scores, read_name::get_read_name, sequence::get_sequence,
+};
+
 use std::{
     io::{self, Read},
     mem,
@@ -82,11 +87,6 @@ pub(crate) fn decode_record_with_fields<B>(
 where
     B: Buf,
 {
-    use self::{
-        cigar::get_cigar, data::get_data, mapping_quality::get_mapping_quality,
-        quality_scores::get_quality_scores, read_name::get_read_name, sequence::get_sequence,
-    };
-
     if fields.contains(Fields::REFERENCE_SEQUENCE_ID) {
         *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
     } else {
@@ -173,7 +173,7 @@ where
     Ok(())
 }
 
-fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
+pub(crate) fn get_reference_sequence_id<B>(src: &mut B) -> io::Result<Option<usize>>
 where
     B: Buf,
 {
@@ -191,7 +191,7 @@ where
     }
 }
 
-fn get_position<B>(src: &mut B) -> io::Result<Option<Position>>
+pub(crate) fn get_position<B>(src: &mut B) -> io::Result<Option<Position>>
 where
     B: Buf,
 {
@@ -209,7 +209,7 @@ where
     }
 }
 
-fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
+pub(crate) fn get_flags<B>(src: &mut B) -> io::Result<sam::record::Flags>
 where
     B: Buf,
 {

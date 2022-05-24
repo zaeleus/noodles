@@ -9,7 +9,7 @@ use std::io;
 use bytes::Buf;
 use noodles_sam::record::Data;
 
-pub(super) fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
+pub(crate) fn get_data<B>(src: &mut B, data: &mut Data) -> io::Result<()>
 where
     B: Buf,
 {
