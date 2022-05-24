@@ -279,8 +279,7 @@ impl LazyRecord {
     }
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
-        let mut src = &self.buf[..];
-        index(&mut src, &mut self.bounds)
+        index(&self.buf[..], &mut self.bounds)
     }
 }
 
@@ -312,29 +311,26 @@ impl Default for LazyRecord {
     }
 }
 
-fn index<B>(mut src: B, bounds: &mut Bounds) -> io::Result<()>
-where
-    B: Buf,
-{
-    // ref_id + pos
-    src.advance(mem::size_of::<i32>() * 2);
+fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
+    const MIN_BUF_LENGTH: usize = TEMPLATE_LENGTH_RANGE.end;
+    const READ_NAME_LENGTH_RANGE: Range<usize> = 8..9;
+    const CIGAR_OP_COUNT_RANGE: Range<usize> = 12..14;
+    const READ_LENGTH_RANGE: Range<usize> = 16..20;
 
+    if buf.len() < MIN_BUF_LENGTH {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    let mut src = &buf[READ_NAME_LENGTH_RANGE];
     let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
 
-    // mapq + bin
-    src.advance(mem::size_of::<u8>() + mem::size_of::<u16>());
-
+    let mut src = &buf[CIGAR_OP_COUNT_RANGE];
     let n_cigar_op = usize::from(src.get_u16_le());
 
-    // flag
-    src.advance(mem::size_of::<u16>());
-
+    let mut src = &buf[READ_LENGTH_RANGE];
     let l_seq = usize::try_from(src.get_u32_le())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    // next_ref_id + next_pos + tlen
-    src.advance(mem::size_of::<i32>() * 3);
 
     let mut i = TEMPLATE_LENGTH_RANGE.end;
     i += usize::from(l_read_name);
@@ -349,5 +345,9 @@ where
     i += l_seq;
     bounds.quality_scores_end = i;
 
-    Ok(())
+    if buf.len() < i {
+        Err(io::Error::from(io::ErrorKind::UnexpectedEof))
+    } else {
+        Ok(())
+    }
 }
