@@ -1,5 +1,5 @@
 use std::{
-    io, mem,
+    fmt, io, mem,
     num::NonZeroUsize,
     ops::{Range, RangeFrom},
 };
@@ -50,7 +50,7 @@ impl Bounds {
 /// An immutable, lazily-evalulated BAM record.
 ///
 /// The fields are _not_ memoized.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct LazyRecord {
     pub(crate) buf: Vec<u8>,
     bounds: Bounds,
@@ -280,6 +280,28 @@ impl LazyRecord {
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
         index(&self.buf[..], &mut self.bounds)
+    }
+}
+
+impl fmt::Debug for LazyRecord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LazyRecord")
+            .field("reference_sequence_id", &self.reference_sequence_id())
+            .field("alignment_start", &self.alignment_start())
+            .field("mapping_quality", &self.mapping_quality())
+            .field("flags", &self.flags())
+            .field(
+                "mate_reference_sequence_id",
+                &self.mate_reference_sequence_id(),
+            )
+            .field("mate_alignment_start", &self.mate_alignment_start())
+            .field("template_length", &self.template_length())
+            .field("read_name", &self.read_name())
+            .field("cigar", &self.cigar())
+            .field("sequence", &self.sequence())
+            .field("quality_scores", &self.quality_scores())
+            .field("data", &self.data())
+            .finish()
     }
 }
 
