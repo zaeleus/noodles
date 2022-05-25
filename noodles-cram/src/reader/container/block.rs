@@ -11,6 +11,8 @@ use crate::{
 };
 
 pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
+    let original_src = src.clone();
+
     if !src.has_remaining() {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
@@ -45,7 +47,20 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
 
-    let crc32 = src.get_u32_le();
+    let end = original_src.len() - src.len();
+    let actual_crc32 = crc32(&original_src[..end]);
+
+    let expected_crc32 = src.get_u32_le();
+
+    if actual_crc32 != expected_crc32 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!(
+                "container block checksum mismatch: expected {:08x}, got {:08x}",
+                expected_crc32, actual_crc32
+            ),
+        ));
+    }
 
     Ok(Block::builder()
         .set_compression_method(method)
@@ -53,8 +68,16 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         .set_content_id(block_content_id)
         .set_uncompressed_len(raw_size_in_bytes)
         .set_data(data)
-        .set_crc32(crc32)
+        .set_crc32(expected_crc32)
         .build())
+}
+
+fn crc32(buf: &[u8]) -> u32 {
+    use flate2::Crc;
+
+    let mut crc = Crc::new();
+    crc.update(buf);
+    crc.sum()
 }
 
 #[cfg(test)]
@@ -72,7 +95,7 @@ mod tests {
             0x04, // size in bytes = 4 bytes
             0x04, // raw size in bytes = 4 bytes
             0x6e, 0x64, 0x6c, 0x73, // data = b"ndls",
-            0xfd, 0x38, 0x27, 0xb5, // CRC32
+            0xd7, 0x12, 0x46, 0x3e, // CRC32 = 3e4612d7
         ]);
         let actual = read_block(&mut data)?;
 
@@ -82,7 +105,7 @@ mod tests {
             .set_content_id(1)
             .set_uncompressed_len(4)
             .set_data(Bytes::from_static(b"ndls"))
-            .set_crc32(0xb52738fd)
+            .set_crc32(0x3e4612d7)
             .build();
 
         assert_eq!(actual, expected);

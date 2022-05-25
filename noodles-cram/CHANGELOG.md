@@ -23,6 +23,9 @@
 
   * cram/data_container/slice/builder: Match mate by read name.
 
+  * cram/reader/container/block: Verify the expected CRC32 checksum of the
+    block.
+
   * cram/reader/container/header: Verify the expected CRC32 checksum of the
     container header.
 
