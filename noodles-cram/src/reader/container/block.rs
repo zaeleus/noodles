@@ -68,7 +68,6 @@ pub fn read_block(src: &mut Bytes) -> io::Result<Block> {
         .set_content_id(block_content_id)
         .set_uncompressed_len(raw_size_in_bytes)
         .set_data(data)
-        .set_crc32(expected_crc32)
         .build())
 }
 
@@ -105,7 +104,6 @@ mod tests {
             .set_content_id(1)
             .set_uncompressed_len(4)
             .set_data(Bytes::from_static(b"ndls"))
-            .set_crc32(0x3e4612d7)
             .build();
 
         assert_eq!(actual, expected);

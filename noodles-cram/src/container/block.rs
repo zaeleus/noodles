@@ -31,7 +31,6 @@ pub struct Block {
     content_id: i32,
     uncompressed_len: usize,
     data: Bytes,
-    crc32: u32,
 }
 
 #[allow(clippy::len_without_is_empty)]

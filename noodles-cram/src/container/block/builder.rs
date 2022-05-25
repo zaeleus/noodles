@@ -16,7 +16,6 @@ pub struct Builder {
     content_id: i32,
     uncompressed_len: usize,
     data: Bytes,
-    crc32: u32,
 }
 
 impl Builder {
@@ -42,11 +41,6 @@ impl Builder {
 
     pub fn set_data(mut self, data: Bytes) -> Self {
         self.data = data;
-        self
-    }
-
-    pub fn set_crc32(mut self, crc32: u32) -> Self {
-        self.crc32 = crc32;
         self
     }
 
@@ -97,7 +91,6 @@ impl Builder {
             content_id: self.content_id,
             uncompressed_len: self.uncompressed_len,
             data: self.data,
-            crc32: self.crc32,
         }
     }
 }
