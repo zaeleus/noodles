@@ -97,33 +97,33 @@ impl Record {
     /// Converts this CRAM record to a SAM record.
     ///
     /// This assumes this record is fully resolved.
-    pub fn try_into_sam_record(&self, header: &sam::Header) -> io::Result<sam::Record> {
+    pub fn try_into_sam_record(self, header: &sam::Header) -> io::Result<sam::Record> {
         let mut builder = sam::Record::builder();
 
-        if let Some(read_name) = self.read_name() {
-            builder = builder.set_read_name(read_name.clone());
+        if let Some(read_name) = self.read_name {
+            builder = builder.set_read_name(read_name);
         }
 
-        builder = builder.set_flags(self.bam_flags());
+        builder = builder.set_flags(self.bam_bit_flags);
 
         if let Some(reference_sequence_name) =
-            get_reference_sequence_name(header.reference_sequences(), self.reference_sequence_id())?
+            get_reference_sequence_name(header.reference_sequences(), self.reference_sequence_id)?
         {
             builder = builder.set_reference_sequence_name(reference_sequence_name);
         }
 
-        if let Some(alignment_start) = self.alignment_start() {
+        if let Some(alignment_start) = self.alignment_start {
             builder = builder.set_position(alignment_start);
         }
 
-        if let Some(mapping_quality) = self.mapping_quality() {
+        if let Some(mapping_quality) = self.mapping_quality {
             builder = builder.set_mapping_quality(mapping_quality);
         }
 
-        if !self.bam_flags().is_unmapped() {
+        if !self.bam_bit_flags.is_unmapped() {
             let cigar = self
-                .features()
-                .try_into_cigar(self.read_length())
+                .features
+                .try_into_cigar(self.read_length)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
             builder = builder.set_cigar(cigar);
@@ -131,26 +131,26 @@ impl Record {
 
         if let Some(mate_reference_sequence_name) = get_reference_sequence_name(
             header.reference_sequences(),
-            self.next_fragment_reference_sequence_id(),
+            self.next_fragment_reference_sequence_id,
         )? {
             builder = builder.set_mate_reference_sequence_name(mate_reference_sequence_name);
         }
 
-        if let Some(mate_alignment_start) = self.mate_alignment_start() {
+        if let Some(mate_alignment_start) = self.next_mate_alignment_start {
             builder = builder.set_mate_position(mate_alignment_start);
         }
 
-        builder = builder.set_template_length(self.template_size());
+        builder = builder.set_template_length(self.template_size);
 
-        if !self.bases().is_empty() {
-            builder = builder.set_sequence(self.bases().clone());
+        if !self.bases.is_empty() {
+            builder = builder.set_sequence(self.bases);
         }
 
-        if !self.quality_scores().is_empty() {
-            builder = builder.set_quality_scores(self.quality_scores().clone());
+        if !self.quality_scores.is_empty() {
+            builder = builder.set_quality_scores(self.quality_scores);
         }
 
-        let data = build_data(header.read_groups(), self.tags(), self.read_group_id())?;
+        let data = build_data(header.read_groups(), &self.tags, self.read_group)?;
         builder = builder.set_data(data);
 
         Ok(builder.build())
