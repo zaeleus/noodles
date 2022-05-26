@@ -4,18 +4,10 @@
 
 ### Added
 
-  * bam/async/reader: Add `AsyncReader::read_record_with_fields` and
-    `AsyncReader::records_with_fields` to read records and only decode a subset
-    of fields.
-
   * bam/lazy: Add lazy record (`lazy::Record`).
 
     Lazy records are alignment records that are lazily-evalutated. They fields
     are not necessarily valid, but the buffer is guaranteed to be record-like.
-
-  * bam/reader: Add `Reader::read_record_with_fields` and
-    `Reader::records_with_fields` to read records and only decode a subset of
-    fields.
 
   * bam/reader: Add `Reader::read_lazy_record` to read lazy records.
 

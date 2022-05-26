@@ -1,21 +1,19 @@
 //! Async BAM record field readers.
 
 use bytes::BytesMut;
-use noodles_sam::reader::record::Fields;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::Record;
 
-pub(super) async fn read_record_with_fields<R>(
+pub(super) async fn read_record<R>(
     reader: &mut R,
     buf: &mut BytesMut,
     record: &mut Record,
-    fields: Fields,
 ) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {
-    use crate::reader::record::decode_record_with_fields;
+    use crate::reader::record::decode_record;
 
     let block_size = match reader.read_u32_le().await {
         Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
@@ -26,7 +24,7 @@ where
     buf.resize(block_size, Default::default());
     reader.read_exact(buf).await?;
 
-    decode_record_with_fields(buf, record, fields)?;
+    decode_record(buf, record)?;
 
     Ok(block_size)
 }
@@ -36,7 +34,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_read_record_with_fields() -> io::Result<()> {
+    async fn test_read_record() -> io::Result<()> {
         let data = [
             0x22, 0x00, 0x00, 0x00, // block_size = 34
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -56,9 +54,7 @@ mod tests {
         let mut reader = &data[..];
         let mut buf = BytesMut::new();
         let mut record = Record::default();
-        let fields = Fields::all();
-        let block_size =
-            read_record_with_fields(&mut reader, &mut buf, &mut record, fields).await?;
+        let block_size = read_record(&mut reader, &mut buf, &mut record).await?;
 
         assert_eq!(block_size, 34);
         assert_eq!(record, Record::default());
