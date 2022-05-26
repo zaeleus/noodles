@@ -23,7 +23,7 @@ use noodles_sam::{
     reader::record::Fields,
 };
 
-use super::{bai, LazyRecord, Record, MAGIC_NUMBER};
+use super::{bai, lazy, Record, MAGIC_NUMBER};
 
 /// A BAM reader.
 ///
@@ -250,11 +250,11 @@ where
     /// reader.read_header()?;
     /// reader.read_reference_sequences()?;
     ///
-    /// let mut record = bam::LazyRecord::default();
+    /// let mut record = bam::lazy::Record::default();
     /// reader.read_lazy_record(&mut record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_lazy_record(&mut self, record: &mut LazyRecord) -> io::Result<usize> {
+    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
         let block_size = match self.inner.read_u32::<LittleEndian>() {
             Ok(n) => {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?

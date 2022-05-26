@@ -51,19 +51,19 @@ impl Bounds {
 ///
 /// The fields are _not_ memoized.
 #[derive(Clone, Eq, PartialEq)]
-pub struct LazyRecord {
+pub struct Record {
     pub(crate) buf: Vec<u8>,
     bounds: Bounds,
 }
 
-impl LazyRecord {
+impl Record {
     /// Returns the reference sequence ID.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.reference_sequence_id()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -79,7 +79,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.alignment_start()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -95,7 +95,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.mapping_quality()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -113,7 +113,7 @@ impl LazyRecord {
     /// use noodles_bam as bam;
     /// use noodles_sam::record::Flags;
     ///
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert_eq!(record.flags()?, Flags::UNMAPPED);
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -129,7 +129,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.mate_reference_sequence_id()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -145,7 +145,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.mate_alignment_start()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -161,7 +161,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert_eq!(record.template_length(), 0);
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -176,7 +176,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.read_name()?.is_none());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -198,7 +198,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.cigar()?.is_empty());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -219,7 +219,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.sequence()?.is_empty());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -243,7 +243,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.quality_scores()?.is_empty());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -264,7 +264,7 @@ impl LazyRecord {
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let record = bam::LazyRecord::default();
+    /// let record = bam::lazy::Record::default();
     /// assert!(record.data()?.is_empty());
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -283,9 +283,9 @@ impl LazyRecord {
     }
 }
 
-impl fmt::Debug for LazyRecord {
+impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("LazyRecord")
+        f.debug_struct("Record")
             .field("reference_sequence_id", &self.reference_sequence_id())
             .field("alignment_start", &self.alignment_start())
             .field("mapping_quality", &self.mapping_quality())
@@ -305,7 +305,7 @@ impl fmt::Debug for LazyRecord {
     }
 }
 
-impl Default for LazyRecord {
+impl Default for Record {
     fn default() -> Self {
         let buf = vec![
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -380,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_index() -> io::Result<()> {
-        let mut record = LazyRecord::default();
+        let mut record = Record::default();
 
         record.buf.clear();
         record.buf.extend_from_slice(&[
