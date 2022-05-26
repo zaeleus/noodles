@@ -12,6 +12,7 @@ use noodles_fasta as fasta;
 
 use self::record::Fields;
 use super::{AlignmentReader, AlignmentRecord, Header};
+use crate::lazy;
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -233,6 +234,38 @@ where
     pub fn records_with_fields(&mut self, fields: Fields) -> Records<'_, R> {
         Records::new(self, fields)
     }
+
+    /// Reads a single record without eagerly decoding its fields.
+    ///
+    /// This reads SAM fields from the underlying stream into the given record's buffer until a
+    /// newline is reached. No fields are decoded, meaning the record is not necessarily valid.
+    /// However, the structure of the byte stream is guaranteed to be record-like.
+    ///
+    /// The stream is expected to be directly after the header or at the start of another record.
+    ///
+    /// If successful, the number of bytes read is returned. If the number of bytes read is 0, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_sam as sam;
+    ///
+    /// let data = b"@HD\tVN:1.6
+    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
+    /// ";
+    ///
+    /// let mut reader = sam::Reader::new(&data[..]);
+    /// reader.read_header()?;
+    ///
+    /// let mut record = sam::lazy::Record::default();
+    /// reader.read_lazy_record(&mut record)?;
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+        read_lazy_record(&mut self.inner, record)
+    }
 }
 
 impl<R> Reader<bgzf::Reader<R>>
@@ -316,6 +349,111 @@ where
     }
 
     String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_lazy_record<R>(reader: &mut R, record: &mut lazy::Record) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    record.buf.clear();
+
+    let mut len = 0;
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.read_name_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.flags_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.reference_sequence_name_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.alignment_start_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.mapping_quality_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.cigar_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.mate_reference_sequence_name_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.mate_alignment_start_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.template_length_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.sequence_end = record.buf.len();
+
+    len += read_field(reader, &mut record.buf)?;
+    record.bounds.quality_scores_end = record.buf.len();
+
+    len += read_byte_line(reader, &mut record.buf)?;
+
+    Ok(len)
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const DELIMITER: u8 = b'\t';
+
+    let mut is_delimiter = false;
+    let mut len = 0;
+
+    loop {
+        let src = reader.fill_buf()?;
+
+        if is_delimiter || src.is_empty() {
+            break;
+        }
+
+        let n = match src.iter().position(|&b| b == DELIMITER) {
+            Some(i) => {
+                dst.extend_from_slice(&src[..i]);
+                is_delimiter = true;
+                i + 1
+            }
+            None => {
+                dst.extend_from_slice(src);
+                src.len()
+            }
+        };
+
+        len += n;
+
+        reader.consume(n);
+    }
+
+    Ok(len)
+}
+
+fn read_byte_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    match reader.read_until(LINE_FEED, buf)? {
+        0 => Ok(0),
+        n => {
+            if buf.ends_with(&[LINE_FEED]) {
+                buf.pop();
+
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
+                    buf.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>

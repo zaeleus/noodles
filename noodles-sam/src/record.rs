@@ -6,7 +6,7 @@ pub mod data;
 mod field;
 mod flags;
 pub mod mapping_quality;
-mod parser;
+pub(crate) mod parser;
 pub mod quality_scores;
 pub mod read_name;
 pub mod reference_sequence_name;

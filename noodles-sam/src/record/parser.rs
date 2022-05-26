@@ -252,7 +252,7 @@ where
     })
 }
 
-fn parse_rname<'a, I>(fields: &mut I) -> Result<Option<ReferenceSequenceName>, ParseError>
+pub fn parse_rname<'a, I>(fields: &mut I) -> Result<Option<ReferenceSequenceName>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
