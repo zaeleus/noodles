@@ -10,7 +10,6 @@ use super::{
     Field, Flags, QualityScores, Record, Sequence, EQ_FIELD, NULL_FIELD,
 };
 use crate::{
-    reader::record::Fields,
     record::{
         mapping_quality::{self, MappingQuality},
         read_name::{self, ReadName},
@@ -94,103 +93,55 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse(s: &str) -> Result<Record, ParseError> {
-    parse_with_fields(s, Fields::all())
-}
-
-pub(super) fn parse_with_fields(s: &str, fields: Fields) -> Result<Record, ParseError> {
     let mut raw_fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
 
     let mut builder = Record::builder();
 
-    if fields.contains(Fields::READ_NAME) {
-        if let Some(qname) = parse_qname(&mut raw_fields)? {
-            builder = builder.set_read_name(qname);
-        }
-    } else {
-        parse_string(&mut raw_fields, Field::Name)?;
+    if let Some(qname) = parse_qname(&mut raw_fields)? {
+        builder = builder.set_read_name(qname);
     }
 
-    if fields.contains(Fields::FLAGS) {
-        let flag = parse_flag(&mut raw_fields)?;
-        builder = builder.set_flags(flag);
-    } else {
-        parse_string(&mut raw_fields, Field::Flags)?;
-    }
+    let flag = parse_flag(&mut raw_fields)?;
+    builder = builder.set_flags(flag);
 
     let rname = parse_rname(&mut raw_fields)?;
 
-    if fields.contains(Fields::ALIGNMENT_START) {
-        if let Some(pos) = parse_pos(&mut raw_fields)? {
-            builder = builder.set_position(pos);
-        }
-    } else {
-        parse_string(&mut raw_fields, Field::Position)?;
+    if let Some(pos) = parse_pos(&mut raw_fields)? {
+        builder = builder.set_position(pos);
     }
 
-    if fields.contains(Fields::CIGAR) {
-        let mapq = parse_mapq(&mut raw_fields)?;
+    let mapq = parse_mapq(&mut raw_fields)?;
 
-        if let Some(mapping_quality) = mapq {
-            builder = builder.set_mapping_quality(mapping_quality);
-        }
-    } else {
-        parse_string(&mut raw_fields, Field::MappingQuality)?;
+    if let Some(mapping_quality) = mapq {
+        builder = builder.set_mapping_quality(mapping_quality);
     }
 
-    if fields.contains(Fields::CIGAR) {
-        let cigar = parse_cigar(&mut raw_fields)?;
-        builder = builder.set_cigar(cigar);
-    } else {
-        parse_string(&mut raw_fields, Field::Cigar)?;
+    let cigar = parse_cigar(&mut raw_fields)?;
+    builder = builder.set_cigar(cigar);
+
+    if let Some(rnext) = parse_rnext(&mut raw_fields, rname.as_ref())? {
+        builder = builder.set_mate_reference_sequence_name(rnext);
     }
 
-    if fields.contains(Fields::MATE_REFERENCE_SEQUENCE_ID) {
-        if let Some(rnext) = parse_rnext(&mut raw_fields, rname.as_ref())? {
-            builder = builder.set_mate_reference_sequence_name(rnext);
-        }
-    } else {
-        parse_string(&mut raw_fields, Field::MateReferenceSequenceName)?;
+    if let Some(reference_sequence_name) = rname {
+        builder = builder.set_reference_sequence_name(reference_sequence_name);
     }
 
-    if fields.contains(Fields::REFERENCE_SEQUENCE_ID) {
-        if let Some(reference_sequence_name) = rname {
-            builder = builder.set_reference_sequence_name(reference_sequence_name);
-        }
+    if let Some(pnext) = parse_pnext(&mut raw_fields)? {
+        builder = builder.set_mate_position(pnext);
     }
 
-    if fields.contains(Fields::MATE_ALIGNMENT_START) {
-        if let Some(pnext) = parse_pnext(&mut raw_fields)? {
-            builder = builder.set_mate_position(pnext);
-        }
-    } else {
-        parse_string(&mut raw_fields, Field::MatePosition)?;
-    }
+    let tlen = parse_tlen(&mut raw_fields)?;
+    builder = builder.set_template_length(tlen);
 
-    if fields.contains(Fields::TEMPLATE_LENGTH) {
-        let tlen = parse_tlen(&mut raw_fields)?;
-        builder = builder.set_template_length(tlen);
-    } else {
-        parse_string(&mut raw_fields, Field::TemplateLength)?;
-    }
+    let seq = parse_seq(&mut raw_fields)?;
+    builder = builder.set_sequence(seq);
 
-    if fields.contains(Fields::SEQUENCE) {
-        let seq = parse_seq(&mut raw_fields)?;
-        builder = builder.set_sequence(seq);
-    } else {
-        parse_string(&mut raw_fields, Field::Sequence)?;
-    }
+    let qual = parse_qual(&mut raw_fields)?;
+    builder = builder.set_quality_scores(qual);
 
-    if fields.contains(Fields::QUALITY_SCORES) {
-        let qual = parse_qual(&mut raw_fields)?;
-        builder = builder.set_quality_scores(qual);
-    } else {
-        parse_string(&mut raw_fields, Field::QualityScores)?;
-    }
-
-    if fields.contains(Fields::QUALITY_SCORES) {
-        if let Some(data) = parse_data(&mut raw_fields)? {
-            builder = builder.set_data(data);
-        }
+    if let Some(data) = parse_data(&mut raw_fields)? {
+        builder = builder.set_data(data);
     }
 
     let record = builder.build();
