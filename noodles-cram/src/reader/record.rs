@@ -905,8 +905,6 @@ where
     }
 
     fn read_mapping_quality(&mut self) -> io::Result<Option<sam::record::MappingQuality>> {
-        use sam::record::mapping_quality::MISSING;
-
         let encoding = self
             .compression_header
             .data_series_encoding_map()
@@ -918,17 +916,13 @@ where
                 )
             })?;
 
-        let n = decode_itf8(
+        decode_itf8(
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
         )
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
-
-        match n {
-            MISSING => Ok(None),
-            _ => Ok(sam::record::MappingQuality::new(n)),
-        }
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+        .map(sam::record::MappingQuality::new)
     }
 
     fn read_unmapped_read(
