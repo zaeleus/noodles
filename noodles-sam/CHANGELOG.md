@@ -4,8 +4,15 @@
 
 ### Added
 
+  * sam/lazy: Add lazy record (`lazy::Record`).
+
+    Lazy records are alignment records that are lazily-evalutated. They fields
+    are not necessarily valid, but the buffer is guaranteed to be record-like.
+
   * sam/reader: Add `Record::records_with_fields` to decode only a subset of
     fields.
+
+  * sam/reader: Add `Reader::read_lazy_record` to read lazy records.
 
   * sam/record: Add `Record::parse_with_fields` to decode only a subset of
     fields.
