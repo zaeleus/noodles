@@ -444,16 +444,7 @@ where
     R: Read,
 {
     fn read_alignment_header(&mut self) -> io::Result<sam::Header> {
-        read_magic(&mut self.inner)?;
-
-        let header = read_header(&mut self.inner).and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        self.read_reference_sequences()?;
-
-        Ok(header)
+        read_alignment_header(&mut self.inner)
     }
 
     fn alignment_records<'a>(
@@ -544,6 +535,22 @@ where
     })?;
 
     ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header>
+where
+    R: Read,
+{
+    read_magic(reader)?;
+
+    let header = read_header(reader).and_then(|s| {
+        s.parse()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
+
+    read_reference_sequences(reader)?;
+
+    Ok(header)
 }
 
 pub(crate) fn bytes_with_nul_to_string(buf: &[u8]) -> io::Result<String> {
@@ -640,6 +647,33 @@ mod tests {
                 ReferenceSequence::new(name, len).map(|rs| (sn, rs))
             })
             .collect::<Result<_, _>>()?;
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_alignment_header() -> Result<(), Box<dyn std::error::Error>> {
+        use bytes::BufMut;
+
+        let mut data = Vec::new();
+        data.put_slice(MAGIC_NUMBER); // magic
+        data.put_u32_le(11); // l_text
+        data.put_slice(b"@HD\tVN:1.6\n"); // text
+        data.put_u32_le(1); // n_ref
+        data.put_u32_le(4); // ref[0].l_name
+        data.put_slice(b"sq0\x00"); // ref[0].name
+        data.put_u32_le(8); // ref[0].l_ref
+
+        let mut reader = &data[..];
+        let actual = read_alignment_header(&mut reader)?;
+
+        let expected = sam::Header::builder()
+            .set_header(sam::header::header::Header::new(
+                sam::header::header::Version::new(1, 6),
+            ))
+            .build();
 
         assert_eq!(actual, expected);
 
