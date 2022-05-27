@@ -150,7 +150,8 @@ impl Record {
             builder = builder.set_quality_scores(self.quality_scores);
         }
 
-        let data = build_data(header.read_groups(), &self.tags, self.read_group)?;
+        let mut data = self.tags;
+        maybe_insert_read_group(&mut data, header.read_groups(), self.read_group)?;
         builder = builder.set_data(data);
 
         Ok(builder.build())
@@ -212,17 +213,15 @@ fn get_reference_sequence_name(
         .transpose()
 }
 
-fn build_data(
+fn maybe_insert_read_group(
+    data: &mut sam::record::Data,
     read_groups: &sam::header::ReadGroups,
-    tags: &sam::record::Data,
     read_group_id: Option<usize>,
-) -> io::Result<sam::record::Data> {
+) -> io::Result<()> {
     use sam::record::data::{
-        field::{Tag as SamTag, Value},
+        field::{Tag, Value},
         Field,
     };
-
-    let mut data = tags.clone();
 
     if let Some(id) = read_group_id {
         let name = read_groups
@@ -230,9 +229,9 @@ fn build_data(
             .map(|(_, rg)| rg.id())
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))?;
 
-        let rg = Field::new(SamTag::ReadGroup, Value::String(name.into()));
+        let rg = Field::new(Tag::ReadGroup, Value::String(name.into()));
         data.insert(rg);
     }
 
-    Ok(data)
+    Ok(())
 }
