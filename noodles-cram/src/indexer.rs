@@ -1,7 +1,6 @@
 use std::{cmp, collections::HashMap, fs::File, io, path::Path};
 
 use noodles_core::Position;
-use noodles_sam::AlignmentRecord;
 
 use super::{
     crai,

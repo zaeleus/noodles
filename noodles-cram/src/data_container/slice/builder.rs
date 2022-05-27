@@ -2,7 +2,7 @@ use std::{collections::HashMap, io};
 
 use md5::{Digest, Md5};
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam as sam;
 
 use crate::{
     container::{

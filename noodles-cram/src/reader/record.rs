@@ -10,7 +10,6 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     record::{quality_scores::Score, sequence::Base},
-    AlignmentRecord,
 };
 
 use super::num::get_itf8;

@@ -7,7 +7,6 @@ use std::{
 use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use sam::AlignmentRecord;
 
 use super::Reader;
 use crate::{crai, Record};

@@ -46,6 +46,12 @@
 
     Use `Features::try_into_cigar` instead.
 
+### Removed
+
+  * cram/record: Remove `sam::AlignmentRecord`.
+
+    Convert to a SAM record (`Record::try_into_sam_record`) instead.
+
 ## 0.15.0 - 2022-04-14
 
 ### Added

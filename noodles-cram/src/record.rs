@@ -61,6 +61,11 @@ impl Record {
         self.bam_bit_flags
     }
 
+    /// Returns the SAM flags.
+    pub fn flags(&self) -> sam::record::Flags {
+        self.bam_bit_flags
+    }
+
     /// Returns the CRAM flags.
     ///
     /// This is also called the CRAM bit flags or compression bit flags.
@@ -76,9 +81,35 @@ impl Record {
         self.reference_sequence_id
     }
 
+    /// Returns the associated reference sequence.
+    pub fn reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs sam::header::ReferenceSequences,
+    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
+        get_reference_sequence(reference_sequences, self.reference_sequence_id())
+    }
+
     /// Returns the read length.
     pub fn read_length(&self) -> usize {
         self.read_length
+    }
+
+    /// Returns the alignment start.
+    pub fn alignment_start(&self) -> Option<Position> {
+        self.alignment_start
+    }
+
+    /// Returns the alignment span.
+    fn alignment_span(&self) -> usize {
+        calculate_alignment_span(self.read_length(), self.features())
+    }
+
+    /// Returns the alignment end.
+    pub fn alignment_end(&self) -> Option<Position> {
+        self.alignment_start().and_then(|alignment_start| {
+            let end = usize::from(alignment_start) + self.alignment_span() - 1;
+            Position::new(end)
+        })
     }
 
     /// Returns the read group ID.
@@ -87,6 +118,11 @@ impl Record {
     /// header.
     pub fn read_group_id(&self) -> Option<usize> {
         self.read_group
+    }
+
+    /// Returns the read name.
+    pub fn read_name(&self) -> Option<&sam::record::ReadName> {
+        self.read_name.as_ref()
     }
 
     /// Returns the next mate flags.
@@ -103,6 +139,17 @@ impl Record {
         self.next_fragment_reference_sequence_id
     }
 
+    /// Returns the associated mate reference sequence.
+    pub fn mate_reference_sequence<'rs>(
+        &self,
+        reference_sequences: &'rs sam::header::ReferenceSequences,
+    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
+        get_reference_sequence(
+            reference_sequences,
+            self.next_fragment_reference_sequence_id(),
+        )
+    }
+
     /// Returns the alignment start position of the next mate.
     ///
     /// This value is 1-based.
@@ -110,8 +157,18 @@ impl Record {
         self.next_mate_alignment_start
     }
 
+    /// Returns the alignment start.
+    pub fn mate_alignment_start(&self) -> Option<Position> {
+        self.next_mate_alignment_start
+    }
+
     /// Returns the template size.
     pub fn template_size(&self) -> i32 {
+        self.template_size
+    }
+
+    /// Returns the template size.
+    pub fn template_length(&self) -> i32 {
         self.template_size
     }
 
@@ -127,8 +184,18 @@ impl Record {
         &self.tags
     }
 
+    /// Returns the data.
+    pub fn data(&self) -> &sam::record::Data {
+        &self.tags
+    }
+
     /// Returns the read bases.
     pub fn bases(&self) -> &sam::record::Sequence {
+        &self.bases
+    }
+
+    /// Returns the sequence.
+    pub fn sequence(&self) -> &sam::record::Sequence {
         &self.bases
     }
 
@@ -140,43 +207,19 @@ impl Record {
     pub(crate) fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
     }
-}
 
-impl Default for Record {
-    fn default() -> Self {
-        Builder::default().build()
-    }
-}
-
-impl sam::AlignmentRecord for Record {
-    fn read_name(&self) -> Option<&sam::record::ReadName> {
-        self.read_name.as_ref()
-    }
-
-    fn reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
-        get_reference_sequence(reference_sequences, self.reference_sequence_id())
-    }
-
-    fn flags(&self) -> sam::record::Flags {
-        self.bam_bit_flags
-    }
-
-    fn alignment_start(&self) -> Option<Position> {
-        self.alignment_start
-    }
-
-    fn alignment_span(&self) -> usize {
-        calculate_alignment_span(self.read_length(), self.features())
-    }
-
-    fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
+    /// Returns the mapping quality.
+    pub fn mapping_quality(&self) -> Option<sam::record::MappingQuality> {
         self.mapping_quality
     }
 
-    fn cigar(&self) -> &sam::record::Cigar {
+    /// Returns the quality scores.
+    pub fn quality_scores(&self) -> &sam::record::QualityScores {
+        &self.quality_scores
+    }
+
+    /// Returns the CIGAR operations.
+    pub fn cigar(&self) -> &sam::record::Cigar {
         self.cigar.get_or_init(|| {
             if self.flags().is_unmapped() {
                 sam::record::Cigar::default()
@@ -186,35 +229,11 @@ impl sam::AlignmentRecord for Record {
             }
         })
     }
+}
 
-    fn mate_reference_sequence<'rs>(
-        &self,
-        reference_sequences: &'rs sam::header::ReferenceSequences,
-    ) -> Option<io::Result<&'rs sam::header::ReferenceSequence>> {
-        get_reference_sequence(
-            reference_sequences,
-            self.next_fragment_reference_sequence_id(),
-        )
-    }
-
-    fn mate_alignment_start(&self) -> Option<Position> {
-        self.next_mate_alignment_start
-    }
-
-    fn template_length(&self) -> i32 {
-        self.template_size
-    }
-
-    fn sequence(&self) -> &sam::record::Sequence {
-        &self.bases
-    }
-
-    fn quality_scores(&self) -> &sam::record::QualityScores {
-        &self.quality_scores
-    }
-
-    fn data(&self) -> &sam::record::Data {
-        &self.tags
+impl Default for Record {
+    fn default() -> Self {
+        Builder::default().build()
     }
 }
 
