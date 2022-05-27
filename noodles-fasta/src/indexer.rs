@@ -40,38 +40,7 @@ where
     /// and the number of bases in the line. If the number of bytes read is 0, the entire sequence
     /// of the current record was read.
     fn consume_sequence_line(&mut self) -> io::Result<(usize, usize)> {
-        self.line_buf.clear();
-
-        let mut bytes_read = 0;
-        let mut is_eol = false;
-
-        loop {
-            let buf = self.inner.fill_buf()?;
-
-            if is_eol || buf.is_empty() || buf[0] == DEFINITION_PREFIX {
-                break;
-            }
-
-            let len = match memchr(NEWLINE, buf) {
-                Some(i) => {
-                    self.line_buf.extend(&buf[..=i]);
-                    is_eol = true;
-                    i + 1
-                }
-                None => {
-                    self.line_buf.extend(buf);
-                    buf.len()
-                }
-            };
-
-            self.inner.consume(len);
-
-            bytes_read += len;
-        }
-
-        let base_count = len_with_right_trim(&self.line_buf);
-
-        Ok((bytes_read, base_count))
+        consume_sequence_line(&mut self.inner, &mut self.line_buf)
     }
 
     /// Indexes a raw FASTA record.
@@ -148,6 +117,44 @@ where
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
+}
+
+fn consume_sequence_line<R>(reader: &mut R, line_buf: &mut Vec<u8>) -> io::Result<(usize, usize)>
+where
+    R: BufRead,
+{
+    line_buf.clear();
+
+    let mut bytes_read = 0;
+    let mut is_eol = false;
+
+    loop {
+        let buf = reader.fill_buf()?;
+
+        if is_eol || buf.is_empty() || buf[0] == DEFINITION_PREFIX {
+            break;
+        }
+
+        let len = match memchr(NEWLINE, buf) {
+            Some(i) => {
+                line_buf.extend(&buf[..=i]);
+                is_eol = true;
+                i + 1
+            }
+            None => {
+                line_buf.extend(buf);
+                buf.len()
+            }
+        };
+
+        reader.consume(len);
+
+        bytes_read += len;
+    }
+
+    let base_count = len_with_right_trim(line_buf);
+
+    Ok((bytes_read, base_count))
 }
 
 fn len_with_right_trim(vec: &[u8]) -> usize {
