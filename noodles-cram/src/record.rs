@@ -17,7 +17,6 @@ use std::io;
 
 use noodles_core::Position;
 use noodles_sam as sam;
-use once_cell::sync::OnceCell;
 
 /// A CRAM record.
 #[derive(Clone, Debug, PartialEq)]
@@ -40,8 +39,6 @@ pub struct Record {
     pub(crate) features: Features,
     pub(crate) mapping_quality: Option<sam::record::MappingQuality>,
     pub(crate) quality_scores: sam::record::QualityScores,
-
-    pub(crate) cigar: OnceCell<sam::record::Cigar>,
 }
 
 impl Record {
@@ -216,18 +213,6 @@ impl Record {
     /// Returns the quality scores.
     pub fn quality_scores(&self) -> &sam::record::QualityScores {
         &self.quality_scores
-    }
-
-    /// Returns the CIGAR operations.
-    pub fn cigar(&self) -> &sam::record::Cigar {
-        self.cigar.get_or_init(|| {
-            if self.flags().is_unmapped() {
-                sam::record::Cigar::default()
-            } else {
-                // FIXME
-                self.features().try_into_cigar(self.read_length()).unwrap()
-            }
-        })
     }
 }
 
