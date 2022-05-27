@@ -19,6 +19,17 @@
 [#86]: https://github.com/zaeleus/noodles/issues/86
 [#87]: https://github.com/zaeleus/noodles/issues/87
 
+### Changed
+
+  * fasta/indexer: Sequence lines no longer strip end-of-line ASCII whitespace.
+
+    This previously would take a line (i.e., characters up to `\n`) and strip
+    [ASCII whitespace] from the end. To be consistent with the FASTA reader,
+    all characters in the line are now considered bases. This leads to a ~20%
+    performance improvement by avoiding having to copy the line buffer.
+
+[ASCII whitespace]: https://infra.spec.whatwg.org/#ascii-whitespace
+
 ## 0.10.0 - 2022-04-14
 
 ### Added

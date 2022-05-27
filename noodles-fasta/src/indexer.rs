@@ -10,7 +10,7 @@ use memchr::memchr;
 
 use super::{
     fai::Record,
-    reader::{read_line, DEFINITION_PREFIX, NEWLINE},
+    reader::{read_line, DEFINITION_PREFIX},
     record::definition::{Definition, ParseError},
 };
 
@@ -18,7 +18,6 @@ use super::{
 pub struct Indexer<R> {
     inner: R,
     offset: u64,
-    line_buf: Vec<u8>,
 }
 
 impl<R> Indexer<R>
@@ -27,11 +26,7 @@ where
 {
     /// Creates a FASTA indexer.
     pub fn new(inner: R) -> Self {
-        Self {
-            inner,
-            offset: 0,
-            line_buf: Vec::new(),
-        }
+        Self { inner, offset: 0 }
     }
 
     /// Consumes a single sequence line.
@@ -40,7 +35,7 @@ where
     /// and the number of bases in the line. If the number of bytes read is 0, the entire sequence
     /// of the current record was read.
     fn consume_sequence_line(&mut self) -> io::Result<(usize, usize)> {
-        consume_sequence_line(&mut self.inner, &mut self.line_buf)
+        consume_sequence_line(&mut self.inner)
     }
 
     /// Indexes a raw FASTA record.
@@ -119,49 +114,47 @@ where
     }
 }
 
-fn consume_sequence_line<R>(reader: &mut R, line_buf: &mut Vec<u8>) -> io::Result<(usize, usize)>
+fn consume_sequence_line<R>(reader: &mut R) -> io::Result<(usize, usize)>
 where
     R: BufRead,
 {
-    line_buf.clear();
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    fn count_bases(buf: &[u8]) -> usize {
+        if buf.ends_with(&[CARRIAGE_RETURN]) {
+            buf.len() - 1
+        } else {
+            buf.len()
+        }
+    }
 
     let mut bytes_read = 0;
+    let mut base_count = 0;
     let mut is_eol = false;
 
     loop {
-        let buf = reader.fill_buf()?;
+        let src = reader.fill_buf()?;
 
-        if is_eol || buf.is_empty() || buf[0] == DEFINITION_PREFIX {
+        if is_eol || src.is_empty() || src[0] == DEFINITION_PREFIX {
             break;
         }
 
-        let len = match memchr(NEWLINE, buf) {
+        let (chunk_len, chunk_base_count) = match memchr(LINE_FEED, src) {
             Some(i) => {
-                line_buf.extend(&buf[..=i]);
                 is_eol = true;
-                i + 1
+                (i + 1, count_bases(&src[..i]))
             }
-            None => {
-                line_buf.extend(buf);
-                buf.len()
-            }
+            None => (src.len(), count_bases(src)),
         };
 
-        reader.consume(len);
+        reader.consume(chunk_len);
 
-        bytes_read += len;
+        bytes_read += chunk_len;
+        base_count += chunk_base_count;
     }
-
-    let base_count = len_with_right_trim(line_buf);
 
     Ok((bytes_read, base_count))
-}
-
-fn len_with_right_trim(vec: &[u8]) -> usize {
-    match vec.iter().rposition(|x| !x.is_ascii_whitespace()) {
-        Some(i) => i + 1,
-        None => 0,
-    }
 }
 
 #[derive(Debug)]
@@ -231,18 +224,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_consume_sequence_line() -> io::Result<()> {
-        let data = b"ACGT\nNNNN\n";
-        let mut indexer = Indexer::new(&data[..]);
-
-        let (bytes_read, base_count) = indexer.consume_sequence_line()?;
-        assert_eq!(bytes_read, 5);
-        assert_eq!(base_count, 4);
-
-        Ok(())
-    }
-
-    #[test]
     fn test_index_record() -> Result<(), IndexError> {
         let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
         let mut indexer = Indexer::new(&data[..]);
@@ -271,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_index_record_with_invalid_line_width() {
-        let data = b">sq0\nACGT\nACGT \nACGT\nAC\n";
+        let data = b">sq0\nACGT\nACGT\r\nACGT\nAC\n";
         let mut indexer = Indexer::new(&data[..]);
 
         assert!(matches!(
@@ -292,8 +273,27 @@ mod tests {
     }
 
     #[test]
-    fn test_len_with_right_trim() {
-        assert_eq!(len_with_right_trim(b"ATGC\n"), 4);
-        assert_eq!(len_with_right_trim(b"ATGC\r\n"), 4);
+    fn test_consume_sequence_line() -> io::Result<()> {
+        use std::io::BufReader;
+
+        let data = b"ACGT\nNNNN\n";
+        let mut reader = &data[..];
+        let (len, base_count) = consume_sequence_line(&mut reader)?;
+        assert_eq!(len, 5);
+        assert_eq!(base_count, 4);
+
+        let data = b"ACGT\r\nNNNN\r\n";
+        let mut reader = &data[..];
+        let (len, base_count) = consume_sequence_line(&mut reader)?;
+        assert_eq!(len, 6);
+        assert_eq!(base_count, 4);
+
+        let data = b"ACGT\r\nNNNN\r\n";
+        let mut reader = BufReader::with_capacity(3, &data[..]);
+        let (len, base_count) = consume_sequence_line(&mut reader)?;
+        assert_eq!(len, 6);
+        assert_eq!(base_count, 4);
+
+        Ok(())
     }
 }
