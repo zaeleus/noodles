@@ -2,22 +2,38 @@ use std::io;
 
 use bytes::{Buf, Bytes};
 
-use crate::{data_container::compression_header::Encoding, reader::num::get_itf8};
+use crate::{
+    data_container::compression_header::{encoding::Kind, Encoding},
+    reader::num::get_itf8,
+};
 
 pub fn get_encoding(src: &mut Bytes) -> io::Result<Encoding> {
-    let raw_kind = get_itf8(src)?;
+    match get_kind(src)? {
+        Kind::Null => Ok(Encoding::Null),
+        Kind::External => get_external_encoding(src),
+        Kind::Golomb => get_golomb_encoding(src),
+        Kind::Huffman => get_huffman_encoding(src),
+        Kind::ByteArrayLen => get_byte_array_len_encoding(src),
+        Kind::ByteArrayStop => get_byte_array_stop_encoding(src),
+        Kind::Beta => get_beta_encoding(src),
+        Kind::Subexp => get_subexp_encoding(src),
+        Kind::GolombRice => get_golomb_rice_encoding(src),
+        Kind::Gamma => get_gamma_encoding(src),
+    }
+}
 
-    match raw_kind {
-        0 => Ok(Encoding::Null),
-        1 => get_external_encoding(src),
-        2 => get_golomb_encoding(src),
-        3 => get_huffman_encoding(src),
-        4 => get_byte_array_len_encoding(src),
-        5 => get_byte_array_stop_encoding(src),
-        6 => get_beta_encoding(src),
-        7 => get_subexp_encoding(src),
-        8 => get_golomb_rice_encoding(src),
-        9 => get_gamma_encoding(src),
+fn get_kind(src: &mut Bytes) -> io::Result<Kind> {
+    match get_itf8(src)? {
+        0 => Ok(Kind::Null),
+        1 => Ok(Kind::External),
+        2 => Ok(Kind::Golomb),
+        3 => Ok(Kind::Huffman),
+        4 => Ok(Kind::ByteArrayLen),
+        5 => Ok(Kind::ByteArrayStop),
+        6 => Ok(Kind::Beta),
+        7 => Ok(Kind::Subexp),
+        8 => Ok(Kind::GolombRice),
+        9 => Ok(Kind::Gamma),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid encoding kind",
@@ -146,6 +162,35 @@ fn get_gamma_encoding(src: &mut Bytes) -> io::Result<Encoding> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_kind() -> io::Result<()> {
+        fn t(buf: &'static [u8], expected: Kind) -> io::Result<()> {
+            let mut src = Bytes::from_static(buf);
+            let actual = get_kind(&mut src)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[0x00], Kind::Null)?;
+        t(&[0x01], Kind::External)?;
+        t(&[0x02], Kind::Golomb)?;
+        t(&[0x03], Kind::Huffman)?;
+        t(&[0x04], Kind::ByteArrayLen)?;
+        t(&[0x05], Kind::ByteArrayStop)?;
+        t(&[0x06], Kind::Beta)?;
+        t(&[0x07], Kind::Subexp)?;
+        t(&[0x08], Kind::GolombRice)?;
+        t(&[0x09], Kind::Gamma)?;
+
+        let mut src = Bytes::from_static(&[0x0a]);
+        assert!(matches!(
+            get_kind(&mut src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_get_null_encoding() -> io::Result<()> {
