@@ -18,7 +18,7 @@ impl Position {
     /// The minimum value of a position.
     pub const MIN: Self = match Self::new(1) {
         Some(position) => position,
-        None => panic!("position cannot be non-zero"),
+        None => unreachable!(),
     };
 
     /// Creates a position if the given value is not zero.
