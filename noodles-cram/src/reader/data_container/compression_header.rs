@@ -8,8 +8,13 @@ use std::io;
 use bytes::Bytes;
 
 use self::{
-    data_series_encoding_map::get_data_series_encoding_map, encoding::get_encoding,
-    preservation_map::get_preservation_map, tag_encoding_map::get_tag_encoding_map,
+    data_series_encoding_map::get_data_series_encoding_map,
+    encoding::{
+        get_encoding_for_byte_array_codec, get_encoding_for_byte_codec,
+        get_encoding_for_integer_codec,
+    },
+    preservation_map::get_preservation_map,
+    tag_encoding_map::get_tag_encoding_map,
 };
 
 use crate::data_container::CompressionHeader;

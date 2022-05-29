@@ -3,7 +3,11 @@ use std::collections::{HashMap, HashSet};
 use super::TagEncodingMap;
 
 use crate::{
-    data_container::compression_header::{preservation_map::tag_ids_dictionary::Key, Encoding},
+    data_container::compression_header::{
+        encoding::codec::{Byte, ByteArray, Integer},
+        preservation_map::tag_ids_dictionary::Key,
+        Encoding,
+    },
     Record,
 };
 
@@ -25,9 +29,9 @@ impl Builder {
         for key in self.keys {
             let id = key.id();
 
-            let len_encoding = Encoding::External(id);
-            let value_encoding = Encoding::External(id);
-            let encoding = Encoding::ByteArrayLen(Box::new(len_encoding), Box::new(value_encoding));
+            let len_encoding = Encoding::new(Integer::External(id));
+            let value_encoding = Encoding::new(Byte::External(id));
+            let encoding = Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding));
 
             map.insert(id, encoding);
         }
@@ -76,17 +80,17 @@ mod tests {
         let expected = [
             (
                 nh.id(),
-                Encoding::ByteArrayLen(
-                    Box::new(Encoding::External(nh.id())),
-                    Box::new(Encoding::External(nh.id())),
-                ),
+                Encoding::new(ByteArray::ByteArrayLen(
+                    Encoding::new(Integer::External(nh.id())),
+                    Encoding::new(Byte::External(nh.id())),
+                )),
             ),
             (
                 co.id(),
-                Encoding::ByteArrayLen(
-                    Box::new(Encoding::External(co.id())),
-                    Box::new(Encoding::External(co.id())),
-                ),
+                Encoding::new(ByteArray::ByteArrayLen(
+                    Encoding::new(Integer::External(co.id())),
+                    Encoding::new(Byte::External(co.id())),
+                )),
             ),
         ]
         .into_iter()

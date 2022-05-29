@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::write_encoding;
+use super::write_encoding_for_byte_array_codec;
 use crate::{data_container::compression_header::TagEncodingMap, writer::num::write_itf8};
 
 pub fn write_tag_encoding_map<W>(
@@ -18,7 +18,7 @@ where
 
     for (&key, encoding) in tag_encoding_map.iter() {
         write_itf8(&mut buf, key)?;
-        write_encoding(&mut buf, encoding)?;
+        write_encoding_for_byte_array_codec(&mut buf, encoding)?;
     }
 
     let data_len =

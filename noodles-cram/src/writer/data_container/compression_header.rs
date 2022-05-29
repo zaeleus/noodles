@@ -6,8 +6,13 @@ mod tag_encoding_map;
 use std::io::{self, Write};
 
 use self::{
-    data_series_encoding_map::write_data_series_encoding_map, encoding::write_encoding,
-    preservation_map::write_preservation_map, tag_encoding_map::write_tag_encoding_map,
+    data_series_encoding_map::write_data_series_encoding_map,
+    encoding::{
+        write_encoding_for_byte_array_codec, write_encoding_for_byte_codec,
+        write_encoding_for_integer_codec,
+    },
+    preservation_map::write_preservation_map,
+    tag_encoding_map::write_tag_encoding_map,
 };
 
 use crate::data_container::CompressionHeader;

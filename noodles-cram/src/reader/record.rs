@@ -16,7 +16,11 @@ use super::num::get_itf8;
 use crate::{
     data_container::{
         compression_header::{
-            data_series_encoding_map::DataSeries, encoding::Encoding,
+            data_series_encoding_map::DataSeries,
+            encoding::{
+                codec::{Byte, ByteArray, Integer},
+                Encoding,
+            },
             preservation_map::tag_ids_dictionary,
         },
         CompressionHeader, ReferenceSequenceContext,
@@ -290,7 +294,6 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            None,
         )?;
 
         match &buf[..] {
@@ -479,7 +482,6 @@ where
                 encoding,
                 &mut self.core_data_reader,
                 &mut self.external_data_readers,
-                None,
             )?;
 
             let mut data_reader = &data[..];
@@ -677,7 +679,6 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            None,
         )?;
 
         raw_bases
@@ -704,7 +705,6 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            None,
         )?;
 
         scores
@@ -789,7 +789,6 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            None,
         )?;
 
         raw_bases
@@ -854,7 +853,6 @@ where
             encoding,
             &mut self.core_data_reader,
             &mut self.external_data_readers,
-            None,
         )?;
 
         raw_bases
@@ -951,7 +949,7 @@ where
 }
 
 fn decode_byte<CDR, EDR>(
-    encoding: &Encoding,
+    encoding: &Encoding<Byte>,
     core_data_reader: &mut BitReader<CDR>,
     external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<u8>
@@ -959,8 +957,8 @@ where
     CDR: Buf,
     EDR: Buf,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
+    match encoding.get() {
+        Byte::External(block_content_id) => {
             let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -976,7 +974,7 @@ where
 
             Ok(src.get_u8())
         }
-        Encoding::Huffman(alphabet, bit_lens) => {
+        Byte::Huffman(alphabet, bit_lens) => {
             if alphabet.len() == 1 {
                 Ok(alphabet[0] as u8)
             } else {
@@ -984,12 +982,11 @@ where
                 decoder.decode(core_data_reader).map(|i| i as u8)
             }
         }
-        _ => todo!("decode_byte: {:?}", encoding),
     }
 }
 
 fn decode_itf8<CDR, EDR>(
-    encoding: &Encoding,
+    encoding: &Encoding<Integer>,
     core_data_reader: &mut BitReader<CDR>,
     external_data_readers: &mut ExternalDataReaders<EDR>,
 ) -> io::Result<i32>
@@ -997,8 +994,8 @@ where
     CDR: Buf,
     EDR: Buf,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
+    match encoding.get() {
+        Integer::External(block_content_id) => {
             let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -1010,7 +1007,7 @@ where
 
             get_itf8(src)
         }
-        Encoding::Huffman(alphabet, bit_lens) => {
+        Integer::Huffman(alphabet, bit_lens) => {
             if alphabet.len() == 1 {
                 Ok(alphabet[0])
             } else {
@@ -1018,56 +1015,33 @@ where
                 decoder.decode(core_data_reader)
             }
         }
-        Encoding::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
+        Integer::Beta(offset, len) => core_data_reader.read_u32(*len).map(|i| (i as i32 - offset)),
         _ => todo!("decode_itf8: {:?}", encoding),
     }
 }
 
 fn decode_byte_array<CDR, EDR>(
-    encoding: &Encoding,
+    encoding: &Encoding<ByteArray>,
     core_data_reader: &mut BitReader<CDR>,
     external_data_readers: &mut ExternalDataReaders<EDR>,
-    buf: Option<Vec<u8>>,
 ) -> io::Result<Vec<u8>>
 where
     CDR: Buf,
     EDR: Buf,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
-            let src = external_data_readers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        ReadRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
+    match encoding.get() {
+        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
+            let len = decode_itf8(len_encoding, core_data_reader, external_data_readers)?;
 
-            let mut buf = buf.unwrap();
+            let mut buf = vec![0; len as usize];
 
-            if src.remaining() < buf.len() {
-                return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+            for value in &mut buf {
+                *value = decode_byte(value_encoding, core_data_reader, external_data_readers)?;
             }
-
-            src.copy_to_slice(&mut buf);
 
             Ok(buf)
         }
-        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
-            let len = decode_itf8(len_encoding, core_data_reader, external_data_readers)?;
-
-            let buf = vec![0; len as usize];
-            let value = decode_byte_array(
-                value_encoding,
-                core_data_reader,
-                external_data_readers,
-                Some(buf),
-            )?;
-
-            Ok(value)
-        }
-        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
+        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
             let src = external_data_readers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -1095,7 +1069,6 @@ where
 
             Ok(buf)
         }
-        _ => todo!("decode_byte_array: {:?}", encoding),
     }
 }
 
@@ -1105,7 +1078,7 @@ mod tests {
 
     #[test]
     fn test_decode_byte() -> io::Result<()> {
-        fn t(encoding: &Encoding, expected: u8) -> io::Result<()> {
+        fn t(encoding: &Encoding<Byte>, expected: u8) -> io::Result<()> {
             let core_data = [0b10000000];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
@@ -1120,15 +1093,15 @@ mod tests {
             Ok(())
         }
 
-        t(&Encoding::External(1), 0x0d)?;
-        t(&Encoding::Huffman(vec![0x4e], vec![0]), 0x4e)?;
+        t(&Encoding::new(Byte::External(1)), 0x0d)?;
+        t(&Encoding::new(Byte::Huffman(vec![0x4e], vec![0])), 0x4e)?;
 
         Ok(())
     }
 
     #[test]
     fn test_decode_itf8() -> io::Result<()> {
-        fn t(encoding: &Encoding, expected: i32) -> io::Result<()> {
+        fn t(encoding: &Encoding<Integer>, expected: i32) -> io::Result<()> {
             let core_data = [0b10000000];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
@@ -1143,50 +1116,50 @@ mod tests {
             Ok(())
         }
 
-        t(&Encoding::External(1), 13)?;
-        t(&Encoding::Huffman(vec![0x4e], vec![0]), 0x4e)?;
-        t(&Encoding::Beta(1, 3), 3)?;
+        t(&Encoding::new(Integer::External(1)), 13)?;
+        t(&Encoding::new(Integer::Huffman(vec![0x4e], vec![0])), 0x4e)?;
+        t(&Encoding::new(Integer::Beta(1, 3)), 3)?;
 
         Ok(())
     }
 
     #[test]
     fn test_decode_byte_array() -> io::Result<()> {
-        fn t(external_data: &[u8], encoding: &Encoding, expected: &[u8]) -> io::Result<()> {
+        fn t(
+            external_data: &[u8],
+            encoding: &Encoding<ByteArray>,
+            expected: &[u8],
+        ) -> io::Result<()> {
             let core_data = [];
             let mut core_data_reader = BitReader::new(&core_data[..]);
 
             let mut external_data_readers = ExternalDataReaders::new();
             external_data_readers.insert(1, external_data);
 
-            let actual = decode_byte_array(
-                encoding,
-                &mut core_data_reader,
-                &mut external_data_readers,
-                None,
-            )?;
+            let actual =
+                decode_byte_array(encoding, &mut core_data_reader, &mut external_data_readers)?;
 
             assert_eq!(expected, actual);
 
             Ok(())
         }
 
-        let len_encoding = Encoding::External(1);
-        let value_encoding = Encoding::External(1);
+        let len_encoding = Encoding::new(Integer::External(1));
+        let value_encoding = Encoding::new(Byte::External(1));
         t(
             &[0x04, 0x6e, 0x64, 0x6c, 0x73],
-            &Encoding::ByteArrayLen(Box::new(len_encoding), Box::new(value_encoding)),
+            &Encoding::new(ByteArray::ByteArrayLen(len_encoding, value_encoding)),
             b"ndls",
         )?;
 
         t(
             &[0x6e, 0x64, 0x6c, 0x73, 0x00],
-            &Encoding::ByteArrayStop(0x00, 1),
+            &Encoding::new(ByteArray::ByteArrayStop(0x00, 1)),
             b"ndls",
         )?;
 
         assert!(matches!(
-            t(&[0x6e, 0x64, 0x6c, 0x73], &Encoding::ByteArrayStop(0x00, 1), b""),
+            t(&[0x6e, 0x64, 0x6c, 0x73], &Encoding::new(ByteArray::ByteArrayStop(0x00, 1)), b""),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

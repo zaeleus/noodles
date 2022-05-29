@@ -3,31 +3,58 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use crate::{
-    data_container::compression_header::{encoding::Kind, Encoding},
+    data_container::compression_header::{
+        encoding::{
+            codec::{Byte, ByteArray, Integer},
+            Kind,
+        },
+        Encoding,
+    },
     writer::num::write_itf8,
 };
 
-pub fn write_encoding<W>(writer: &mut W, encoding: &Encoding) -> io::Result<()>
+pub fn write_encoding_for_byte_codec<W>(writer: &mut W, encoding: &Encoding<Byte>) -> io::Result<()>
 where
     W: Write,
 {
-    match encoding {
-        Encoding::Null => write_null_encoding(writer),
-        Encoding::External(block_content_id) => write_external_encoding(writer, *block_content_id),
-        Encoding::Golomb(offset, m) => write_golomb_encoding(writer, *offset, *m),
-        Encoding::Huffman(alphabet, bit_lens) => write_huffman_encoding(writer, alphabet, bit_lens),
-        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
-            write_byte_array_len_encoding(writer, len_encoding, value_encoding)
+    match encoding.get() {
+        Byte::External(block_content_id) => write_external_codec(writer, *block_content_id),
+        Byte::Huffman(alphabet, bit_lens) => write_huffman_codec(writer, alphabet, bit_lens),
+    }
+}
+
+pub fn write_encoding_for_integer_codec<W>(
+    writer: &mut W,
+    encoding: &Encoding<Integer>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    match encoding.get() {
+        Integer::External(block_content_id) => write_external_codec(writer, *block_content_id),
+        Integer::Golomb(offset, m) => write_golomb_codec(writer, *offset, *m),
+        Integer::Huffman(alphabet, bit_lens) => write_huffman_codec(writer, alphabet, bit_lens),
+        Integer::Beta(offset, len) => write_beta_codec(writer, *offset, *len),
+        Integer::Subexp(offset, k) => write_subexp_codec(writer, *offset, *k),
+        Integer::GolombRice(offset, log2_m) => write_golomb_rice_codec(writer, *offset, *log2_m),
+        Integer::Gamma(offset) => write_gamma_codec(writer, *offset),
+    }
+}
+
+pub fn write_encoding_for_byte_array_codec<W>(
+    writer: &mut W,
+    encoding: &Encoding<ByteArray>,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    match encoding.get() {
+        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
+            write_byte_array_len_codec(writer, len_encoding, value_encoding)
         }
-        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
-            write_byte_array_stop_encoding(writer, *stop_byte, *block_content_id)
+        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
+            write_byte_array_stop_codec(writer, *stop_byte, *block_content_id)
         }
-        Encoding::Beta(offset, len) => write_beta_encoding(writer, *offset, *len),
-        Encoding::Subexp(offset, k) => write_subexp_encoding(writer, *offset, *k),
-        Encoding::GolombRice(offset, log2_m) => {
-            write_golomb_rice_encoding(writer, *offset, *log2_m)
-        }
-        Encoding::Gamma(offset) => write_gamma_encoding(writer, *offset),
     }
 }
 
@@ -61,14 +88,7 @@ where
     writer.write_all(buf)
 }
 
-fn write_null_encoding<W>(writer: &mut W) -> io::Result<()>
-where
-    W: Write,
-{
-    write_kind(writer, Kind::Null)
-}
-
-fn write_external_encoding<W>(writer: &mut W, block_content_id: i32) -> io::Result<()>
+fn write_external_codec<W>(writer: &mut W, block_content_id: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -81,7 +101,7 @@ where
     Ok(())
 }
 
-fn write_golomb_encoding<W>(writer: &mut W, offset: i32, m: i32) -> io::Result<()>
+fn write_golomb_codec<W>(writer: &mut W, offset: i32, m: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -95,7 +115,7 @@ where
     Ok(())
 }
 
-fn write_huffman_encoding<W>(writer: &mut W, alphabet: &[i32], bit_lens: &[u32]) -> io::Result<()>
+fn write_huffman_codec<W>(writer: &mut W, alphabet: &[i32], bit_lens: &[u32]) -> io::Result<()>
 where
     W: Write,
 {
@@ -124,18 +144,18 @@ where
     Ok(())
 }
 
-fn write_byte_array_len_encoding<W>(
+fn write_byte_array_len_codec<W>(
     writer: &mut W,
-    len_encoding: &Encoding,
-    value_encoding: &Encoding,
+    len_encoding: &Encoding<Integer>,
+    value_encoding: &Encoding<Byte>,
 ) -> io::Result<()>
 where
     W: Write,
 {
     let mut args = Vec::new();
 
-    write_encoding(&mut args, len_encoding)?;
-    write_encoding(&mut args, value_encoding)?;
+    write_encoding_for_integer_codec(&mut args, len_encoding)?;
+    write_encoding_for_byte_codec(&mut args, value_encoding)?;
 
     write_kind(writer, Kind::ByteArrayLen)?;
     write_args(writer, &args)?;
@@ -143,7 +163,7 @@ where
     Ok(())
 }
 
-fn write_byte_array_stop_encoding<W>(
+fn write_byte_array_stop_codec<W>(
     writer: &mut W,
     stop_byte: u8,
     block_content_id: i32,
@@ -161,7 +181,7 @@ where
     Ok(())
 }
 
-fn write_beta_encoding<W>(writer: &mut W, offset: i32, len: u32) -> io::Result<()>
+fn write_beta_codec<W>(writer: &mut W, offset: i32, len: u32) -> io::Result<()>
 where
     W: Write,
 {
@@ -177,7 +197,7 @@ where
     Ok(())
 }
 
-fn write_subexp_encoding<W>(writer: &mut W, offset: i32, k: i32) -> io::Result<()>
+fn write_subexp_codec<W>(writer: &mut W, offset: i32, k: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -191,7 +211,7 @@ where
     Ok(())
 }
 
-fn write_golomb_rice_encoding<W>(writer: &mut W, offset: i32, log2_m: i32) -> io::Result<()>
+fn write_golomb_rice_codec<W>(writer: &mut W, offset: i32, log2_m: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -205,7 +225,7 @@ where
     Ok(())
 }
 
-fn write_gamma_encoding<W>(writer: &mut W, offset: i32) -> io::Result<()>
+fn write_gamma_codec<W>(writer: &mut W, offset: i32) -> io::Result<()>
 where
     W: Write,
 {
@@ -223,23 +243,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_null_encoding() -> io::Result<()> {
+    fn test_write_external_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_null_encoding(&mut buf)?;
-
-        let expected = [
-            0, // null encoding ID
-        ];
-
-        assert_eq!(buf, expected);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_write_external_encoding() -> io::Result<()> {
-        let mut buf = Vec::new();
-        write_external_encoding(&mut buf, 5)?;
+        write_external_codec(&mut buf, 5)?;
 
         let expected = [
             1, // external encoding ID
@@ -253,9 +259,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_golomb_encoding() -> io::Result<()> {
+    fn test_write_golomb_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_golomb_encoding(&mut buf, 1, 10)?;
+        write_golomb_codec(&mut buf, 1, 10)?;
 
         let expected = [
             2,  // Golomb encoding ID
@@ -270,9 +276,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_huffman_encoding() -> io::Result<()> {
+    fn test_write_huffman_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_huffman_encoding(&mut buf, &[65], &[0])?;
+        write_huffman_codec(&mut buf, &[65], &[0])?;
 
         let expected = [
             3,  // Huffman encoding ID
@@ -289,13 +295,13 @@ mod tests {
     }
 
     #[test]
-    fn test_write_byte_array_len_encoding() -> io::Result<()> {
+    fn test_write_byte_array_len_codec() -> io::Result<()> {
         let mut buf = Vec::new();
 
-        let len_encoding = Encoding::External(13);
-        let value_encoding = Encoding::External(21);
+        let len_encoding = Encoding::new(Integer::External(13));
+        let value_encoding = Encoding::new(Byte::External(21));
 
-        write_byte_array_len_encoding(&mut buf, &len_encoding, &value_encoding)?;
+        write_byte_array_len_codec(&mut buf, &len_encoding, &value_encoding)?;
 
         let expected = [
             4,  // byte array len encoding ID
@@ -314,9 +320,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_byte_array_stop_encoding() -> io::Result<()> {
+    fn test_write_byte_array_stop_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_byte_array_stop_encoding(&mut buf, 0x00, 8)?;
+        write_byte_array_stop_codec(&mut buf, 0x00, 8)?;
 
         let expected = [
             5, // byte array stop encoding ID
@@ -331,9 +337,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_beta_encoding() -> io::Result<()> {
+    fn test_write_beta_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_beta_encoding(&mut buf, 0, 8)?;
+        write_beta_codec(&mut buf, 0, 8)?;
 
         let expected = [
             6, // Beta encoding ID
@@ -348,9 +354,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_subexp_encoding() -> io::Result<()> {
+    fn test_write_subexp_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_subexp_encoding(&mut buf, 0, 1)?;
+        write_subexp_codec(&mut buf, 0, 1)?;
 
         let expected = [
             7, // subexponential encoding ID
@@ -365,9 +371,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_golomb_rice_encoding() -> io::Result<()> {
+    fn test_write_golomb_rice_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_golomb_rice_encoding(&mut buf, 1, 3)?;
+        write_golomb_rice_codec(&mut buf, 1, 3)?;
 
         let expected = [
             8, // Golomb encoding ID
@@ -382,9 +388,9 @@ mod tests {
     }
 
     #[test]
-    fn test_write_gamma_encoding() -> io::Result<()> {
+    fn test_write_gamma_codec() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_gamma_encoding(&mut buf, 1)?;
+        write_gamma_codec(&mut buf, 1)?;
 
         let expected = [
             9, // Elias gamma encoding ID

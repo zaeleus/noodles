@@ -17,7 +17,10 @@ use super::num::write_itf8;
 use crate::{
     data_container::{
         compression_header::{
-            data_series_encoding_map::DataSeries, preservation_map::tag_ids_dictionary, Encoding,
+            data_series_encoding_map::DataSeries,
+            encoding::codec::{Byte, ByteArray, Integer},
+            preservation_map::tag_ids_dictionary,
+            Encoding,
         },
         CompressionHeader, ReferenceSequenceContext,
     },
@@ -953,7 +956,7 @@ where
 }
 
 fn encode_byte<W, X>(
-    encoding: &Encoding,
+    encoding: &Encoding<Byte>,
     _core_data_writer: &mut BitWriter<W>,
     external_data_writers: &mut HashMap<i32, X>,
     value: u8,
@@ -962,8 +965,8 @@ where
     W: Write,
     X: Write,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
+    match encoding.get() {
+        Byte::External(block_content_id) => {
             let writer = external_data_writers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -980,7 +983,7 @@ where
 }
 
 fn encode_itf8<W, X>(
-    encoding: &Encoding,
+    encoding: &Encoding<Integer>,
     _core_data_writer: &mut BitWriter<W>,
     external_data_writers: &mut HashMap<i32, X>,
     value: i32,
@@ -989,8 +992,8 @@ where
     W: Write,
     X: Write,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
+    match encoding.get() {
+        Integer::External(block_content_id) => {
             let writer = external_data_writers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -1007,7 +1010,7 @@ where
 }
 
 fn encode_byte_array<W, X>(
-    encoding: &Encoding,
+    encoding: &Encoding<ByteArray>,
     core_data_writer: &mut BitWriter<W>,
     external_data_writers: &mut HashMap<i32, X>,
     data: &[u8],
@@ -1016,32 +1019,24 @@ where
     W: Write,
     X: Write,
 {
-    match encoding {
-        Encoding::External(block_content_id) => {
-            let writer = external_data_writers
-                .get_mut(block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        WriteRecordError::MissingExternalBlock(*block_content_id),
-                    )
-                })?;
-
-            writer.write_all(data)
-        }
-        Encoding::ByteArrayLen(len_encoding, value_encoding) => {
+    match encoding.get() {
+        ByteArray::ByteArrayLen(len_encoding, value_encoding) => {
             let len = i32::try_from(data.len())
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
             encode_itf8(len_encoding, core_data_writer, external_data_writers, len)?;
 
-            encode_byte_array(
-                value_encoding,
-                core_data_writer,
-                external_data_writers,
-                data,
-            )
+            for &value in data {
+                encode_byte(
+                    value_encoding,
+                    core_data_writer,
+                    external_data_writers,
+                    value,
+                )?;
+            }
+
+            Ok(())
         }
-        Encoding::ByteArrayStop(stop_byte, block_content_id) => {
+        ByteArray::ByteArrayStop(stop_byte, block_content_id) => {
             let writer = external_data_writers
                 .get_mut(block_content_id)
                 .ok_or_else(|| {
@@ -1056,6 +1051,5 @@ where
 
             Ok(())
         }
-        _ => todo!("encode_byte_array: {:?}", encoding),
     }
 }

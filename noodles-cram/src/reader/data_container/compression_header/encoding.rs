@@ -3,22 +3,92 @@ use std::io;
 use bytes::{Buf, Bytes};
 
 use crate::{
-    data_container::compression_header::{encoding::Kind, Encoding},
+    data_container::compression_header::{
+        encoding::{
+            codec::{Byte, ByteArray, Integer},
+            Kind,
+        },
+        Encoding,
+    },
     reader::num::get_itf8,
 };
 
-pub fn get_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+pub fn get_encoding_for_byte_codec(src: &mut Bytes) -> io::Result<Encoding<Byte>> {
     match get_kind(src)? {
-        Kind::Null => Ok(Encoding::Null),
-        Kind::External => get_external_encoding(src),
-        Kind::Golomb => get_golomb_encoding(src),
-        Kind::Huffman => get_huffman_encoding(src),
-        Kind::ByteArrayLen => get_byte_array_len_encoding(src),
-        Kind::ByteArrayStop => get_byte_array_stop_encoding(src),
-        Kind::Beta => get_beta_encoding(src),
-        Kind::Subexp => get_subexp_encoding(src),
-        Kind::GolombRice => get_golomb_rice_encoding(src),
-        Kind::Gamma => get_gamma_encoding(src),
+        Kind::External => {
+            let block_content_id = get_external_codec(src)?;
+            Ok(Encoding::new(Byte::External(block_content_id)))
+        }
+        Kind::Huffman => {
+            let (alphabet, bit_lens) = get_huffman_codec(src)?;
+            Ok(Encoding::new(Byte::Huffman(alphabet, bit_lens)))
+        }
+        kind => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid codec for encoding<byte>: {:?}", kind),
+        )),
+    }
+}
+
+pub fn get_encoding_for_integer_codec(src: &mut Bytes) -> io::Result<Encoding<Integer>> {
+    match get_kind(src)? {
+        Kind::External => {
+            let block_content_id = get_external_codec(src)?;
+            Ok(Encoding::new(Integer::External(block_content_id)))
+        }
+        Kind::Golomb => {
+            let (offset, m) = get_golomb_codec(src)?;
+            Ok(Encoding::new(Integer::Golomb(offset, m)))
+        }
+        Kind::Huffman => {
+            let (alphabet, bit_lens) = get_huffman_codec(src)?;
+            Ok(Encoding::new(Integer::Huffman(alphabet, bit_lens)))
+        }
+        Kind::Beta => {
+            let (offset, len) = get_beta_codec(src)?;
+            Ok(Encoding::new(Integer::Beta(offset, len)))
+        }
+        Kind::Subexp => {
+            let (offset, k) = get_subexp_codec(src)?;
+            Ok(Encoding::new(Integer::Subexp(offset, k)))
+        }
+        Kind::GolombRice => {
+            let (offset, log2_m) = get_golomb_rice_codec(src)?;
+            Ok(Encoding::new(Integer::GolombRice(offset, log2_m)))
+        }
+        Kind::Gamma => {
+            let offset = get_gamma_codec(src)?;
+            Ok(Encoding::new(Integer::Gamma(offset)))
+        }
+        kind => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid codec for encoding<int>: {:?}", kind),
+        )),
+    }
+}
+
+pub fn get_encoding_for_byte_array_codec(src: &mut Bytes) -> io::Result<Encoding<ByteArray>> {
+    match get_kind(src)? {
+        Kind::ByteArrayLen => {
+            let (len_encoding, value_encoding) = get_byte_array_len_codec(src)?;
+
+            Ok(Encoding::new(ByteArray::ByteArrayLen(
+                len_encoding,
+                value_encoding,
+            )))
+        }
+        Kind::ByteArrayStop => {
+            let (stop_byte, block_content_id) = get_byte_array_stop_codec(src)?;
+
+            Ok(Encoding::new(ByteArray::ByteArrayStop(
+                stop_byte,
+                block_content_id,
+            )))
+        }
+        kind => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid codec for encoding<byte[]>: {:?}", kind),
+        )),
     }
 }
 
@@ -53,34 +123,31 @@ fn get_args(src: &mut Bytes) -> io::Result<Bytes> {
     Ok(src.split_to(len))
 }
 
-fn get_external_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_external_codec(src: &mut Bytes) -> io::Result<i32> {
     let mut args = get_args(src)?;
     let block_content_id = get_itf8(&mut args)?;
-    Ok(Encoding::External(block_content_id))
+    Ok(block_content_id)
 }
 
-fn get_golomb_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_golomb_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
     let mut args = get_args(src)?;
 
     let offset = get_itf8(&mut args)?;
     let m = get_itf8(&mut args)?;
 
-    Ok(Encoding::Golomb(offset, m))
+    Ok((offset, m))
 }
 
-fn get_byte_array_len_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_byte_array_len_codec(src: &mut Bytes) -> io::Result<(Encoding<Integer>, Encoding<Byte>)> {
     let mut args = get_args(src)?;
 
-    let len_encoding = get_encoding(&mut args)?;
-    let value_encoding = get_encoding(&mut args)?;
+    let len_encoding = get_encoding_for_integer_codec(&mut args)?;
+    let value_encoding = get_encoding_for_byte_codec(&mut args)?;
 
-    Ok(Encoding::ByteArrayLen(
-        Box::new(len_encoding),
-        Box::new(value_encoding),
-    ))
+    Ok((len_encoding, value_encoding))
 }
 
-fn get_byte_array_stop_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_byte_array_stop_codec(src: &mut Bytes) -> io::Result<(u8, i32)> {
     let mut args = get_args(src)?;
 
     if !args.has_remaining() {
@@ -90,10 +157,10 @@ fn get_byte_array_stop_encoding(src: &mut Bytes) -> io::Result<Encoding> {
     let stop_byte = args.get_u8();
     let block_content_id = get_itf8(&mut args)?;
 
-    Ok(Encoding::ByteArrayStop(stop_byte, block_content_id))
+    Ok((stop_byte, block_content_id))
 }
 
-fn get_huffman_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_huffman_codec(src: &mut Bytes) -> io::Result<(Vec<i32>, Vec<u32>)> {
     let mut args = get_args(src)?;
 
     let alphabet_len = get_itf8(&mut args).and_then(|n| {
@@ -121,10 +188,10 @@ fn get_huffman_encoding(src: &mut Bytes) -> io::Result<Encoding> {
         bit_lens.push(len);
     }
 
-    Ok(Encoding::Huffman(alphabet, bit_lens))
+    Ok((alphabet, bit_lens))
 }
 
-fn get_beta_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_beta_codec(src: &mut Bytes) -> io::Result<(i32, u32)> {
     let mut args = get_args(src)?;
 
     let offset = get_itf8(&mut args)?;
@@ -132,31 +199,31 @@ fn get_beta_encoding(src: &mut Bytes) -> io::Result<Encoding> {
         u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    Ok(Encoding::Beta(offset, len))
+    Ok((offset, len))
 }
 
-fn get_subexp_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_subexp_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
     let mut args = get_args(src)?;
 
     let offset = get_itf8(&mut args)?;
     let k = get_itf8(&mut args)?;
 
-    Ok(Encoding::Subexp(offset, k))
+    Ok((offset, k))
 }
 
-fn get_golomb_rice_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_golomb_rice_codec(src: &mut Bytes) -> io::Result<(i32, i32)> {
     let mut args = get_args(src)?;
 
     let offset = get_itf8(&mut args)?;
     let log2_m = get_itf8(&mut args)?;
 
-    Ok(Encoding::GolombRice(offset, log2_m))
+    Ok((offset, log2_m))
 }
 
-fn get_gamma_encoding(src: &mut Bytes) -> io::Result<Encoding> {
+fn get_gamma_codec(src: &mut Bytes) -> io::Result<i32> {
     let mut args = get_args(src)?;
     let offset = get_itf8(&mut args)?;
-    Ok(Encoding::Gamma(offset))
+    Ok(offset)
 }
 
 #[cfg(test)]
@@ -193,50 +260,36 @@ mod tests {
     }
 
     #[test]
-    fn test_get_null_encoding() -> io::Result<()> {
+    fn test_get_external_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            0, // null encoding ID
-        ]);
-
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Null);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_get_external_encoding() -> io::Result<()> {
-        let mut data = Bytes::from_static(&[
-            1, // external encoding ID
             1, // args.len
             5, // block content ID
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::External(5));
+        let block_content_id = get_external_codec(&mut data)?;
+        assert_eq!(block_content_id, 5);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_golomb_encoding() -> io::Result<()> {
+    fn test_get_golomb_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            2,  // Golomb encoding ID
             2,  // args.len
             1,  // offset
             10, // M
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Golomb(1, 10));
+        let (offset, m) = get_golomb_codec(&mut data)?;
+        assert_eq!(offset, 1);
+        assert_eq!(m, 10);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_huffman_encoding() -> io::Result<()> {
+    fn test_get_huffman_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            3,  // Huffman encoding ID
             4,  // args.len
             1,  // alphabet.len
             65, // 'A'
@@ -244,16 +297,16 @@ mod tests {
             0,  // 0
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Huffman(vec![65], vec![0]));
+        let (alphabet, bit_lens) = get_huffman_codec(&mut data)?;
+        assert_eq!(alphabet, [65]);
+        assert_eq!(bit_lens, [0]);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_byte_array_len_encoding() -> io::Result<()> {
+    fn test_get_byte_array_len_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            4,  // byte array len encoding ID
             6,  // args.len
             1,  // external encoding ID
             1,  // args.len
@@ -263,89 +316,83 @@ mod tests {
             21, // block content ID
         ]);
 
-        let encoding = get_encoding(&mut data)?;
+        let (len_encoding, value_encoding) = get_byte_array_len_codec(&mut data)?;
 
-        assert_eq!(
-            encoding,
-            Encoding::ByteArrayLen(
-                Box::new(Encoding::External(13)),
-                Box::new(Encoding::External(21))
-            )
-        );
+        assert_eq!(len_encoding, Encoding::new(Integer::External(13)));
+        assert_eq!(value_encoding, Encoding::new(Byte::External(21)));
 
         Ok(())
     }
 
     #[test]
-    fn test_get_byte_array_stop_encoding() -> io::Result<()> {
+    fn test_get_byte_array_stop_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            5, // byte array stop encoding ID
             2, // args.len
             0, // NUL
             8, // block content ID
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::ByteArrayStop(0x00, 8));
+        let (stop_byte, block_content_id) = get_byte_array_stop_codec(&mut data)?;
+        assert_eq!(stop_byte, 0);
+        assert_eq!(block_content_id, 8);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_beta_encoding() -> io::Result<()> {
+    fn test_get_beta_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            6, // Beta encoding ID
             2, // args.len
             0, // offset
             8, // len
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Beta(0, 8));
+        let (offset, len) = get_beta_codec(&mut data)?;
+        assert_eq!(offset, 0);
+        assert_eq!(len, 8);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_subexp_encoding() -> io::Result<()> {
+    fn test_get_subexp_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            7, // subexponential encoding ID
             2, // args.len
             0, // offset
             1, // k
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Subexp(0, 1));
+        let (offset, k) = get_subexp_codec(&mut data)?;
+        assert_eq!(offset, 0);
+        assert_eq!(k, 1);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_golomb_rice_encoding() -> io::Result<()> {
+    fn test_get_golomb_rice_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            8, // Golomb-Rice encoding ID
             2, // args.len
             1, // offset
             3, // log2(M)
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::GolombRice(1, 3));
+        let (offset, log2_m) = get_golomb_rice_codec(&mut data)?;
+        assert_eq!(offset, 1);
+        assert_eq!(log2_m, 3);
 
         Ok(())
     }
 
     #[test]
-    fn test_get_gamma_encoding() -> io::Result<()> {
+    fn test_get_gamma_codec() -> io::Result<()> {
         let mut data = Bytes::from_static(&[
-            9, // Elias gamma encoding ID
             1, // args.len
             1, // offset
         ]);
 
-        let encoding = get_encoding(&mut data)?;
-        assert_eq!(encoding, Encoding::Gamma(1));
+        let offset = get_gamma_codec(&mut data)?;
+        assert_eq!(offset, 1);
 
         Ok(())
     }

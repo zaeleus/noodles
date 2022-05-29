@@ -1,178 +1,187 @@
 use std::{error, fmt};
 
-use crate::data_container::compression_header::Encoding;
+use crate::data_container::compression_header::{
+    encoding::codec::{Byte, ByteArray, Integer},
+    Encoding,
+};
 
 use super::DataSeriesEncodingMap;
 
 #[derive(Default)]
 pub struct Builder {
-    bam_bit_flags_encoding: Option<Encoding>,
-    cram_bit_flags_encoding: Option<Encoding>,
-    reference_id_encoding: Option<Encoding>,
-    read_lengths_encoding: Option<Encoding>,
-    in_seq_positions_encoding: Option<Encoding>,
-    read_groups_encoding: Option<Encoding>,
-    read_names_encoding: Option<Encoding>,
-    next_mate_bit_flags_encoding: Option<Encoding>,
-    next_fragment_reference_sequence_id_encoding: Option<Encoding>,
-    next_mate_alignment_start_encoding: Option<Encoding>,
-    template_size_encoding: Option<Encoding>,
-    distance_to_next_fragment_encoding: Option<Encoding>,
-    tag_ids_encoding: Option<Encoding>,
-    number_of_read_features_encoding: Option<Encoding>,
-    read_features_codes_encoding: Option<Encoding>,
-    in_read_positions_encoding: Option<Encoding>,
-    deletion_lengths_encoding: Option<Encoding>,
-    stretches_of_bases_encoding: Option<Encoding>,
-    stretches_of_quality_scores_encoding: Option<Encoding>,
-    base_substitution_codes_encoding: Option<Encoding>,
-    insertion_encoding: Option<Encoding>,
-    reference_skip_length_encoding: Option<Encoding>,
-    padding_encoding: Option<Encoding>,
-    hard_clip_encoding: Option<Encoding>,
-    soft_clip_encoding: Option<Encoding>,
-    mapping_qualities_encoding: Option<Encoding>,
-    bases_encoding: Option<Encoding>,
-    quality_scores_encoding: Option<Encoding>,
+    bam_bit_flags_encoding: Option<Encoding<Integer>>,
+    cram_bit_flags_encoding: Option<Encoding<Integer>>,
+    reference_id_encoding: Option<Encoding<Integer>>,
+    read_lengths_encoding: Option<Encoding<Integer>>,
+    in_seq_positions_encoding: Option<Encoding<Integer>>,
+    read_groups_encoding: Option<Encoding<Integer>>,
+    read_names_encoding: Option<Encoding<ByteArray>>,
+    next_mate_bit_flags_encoding: Option<Encoding<Integer>>,
+    next_fragment_reference_sequence_id_encoding: Option<Encoding<Integer>>,
+    next_mate_alignment_start_encoding: Option<Encoding<Integer>>,
+    template_size_encoding: Option<Encoding<Integer>>,
+    distance_to_next_fragment_encoding: Option<Encoding<Integer>>,
+    tag_ids_encoding: Option<Encoding<Integer>>,
+    number_of_read_features_encoding: Option<Encoding<Integer>>,
+    read_features_codes_encoding: Option<Encoding<Byte>>,
+    in_read_positions_encoding: Option<Encoding<Integer>>,
+    deletion_lengths_encoding: Option<Encoding<Integer>>,
+    stretches_of_bases_encoding: Option<Encoding<ByteArray>>,
+    stretches_of_quality_scores_encoding: Option<Encoding<ByteArray>>,
+    base_substitution_codes_encoding: Option<Encoding<Byte>>,
+    insertion_encoding: Option<Encoding<ByteArray>>,
+    reference_skip_length_encoding: Option<Encoding<Integer>>,
+    padding_encoding: Option<Encoding<Integer>>,
+    hard_clip_encoding: Option<Encoding<Integer>>,
+    soft_clip_encoding: Option<Encoding<ByteArray>>,
+    mapping_qualities_encoding: Option<Encoding<Integer>>,
+    bases_encoding: Option<Encoding<Byte>>,
+    quality_scores_encoding: Option<Encoding<Byte>>,
 }
 
 impl Builder {
-    pub fn set_bam_bit_flags_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_bam_bit_flags_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.bam_bit_flags_encoding = Some(encoding);
         self
     }
 
-    pub fn set_cram_bit_flags_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_cram_bit_flags_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.cram_bit_flags_encoding = Some(encoding);
         self
     }
 
-    pub fn set_reference_id_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_reference_id_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.reference_id_encoding = Some(encoding);
         self
     }
 
-    pub fn set_read_lengths_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_read_lengths_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.read_lengths_encoding = Some(encoding);
         self
     }
 
-    pub fn set_in_seq_positions_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_in_seq_positions_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.in_seq_positions_encoding = Some(encoding);
         self
     }
 
-    pub fn set_read_groups_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_read_groups_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.read_groups_encoding = Some(encoding);
         self
     }
 
-    pub fn set_read_names_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_read_names_encoding(mut self, encoding: Encoding<ByteArray>) -> Self {
         self.read_names_encoding = Some(encoding);
         self
     }
 
-    pub fn set_next_mate_bit_flags_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_next_mate_bit_flags_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.next_mate_bit_flags_encoding = Some(encoding);
         self
     }
 
-    pub fn set_next_fragment_reference_sequence_id_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_next_fragment_reference_sequence_id_encoding(
+        mut self,
+        encoding: Encoding<Integer>,
+    ) -> Self {
         self.next_fragment_reference_sequence_id_encoding = Some(encoding);
         self
     }
 
-    pub fn set_next_mate_alignment_start_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_next_mate_alignment_start_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.next_mate_alignment_start_encoding = Some(encoding);
         self
     }
 
-    pub fn set_template_size_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_template_size_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.template_size_encoding = Some(encoding);
         self
     }
 
-    pub fn set_distance_to_next_fragment_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_distance_to_next_fragment_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.distance_to_next_fragment_encoding = Some(encoding);
         self
     }
 
-    pub fn set_tag_ids_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_tag_ids_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.tag_ids_encoding = Some(encoding);
         self
     }
 
-    pub fn set_number_of_read_features_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_number_of_read_features_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.number_of_read_features_encoding = Some(encoding);
         self
     }
 
-    pub fn set_read_features_codes_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_read_features_codes_encoding(mut self, encoding: Encoding<Byte>) -> Self {
         self.read_features_codes_encoding = Some(encoding);
         self
     }
 
-    pub fn set_in_read_positions_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_in_read_positions_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.in_read_positions_encoding = Some(encoding);
         self
     }
 
-    pub fn set_deletion_lengths_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_deletion_lengths_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.deletion_lengths_encoding = Some(encoding);
         self
     }
 
-    pub fn set_stretches_of_bases_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_stretches_of_bases_encoding(mut self, encoding: Encoding<ByteArray>) -> Self {
         self.stretches_of_bases_encoding = Some(encoding);
         self
     }
 
-    pub fn set_stretches_of_quality_scores_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_stretches_of_quality_scores_encoding(
+        mut self,
+        encoding: Encoding<ByteArray>,
+    ) -> Self {
         self.stretches_of_quality_scores_encoding = Some(encoding);
         self
     }
 
-    pub fn set_base_substitution_codes_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_base_substitution_codes_encoding(mut self, encoding: Encoding<Byte>) -> Self {
         self.base_substitution_codes_encoding = Some(encoding);
         self
     }
 
-    pub fn set_insertion_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_insertion_encoding(mut self, encoding: Encoding<ByteArray>) -> Self {
         self.insertion_encoding = Some(encoding);
         self
     }
 
-    pub fn set_reference_skip_length_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_reference_skip_length_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.reference_skip_length_encoding = Some(encoding);
         self
     }
 
-    pub fn set_padding_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_padding_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.padding_encoding = Some(encoding);
         self
     }
 
-    pub fn set_hard_clip_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_hard_clip_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.hard_clip_encoding = Some(encoding);
         self
     }
 
-    pub fn set_soft_clip_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_soft_clip_encoding(mut self, encoding: Encoding<ByteArray>) -> Self {
         self.soft_clip_encoding = Some(encoding);
         self
     }
 
-    pub fn set_mapping_qualities_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_mapping_qualities_encoding(mut self, encoding: Encoding<Integer>) -> Self {
         self.mapping_qualities_encoding = Some(encoding);
         self
     }
 
-    pub fn set_bases_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_bases_encoding(mut self, encoding: Encoding<Byte>) -> Self {
         self.bases_encoding = Some(encoding);
         self
     }
 
-    pub fn set_quality_scores_encoding(mut self, encoding: Encoding) -> Self {
+    pub fn set_quality_scores_encoding(mut self, encoding: Encoding<Byte>) -> Self {
         self.quality_scores_encoding = Some(encoding);
         self
     }
