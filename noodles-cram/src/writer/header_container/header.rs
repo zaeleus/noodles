@@ -26,7 +26,7 @@ where
     // record count
     write_itf8(&mut crc_writer, 0)?;
 
-    // record count
+    // record counter
     write_ltf8(&mut crc_writer, 0)?;
 
     // base count
