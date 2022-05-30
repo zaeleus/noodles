@@ -20,9 +20,6 @@ use self::{alignment_record::encode_alignment_record, record::encode_record};
 
 /// A BAM writer.
 ///
-/// Since the raw text header and `bam::Record` are immutable, BAM files are created by encoding a
-/// SAM header and SAM records.
-///
 /// # Examples
 ///
 /// ```
