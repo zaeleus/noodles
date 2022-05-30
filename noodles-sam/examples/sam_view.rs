@@ -10,11 +10,11 @@ use std::{
 
 use noodles_sam as sam;
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
-    reader.read_header()?;
+    let header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();
@@ -22,7 +22,7 @@ fn main() -> io::Result<()> {
 
     for result in reader.records() {
         let record = result?;
-        writer.write_record(&record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())

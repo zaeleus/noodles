@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for _ in 0..3 {
         let record = sam::Record::default();
-        writer.write_record(&record)?;
+        writer.write_record(&header, &record)?;
     }
 
     Ok(())

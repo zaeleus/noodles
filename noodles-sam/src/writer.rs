@@ -28,7 +28,7 @@ use super::{AlignmentWriter, Header, Record};
 /// writer.write_header(&header)?;
 ///
 /// let record = sam::Record::default();
-/// writer.write_record(&record)?;
+/// writer.write_record(&header, &record)?;
 ///
 /// let expected = b"@CO\tnoodles-sam
 /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
@@ -126,14 +126,18 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_sam as sam;
+    ///
     /// let mut writer = sam::Writer::new(Vec::new());
+    ///
+    /// let header = sam::Header::default();
     /// let record = sam::Record::default();
-    /// writer.write_record(&record)?;
+    /// writer.write_record(&header, &record)?;
+    ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        writeln!(self.inner, "{}", record)
+    pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
+        self.write_alignment_record(header, record)
     }
 }
 
@@ -261,9 +265,10 @@ mod tests {
             Value::String(String::from("rg0")),
         )])?;
 
+        let header = Header::default();
         let record = Record::builder().set_data(data).build();
 
-        writer.write_record(&record)?;
+        writer.write_record(&header, &record)?;
 
         let expected = b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tRG:Z:rg0\n";
         assert_eq!(&writer.get_ref()[..], &expected[..]);

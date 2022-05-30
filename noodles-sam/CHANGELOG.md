@@ -44,6 +44,9 @@
 
   * sam/record/quality_scores: `TryFrom<Vec<u8>>` can now be empty.
 
+  * sam/writer: `Writer::write_record` requires a context (`Header`) when
+    writing a record.
+
   * sam/writer/record: Restrict position to [0, 2^31-1].
 
     This is defined in _Sequence Alignment/Map Format Specification_
