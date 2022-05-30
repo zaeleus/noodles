@@ -6,6 +6,9 @@
 
   * sam/alignment: Add a base alignment record (`alignment::Record`).
 
+  * sam/async/writer: Add alignment record writer
+    (`Writer::write_alignment_record`).
+
   * sam/lazy: Add lazy record (`lazy::Record`).
 
     Lazy records are alignment records that are lazily-evalutated. They fields

@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{Header, Record};
+use crate::{AlignmentRecord, AlignmentWriter, Header, Record};
 
 /// An async SAM writer.
 pub struct Writer<W>
@@ -118,5 +118,37 @@ where
         self.inner.write_all(&[LINE_FEED]).await?;
 
         Ok(())
+    }
+
+    /// Writes an alignment record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_sam as sam;
+    ///
+    /// let mut writer = sam::AsyncWriter::new(Vec::new());
+    ///
+    /// let header = sam::Header::default();
+    /// let record = sam::Record::default();
+    /// writer.write_alignment_record(&header, &record).await?;
+    ///
+    /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn write_alignment_record(
+        &mut self,
+        header: &Header,
+        record: &dyn AlignmentRecord,
+    ) -> io::Result<()> {
+        let buf = Vec::new();
+        let mut writer = crate::Writer::new(buf);
+        writer.write_alignment_record(header, record)?;
+        self.inner.write_all(writer.get_ref()).await
     }
 }
