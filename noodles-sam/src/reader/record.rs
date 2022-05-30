@@ -29,7 +29,7 @@ where
     }
 }
 
-fn parse_record(mut src: &[u8], record: &mut Record) -> io::Result<()> {
+pub(crate) fn parse_record(mut src: &[u8], record: &mut Record) -> io::Result<()> {
     let field = next_field(&mut src);
     *record.read_name_mut() = parse_read_name(field)?;
 

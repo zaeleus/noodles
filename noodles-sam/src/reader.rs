@@ -1,6 +1,6 @@
 //! SAM reader and iterators.
 
-mod record;
+pub(crate) mod record;
 mod records;
 
 pub use self::records::Records;

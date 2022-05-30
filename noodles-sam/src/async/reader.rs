@@ -132,14 +132,15 @@ where
     /// let mut reader = sam::AsyncReader::new(&data[..]);
     /// reader.read_header().await?;
     ///
-    /// let mut buf = String::new();
-    /// reader.read_record(&mut buf).await?;
-    /// assert_eq!(buf, "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*");
+    /// let mut record = sam::Record::default();
+    /// reader.read_record(&mut record).await?;
+    ///
+    /// assert_eq!(record, sam::Record::default());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf).await
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        read_record(&mut self.inner, record).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
@@ -176,16 +177,11 @@ where
     /// ```
     pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
         Box::pin(stream::try_unfold(
-            (&mut self.inner, String::new()),
-            |(mut reader, mut buf)| async {
-                buf.clear();
-
-                match read_line(&mut reader, &mut buf).await? {
+            (&mut self.inner, Record::default()),
+            |(mut reader, mut record)| async {
+                match read_record(&mut reader, &mut record).await? {
                     0 => Ok(None),
-                    _ => buf
-                        .parse()
-                        .map(|record| Some((record, (reader, buf))))
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+                    _ => Ok(Some((record.clone(), (reader, record)))),
                 }
             },
         ))
@@ -196,7 +192,7 @@ async fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: AsyncBufRead + Unpin,
 {
-    const HEADER_PREFIX: u8 = b'@';
+    const PREFIX: u8 = b'@';
     const LINE_FEED: u8 = b'\n';
 
     let mut header_buf = Vec::new();
@@ -205,7 +201,7 @@ where
     for i in 0.. {
         let buf = reader.fill_buf().await?;
 
-        if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+        if (i == 0 || is_eol) && buf.first().map(|&b| b != PREFIX).unwrap_or(true) {
             break;
         }
 
@@ -225,27 +221,43 @@ where
     String::from_utf8(header_buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
-async fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+async fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: AsyncBufRead + Unpin,
 {
-    const LINE_FEED: char = '\n';
-    const CARRIAGE_RETURN: char = '\r';
+    use crate::reader::record::parse_record;
 
-    match reader.read_line(buf).await {
-        Ok(0) => Ok(0),
-        Ok(n) => {
-            if buf.ends_with(LINE_FEED) {
+    let mut buf = Vec::new();
+
+    match read_line(reader, &mut buf).await? {
+        0 => Ok(0),
+        n => {
+            parse_record(&buf, record)?;
+            Ok(n)
+        }
+    }
+}
+
+async fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: AsyncBufRead + Unpin,
+{
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
+
+    match reader.read_until(LINE_FEED, buf).await? {
+        0 => Ok(0),
+        n => {
+            if buf.ends_with(&[LINE_FEED]) {
                 buf.pop();
 
-                if buf.ends_with(CARRIAGE_RETURN) {
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
                     buf.pop();
                 }
             }
 
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 
@@ -255,18 +267,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_line() -> io::Result<()> {
-        async fn t(buf: &mut String, mut data: &[u8], expected: &str) -> io::Result<()> {
+        async fn t(buf: &mut Vec<u8>, mut data: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();
             read_line(&mut data, buf).await?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
-        let mut buf = String::new();
+        let mut buf = Vec::new();
 
-        t(&mut buf, b"noodles\n", "noodles").await?;
-        t(&mut buf, b"noodles\r\n", "noodles").await?;
-        t(&mut buf, b"noodles", "noodles").await?;
+        t(&mut buf, b"noodles\n", b"noodles").await?;
+        t(&mut buf, b"noodles\r\n", b"noodles").await?;
+        t(&mut buf, b"noodles", b"noodles").await?;
 
         Ok(())
     }
