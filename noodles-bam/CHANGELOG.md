@@ -11,35 +11,31 @@
 
   * bam/reader: Add `Reader::read_lazy_record` to read lazy records.
 
+### Changed
+
+  * bam: Replace `Record` with `sam::alignment::Record`.
+
+  * bam/reader/record/data/field/value: Validate character values.
+
 ### Deprecated
 
   * bam/record: Deprecate the `reference_sequence_id` module.
 
     This includes the `reference_sequence_id::UNMAPPED` constant.
 
-### Changed
-
-  * bam/reader/record/data/field/value: Validate character values.
-
-  * bam: Replace `Record` with `sam::alignment::Record`.
-
 ### Removed
-
-  * bam/async/writer: Remove `Writer::write_sam_record`.
-
-    Use `Writer::write_alignment_record` instead.
 
   * bam: Remove `Record`.
 
     Use `sam::alignment::Record` instead.
 
+  * bam/async/writer: Remove `Writer::write_sam_record`.
+
+    Use `Writer::write_alignment_record` instead.
+
   * bam/record: Remove `record::Builder`.
 
     Use `sam::alignment::record::Builder` instead.
-
-  * bam/record/convert: Remove `Record::try_from_sam_record`.
-
-  * bam/record/convert: Remove `Record::try_into_sam_record`.
 
   * bam/writer: Remove `Writer::write_sam_record`.
 
