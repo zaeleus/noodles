@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = sam::AsyncWriter::new(io::stdout());
 
     while let Some(record) = records.try_next().await? {
-        let record = record.try_into_sam_record(&header)?;
+        let record = record.try_into_alignment_record(&header)?;
         writer.write_alignment_record(&header, &record).await?;
     }
 

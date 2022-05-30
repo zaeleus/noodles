@@ -29,6 +29,9 @@
   * cram/reader/container/header: Verify the expected CRC32 checksum of the
     container header.
 
+  * cram/record/convert: Change `Record::try_into_sam_record` to
+    `Record::try_into_alignment_record`.
+
 ### Fixed
 
   * cram/data_container/builder: Disable encoding alignment start positions as
@@ -50,7 +53,8 @@
 
   * cram/record: Remove `sam::AlignmentRecord`.
 
-    Convert to a SAM record (`Record::try_into_sam_record`) instead.
+    Convert to an alignment record (`Record::try_into_alignment_record`)
+    instead.
 
 ## 0.15.0 - 2022-04-14
 

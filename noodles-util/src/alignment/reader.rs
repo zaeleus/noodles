@@ -147,7 +147,7 @@ where
                         .query(&self.reference_sequence_repository, header, crai, region)?
                         .map(|result| {
                             result
-                                .and_then(|record| record.try_into_sam_record(header))
+                                .and_then(|record| record.try_into_alignment_record(header))
                                 .map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
                         }),
                 ),

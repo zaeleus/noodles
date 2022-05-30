@@ -94,11 +94,12 @@ impl Record {
         Ok(builder.set_flags(flags).build())
     }
 
-    /// Converts this CRAM record to a SAM record.
-    ///
-    /// This assumes this record is fully resolved.
-    pub fn try_into_sam_record(self, header: &sam::Header) -> io::Result<sam::Record> {
-        let mut builder = sam::Record::builder();
+    /// Converts this CRAM record to an alignment record.
+    pub fn try_into_alignment_record(
+        self,
+        header: &sam::Header,
+    ) -> io::Result<sam::alignment::Record> {
+        let mut builder = sam::alignment::Record::builder();
 
         if let Some(read_name) = self.read_name {
             builder = builder.set_read_name(read_name);
@@ -106,14 +107,12 @@ impl Record {
 
         builder = builder.set_flags(self.bam_bit_flags);
 
-        if let Some(reference_sequence_name) =
-            get_reference_sequence_name(header.reference_sequences(), self.reference_sequence_id)?
-        {
-            builder = builder.set_reference_sequence_name(reference_sequence_name);
+        if let Some(reference_sequence_id) = self.reference_sequence_id {
+            builder = builder.set_reference_sequence_id(reference_sequence_id);
         }
 
         if let Some(alignment_start) = self.alignment_start {
-            builder = builder.set_position(alignment_start);
+            builder = builder.set_alignment_start(alignment_start);
         }
 
         if let Some(mapping_quality) = self.mapping_quality {
@@ -129,15 +128,12 @@ impl Record {
             builder = builder.set_cigar(cigar);
         }
 
-        if let Some(mate_reference_sequence_name) = get_reference_sequence_name(
-            header.reference_sequences(),
-            self.next_fragment_reference_sequence_id,
-        )? {
-            builder = builder.set_mate_reference_sequence_name(mate_reference_sequence_name);
+        if let Some(mate_reference_sequence_id) = self.next_fragment_reference_sequence_id {
+            builder = builder.set_mate_reference_sequence_id(mate_reference_sequence_id);
         }
 
         if let Some(mate_alignment_start) = self.next_mate_alignment_start {
-            builder = builder.set_mate_position(mate_alignment_start);
+            builder = builder.set_mate_alignment_start(mate_alignment_start);
         }
 
         builder = builder.set_template_length(self.template_size);
@@ -194,23 +190,6 @@ fn get_read_group_id(
         .get_index_of(read_group_name)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid read group name"))
         .map(Some)
-}
-
-fn get_reference_sequence_name(
-    reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence_id: Option<usize>,
-) -> io::Result<Option<sam::record::ReferenceSequenceName>> {
-    reference_sequence_id
-        .map(usize::from)
-        .map(|id| {
-            reference_sequences
-                .get_index(id)
-                .and_then(|(_, rs)| rs.name().parse().ok())
-                .ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence ID")
-                })
-        })
-        .transpose()
 }
 
 fn maybe_insert_read_group(

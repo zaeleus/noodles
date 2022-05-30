@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let query = reader.query(&repository, &header, &index, &region)?;
 
     for result in query {
-        let record = result.and_then(|record| record.try_into_sam_record(&header))?;
+        let record = result.and_then(|record| record.try_into_alignment_record(&header))?;
         writer.write_alignment_record(&header, &record)?;
     }
 

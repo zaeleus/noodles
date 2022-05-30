@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = sam::Writer::new(BufWriter::new(handle));
 
     for result in reader.records(&repository, &header) {
-        let record = result.and_then(|record| record.try_into_sam_record(&header))?;
+        let record = result.and_then(|record| record.try_into_alignment_record(&header))?;
         writer.write_alignment_record(&header, &record)?;
     }
 
