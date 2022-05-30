@@ -10,7 +10,7 @@ use std::{env, fs::File, io};
 
 use noodles_bam::{self as bam, bai};
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::{self as sam, header::header::SortOrder};
+use noodles_sam::{self as sam, alignment::Record, header::header::SortOrder};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
     if let Some(hdr) = header.header() {
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into());
     }
 
-    let mut record = bam::Record::default();
+    let mut record = Record::default();
 
     let mut builder = bai::Index::builder();
     let mut start_position = reader.virtual_position();

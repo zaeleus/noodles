@@ -1,7 +1,8 @@
 use std::io::{self, Read};
 
+use noodles_sam::alignment::Record;
+
 use super::Reader;
-use crate::Record;
 
 /// An iterator over records of a BAM reader.
 ///

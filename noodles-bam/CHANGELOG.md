@@ -21,11 +21,21 @@
 
   * bam/reader/record/data/field/value: Validate character values.
 
+  * bam: Replace `Record` with `sam::alignment::Record`.
+
 ### Removed
 
   * bam/async/writer: Remove `Writer::write_sam_record`.
 
     Use `Writer::write_alignment_record` instead.
+
+  * bam: Remove `Record`.
+
+    Use `sam::alignment::Record` instead.
+
+  * bam/record: Remove `record::Builder`.
+
+    Use `sam::alignment::record::Builder` instead.
 
   * bam/record/convert: Remove `Record::try_from_sam_record`.
 

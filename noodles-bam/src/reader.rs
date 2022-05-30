@@ -19,10 +19,11 @@ use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use super::{bai, lazy, Record, MAGIC_NUMBER};
+use super::{bai, lazy, MAGIC_NUMBER};
 
 /// A BAM reader.
 ///
@@ -172,12 +173,13 @@ where
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::Record;
     ///
     /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
     /// reader.read_header()?;
     /// reader.read_reference_sequences()?;
     ///
-    /// let mut record = bam::Record::default();
+    /// let mut record = Record::default();
     /// reader.read_record(&mut record)?;
     ///
     /// # Ok::<(), io::Error>(())

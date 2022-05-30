@@ -16,10 +16,9 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_core::Position;
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::Record, AlignmentRecord};
 
 use super::alignment_record::NULL_QUALITY_SCORE;
-use crate::Record;
 
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
@@ -244,18 +243,16 @@ mod tests {
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::record::{Flags, MappingQuality};
 
-        let reference_sequence_id = 1;
-
         let record = Record::builder()
-            .set_reference_sequence_id(reference_sequence_id)
-            .set_position(Position::try_from(9)?)
-            .set_mapping_quality(MappingQuality::try_from(13)?)
-            .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
-            .set_mate_reference_sequence_id(reference_sequence_id)
-            .set_mate_position(Position::try_from(22)?)
-            .set_template_length(144)
             .set_read_name("r0".parse()?)
+            .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
+            .set_reference_sequence_id(1)
+            .set_alignment_start(Position::try_from(9)?)
+            .set_mapping_quality(MappingQuality::try_from(13)?)
             .set_cigar("36M8S".parse()?)
+            .set_mate_reference_sequence_id(1)
+            .set_mate_alignment_start(Position::try_from(22)?)
+            .set_template_length(144)
             .set_sequence("ACGT".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .set_data("NH:i:1".parse()?)

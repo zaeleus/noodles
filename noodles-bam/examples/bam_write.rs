@@ -9,6 +9,7 @@ use std::io;
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{self, Program},
 };
 
@@ -26,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
     writer.write_reference_sequences(header.reference_sequences())?;
 
-    let record = bam::Record::default();
+    let record = Record::default();
     writer.write_record(&record)?;
 
     Ok(())

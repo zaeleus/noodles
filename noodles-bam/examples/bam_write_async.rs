@@ -7,6 +7,7 @@
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{Program, ReferenceSequence},
 };
 use tokio::io;
@@ -27,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_reference_sequences(header.reference_sequences())
         .await?;
 
-    let record = bam::Record::default();
+    let record = Record::default();
     writer.write_record(&record).await?;
 
     writer.shutdown().await?;

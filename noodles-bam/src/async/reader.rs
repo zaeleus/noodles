@@ -9,13 +9,16 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
-use noodles_sam::header::{ReferenceSequence, ReferenceSequences};
+use noodles_sam::{
+    alignment::Record,
+    header::{ReferenceSequence, ReferenceSequences},
+};
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
 use crate::{
     reader::{bytes_with_nul_to_string, resolve_region},
-    Record, MAGIC_NUMBER,
+    MAGIC_NUMBER,
 };
 
 /// An async BAM reader.
@@ -177,13 +180,14 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::Record;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
     /// reader.read_header().await?;
     /// reader.read_reference_sequences().await?;
     ///
-    /// let mut record = bam::Record::default();
+    /// let mut record = Record::default();
     /// reader.read_record(&mut record).await?;
     /// # Ok(())
     /// # }

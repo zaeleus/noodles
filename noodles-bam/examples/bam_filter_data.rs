@@ -5,9 +5,9 @@
 use std::{env, fs::File, io};
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, record::data::field::Tag, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::Record, record::data::field::Tag, AlignmentRecord};
 
-fn is_unique_record(record: &bam::Record) -> io::Result<bool> {
+fn is_unique_record(record: &Record) -> io::Result<bool> {
     match record.data().get(Tag::AlignmentHitCount) {
         Some(field) => field.value().as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(

@@ -1,9 +1,8 @@
 //! Async BAM record field readers.
 
 use bytes::BytesMut;
+use noodles_sam::alignment::Record;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
-
-use crate::Record;
 
 pub(super) async fn read_record<R>(
     reader: &mut R,

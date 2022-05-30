@@ -1,10 +1,9 @@
 use std::{io, mem};
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::AlignmentRecord;
+use noodles_sam::{alignment::Record, AlignmentRecord};
 
 use super::{reference_sequence, Index};
-use crate::Record;
 
 /// A BAM index builder.
 #[derive(Default)]
@@ -24,13 +23,14 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_bam::bai;
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi::index::reference_sequence::bin::Chunk;
+    /// use noodles_sam::alignment::Record;
     ///
     /// let mut builder = bai::Index::builder();
     ///
-    /// let record = bam::Record::default();
+    /// let record = Record::default();
     /// let chunk = Chunk::new(
     ///     bgzf::VirtualPosition::from(233),
     ///     bgzf::VirtualPosition::from(377),
@@ -121,7 +121,7 @@ mod tests {
         let record = Record::builder()
             .set_flags(Flags::empty())
             .set_reference_sequence_id(0)
-            .set_position(Position::try_from(2)?)
+            .set_alignment_start(Position::try_from(2)?)
             .set_cigar("4M".parse()?)
             .build();
 

@@ -21,9 +21,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use bytes::Buf;
 use noodles_core::Position;
-use noodles_sam as sam;
-
-use crate::Record;
+use noodles_sam::{self as sam, alignment::Record};
 
 pub(crate) fn read_record<R>(
     reader: &mut R,
@@ -53,7 +51,7 @@ where
     B: Buf,
 {
     *record.reference_sequence_id_mut() = get_reference_sequence_id(src)?;
-    *record.position_mut() = get_position(src)?;
+    *record.alignment_start_mut() = get_position(src)?;
 
     let l_read_name = NonZeroUsize::new(usize::from(src.get_u8()))
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid l_read_name"))?;
@@ -71,7 +69,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src)?;
-    *record.mate_position_mut() = get_position(src)?;
+    *record.mate_alignment_start_mut() = get_position(src)?;
     *record.template_length_mut() = src.get_i32_le();
 
     get_read_name(src, record.read_name_mut(), l_read_name)?;

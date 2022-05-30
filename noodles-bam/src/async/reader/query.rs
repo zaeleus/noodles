@@ -4,13 +4,11 @@ use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
+use noodles_sam::alignment::Record;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{
-    reader::query::{intersects, next_chunk},
-    Record,
-};
+use crate::reader::query::{intersects, next_chunk};
 
 enum State {
     Seek,

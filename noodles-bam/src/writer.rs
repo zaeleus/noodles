@@ -12,11 +12,11 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{ReferenceSequence, ReferenceSequences},
 };
 
 use self::{alignment_record::encode_alignment_record, record::encode_record};
-use super::Record;
 
 /// A BAM writer.
 ///
@@ -28,7 +28,7 @@ use super::Record;
 /// ```
 /// # use std::io;
 /// use noodles_bam as bam;
-/// use noodles_sam as sam;
+/// use noodles_sam::{self as sam, alignment::Record};
 ///
 /// let mut writer = bam::Writer::new(Vec::new());
 ///
@@ -36,7 +36,7 @@ use super::Record;
 /// writer.write_header(&header)?;
 /// writer.write_reference_sequences(header.reference_sequences())?;
 ///
-/// let record = bam::Record::default();
+/// let record = Record::default();
 /// writer.write_record(&record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
@@ -143,8 +143,11 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::Record;
+    ///
     /// let mut writer = bam::Writer::new(Vec::new());
-    /// let record = bam::Record::default();
+    ///
+    /// let record = Record::default();
     /// writer.write_record(&record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -303,9 +306,8 @@ where
 mod tests {
     use noodles_sam::{record::Data, AlignmentRecord, AlignmentWriter};
 
-    use crate::{Reader, Record};
-
     use super::*;
+    use crate::Reader;
 
     #[test]
     fn test_write_header() -> io::Result<()> {
@@ -373,11 +375,11 @@ mod tests {
         assert!(record.read_name().is_none());
         assert_eq!(record.flags(), sam::record::Flags::UNMAPPED);
         assert!(record.reference_sequence_id().is_none());
-        assert!(record.position().is_none());
+        assert!(record.alignment_start().is_none());
         assert!(record.mapping_quality().is_none());
         assert!(record.cigar().is_empty());
         assert!(record.mate_reference_sequence_id().is_none());
-        assert!(record.mate_position().is_none());
+        assert!(record.mate_alignment_start().is_none());
         assert_eq!(record.template_length(), 0);
         assert!(record.sequence().is_empty());
         assert!(record.quality_scores().is_empty());

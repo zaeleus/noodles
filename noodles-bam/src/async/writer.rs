@@ -5,13 +5,10 @@ pub use self::builder::Builder;
 use std::ffi::CString;
 
 use noodles_bgzf as bgzf;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::Record};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{
-    writer::{alignment_record::encode_alignment_record, record::encode_record},
-    Record,
-};
+use crate::writer::{alignment_record::encode_alignment_record, record::encode_record};
 
 /// An async BAM writer.
 pub struct Writer<W> {
@@ -143,8 +140,9 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::Record;
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
-    /// let record = bam::Record::default();
+    /// let record = Record::default();
     /// writer.write_record(&record).await?;
     /// # Ok(())
     /// # }
