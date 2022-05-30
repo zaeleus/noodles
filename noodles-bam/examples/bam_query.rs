@@ -4,10 +4,11 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, fs::File, path::PathBuf};
+use std::{env, fs::File, io, path::PathBuf};
 
 use noodles_bam::{self as bam, bai};
 use noodles_sam as sam;
+use sam::AlignmentWriter;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
@@ -18,17 +19,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).map(bam::Reader::new)?;
 
     let header: sam::Header = reader.read_header()?.parse()?;
-    let reference_sequences = header.reference_sequences();
-
     let index = bai::read(src.with_extension("bam.bai"))?;
+    let query = reader.query(header.reference_sequences(), &index, &region)?;
 
-    let query = reader.query(reference_sequences, &index, &region)?;
+    let stdout = io::stdout();
+    let handle = stdout.lock();
+    let mut writer = sam::Writer::new(handle);
 
     for result in query {
         let record = result?;
-        let sam_record = record.try_into_sam_record(reference_sequences)?;
-        println!("{}", sam_record);
+        writer.write_alignment_record(&header, &record)?;
     }
+
+    writer.finish(&header)?;
 
     Ok(())
 }
