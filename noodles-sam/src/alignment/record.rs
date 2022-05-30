@@ -1,3 +1,7 @@
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::io;
 
 use noodles_core::Position;
@@ -26,6 +30,11 @@ pub struct Record {
 }
 
 impl Record {
+    /// Creates an alignment record builder.
+    pub fn builder() -> Builder {
+        Builder::default()
+    }
+
     /// Returns a mutable reference to the read name.
     pub fn read_name_mut(&mut self) -> &mut Option<ReadName> {
         &mut self.read_name
