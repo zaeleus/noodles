@@ -4,6 +4,8 @@
 
 ### Added
 
+  * sam/alignment: Add a base alignment record (`alignment::Record`).
+
   * sam/lazy: Add lazy record (`lazy::Record`).
 
     Lazy records are alignment records that are lazily-evalutated. They fields
