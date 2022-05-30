@@ -29,6 +29,8 @@
 
   * bam/record/convert: Remove `Record::try_from_sam_record`.
 
+  * bam/record/convert: Remove `Record::try_into_sam_record`.
+
   * bam/writer: Remove `Writer::write_sam_record`.
 
     Use `Writer::write_alignment_record` instead.
