@@ -12,7 +12,7 @@ use tokio::{
 };
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src)
@@ -20,14 +20,14 @@ async fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(sam::AsyncReader::new)?;
 
-    reader.read_header().await?;
+    let header = reader.read_header().await?.parse()?;
 
     let mut writer = sam::AsyncWriter::new(io::stdout());
 
     let mut records = reader.records();
 
     while let Some(record) = records.try_next().await? {
-        writer.write_record(&record).await?;
+        writer.write_record(&header, &record).await?;
     }
 
     Ok(())

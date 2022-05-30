@@ -22,6 +22,9 @@
 
   * sam/async/reader: Read record into a `Record` buffer.
 
+  * sam/async/writer: `Writer::write_record` requires a context (`Header`) when
+    writing a record.
+
   * sam/reader: Read record into a `Record` buffer.
 
   * sam/record/cigar: Change conversion from `Vec<Op>` to be

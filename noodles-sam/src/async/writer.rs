@@ -103,21 +103,16 @@ where
     ///
     /// let mut writer = sam::AsyncWriter::new(Vec::new());
     ///
+    /// let header = sam::Header::default();
     /// let record = sam::Record::default();
-    /// writer.write_record(&record).await?;
+    /// writer.write_record(&header, &record).await?;
     ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        const LINE_FEED: u8 = b'\n';
-
-        let raw_record = record.to_string();
-        self.inner.write_all(raw_record.as_bytes()).await?;
-        self.inner.write_all(&[LINE_FEED]).await?;
-
-        Ok(())
+    pub async fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
+        self.write_alignment_record(header, record).await
     }
 
     /// Writes an alignment record.
