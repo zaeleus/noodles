@@ -106,6 +106,12 @@ impl Record {
     }
 }
 
+impl Default for Record {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
+
 impl AlignmentRecord for Record {
     fn read_name(&self) -> Option<&ReadName> {
         self.read_name.as_ref()
