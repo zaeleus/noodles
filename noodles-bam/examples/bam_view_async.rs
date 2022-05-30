@@ -7,7 +7,7 @@ use std::env;
 use futures::TryStreamExt;
 use noodles_bam as bam;
 use noodles_sam as sam;
-use tokio::fs::File;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,9 +19,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut records = reader.records();
 
+    let mut writer = sam::AsyncWriter::new(io::stdout());
+
     while let Some(record) = records.try_next().await? {
-        let sam_record = record.try_into_sam_record(header.reference_sequences())?;
-        println!("{}", sam_record);
+        writer.write_alignment_record(&header, &record).await?;
     }
 
     Ok(())
