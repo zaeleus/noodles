@@ -8,7 +8,7 @@ use crate::Record;
 /// This is created by calling [`Reader::records`].
 pub struct Records<'a, R> {
     inner: &'a mut Reader<R>,
-    line_buf: String,
+    record: Record,
 }
 
 impl<'a, R> Records<'a, R>
@@ -18,7 +18,7 @@ where
     pub(crate) fn new(inner: &'a mut Reader<R>) -> Self {
         Self {
             inner,
-            line_buf: String::new(),
+            record: Record::default(),
         }
     }
 }
@@ -30,15 +30,9 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.line_buf.clear();
-
-        match self.inner.read_record(&mut self.line_buf) {
+        match self.inner.read_record(&mut self.record) {
             Ok(0) => None,
-            Ok(_) => Some(
-                self.line_buf
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            ),
+            Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
         }
     }

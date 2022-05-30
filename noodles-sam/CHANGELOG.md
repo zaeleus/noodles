@@ -20,6 +20,8 @@
 
 ### Changed
 
+  * sam/reader: Read record into a `Record` buffer.
+
   * sam/record/cigar: Change conversion from `Vec<Op>` to be
     fallible.
 

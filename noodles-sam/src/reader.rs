@@ -1,5 +1,6 @@
 //! SAM reader and iterators.
 
+mod record;
 mod records;
 
 pub use self::records::Records;
@@ -10,12 +11,7 @@ use noodles_bgzf as bgzf;
 use noodles_fasta as fasta;
 
 use super::{AlignmentReader, AlignmentRecord, Header};
-use crate::lazy;
-
-const LINE_FEED: char = '\n';
-const CARRIAGE_RETURN: char = '\r';
-
-const HEADER_PREFIX: u8 = b'@';
+use crate::{lazy, Record};
 
 /// A SAM reader.
 ///
@@ -141,10 +137,10 @@ where
         read_header(&mut self.inner)
     }
 
-    /// Reads a single raw SAM record.
+    /// Reads a single SAM record.
     ///
-    /// This reads from the underlying stream until a newline is reached and appends it to the
-    /// given buffer, sans the final newline character.
+    /// This reads a line from the underlying stream until a newline is reached and parses that
+    /// line into the given record.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
@@ -167,15 +163,15 @@ where
     /// let mut reader = sam::Reader::new(&data[..]);
     /// reader.read_header()?;
     ///
-    /// let mut buf = String::new();
-    /// reader.read_record(&mut buf)?;
-    /// assert_eq!(buf, "*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*");
+    /// let mut record = sam::Record::default();
+    /// reader.read_record(&mut record)?;
     ///
-    /// assert_eq!(reader.read_record(&mut buf)?, 0);
+    /// assert_eq!(record, sam::Record::default());
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_record(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        use self::record::read_record;
+        read_record(&mut self.inner, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -198,7 +194,7 @@ where
     /// reader.read_header()?;
     ///
     /// let mut records = reader.records();
-    /// assert!(records.next().is_some());
+    /// assert!(dbg!(records.next()).is_some());
     /// assert!(records.next().is_none());
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -296,17 +292,20 @@ fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: BufRead,
 {
+    const PREFIX: u8 = b'@';
+    const LINE_FEED: u8 = b'\n';
+
     let mut header_buf = Vec::new();
     let mut is_eol = false;
 
     for i in 0.. {
         let buf = reader.fill_buf()?;
 
-        if (i == 0 || is_eol) && buf.first().map(|&b| b != HEADER_PREFIX).unwrap_or(true) {
+        if (i == 0 || is_eol) && buf.first().map(|&b| b != PREFIX).unwrap_or(true) {
             break;
         }
 
-        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED as u8) {
+        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED) {
             header_buf.extend(&buf[..=i]);
             (true, i + 1)
         } else {
@@ -363,7 +362,7 @@ where
     len += read_field(reader, &mut record.buf)?;
     record.bounds.quality_scores_end = record.buf.len();
 
-    len += read_byte_line(reader, &mut record.buf)?;
+    len += read_line(reader, &mut record.buf)?;
 
     Ok(len)
 }
@@ -404,7 +403,7 @@ where
     Ok(len)
 }
 
-fn read_byte_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -424,27 +423,6 @@ where
 
             Ok(n)
         }
-    }
-}
-
-fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
-            if buf.ends_with(LINE_FEED) {
-                buf.pop();
-
-                if buf.ends_with(CARRIAGE_RETURN) {
-                    buf.pop();
-                }
-            }
-
-            Ok(n)
-        }
-        Err(e) => Err(e),
     }
 }
 
@@ -482,18 +460,18 @@ mod tests {
 
     #[test]
     fn test_read_line() -> io::Result<()> {
-        fn t(buf: &mut String, mut reader: &[u8], expected: &str) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, mut reader: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();
             read_line(&mut reader, buf)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
-        let mut buf = String::new();
+        let mut buf = Vec::new();
 
-        t(&mut buf, b"noodles\n", "noodles")?;
-        t(&mut buf, b"noodles\r\n", "noodles")?;
-        t(&mut buf, b"noodles", "noodles")?;
+        t(&mut buf, b"noodles\n", b"noodles")?;
+        t(&mut buf, b"noodles\r\n", b"noodles")?;
+        t(&mut buf, b"noodles", b"noodles")?;
 
         Ok(())
     }
