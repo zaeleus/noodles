@@ -3,7 +3,8 @@ use std::env;
 use futures::TryStreamExt;
 use noodles_cram as cram;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
-use tokio::fs::File;
+use noodles_sam as sam;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,9 +26,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut records = reader.records(&repository, &header);
 
+    let mut writer = sam::AsyncWriter::new(io::stdout());
+
     while let Some(record) = records.try_next().await? {
-        let sam_record = record.try_into_sam_record(&header)?;
-        println!("{}", sam_record);
+        let record = record.try_into_sam_record(&header)?;
+        writer.write_alignment_record(&header, &record).await?;
     }
 
     Ok(())
