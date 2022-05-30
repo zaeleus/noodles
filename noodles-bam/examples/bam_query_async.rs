@@ -9,7 +9,7 @@ use std::{env, path::PathBuf};
 use futures::TryStreamExt;
 use noodles_bam::{self as bam, bai};
 use noodles_sam as sam;
-use tokio::fs::File;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,15 +21,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).await.map(bam::AsyncReader::new)?;
 
     let header: sam::Header = reader.read_header().await?.parse()?;
-    let reference_sequences = header.reference_sequences();
-
     let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
+    let mut query = reader.query(header.reference_sequences(), &index, &region)?;
 
-    let mut query = reader.query(reference_sequences, &index, &region)?;
+    let mut writer = sam::AsyncWriter::new(io::stdout());
 
     while let Some(record) = query.try_next().await? {
-        let sam_record = record.try_into_sam_record(reference_sequences)?;
-        println!("{}", sam_record);
+        writer.write_alignment_record(&header, &record).await?;
     }
 
     Ok(())
