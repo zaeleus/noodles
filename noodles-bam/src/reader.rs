@@ -505,7 +505,7 @@ where
     })?;
 
     let l_ref = reader.read_u32::<LittleEndian>().and_then(|len| {
-        i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -616,7 +616,7 @@ mod tests {
 
         let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len): (reference_sequence::Name, i32)| {
+            .map(|(name, len): (reference_sequence::Name, usize)| {
                 let sn = name.to_string();
                 ReferenceSequence::new(name, len).map(|rs| (sn, rs))
             })

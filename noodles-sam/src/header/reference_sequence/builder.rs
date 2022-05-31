@@ -1,17 +1,16 @@
 //! SAM header reference sequence builder.
 
-use std::{collections::HashMap, error, fmt};
+use std::{collections::HashMap, error, fmt, num::NonZeroUsize};
 
 use super::{
-    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, ReferenceSequence,
-    Tag, MIN_LENGTH,
+    AlternativeLocus, AlternativeNames, Md5Checksum, MoleculeTopology, Name, ReferenceSequence, Tag,
 };
 
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     name: Option<Name>,
-    len: Option<i32>,
+    len: Option<usize>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
@@ -31,7 +30,7 @@ pub enum BuildError {
     /// The length is missing.
     MissingLength,
     /// The length is invalid.
-    InvalidLength(i32),
+    InvalidLength(usize),
 }
 
 impl error::Error for BuildError {}
@@ -79,10 +78,10 @@ impl Builder {
     ///     .set_length(13)
     ///     .build()?;
     ///
-    /// assert_eq!(reference_sequence.len(), 13);
+    /// assert_eq!(usize::from(reference_sequence.len()), 13);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_length(mut self, len: i32) -> Self {
+    pub fn set_length(mut self, len: usize) -> Self {
         self.len = Some(len);
         self
     }
@@ -325,11 +324,11 @@ impl Builder {
     /// ```
     pub fn build(self) -> Result<ReferenceSequence, BuildError> {
         let name = self.name.ok_or(BuildError::MissingName)?;
-        let len = self.len.ok_or(BuildError::MissingLength)?;
 
-        if len < MIN_LENGTH {
-            return Err(BuildError::InvalidLength(len));
-        }
+        let len = self
+            .len
+            .ok_or(BuildError::MissingLength)
+            .and_then(|n| NonZeroUsize::new(n).ok_or(BuildError::InvalidLength(n)))?;
 
         Ok(ReferenceSequence {
             name,

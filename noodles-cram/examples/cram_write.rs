@@ -49,8 +49,7 @@ fn build_header(
         let sequence = record.sequence();
 
         let name = record.name().parse()?;
-        let len = i32::try_from(sequence.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let len = sequence.len();
 
         let mut hasher = Md5::new();
         hasher.update(&sequence);

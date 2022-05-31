@@ -8,7 +8,7 @@ pub mod molecule_topology;
 pub mod name;
 pub mod tag;
 
-use std::{collections::HashMap, error, fmt};
+use std::{collections::HashMap, error, fmt, num::NonZeroUsize};
 
 pub use self::{
     alternative_locus::AlternativeLocus, alternative_names::AlternativeNames, builder::Builder,
@@ -20,8 +20,6 @@ use super::{
     Record,
 };
 
-const MIN_LENGTH: i32 = 1;
-
 /// A SAM header reference sequence.
 ///
 /// The reference sequence describes a sequence a read possibly mapped to. Both the reference
@@ -31,7 +29,7 @@ const MIN_LENGTH: i32 = 1;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     name: Name,
-    len: i32,
+    len: NonZeroUsize,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
@@ -49,7 +47,7 @@ pub enum NewError {
     /// The name is invalid.
     InvalidName,
     /// The length is invalid.
-    InvalidLength(i32),
+    InvalidLength(usize),
 }
 
 impl error::Error for NewError {}
@@ -86,10 +84,8 @@ impl ReferenceSequence {
     /// let reference_sequence = ReferenceSequence::new("sq0".parse()?, 13)?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn new(name: Name, len: i32) -> Result<Self, NewError> {
-        if len < MIN_LENGTH {
-            return Err(NewError::InvalidLength(len));
-        }
+    pub fn new(name: Name, len: usize) -> Result<Self, NewError> {
+        let len = NonZeroUsize::new(len).ok_or(NewError::InvalidLength(len))?;
 
         Ok(Self {
             name,
@@ -145,10 +141,10 @@ impl ReferenceSequence {
     /// ```
     /// use noodles_sam::header::ReferenceSequence;
     /// let mut reference_sequence = ReferenceSequence::new("sq0".parse()?, 13)?;
-    /// assert_eq!(reference_sequence.len(), 13);
+    /// assert_eq!(usize::from(reference_sequence.len()), 13);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn len(&self) -> i32 {
+    pub fn len(&self) -> NonZeroUsize {
         self.len
     }
 
@@ -157,16 +153,18 @@ impl ReferenceSequence {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_sam::header::ReferenceSequence;
     ///
     /// let mut reference_sequence = ReferenceSequence::new("sq0".parse()?, 13)?;
-    /// assert_eq!(reference_sequence.len(), 13);
+    /// assert_eq!(usize::from(reference_sequence.len()), 13);
     ///
-    /// *reference_sequence.len_mut() = 8;
-    /// assert_eq!(reference_sequence.len(), 8);
+    /// *reference_sequence.len_mut() = NonZeroUsize::try_from(8)?;
+    /// assert_eq!(usize::from(reference_sequence.len()), 8);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn len_mut(&mut self) -> &mut i32 {
+    pub fn len_mut(&mut self) -> &mut NonZeroUsize {
         &mut self.len
     }
 
@@ -329,7 +327,7 @@ impl ReferenceSequence {
     /// assert_eq!(reference_sequence.name(), &name);
     ///
     /// assert_eq!(fields.get(&Tag::Length), None);
-    /// assert_eq!(reference_sequence.len(), 13);
+    /// assert_eq!(usize::from(reference_sequence.len()), 13);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn fields(&self) -> &HashMap<Tag, String> {

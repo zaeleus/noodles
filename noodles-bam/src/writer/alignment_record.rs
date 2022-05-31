@@ -140,7 +140,7 @@ mod tests {
 
         let reference_sequences = [("sq0".parse()?, 8), ("sq1".parse()?, 13)]
             .into_iter()
-            .map(|(name, len): (reference_sequence::Name, i32)| {
+            .map(|(name, len): (reference_sequence::Name, usize)| {
                 let sn = name.to_string();
                 ReferenceSequence::new(name, len).map(|rs| (sn, rs))
             })

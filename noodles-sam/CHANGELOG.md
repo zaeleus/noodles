@@ -30,6 +30,8 @@
   * sam/async/writer: `Writer::write_record` requires a context (`Header`) when
     writing a record.
 
+  * sam/header/reference_sequence: Change length to a `NonZeroUsize`.
+
   * sam/reader: Read record into a `Record` buffer.
 
   * sam/reader: `Reader::read_record` and `Reader::records` require a context

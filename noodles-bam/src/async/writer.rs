@@ -294,7 +294,7 @@ where
     writer.write_u32_le(l_name).await?;
     writer.write_all(name).await?;
 
-    let l_ref = u32::try_from(reference_sequence.len())
+    let l_ref = u32::try_from(usize::from(reference_sequence.len()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(l_ref).await?;
 
