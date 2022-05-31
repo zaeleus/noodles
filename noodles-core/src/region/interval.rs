@@ -52,6 +52,7 @@ impl fmt::Display for Interval {
             }
             (Bound::Included(s), Bound::Unbounded) => s.fmt(f),
             (Bound::Included(s), Bound::Included(e)) => write!(f, "{}-{}", s, e),
+            (Bound::Included(s), Bound::Excluded(e)) => write!(f, "{}-{}", s, usize::from(e) - 1),
             _ => todo!(),
         }
     }
@@ -205,6 +206,12 @@ mod tests {
         assert_eq!(interval.to_string(), "8");
 
         assert_eq!(Interval::new(start, end).to_string(), "8-13");
+
+        let interval = Interval {
+            start: Bound::Included(start),
+            end: Bound::Excluded(end),
+        };
+        assert_eq!(interval.to_string(), "8-12");
 
         Ok(())
     }

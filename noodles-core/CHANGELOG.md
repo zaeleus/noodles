@@ -9,8 +9,8 @@
     This provides the same functionality as the previous type alias, i.e.,
     `RangeBounds<Position>`. It can now be used separate from `Region`.
 
-  * core/region/interval: Add display formatters for `(Unbounded, Included)`
-    and `(Unbounded, Excluded)`.
+  * core/region/interval: Add display formatters for `(Unbounded, Included)`,
+    `(Unbounded, Excluded)`, and `(Included, Excluded)`.
 
 ### Changed
 
