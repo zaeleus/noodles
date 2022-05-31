@@ -94,7 +94,9 @@ impl Index {
     }
 }
 
-impl BinningIndex<ReferenceSequence> for Index {
+impl BinningIndex for Index {
+    type ReferenceSequence = ReferenceSequence;
+
     /// Returns a list of indexed reference sequences.
     ///
     /// # Examples
@@ -104,7 +106,7 @@ impl BinningIndex<ReferenceSequence> for Index {
     /// let index = csi::Index::default();
     /// assert!(index.reference_sequences().is_empty());
     /// ```
-    fn reference_sequences(&self) -> &[ReferenceSequence] {
+    fn reference_sequences(&self) -> &[Self::ReferenceSequence] {
         &self.reference_sequences
     }
 

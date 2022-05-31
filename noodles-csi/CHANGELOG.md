@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi/binning_index: Change generic reference sequence type to an associated
+    type.
+
 ## 0.6.0 - 2022-03-29
 
 ### Changed

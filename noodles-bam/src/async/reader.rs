@@ -8,7 +8,7 @@ use bytes::BytesMut;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
+use noodles_csi::BinningIndex;
 use noodles_sam::{
     alignment::Record,
     header::{ReferenceSequence, ReferenceSequences},
@@ -346,15 +346,14 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I, RS>(
+    pub fn query<I>(
         &mut self,
         reference_sequences: &ReferenceSequences,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
-        I: BinningIndex<RS>,
-        RS: ReferenceSequenceExt,
+        I: BinningIndex,
     {
         let reference_sequence_id = resolve_region(reference_sequences, region)?;
 

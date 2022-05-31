@@ -7,7 +7,7 @@ pub use self::builder::Builder;
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
-use noodles_csi::{binning_index::ReferenceSequenceExt, BinningIndex};
+use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
@@ -326,15 +326,14 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I, RS>(
+    pub fn query<I>(
         &mut self,
         contig_string_map: &ContigStringMap,
         index: &I,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
     where
-        I: BinningIndex<RS>,
-        RS: ReferenceSequenceExt,
+        I: BinningIndex,
     {
         use crate::reader::resolve_region;
 

@@ -12,12 +12,12 @@ use noodles_core::Position;
 use super::index::reference_sequence::bin::Chunk;
 
 /// A binning index.
-pub trait BinningIndex<RS>
-where
-    RS: ReferenceSequenceExt,
-{
+pub trait BinningIndex {
+    /// The returned output indexed reference sequence.
+    type ReferenceSequence: ReferenceSequenceExt;
+
     /// Returns a list of indexed reference sequences.
-    fn reference_sequences(&self) -> &[RS];
+    fn reference_sequences(&self) -> &[Self::ReferenceSequence];
 
     /// Returns the number of unplaced, unmapped records in the associated file.
     fn unplaced_unmapped_record_count(&self) -> Option<u64>;
