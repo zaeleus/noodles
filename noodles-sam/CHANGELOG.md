@@ -67,9 +67,10 @@
 
 ### Deprecated
 
-  * sam/record/cigar: Deprecate `Cigar::read_len`.
+  * sam/record/cigar: Deprecate `Cigar::read_len` and `Cigar::reference_len`.
 
-    Use `Cigar::read_length` instead.
+    Use `Cigar::read_length` and `Cigar::alignment_span`, respectively,
+    instead.
 
   * sam/record/data/field/value: Deprecate `Value::as_char` and
     `Value::is_char`.

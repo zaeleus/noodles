@@ -133,7 +133,7 @@ impl AlignmentRecord for Record {
     }
 
     fn alignment_span(&self) -> usize {
-        self.cigar().reference_len()
+        self.cigar().alignment_span()
     }
 
     fn mapping_quality(&self) -> Option<MappingQuality> {

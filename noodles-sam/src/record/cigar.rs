@@ -34,6 +34,12 @@ impl Cigar {
     }
 
     /// Calculates the alignment span over the reference sequence.
+    #[deprecated(since = "0.16.0", note = "Use `Cigar::alignment_span` instead.")]
+    pub fn reference_len(&self) -> usize {
+        self.alignment_span()
+    }
+
+    /// Calculates the alignment span over the reference sequence.
     ///
     /// This sums the lengths of the CIGAR operations that consume the reference sequence, i.e.,
     /// alignment matches (`M`), deletions from the reference (`D`), skipped reference regions
@@ -50,10 +56,10 @@ impl Cigar {
     ///     Op::new(Kind::SoftClip, 8),
     /// ])?;
     ///
-    /// assert_eq!(cigar.reference_len(), 40);
+    /// assert_eq!(cigar.alignment_span(), 40);
     /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
-    pub fn reference_len(&self) -> usize {
+    pub fn alignment_span(&self) -> usize {
         self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match
