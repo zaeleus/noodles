@@ -31,19 +31,29 @@ pub(crate) fn read_record<R>(
 where
     R: Read,
 {
-    let block_size = match reader.read_u32::<LittleEndian>() {
-        Ok(bs) => usize::try_from(bs).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?,
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
-        Err(e) => return Err(e),
+    let block_size = match read_block_size(reader)? {
+        0 => return Ok(0),
+        n => n,
     };
 
-    buf.resize(block_size, Default::default());
+    buf.resize(block_size, 0);
     reader.read_exact(buf)?;
 
     let mut src = &buf[..];
     decode_record(&mut src, record)?;
 
     Ok(block_size)
+}
+
+pub(super) fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    match reader.read_u32::<LittleEndian>() {
+        Ok(n) => usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(0),
+        Err(e) => Err(e),
+    }
 }
 
 pub(crate) fn decode_record<B>(src: &mut B, record: &mut Record) -> io::Result<()>
@@ -132,6 +142,19 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_read_block_size() -> io::Result<()> {
+        let data = [0x08, 0x00, 0x00, 0x00];
+        let mut reader = &data[..];
+        assert_eq!(read_block_size(&mut reader)?, 8);
+
+        let data = [];
+        let mut reader = &data[..];
+        assert_eq!(read_block_size(&mut reader)?, 0);
+
+        Ok(())
+    }
 
     #[test]
     fn test_read_record() -> io::Result<()> {

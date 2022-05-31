@@ -216,12 +216,11 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
-        let block_size = match self.inner.read_u32::<LittleEndian>() {
-            Ok(n) => {
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?
-            }
-            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
-            Err(e) => return Err(e),
+        use self::record::read_block_size;
+
+        let block_size = match read_block_size(&mut self.inner)? {
+            0 => return Ok(0),
+            n => n,
         };
 
         record.buf.resize(block_size, 0);
