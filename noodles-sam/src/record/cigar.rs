@@ -67,6 +67,12 @@ impl Cigar {
     }
 
     /// Calculates the read length.
+    #[deprecated(since = "0.16.0", note = "Use `Cigar::read_length` instead.")]
+    pub fn read_len(&self) -> usize {
+        self.read_length()
+    }
+
+    /// Calculates the read length.
     ///
     /// This sums the lengths of the CIGAR operations that consume the read, i.e., alignment
     /// matches (`M`), insertions to the reference (`I`), soft clips (`S`), sequence matches (`=`),
@@ -83,10 +89,10 @@ impl Cigar {
     ///     Op::new(Kind::SoftClip, 8),
     /// ])?;
     ///
-    /// assert_eq!(cigar.read_len(), 44);
+    /// assert_eq!(cigar.read_length(), 44);
     /// # Ok::<_, noodles_sam::record::cigar::ParseError>(())
     /// ```
-    pub fn read_len(&self) -> usize {
+    pub fn read_length(&self) -> usize {
         self.iter()
             .filter_map(|op| match op.kind() {
                 Kind::Match
