@@ -8,6 +8,7 @@ use std::io;
 
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{header, Program, ReferenceSequence},
 };
 
@@ -28,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header)?;
 
     for _ in 0..3 {
-        let record = sam::Record::default();
+        let record = Record::default();
         writer.write_record(&header, &record)?;
     }
 

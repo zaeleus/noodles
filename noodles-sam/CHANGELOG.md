@@ -20,12 +20,20 @@
 
 ### Changed
 
+  * sam: Replace `Record` with `alignment::Record`.
+
   * sam/async/reader: Read record into a `Record` buffer.
+
+  * sam/async/reader: `Reader::read_record` and `Reader::records` require a
+    context (`Header`) when reading a record.
 
   * sam/async/writer: `Writer::write_record` requires a context (`Header`) when
     writing a record.
 
   * sam/reader: Read record into a `Record` buffer.
+
+  * sam/reader: `Reader::read_record` and `Reader::records` require a context
+    (`Header`) when reading a record.
 
   * sam/record/cigar: Change conversion from `Vec<Op>` to be
     fallible.
@@ -61,6 +69,16 @@
     `Value::is_char`.
 
     Use `Value::as_character` and `Value::is_character`, respectively, instead.
+
+### Removed
+
+  * sam: Remove `Record`.
+
+    Use `alignment::Record` instead.
+
+  * sam/record: Remove `record::Builder`.
+
+    Use `alignment::record::Builder` instead.
 
 ## 0.15.0 - 2022-04-14
 

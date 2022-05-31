@@ -171,12 +171,12 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, alignment::Record};
     ///
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = sam::Record::default();
+    /// let record = Record::default();
     /// writer.write_alignment_record(&header, &record).await?;
     /// # Ok(())
     /// # }

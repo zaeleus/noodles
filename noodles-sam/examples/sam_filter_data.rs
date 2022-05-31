@@ -8,9 +8,9 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_sam::{self as sam, record::data::field::Tag, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::Record, record::data::field::Tag, AlignmentRecord};
 
-fn is_unique_record(record: &sam::Record) -> io::Result<bool> {
+fn is_unique_record(record: &Record) -> io::Result<bool> {
     match record.data().get(Tag::AlignmentHitCount) {
         Some(field) => field.value().as_int().map(|hits| hits == 1).ok_or_else(|| {
             io::Error::new(
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = args.next().expect("missing src");
 
     let mut reader = File::open(src).map(BufReader::new).map(sam::Reader::new)?;
-    let header: sam::Header = reader.read_header()?.parse()?;
+    let header = reader.read_header()?.parse()?;
 
     let stdout = io::stdout();
     let handle = stdout.lock();
@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_header(&header)?;
 
-    for result in reader.records() {
+    for result in reader.records(&header) {
         let record = result?;
 
         if is_unique_record(&record)? {

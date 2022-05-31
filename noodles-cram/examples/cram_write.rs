@@ -16,7 +16,7 @@ use noodles_sam::{
     self as sam,
     header::{self, reference_sequence::Md5Checksum, Program, ReferenceSequence},
 };
-use sam::AlignmentWriter;
+use sam::{alignment::Record, AlignmentWriter};
 
 fn build_reference_sequences() -> Vec<fasta::Record> {
     use fasta::record::{Definition, Sequence};
@@ -84,10 +84,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_definition()?;
     writer.write_file_header(&header)?;
 
-    let record = sam::Record::builder()
+    let record = Record::builder()
         .set_flags(sam::record::Flags::empty())
-        .set_reference_sequence_name("sq0".parse()?)
-        .set_position(Position::MIN)
+        .set_reference_sequence_id(1)
+        .set_alignment_start(Position::MIN)
         .set_cigar("4M".parse()?)
         .set_sequence("TTCA".parse()?)
         .set_quality_scores("NDLS".parse()?)
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writer.write_alignment_record(&header, &record)?;
 
-    let record = sam::Record::default();
+    let record = Record::default();
     writer.write_alignment_record(&header, &record)?;
 
     writer.try_finish(&header)?;

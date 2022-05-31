@@ -6,13 +6,10 @@ use std::env;
 
 use futures::TryStreamExt;
 use noodles_sam as sam;
-use tokio::{
-    fs::File,
-    io::{self, BufReader},
-};
+use tokio::{fs::File, io::BufReader};
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(src)
@@ -20,9 +17,9 @@ async fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(sam::AsyncReader::new)?;
 
-    reader.read_header().await?;
+    let header = reader.read_header().await?.parse()?;
 
-    let mut records = reader.records();
+    let mut records = reader.records(&header);
     let mut n = 0;
 
     while records.try_next().await?.is_some() {

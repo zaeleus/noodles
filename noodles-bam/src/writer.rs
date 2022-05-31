@@ -360,8 +360,8 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::default();
-        writer.write_alignment_record(&header, &sam_record)?;
+        let record = Record::default();
+        writer.write_alignment_record(&header, &record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -392,7 +392,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = sam::Record::builder().set_sequence("AT".parse()?).build();
+        let mut record = Record::builder().set_sequence("AT".parse()?).build();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -407,7 +407,7 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
+        let mut record = Record::builder().set_sequence("ATCG".parse()?).build();
         *record.quality_scores_mut() = "ND".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -421,7 +421,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let mut record = sam::Record::default();
+        let mut record = Record::default();
         *record.quality_scores_mut() = "NDLS".parse()?;
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
@@ -435,9 +435,9 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::builder().set_sequence("ATCG".parse()?).build();
+        let record = Record::builder().set_sequence("ATCG".parse()?).build();
 
-        writer.write_alignment_record(&header, &sam_record)?;
+        writer.write_alignment_record(&header, &record)?;
         writer.try_finish()?;
 
         let mut reader = Reader::new(writer.get_ref().get_ref().as_slice());
@@ -459,7 +459,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::builder()
+        let sam_record = Record::builder()
             .set_sequence("ATCG".parse()?)
             .set_quality_scores("NDLS".parse()?)
             .build();
@@ -490,7 +490,7 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let sam_record = sam::Record::builder()
+        let sam_record = Record::builder()
             .set_data(Data::try_from(vec![
                 Field::new(Tag::ReadGroup, Value::String(String::from("rg0"))),
                 Field::new(Tag::AlignmentHitCount, Value::UInt8(1)),

@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use crate::AlignmentRecord;
 
 use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
-use super::{AlignmentWriter, Header, Record};
+use super::{alignment::Record, AlignmentWriter, Header};
 
 /// A SAM writer.
 ///
@@ -20,14 +20,14 @@ use super::{AlignmentWriter, Header, Record};
 ///
 /// ```
 /// # use std::io;
-/// use noodles_sam as sam;
+/// use noodles_sam::{self as sam, alignment::Record};
 ///
 /// let mut writer = sam::Writer::new(Vec::new());
 ///
 /// let header = sam::Header::builder().add_comment("noodles-sam").build();
 /// writer.write_header(&header)?;
 ///
-/// let record = sam::Record::default();
+/// let record = Record::default();
 /// writer.write_record(&header, &record)?;
 ///
 /// let expected = b"@CO\tnoodles-sam
@@ -125,12 +125,12 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, alignment::Record};
     ///
     /// let mut writer = sam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::default();
-    /// let record = sam::Record::default();
+    /// let record = Record::default();
     /// writer.write_record(&header, &record)?;
     ///
     /// assert_eq!(writer.get_ref(), b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n");

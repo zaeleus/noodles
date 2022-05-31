@@ -54,7 +54,7 @@ impl Writer {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, alignment::Record};
     /// use noodles_util::alignment::{self, Format};
     ///
     /// let mut writer = alignment::Writer::builder(Vec::new())
@@ -64,7 +64,7 @@ impl Writer {
     /// let header = sam::Header::default();
     /// writer.write_header(&header)?;
     ///
-    /// let record = sam::Record::default();
+    /// let record = Record::default();
     /// writer.write_record(&header, &record)?;
     /// # Ok::<_, io::Error>(())
     /// ```

@@ -11,7 +11,7 @@ use noodles_bgzf as bgzf;
 use noodles_fasta as fasta;
 
 use super::{AlignmentReader, AlignmentRecord, Header};
-use crate::{lazy, Record};
+use crate::{alignment::Record, lazy};
 
 /// A SAM reader.
 ///
@@ -25,20 +25,20 @@ use crate::{lazy, Record};
 /// # Examples
 ///
 /// ```no_run
-/// # use std::{fs::File, io::{self, BufReader}};
+/// # use std::{fs::File, io::BufReader};
 /// use noodles_sam as sam;
 ///
 /// let mut reader = File::open("sample.sam")
 ///     .map(BufReader::new)
 ///     .map(sam::Reader::new)?;
 ///
-/// reader.read_header()?;
+/// let header = reader.read_header()?.parse()?;
 ///
-/// for result in reader.records() {
+/// for result in reader.records(&header) {
 ///     let record = result?;
-///     println!("{:?}", record);
+///     // ...
 /// }
-/// # Ok::<(), io::Error>(())
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug)]
 pub struct Reader<R> {
@@ -153,25 +153,24 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// use noodles_sam as sam;
+    /// use noodles_sam::{self as sam, alignment::Record};
     ///
     /// let data = b"@HD\tVN:1.6
     /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     ///
-    /// let mut record = sam::Record::default();
-    /// reader.read_record(&mut record)?;
+    /// let mut record = Record::default();
+    /// reader.read_record(&header, &mut record)?;
     ///
-    /// assert_eq!(record, sam::Record::default());
-    /// # Ok::<(), io::Error>(())
+    /// assert_eq!(record, Record::default());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
         use self::record::read_record;
-        read_record(&mut self.inner, record)
+        read_record(&mut self.inner, header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -183,7 +182,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
@@ -191,15 +189,15 @@ where
     /// ";
     ///
     /// let mut reader = sam::Reader::new(&data[..]);
-    /// reader.read_header()?;
+    /// let header = reader.read_header()?.parse()?;
     ///
-    /// let mut records = reader.records();
+    /// let mut records = reader.records(&header);
     /// assert!(dbg!(records.next()).is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<(), io::Error>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn records(&mut self) -> Records<'_, R> {
-        Records::new(self)
+    pub fn records<'a>(&'a mut self, header: &'a Header) -> Records<'a, R> {
+        Records::new(self, header)
     }
 
     /// Reads a single record without eagerly decoding its fields.
@@ -279,10 +277,10 @@ where
     fn alignment_records<'a>(
         &'a mut self,
         _: &'a fasta::Repository,
-        _: &'a Header,
+        header: &'a Header,
     ) -> Box<dyn Iterator<Item = io::Result<Box<dyn AlignmentRecord>>> + 'a> {
         Box::new(
-            self.records()
+            self.records(header)
                 .map(|result| result.map(|record| Box::new(record) as Box<dyn AlignmentRecord>)),
         )
     }

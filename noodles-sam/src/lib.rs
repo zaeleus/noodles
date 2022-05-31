@@ -18,17 +18,20 @@
 //! ## Read all records from a file
 //!
 //! ```no_run
-//! # use std::{fs::File, io::{self, BufReader}};
+//! # use std::{fs::File, io::BufReader};
 //! use noodles_sam as sam;
 //!
-//! let mut reader = File::open("sample.sam").map(BufReader::new).map(sam::Reader::new)?;
-//! reader.read_header()?;
+//! let mut reader = File::open("sample.sam")
+//!     .map(BufReader::new)
+//!     .map(sam::Reader::new)?;
 //!
-//! for result in reader.records() {
+//! let header = reader.read_header()?.parse()?;
+//!
+//! for result in reader.records(&header) {
 //!     let record = result?;
-//!     println!("{:?}", record);
+//!     // ...
 //! }
-//! # Ok::<(), io::Error>(())
+//! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
 #[cfg(feature = "async")]
@@ -46,8 +49,7 @@ mod writer;
 
 pub use self::{
     alignment_reader::AlignmentReader, alignment_record::AlignmentRecord,
-    alignment_writer::AlignmentWriter, header::Header, reader::Reader, record::Record,
-    writer::Writer,
+    alignment_writer::AlignmentWriter, header::Header, reader::Reader, writer::Writer,
 };
 
 #[cfg(feature = "async")]

@@ -6,6 +6,7 @@
 
 use noodles_sam::{
     self as sam,
+    alignment::Record,
     header::{Program, ReferenceSequence},
 };
 use tokio::io;
@@ -26,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_header(&header).await?;
 
     for _ in 0..3 {
-        let record = sam::Record::default();
+        let record = Record::default();
         writer.write_record(&header, &record).await?;
     }
 

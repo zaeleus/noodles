@@ -7,14 +7,12 @@ use noodles_core::Position;
 
 use super::read_line;
 use crate::{
-    record::{
-        Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, ReferenceSequenceName,
-        Sequence,
-    },
-    Record,
+    alignment::Record,
+    record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    Header,
 };
 
-pub fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
+pub fn read_record<R>(reader: &mut R, header: &Header, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -23,13 +21,13 @@ where
     match read_line(reader, &mut buf)? {
         0 => Ok(0),
         n => {
-            parse_record(&buf, record)?;
+            parse_record(&buf, header, record)?;
             Ok(n)
         }
     }
 }
 
-pub(crate) fn parse_record(mut src: &[u8], record: &mut Record) -> io::Result<()> {
+pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record) -> io::Result<()> {
     let field = next_field(&mut src);
     *record.read_name_mut() = parse_read_name(field)?;
 
@@ -37,10 +35,10 @@ pub(crate) fn parse_record(mut src: &[u8], record: &mut Record) -> io::Result<()
     *record.flags_mut() = parse_flags(field)?;
 
     let field = next_field(&mut src);
-    *record.reference_sequence_name_mut() = parse_reference_sequence_name(field)?;
+    *record.reference_sequence_id_mut() = parse_reference_sequence_id(header, field)?;
 
     let field = next_field(&mut src);
-    *record.position_mut() = parse_alignment_start(field)?;
+    *record.alignment_start_mut() = parse_alignment_start(field)?;
 
     let field = next_field(&mut src);
     *record.mapping_quality_mut() = parse_mapping_quality(field)?;
@@ -49,10 +47,10 @@ pub(crate) fn parse_record(mut src: &[u8], record: &mut Record) -> io::Result<()
     *record.cigar_mut() = parse_cigar(field)?;
 
     let field = next_field(&mut src);
-    *record.mate_reference_sequence_name_mut() = parse_reference_sequence_name(field)?;
+    *record.mate_reference_sequence_id_mut() = parse_reference_sequence_id(header, field)?;
 
     let field = next_field(&mut src);
-    *record.mate_position_mut() = parse_alignment_start(field)?;
+    *record.mate_alignment_start_mut() = parse_alignment_start(field)?;
 
     let field = next_field(&mut src);
     *record.template_length_mut() = parse_template_length(field)?;
@@ -107,7 +105,7 @@ fn parse_flags(src: &[u8]) -> io::Result<Flags> {
         .map(Flags::from)
 }
 
-fn parse_reference_sequence_name(src: &[u8]) -> io::Result<Option<ReferenceSequenceName>> {
+fn parse_reference_sequence_id(header: &Header, src: &[u8]) -> io::Result<Option<usize>> {
     const MISSING: &[u8] = b"*";
 
     match src {
@@ -115,9 +113,16 @@ fn parse_reference_sequence_name(src: &[u8]) -> io::Result<Option<ReferenceSeque
         _ => str::from_utf8(src)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .and_then(|s| {
-                s.parse()
+                header
+                    .reference_sequences()
+                    .get_index_of(s)
                     .map(Some)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "invalid reference sequence name",
+                        )
+                    })
             }),
     }
 }
