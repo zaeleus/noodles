@@ -4,12 +4,13 @@
 
 ### Added
 
-  * core/region: Add display formatter for `(Unbounded, Included)`.
-
   * core/region: Add `Interval` container.
 
     This provides the same functionality as the previous type alias, i.e.,
     `RangeBounds<Position>`. It can now be used separate from `Region`.
+
+  * core/region/interval: Add display formatters for `(Unbounded, Included)`
+    and `(Unbounded, Excluded)`.
 
 ### Changed
 
