@@ -10,7 +10,7 @@ use noodles_core::Region;
 use noodles_cram::{self as cram, crai};
 use noodles_csi as csi;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, AlignmentReader};
+use noodles_sam::{self as sam, alignment::Record, AlignmentReader};
 
 enum Inner<R> {
     Sam(sam::Reader<BufReader<R>>),
@@ -106,7 +106,7 @@ where
     pub fn records<'a>(
         &'a mut self,
         header: &'a sam::Header,
-    ) -> impl Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a {
+    ) -> impl Iterator<Item = io::Result<Record>> + 'a {
         match &mut self.inner {
             Inner::Sam(inner) => {
                 inner.alignment_records(&self.reference_sequence_repository, header)
@@ -125,7 +125,7 @@ where
         &'a mut self,
         header: &'a sam::Header,
         region: &'a Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::AlignmentRecord>>> + 'a> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
         let index = self.index.as_ref().ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidInput, "cannot query without an index")
         })?;
@@ -133,11 +133,7 @@ where
         let iter: Box<dyn Iterator<Item = _>> = match &mut self.inner {
             Inner::Bam(inner) => match index {
                 Index::Bai(bai) => {
-                    Box::new(inner.query(header.reference_sequences(), bai, region)?.map(
-                        |result| {
-                            result.map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
-                        },
-                    ))
+                    Box::new(inner.query(header.reference_sequences(), bai, region)?)
                 }
                 _ => todo!(),
             },
@@ -146,9 +142,7 @@ where
                     inner
                         .query(&self.reference_sequence_repository, header, crai, region)?
                         .map(|result| {
-                            result
-                                .and_then(|record| record.try_into_alignment_record(header))
-                                .map(|record| Box::new(record) as Box<dyn sam::AlignmentRecord>)
+                            result.and_then(|record| record.try_into_alignment_record(header))
                         }),
                 ),
                 _ => todo!(),

@@ -56,7 +56,7 @@ fn main() -> io::Result<()> {
 
     for result in reader.records(&header) {
         let record = result?;
-        writer.write_record(&header, record.as_ref())?;
+        writer.write_record(&header, &record)?;
     }
 
     writer.finish(&header)?;

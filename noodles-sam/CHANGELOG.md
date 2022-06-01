@@ -22,6 +22,8 @@
 
   * sam: Replace `Record` with `alignment::Record`.
 
+  * sam/alignment_reader: Return `alignment::Record` from `records` iterator.
+
   * sam/async/reader: Read record into a `Record` buffer.
 
   * sam/async/reader: `Reader::read_record` and `Reader::records` require a

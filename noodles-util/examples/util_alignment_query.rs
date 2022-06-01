@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for result in reader.query(&header, &region)? {
         let record = result?;
-        writer.write_alignment_record(&header, record.as_ref())?;
+        writer.write_alignment_record(&header, &record)?;
     }
 
     Ok(())
