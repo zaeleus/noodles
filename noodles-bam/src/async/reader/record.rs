@@ -27,7 +27,7 @@ where
     Ok(block_size)
 }
 
-async fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
+pub(super) async fn read_block_size<R>(reader: &mut R) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {

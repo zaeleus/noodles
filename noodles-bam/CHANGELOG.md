@@ -4,6 +4,8 @@
 
 ### Added
 
+  * bam/async/reader: Add `Reader::read_lazy_record` to read lazy records.
+
   * bam/lazy: Add lazy record (`lazy::Record`).
 
     Lazy records are alignment records that are lazily-evalutated. They fields

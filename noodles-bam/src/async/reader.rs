@@ -17,6 +17,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
 use self::{query::query, record::read_record};
 use crate::{
+    lazy,
     reader::{bytes_with_nul_to_string, resolve_region},
     MAGIC_NUMBER,
 };
@@ -194,6 +195,55 @@ where
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         read_record(&mut self.inner, &mut self.buf, record).await
+    }
+
+    /// Reads a single record without eagerly decoding its fields.
+    ///
+    /// The record block size (`bs`) is read from the underlying (input) stream and `bs` bytes are
+    /// read into the lazy record's buffer. No fields are decoded, meaning the record is not
+    /// necessarily valid. However, the structure of the byte stream is guaranteed to be
+    /// record-like.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// If successful, the record block size is returned. If a block size of 0 is returned, the
+    /// stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use noodles_sam::alignment::Record;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// reader.read_header().await?;
+    /// reader.read_reference_sequences().await?;
+    ///
+    /// let mut record = bam::lazy::Record::default();
+    /// reader.read_lazy_record(&mut record).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_lazy_record(&mut self, record: &mut lazy::Record) -> io::Result<usize> {
+        use self::record::read_block_size;
+
+        let block_size = match read_block_size(&mut self.inner).await? {
+            0 => return Ok(0),
+            n => n,
+        };
+
+        record.buf.resize(block_size, 0);
+        self.inner.read_exact(&mut record.buf).await?;
+
+        record.index()?;
+
+        Ok(block_size)
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.
