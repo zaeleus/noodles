@@ -1,11 +1,14 @@
 //! BAM reader and iterators.
 
+mod lazy_records;
 pub(crate) mod query;
 pub mod record;
 mod records;
 mod unmapped_records;
 
-pub use self::{query::Query, records::Records, unmapped_records::UnmappedRecords};
+pub use self::{
+    lazy_records::LazyRecords, query::Query, records::Records, unmapped_records::UnmappedRecords,
+};
 
 use std::{
     ffi::CStr,
@@ -254,6 +257,31 @@ where
     /// ```
     pub fn records(&mut self) -> Records<'_, R> {
         Records::new(self)
+    }
+
+    /// Returns an iterator over lazy records.
+    ///
+    /// The stream is expected to be directly after the reference sequences or at the start of
+    /// another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::Reader::new)?;
+    /// reader.read_header()?;
+    /// reader.read_reference_sequences()?;
+    ///
+    /// for result in reader.lazy_records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn lazy_records(&mut self) -> LazyRecords<'_, R> {
+        LazyRecords::new(self)
     }
 }
 

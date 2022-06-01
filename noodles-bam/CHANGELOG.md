@@ -9,7 +9,8 @@
     Lazy records are alignment records that are lazily-evalutated. They fields
     are not necessarily valid, but the buffer is guaranteed to be record-like.
 
-  * bam/reader: Add `Reader::read_lazy_record` to read lazy records.
+  * bam/reader: Add `Reader::read_lazy_record` and `Reader::lazy_records` to
+    read lazy records.
 
 ### Changed
 
