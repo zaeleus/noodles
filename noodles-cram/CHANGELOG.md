@@ -32,6 +32,8 @@
   * cram/record/convert: Change `Record::try_into_sam_record` to
     `Record::try_into_alignment_record`.
 
+    This now takes a `&sam::alignment::Record`.
+
 ### Fixed
 
   * cram/data_container/builder: Disable encoding alignment start positions as
