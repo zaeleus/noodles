@@ -181,14 +181,11 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_alignment_record<R>(
+    pub async fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &R,
-    ) -> io::Result<()>
-    where
-        R: sam::AlignmentRecord,
-    {
+        record: &Record,
+    ) -> io::Result<()> {
         encode_alignment_record(&mut self.buf, header, record)?;
 
         let block_size = u32::try_from(self.buf.len())

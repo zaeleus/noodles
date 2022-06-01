@@ -149,11 +149,7 @@ where
         self.write_header(header)
     }
 
-    fn write_alignment_record(
-        &mut self,
-        header: &Header,
-        record: &dyn AlignmentRecord,
-    ) -> io::Result<()> {
+    fn write_alignment_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
         const DELIMITER: &[u8] = b"\t";
         const EQ: &[u8] = b"=";
         const MISSING: &[u8] = b"*";

@@ -219,11 +219,7 @@ where
         Ok(())
     }
 
-    fn write_alignment_record(
-        &mut self,
-        header: &sam::Header,
-        record: &dyn sam::AlignmentRecord,
-    ) -> io::Result<()> {
+    fn write_alignment_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
         self.buf.clear();
         encode_alignment_record(&mut self.buf, header, record)?;
 

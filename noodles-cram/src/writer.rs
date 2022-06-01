@@ -259,7 +259,7 @@ where
     fn write_alignment_record(
         &mut self,
         header: &sam::Header,
-        record: &dyn sam::AlignmentRecord,
+        record: &sam::alignment::Record,
     ) -> io::Result<()> {
         let r = Record::try_from_alignment_record(header, record)?;
         self.write_record(header, r)
