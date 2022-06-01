@@ -87,6 +87,10 @@
 
     Use `alignment::Record` instead.
 
+  * sam: Remove `AlignmentRecord`.
+
+    These methods are moved to `alignment::Record`.
+
   * sam/record: Remove `record::Builder`.
 
     Use `alignment::record::Builder` instead.

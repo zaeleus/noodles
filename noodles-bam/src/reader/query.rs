@@ -6,7 +6,7 @@ use std::{
 use noodles_bgzf::{self as bgzf, VirtualPosition};
 use noodles_core::Position;
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::{alignment::Record, AlignmentRecord};
+use noodles_sam::alignment::Record;
 
 use super::Reader;
 

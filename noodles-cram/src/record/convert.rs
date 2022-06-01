@@ -1,6 +1,6 @@
 use std::io;
 
-use noodles_sam::{self as sam, AlignmentRecord};
+use noodles_sam as sam;
 
 use super::{Features, Flags, Record};
 
@@ -17,10 +17,7 @@ impl Record {
 
         let mut flags = Flags::default();
 
-        if let Some(reference_sequence) = record
-            .reference_sequence(header.reference_sequences())
-            .transpose()?
-        {
+        if let Some(reference_sequence) = record.reference_sequence(header).transpose()? {
             let reference_sequence_id =
                 get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
             builder = builder.set_reference_sequence_id(reference_sequence_id);
@@ -42,10 +39,7 @@ impl Record {
 
         // next mate bit flags
 
-        if let Some(reference_sequence) = record
-            .mate_reference_sequence(header.reference_sequences())
-            .transpose()?
-        {
+        if let Some(reference_sequence) = record.mate_reference_sequence(header).transpose()? {
             let reference_sequence_id =
                 get_reference_sequence_id(header.reference_sequences(), reference_sequence)?;
             builder = builder.set_next_fragment_reference_sequence_id(reference_sequence_id);

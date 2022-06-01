@@ -1,7 +1,7 @@
 use std::io::{self, Read};
 
 use noodles_bgzf as bgzf;
-use noodles_sam::{alignment::Record, AlignmentRecord};
+use noodles_sam::alignment::Record;
 
 use super::Reader;
 

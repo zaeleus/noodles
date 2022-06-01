@@ -1,7 +1,7 @@
 use std::{io, mem};
 
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::{alignment::Record, AlignmentRecord};
+use noodles_sam::alignment::Record;
 
 use super::{reference_sequence, Index};
 

@@ -1,7 +1,7 @@
 use std::io;
 
 use bytes::BufMut;
-use noodles_sam::{self as sam, alignment::Record, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::Record};
 
 use super::record::{
     put_bin, put_cigar, put_data, put_flags, put_l_read_name, put_mapping_quality, put_position,
@@ -21,7 +21,7 @@ where
 {
     // ref_id
     let reference_sequence_name = record
-        .reference_sequence(header.reference_sequences())
+        .reference_sequence(header)
         .transpose()?
         .map(|rs| rs.name());
 
@@ -51,7 +51,7 @@ where
 
     // next_ref_id
     let mate_reference_sequence_name = record
-        .mate_reference_sequence(header.reference_sequences())
+        .mate_reference_sequence(header)
         .transpose()?
         .map(|rs| rs.name());
 

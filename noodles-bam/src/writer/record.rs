@@ -16,7 +16,7 @@ use std::io;
 
 use bytes::BufMut;
 use noodles_core::Position;
-use noodles_sam::{self as sam, alignment::Record, AlignmentRecord};
+use noodles_sam::{self as sam, alignment::Record};
 
 use super::alignment_record::NULL_QUALITY_SCORE;
 

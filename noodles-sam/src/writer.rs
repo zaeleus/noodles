@@ -2,8 +2,6 @@ mod record;
 
 use std::io::{self, Write};
 
-use crate::AlignmentRecord;
-
 use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
 use super::{alignment::Record, AlignmentWriter, Header};
 
@@ -159,9 +157,7 @@ where
             .map(|name| name.as_ref())
             .unwrap_or(MISSING);
 
-        let reference_sequence = record
-            .reference_sequence(header.reference_sequences())
-            .transpose()?;
+        let reference_sequence = record.reference_sequence(header).transpose()?;
 
         let rname = reference_sequence
             .map(|rs| rs.name().as_bytes())
@@ -173,7 +169,7 @@ where
             .unwrap_or(crate::record::mapping_quality::MISSING);
 
         let rnext = record
-            .mate_reference_sequence(header.reference_sequences())
+            .mate_reference_sequence(header)
             .transpose()?
             .map(|mate_reference_sequence| {
                 if let Some(rs) = reference_sequence {
