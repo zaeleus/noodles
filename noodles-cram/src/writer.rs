@@ -21,7 +21,7 @@ use super::{file_definition::Version, DataContainer, FileDefinition, Record, MAG
 
 /// A CRAM writer.
 ///
-/// A call to [`try_finish`] must be made before the writer is dropped.
+/// A call to [`Self::try_finish`] must be made before the writer is dropped.
 ///
 /// # Examples
 ///
