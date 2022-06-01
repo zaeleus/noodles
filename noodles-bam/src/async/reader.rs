@@ -287,6 +287,46 @@ where
             },
         ))
     }
+
+    /// Returns a stream over lazy records.
+    ///
+    /// The (input) stream is expected to be directly after the reference sequences or at the start
+    /// of another record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::io;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bam as bam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::AsyncReader::new)?;
+    /// reader.read_header().await?;
+    /// reader.read_reference_sequences().await?;
+    ///
+    /// let mut records = reader.lazy_records();
+    ///
+    /// while let Some(record) = records.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn lazy_records(&mut self) -> impl Stream<Item = io::Result<lazy::Record>> + '_ {
+        Box::pin(stream::try_unfold(
+            (self, lazy::Record::default()),
+            |(this, mut record)| async {
+                this.read_lazy_record(&mut record).await.map(|n| match n {
+                    0 => None,
+                    _ => Some((record.clone(), (this, record))),
+                })
+            },
+        ))
+    }
 }
 
 impl<R> Reader<bgzf::AsyncReader<R>>
