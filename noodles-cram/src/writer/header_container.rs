@@ -2,7 +2,7 @@ mod header;
 
 use std::io::{self, Write};
 
-use bytes::{BufMut, BytesMut};
+use bytes::BufMut;
 use noodles_sam as sam;
 
 use self::header::write_header;
@@ -19,14 +19,14 @@ where
     let header_data_len = i32::try_from(header_data.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    let mut data = BytesMut::new();
+    let mut data = Vec::new();
     data.put_i32_le(header_data_len);
     data.extend_from_slice(&header_data);
 
     let block = Block::builder()
         .set_content_type(ContentType::FileHeader)
         .set_uncompressed_len(data.len())
-        .set_data(data.freeze())
+        .set_data(data.into())
         .build();
 
     write_header(writer, block.len())?;
@@ -63,7 +63,7 @@ mod tests {
         let mut buf = Vec::new();
         write_header_container(&mut buf, &header)?;
 
-        let mut expected = BytesMut::new();
+        let mut expected = Vec::new();
 
         // header
         expected.extend_from_slice(&[
