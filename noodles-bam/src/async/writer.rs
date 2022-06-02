@@ -8,7 +8,7 @@ use noodles_bgzf as bgzf;
 use noodles_sam::{self as sam, alignment::Record};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::writer::{alignment_record::encode_alignment_record, record::encode_record};
+use crate::writer::record::encode_record;
 
 /// An async BAM writer.
 pub struct Writer<W> {
@@ -183,10 +183,10 @@ where
     /// ```
     pub async fn write_alignment_record(
         &mut self,
-        header: &sam::Header,
+        _: &sam::Header,
         record: &Record,
     ) -> io::Result<()> {
-        encode_alignment_record(&mut self.buf, header, record)?;
+        encode_record(&mut self.buf, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

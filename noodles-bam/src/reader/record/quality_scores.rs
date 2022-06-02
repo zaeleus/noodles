@@ -38,9 +38,9 @@ where
 }
 
 fn is_missing_quality_scores(src: &[u8]) -> bool {
-    use crate::writer::alignment_record::NULL_QUALITY_SCORE;
+    const MISSING: u8 = 0xff;
 
-    src.iter().all(|&b| b == NULL_QUALITY_SCORE)
+    src.iter().all(|&b| b == MISSING)
 }
 
 #[cfg(test)]

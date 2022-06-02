@@ -1,6 +1,5 @@
 //! BAM writer.
 
-pub(crate) mod alignment_record;
 pub mod record;
 
 use std::{
@@ -16,7 +15,7 @@ use noodles_sam::{
     header::{ReferenceSequence, ReferenceSequences},
 };
 
-use self::{alignment_record::encode_alignment_record, record::encode_record};
+use self::record::encode_record;
 
 /// A BAM writer.
 ///
@@ -219,9 +218,9 @@ where
         Ok(())
     }
 
-    fn write_alignment_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+    fn write_alignment_record(&mut self, _: &sam::Header, record: &Record) -> io::Result<()> {
         self.buf.clear();
-        encode_alignment_record(&mut self.buf, header, record)?;
+        encode_record(&mut self.buf, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

@@ -18,11 +18,12 @@ use bytes::BufMut;
 use noodles_core::Position;
 use noodles_sam::{self as sam, alignment::Record};
 
-use super::alignment_record::NULL_QUALITY_SCORE;
-
 // § 4.2.1 "BIN field calculation" (2021-06-03): "Note unmapped reads with `POS` 0 (which
 // becomes -1 in BAM) therefore use `reg2bin(-1, 0)` which is computed as 4680."
 pub(crate) const UNMAPPED_BIN: u16 = 4680;
+
+// § 4.2.3 SEQ and QUAL encoding (2021-06-03)
+const MISSING_QUALITY_SCORE: u8 = 255;
 
 pub(crate) fn encode_record<B>(dst: &mut B, record: &Record) -> io::Result<()>
 where
@@ -76,7 +77,7 @@ where
         put_quality_scores(dst, quality_scores);
     } else if quality_scores.is_empty() {
         for _ in 0..sequence.len() {
-            dst.put_u8(NULL_QUALITY_SCORE);
+            dst.put_u8(MISSING_QUALITY_SCORE);
         }
     } else {
         return Err(io::Error::new(
