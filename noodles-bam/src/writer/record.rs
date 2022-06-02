@@ -76,9 +76,7 @@ where
     if sequence.len() == quality_scores.len() {
         put_quality_scores(dst, quality_scores);
     } else if quality_scores.is_empty() {
-        for _ in 0..sequence.len() {
-            dst.put_u8(MISSING_QUALITY_SCORE);
-        }
+        dst.put_bytes(MISSING_QUALITY_SCORE, sequence.len());
     } else {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
