@@ -34,19 +34,14 @@ impl Region {
     /// let region = Region::new("sq0", start..=end);
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn new<I, B>(name: I, interval: B) -> Self
+    pub fn new<N, I>(name: N, interval: I) -> Self
     where
-        I: Into<String>,
-        B: RangeBounds<Position>,
+        N: Into<String>,
+        I: Into<Interval>,
     {
-        let bounds = (
-            interval.start_bound().cloned(),
-            interval.end_bound().cloned(),
-        );
-
         Self {
             name: name.into(),
-            interval: bounds.into(),
+            interval: interval.into(),
         }
     }
 
