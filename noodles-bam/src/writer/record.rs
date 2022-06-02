@@ -25,12 +25,12 @@ pub(crate) const UNMAPPED_BIN: u16 = 4680;
 // § 4.2.3 SEQ and QUAL encoding (2021-06-03)
 const MISSING_QUALITY_SCORE: u8 = 255;
 
-pub(crate) fn encode_record<B>(dst: &mut B, record: &Record) -> io::Result<()>
+pub(crate) fn encode_record<B>(dst: &mut B, header: &sam::Header, record: &Record) -> io::Result<()>
 where
     B: BufMut,
 {
     // ref_id
-    put_reference_sequence_id(dst, record.reference_sequence_id())?;
+    put_reference_sequence_id(dst, header, record.reference_sequence_id())?;
 
     // pos
     put_position(dst, record.alignment_start())?;
@@ -55,7 +55,7 @@ where
     dst.put_u32_le(l_seq);
 
     // next_ref_id
-    put_reference_sequence_id(dst, record.mate_reference_sequence_id())?;
+    put_reference_sequence_id(dst, header, record.mate_reference_sequence_id())?;
 
     // next_pos
     put_position(dst, record.mate_alignment_start())?;
@@ -95,14 +95,29 @@ where
     Ok(())
 }
 
-fn put_reference_sequence_id<B>(dst: &mut B, reference_sequence_id: Option<usize>) -> io::Result<()>
+fn put_reference_sequence_id<B>(
+    dst: &mut B,
+    header: &sam::Header,
+    reference_sequence_id: Option<usize>,
+) -> io::Result<()>
 where
     B: BufMut,
 {
     const UNMAPPED: i32 = -1;
 
     let ref_id = if let Some(id) = reference_sequence_id {
-        i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        if id < header.reference_sequences().len() {
+            i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        } else {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "invalid reference sequence ID: expected < {}, got {}",
+                    header.reference_sequences().len(),
+                    id
+                ),
+            ));
+        }
     } else {
         UNMAPPED
     };
@@ -217,8 +232,9 @@ mod tests {
     #[test]
     fn test_write_record_with_default_fields() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
+        let header = sam::Header::default();
         let record = Record::default();
-        encode_record(&mut buf, &record)?;
+        encode_record(&mut buf, &header, &record)?;
 
         let expected = [
             0xff, 0xff, 0xff, 0xff, // ref_id = -1
@@ -242,7 +258,17 @@ mod tests {
 
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::record::{Flags, MappingQuality};
+        use sam::{
+            header::ReferenceSequence,
+            record::{Flags, MappingQuality},
+        };
+
+        let mut buf = Vec::new();
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+            .build();
 
         let record = Record::builder()
             .set_read_name("r0".parse()?)
@@ -259,8 +285,7 @@ mod tests {
             .set_data("NH:i:1".parse()?)
             .build();
 
-        let mut buf = Vec::new();
-        encode_record(&mut buf, &record)?;
+        encode_record(&mut buf, &header, &record)?;
 
         let expected = [
             0x01, 0x00, 0x00, 0x00, // ref_id = 1

@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let record = result?;
 
         if is_unique_record(&record)? {
-            writer.write_record(&record)?;
+            writer.write_record(&header, &record)?;
         }
     }
 

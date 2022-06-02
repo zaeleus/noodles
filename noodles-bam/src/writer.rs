@@ -33,7 +33,7 @@ use self::record::encode_record;
 /// writer.write_reference_sequences(header.reference_sequences())?;
 ///
 /// let record = Record::default();
-/// writer.write_record(&record)?;
+/// writer.write_record(&header, &record)?;
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Writer<W> {
@@ -139,24 +139,24 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::Record;
+    /// use noodles_sam::{self as sam, alignment::Record};
     ///
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
+    /// let header = sam::Header::default();
     /// let record = Record::default();
-    /// writer.write_record(&record)?;
+    /// writer.write_record(&header, &record)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        encode_record(&mut self.buf, record)?;
+    pub fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+        self.buf.clear();
+        encode_record(&mut self.buf, header, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32::<LittleEndian>(block_size)?;
 
         self.inner.write_all(&self.buf)?;
-
-        self.buf.clear();
 
         Ok(())
     }
@@ -218,17 +218,8 @@ where
         Ok(())
     }
 
-    fn write_alignment_record(&mut self, _: &sam::Header, record: &Record) -> io::Result<()> {
-        self.buf.clear();
-        encode_record(&mut self.buf, record)?;
-
-        let block_size = u32::try_from(self.buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32::<LittleEndian>(block_size)?;
-
-        self.inner.write_all(&self.buf)?;
-
-        Ok(())
+    fn write_alignment_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+        self.write_record(header, record)
     }
 
     fn finish(&mut self, _: &sam::Header) -> io::Result<()> {

@@ -140,23 +140,25 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::alignment::Record;
+    /// use noodles_sam::{self as sam, alignment::Record};
+    ///
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
+    ///
+    /// let header = sam::Header::default();
     /// let record = Record::default();
-    /// writer.write_record(&record).await?;
+    /// writer.write_record(&header, &record).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, record: &Record) -> io::Result<()> {
-        encode_record(&mut self.buf, record)?;
+    pub async fn write_record(&mut self, header: &sam::Header, record: &Record) -> io::Result<()> {
+        self.buf.clear();
+        encode_record(&mut self.buf, header, record)?;
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         self.inner.write_u32_le(block_size).await?;
 
         self.inner.write_all(&self.buf).await?;
-
-        self.buf.clear();
 
         Ok(())
     }
@@ -183,20 +185,10 @@ where
     /// ```
     pub async fn write_alignment_record(
         &mut self,
-        _: &sam::Header,
+        header: &sam::Header,
         record: &Record,
     ) -> io::Result<()> {
-        encode_record(&mut self.buf, record)?;
-
-        let block_size = u32::try_from(self.buf.len())
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32_le(block_size).await?;
-
-        self.inner.write_all(&self.buf).await?;
-
-        self.buf.clear();
-
-        Ok(())
+        self.write_record(header, record).await
     }
 }
 

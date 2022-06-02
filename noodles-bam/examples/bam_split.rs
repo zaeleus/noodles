@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 )
             })?;
 
-            writer.write_record(&record)?;
+            writer.write_record(&header, &record)?;
         }
     }
 

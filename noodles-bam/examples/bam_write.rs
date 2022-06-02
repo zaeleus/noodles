@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_reference_sequences(header.reference_sequences())?;
 
     let record = Record::default();
-    writer.write_record(&record)?;
+    writer.write_record(&header, &record)?;
 
     Ok(())
 }

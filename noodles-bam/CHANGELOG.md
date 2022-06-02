@@ -15,11 +15,22 @@
   * bam/reader: Add `Reader::read_lazy_record` and `Reader::lazy_records` to
     read lazy records.
 
+  * bam/reader/record: Validate the reference sequence ID.
+
+    This is done by checking whether an entry exists in the reference sequence
+    dictionary.
+
 ### Changed
+
+  * bam/async/writer: `Writer::write_record` requires a context (`sam::Header`)
+    when writing a record.
 
   * bam: Replace `Record` with `sam::alignment::Record`.
 
   * bam/reader/record/data/field/value: Validate character values.
+
+  * bam/writer: `Writer::write_record` requires a context (`sam::Header`) when
+    writing a record.
 
 ### Deprecated
 

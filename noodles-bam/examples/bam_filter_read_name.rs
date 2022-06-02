@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(read_name) = record.read_name() {
             if read_names.contains(read_name) {
-                writer.write_record(&record)?;
+                writer.write_record(&header, &record)?;
             }
         }
     }
