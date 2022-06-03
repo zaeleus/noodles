@@ -35,7 +35,8 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     *record.flags_mut() = parse_flags(field)?;
 
     let field = next_field(&mut src);
-    *record.reference_sequence_id_mut() = parse_reference_sequence_id(header, field)?;
+    let reference_sequence_id = parse_reference_sequence_id(header, field)?;
+    *record.reference_sequence_id_mut() = reference_sequence_id;
 
     let field = next_field(&mut src);
     *record.alignment_start_mut() = parse_alignment_start(field)?;
@@ -47,7 +48,8 @@ pub(crate) fn parse_record(mut src: &[u8], header: &Header, record: &mut Record)
     *record.cigar_mut() = parse_cigar(field)?;
 
     let field = next_field(&mut src);
-    *record.mate_reference_sequence_id_mut() = parse_reference_sequence_id(header, field)?;
+    *record.mate_reference_sequence_id_mut() =
+        parse_mate_reference_sequence_id(header, reference_sequence_id, field)?;
 
     let field = next_field(&mut src);
     *record.mate_alignment_start_mut() = parse_alignment_start(field)?;
@@ -161,6 +163,19 @@ fn parse_cigar(src: &[u8]) -> io::Result<Cigar> {
     }
 }
 
+fn parse_mate_reference_sequence_id(
+    header: &Header,
+    reference_sequence_id: Option<usize>,
+    src: &[u8],
+) -> io::Result<Option<usize>> {
+    const EQ: &[u8] = b"=";
+
+    match src {
+        EQ => Ok(reference_sequence_id),
+        _ => parse_reference_sequence_id(header, src),
+    }
+}
+
 fn parse_template_length(src: &[u8]) -> io::Result<i32> {
     str::from_utf8(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -208,5 +223,39 @@ fn parse_data(src: &[u8]) -> io::Result<Data> {
                 s.parse()
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::header::ReferenceSequence;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_mate_reference_sequence_id() -> Result<(), Box<dyn std::error::Error>> {
+        let header = Header::builder()
+            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+            .build();
+
+        let reference_sequence_id = Some(0);
+
+        let src = b"*";
+        assert!(parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?.is_none());
+
+        let src = b"=";
+        assert_eq!(
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?,
+            reference_sequence_id
+        );
+
+        let src = b"sq1";
+        assert_eq!(
+            parse_mate_reference_sequence_id(&header, reference_sequence_id, src)?,
+            Some(1)
+        );
+
+        Ok(())
     }
 }
