@@ -65,11 +65,7 @@ impl TryFrom<u8> for MappingQuality {
     type Error = ParseError;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
-        if n == MISSING {
-            Err(ParseError::Missing)
-        } else {
-            Ok(Self(n))
-        }
+        Self::new(n).ok_or(ParseError::Missing)
     }
 }
 
