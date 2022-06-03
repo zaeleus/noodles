@@ -96,16 +96,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_name(&self) -> io::Result<Option<ReadName>> {
-        const MISSING: &[u8] = b"*";
-
-        let buf = &self.buf[self.bounds.read_name_range()];
-
-        match buf {
-            MISSING => Ok(None),
-            _ => ReadName::try_new(buf)
-                .map(Some)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        }
+        use crate::reader::record::parse_read_name;
+        let src = &self.buf[self.bounds.read_name_range()];
+        parse_read_name(src)
     }
 
     /// Returns the flags.
@@ -119,15 +112,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn flags(&self) -> io::Result<Flags> {
-        let buf = &self.buf[self.bounds.flags_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse::<u16>()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
-            .map(Flags::from)
+        use crate::reader::record::parse_flags;
+        let src = &self.buf[self.bounds.flags_range()];
+        parse_flags(src)
     }
 
     /// Returns the reference sequence name.
@@ -141,8 +128,8 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
-        let buf = &self.buf[self.bounds.reference_sequence_name_range()];
-        parse_reference_sequence_name(buf)
+        let src = &self.buf[self.bounds.reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
     }
 
     /// Returns the alignment start.
@@ -156,8 +143,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn alignment_start(&self) -> io::Result<Option<Position>> {
-        let buf = &self.buf[self.bounds.alignment_start_range()];
-        parse_alignment_start(buf)
+        use crate::reader::record::parse_alignment_start;
+        let src = &self.buf[self.bounds.alignment_start_range()];
+        parse_alignment_start(src)
     }
 
     /// Returns the mapping quality.
@@ -171,15 +159,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mapping_quality(&self) -> io::Result<Option<MappingQuality>> {
-        let buf = &self.buf[self.bounds.mapping_quality_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map(MappingQuality::new)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
+        use crate::reader::record::parse_mapping_quality;
+        let src = &self.buf[self.bounds.mapping_quality_range()];
+        parse_mapping_quality(src)
     }
 
     /// Returns the CIGAR operations.
@@ -193,16 +175,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn cigar(&self) -> io::Result<Cigar> {
-        let buf = &self.buf[self.bounds.cigar_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| match s {
-                "*" => Ok(Cigar::default()),
-                _ => s
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            })
+        use crate::reader::record::parse_cigar;
+        let src = &self.buf[self.bounds.cigar_range()];
+        parse_cigar(src)
     }
 
     /// Returns the mate reference sequence name.
@@ -216,8 +191,8 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
-        let buf = &self.buf[self.bounds.mate_reference_sequence_name_range()];
-        parse_reference_sequence_name(buf)
+        let src = &self.buf[self.bounds.mate_reference_sequence_name_range()];
+        parse_reference_sequence_name(src)
     }
 
     /// Returns the mate alignment start.
@@ -231,8 +206,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_alignment_start(&self) -> io::Result<Option<Position>> {
-        let buf = &self.buf[self.bounds.mate_alignment_start_range()];
-        parse_alignment_start(buf)
+        use crate::reader::record::parse_alignment_start;
+        let src = &self.buf[self.bounds.mate_alignment_start_range()];
+        parse_alignment_start(src)
     }
 
     /// Returns the template length.
@@ -246,14 +222,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn template_length(&self) -> io::Result<i32> {
-        let buf = &self.buf[self.bounds.template_length_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
+        use crate::reader::record::parse_template_length;
+        let src = &self.buf[self.bounds.template_length_range()];
+        parse_template_length(src)
     }
 
     /// Returns the sequence.
@@ -267,16 +238,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn sequence(&self) -> io::Result<Sequence> {
-        let buf = &self.buf[self.bounds.sequence_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| match s {
-                "*" => Ok(Sequence::default()),
-                _ => s
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            })
+        use crate::reader::record::parse_sequence;
+        let src = &self.buf[self.bounds.sequence_range()];
+        parse_sequence(src)
     }
 
     /// Returns the quality scores.
@@ -290,16 +254,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn quality_scores(&self) -> io::Result<QualityScores> {
-        let buf = &self.buf[self.bounds.quality_scores_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| match s {
-                "*" => Ok(QualityScores::default()),
-                _ => s
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            })
+        use crate::reader::record::parse_quality_scores;
+        let src = &self.buf[self.bounds.quality_scores_range()];
+        parse_quality_scores(src)
     }
 
     /// Returns the data.
@@ -313,14 +270,9 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn data(&self) -> io::Result<Data> {
-        let buf = &self.buf[self.bounds.data_range()];
-
-        str::from_utf8(buf)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
+        use crate::reader::record::parse_data;
+        let src = &self.buf[self.bounds.data_range()];
+        parse_data(src)
     }
 }
 
@@ -377,15 +329,5 @@ fn parse_reference_sequence_name(buf: &[u8]) -> io::Result<Option<ReferenceSeque
                 .parse()
                 .map(Some)
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        })
-}
-
-fn parse_alignment_start(buf: &[u8]) -> io::Result<Option<Position>> {
-    str::from_utf8(buf)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map(Position::new)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
 }

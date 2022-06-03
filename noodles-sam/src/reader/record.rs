@@ -86,7 +86,7 @@ fn next_field<'a>(src: &mut &'a [u8]) -> &'a [u8] {
     field
 }
 
-fn parse_read_name(src: &[u8]) -> io::Result<Option<ReadName>> {
+pub(crate) fn parse_read_name(src: &[u8]) -> io::Result<Option<ReadName>> {
     const MISSING: &[u8] = b"*";
 
     match src {
@@ -97,7 +97,7 @@ fn parse_read_name(src: &[u8]) -> io::Result<Option<ReadName>> {
     }
 }
 
-fn parse_flags(src: &[u8]) -> io::Result<Flags> {
+pub(crate) fn parse_flags(src: &[u8]) -> io::Result<Flags> {
     str::from_utf8(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|s| {
@@ -129,7 +129,7 @@ fn parse_reference_sequence_id(header: &Header, src: &[u8]) -> io::Result<Option
     }
 }
 
-fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
+pub(crate) fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
     str::from_utf8(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|s| {
@@ -139,7 +139,7 @@ fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
         .map(Position::new)
 }
 
-fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQuality>> {
+pub(crate) fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQuality>> {
     str::from_utf8(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|s| {
@@ -149,7 +149,7 @@ fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQuality>> {
         .map(MappingQuality::new)
 }
 
-fn parse_cigar(src: &[u8]) -> io::Result<Cigar> {
+pub(crate) fn parse_cigar(src: &[u8]) -> io::Result<Cigar> {
     const MISSING: &[u8] = b"*";
 
     match src {
@@ -176,7 +176,7 @@ fn parse_mate_reference_sequence_id(
     }
 }
 
-fn parse_template_length(src: &[u8]) -> io::Result<i32> {
+pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
     str::from_utf8(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .and_then(|s| {
@@ -185,7 +185,7 @@ fn parse_template_length(src: &[u8]) -> io::Result<i32> {
         })
 }
 
-fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
+pub(crate) fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
     const MISSING: &[u8] = b"*";
 
     match src {
@@ -199,7 +199,7 @@ fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
     }
 }
 
-fn parse_quality_scores(src: &[u8]) -> io::Result<QualityScores> {
+pub(crate) fn parse_quality_scores(src: &[u8]) -> io::Result<QualityScores> {
     const MISSING: &[u8] = b"*";
 
     match src {
@@ -213,7 +213,7 @@ fn parse_quality_scores(src: &[u8]) -> io::Result<QualityScores> {
     }
 }
 
-fn parse_data(src: &[u8]) -> io::Result<Data> {
+pub(crate) fn parse_data(src: &[u8]) -> io::Result<Data> {
     if src.is_empty() {
         Ok(Data::default())
     } else {
