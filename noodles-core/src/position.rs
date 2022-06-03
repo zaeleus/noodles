@@ -21,6 +21,12 @@ impl Position {
         None => unreachable!(),
     };
 
+    /// The maximum value of a position.
+    pub const MAX: Self = match Self::new(usize::MAX) {
+        Some(position) => position,
+        None => unreachable!(),
+    };
+
     /// Creates a position if the given value is not zero.
     ///
     /// # Examples

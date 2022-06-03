@@ -4,6 +4,8 @@
 
 ### Added
 
+  * core/position: Add `MAX` associated constant.
+
   * core/region: Add `Interval` container.
 
     This provides the same functionality as the previous type alias, i.e.,
