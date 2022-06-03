@@ -191,8 +191,14 @@ impl Record {
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn mate_reference_sequence_name(&self) -> io::Result<Option<ReferenceSequenceName>> {
+        const EQ: &[u8] = b"=";
+
         let src = &self.buf[self.bounds.mate_reference_sequence_name_range()];
-        parse_reference_sequence_name(src)
+
+        match src {
+            EQ => self.reference_sequence_name(),
+            _ => parse_reference_sequence_name(src),
+        }
     }
 
     /// Returns the mate alignment start.
