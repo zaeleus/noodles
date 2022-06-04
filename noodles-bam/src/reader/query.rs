@@ -59,7 +59,7 @@ where
         }
     }
 
-    fn read_record(&mut self) -> io::Result<Option<Record>> {
+    fn next_record(&mut self) -> io::Result<Option<Record>> {
         self.reader.read_record(&mut self.record).map(|n| match n {
             0 => None,
             _ => Some(self.record.clone()),
@@ -88,7 +88,7 @@ where
                         None => State::Done,
                     }
                 }
-                State::Read(chunk_end) => match self.read_record() {
+                State::Read(chunk_end) => match self.next_record() {
                     Ok(Some(record)) => {
                         if self.reader.virtual_position() >= chunk_end {
                             self.state = State::Seek;
