@@ -17,7 +17,7 @@ use std::{
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Region};
+use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_fasta as fasta;
 use noodles_sam::{
@@ -386,7 +386,7 @@ where
         reference_sequences: &ReferenceSequences,
         index: &I,
         region: &Region,
-    ) -> io::Result<Query<'_, R, Interval>>
+    ) -> io::Result<Query<'_, R>>
     where
         I: BinningIndex,
     {

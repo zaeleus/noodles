@@ -27,6 +27,9 @@
 
   * bam: Replace `Record` with `sam::alignment::Record`.
 
+  * bam/reader/query: `Query` no longer has a generic type parameter for the
+    query interval.
+
   * bam/reader/record/data/field/value: Validate character values.
 
   * bam/writer: `Writer::write_record` requires a context (`sam::Header`) when

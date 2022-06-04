@@ -4,7 +4,7 @@ use std::{
 };
 
 use noodles_bgzf::{self as bgzf, VirtualPosition};
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::alignment::Record;
 
@@ -19,10 +19,9 @@ enum State {
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R, B>
+pub struct Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
 
@@ -30,22 +29,21 @@ where
     i: usize,
 
     reference_sequence_id: usize,
-    interval: B,
+    interval: Interval,
 
     state: State,
     record: Record,
 }
 
-impl<'a, R, B> Query<'a, R, B>
+impl<'a, R> Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     pub(super) fn new(
         reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
-        interval: B,
+        interval: Interval,
     ) -> Self {
         Self {
             reader,
@@ -69,10 +67,9 @@ where
     }
 }
 
-impl<'a, R, B> Iterator for Query<'a, R, B>
+impl<'a, R> Iterator for Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     type Item = io::Result<Record>;
 
@@ -116,10 +113,11 @@ pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     chunk
 }
 
-pub(crate) fn intersects<B>(record: &Record, reference_sequence_id: usize, interval: B) -> bool
-where
-    B: RangeBounds<Position>,
-{
+pub(crate) fn intersects(
+    record: &Record,
+    reference_sequence_id: usize,
+    interval: Interval,
+) -> bool {
     match (
         record.reference_sequence_id(),
         record.alignment_start(),

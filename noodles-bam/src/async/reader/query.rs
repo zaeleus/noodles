@@ -2,7 +2,7 @@ use std::ops::RangeBounds;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::alignment::Record;
 use tokio::io::{self, AsyncRead, AsyncSeek};
@@ -72,7 +72,12 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, ctx.reference_sequence_id, ctx.interval) {
+                        let interval = Interval::from((
+                            ctx.interval.start_bound().cloned(),
+                            ctx.interval.end_bound().cloned(),
+                        ));
+
+                        if intersects(&record, ctx.reference_sequence_id, interval) {
                             return Ok(Some((record, ctx)));
                         }
                     }
