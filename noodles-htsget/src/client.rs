@@ -10,18 +10,34 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new htsget client.
+    /// Creates an htsget client with a default HTTP client.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_htsget as htsget;
-    /// let client = htsget::Client::new("https://localhost/".parse()?);
+    /// let base_url = "https://localhost/".parse()?;
+    /// let client = htsget::Client::new(base_url);
     /// # Ok::<_, url::ParseError>(())
     /// ```
     pub fn new(base_url: Url) -> Self {
+        Self::with_http_client(reqwest::Client::new(), base_url)
+    }
+
+    /// Creates a htsget client with the given HTTP client.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_htsget as htsget;
+    /// let http_client = reqwest::Client::new();
+    /// let base_url = "https://localhost/".parse()?;
+    /// let client = htsget::Client::with_http_client(http_client, base_url);
+    /// # Ok::<_, url::ParseError>(())
+    /// ```
+    pub fn with_http_client(http_client: reqwest::Client, base_url: Url) -> Self {
         Self {
-            http_client: reqwest::Client::new(),
+            http_client,
             base_url,
         }
     }
