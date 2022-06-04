@@ -20,7 +20,7 @@ impl Builder {
     ///
     /// If the given chunk overlaps the last chunk, it is merged into the last chunk. For example,
     /// adding [2, 5] and then [3, 8] will produce the list [[2, 8]]. Subsequently adding [13, 21],
-    /// the final list will be [[2, 3], [13, 21]].
+    /// the final list will be [[2, 8], [13, 21]].
     ///
     /// See § 5.1.2 Reducing small chunks (2020-07-19).
     pub fn add_chunk(&mut self, chunk: Chunk) -> &mut Self {
