@@ -82,6 +82,25 @@ impl Interval {
             Bound::Unbounded => Position::MAX,
         }
     }
+
+    /// Returns whether the given interval intersects this interval.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::{region::Interval, Position};
+    ///
+    /// let a = Interval::new(Position::try_from(5)?, Position::try_from(13)?);
+    /// let b = Interval::new(Position::try_from(8)?, Position::try_from(21)?);
+    /// assert!(a.intersects(b));
+    ///
+    /// let c = Interval::new(Position::try_from(2)?, Position::try_from(3)?);
+    /// assert!(!b.intersects(c));
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn intersects(&self, other: Self) -> bool {
+        self.start() <= other.end() && other.start() <= self.end()
+    }
 }
 
 impl fmt::Display for Interval {
@@ -203,6 +222,77 @@ impl From<RangeToInclusive<Position>> for Interval {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_intersects() -> Result<(), crate::position::TryFromIntError> {
+        //   1 2 3 4 5 6 7 8 9 0
+        // a         [-----]     [5, 8]
+        //   1 2 3 4 5 6 7 8 9 0
+        // b       [---]         [4, 6]
+        // c       [-]           [4, 5]
+        // d             [---]   [7, 9]
+        // e               [-]   [8, 9]
+        // f       [---------]   [4, 9]
+        // g           [-]       [6, 7]
+        // h [-----------------> [1, ∞)
+        // i             [-----> [7, ∞)
+        // j <---------------]   (-∞, 9)
+        // k <---------]         (-∞, 6)
+        //   1 2 3 4 5 6 7 8 9 0
+        // l [-]                 [1, 2]
+        // m                 [-] [9, 10]
+        // n                 [-> [9, ∞)
+        // o <-]                 (-∞, 2)
+
+        let a = Interval::new(Position::try_from(5)?, Position::try_from(8)?);
+        assert!(a.intersects(a));
+
+        let b = (Position::try_from(4)?..=Position::try_from(6)?).into();
+        assert!(a.intersects(b));
+        assert!(b.intersects(a));
+        let c = (Position::try_from(4)?..=Position::try_from(5)?).into();
+        assert!(a.intersects(c));
+        assert!(c.intersects(a));
+        let d = (Position::try_from(7)?..=Position::try_from(9)?).into();
+        assert!(a.intersects(d));
+        assert!(d.intersects(a));
+        let e = (Position::try_from(8)?..=Position::try_from(9)?).into();
+        assert!(a.intersects(e));
+        assert!(e.intersects(a));
+        let f = (Position::try_from(4)?..=Position::try_from(9)?).into();
+        assert!(a.intersects(f));
+        assert!(f.intersects(a));
+        let g = (Position::try_from(6)?..=Position::try_from(7)?).into();
+        assert!(a.intersects(g));
+        assert!(g.intersects(a));
+        let h = (Position::try_from(1)?..).into();
+        assert!(a.intersects(h));
+        assert!(h.intersects(a));
+        let i = (Position::try_from(7)?..).into();
+        assert!(a.intersects(i));
+        assert!(i.intersects(a));
+        let j = (..=Position::try_from(9)?).into();
+        assert!(a.intersects(j));
+        assert!(j.intersects(a));
+        let k = (..=Position::try_from(6)?).into();
+        assert!(a.intersects(k));
+        assert!(k.intersects(a));
+
+        let l = (Position::try_from(1)?..=Position::try_from(2)?).into();
+        assert!(!a.intersects(l));
+        assert!(!l.intersects(a));
+        let m = (Position::try_from(9)?..=Position::try_from(10)?).into();
+        assert!(!a.intersects(m));
+        assert!(!m.intersects(a));
+        let n = (Position::try_from(9)?..).into();
+        assert!(!a.intersects(n));
+        assert!(!n.intersects(a));
+        let o = (..=Position::try_from(2)?).into();
+        assert!(!a.intersects(o));
+        assert!(!o.intersects(a));
+
+        Ok(())
+    }
 
     #[test]
     fn test_fmt() -> Result<(), crate::position::TryFromIntError> {
