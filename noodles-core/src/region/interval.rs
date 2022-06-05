@@ -40,6 +40,57 @@ impl Interval {
             end: Bound::Included(end),
         }
     }
+
+    /// Resolves the start position and returns it as an inclusive start.
+    ///
+    /// # Panics
+    ///
+    /// This panics if the start is `Bound::Excluded(Position::MAX)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::{region::Interval, Position};
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    /// let interval = Interval::new(start, end);
+    /// assert_eq!(interval.start(), start);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn start(&self) -> Position {
+        match self.start {
+            Bound::Included(start) => start,
+            Bound::Excluded(start) => start
+                .checked_add(1)
+                .expect("attempt to resolve excluded maximum position"),
+            Bound::Unbounded => Position::MIN,
+        }
+    }
+
+    /// Resolves the end position and returns it as an inclusive end.
+    ///
+    /// # Panics
+    ///
+    /// This panics if the end is `Bound::Excluded(Position::MIN)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_core::{region::Interval, Position};
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    /// let interval = Interval::new(start, end);
+    /// assert_eq!(interval.start(), start);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn end(&self) -> Position {
+        match self.end {
+            Bound::Included(end) => end,
+            Bound::Excluded(end) => Position::new(usize::from(end) - 1)
+                .expect("attempt to resolve excluded minimum position"),
+            Bound::Unbounded => Position::MAX,
+        }
+    }
 }
 
 impl fmt::Display for Interval {
