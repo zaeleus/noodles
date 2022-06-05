@@ -2,19 +2,23 @@
 
 use std::{
     error, fmt,
-    ops::{
-        Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
-    },
+    ops::{RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeToInclusive},
     str::FromStr,
 };
 
 use crate::{position, Position};
 
-/// An interval.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Bound {
+    Included(Position),
+    Unbounded,
+}
+
+/// A closed interval.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Interval {
-    start: Bound<Position>,
-    end: Bound<Position>,
+    start: Bound,
+    end: Bound,
 }
 
 impl Interval {
@@ -43,10 +47,6 @@ impl Interval {
 
     /// Resolves the start position and returns it as an inclusive start.
     ///
-    /// # Panics
-    ///
-    /// This panics if the start is `Bound::Excluded(Position::MAX)`.
-    ///
     /// # Examples
     ///
     /// ```
@@ -60,18 +60,11 @@ impl Interval {
     pub fn start(&self) -> Position {
         match self.start {
             Bound::Included(start) => start,
-            Bound::Excluded(start) => start
-                .checked_add(1)
-                .expect("attempt to resolve excluded maximum position"),
             Bound::Unbounded => Position::MIN,
         }
     }
 
     /// Resolves the end position and returns it as an inclusive end.
-    ///
-    /// # Panics
-    ///
-    /// This panics if the end is `Bound::Excluded(Position::MIN)`.
     ///
     /// # Examples
     ///
@@ -86,8 +79,6 @@ impl Interval {
     pub fn end(&self) -> Position {
         match self.end {
             Bound::Included(end) => end,
-            Bound::Excluded(end) => Position::new(usize::from(end) - 1)
-                .expect("attempt to resolve excluded minimum position"),
             Bound::Unbounded => Position::MAX,
         }
     }
@@ -98,33 +89,26 @@ impl fmt::Display for Interval {
         match (self.start, self.end) {
             (Bound::Unbounded, Bound::Unbounded) => Ok(()),
             (Bound::Unbounded, Bound::Included(e)) => write!(f, "{}-{}", Position::MIN, e),
-            (Bound::Unbounded, Bound::Excluded(e)) => {
-                write!(f, "{}-{}", Position::MIN, usize::from(e) - 1)
-            }
             (Bound::Included(s), Bound::Unbounded) => s.fmt(f),
             (Bound::Included(s), Bound::Included(e)) => write!(f, "{}-{}", s, e),
-            (Bound::Included(s), Bound::Excluded(e)) => write!(f, "{}-{}", s, usize::from(e) - 1),
-            _ => todo!(),
         }
     }
 }
 
 impl RangeBounds<Position> for Interval {
-    fn start_bound(&self) -> Bound<&Position> {
-        bound_as_ref(&self.start)
+    fn start_bound(&self) -> std::ops::Bound<&Position> {
+        bound_to_std_ops_bound(&self.start)
     }
 
-    fn end_bound(&self) -> Bound<&Position> {
-        bound_as_ref(&self.end)
+    fn end_bound(&self) -> std::ops::Bound<&Position> {
+        bound_to_std_ops_bound(&self.end)
     }
 }
 
-// https://doc.rust-lang.org/nightly/unstable-book/library-features/bound-as-ref.html
-fn bound_as_ref<T>(bound: &Bound<T>) -> Bound<&T> {
+fn bound_to_std_ops_bound(bound: &Bound) -> std::ops::Bound<&Position> {
     match bound {
-        Bound::Included(ref value) => Bound::Included(value),
-        Bound::Excluded(ref value) => Bound::Excluded(value),
-        Bound::Unbounded => Bound::Unbounded,
+        Bound::Included(ref value) => std::ops::Bound::Included(value),
+        Bound::Unbounded => std::ops::Bound::Unbounded,
     }
 }
 
@@ -174,51 +158,44 @@ impl FromStr for Interval {
             None => Bound::Unbounded,
         };
 
-        Ok(Self::from((start, end)))
-    }
-}
-
-impl From<Range<Position>> for Interval {
-    fn from(range: Range<Position>) -> Self {
-        Self::from((Bound::Included(range.start), Bound::Excluded(range.end)))
+        Ok(Self { start, end })
     }
 }
 
 impl From<RangeFrom<Position>> for Interval {
     fn from(range: RangeFrom<Position>) -> Self {
-        Self::from((Bound::Included(range.start), Bound::Unbounded))
+        Self {
+            start: Bound::Included(range.start),
+            end: Bound::Unbounded,
+        }
     }
 }
 
 impl From<RangeFull> for Interval {
     fn from(_: RangeFull) -> Self {
-        Self::from((Bound::Unbounded, Bound::Unbounded))
+        Self {
+            start: Bound::Unbounded,
+            end: Bound::Unbounded,
+        }
     }
 }
 
 impl From<RangeInclusive<Position>> for Interval {
     fn from(range: RangeInclusive<Position>) -> Self {
-        Self::from((range.start_bound().cloned(), range.end_bound().cloned()))
-    }
-}
+        let (start, end) = range.into_inner();
 
-impl From<RangeTo<Position>> for Interval {
-    fn from(range: RangeTo<Position>) -> Self {
-        Self::from((Bound::Unbounded, Bound::Excluded(range.end)))
+        Self {
+            start: Bound::Included(start),
+            end: Bound::Included(end),
+        }
     }
 }
 
 impl From<RangeToInclusive<Position>> for Interval {
     fn from(range: RangeToInclusive<Position>) -> Self {
-        Self::from((Bound::Unbounded, Bound::Included(range.end)))
-    }
-}
-
-impl From<(Bound<Position>, Bound<Position>)> for Interval {
-    fn from(bounds: (Bound<Position>, Bound<Position>)) -> Self {
         Self {
-            start: bounds.0,
-            end: bounds.1,
+            start: Bound::Unbounded,
+            end: Bound::Included(range.end),
         }
     }
 }
@@ -245,24 +222,12 @@ mod tests {
         assert_eq!(interval.to_string(), "1-13");
 
         let interval = Interval {
-            start: Bound::Unbounded,
-            end: Bound::Excluded(end),
-        };
-        assert_eq!(interval.to_string(), "1-12");
-
-        let interval = Interval {
             start: Bound::Included(start),
             end: Bound::Unbounded,
         };
         assert_eq!(interval.to_string(), "8");
 
         assert_eq!(Interval::new(start, end).to_string(), "8-13");
-
-        let interval = Interval {
-            start: Bound::Included(start),
-            end: Bound::Excluded(end),
-        };
-        assert_eq!(interval.to_string(), "8-12");
 
         Ok(())
     }
