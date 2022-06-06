@@ -6,12 +6,12 @@ pub use self::records::Records;
 
 use std::{
     io::{self, BufRead, Read, Seek, SeekFrom},
-    ops::{Bound, Range, RangeBounds},
+    ops::Range,
 };
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position, Region};
+use noodles_core::{region::Interval, Region};
 
 use super::{fai, Record};
 
@@ -202,7 +202,7 @@ where
     pub fn query(&mut self, index: &[fai::Record], region: &Region) -> io::Result<Record> {
         use crate::record::{Definition, Sequence};
 
-        let (i, interval) = resolve_region(index, region)?;
+        let i = resolve_region(index, region)?;
         let index_record = &index[i];
 
         let pos = index_record.offset();
@@ -213,7 +213,7 @@ where
         let mut raw_sequence = Vec::new();
         self.read_sequence(&mut raw_sequence)?;
 
-        let range = interval_to_slice_range(interval, raw_sequence.len());
+        let range = interval_to_slice_range(region.interval(), raw_sequence.len());
         let sequence = Sequence::from(raw_sequence[range].to_vec());
 
         Ok(Record::new(definition, sequence))
@@ -343,8 +343,8 @@ where
     Ok(bytes_read)
 }
 
-fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, Interval)> {
-    let i = index
+fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<usize> {
+    index
         .iter()
         .position(|record| record.name() == region.name())
         .ok_or_else(|| {
@@ -352,27 +352,22 @@ fn resolve_region(index: &[fai::Record], region: &Region) -> io::Result<(usize, 
                 io::ErrorKind::InvalidInput,
                 format!("invalid reference sequence name: {}", region.name()),
             )
-        })?;
-
-    Ok((i, region.interval()))
+        })
 }
 
 // Shifts a 1-based interval to a 0-based range for slicing.
-fn interval_to_slice_range<B>(interval: B, len: usize) -> Range<usize>
+fn interval_to_slice_range<I>(interval: I, len: usize) -> Range<usize>
 where
-    B: RangeBounds<Position>,
+    I: Into<Interval>,
 {
-    let start = match interval.start_bound() {
-        Bound::Included(position) => usize::from(*position) - 1,
-        Bound::Excluded(position) => usize::from(*position),
-        Bound::Unbounded => usize::MIN,
-    };
+    let interval = interval.into();
 
-    let end = match interval.end_bound() {
-        Bound::Included(position) => usize::from(*position),
-        Bound::Excluded(position) => usize::from(*position) - 1,
-        Bound::Unbounded => len,
-    };
+    let start = interval
+        .start()
+        .map(|position| usize::from(position) - 1)
+        .unwrap_or(usize::MIN);
+
+    let end = interval.end().map(usize::from).unwrap_or(len);
 
     start..end
 }
@@ -481,26 +476,15 @@ mod tests {
     fn test_interval_to_slice_range() -> Result<(), noodles_core::position::TryFromIntError> {
         use noodles_core::Position;
 
-        const LENGTH: usize = 4;
+        const LENGTH: usize = 21;
 
-        let interval: (Bound<Position>, Bound<Position>) = (Bound::Unbounded, Bound::Unbounded);
-        let range = interval_to_slice_range(interval, LENGTH);
-        assert_eq!(range, 0..4);
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
 
-        let interval = (Bound::Included(Position::try_from(2)?), Bound::Unbounded);
-        let range = interval_to_slice_range(interval, LENGTH);
-        assert_eq!(range, 1..4);
-
-        let interval = (Bound::Unbounded, Bound::Included(Position::try_from(3)?));
-        let range = interval_to_slice_range(interval, LENGTH);
-        assert_eq!(range, 0..3);
-
-        let interval = (
-            Bound::Included(Position::try_from(2)?),
-            Bound::Included(Position::try_from(3)?),
-        );
-        let range = interval_to_slice_range(interval, LENGTH);
-        assert_eq!(range, 1..3);
+        assert_eq!(interval_to_slice_range(start..=end, LENGTH), 7..13);
+        assert_eq!(interval_to_slice_range(start.., LENGTH), 7..21);
+        assert_eq!(interval_to_slice_range(..=end, LENGTH), 0..13);
+        assert_eq!(interval_to_slice_range(.., LENGTH), 0..21);
 
         Ok(())
     }
