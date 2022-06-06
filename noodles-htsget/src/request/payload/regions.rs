@@ -1,4 +1,4 @@
-use noodles_core::Region;
+use noodles_core::{region::Interval, Region};
 use serde::{
     ser::{self, SerializeMap, SerializeSeq},
     Serialize, Serializer,
@@ -35,8 +35,6 @@ impl<'a> Serialize for HtsgetRegion<'a> {
     where
         S: Serializer,
     {
-        use crate::resolve_interval;
-
         let mut map = serializer.serialize_map(None)?;
 
         map.serialize_entry("referenceName", self.0.name())?;
@@ -54,5 +52,35 @@ impl<'a> Serialize for HtsgetRegion<'a> {
         }
 
         map.end()
+    }
+}
+
+fn resolve_interval<I>(interval: I) -> (Option<usize>, Option<usize>)
+where
+    I: Into<Interval>,
+{
+    let interval = interval.into();
+    let start = interval.start().map(|position| usize::from(position) - 1);
+    let end = interval.end().map(usize::from);
+    (start, end)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resolve_interval() -> std::result::Result<(), noodles_core::position::TryFromIntError> {
+        use noodles_core::Position;
+
+        let start = Position::try_from(8)?;
+        let end = Position::try_from(13)?;
+
+        assert_eq!(resolve_interval(start..=end), (Some(7), Some(13)));
+        assert_eq!(resolve_interval(start..), (Some(7), None));
+        assert_eq!(resolve_interval(..=end), (None, Some(13)));
+        assert_eq!(resolve_interval(..), (None, None));
+
+        Ok(())
     }
 }
