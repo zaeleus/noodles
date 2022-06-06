@@ -1,10 +1,9 @@
 use std::{
     io::{self, Read, Seek, SeekFrom},
-    ops::RangeBounds,
     slice, vec,
 };
 
-use noodles_core::Position;
+use noodles_core::region::Interval;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -14,10 +13,9 @@ use crate::{crai, Record};
 /// An iterator over records that intersect a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R, B>
+pub struct Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     reader: &'a mut Reader<R>,
 
@@ -27,15 +25,14 @@ where
     index: slice::Iter<'a, crai::Record>,
 
     reference_sequence_id: usize,
-    interval: B,
+    interval: Interval,
 
     records: vec::IntoIter<Record>,
 }
 
-impl<'a, R, B> Query<'a, R, B>
+impl<'a, R> Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     pub(super) fn new(
         reader: &'a mut Reader<R>,
@@ -43,7 +40,7 @@ where
         header: &'a sam::Header,
         index: &'a crai::Index,
         reference_sequence_id: usize,
-        interval: B,
+        interval: Interval,
     ) -> Self {
         Self {
             reader,
@@ -111,10 +108,9 @@ where
     }
 }
 
-impl<'a, R, B> Iterator for Query<'a, R, B>
+impl<'a, R> Iterator for Query<'a, R>
 where
     R: Read + Seek,
-    B: RangeBounds<Position> + Copy,
 {
     type Item = io::Result<Record>;
 
@@ -123,7 +119,9 @@ where
             match self.records.next() {
                 Some(r) => {
                     if let (Some(start), Some(end)) = (r.alignment_start(), r.alignment_end()) {
-                        if in_interval(start, end, self.interval) {
+                        let alignment_interval = (start..=end).into();
+
+                        if self.interval.intersects(alignment_interval) {
                             return Some(Ok(r));
                         }
                     }
@@ -136,25 +134,4 @@ where
             }
         }
     }
-}
-
-fn in_interval<B>(alignment_start: Position, alignment_end: Position, region_interval: B) -> bool
-where
-    B: RangeBounds<Position>,
-{
-    use std::ops::Bound;
-
-    let a = match region_interval.start_bound() {
-        Bound::Included(start) => *start <= alignment_end,
-        Bound::Excluded(start) => *start < alignment_end,
-        Bound::Unbounded => true,
-    };
-
-    let b = match region_interval.end_bound() {
-        Bound::Included(end) => alignment_start <= *end,
-        Bound::Excluded(end) => alignment_start < *end,
-        Bound::Unbounded => true,
-    };
-
-    a && b
 }

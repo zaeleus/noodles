@@ -13,7 +13,7 @@ pub use self::records::Records;
 use std::io::{self, Read, Seek, SeekFrom};
 
 use bytes::BytesMut;
-use noodles_core::{region::Interval, Region};
+use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -300,7 +300,7 @@ where
         header: &'a sam::Header,
         index: &'a crai::Index,
         region: &Region,
-    ) -> io::Result<Query<'_, R, Interval>> {
+    ) -> io::Result<Query<'_, R>> {
         let reference_sequence_id = header
             .reference_sequences()
             .get_index_of(region.name())
