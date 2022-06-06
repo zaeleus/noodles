@@ -14,7 +14,10 @@ enum Bound {
     Unbounded,
 }
 
-/// A closed interval.
+/// An interval.
+///
+/// An interval can be closed ([a, b]), left-closed and right-unbounded ([a, ∞)), left-unbounded
+/// and right-closed ((-∞, b]), or unbounded ((-∞, ∞)).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Interval {
     start: Bound,
@@ -45,41 +48,49 @@ impl Interval {
         }
     }
 
-    /// Resolves the start position and returns it as an inclusive start.
+    /// Returns the start.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_core::{region::Interval, Position};
+    ///
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
-    /// let interval = Interval::new(start, end);
-    /// assert_eq!(interval.start(), start);
+    /// let a = Interval::from(start..=end);
+    /// assert_eq!(a.start(), Some(start));
+    ///
+    /// let b = Interval::from(..=end);
+    /// assert!(b.start().is_none());
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn start(&self) -> Position {
+    pub fn start(&self) -> Option<Position> {
         match self.start {
-            Bound::Included(start) => start,
-            Bound::Unbounded => Position::MIN,
+            Bound::Included(start) => Some(start),
+            Bound::Unbounded => None,
         }
     }
 
-    /// Resolves the end position and returns it as an inclusive end.
+    /// Returns the end.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_core::{region::Interval, Position};
+    ///
     /// let start = Position::try_from(8)?;
     /// let end = Position::try_from(13)?;
-    /// let interval = Interval::new(start, end);
-    /// assert_eq!(interval.start(), start);
+    /// let a = Interval::from(start..=end);
+    /// assert_eq!(a.end(), Some(end));
+    ///
+    /// let b = Interval::from(start..);
+    /// assert!(b.end().is_none());
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn end(&self) -> Position {
+    pub fn end(&self) -> Option<Position> {
         match self.end {
-            Bound::Included(end) => end,
-            Bound::Unbounded => Position::MAX,
+            Bound::Included(end) => Some(end),
+            Bound::Unbounded => None,
         }
     }
 
@@ -99,7 +110,17 @@ impl Interval {
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn intersects(&self, other: Self) -> bool {
-        self.start() <= other.end() && other.start() <= self.end()
+        fn resolve(interval: Interval) -> (Position, Position) {
+            (
+                interval.start().unwrap_or(Position::MIN),
+                interval.end().unwrap_or(Position::MAX),
+            )
+        }
+
+        let (a_start, a_end) = resolve(*self);
+        let (b_start, b_end) = resolve(other);
+
+        a_start <= b_end && b_start <= a_end
     }
 }
 
