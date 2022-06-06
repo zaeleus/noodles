@@ -4,10 +4,10 @@ pub mod complement;
 
 pub use self::complement::Complement;
 
-use std::ops::{Index, RangeBounds};
+use std::ops::Index;
 
 use bytes::Bytes;
-use noodles_core::{position::SequenceIndex, Position};
+use noodles_core::{position::SequenceIndex, region::Interval};
 
 /// A FASTA record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -87,23 +87,18 @@ impl Sequence {
     /// assert_eq!(actual, Some(expected));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn slice<R>(&self, range: R) -> Option<Self>
+    pub fn slice<I>(&self, interval: I) -> Option<Self>
     where
-        R: RangeBounds<Position>,
+        I: Into<Interval>,
     {
-        use std::ops::Bound;
+        let interval = interval.into();
 
-        let start = match range.start_bound() {
-            Bound::Included(s) => usize::from(*s) - 1,
-            Bound::Excluded(s) => usize::from(*s),
-            Bound::Unbounded => 0,
-        };
+        let start = interval
+            .start()
+            .map(|position| usize::from(position) - 1)
+            .unwrap_or(usize::MIN);
 
-        let end = match range.end_bound() {
-            Bound::Included(e) => usize::from(*e),
-            Bound::Excluded(e) => usize::from(*e) - 1,
-            Bound::Unbounded => self.len(),
-        };
+        let end = interval.end().map(usize::from).unwrap_or(self.len());
 
         if start <= end && end <= self.len() {
             let buf = self.0.slice(start..end);
