@@ -1,10 +1,7 @@
-use std::{
-    io::{self, Read, Seek},
-    ops::{Bound, RangeBounds},
-};
+use std::io::{self, Read, Seek};
 
 use noodles_bgzf::{self as bgzf, VirtualPosition};
-use noodles_core::{region::Interval, Position};
+use noodles_core::region::Interval;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use noodles_sam::alignment::Record;
 
@@ -116,7 +113,7 @@ pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
 pub(crate) fn intersects(
     record: &Record,
     reference_sequence_id: usize,
-    interval: Interval,
+    region_interval: Interval,
 ) -> bool {
     match (
         record.reference_sequence_id(),
@@ -124,75 +121,9 @@ pub(crate) fn intersects(
         record.alignment_end(),
     ) {
         (Some(id), Some(start), Some(end)) => {
-            id == reference_sequence_id && in_interval(start, end, interval)
+            let alignment_interval = (start..=end).into();
+            id == reference_sequence_id && region_interval.intersects(alignment_interval)
         }
         _ => false,
-    }
-}
-
-fn in_interval<B>(alignment_start: Position, alignment_end: Position, region_interval: B) -> bool
-where
-    B: RangeBounds<Position>,
-{
-    let a = match region_interval.start_bound() {
-        Bound::Included(start) => *start <= alignment_end,
-        Bound::Excluded(start) => *start < alignment_end,
-        Bound::Unbounded => true,
-    };
-
-    let b = match region_interval.end_bound() {
-        Bound::Included(end) => alignment_start <= *end,
-        Bound::Excluded(end) => alignment_start < *end,
-        Bound::Unbounded => true,
-    };
-
-    a && b
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_in_interval() -> Result<(), noodles_core::position::TryFromIntError> {
-        fn p(n: usize) -> Result<Position, noodles_core::position::TryFromIntError> {
-            Position::try_from(n)
-        }
-
-        let start = p(5)?;
-        let end = p(8)?;
-
-        assert!(in_interval(start, end, p(4)?..p(7)?));
-        assert!(in_interval(start, end, p(4)?..=p(6)?));
-
-        assert!(in_interval(start, end, p(6)?..p(8)?));
-        assert!(in_interval(start, end, p(6)?..=p(7)?));
-
-        assert!(in_interval(start, end, p(7)?..p(10)?));
-        assert!(in_interval(start, end, p(7)?..=p(9)?));
-
-        assert!(in_interval(start, end, p(4)?..p(10)?));
-        assert!(in_interval(start, end, p(4)?..=p(9)?));
-
-        assert!(in_interval(start, end, p(4)?..));
-
-        assert!(in_interval(start, end, ..p(6)?));
-        assert!(in_interval(start, end, ..p(10)?));
-
-        assert!(in_interval(start, end, ..=p(5)?));
-        assert!(in_interval(start, end, ..=p(9)?));
-
-        assert!(!in_interval(start, end, p(2)?..p(5)?));
-        assert!(!in_interval(start, end, p(2)?..=p(4)?));
-
-        assert!(!in_interval(start, end, p(9)?..p(12)?));
-        assert!(!in_interval(start, end, p(9)?..=p(11)?));
-
-        assert!(!in_interval(start, end, p(9)?..));
-
-        assert!(!in_interval(start, end, ..p(5)?));
-        assert!(!in_interval(start, end, ..=p(4)?));
-
-        Ok(())
     }
 }
