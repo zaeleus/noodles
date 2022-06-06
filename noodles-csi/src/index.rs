@@ -5,12 +5,9 @@ pub mod reference_sequence;
 
 pub use self::{builder::Builder, reference_sequence::ReferenceSequence};
 
-use std::{
-    io,
-    ops::{Bound, RangeBounds},
-};
+use std::io;
 
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 
 use super::{index::reference_sequence::bin::Chunk, BinningIndex};
 
@@ -123,9 +120,9 @@ impl BinningIndex for Index {
         self.n_no_coor
     }
 
-    fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
+    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<Position> + Clone,
+        I: Into<Interval>,
     {
         let reference_sequence = self
             .reference_sequences()
@@ -157,17 +154,13 @@ impl Default for Index {
     }
 }
 
-fn resolve_interval<B>(min_shift: u8, depth: u8, interval: B) -> io::Result<(Position, Position)>
+fn resolve_interval<I>(min_shift: u8, depth: u8, interval: I) -> io::Result<(Position, Position)>
 where
-    B: RangeBounds<Position>,
+    I: Into<Interval>,
 {
-    let start = match interval.start_bound() {
-        Bound::Included(position) => *position,
-        Bound::Excluded(position) => position
-            .checked_add(1)
-            .expect("attempt to add with overflow"),
-        Bound::Unbounded => Position::MIN,
-    };
+    let interval = interval.into();
+
+    let start = interval.start().unwrap_or(Position::MIN);
 
     let max_position = ReferenceSequence::max_position(min_shift, depth)?;
 
@@ -178,12 +171,7 @@ where
         ));
     }
 
-    let end = match interval.end_bound() {
-        Bound::Included(position) => *position,
-        Bound::Excluded(position) => Position::try_from(usize::from(*position) - 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-        Bound::Unbounded => max_position,
-    };
+    let end = interval.end().unwrap_or(max_position);
 
     if end > max_position {
         Err(io::Error::new(

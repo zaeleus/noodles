@@ -5,12 +5,9 @@ pub mod reference_sequence;
 
 pub use self::{builder::Builder, reference_sequence::ReferenceSequence};
 
-use std::{
-    io,
-    ops::{Bound, RangeBounds},
-};
+use std::io;
 
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::{
     binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
 };
@@ -119,10 +116,12 @@ impl BinningIndex for Index {
         self.n_no_coor
     }
 
-    fn query<B>(&self, reference_sequence_id: usize, interval: B) -> io::Result<Vec<Chunk>>
+    fn query<I>(&self, reference_sequence_id: usize, interval: I) -> io::Result<Vec<Chunk>>
     where
-        B: RangeBounds<Position> + Clone,
+        I: Into<Interval>,
     {
+        let interval = interval.into();
+
         let reference_sequence = self
             .reference_sequences()
             .get(reference_sequence_id)
@@ -134,7 +133,7 @@ impl BinningIndex for Index {
             })?;
 
         let query_bins = reference_sequence
-            .query(interval.clone())
+            .query(interval)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let chunks: Vec<_> = query_bins
@@ -151,17 +150,13 @@ impl BinningIndex for Index {
     }
 }
 
-fn resolve_interval<B>(interval: B) -> io::Result<(Position, Position)>
+fn resolve_interval<I>(interval: I) -> io::Result<(Position, Position)>
 where
-    B: RangeBounds<Position>,
+    I: Into<Interval>,
 {
-    let start = match interval.start_bound() {
-        Bound::Included(position) => *position,
-        Bound::Excluded(position) => position
-            .checked_add(1)
-            .expect("attempt to add with overflow"),
-        Bound::Unbounded => Position::MIN,
-    };
+    let interval = interval.into();
+
+    let start = interval.start().unwrap_or(Position::MIN);
 
     if start > MAX_POSITION {
         return Err(io::Error::new(
@@ -170,12 +165,7 @@ where
         ));
     }
 
-    let end = match interval.end_bound() {
-        Bound::Included(position) => *position,
-        Bound::Excluded(position) => Position::try_from(usize::from(*position) - 1)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
-        Bound::Unbounded => MAX_POSITION,
-    };
+    let end = interval.end().unwrap_or(MAX_POSITION);
 
     if end > MAX_POSITION {
         Err(io::Error::new(

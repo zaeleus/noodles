@@ -7,11 +7,11 @@ pub(crate) use self::builder::Builder;
 
 pub use self::bin::Bin;
 
-use std::{io, ops::RangeBounds};
+use std::io;
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::{binning_index::ReferenceSequenceExt, index::reference_sequence::Metadata};
 
 use super::{resolve_interval, MIN_SHIFT};
@@ -94,9 +94,9 @@ impl ReferenceSequence {
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<B>(&self, interval: B) -> io::Result<Vec<&Bin>>
+    pub fn query<I>(&self, interval: I) -> io::Result<Vec<&Bin>>
     where
-        B: RangeBounds<Position>,
+        I: Into<Interval>,
     {
         let (start, end) = resolve_interval(interval)?;
         let region_bins = region_to_bins(start, end);

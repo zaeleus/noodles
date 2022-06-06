@@ -7,6 +7,8 @@
   * csi/binning_index: Change generic reference sequence type to an associated
     type.
 
+  * csi/binning_index: Change query interval to `Into<Interval>`.
+
 ## 0.6.0 - 2022-03-29
 
 ### Changed

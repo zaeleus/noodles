@@ -5,11 +5,11 @@ mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
-use std::{io, ops::RangeBounds};
+use std::io;
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
-use noodles_core::Position;
+use noodles_core::{region::Interval, Position};
 
 use super::resolve_interval;
 use crate::binning_index::ReferenceSequenceExt;
@@ -73,9 +73,9 @@ impl ReferenceSequence {
     /// assert!(query_bins.is_empty());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<B>(&self, min_shift: u8, depth: u8, interval: B) -> io::Result<Vec<&Bin>>
+    pub fn query<I>(&self, min_shift: u8, depth: u8, interval: I) -> io::Result<Vec<&Bin>>
     where
-        B: RangeBounds<Position>,
+        I: Into<Interval>,
     {
         let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
