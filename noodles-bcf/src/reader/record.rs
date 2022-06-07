@@ -91,7 +91,9 @@ where
     R: Read,
 {
     reader.read_i32::<LittleEndian>().and_then(|n| {
-        Position::try_from(n + 1).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        usize::try_from(n + 1)
+            .map(Position::from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
 }
 

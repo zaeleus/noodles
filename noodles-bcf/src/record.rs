@@ -64,7 +64,7 @@ impl Record {
     /// ```
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert_eq!(i32::from(record.position()), 1);
+    /// assert_eq!(usize::from(record.position()), 1);
     /// ```
     pub fn position(&self) -> vcf::record::Position {
         self.pos
@@ -79,10 +79,9 @@ impl Record {
     /// use noodles_vcf::record::Position;
     ///
     /// let mut record = bcf::Record::default();
-    /// *record.position_mut() = Position::try_from(8)?;
+    /// *record.position_mut() = Position::from(8);
     ///
-    /// assert_eq!(i32::from(record.position()), 8);
-    /// # Ok::<_, noodles_vcf::record::position::TryFromIntError>(())
+    /// assert_eq!(usize::from(record.position()), 8);
     /// ```
     pub fn position_mut(&mut self) -> &mut vcf::record::Position {
         &mut self.pos
@@ -106,17 +105,18 @@ impl Record {
     /// # use std::io;
     /// use noodles_bcf as bcf;
     /// let record = bcf::Record::default();
-    /// assert_eq!(record.end().map(i32::from)?, 1);
+    /// assert_eq!(record.end().map(usize::from)?, 1);
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn end(&self) -> io::Result<vcf::record::Position> {
         use vcf::record::Position;
 
-        let start = i32::from(self.position());
-        let len = self.rlen();
+        let start = usize::from(self.position());
+        // FIXME
+        let len = self.rlen() as usize;
         let end = start + len - 1;
 
-        Position::try_from(end).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Ok(Position::from(end))
     }
 
     /// Returns the quality score.
@@ -248,7 +248,7 @@ impl Default for Record {
 
         Self {
             chrom: 0,
-            pos: vcf::record::Position::try_from(1).unwrap(),
+            pos: vcf::record::Position::from(1),
             rlen: 1,
             qual: None,
             id: vcf::record::Ids::default(),

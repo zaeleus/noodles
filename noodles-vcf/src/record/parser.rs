@@ -138,7 +138,7 @@ mod tests {
 
         assert!(matches!(record.chromosome(), Chromosome::Name(name) if name == "chr1"));
 
-        assert_eq!(i32::from(record.position()), 13);
+        assert_eq!(usize::from(record.position()), 13);
 
         let ids = record.ids();
         assert_eq!(ids.len(), 1);

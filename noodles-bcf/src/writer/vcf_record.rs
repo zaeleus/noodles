@@ -63,7 +63,7 @@ mod tests {
 
         let record = vcf::Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(vcf::record::Position::try_from(1)?)
+            .set_position(vcf::record::Position::from(1))
             .set_reference_bases("A".parse()?)
             .build()?;
 

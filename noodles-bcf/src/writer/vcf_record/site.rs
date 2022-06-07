@@ -89,7 +89,10 @@ pub(crate) fn write_pos<W>(writer: &mut W, position: vcf::record::Position) -> i
 where
     W: Write,
 {
-    let pos = i32::from(position) - 1;
+    let pos = i32::try_from(usize::from(position))
+        .map(|n| n - 1)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
     writer.write_i32::<LittleEndian>(pos)
 }
 
@@ -108,7 +111,9 @@ where
         ));
     }
 
-    let rlen = i32::from(end) - i32::from(start) + 1;
+    let rlen = i32::try_from(usize::from(end) - usize::from(start) + 1)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
     writer.write_i32::<LittleEndian>(rlen)
 }
 
@@ -294,12 +299,14 @@ mod tests {
         let mut buf = Vec::new();
 
         // TODO: Add test for telomere start (POS = 0).
-        t(&mut buf, Position::try_from(1)?, &[0x00, 0x00, 0x00, 0x00])?;
+        t(&mut buf, Position::from(1), &[0x00, 0x00, 0x00, 0x00])?;
         t(
             &mut buf,
-            Position::try_from(i32::MAX)?,
+            Position::from((1 << 31) - 1),
             &[0xfe, 0xff, 0xff, 0x7f],
         )?;
+
+        // TODO: Add failure for position > `i32::MAX`.
 
         Ok(())
     }
@@ -319,14 +326,14 @@ mod tests {
 
         t(
             &mut buf,
-            Position::try_from(8)?,
-            Position::try_from(13)?,
+            Position::from(8),
+            Position::from(13),
             &[0x06, 0x00, 0x00, 0x00],
         )?;
 
         buf.clear();
         assert!(matches!(
-            write_rlen(&mut buf, Position::try_from(13)?, Position::try_from(8)?),
+            write_rlen(&mut buf, Position::from(13), Position::from(8)),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
 

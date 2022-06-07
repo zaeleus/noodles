@@ -54,7 +54,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -75,11 +75,11 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(8)?)
+    ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(i32::from(record.position()), 8);
+    /// assert_eq!(usize::from(record.position()), 8);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_position(mut self, position: Position) -> Self {
@@ -96,7 +96,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -121,7 +121,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -149,7 +149,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .add_reference_base(Base::A)
     ///     .build()?;
     ///
@@ -176,7 +176,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .build()?;
@@ -201,7 +201,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
@@ -223,7 +223,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_filters(Filters::Pass)
     ///     .build()?;
@@ -249,7 +249,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
@@ -293,7 +293,7 @@ impl Builder {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(genotypes.clone())
     ///     .build()?;
@@ -352,7 +352,7 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let result = Builder::default()
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .build();
         assert_eq!(result, Err(BuildError::MissingChromosome));
@@ -365,7 +365,7 @@ mod tests {
 
         let result = Builder::default()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .build();
         assert_eq!(result, Err(BuildError::MissingReferenceBases));
 

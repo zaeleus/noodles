@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let record = vcf::Record::builder()
         .set_chromosome("sq0".parse()?)
-        .set_position(Position::try_from(1)?)
+        .set_position(Position::from(1))
         .set_reference_bases("A".parse()?)
         .build()?;
 

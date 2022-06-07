@@ -142,12 +142,14 @@ pub(crate) fn intersects(
 ) -> io::Result<bool> {
     let id = record.chromosome_id();
 
-    let start = i32::from(record.position());
-    let end = record.end().map(i32::from)?;
+    let start = usize::from(record.position());
+    let end = record.end().map(usize::from)?;
 
-    Ok(id == chromosome_id && in_interval(start, end, interval_start, interval_end))
+    // FIXME
+    Ok(id == chromosome_id
+        && in_interval(start, end, interval_start as usize, interval_end as usize))
 }
 
-fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
+fn in_interval(a_start: usize, a_end: usize, b_start: usize, b_end: usize) -> bool {
     a_start <= b_end && b_start <= a_end
 }

@@ -155,15 +155,17 @@ pub(crate) fn intersects(
 ) -> io::Result<bool> {
     let name = record.chromosome().to_string();
 
-    let start = i32::from(record.position());
+    let start = usize::from(record.position());
     let end = record
         .end()
-        .map(i32::from)
+        .map(usize::from)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok(name == reference_sequence_name && in_interval(start, end, interval_start, interval_end))
+    // FIXME
+    Ok(name == reference_sequence_name
+        && in_interval(start, end, interval_start as usize, interval_end as usize))
 }
 
-fn in_interval(a_start: i32, a_end: i32, b_start: i32, b_end: i32) -> bool {
+fn in_interval(a_start: usize, a_end: usize, b_start: usize, b_end: usize) -> bool {
     a_start <= b_end && b_start <= a_end
 }

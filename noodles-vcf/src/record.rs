@@ -91,7 +91,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -111,7 +111,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -139,11 +139,11 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(8)?)
+    ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(i32::from(record.position()), 8);
+    /// assert_eq!(usize::from(record.position()), 8);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn position(&self) -> Position {
@@ -163,13 +163,13 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(8)?)
+    ///     .set_position(Position::from(8))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
-    /// *record.position_mut() = Position::try_from(13)?;
+    /// *record.position_mut() = Position::from(13);
     ///
-    /// assert_eq!(i32::from(record.position()), 13);
+    /// assert_eq!(usize::from(record.position()), 13);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn position_mut(&mut self) -> &mut Position {
@@ -185,7 +185,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_ids("nd0".parse()?)
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
@@ -206,7 +206,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -234,7 +234,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -262,7 +262,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -290,7 +290,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .build()?;
@@ -317,7 +317,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -346,7 +346,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_quality_score(QualityScore::try_from(13.0)?)
     ///     .build()?;
@@ -367,7 +367,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -392,7 +392,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_filters(Filters::Pass)
     ///     .build()?;
@@ -413,7 +413,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -439,7 +439,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
@@ -470,7 +470,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_alternate_bases("C".parse()?)
     ///     .set_info("NS=3;AF=0.5".parse()?)
@@ -513,7 +513,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(Genotypes::new(keys, genotypes))
     ///     .build()?;
@@ -553,7 +553,7 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .set_genotypes(genotypes.clone())
     ///     .build()?;
@@ -582,7 +582,7 @@ impl Record {
     ///
     /// let mut record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("A".parse()?)
     ///     .build()?;
     ///
@@ -609,13 +609,13 @@ impl Record {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EndError {
     /// The position is invalid.
-    InvalidPosition(position::TryFromIntError),
+    InvalidPosition(num::TryFromIntError),
     /// The INFO end position (`END`) field value type is invalid.
     InvalidInfoEndPositionFieldValue,
     /// The reference bases length is invalid (> [`i32::MAX`]).
     InvalidReferenceBasesLength(num::TryFromIntError),
     /// The calculation of the end position overflowed.
-    PositionOverflow(i32, i32),
+    PositionOverflow(usize, usize),
 }
 
 impl error::Error for EndError {}
@@ -656,12 +656,12 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("ACGT".parse()?)
     ///     .set_info("END=8".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.end(), Ok(Position::try_from(8)?));
+    /// assert_eq!(record.end(), Ok(Position::from(8)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     ///
@@ -672,11 +672,11 @@ impl Record {
     ///
     /// let record = vcf::Record::builder()
     ///     .set_chromosome("sq0".parse()?)
-    ///     .set_position(Position::try_from(1)?)
+    ///     .set_position(Position::from(1))
     ///     .set_reference_bases("ACGT".parse()?)
     ///     .build()?;
     ///
-    /// assert_eq!(record.end(), Ok(Position::try_from(4)?));
+    /// assert_eq!(record.end(), Ok(Position::from(4)));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn end(&self) -> Result<Position, EndError> {
@@ -685,20 +685,21 @@ impl Record {
 
         let end = if let Some(value) = self.info().get(&Key::EndPosition).and_then(|f| f.value()) {
             match value {
-                Value::Integer(n) => *n,
+                Value::Integer(n) => usize::try_from(*n).map_err(EndError::InvalidPosition)?,
                 _ => return Err(EndError::InvalidInfoEndPositionFieldValue),
             }
         } else {
-            let start = i32::from(self.position());
+            let start = usize::from(self.position());
+
             // `len` is guaranteed to be > 0.
-            let len = i32::try_from(self.reference_bases().len())
-                .map_err(EndError::InvalidReferenceBasesLength)?;
+            let len = self.reference_bases().len();
+
             start
                 .checked_add(len - 1)
                 .ok_or(EndError::PositionOverflow(start, len))?
         };
 
-        Position::try_from(end).map_err(EndError::InvalidPosition)
+        Ok(Position::from(end))
     }
 }
 
@@ -754,7 +755,7 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_info(Info::try_from(vec![info::Field::new(
                 InfoKey::EndPosition,
@@ -762,11 +763,11 @@ mod tests {
             )])?)
             .build()?;
 
-        assert_eq!(record.end(), Ok(Position::try_from(1)?));
+        assert_eq!(record.end(), Ok(Position::from(1)));
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_info(Info::try_from(vec![info::Field::new(
                 InfoKey::EndPosition,
@@ -781,11 +782,11 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(i32::MAX)?)
+            .set_position(Position::from(usize::MAX))
             .set_reference_bases("ACGT".parse()?)
             .build()?;
 
-        assert_eq!(record.end(), Err(EndError::PositionOverflow(i32::MAX, 4)));
+        assert_eq!(record.end(), Err(EndError::PositionOverflow(usize::MAX, 4)));
 
         Ok(())
     }
@@ -794,7 +795,7 @@ mod tests {
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .build()?;
 
@@ -821,7 +822,7 @@ mod tests {
 
         let record = Record::builder()
             .set_chromosome("sq0".parse()?)
-            .set_position(Position::try_from(1)?)
+            .set_position(Position::from(1))
             .set_reference_bases("A".parse()?)
             .set_genotypes(Genotypes::new(keys, genotypes))
             .build()?;

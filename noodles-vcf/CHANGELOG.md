@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/position: Change underlying type to `usize`.
+
+### Removed
+
+  * vcf/record/position: Remove conversion to `i32` (`From<Position> for i32`).
+
+    Use conversion to `usize` (`From<Position> for usize`) instead.
+
+  * vcf/record/position: Remove fallible conversion from `i32` (`TryFrom<i32>
+    for Position`).
+
+    Use conversion from `usize` instead (`From<usize> for Position`).
+
+  * vcf/record/position: Remove `TryFromIntError`.
+
+    This is no longer used.
+
 ## 0.15.0 - 2022-03-29
 
 ### Changed
