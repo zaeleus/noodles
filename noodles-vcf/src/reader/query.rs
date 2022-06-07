@@ -1,9 +1,7 @@
-use std::{
-    io::{self, Read, Seek},
-    ops::{Bound, RangeBounds},
-};
+use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
+use noodles_core::region::Interval;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use super::Reader;
@@ -28,8 +26,7 @@ where
     i: usize,
 
     reference_sequence_name: String,
-    start: i32,
-    end: i32,
+    interval: Interval,
 
     state: State,
     header: &'h Header,
@@ -40,18 +37,13 @@ impl<'r, 'h, R> Query<'r, 'h, R>
 where
     R: Read + Seek,
 {
-    pub(super) fn new<B>(
+    pub(super) fn new(
         reader: &'r mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_name: String,
-        interval: B,
+        interval: Interval,
         header: &'h Header,
-    ) -> Self
-    where
-        B: RangeBounds<i32>,
-    {
-        let (start, end) = resolve_interval(interval);
-
+    ) -> Self {
         Self {
             reader,
 
@@ -59,8 +51,7 @@ where
             i: 0,
 
             reference_sequence_name,
-            start,
-            end,
+            interval,
 
             state: State::Seek,
             header,
@@ -109,12 +100,7 @@ where
                             self.state = State::Seek;
                         }
 
-                        match intersects(
-                            &record,
-                            &self.reference_sequence_name,
-                            self.start,
-                            self.end,
-                        ) {
+                        match intersects(&record, &self.reference_sequence_name, self.interval) {
                             Ok(true) => return Some(Ok(record)),
                             Ok(false) => {}
                             Err(e) => return Some(Err(e)),
@@ -129,18 +115,6 @@ where
     }
 }
 
-pub(crate) fn resolve_interval<B>(interval: B) -> (i32, i32)
-where
-    B: RangeBounds<i32>,
-{
-    match (interval.start_bound(), interval.end_bound()) {
-        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-        _ => todo!(),
-    }
-}
-
 pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     let chunk = chunks.get(*i).copied();
     *i += 1;
@@ -150,22 +124,24 @@ pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
 pub(crate) fn intersects(
     record: &Record,
     reference_sequence_name: &str,
-    interval_start: i32,
-    interval_end: i32,
+    region_interval: Interval,
 ) -> io::Result<bool> {
+    use noodles_core::Position;
+
     let name = record.chromosome().to_string();
 
-    let start = usize::from(record.position());
+    let start = Position::try_from(usize::from(record.position()))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     let end = record
         .end()
         .map(usize::from)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        .and_then(|n| {
+            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
-    // FIXME
-    Ok(name == reference_sequence_name
-        && in_interval(start, end, interval_start as usize, interval_end as usize))
-}
+    let record_interval = Interval::from(start..=end);
 
-fn in_interval(a_start: usize, a_end: usize, b_start: usize, b_end: usize) -> bool {
-    a_start <= b_end && b_start <= a_end
+    Ok(name == reference_sequence_name && record_interval.intersects(region_interval))
 }

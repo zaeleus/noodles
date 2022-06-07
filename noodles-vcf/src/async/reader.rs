@@ -294,8 +294,7 @@ where
         index: &tabix::Index,
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r> {
-        let (reference_sequence_id, reference_sequence_name, interval) =
-            resolve_region(index, region)?;
+        let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
 
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
@@ -303,7 +302,7 @@ where
             self,
             chunks,
             reference_sequence_name,
-            interval,
+            region.interval(),
             header,
         ))
     }

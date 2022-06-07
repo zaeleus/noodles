@@ -1,13 +1,12 @@
-use std::ops::RangeBounds;
-
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::region::Interval;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
 use crate::{
-    reader::query::{intersects, next_chunk, resolve_interval},
+    reader::query::{intersects, next_chunk},
     Header, Record,
 };
 
@@ -27,27 +26,23 @@ where
     i: usize,
 
     reference_sequence_name: String,
-    start: i32,
-    end: i32,
+    interval: Interval,
 
     state: State,
 
     header: &'r Header,
 }
 
-pub fn query<'r, R, B>(
+pub fn query<'r, R>(
     reader: &'r mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_name: String,
-    interval: B,
+    interval: Interval,
     header: &'r Header,
 ) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,
-    B: RangeBounds<i32>,
 {
-    let (start, end) = resolve_interval(interval);
-
     let ctx = Context {
         reader,
 
@@ -55,8 +50,7 @@ where
         i: 0,
 
         reference_sequence_name,
-        start,
-        end,
+        interval,
 
         state: State::Seek,
 
@@ -81,7 +75,7 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, &ctx.reference_sequence_name, ctx.start, ctx.end)? {
+                        if intersects(&record, &ctx.reference_sequence_name, ctx.interval)? {
                             return Ok(Some((record, ctx)));
                         }
                     }

@@ -5,14 +5,11 @@ mod records;
 
 pub use self::{query::Query, records::Records};
 
-use std::{
-    io::{self, BufRead, Read, Seek},
-    ops::Bound,
-};
+use std::io::{self, BufRead, Read, Seek};
 
 use memchr::memchr;
 use noodles_bgzf as bgzf;
-use noodles_core::{Position, Region};
+use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_tabix as tabix;
 
@@ -297,16 +294,14 @@ where
         index: &tabix::Index,
         region: &Region,
     ) -> io::Result<Query<'r, 'h, R>> {
-        let (reference_sequence_id, reference_sequence_name, interval) =
-            resolve_region(index, region)?;
-
+        let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
             self,
             chunks,
             reference_sequence_name,
-            interval,
+            region.interval(),
             header,
         ))
     }
@@ -372,19 +367,7 @@ where
     }
 }
 
-#[allow(clippy::type_complexity)]
-pub(crate) fn resolve_region(
-    index: &tabix::Index,
-    region: &Region,
-) -> io::Result<(usize, String, (Bound<i32>, Bound<i32>))> {
-    fn cast_bound_position_to_bound_i32(bound: Bound<Position>) -> Bound<i32> {
-        match bound {
-            Bound::Included(position) => Bound::Included(usize::from(position) as i32),
-            Bound::Excluded(position) => Bound::Excluded(usize::from(position) as i32),
-            Bound::Unbounded => Bound::Unbounded,
-        }
-    }
-
+pub(crate) fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String)> {
     let i = index
         .reference_sequence_names()
         .get_index_of(region.name())
@@ -398,12 +381,7 @@ pub(crate) fn resolve_region(
             )
         })?;
 
-    let interval = (
-        cast_bound_position_to_bound_i32(region.start()),
-        cast_bound_position_to_bound_i32(region.end()),
-    );
-
-    Ok((i, region.name().into(), interval))
+    Ok((i, region.name().into()))
 }
 
 #[cfg(test)]
