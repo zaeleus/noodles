@@ -1,6 +1,4 @@
-use std::ops::RangeBounds;
-
-use noodles_core::{region::Interval, Position};
+use noodles_core::region::Interval;
 
 use crate::{Client, Error, Sequence};
 
@@ -65,25 +63,13 @@ impl Builder {
     }
 }
 
-// Resolves a 1-based interval as a 0-based [start, end) interval.
-fn resolve_interval<B>(interval: B) -> (Option<usize>, Option<usize>)
+fn resolve_interval<I>(interval: I) -> (Option<usize>, Option<usize>)
 where
-    B: RangeBounds<Position>,
+    I: Into<Interval>,
 {
-    use std::ops::Bound;
-
-    let start = match interval.start_bound() {
-        Bound::Included(position) => Some(usize::from(*position) - 1),
-        Bound::Excluded(position) => Some(usize::from(*position)),
-        Bound::Unbounded => None,
-    };
-
-    let end = match interval.end_bound() {
-        Bound::Included(position) => Some(usize::from(*position)),
-        Bound::Excluded(position) => Some(usize::from(*position) - 1),
-        Bound::Unbounded => None,
-    };
-
+    let interval = interval.into();
+    let start = interval.start().map(|position| usize::from(position) - 1);
+    let end = interval.end().map(usize::from);
     (start, end)
 }
 
@@ -93,15 +79,15 @@ mod tests {
 
     #[test]
     fn test_resolve_interval() -> std::result::Result<(), noodles_core::position::TryFromIntError> {
+        use noodles_core::Position;
+
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
 
-        assert_eq!(resolve_interval(start..end), (Some(7), Some(12)));
-        assert_eq!(resolve_interval(start..), (Some(7), None));
-        assert_eq!(resolve_interval(..), (None, None));
         assert_eq!(resolve_interval(start..=end), (Some(7), Some(13)));
-        assert_eq!(resolve_interval(..end), (None, Some(12)));
+        assert_eq!(resolve_interval(start..), (Some(7), None));
         assert_eq!(resolve_interval(..=end), (None, Some(13)));
+        assert_eq!(resolve_interval(..), (None, None));
 
         Ok(())
     }
