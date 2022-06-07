@@ -27,12 +27,14 @@ async fn resolve_data(
     client: &Client,
     block_url: &BlockUrl,
 ) -> Pin<Box<dyn Stream<Item = crate::Result<Bytes>>>> {
-    const PREFIX: &str = "data:application/octet-stream;base64,";
+    const DELIMITER: &str = ";base64,";
 
     let url = block_url.url();
 
     if url.scheme() == "data" {
-        if let Some(encoded_data) = url.as_str().strip_prefix(PREFIX) {
+        // _Htsget retrieval API spec v1.3.0_ § "Inline data block URIs": "client should ignore the
+        // media type (if any), treating the payload as a partial blob."
+        if let Some((_, encoded_data)) = url.as_str().split_once(DELIMITER) {
             match base64::decode(encoded_data) {
                 Ok(data) => Box::pin(stream::once(async { Ok(Bytes::from(data)) })),
                 Err(e) => Box::pin(stream::once(async { Err(Error::Decode(e)) })),
