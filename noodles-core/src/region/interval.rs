@@ -19,28 +19,6 @@ pub struct Interval {
 }
 
 impl Interval {
-    /// Creates a closed interval.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_core::{region::Interval, Position};
-    ///
-    /// let start = Position::try_from(8)?;
-    /// let end = Position::try_from(13)?;
-    ///
-    /// let interval = Interval::new(start, end);
-    /// assert_eq!(interval.start(), Some(start));
-    /// assert_eq!(interval.end(), Some(end));
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
-    /// ```
-    pub fn new(start: Position, end: Position) -> Self {
-        Self {
-            start: Some(start),
-            end: Some(end),
-        }
-    }
-
     /// Returns the start.
     ///
     /// # Examples
@@ -88,12 +66,12 @@ impl Interval {
     /// ```
     /// use noodles_core::{region::Interval, Position};
     ///
-    /// let a = Interval::new(Position::try_from(5)?, Position::try_from(13)?);
-    /// let b = Interval::new(Position::try_from(8)?, Position::try_from(21)?);
+    /// let a = Interval::from(Position::try_from(5)?..=Position::try_from(13)?);
+    /// let b = Interval::from(Position::try_from(8)?..=Position::try_from(21)?);
     /// assert!(a.intersects(b));
     ///
-    /// let c = Interval::new(Position::try_from(2)?, Position::try_from(3)?);
-    /// assert!(!b.intersects(c));
+    /// let c = Interval::from(Position::try_from(2)?..=Position::try_from(3)?);
+    /// assert!(!a.intersects(c));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn intersects(&self, other: Self) -> bool {

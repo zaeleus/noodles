@@ -111,7 +111,7 @@ impl Region {
     /// let end = Position::try_from(8)?;
     /// let region = Region::new("sq0", start..=end);
     ///
-    /// assert_eq!(region.interval(), Interval::new(start, end));
+    /// assert_eq!(region.interval(), Interval::from(start..=end));
     /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn interval(&self) -> Interval {
