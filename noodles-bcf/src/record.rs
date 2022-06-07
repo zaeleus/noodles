@@ -21,7 +21,7 @@ pub type ChromosomeId = usize;
 pub struct Record {
     chrom: ChromosomeId,
     pos: vcf::record::Position,
-    rlen: i32,
+    rlen: usize,
     qual: Option<vcf::record::QualityScore>,
     id: vcf::record::Ids,
     pub(crate) r#ref: vcf::record::ReferenceBases,
@@ -87,11 +87,11 @@ impl Record {
         &mut self.pos
     }
 
-    pub(crate) fn rlen(&self) -> i32 {
+    pub(crate) fn rlen(&self) -> usize {
         self.rlen
     }
 
-    pub(crate) fn rlen_mut(&mut self) -> &mut i32 {
+    pub(crate) fn rlen_mut(&mut self) -> &mut usize {
         &mut self.rlen
     }
 
@@ -112,8 +112,7 @@ impl Record {
         use vcf::record::Position;
 
         let start = usize::from(self.position());
-        // FIXME
-        let len = self.rlen() as usize;
+        let len = self.rlen();
         let end = start + len - 1;
 
         Ok(Position::from(end))

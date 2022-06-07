@@ -49,7 +49,7 @@ where
     *record.chromosome_id_mut() = read_chrom(reader)?;
     *record.position_mut() = read_pos(reader)?;
 
-    *record.rlen_mut() = reader.read_i32::<LittleEndian>()?;
+    *record.rlen_mut() = read_rlen(reader)?;
 
     *record.quality_score_mut() = read_qual(reader)?;
 
@@ -84,6 +84,15 @@ where
     reader.read_i32::<LittleEndian>().and_then(|n| {
         ChromosomeId::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
+}
+
+pub fn read_rlen<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    reader
+        .read_i32::<LittleEndian>()
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 pub fn read_pos<R>(reader: &mut R) -> io::Result<Position>
