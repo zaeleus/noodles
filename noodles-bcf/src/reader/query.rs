@@ -1,9 +1,7 @@
-use std::{
-    io::{self, Read, Seek},
-    ops::{Bound, RangeBounds},
-};
+use std::io::{self, Read, Seek};
 
 use noodles_bgzf as bgzf;
+use noodles_core::{region::Interval, Position};
 use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use crate::Record;
@@ -29,8 +27,7 @@ where
     i: usize,
 
     chromosome_id: usize,
-    start: i32,
-    end: i32,
+    interval: Interval,
 
     state: State,
     record: Record,
@@ -40,17 +37,12 @@ impl<'a, R> Query<'a, R>
 where
     R: Read + Seek,
 {
-    pub(crate) fn new<B>(
+    pub(crate) fn new(
         reader: &'a mut Reader<bgzf::Reader<R>>,
         chunks: Vec<Chunk>,
         chromosome_id: usize,
-        interval: B,
-    ) -> Self
-    where
-        B: RangeBounds<i32>,
-    {
-        let (start, end) = resolve_interval(interval);
-
+        interval: Interval,
+    ) -> Self {
         Self {
             reader,
 
@@ -58,8 +50,7 @@ where
             i: 0,
 
             chromosome_id,
-            start,
-            end,
+            interval,
 
             state: State::Seek,
             record: Record::default(),
@@ -101,7 +92,7 @@ where
                             self.state = State::Seek;
                         }
 
-                        match intersects(&record, self.chromosome_id, self.start, self.end) {
+                        match intersects(&record, self.chromosome_id, self.interval) {
                             Ok(true) => return Some(Ok(record)),
                             Ok(false) => {}
                             Err(e) => return Some(Err(e)),
@@ -116,18 +107,6 @@ where
     }
 }
 
-pub(crate) fn resolve_interval<B>(interval: B) -> (i32, i32)
-where
-    B: RangeBounds<i32>,
-{
-    match (interval.start_bound(), interval.end_bound()) {
-        (Bound::Included(s), Bound::Included(e)) => (*s, *e),
-        (Bound::Included(s), Bound::Unbounded) => (*s, i32::MAX),
-        (Bound::Unbounded, Bound::Unbounded) => (1, i32::MAX),
-        _ => todo!(),
-    }
-}
-
 pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
     let chunk = chunks.get(*i).copied();
     *i += 1;
@@ -137,19 +116,18 @@ pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
 pub(crate) fn intersects(
     record: &Record,
     chromosome_id: usize,
-    interval_start: i32,
-    interval_end: i32,
+    region_interval: Interval,
 ) -> io::Result<bool> {
     let id = record.chromosome_id();
 
-    let start = usize::from(record.position());
-    let end = record.end().map(usize::from)?;
+    let start = Position::try_from(usize::from(record.position()))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    // FIXME
-    Ok(id == chromosome_id
-        && in_interval(start, end, interval_start as usize, interval_end as usize))
-}
+    let end = record.end().map(usize::from).and_then(|n| {
+        Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
-fn in_interval(a_start: usize, a_end: usize, b_start: usize, b_end: usize) -> bool {
-    a_start <= b_end && b_start <= a_end
+    let record_interval = Interval::from(start..=end);
+
+    Ok(id == chromosome_id && record_interval.intersects(region_interval))
 }

@@ -11,12 +11,11 @@ pub use self::{query::Query, records::Records};
 use std::{
     ffi::CStr,
     io::{self, Read, Seek},
-    ops::Bound,
 };
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
-use noodles_core::{Position, Region};
+use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use super::Record;
@@ -269,9 +268,15 @@ where
     where
         I: BinningIndex,
     {
-        let (reference_sequence_id, interval) = resolve_region(contig_string_map, region)?;
+        let reference_sequence_id = resolve_region(contig_string_map, region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
-        Ok(Query::new(self, chunks, reference_sequence_id, interval))
+
+        Ok(Query::new(
+            self,
+            chunks,
+            reference_sequence_id,
+            region.interval(),
+        ))
     }
 }
 
@@ -334,34 +339,18 @@ where
         })
 }
 
-#[allow(clippy::type_complexity)]
 pub(crate) fn resolve_region(
     contig_string_map: &ContigStringMap,
     region: &Region,
-) -> io::Result<(usize, (Bound<i32>, Bound<i32>))> {
-    fn cast_bound_position_to_bound_i32(bound: Bound<Position>) -> Bound<i32> {
-        match bound {
-            Bound::Included(position) => Bound::Included(usize::from(position) as i32),
-            Bound::Excluded(position) => Bound::Excluded(usize::from(position) as i32),
-            Bound::Unbounded => Bound::Unbounded,
-        }
-    }
-
-    let i = contig_string_map
+) -> io::Result<usize> {
+    contig_string_map
         .get_index_of(region.name())
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("region does not exist in contigs: {:?}", region),
             )
-        })?;
-
-    let interval = (
-        cast_bound_position_to_bound_i32(region.start()),
-        cast_bound_position_to_bound_i32(region.end()),
-    );
-
-    Ok((i, interval))
+        })
 }
 
 #[cfg(test)]

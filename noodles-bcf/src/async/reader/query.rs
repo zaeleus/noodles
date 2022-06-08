@@ -1,13 +1,12 @@
-use std::ops::RangeBounds;
-
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
+use noodles_core::region::Interval;
 use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
 use crate::{
-    reader::query::{intersects, next_chunk, resolve_interval},
+    reader::query::{intersects, next_chunk},
     record::ChromosomeId,
     Record,
 };
@@ -28,24 +27,20 @@ where
     i: usize,
 
     chromosome_id: ChromosomeId,
-    start: i32,
-    end: i32,
+    interval: Interval,
 
     state: State,
 }
 
-pub fn query<R, B>(
+pub fn query<R>(
     reader: &mut Reader<bgzf::AsyncReader<R>>,
     chunks: Vec<Chunk>,
     chromosome_id: ChromosomeId,
-    interval: B,
+    interval: Interval,
 ) -> impl Stream<Item = io::Result<Record>> + '_
 where
     R: AsyncRead + AsyncSeek + Unpin,
-    B: RangeBounds<i32>,
 {
-    let (start, end) = resolve_interval(interval);
-
     let ctx = Context {
         reader,
 
@@ -53,8 +48,7 @@ where
         i: 0,
 
         chromosome_id,
-        start,
-        end,
+        interval,
 
         state: State::Seek,
     };
@@ -77,7 +71,7 @@ where
                             ctx.state = State::Seek;
                         }
 
-                        if intersects(&record, ctx.chromosome_id, ctx.start, ctx.end)? {
+                        if intersects(&record, ctx.chromosome_id, ctx.interval)? {
                             return Ok(Some((record, ctx)));
                         }
                     }
