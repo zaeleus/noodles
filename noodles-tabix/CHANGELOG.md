@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.10.0 - 2022-06-09
 
 ### Changed
 
   * tabix/reader: Fail if reference sequence names buffer has trailing data.
+
+### Fixed
+
+  * tabix: Sync dependencies.
 
 ## 0.9.1 - 2022-06-08
 

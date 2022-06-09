@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.24.0 - 2022-06-09
+
+  * [noodles-tabix 0.10.0](https://github.com/zaeleus/noodles/blob/noodles-tabix-0.10.0/noodles-tabix/CHANGELOG.md)
+  * [noodles-vcf 0.16.1](https://github.com/zaeleus/noodles/blob/noodles-vcf-0.16.1/noodles-vcf/CHANGELOG.md)
+
 ## 0.23.0 - 2022-06-08
 
   * [noodles-bam 0.19.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.19.0/noodles-bam/CHANGELOG.md)
