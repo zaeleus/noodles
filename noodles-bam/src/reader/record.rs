@@ -80,7 +80,7 @@ where
 
     *record.mate_reference_sequence_id_mut() = get_reference_sequence_id(src)?;
     *record.mate_alignment_start_mut() = get_position(src)?;
-    *record.template_length_mut() = src.get_i32_le();
+    *record.template_length_mut() = get_template_length(src)?;
 
     get_read_name(src, record.read_name_mut(), l_read_name)?;
     get_cigar(src, record.cigar_mut(), n_cigar_op)?;
@@ -137,6 +137,17 @@ where
     }
 
     Ok(sam::record::Flags::from(src.get_u16_le()))
+}
+
+fn get_template_length<B>(src: &mut B) -> io::Result<i32>
+where
+    B: Buf,
+{
+    if src.remaining() < mem::size_of::<i32>() {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    Ok(src.get_i32_le())
 }
 
 #[cfg(test)]
