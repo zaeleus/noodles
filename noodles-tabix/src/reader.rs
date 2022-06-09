@@ -159,33 +159,33 @@ where
     parse_names(&names)
 }
 
-pub(crate) fn parse_names(buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
+pub(crate) fn parse_names(mut buf: &[u8]) -> io::Result<ReferenceSequenceNames> {
     let mut names = ReferenceSequenceNames::new();
-    let mut start = 0;
 
-    loop {
-        let buf = &buf[start..];
+    while let Some(i) = buf.iter().position(|&b| b == NUL) {
+        let (raw_name, rest) = buf.split_at(i);
 
-        match buf.iter().position(|&b| b == NUL) {
-            Some(end) => {
-                let raw_name = &buf[..end];
-                let name = str::from_utf8(raw_name)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let name =
+            str::from_utf8(raw_name).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-                if !names.insert(name.into()) {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("duplicate reference sequence name: {}", name),
-                    ));
-                }
-
-                start += end + 1;
-            }
-            None => break,
+        if !names.insert(name.into()) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("duplicate reference sequence name: {}", name),
+            ));
         }
+
+        buf = &rest[1..];
     }
 
-    Ok(names)
+    if buf.is_empty() {
+        Ok(names)
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid reference sequence names",
+        ))
+    }
 }
 
 fn read_references<R>(reader: &mut R, len: usize) -> io::Result<Vec<ReferenceSequence>>
@@ -450,6 +450,16 @@ mod tests {
         assert!(matches!(
             parse_names(data),
             Err(ref e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+    }
+
+    #[test]
+    fn test_parse_names_with_trailing_data() {
+        let data = b"sq0\x00sq1\x00sq2";
+
+        assert!(matches!(
+            parse_names(data),
+            Err(ref e) if e.kind() == io::ErrorKind::InvalidData
         ));
     }
 

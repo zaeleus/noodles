@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/reader: Fail if reference sequence names buffer has trailing data.
+
 ## 0.9.1 - 2022-06-08
 
 ### Fixed
