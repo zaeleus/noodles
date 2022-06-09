@@ -1,5 +1,5 @@
-//! Alignment record.
+//! Alignment record and fields.
 
-mod record;
+pub mod record;
 
 pub use self::record::Record;

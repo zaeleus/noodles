@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment: Increased the visibility of `sam::alignment::record`.
+
+    This allows access to the `Builder` struct.
+
 ## 0.16.0 - 2022-06-08
 
 ### Added
