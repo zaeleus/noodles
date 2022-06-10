@@ -10,7 +10,7 @@ use flate2::Crc;
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
-use crate::{gz, Block, BGZF_HEADER_SIZE};
+use crate::{gz, Block};
 
 pin_project! {
     pub struct Inflate {
@@ -38,9 +38,14 @@ impl Future for Inflate {
 fn inflate(mut src: Bytes) -> io::Result<Block> {
     use crate::reader::inflate_data;
 
-    let mut header = src.split_to(BGZF_HEADER_SIZE);
-    header.advance(16); // [ID1, ..., SLEN]
-    let bsize = u64::from(header.get_u16_le()) + 1;
+    if !is_valid_header(&mut src) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BGZF header",
+        ));
+    }
+
+    let bsize = u64::from(src.get_u16_le()) + 1;
 
     let cdata = src.split_to(src.len() - gz::TRAILER_SIZE);
 
@@ -68,4 +73,35 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
             "block data checksum mismatch",
         ))
     }
+}
+
+fn is_valid_header(src: &mut Bytes) -> bool {
+    use std::mem;
+
+    const BGZF_CM: u8 = 0x08; // DEFLATE
+    const BGZF_FLG: u8 = 0x04; // FEXTRA
+    const BGZF_XLEN: u16 = 6;
+    const BGZF_SI1: u8 = b'B';
+    const BGZF_SI2: u8 = b'C';
+    const BGZF_SLEN: u16 = 2;
+
+    let magic_number = src.split_to(gz::MAGIC_NUMBER.len());
+    let cm = src.get_u8();
+    let flg = src.get_u8();
+
+    // 4 (MTIME) + 1 (XFL) + 1 (OS)
+    src.advance(mem::size_of::<u32>() + mem::size_of::<u8>() + mem::size_of::<u8>());
+
+    let xlen = src.get_u16_le();
+    let subfield_id_1 = src.get_u8();
+    let subfield_id_2 = src.get_u8();
+    let bc_len = src.get_u16_le();
+
+    magic_number[..] == gz::MAGIC_NUMBER
+        && cm == BGZF_CM
+        && flg == BGZF_FLG
+        && xlen == BGZF_XLEN
+        && subfield_id_1 == BGZF_SI1
+        && subfield_id_2 == BGZF_SI2
+        && bc_len == BGZF_SLEN
 }

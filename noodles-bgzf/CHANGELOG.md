@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * bgzf/async/reader: Verify BGZF block header values ([#93]).
+
   * bgzf/reader: Verify BGZF block header values ([#93]).
 
 [#93]: https://github.com/zaeleus/noodles/issues/93
