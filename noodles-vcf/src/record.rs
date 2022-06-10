@@ -61,7 +61,18 @@ pub struct Record {
 }
 
 impl Record {
-    /// Parses a raw VCF record.
+    /// Parses a raw VCF record using a VCF header as context.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    ///
+    /// let s = "sq0\t8\t.\tA\t.\t.\tPASS\t.";
+    /// let header = vcf::Header::default();
+    /// let record = vcf::Record::try_from_str(s, &header)?;
+    /// # Ok::<_, vcf::record::ParseError>(())
+    /// ```
     pub fn try_from_str(s: &str, header: &Header) -> Result<Self, ParseError> {
         parser::parse(s, header)
     }
