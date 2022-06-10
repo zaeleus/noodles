@@ -1,13 +1,18 @@
 //! SAM reader and iterators.
 
+mod query;
 pub(crate) mod record;
 mod records;
+
+use crate::header::ReferenceSequences;
 
 pub use self::records::Records;
 
 use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
+use noodles_csi::BinningIndex;
 use noodles_fasta as fasta;
 
 use super::{alignment::Record, lazy, AlignmentReader, Header};
@@ -260,6 +265,53 @@ where
     pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
         self.inner.seek(pos)
     }
+
+    /// Returns an iterator over records that intersect the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.sam.gz")
+    ///     .map(bgzf::Reader::new)
+    ///     .map(sam::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?.parse()?;
+    ///
+    /// let index = csi::read("sample.sam.gz.csi")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn query<'a, I>(
+        &'a mut self,
+        header: &'a Header,
+        index: &I,
+        region: &Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a>
+    where
+        I: BinningIndex,
+    {
+        use self::query::{FilterByRegion, Query};
+
+        let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
+        let chunks = index.query(reference_sequence_id, region.interval())?;
+
+        Ok(FilterByRegion::new(
+            Query::new(self, header, chunks),
+            reference_sequence_id,
+            region.interval(),
+        ))
+    }
 }
 
 impl<R> AlignmentReader for Reader<R>
@@ -418,6 +470,20 @@ where
             Ok(n)
         }
     }
+}
+
+fn resolve_region(reference_sequences: &ReferenceSequences, region: &Region) -> io::Result<usize> {
+    reference_sequences
+        .get_index_of(region.name())
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!(
+                    "region reference sequence does not exist in reference sequences: {:?}",
+                    region
+                ),
+            )
+        })
 }
 
 #[cfg(test)]

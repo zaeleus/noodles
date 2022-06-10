@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/reader: Add query iterator (`Reader::query`).
+
 ### Changed
 
   * sam/alignment: Increased the visibility of `sam::alignment::record`.
