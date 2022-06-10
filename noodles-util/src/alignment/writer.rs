@@ -17,8 +17,9 @@ impl Writer {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_util::alignment;
-    /// let builder = alignment::Writer::builder(Vec::new());
+    /// let builder = alignment::Writer::builder(io::sink());
     /// ```
     pub fn builder<W>(inner: W) -> Builder<W>
     where
@@ -36,8 +37,8 @@ impl Writer {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::{self, Format};
     ///
-    /// let mut writer = alignment::Writer::builder(Vec::new())
-    ///     .set_format(Format::Sam)
+    /// let mut writer = alignment::Writer::builder(io::sink())
+    ///     .set_format(Format::Bam)
     ///     .build();
     ///
     /// let header = sam::Header::default();
@@ -57,7 +58,7 @@ impl Writer {
     /// use noodles_sam::{self as sam, alignment::Record};
     /// use noodles_util::alignment::{self, Format};
     ///
-    /// let mut writer = alignment::Writer::builder(Vec::new())
+    /// let mut writer = alignment::Writer::builder(io::sink())
     ///     .set_format(Format::Sam)
     ///     .build();
     ///
@@ -81,7 +82,7 @@ impl Writer {
     /// use noodles_sam as sam;
     /// use noodles_util::alignment::{self, Format};
     ///
-    /// let mut writer = alignment::Writer::builder(Vec::new())
+    /// let mut writer = alignment::Writer::builder(io::sink())
     ///     .set_format(Format::Sam)
     ///     .build();
     ///

@@ -32,8 +32,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
-    /// let builder = alignment::Writer::builder(Vec::new()).set_format(Format::Sam);
+    /// let builder = alignment::Writer::builder(io::sink()).set_format(Format::Sam);
     /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = format;
@@ -51,7 +52,7 @@ where
     ///
     /// let repository = fasta::Repository::default();
     ///
-    /// let builder = alignment::Writer::builder(Vec::new())
+    /// let builder = alignment::Writer::builder(io::sink())
     ///     .set_reference_sequence_repository(repository);
     /// ```
     pub fn set_reference_sequence_repository(
@@ -67,9 +68,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_util::alignment::{self, Format};
     ///
-    /// let writer = alignment::Writer::builder(Vec::new())
+    /// let writer = alignment::Writer::builder(io::sink())
     ///     .set_format(Format::Sam)
     ///     .build();
     /// ```
