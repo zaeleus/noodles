@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/reader: Verify BGZF block header values ([#93]).
+
+[#93]: https://github.com/zaeleus/noodles/issues/93
+
 ## 0.12.0 - 2022-06-08
 
 ### Changed

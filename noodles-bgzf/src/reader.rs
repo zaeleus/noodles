@@ -242,10 +242,42 @@ where
         Err(e) => return Err(e),
     }
 
+    if !is_valid_header(&header) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BGZF header",
+        ));
+    }
+
     let bsize = LittleEndian::read_u16(&header[16..]);
 
     // Add 1 because BSIZE is "total Block SIZE minus 1".
     Ok(u32::from(bsize) + 1)
+}
+
+fn is_valid_header(header: &[u8; BGZF_HEADER_SIZE]) -> bool {
+    const BGZF_CM: u8 = 0x08; // DEFLATE
+    const BGZF_FLG: u8 = 0x04; // FEXTRA
+    const BGZF_XLEN: u16 = 6;
+    const BGZF_SI1: u8 = b'B';
+    const BGZF_SI2: u8 = b'C';
+    const BGZF_SLEN: u16 = 2;
+
+    let magic_number = &header[0..2];
+    let cm = header[2];
+    let flg = header[3];
+    let xlen = LittleEndian::read_u16(&header[10..]);
+    let subfield_id_1 = header[12];
+    let subfield_id_2 = header[13];
+    let bc_len = LittleEndian::read_u16(&header[14..]);
+
+    magic_number == gz::MAGIC_NUMBER
+        && cm == BGZF_CM
+        && flg == BGZF_FLG
+        && xlen == BGZF_XLEN
+        && subfield_id_1 == BGZF_SI1
+        && subfield_id_2 == BGZF_SI2
+        && bc_len == BGZF_SLEN
 }
 
 /// Reads a BGZF block trailer.
@@ -449,6 +481,27 @@ mod tests {
         let block_size = read_header(&mut reader)?;
         assert_eq!(block_size, BGZF_EOF.len() as u32);
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_header() {
+        let mut src = [
+            0x1f, 0x8b, // ID1, ID2
+            0x08, // CM = DEFLATE
+            0x04, // FLG = FEXTRA
+            0x00, 0x00, 0x00, 0x00, // MTIME = 0
+            0x00, // XFL = 0
+            0xff, // OS = 255 (unknown)
+            0x06, 0x00, // XLEN = 6
+            b'B', b'C', // SI1, SI2
+            0x02, 0x00, // SLEN = 2
+            0x1b, 0x00, // BSIZE = 27
+        ];
+
+        assert!(is_valid_header(&src));
+
+        src[0] = 0x00;
+        assert!(!is_valid_header(&src));
     }
 
     #[test]
