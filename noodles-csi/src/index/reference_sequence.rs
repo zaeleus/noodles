@@ -164,7 +164,7 @@ fn reg2bins(start: Position, end: Position, min_shift: u8, depth: u8, bins: &mut
         let e = t + (end >> s);
 
         for i in b..=e {
-            bins.set(i as usize, true);
+            bins.set(i, true);
         }
 
         s -= 3;
