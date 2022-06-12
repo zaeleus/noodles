@@ -203,7 +203,9 @@ async fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_u32_le(bin.id()).await?;
+    let bin_id =
+        u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(bin_id).await?;
 
     let loffset = u64::from(bin.loffset());
     writer.write_u64_le(loffset).await?;
@@ -247,7 +249,8 @@ where
 {
     const N_CHUNK: i32 = 2;
 
-    let bin_id = Bin::metadata_id(depth);
+    let bin_id = u32::try_from(Bin::metadata_id(depth))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(bin_id).await?;
 
     let loffset = u64::from(bgzf::VirtualPosition::default());

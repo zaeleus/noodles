@@ -9,6 +9,8 @@
 
   * csi/binning_index: Change query interval to `Into<Interval>`.
 
+  * csi/index/reference_sequence/bin: Change bin ID to a `usize`.
+
 ## 0.6.0 - 2022-03-29
 
 ### Changed

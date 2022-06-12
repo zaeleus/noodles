@@ -11,7 +11,7 @@ pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 /// A CSI reference sequence bin.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
-    id: u32,
+    id: usize,
     loffset: bgzf::VirtualPosition,
     chunks: Vec<Chunk>,
 }
@@ -25,8 +25,8 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::max_id(5), 37449);
     /// ```
-    pub fn max_id(depth: u8) -> u32 {
-        bin_limit(depth) as u32
+    pub fn max_id(depth: u8) -> usize {
+        bin_limit(depth) as usize
     }
 
     /// Calculates the metadata bin ID.
@@ -37,7 +37,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// assert_eq!(Bin::metadata_id(5), 37450);
     /// ```
-    pub fn metadata_id(depth: u8) -> u32 {
+    pub fn metadata_id(depth: u8) -> usize {
         Self::max_id(depth) + 1
     }
 
@@ -50,7 +50,7 @@ impl Bin {
     /// use noodles_csi::index::reference_sequence::Bin;
     /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
     /// ```
-    pub fn new(id: u32, loffset: bgzf::VirtualPosition, chunks: Vec<Chunk>) -> Self {
+    pub fn new(id: usize, loffset: bgzf::VirtualPosition, chunks: Vec<Chunk>) -> Self {
         Self {
             id,
             loffset,
@@ -68,7 +68,7 @@ impl Bin {
     /// let bin = Bin::new(10946, bgzf::VirtualPosition::default(), Vec::new());
     /// assert_eq!(bin.id(), 10946);
     /// ```
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> usize {
         self.id
     }
 

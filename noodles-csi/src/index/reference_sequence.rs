@@ -218,16 +218,16 @@ mod tests {
         const MIN_SHIFT: u8 = 4;
         const DEPTH: u8 = 2;
 
-        fn t(start: Position, end: Position, expected_bin_ids: &[u32]) {
+        fn t(start: Position, end: Position, expected_bin_ids: &[usize]) {
             let max_bin_id = Bin::max_id(DEPTH);
 
-            let mut actual = BitVec::from_elem(max_bin_id as usize, false);
+            let mut actual = BitVec::from_elem(max_bin_id, false);
             reg2bins(start, end, MIN_SHIFT, DEPTH, &mut actual);
 
-            let mut expected = BitVec::from_elem(max_bin_id as usize, false);
+            let mut expected = BitVec::from_elem(max_bin_id, false);
 
             for &bin_id in expected_bin_ids {
-                expected.set(bin_id as usize, true);
+                expected.set(bin_id, true);
             }
 
             assert_eq!(actual, expected);

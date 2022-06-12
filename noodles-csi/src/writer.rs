@@ -133,7 +133,8 @@ where
     writer.write_i32::<LittleEndian>(n_bin)?;
 
     for bin in bins {
-        let bin_id = bin.id();
+        let bin_id =
+            u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         writer.write_u32::<LittleEndian>(bin_id)?;
 
         let loffset = u64::from(bin.loffset());
@@ -174,7 +175,8 @@ where
 {
     const N_CHUNK: i32 = 2;
 
-    let bin_id = Bin::metadata_id(depth);
+    let bin_id = u32::try_from(Bin::metadata_id(depth))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(bin_id)?;
 
     let loffset = u64::from(bgzf::VirtualPosition::default());

@@ -175,7 +175,9 @@ where
     let mut metadata = None;
 
     for _ in 0..n_bin {
-        let id = reader.read_u32_le().await?;
+        let id = reader.read_u32_le().await.and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         let loffset = reader
             .read_u64_le()
