@@ -72,7 +72,7 @@ impl Bin {
         self.id
     }
 
-    /// Returns the last offset in the linear index.
+    /// Returns the start virtual position of the first overlapping record in this bin.
     ///
     /// # Examples
     ///
