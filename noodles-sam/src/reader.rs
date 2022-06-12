@@ -181,8 +181,6 @@ where
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
-    /// Unlike [`Self::read_record`], each record is parsed as a [`crate::Record`].
-    ///
     /// # Examples
     ///
     /// ```
