@@ -153,8 +153,9 @@ impl ReferenceSequenceExt for ReferenceSequence {
 fn reg2bins(start: Position, end: Position, min_shift: u8, depth: u8, bins: &mut BitVec) {
     // [beg, end), 0-based
     let beg = usize::from(start) - 1;
-    let end = usize::from(end) - 1;
+    let end = usize::from(end);
 
+    let end = end - 1;
     let mut l = 0;
     let mut t = 0;
     let mut s = i32::from(min_shift) + i32::from(depth) * 3;
