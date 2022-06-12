@@ -8,7 +8,7 @@
 
 ### Changed
 
-  * sam/alignment: Increased the visibility of `sam::alignment::record`.
+  * sam/alignment: Increase the visibility of `sam::alignment::record`.
 
     This allows access to the `Builder` struct.
 
