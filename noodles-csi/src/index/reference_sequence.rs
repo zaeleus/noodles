@@ -80,16 +80,11 @@ impl ReferenceSequence {
         let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
         let max_bin_id = Bin::max_id(depth);
-        let mut region_bins = BitVec::from_elem(max_bin_id as usize, false);
+        let mut region_bins = BitVec::from_elem(max_bin_id, false);
 
         reg2bins(start, end, min_shift, depth, &mut region_bins);
 
-        let query_bins = self
-            .bins()
-            .iter()
-            .filter(|b| region_bins[b.id() as usize])
-            .collect();
-
+        let query_bins = self.bins().iter().filter(|b| region_bins[b.id()]).collect();
         Ok(query_bins)
     }
 }
