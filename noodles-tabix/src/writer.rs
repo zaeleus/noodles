@@ -9,11 +9,9 @@ use noodles_csi::{
 };
 
 use super::{
-    index::{self, reference_sequence::Bin, ReferenceSequence},
+    index::{self, reference_sequence::Bin, ReferenceSequence, ReferenceSequenceNames},
     Index, MAGIC_NUMBER,
 };
-
-const NUL: u8 = b'\x00';
 
 /// A tabix writer.
 pub struct Writer<W>
@@ -100,20 +98,7 @@ where
     writer.write_i32::<LittleEndian>(n_ref)?;
 
     write_header(writer, index.header())?;
-
-    // Add 1 for each trailing nul.
-    let len = index
-        .reference_sequence_names()
-        .iter()
-        .map(|n| n.len() + 1)
-        .sum::<usize>();
-    let l_nm = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(l_nm)?;
-
-    for reference_sequence_name in index.reference_sequence_names() {
-        writer.write_all(reference_sequence_name.as_bytes())?;
-        writer.write_u8(NUL)?;
-    }
+    write_reference_sequence_names(writer, index.reference_sequence_names())?;
 
     for reference_sequence in index.reference_sequences() {
         write_reference_sequence(writer, reference_sequence)?;
@@ -159,6 +144,31 @@ where
     let skip = i32::try_from(header.line_skip_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(skip)?;
+
+    Ok(())
+}
+
+fn write_reference_sequence_names<W>(
+    writer: &mut W,
+    reference_sequence_names: &ReferenceSequenceNames,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    const NUL: u8 = 0x00;
+
+    // Add 1 for each trailing NUL.
+    let len = reference_sequence_names
+        .iter()
+        .map(|n| n.len() + 1)
+        .sum::<usize>();
+    let l_nm = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32::<LittleEndian>(l_nm)?;
+
+    for reference_sequence_name in reference_sequence_names {
+        writer.write_all(reference_sequence_name.as_bytes())?;
+        writer.write_u8(NUL)?;
+    }
 
     Ok(())
 }
