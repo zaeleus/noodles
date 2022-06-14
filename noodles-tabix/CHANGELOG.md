@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/index/reference_sequence/bin: Change bin ID to a `usize`.
+
 ## 0.10.0 - 2022-06-09
 
 ### Changed

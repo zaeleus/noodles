@@ -212,7 +212,8 @@ pub fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u32::<LittleEndian>(bin.id())?;
+    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(id)?;
 
     let n_chunk = i32::try_from(bin.chunks().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -244,10 +245,12 @@ where
 {
     use crate::index::reference_sequence::bin::{METADATA_CHUNK_COUNT, METADATA_ID};
 
-    let bin_id = METADATA_ID;
+    let bin_id =
+        u32::try_from(METADATA_ID).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(bin_id)?;
 
-    let n_chunk = METADATA_CHUNK_COUNT;
+    let n_chunk = u32::try_from(METADATA_CHUNK_COUNT)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(n_chunk)?;
 
     let ref_beg = u64::from(metadata.start_position());

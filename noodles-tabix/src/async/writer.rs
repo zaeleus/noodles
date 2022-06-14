@@ -235,7 +235,8 @@ async fn write_bin<W>(writer: &mut W, bin: &Bin) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    writer.write_u32_le(bin.id()).await?;
+    let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(id).await?;
     write_chunks(writer, bin.chunks()).await?;
     Ok(())
 }
@@ -290,10 +291,12 @@ where
 {
     use crate::index::reference_sequence::bin::{METADATA_CHUNK_COUNT, METADATA_ID};
 
-    let bin_id = METADATA_ID;
-    writer.write_u32_le(bin_id).await?;
+    let id =
+        u32::try_from(METADATA_ID).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32_le(id).await?;
 
-    let n_chunk = METADATA_CHUNK_COUNT;
+    let n_chunk = u32::try_from(METADATA_CHUNK_COUNT)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32_le(n_chunk).await?;
 
     let ref_beg = u64::from(metadata.start_position());

@@ -8,7 +8,7 @@ use super::{bin, Bin, Metadata, ReferenceSequence, WINDOW_SIZE};
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    bin_builders: HashMap<u32, bin::Builder>,
+    bin_builders: HashMap<usize, bin::Builder>,
     intervals: Vec<Option<bgzf::VirtualPosition>>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
@@ -51,7 +51,7 @@ impl Builder {
     }
 
     fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) {
-        let bin_id = region_to_bin(start, end).unwrap() as u32;
+        let bin_id = usize::from(region_to_bin(start, end).unwrap());
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();

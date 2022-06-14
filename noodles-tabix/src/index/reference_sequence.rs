@@ -195,7 +195,7 @@ fn region_to_bins(start: Position, end: Position) -> BitVec {
     let start = usize::from(start) - 1;
     let end = usize::from(end) - 1;
 
-    let mut bins = BitVec::from_elem(bin::MAX_ID as usize, false);
+    let mut bins = BitVec::from_elem(bin::MAX_ID, false);
     bins.set(0, true);
 
     for k in (1 + (start >> 26))..=(1 + (end >> 26)) {
@@ -244,7 +244,7 @@ mod tests {
         let start = Position::try_from(8)?;
         let end = Position::try_from(13)?;
         let actual = region_to_bins(start, end);
-        let mut expected = BitVec::from_elem(bin::MAX_ID as usize, false);
+        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
         for &k in &[0, 1, 9, 73, 585, 4681] {
             expected.set(k, true);
         }
@@ -253,7 +253,7 @@ mod tests {
         let start = Position::try_from(63245985)?;
         let end = Position::try_from(63255986)?;
         let actual = region_to_bins(start, end);
-        let mut expected = BitVec::from_elem(bin::MAX_ID as usize, false);
+        let mut expected = BitVec::from_elem(bin::MAX_ID, false);
         for &k in &[0, 1, 16, 133, 1067, 8541] {
             expected.set(k, true);
         }
