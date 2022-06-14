@@ -6,6 +6,18 @@
 
   * tabix/index/reference_sequence/bin: Change bin ID to a `usize`.
 
+  * tabix/index: Move reference sequence names to `Header`.
+
+### Deprecated
+
+  * tabix/index: Deprecate `ReferenceSequenceNames`.
+
+    Use `header::ReferenceSequenceNames` instead.
+
+  * tabix/index: Deprecate `Index::reference_sequence_names`.
+
+    Use `Header::reference_sequence_names` instead.
+
 ## 0.10.0 - 2022-06-09
 
 ### Changed

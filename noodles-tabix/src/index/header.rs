@@ -5,6 +5,11 @@ pub mod format;
 
 pub use self::{builder::Builder, format::Format};
 
+use indexmap::IndexSet;
+
+/// An ordered set of reference sequence names.
+pub type ReferenceSequenceNames = IndexSet<String>;
+
 /// A tabix index header.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {
@@ -14,6 +19,7 @@ pub struct Header {
     end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
+    pub(crate) reference_sequence_names: ReferenceSequenceNames,
 }
 
 impl Header {
@@ -136,6 +142,25 @@ impl Header {
     /// ```
     pub fn line_skip_count(&self) -> u32 {
         self.line_skip_count
+    }
+
+    /// Returns the reference sequence names.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
+    ///
+    /// let reference_sequence_names = ReferenceSequenceNames::new();
+    ///
+    /// let header = tabix::index::Header::builder()
+    ///     .set_reference_sequence_names(reference_sequence_names.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.reference_sequence_names(), &reference_sequence_names);
+    /// ```
+    pub fn reference_sequence_names(&self) -> &ReferenceSequenceNames {
+        &self.reference_sequence_names
     }
 }
 

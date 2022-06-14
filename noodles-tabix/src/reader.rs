@@ -67,13 +67,11 @@ where
 
         let header = read_header(&mut self.inner)?;
 
-        let names = read_names(&mut self.inner)?;
         let references = read_references(&mut self.inner, n_ref)?;
         let n_no_coor = read_unplaced_unmapped_record_count(&mut self.inner)?;
 
         let mut builder = Index::builder()
             .set_header(header)
-            .set_reference_sequence_names(names)
             .set_reference_sequences(references);
 
         if let Some(unplaced_unmapped_record_count) = n_no_coor {
@@ -135,6 +133,8 @@ where
         u32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
+    let names = read_names(reader)?;
+
     Ok(index::Header::builder()
         .set_format(format)
         .set_reference_sequence_name_index(col_seq)
@@ -142,6 +142,7 @@ where
         .set_end_position_index(col_end)
         .set_line_comment_prefix(meta)
         .set_line_skip_count(skip)
+        .set_reference_sequence_names(names)
         .build())
 }
 
@@ -361,6 +362,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];
@@ -381,6 +383,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];
@@ -396,6 +399,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];
@@ -411,6 +415,7 @@ mod tests {
             0xff, 0xff, 0xff, 0xff, // col_end = -1
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];
@@ -426,6 +431,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x5c, 0xf3, 0x01, 0x00, // meta = '🍜'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         let mut reader = &data[..];

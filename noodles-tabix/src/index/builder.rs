@@ -1,13 +1,10 @@
 //! Tabix index builder.
 
-use indexmap::IndexSet;
-
 use super::{Header, Index, ReferenceSequence, ReferenceSequenceNames};
 
 /// A tabix index builder.
 pub struct Builder {
     header: Header,
-    reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
     unplaced_unmapped_record_count: Option<u64>,
 }
@@ -49,7 +46,7 @@ impl Builder {
         mut self,
         reference_sequence_names: ReferenceSequenceNames,
     ) -> Self {
-        self.reference_sequence_names = reference_sequence_names;
+        self.header.reference_sequence_names = reference_sequence_names;
         self
     }
 
@@ -128,7 +125,6 @@ impl Builder {
     pub fn build(self) -> Index {
         Index {
             header: self.header,
-            reference_sequence_names: self.reference_sequence_names,
             reference_sequences: self.reference_sequences,
             unplaced_unmapped_record_count: self.unplaced_unmapped_record_count,
         }
@@ -139,7 +135,6 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             header: Header::builder().build(),
-            reference_sequence_names: IndexSet::new(),
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: None,
         }

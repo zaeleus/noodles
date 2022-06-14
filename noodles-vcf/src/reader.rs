@@ -369,6 +369,7 @@ where
 
 pub(crate) fn resolve_region(index: &tabix::Index, region: &Region) -> io::Result<(usize, String)> {
     let i = index
+        .header()
         .reference_sequence_names()
         .get_index_of(region.name())
         .ok_or_else(|| {

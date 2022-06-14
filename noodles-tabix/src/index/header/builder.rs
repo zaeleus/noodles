@@ -1,6 +1,6 @@
 //! Tabix index header builder.
 
-use super::{format::CoordinateSystem, Format, Header};
+use super::{format::CoordinateSystem, Format, Header, ReferenceSequenceNames};
 
 /// A tabix index header builder.
 pub struct Builder {
@@ -10,6 +10,7 @@ pub struct Builder {
     end_position_index: Option<usize>,
     line_comment_prefix: u8,
     line_skip_count: u32,
+    reference_sequence_names: ReferenceSequenceNames,
 }
 
 impl Builder {
@@ -29,6 +30,7 @@ impl Builder {
             end_position_index: Some(3),
             line_comment_prefix: b'#',
             line_skip_count: 0,
+            reference_sequence_names: ReferenceSequenceNames::new(),
         }
     }
 
@@ -48,6 +50,7 @@ impl Builder {
             end_position_index: Some(5),
             line_comment_prefix: b'#',
             line_skip_count: 0,
+            reference_sequence_names: ReferenceSequenceNames::new(),
         }
     }
 
@@ -67,6 +70,7 @@ impl Builder {
             end_position_index: None,
             line_comment_prefix: b'@',
             line_skip_count: 0,
+            reference_sequence_names: ReferenceSequenceNames::new(),
         }
     }
 
@@ -86,6 +90,7 @@ impl Builder {
             end_position_index: None,
             line_comment_prefix: b'#',
             line_skip_count: 0,
+            reference_sequence_names: ReferenceSequenceNames::new(),
         }
     }
 
@@ -200,6 +205,29 @@ impl Builder {
         self
     }
 
+    /// Sets reference sequence names.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_tabix::{self as tabix, index::header::ReferenceSequenceNames};
+    ///
+    /// let reference_sequence_names = ReferenceSequenceNames::new();
+    ///
+    /// let header = tabix::index::Header::builder()
+    ///     .set_reference_sequence_names(reference_sequence_names.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(header.reference_sequence_names(), &reference_sequence_names);
+    /// ```
+    pub fn set_reference_sequence_names(
+        mut self,
+        reference_sequence_names: ReferenceSequenceNames,
+    ) -> Self {
+        self.reference_sequence_names = reference_sequence_names;
+        self
+    }
+
     /// Builds a tabix index header.
     ///
     /// # Examples
@@ -216,6 +244,7 @@ impl Builder {
             end_position_index: self.end_position_index,
             line_comment_prefix: self.line_comment_prefix,
             line_skip_count: self.line_skip_count,
+            reference_sequence_names: self.reference_sequence_names,
         }
     }
 }
@@ -239,6 +268,7 @@ mod tests {
         assert_eq!(builder.end_position_index, Some(3));
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
     }
 
     #[test]
@@ -250,6 +280,7 @@ mod tests {
         assert_eq!(builder.end_position_index, Some(5));
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
     }
 
     #[test]
@@ -261,6 +292,7 @@ mod tests {
         assert_eq!(builder.end_position_index, None);
         assert_eq!(builder.line_comment_prefix, b'@');
         assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
     }
 
     #[test]
@@ -272,5 +304,6 @@ mod tests {
         assert_eq!(builder.end_position_index, None);
         assert_eq!(builder.line_comment_prefix, b'#');
         assert_eq!(builder.line_skip_count, 0);
+        assert!(builder.reference_sequence_names.is_empty());
     }
 }

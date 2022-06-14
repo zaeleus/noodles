@@ -98,7 +98,6 @@ where
     writer.write_i32::<LittleEndian>(n_ref)?;
 
     write_header(writer, index.header())?;
-    write_reference_sequence_names(writer, index.reference_sequence_names())?;
 
     for reference_sequence in index.reference_sequences() {
         write_reference_sequence(writer, reference_sequence)?;
@@ -144,6 +143,8 @@ where
     let skip = i32::try_from(header.line_skip_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(skip)?;
+
+    write_reference_sequence_names(writer, header.reference_sequence_names())?;
 
     Ok(())
 }

@@ -9,9 +9,14 @@ pub use self::{
     builder::Builder, header::Header, indexer::Indexer, reference_sequence::ReferenceSequence,
 };
 
+#[deprecated(
+    since = "0.11.0",
+    note = "Use `header::ReferenceSequenceNames` instead."
+)]
+pub use self::header::ReferenceSequenceNames;
+
 use std::io;
 
-use indexmap::IndexSet;
 use noodles_core::{region::Interval, Position};
 use noodles_csi::{
     binning_index::optimize_chunks, index::reference_sequence::bin::Chunk, BinningIndex,
@@ -25,14 +30,10 @@ const MAX_POSITION: Position = match Position::new((1 << (MIN_SHIFT + 3 * DEPTH)
     None => panic!(),
 };
 
-/// A set of reference sequence names.
-pub type ReferenceSequenceNames = IndexSet<String>;
-
 /// A tabix index.
 #[derive(Debug)]
 pub struct Index {
     header: Header,
-    reference_sequence_names: ReferenceSequenceNames,
     reference_sequences: Vec<ReferenceSequence>,
     unplaced_unmapped_record_count: Option<u64>,
 }
@@ -86,8 +87,12 @@ impl Index {
     ///
     /// assert_eq!(index.reference_sequence_names(), &reference_sequence_names);
     /// ```
+    #[deprecated(
+        since = "0.11.0",
+        note = "Use `Header::reference_sequence_names` instead."
+    )]
     pub fn reference_sequence_names(&self) -> &ReferenceSequenceNames {
-        &self.reference_sequence_names
+        self.header.reference_sequence_names()
     }
 
     /// Returns the number of unmapped records in the associated file.

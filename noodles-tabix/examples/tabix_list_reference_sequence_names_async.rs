@@ -14,7 +14,7 @@ async fn main() -> io::Result<()> {
     let tabix_src = format!("{}.tbi", src);
     let index = tabix::r#async::read(tabix_src).await?;
 
-    for reference_sequence_name in index.reference_sequence_names() {
+    for reference_sequence_name in index.header().reference_sequence_names() {
         println!("{}", reference_sequence_name);
     }
 

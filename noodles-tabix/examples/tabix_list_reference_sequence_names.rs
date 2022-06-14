@@ -12,7 +12,7 @@ fn main() -> io::Result<()> {
     let tabix_src = format!("{}.tbi", src);
     let index = tabix::read(tabix_src)?;
 
-    for reference_sequence_name in index.reference_sequence_names() {
+    for reference_sequence_name in index.header().reference_sequence_names() {
         println!("{}", reference_sequence_name);
     }
 

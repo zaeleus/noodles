@@ -102,8 +102,6 @@ where
     writer.write_i32_le(n_ref).await?;
 
     write_header(writer, index.header()).await?;
-
-    write_reference_sequence_names(writer, index.reference_sequence_names()).await?;
     write_reference_sequences(writer, index.reference_sequences()).await?;
 
     if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
@@ -146,6 +144,8 @@ where
     let skip = i32::try_from(header.line_skip_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32_le(skip).await?;
+
+    write_reference_sequence_names(writer, header.reference_sequence_names()).await?;
 
     Ok(())
 }
@@ -340,6 +340,7 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // col_end = 5
             0x23, 0x00, 0x00, 0x00, // meta = '#'
             0x00, 0x00, 0x00, 0x00, // skip = 0
+            0x00, 0x00, 0x00, 0x00, // l_nm = 0
         ];
 
         assert_eq!(buf, expected);
