@@ -98,10 +98,7 @@ where
     writer.write_i32::<LittleEndian>(n_ref)?;
 
     write_header(writer, index.header())?;
-
-    for reference_sequence in index.reference_sequences() {
-        write_reference_sequence(writer, reference_sequence)?;
-    }
+    write_reference_sequences(writer, index.reference_sequences())?;
 
     if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
         writer.write_u64::<LittleEndian>(n_no_coor)?;
@@ -169,6 +166,20 @@ where
     for reference_sequence_name in reference_sequence_names {
         writer.write_all(reference_sequence_name.as_bytes())?;
         writer.write_u8(NUL)?;
+    }
+
+    Ok(())
+}
+
+fn write_reference_sequences<W>(
+    writer: &mut W,
+    reference_sequences: &[ReferenceSequence],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    for reference_sequence in reference_sequences {
+        write_reference_sequence(writer, reference_sequence)?;
     }
 
     Ok(())
