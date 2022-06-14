@@ -8,10 +8,10 @@ use noodles_csi::index::reference_sequence::bin::Chunk;
 
 use crate::bai::index::DEPTH;
 
-pub(crate) const MAX_ID: u32 = ((1 << (3 * (DEPTH + 1))) - 1) / 7;
+pub(crate) const MAX_ID: usize = ((1 << (3 * (DEPTH + 1))) - 1) / 7;
 
-pub(crate) const METADATA_ID: u32 = MAX_ID + 1;
-pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
+pub(crate) const METADATA_ID: usize = MAX_ID + 1;
+pub(crate) const METADATA_CHUNK_COUNT: usize = 2;
 
 /// A bin in a BAM index reference sequence.
 ///
@@ -20,7 +20,7 @@ pub(crate) const METADATA_CHUNK_COUNT: u32 = 2;
 /// reference sequence and the number of mapped and unmapped reads in the reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Bin {
-    id: u32,
+    id: usize,
     chunks: Vec<Chunk>,
 }
 
@@ -37,7 +37,7 @@ impl Bin {
     /// use noodles_bam::bai::index::reference_sequence::Bin;
     /// let bin = Bin::new(10946, Vec::new());
     /// ```
-    pub fn new(id: u32, chunks: Vec<Chunk>) -> Self {
+    pub fn new(id: usize, chunks: Vec<Chunk>) -> Self {
         Self { id, chunks }
     }
 
@@ -52,7 +52,7 @@ impl Bin {
     /// let bin = Bin::new(10946, Vec::new());
     /// assert_eq!(bin.id(), 10946);
     /// ```
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> usize {
         self.id
     }
 

@@ -5,13 +5,13 @@ use super::Bin;
 /// A BAM index reference sequence bin builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    id: u32,
+    id: usize,
     chunks: Vec<Chunk>,
 }
 
 impl Builder {
     /// Sets a bin ID.
-    pub fn set_id(&mut self, id: u32) -> &mut Self {
+    pub fn set_id(&mut self, id: usize) -> &mut Self {
         self.id = id;
         self
     }

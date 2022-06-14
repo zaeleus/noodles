@@ -14,7 +14,7 @@ const MAX_INTERVAL_COUNT: usize = 131072;
 
 #[derive(Debug)]
 pub struct Builder {
-    bin_builders: HashMap<u32, bin::Builder>,
+    bin_builders: HashMap<usize, bin::Builder>,
     intervals: Vec<Option<bgzf::VirtualPosition>>,
     start_position: bgzf::VirtualPosition,
     end_position: bgzf::VirtualPosition,
@@ -64,7 +64,7 @@ impl Builder {
     }
 
     fn update_bins(&mut self, start: Position, end: Position, chunk: Chunk) -> io::Result<()> {
-        let bin_id = region_to_bin(start, end).map(u32::from)?;
+        let bin_id = region_to_bin(start, end).map(usize::from)?;
 
         let builder = self.bin_builders.entry(bin_id).or_insert_with(|| {
             let mut builder = Bin::builder();

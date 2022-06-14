@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/bai/index/reference_sequence/bin: Change bin ID to a `usize`.
+
 ## 0.19.0 - 2022-06-08
 
 ### Added

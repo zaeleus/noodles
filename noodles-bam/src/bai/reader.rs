@@ -142,7 +142,9 @@ where
     let mut metadata = None;
 
     for _ in 0..n_bin {
-        let id = reader.read_u32::<LittleEndian>()?;
+        let id = reader.read_u32::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })?;
 
         if id == METADATA_ID {
             metadata = read_metadata(reader).map(Some)?;
@@ -208,7 +210,9 @@ where
 {
     use reference_sequence::bin::METADATA_CHUNK_COUNT;
 
-    let n_chunk = reader.read_u32::<LittleEndian>()?;
+    let n_chunk = reader.read_u32::<LittleEndian>().and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })?;
 
     if n_chunk != METADATA_CHUNK_COUNT {
         return Err(io::Error::new(
