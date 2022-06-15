@@ -5,7 +5,7 @@ mod metadata;
 
 pub use self::{bin::Bin, metadata::Metadata};
 
-use std::io;
+use std::{io, num::NonZeroUsize};
 
 use bit_vec::BitVec;
 use noodles_bgzf as bgzf;
@@ -87,6 +87,54 @@ impl ReferenceSequence {
         let query_bins = self.bins().iter().filter(|b| region_bins[b.id()]).collect();
         Ok(query_bins)
     }
+
+    /// Finds the start virtual position of the first record in the bin that contains that given
+    /// start position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_core::Position;
+    /// use noodles_csi::index::{reference_sequence::Bin, ReferenceSequence};
+    ///
+    /// const MIN_SHIFT: u8 = 4;
+    /// const DEPTH: u8 = 2;
+    ///
+    /// let bins = vec![Bin::new(1, bgzf::VirtualPosition::from(233), Vec::new())];
+    /// let reference_sequence = ReferenceSequence::new(bins, None);
+    ///
+    /// let start = Position::try_from(8)?;
+    /// assert_eq!(
+    ///     reference_sequence.min_offset(MIN_SHIFT, DEPTH, start),
+    ///     bgzf::VirtualPosition::from(233)
+    /// );
+    ///
+    /// let start = Position::try_from(144)?;
+    /// assert_eq!(
+    ///     reference_sequence.min_offset(MIN_SHIFT, DEPTH, start),
+    ///     bgzf::VirtualPosition::default()
+    /// );
+    ///
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
+    /// ```
+    pub fn min_offset(&self, min_shift: u8, depth: u8, start: Position) -> bgzf::VirtualPosition {
+        let end = start;
+        let mut bin_id = reg2bin(start, end, min_shift, depth);
+
+        loop {
+            if let Some(bin) = self.bins.iter().find(|bin| bin.id() == bin_id) {
+                return bin.loffset();
+            }
+
+            bin_id = match parent_id(bin_id) {
+                Some(id) => id,
+                None => break,
+            }
+        }
+
+        bgzf::VirtualPosition::default()
+    }
 }
 
 impl ReferenceSequenceExt for ReferenceSequence {
@@ -143,6 +191,40 @@ impl ReferenceSequenceExt for ReferenceSequence {
     }
 }
 
+const M: usize = match NonZeroUsize::new(8) {
+    Some(m) => m.get(),
+    None => unreachable!(),
+};
+
+// parent of i = floor((i - 1) / M)
+fn parent_id(id: usize) -> Option<usize> {
+    (id > 0).then(|| (id - 1) / M)
+}
+
+// `CSIv1.pdf` (2020-07-21)
+fn reg2bin(start: Position, end: Position, min_shift: u8, depth: u8) -> usize {
+    // [beg, end), 0-based
+    let beg = usize::from(start) - 1;
+    let end = usize::from(end);
+
+    let end = end - 1;
+    let mut l = depth;
+    let mut s = min_shift;
+    let mut t = ((1 << (depth * 3)) - 1) / 7;
+
+    while l > 0 {
+        if beg >> s == end >> s {
+            return t + (beg >> s);
+        }
+
+        l -= 1;
+        s += 3;
+        t -= 1 << (l * 3);
+    }
+
+    0
+}
+
 // `CSIv1.pdf` (2020-07-21)
 #[allow(clippy::many_single_char_names)]
 fn reg2bins(start: Position, end: Position, min_shift: u8, depth: u8, bins: &mut BitVec) {
@@ -194,6 +276,30 @@ mod tests {
             reference_sequence.query(MIN_SHIFT, DEPTH, ..=end),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput,
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_reg2bin() -> Result<(), noodles_core::position::TryFromIntError> {
+        const MIN_SHIFT: u8 = 4;
+        const DEPTH: u8 = 2;
+
+        let start = Position::try_from(8)?;
+        let end = start;
+        assert_eq!(reg2bin(start, end, MIN_SHIFT, DEPTH), 9);
+
+        let end = Position::try_from(13)?;
+        assert_eq!(reg2bin(start, end, MIN_SHIFT, DEPTH), 9);
+
+        let end = Position::try_from(16)?;
+        assert_eq!(reg2bin(start, end, MIN_SHIFT, DEPTH), 9);
+
+        let end = Position::try_from(17)?;
+        assert_eq!(reg2bin(start, end, MIN_SHIFT, DEPTH), 1);
+
+        let end = Position::try_from(143)?;
+        assert_eq!(reg2bin(start, end, MIN_SHIFT, DEPTH), 0);
 
         Ok(())
     }

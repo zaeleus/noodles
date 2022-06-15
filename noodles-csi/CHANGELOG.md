@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * csi/index/reference_sequence: Add finding the minimum start virtual
+    position for a bin (`ReferenceSequence::min_offset`).
+
 ## 0.7.0 - 2022-06-08
 
 ### Changed
