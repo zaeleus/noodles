@@ -226,12 +226,19 @@ where
 {
     let id = u32::try_from(bin.id()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(id)?;
+    write_chunks(writer, bin.chunks())?;
+    Ok(())
+}
 
-    let n_chunk = i32::try_from(bin.chunks().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+fn write_chunks<W>(writer: &mut W, chunks: &[Chunk]) -> io::Result<()>
+where
+    W: Write,
+{
+    let n_chunk =
+        i32::try_from(chunks.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(n_chunk)?;
 
-    for chunk in bin.chunks() {
+    for chunk in chunks {
         write_chunk(writer, chunk)?;
     }
 
