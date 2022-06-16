@@ -178,16 +178,17 @@ impl ReferenceSequenceExt for ReferenceSequence {
     ///
     /// let bins = vec![
     ///     Bin::new(0, bgzf::VirtualPosition::from(8), Vec::new()),
-    ///     Bin::new(1, bgzf::VirtualPosition::from(13), Vec::new()),
+    ///     Bin::new(2, bgzf::VirtualPosition::from(21), Vec::new()),
+    ///     Bin::new(9, bgzf::VirtualPosition::from(13), Vec::new()),
     /// ];
     /// let reference_sequence = ReferenceSequence::new(bins, None);
     /// assert_eq!(
     ///     reference_sequence.first_record_in_last_linear_bin_start_position(),
-    ///     Some(bgzf::VirtualPosition::from(13))
+    ///     Some(bgzf::VirtualPosition::from(21))
     /// );
     /// ```
     fn first_record_in_last_linear_bin_start_position(&self) -> Option<bgzf::VirtualPosition> {
-        self.bins().last().map(|bin| bin.loffset())
+        self.bins().iter().map(|bin| bin.loffset()).max()
     }
 }
 

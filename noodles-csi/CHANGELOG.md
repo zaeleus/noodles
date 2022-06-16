@@ -7,6 +7,13 @@
   * csi/index/reference_sequence: Add finding the minimum start virtual
     position for a bin (`ReferenceSequence::min_offset`).
 
+### Fixed
+
+  * csi/index/reference_sequence: Fix finding the start position of the first
+    record in the last linear bin.
+
+    The bins are not necessarily sorted.
+
 ## 0.7.0 - 2022-06-08
 
 ### Changed
