@@ -1,6 +1,8 @@
 use noodles_bgzf as bgzf;
 
 /// An index reference sequence bin chunk.
+///
+/// A chunk is a range of virtual positions representing [start, end).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
     start: bgzf::VirtualPosition,
@@ -21,7 +23,7 @@ impl Chunk {
         Self { start, end }
     }
 
-    /// Returns the start of the chunk as a virtual position.
+    /// Returns the chunk start (inclusive) as a virtual position.
     ///
     /// # Examples
     ///
@@ -35,7 +37,7 @@ impl Chunk {
         self.start
     }
 
-    /// Returns the end of the chunk as a virtual position.
+    /// Returns the chunk end (exclusive) as a virtual position.
     ///
     /// # Examples
     ///
