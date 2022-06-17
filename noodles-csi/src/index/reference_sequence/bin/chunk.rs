@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use noodles_bgzf as bgzf;
 
 /// An index reference sequence bin chunk.
@@ -49,5 +51,23 @@ impl Chunk {
     /// ```
     pub fn end(&self) -> bgzf::VirtualPosition {
         self.end
+    }
+}
+
+impl From<Range<bgzf::VirtualPosition>> for Chunk {
+    fn from(range: Range<bgzf::VirtualPosition>) -> Self {
+        Self::new(range.start, range.end)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_range_bgzf_virtual_position_for_chunk() {
+        let start = bgzf::VirtualPosition::from(8);
+        let end = bgzf::VirtualPosition::from(13);
+        assert_eq!(Chunk::from(start..end), Chunk::new(start, end));
     }
 }

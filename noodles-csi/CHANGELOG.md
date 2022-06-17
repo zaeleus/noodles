@@ -7,6 +7,9 @@
   * csi/index/reference_sequence: Add finding the minimum start virtual
     position for a bin (`ReferenceSequence::min_offset`).
 
+  * csi/index/reference_sequence/bin/chunk: Implement
+    `From<Range<bgzf::VirtualPosition>>` for `Chunk`.
+
 ### Fixed
 
   * csi/index/reference_sequence: Fix finding the start position of the first
