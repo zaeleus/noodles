@@ -336,6 +336,8 @@ fn read_header<R>(reader: &mut R) -> io::Result<String>
 where
     R: BufRead,
 {
+    use memchr::memchr;
+
     const PREFIX: u8 = b'@';
     const LINE_FEED: u8 = b'\n';
 
@@ -349,7 +351,7 @@ where
             break;
         }
 
-        let (read_eol, len) = if let Some(i) = buf.iter().position(|&b| b == LINE_FEED) {
+        let (read_eol, len) = if let Some(i) = memchr(LINE_FEED, buf) {
             header_buf.extend(&buf[..=i]);
             (true, i + 1)
         } else {
