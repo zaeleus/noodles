@@ -226,7 +226,7 @@ fn set_downstream_mate(i: usize, record: &mut Record, j: usize, mate: &mut Recor
 }
 
 fn set_detached(record: &mut Record) {
-    record.cram_bit_flags.insert(Flags::DETACHED)
+    record.cram_bit_flags.insert(Flags::DETACHED);
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.3.2 "Reference MD5 calculation"
