@@ -1,3 +1,7 @@
+mod quality_scores;
+
+pub use self::quality_scores::QualityScores;
+
 use std::{
     fmt, io, mem,
     num::NonZeroUsize,
@@ -244,18 +248,11 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.quality_scores()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.quality_scores().is_empty());
     /// ```
-    pub fn quality_scores(&self) -> io::Result<sam::record::QualityScores> {
-        use crate::reader::record::get_quality_scores;
-
-        let mut src = &self.buf[self.bounds.quality_scores_range()];
-        let mut quality_scores = sam::record::QualityScores::default();
-        let base_count = src.len();
-        get_quality_scores(&mut src, &mut quality_scores, base_count)?;
-
-        Ok(quality_scores)
+    pub fn quality_scores(&self) -> QualityScores<'_> {
+        let src = &self.buf[self.bounds.quality_scores_range()];
+        QualityScores::new(src)
     }
 
     /// Returns the data.

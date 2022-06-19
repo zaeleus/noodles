@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/lazy/record: Add quality scores wrapper.
+
+    This allows the raw data to be accessed. Use
+    `sam::record::QualityScores::try_from(bam_quality_scores)` for conversion.
+
 ### Changed
 
   * bam/bai/index/reference_sequence/bin: Change bin ID to a `usize`.
