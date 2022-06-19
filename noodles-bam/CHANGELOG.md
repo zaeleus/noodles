@@ -4,10 +4,10 @@
 
 ### Added
 
-  * bam/lazy/record: Add quality scores wrapper.
+  * bam/lazy/record: Add quality scores and sequence wrappers.
 
-    This allows the raw data to be accessed. Use
-    `sam::record::QualityScores::try_from(bam_quality_scores)` for conversion.
+    These allow the raw data to be accessed. Use conversion methods (`TryFrom`)
+    on these wrappers to parse the data.
 
 ### Changed
 

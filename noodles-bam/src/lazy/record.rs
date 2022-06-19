@@ -1,6 +1,7 @@
 mod quality_scores;
+mod sequence;
 
-pub use self::quality_scores::QualityScores;
+pub use self::{quality_scores::QualityScores, sequence::Sequence};
 
 use std::{
     fmt, io, mem,
@@ -224,21 +225,13 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.sequence()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.sequence().is_empty());
     /// ```
-    pub fn sequence(&self) -> io::Result<sam::record::Sequence> {
-        use crate::reader::record::get_sequence;
-
-        let mut src = &self.buf[self.bounds.sequence_range()];
-        let mut sequence = sam::record::Sequence::default();
-
+    pub fn sequence(&self) -> Sequence<'_> {
+        let src = &self.buf[self.bounds.sequence_range()];
         let quality_scores_range = self.bounds.quality_scores_range();
         let base_count = quality_scores_range.end - quality_scores_range.start;
-
-        get_sequence(&mut src, &mut sequence, base_count)?;
-
-        Ok(sequence)
+        Sequence::new(src, base_count)
     }
 
     /// Returns the quality scores.
