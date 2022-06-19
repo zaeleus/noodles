@@ -120,7 +120,7 @@ where
         }
     }
 
-    /// Returns an interator over records that intersect the given region.
+    /// Returns an iterator over records that intersect the given region.
     pub fn query<'a>(
         &'a mut self,
         header: &'a sam::Header,
