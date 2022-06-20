@@ -1,7 +1,8 @@
+mod cigar;
 mod quality_scores;
 mod sequence;
 
-pub use self::{quality_scores::QualityScores, sequence::Sequence};
+pub use self::{cigar::Cigar, quality_scores::QualityScores, sequence::Sequence};
 
 use std::{
     fmt, io, mem,
@@ -204,18 +205,11 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.cigar()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.cigar().is_empty());
     /// ```
-    pub fn cigar(&self) -> io::Result<sam::record::Cigar> {
-        use crate::reader::record::get_cigar;
-
-        let mut src = &self.buf[self.bounds.cigar_range()];
-        let mut cigar = sam::record::Cigar::default();
-        let op_count = src.len() / 4;
-        get_cigar(&mut src, &mut cigar, op_count)?;
-
-        Ok(cigar)
+    pub fn cigar(&self) -> Cigar<'_> {
+        let src = &self.buf[self.bounds.cigar_range()];
+        Cigar::new(src)
     }
 
     /// Returns the sequence.
