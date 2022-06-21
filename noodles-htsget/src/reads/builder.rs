@@ -22,7 +22,7 @@ impl Builder {
         self
     }
 
-    /// Sets the data steam filter.
+    /// Sets the data stream filter.
     ///
     /// Setting this discards all other options upon send.
     pub fn set_class(mut self, class: Class) -> Self {
