@@ -98,12 +98,8 @@ pub(crate) fn parse_read_name(src: &[u8]) -> io::Result<Option<ReadName>> {
 }
 
 pub(crate) fn parse_flags(src: &[u8]) -> io::Result<Flags> {
-    str::from_utf8(src)
+    lexical_core::parse::<u16>(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse::<u16>()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
         .map(Flags::from)
 }
 
@@ -130,22 +126,14 @@ fn parse_reference_sequence_id(header: &Header, src: &[u8]) -> io::Result<Option
 }
 
 pub(crate) fn parse_alignment_start(src: &[u8]) -> io::Result<Option<Position>> {
-    str::from_utf8(src)
+    lexical_core::parse(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
         .map(Position::new)
 }
 
 pub(crate) fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQuality>> {
-    str::from_utf8(src)
+    lexical_core::parse(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
         .map(MappingQuality::new)
 }
 
@@ -177,12 +165,7 @@ fn parse_mate_reference_sequence_id(
 }
 
 pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
-    str::from_utf8(src)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        .and_then(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+    lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 pub(crate) fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
