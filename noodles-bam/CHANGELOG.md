@@ -4,7 +4,8 @@
 
 ### Added
 
-  * bam/lazy/record: Add CIGAR, quality scores, and sequence wrappers.
+  * bam/lazy/record: Add data, CIGAR, quality scores, and
+    sequence wrappers.
 
     These allow the raw data to be accessed. Use conversion methods (`TryFrom`)
     on these wrappers to parse the data.

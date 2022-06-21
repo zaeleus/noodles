@@ -1,8 +1,9 @@
 mod cigar;
+mod data;
 mod quality_scores;
 mod sequence;
 
-pub use self::{cigar::Cigar, quality_scores::QualityScores, sequence::Sequence};
+pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 
 use std::{
     fmt, io, mem,
@@ -249,17 +250,11 @@ impl Record {
     /// ```
     /// use noodles_bam as bam;
     /// let record = bam::lazy::Record::default();
-    /// assert!(record.data()?.is_empty());
-    /// # Ok::<_, std::io::Error>(())
+    /// assert!(record.data().is_empty());
     /// ```
-    pub fn data(&self) -> io::Result<sam::record::Data> {
-        use crate::reader::record::get_data;
-
-        let mut src = &self.buf[self.bounds.data_range()];
-        let mut data = sam::record::Data::default();
-        get_data(&mut src, &mut data)?;
-
-        Ok(data)
+    pub fn data(&self) -> Data {
+        let src = &self.buf[self.bounds.data_range()];
+        Data::new(src)
     }
 
     pub(crate) fn index(&mut self) -> io::Result<()> {
