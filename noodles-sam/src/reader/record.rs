@@ -1,3 +1,7 @@
+mod cigar;
+
+pub(crate) use self::cigar::parse_cigar;
+
 use std::{
     io::{self, BufRead},
     str,
@@ -8,7 +12,7 @@ use noodles_core::Position;
 use super::read_line;
 use crate::{
     alignment::Record,
-    record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
+    record::{Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
     Header,
 };
 
@@ -135,20 +139,6 @@ pub(crate) fn parse_mapping_quality(src: &[u8]) -> io::Result<Option<MappingQual
     lexical_core::parse(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         .map(MappingQuality::new)
-}
-
-pub(crate) fn parse_cigar(src: &[u8]) -> io::Result<Cigar> {
-    const MISSING: &[u8] = b"*";
-
-    match src {
-        MISSING => Ok(Cigar::default()),
-        _ => str::from_utf8(src)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }),
-    }
 }
 
 fn parse_mate_reference_sequence_id(
