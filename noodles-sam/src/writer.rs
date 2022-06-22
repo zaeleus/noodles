@@ -3,10 +3,7 @@ mod record;
 
 use std::io::{self, Write};
 
-use self::{
-    num::write_int,
-    record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence},
-};
+use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
 use super::{alignment::Record, AlignmentWriter, Header};
 
 /// A SAM writer.
@@ -189,7 +186,7 @@ where
         self.inner.write_all(qname)?;
 
         self.inner.write_all(DELIMITER)?;
-        write_int(&mut self.inner, u16::from(record.flags()))?;
+        num::write_u16(&mut self.inner, u16::from(record.flags()))?;
 
         self.inner.write_all(DELIMITER)?;
         self.inner.write_all(rname)?;
@@ -198,7 +195,7 @@ where
         write_position(&mut self.inner, record.alignment_start())?;
 
         self.inner.write_all(DELIMITER)?;
-        write_int(&mut self.inner, mapq)?;
+        num::write_u8(&mut self.inner, mapq)?;
 
         self.inner.write_all(DELIMITER)?;
         write_cigar(&mut self.inner, record.cigar())?;
@@ -210,7 +207,7 @@ where
         write_position(&mut self.inner, record.mate_alignment_start())?;
 
         self.inner.write_all(DELIMITER)?;
-        write_int(&mut self.inner, record.template_length())?;
+        num::write_i32(&mut self.inner, record.template_length())?;
 
         self.inner.write_all(DELIMITER)?;
         write_sequence(&mut self.inner, record.sequence())?;

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crate::{
     record::{cigar::op::Kind, Cigar},
-    writer::write_int,
+    writer::num,
 };
 
 pub fn write_cigar<W>(writer: &mut W, cigar: &Cigar) -> io::Result<()>
@@ -15,7 +15,7 @@ where
         writer.write_all(&[MISSING])?;
     } else {
         for op in cigar.iter() {
-            write_int(writer, op.len())?;
+            num::write_usize(writer, op.len())?;
 
             let c = match op.kind() {
                 Kind::Match => b'M',

@@ -8,7 +8,7 @@ use std::io::{self, Write};
 use self::subtype::write_subtype;
 use crate::{
     record::data::field::{value::Character, value::Subtype, Value},
-    writer::write_int,
+    writer::num,
 };
 
 pub fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
@@ -19,12 +19,12 @@ where
 
     match value {
         Value::Character(c) => write_character(writer, *c),
-        Value::Int8(n) => write_int(writer, *n),
-        Value::UInt8(n) => write_int(writer, *n),
-        Value::Int16(n) => write_int(writer, *n),
-        Value::UInt16(n) => write_int(writer, *n),
-        Value::Int32(n) => write_int(writer, *n),
-        Value::UInt32(n) => write_int(writer, *n),
+        Value::Int8(n) => num::write_i8(writer, *n),
+        Value::UInt8(n) => num::write_u8(writer, *n),
+        Value::Int16(n) => num::write_i16(writer, *n),
+        Value::UInt16(n) => num::write_u16(writer, *n),
+        Value::Int32(n) => num::write_i32(writer, *n),
+        Value::UInt32(n) => num::write_u32(writer, *n),
         Value::Float(n) => write!(writer, "{}", n),
         Value::String(s) | Value::Hex(s) => writer.write_all(s.as_bytes()),
         Value::Int8Array(values) => {
@@ -32,7 +32,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_i8(writer, n)?;
             }
 
             Ok(())
@@ -42,7 +42,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_u8(writer, n)?;
             }
 
             Ok(())
@@ -52,7 +52,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_i16(writer, n)?;
             }
 
             Ok(())
@@ -62,7 +62,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_u16(writer, n)?;
             }
 
             Ok(())
@@ -72,7 +72,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_i32(writer, n)?;
             }
 
             Ok(())
@@ -82,7 +82,7 @@ where
 
             for &n in values {
                 writer.write_all(&[ARRAY_VALUE_DELIMITER])?;
-                write_int(writer, n)?;
+                num::write_u32(writer, n)?;
             }
 
             Ok(())

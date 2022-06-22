@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_core::Position;
 
-use crate::writer::write_int;
+use crate::writer::num;
 
 // § 1.4 "The alignment section: mandatory fields" (2021-06-03): `[0, 2^31-1]`.
 const MAX_POSITION_VALUE: usize = (1 << 31) - 1;
@@ -14,7 +14,7 @@ where
     let pos = position.map(usize::from).unwrap_or_default();
 
     if pos <= MAX_POSITION_VALUE {
-        write_int(writer, pos)
+        num::write_usize(writer, pos)
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
