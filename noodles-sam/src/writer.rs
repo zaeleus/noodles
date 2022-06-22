@@ -1,8 +1,12 @@
+mod num;
 mod record;
 
 use std::io::{self, Write};
 
-use self::record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence};
+use self::{
+    num::write_int,
+    record::{write_cigar, write_data, write_position, write_quality_scores, write_sequence},
+};
 use super::{alignment::Record, AlignmentWriter, Header};
 
 /// A SAM writer.
@@ -224,16 +228,6 @@ where
     fn finish(&mut self, _: &Header) -> io::Result<()> {
         Ok(())
     }
-}
-
-fn write_int<W, I>(writer: &mut W, i: I) -> io::Result<()>
-where
-    W: Write,
-    I: itoa::Integer,
-{
-    let mut buf = itoa::Buffer::new();
-    let a = buf.format(i);
-    writer.write_all(a.as_bytes())
 }
 
 #[cfg(test)]
