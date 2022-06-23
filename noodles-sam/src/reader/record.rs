@@ -1,8 +1,12 @@
 mod cigar;
 mod data;
 mod quality_scores;
+mod sequence;
 
-pub(crate) use self::{cigar::parse_cigar, data::parse_data, quality_scores::parse_quality_scores};
+pub(crate) use self::{
+    cigar::parse_cigar, data::parse_data, quality_scores::parse_quality_scores,
+    sequence::parse_sequence,
+};
 
 use std::{
     io::{self, BufRead},
@@ -14,7 +18,7 @@ use noodles_core::Position;
 use super::read_line;
 use crate::{
     alignment::Record,
-    record::{Flags, MappingQuality, ReadName, Sequence},
+    record::{Flags, MappingQuality, ReadName},
     Header,
 };
 
@@ -158,20 +162,6 @@ fn parse_mate_reference_sequence_id(
 
 pub(crate) fn parse_template_length(src: &[u8]) -> io::Result<i32> {
     lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-}
-
-pub(crate) fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
-    const MISSING: &[u8] = b"*";
-
-    match src {
-        MISSING => Ok(Sequence::default()),
-        _ => str::from_utf8(src)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            }),
-    }
 }
 
 #[cfg(test)]
