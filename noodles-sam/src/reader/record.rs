@@ -1,7 +1,8 @@
 mod cigar;
+mod data;
 mod quality_scores;
 
-pub(crate) use self::{cigar::parse_cigar, quality_scores::parse_quality_scores};
+pub(crate) use self::{cigar::parse_cigar, data::parse_data, quality_scores::parse_quality_scores};
 
 use std::{
     io::{self, BufRead},
@@ -13,7 +14,7 @@ use noodles_core::Position;
 use super::read_line;
 use crate::{
     alignment::Record,
-    record::{Data, Flags, MappingQuality, ReadName, Sequence},
+    record::{Flags, MappingQuality, ReadName, Sequence},
     Header,
 };
 
@@ -170,19 +171,6 @@ pub(crate) fn parse_sequence(src: &[u8]) -> io::Result<Sequence> {
                 s.parse()
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             }),
-    }
-}
-
-pub(crate) fn parse_data(src: &[u8]) -> io::Result<Data> {
-    if src.is_empty() {
-        Ok(Data::default())
-    } else {
-        str::from_utf8(src)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|s| {
-                s.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })
     }
 }
 
