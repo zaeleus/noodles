@@ -16,10 +16,7 @@ async = ["futures", "noodles-bgzf/async", "tokio"]
 [dependencies]
 bitflags = "1.2.1"
 indexmap = "1.4.0"
-lexical-core = { version = "0.8.5", default-features = false, features = ["parse-floats", "parse-integers", "write-integers"] }
-lexical-parse-float = "0.8.5"
-lexical-parse-integer = { version = "0.8.6" }
-lexical-write-integer = "0.8.5"
+lexical-core = "0.8.5"
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.12.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.7.0" }
 noodles-core = { path = "../noodles-core", version = "0.7.0" }

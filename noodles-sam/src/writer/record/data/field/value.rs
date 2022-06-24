@@ -25,7 +25,7 @@ where
         Value::UInt16(n) => num::write_u16(writer, *n),
         Value::Int32(n) => num::write_i32(writer, *n),
         Value::UInt32(n) => num::write_u32(writer, *n),
-        Value::Float(n) => write!(writer, "{}", n),
+        Value::Float(n) => num::write_f32(writer, *n),
         Value::String(s) | Value::Hex(s) => writer.write_all(s.as_bytes()),
         Value::Int8Array(values) => {
             write_subtype(writer, Subtype::Int8)?;
