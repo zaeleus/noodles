@@ -269,7 +269,7 @@ mod tests {
             Value::Hex(String::from("CAFE")),
         )?;
 
-        /*t(
+        t(
             &[b'c', 0x01, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
             Value::Int8Array(vec![0]),
@@ -303,7 +303,7 @@ mod tests {
             &[b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             Type::Array,
             Value::FloatArray(vec![0.0]),
-        )?; */
+        )?;
 
         Ok(())
     }
