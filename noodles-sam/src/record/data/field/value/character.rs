@@ -28,7 +28,7 @@ impl TryFrom<char> for Character {
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
         if c.is_ascii_graphic() {
-            // SAFETY: `c` is guranteed to be '!'..='~'.
+            // SAFETY: `c` is guaranteed to be '!'..='~'.
             Ok(Self(c as u8))
         } else {
             Err(ParseError::Invalid)
