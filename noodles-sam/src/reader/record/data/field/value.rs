@@ -60,7 +60,11 @@ fn parse_string_value(src: &[u8]) -> io::Result<Value> {
 }
 
 fn parse_hex_value(src: &[u8]) -> io::Result<Value> {
-    if src.len() % 2 == 0 && src.iter().all(|n| n.is_ascii_hexdigit()) {
+    fn is_upper_ascii_hexdigit(n: u8) -> bool {
+        matches!(n, b'0'..=b'9' | b'A'..=b'F')
+    }
+
+    if src.len() % 2 == 0 && src.iter().copied().all(is_upper_ascii_hexdigit) {
         str::from_utf8(src)
             .map(|s| Value::Hex(s.into()))
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -238,6 +242,10 @@ mod tests {
         ));
 
         t(b"CAFE", Type::Hex, Value::Hex(String::from("CAFE")))?;
+        assert!(matches!(
+            parse_value(&mut &b"cafe"[..], Type::Hex),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
         assert!(matches!(
             parse_value(&mut &b"CAFE0"[..], Type::Hex),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
