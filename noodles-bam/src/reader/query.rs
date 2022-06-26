@@ -105,12 +105,6 @@ where
     }
 }
 
-pub(crate) fn next_chunk(chunks: &[Chunk], i: &mut usize) -> Option<Chunk> {
-    let chunk = chunks.get(*i).copied();
-    *i += 1;
-    chunk
-}
-
 pub(crate) fn intersects(
     record: &Record,
     reference_sequence_id: usize,
