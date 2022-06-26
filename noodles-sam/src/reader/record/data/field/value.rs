@@ -200,38 +200,108 @@ mod tests {
             Type::Character,
             Value::Character(Character::try_from('n')?),
         )?;
+        assert!(matches!(
+            parse_value(&mut &b""[..], Type::Character),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+        assert!(matches!(
+            parse_value(&mut &b"ndls"[..], Type::Character),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         t(b"0", Type::Int32, Value::UInt8(0))?;
+        assert!(matches!(
+            parse_value(&mut &b""[..], Type::Int32),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+        assert!(matches!(
+            parse_value(&mut &b"ndls"[..], Type::Int32),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         t(b"0", Type::Float, Value::Float(0.0))?;
+        assert!(matches!(
+            parse_value(&mut &b""[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+        assert!(matches!(
+            parse_value(&mut &b"ndls"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        t(b"", Type::String, Value::String(String::new()))?;
+        t(b" ", Type::String, Value::String(String::from(" ")))?;
         t(b"ndls", Type::String, Value::String(String::from("ndls")))?;
+        assert!(matches!(
+            parse_value(&mut &[0xf0, 0x9f, 0x8d, 0x9c][..], Type::String),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         t(b"CAFE", Type::Hex, Value::Hex(String::from("CAFE")))?;
+        assert!(matches!(
+            parse_value(&mut &b"CAFE0"[..], Type::Hex),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+        assert!(matches!(
+            parse_value(&mut &b"NDLS"[..], Type::Hex),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"c", Type::Array, Value::Int8Array(vec![]))?;
         t(b"c,0", Type::Array, Value::Int8Array(vec![0]))?;
         t(b"c,0,0", Type::Array, Value::Int8Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"c,"[..], Type::Array),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"C", Type::Array, Value::UInt8Array(vec![]))?;
         t(b"C,0", Type::Array, Value::UInt8Array(vec![0]))?;
         t(b"C,0,0", Type::Array, Value::UInt8Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"C,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"s", Type::Array, Value::Int16Array(vec![]))?;
         t(b"s,0", Type::Array, Value::Int16Array(vec![0]))?;
         t(b"s,0,0", Type::Array, Value::Int16Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"s,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"S", Type::Array, Value::UInt16Array(vec![]))?;
         t(b"S,0", Type::Array, Value::UInt16Array(vec![0]))?;
         t(b"S,0,0", Type::Array, Value::UInt16Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"S,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"i", Type::Array, Value::Int32Array(vec![]))?;
         t(b"i,0", Type::Array, Value::Int32Array(vec![0]))?;
         t(b"i,0,0", Type::Array, Value::Int32Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"i,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"I", Type::Array, Value::UInt32Array(vec![]))?;
         t(b"I,0", Type::Array, Value::UInt32Array(vec![0]))?;
         t(b"I,0,0", Type::Array, Value::UInt32Array(vec![0, 0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"I,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         t(b"f", Type::Array, Value::FloatArray(vec![]))?;
         t(b"f,0", Type::Array, Value::FloatArray(vec![0.0]))?;
         t(b"f,0,0", Type::Array, Value::FloatArray(vec![0.0, 0.0]))?;
+        assert!(matches!(
+            parse_value(&mut &b"f,"[..], Type::Float),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
