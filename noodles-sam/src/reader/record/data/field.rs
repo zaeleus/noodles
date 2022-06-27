@@ -1,9 +1,11 @@
 mod tag;
 mod value;
 
+pub(crate) use self::value::parse_value;
+
 use std::io;
 
-use self::{tag::parse_tag, value::parse_value};
+use self::tag::parse_tag;
 use crate::record::data::Field;
 
 pub(super) fn parse_field(src: &mut &[u8]) -> io::Result<Option<Field>> {

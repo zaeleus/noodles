@@ -1,5 +1,5 @@
 mod cigar;
-mod data;
+pub(crate) mod data;
 mod quality_scores;
 mod sequence;
 

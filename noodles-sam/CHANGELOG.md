@@ -12,6 +12,12 @@
 
     This allows access to the `Builder` struct.
 
+  * sam/record/data/field: `ParseError::InvalidValue` no longer wraps a source.
+
+  * sam/record/data/field/value: `Value::from_str_type` returns `io::Result`.
+
+    This now uses the record data field value parser.
+
 ## 0.16.0 - 2022-06-08
 
 ### Added

@@ -11,7 +11,7 @@ use crate::record::data::field::{
     Value,
 };
 
-pub(super) fn parse_value(src: &mut &[u8], ty: Type) -> io::Result<Value> {
+pub(crate) fn parse_value(src: &mut &[u8], ty: Type) -> io::Result<Value> {
     match ty {
         Type::Character => parse_char_value(src),
         Type::Int32 => parse_int_value(src),

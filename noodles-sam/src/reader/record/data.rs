@@ -1,4 +1,4 @@
-mod field;
+pub(crate) mod field;
 
 use std::io;
 
