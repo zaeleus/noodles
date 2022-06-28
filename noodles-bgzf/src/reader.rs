@@ -173,10 +173,9 @@ where
         // next block, reading to the block buffer can be skipped. The uncompressed data is read
         // directly to the given buffer to avoid double copying.
         if self.block.is_eof() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
-            let block_size =
-                read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
+            read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
             self.block.set_cpos(self.position);
-            self.position += block_size as u64;
+            self.position += self.block.clen();
             return Ok(self.block.ulen());
         }
 
@@ -215,9 +214,9 @@ where
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if self.block.is_eof() {
-            let block_size = read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+            read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
             self.block.set_cpos(self.position);
-            self.position += block_size as u64;
+            self.position += self.block.clen();
         }
 
         Ok(self.block.buffer())
