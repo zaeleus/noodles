@@ -12,6 +12,9 @@
 
 ### Fixed
 
+  * bgzf/async/writer: Avoid truncating the header block size (`BSIZE`)
+    ([#96]).
+
   * bgzf/writer: Avoid truncating the header block size (`BSIZE`) ([#96]).
 
 [#96]: https://github.com/zaeleus/noodles/issues/96

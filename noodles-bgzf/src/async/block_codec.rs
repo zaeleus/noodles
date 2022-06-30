@@ -47,7 +47,7 @@ impl Encoder<GzData> for BlockCodec {
 
         dst.reserve(block_size);
 
-        put_header(dst, block_size);
+        put_header(dst, block_size)?;
         dst.extend_from_slice(&cdata);
         put_trailer(dst, crc32, r#isize);
 
@@ -55,7 +55,7 @@ impl Encoder<GzData> for BlockCodec {
     }
 }
 
-fn put_header(dst: &mut BytesMut, block_size: usize) {
+fn put_header(dst: &mut BytesMut, block_size: usize) -> io::Result<()> {
     const BGZF_FLG: u8 = 0x04; // FEXTRA
     const BGZF_XFL: u8 = 0x00; // none
     const BGZF_XLEN: u16 = 6;
@@ -76,8 +76,11 @@ fn put_header(dst: &mut BytesMut, block_size: usize) {
     dst.put_u8(BGZF_SI2);
     dst.put_u16_le(BGZF_SLEN);
 
-    let bsize = (block_size - 1) as u16;
+    let bsize = u16::try_from(block_size - 1)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     dst.put_u16_le(bsize);
+
+    Ok(())
 }
 
 fn put_trailer(dst: &mut BytesMut, checksum: u32, uncompressed_size: u32) {
@@ -136,5 +139,19 @@ mod tests {
         assert_eq!(&dst[..], BLOCK);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_put_header() {
+        use crate::block::MAX_UNCOMPRESSED_DATA_LENGTH;
+
+        let mut dst = BytesMut::new();
+
+        assert!(put_header(&mut dst, 8).is_ok());
+
+        assert!(matches!(
+            put_header(&mut dst, MAX_UNCOMPRESSED_DATA_LENGTH + 1),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
     }
 }
