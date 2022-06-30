@@ -152,8 +152,8 @@ where
 
         self.inner.seek(SeekFrom::Start(cpos))?;
 
-        let block_size = read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
-        self.position = cpos + (block_size as u64);
+        read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+        self.position = cpos + self.block.clen();
 
         self.block.set_cpos(cpos);
         self.block.set_upos(usize::from(upos));
