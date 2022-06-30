@@ -12,7 +12,7 @@
 
 ### Fixed
 
-  * bgzf/async/writer: Avoid truncating the header block size (`BSIZE`)
+  * bgzf/async/block_codec: Avoid truncating the header block size (`BSIZE`)
     ([#96]).
 
   * bgzf/writer: Avoid truncating the header block size (`BSIZE`) ([#96]).
