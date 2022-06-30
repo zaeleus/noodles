@@ -57,13 +57,15 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
     let mut block = Block::default();
 
     block.set_clen(bsize);
-    block.set_upos(0);
-    block.set_ulen(r#isize);
 
-    inflate_data(&cdata, block.buffer_mut())?;
+    let data = block.data_mut();
+    data.set_position(0);
+    data.resize(r#isize);
+
+    inflate_data(&cdata, data.as_mut())?;
 
     let mut crc = Crc::new();
-    crc.update(block.buffer());
+    crc.update(data.as_ref());
 
     if crc.sum() == crc32 {
         Ok(block)

@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    io::{self, BufRead, Read, Seek, SeekFrom},
-};
+use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use flate2::Crc;
@@ -156,7 +153,7 @@ where
         self.position = cpos + self.block.clen();
 
         self.block.set_cpos(cpos);
-        self.block.set_upos(usize::from(upos));
+        self.block.data_mut().set_position(usize::from(upos));
 
         Ok(pos)
     }
@@ -172,11 +169,11 @@ where
         // If a new block is about to be read and the given buffer is guaranteed to be larger than
         // next block, reading to the block buffer can be skipped. The uncompressed data is read
         // directly to the given buffer to avoid double copying.
-        if self.block.is_eof() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+        if !self.block.data().has_remaining() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
             read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
             self.block.set_cpos(self.position);
             self.position += self.block.clen();
-            return Ok(self.block.ulen());
+            return Ok(self.block.data().len());
         }
 
         let bytes_read = {
@@ -190,7 +187,7 @@ where
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        let remaining = self.block.buffer();
+        let remaining = self.block.data().as_ref();
 
         if buf.len() <= remaining.len() {
             buf.copy_from_slice(&remaining[..buf.len()]);
@@ -206,20 +203,18 @@ impl<R> BufRead for Reader<R>
 where
     R: Read,
 {
-    fn consume(&mut self, mut amt: usize) {
-        amt = cmp::min(amt, crate::block::MAX_UNCOMPRESSED_DATA_LENGTH);
-        let upos = cmp::min(self.block.ulen(), self.block.upos() + amt);
-        self.block.set_upos(upos);
+    fn consume(&mut self, amt: usize) {
+        self.block.data_mut().consume(amt)
     }
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
-        if self.block.is_eof() {
+        if !self.block.data().has_remaining() {
             read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
             self.block.set_cpos(self.position);
             self.position += self.block.clen();
         }
 
-        Ok(self.block.buffer())
+        Ok(self.block.data().as_ref())
     }
 }
 
@@ -357,13 +352,15 @@ where
     };
 
     block.set_clen(clen as u64);
-    block.set_upos(0);
-    block.set_ulen(ulen);
 
-    inflate_data(cdata, block.buffer_mut())?;
+    let data = block.data_mut();
+    data.set_position(0);
+    data.resize(ulen);
+
+    inflate_data(cdata, data.as_mut())?;
 
     let mut crc = Crc::new();
-    crc.update(block.buffer());
+    crc.update(data.as_ref());
 
     if crc.sum() == crc32 {
         Ok(clen)
@@ -391,8 +388,10 @@ where
     };
 
     block.set_clen(clen as u64);
-    block.set_upos(ulen);
-    block.set_ulen(ulen);
+
+    let data = block.data_mut();
+    data.resize(ulen);
+    data.set_position(ulen);
 
     inflate_data(cdata, &mut buf[..ulen])?;
 

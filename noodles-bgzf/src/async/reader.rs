@@ -115,7 +115,7 @@ where
                 self.position = cpos + block.clen();
 
                 block.set_cpos(cpos);
-                block.set_upos(usize::from(upos));
+                block.data_mut().set_position(usize::from(upos));
 
                 block
             }
@@ -155,7 +155,7 @@ where
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&[u8]>> {
         let this = self.project();
 
-        if this.block.is_eof() {
+        if !this.block.data().has_remaining() {
             let stream = this.stream.as_pin_mut().expect("missing stream");
 
             match ready!(stream.poll_next(cx)) {
@@ -169,13 +169,12 @@ where
             }
         }
 
-        return Poll::Ready(Ok(this.block.buffer()));
+        return Poll::Ready(Ok(this.block.data().as_ref()));
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
         let this = self.project();
-        let upos = cmp::min(this.block.ulen(), this.block.upos() + amt);
-        this.block.set_upos(upos);
+        this.block.data_mut().consume(amt);
     }
 }
 
