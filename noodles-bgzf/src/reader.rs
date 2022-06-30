@@ -150,7 +150,7 @@ where
         self.inner.seek(SeekFrom::Start(cpos))?;
 
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
-        self.position = cpos + self.block.clen();
+        self.position = cpos + self.block.size();
 
         self.block.set_cpos(cpos);
         self.block.data_mut().set_position(usize::from(upos));
@@ -172,7 +172,7 @@ where
         if !self.block.data().has_remaining() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
             read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
             self.block.set_cpos(self.position);
-            self.position += self.block.clen();
+            self.position += self.block.size();
             return Ok(self.block.data().len());
         }
 
@@ -211,7 +211,7 @@ where
         if !self.block.data().has_remaining() {
             read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
             self.block.set_cpos(self.position);
-            self.position += self.block.clen();
+            self.position += self.block.size();
         }
 
         Ok(self.block.data().as_ref())
@@ -351,7 +351,7 @@ where
         Err(e) => return Err(e),
     };
 
-    block.set_clen(clen as u64);
+    block.set_size(clen as u64);
 
     let data = block.data_mut();
     data.set_position(0);
@@ -387,7 +387,7 @@ where
         Err(e) => return Err(e),
     };
 
-    block.set_clen(clen as u64);
+    block.set_size(clen as u64);
 
     let data = block.data_mut();
     data.resize(ulen);

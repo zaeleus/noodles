@@ -112,7 +112,7 @@ where
             Some(mut block) => {
                 let (cpos, upos) = pos.into();
 
-                self.position = cpos + block.clen();
+                self.position = cpos + block.size();
 
                 block.set_cpos(cpos);
                 block.data_mut().set_position(usize::from(upos));
@@ -161,7 +161,7 @@ where
             match ready!(stream.poll_next(cx)) {
                 Some(Ok(mut block)) => {
                     block.set_cpos(*this.position);
-                    *this.position += block.clen();
+                    *this.position += block.size();
                     *this.block = block;
                 }
                 Some(Err(e)) => return Poll::Ready(Err(e)),

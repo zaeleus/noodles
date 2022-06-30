@@ -12,20 +12,19 @@ pub(crate) const MAX_UNCOMPRESSED_DATA_LENGTH: usize = 1 << 16; // bytes
 #[derive(Debug, Default)]
 pub struct Block {
     cpos: u64,
-    clen: u64,
+    /// The block size (`BSIZE` + 1).
+    size: u64,
     /// The uncompressed data (`inflate(CDATA)`).
     data: Data,
 }
 
 impl Block {
-    /// Sets the compressed data length.
-    pub fn set_clen(&mut self, clen: u64) {
-        self.clen = clen;
+    pub fn size(&self) -> u64 {
+        self.size
     }
 
-    /// Returns the compressed data length.
-    pub fn clen(&self) -> u64 {
-        self.clen
+    pub fn set_size(&mut self, size: u64) {
+        self.size = size;
     }
 
     /// Sets the position of this block in the compressed stream.
@@ -42,7 +41,7 @@ impl Block {
             );
             VirtualPosition::try_from((self.cpos, self.data.position() as u16)).unwrap()
         } else {
-            let next_cpos = self.cpos + self.clen;
+            let next_cpos = self.cpos + self.size;
             assert!(next_cpos <= virtual_position::MAX_COMPRESSED_POSITION);
             VirtualPosition::try_from((next_cpos, 0)).unwrap()
         }
@@ -69,16 +68,9 @@ mod tests {
     }
 
     #[test]
-    fn test_set_clen() {
-        let mut block = Block::default();
-        block.set_clen(8);
-        assert_eq!(block.clen, 8);
-    }
-
-    #[test]
     fn test_virtual_position() {
         let mut block = Block::default();
-        block.set_clen(8);
+        block.set_size(8);
         block.data_mut().resize(4);
 
         assert_eq!(block.virtual_position(), VirtualPosition::from(0));

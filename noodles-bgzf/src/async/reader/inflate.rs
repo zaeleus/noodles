@@ -56,7 +56,7 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
 
     let mut block = Block::default();
 
-    block.set_clen(bsize);
+    block.set_size(bsize);
 
     let data = block.data_mut();
     data.set_position(0);
