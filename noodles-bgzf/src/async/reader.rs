@@ -114,7 +114,7 @@ where
 
                 self.position = cpos + block.size();
 
-                block.set_cpos(cpos);
+                block.set_position(cpos);
                 block.data_mut().set_position(usize::from(upos));
 
                 block
@@ -160,7 +160,7 @@ where
 
             match ready!(stream.poll_next(cx)) {
                 Some(Ok(mut block)) => {
-                    block.set_cpos(*this.position);
+                    block.set_position(*this.position);
                     *this.position += block.size();
                     *this.block = block;
                 }

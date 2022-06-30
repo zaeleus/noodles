@@ -152,7 +152,7 @@ where
         read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
         self.position = cpos + self.block.size();
 
-        self.block.set_cpos(cpos);
+        self.block.set_position(cpos);
         self.block.data_mut().set_position(usize::from(upos));
 
         Ok(pos)
@@ -171,7 +171,7 @@ where
         // directly to the given buffer to avoid double copying.
         if !self.block.data().has_remaining() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
             read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
-            self.block.set_cpos(self.position);
+            self.block.set_position(self.position);
             self.position += self.block.size();
             return Ok(self.block.data().len());
         }
@@ -210,7 +210,7 @@ where
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if !self.block.data().has_remaining() {
             read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
-            self.block.set_cpos(self.position);
+            self.block.set_position(self.position);
             self.position += self.block.size();
         }
 
