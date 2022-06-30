@@ -436,6 +436,8 @@ where
 }
 
 fn parse_genotype_genotype_field_values(values: &[i8]) -> String {
+    use std::fmt::Write;
+
     let mut genotype = String::new();
 
     for (i, &value) in values.iter().enumerate() {
@@ -457,7 +459,7 @@ fn parse_genotype_genotype_field_values(values: &[i8]) -> String {
         if j == -1 {
             genotype.push('.');
         } else {
-            genotype.push_str(&format!("{}", j));
+            let _ = write!(genotype, "{}", j);
         }
     }
 
