@@ -281,7 +281,8 @@ where
     writer.write_u8(BGZF_SI2)?;
     writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
-    let bsize = (cdata_len + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1) as u16;
+    let bsize = u16::try_from(cdata_len + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(bsize)?;
 
     Ok(())
@@ -377,5 +378,17 @@ mod tests {
         assert_eq!(&data[eof_start..], BGZF_EOF);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_write_header() {
+        let mut writer = io::sink();
+
+        assert!(write_header(&mut writer, 8).is_ok());
+
+        assert!(matches!(
+            write_header(&mut writer, block::MAX_UNCOMPRESSED_DATA_LENGTH),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
     }
 }

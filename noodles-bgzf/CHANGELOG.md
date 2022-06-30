@@ -10,6 +10,12 @@
 
 [#93]: https://github.com/zaeleus/noodles/issues/93
 
+### Fixed
+
+  * bgzf/writer: Avoid truncating the header block size (`BSIZE`) ([#96]).
+
+[#96]: https://github.com/zaeleus/noodles/issues/96
+
 ## 0.12.0 - 2022-06-08
 
 ### Changed
