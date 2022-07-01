@@ -176,12 +176,12 @@ where
         let (cdata, crc32, r#isize) = deflate_data(&self.buf, self.compression_level)?;
 
         let inner = self.inner.as_mut().unwrap();
+        let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
 
-        write_header(inner, cdata.len())?;
+        write_header(inner, block_size)?;
         inner.write_all(&cdata[..])?;
         write_trailer(inner, crc32, r#isize)?;
 
-        let block_size = BGZF_HEADER_SIZE + cdata.len() + gz::TRAILER_SIZE;
         self.position += block_size as u64;
 
         self.buf.clear();
@@ -275,7 +275,7 @@ where
     }
 }
 
-fn write_header<W>(writer: &mut W, cdata_len: usize) -> io::Result<()>
+fn write_header<W>(writer: &mut W, block_size: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -291,7 +291,6 @@ where
     writer.write_u8(BGZF_SI2)?;
     writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
-    let block_size = BGZF_HEADER_SIZE + cdata_len + gz::TRAILER_SIZE;
     let bsize = u16::try_from(block_size - 1)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(bsize)?;
