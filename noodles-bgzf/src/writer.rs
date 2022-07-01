@@ -13,7 +13,20 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::Crc;
 
-use super::{block, gz, VirtualPosition, BGZF_HEADER_SIZE};
+use super::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
+
+// The max DEFLATE overhead for 65536 bytes of data at compression level 0.
+//
+// For zlib (and derivatives) and libdeflate, this is 10 bytes; and for miniz_oxide, 15 bytes.
+const COMPRESSION_LEVEL_0_OVERHEAD: usize = 15;
+
+// The size of the write buffer.
+//
+// The buffer that uses this size is the uncompressed data that is staged to be written as a BGZF
+// block. It is slightly smaller than the max allowed ISIZE to compensate for the gzip format and
+// DEFLATE overheads.
+pub(crate) const DEFAULT_BUF_SIZE: usize =
+    BGZF_MAX_ISIZE - BGZF_HEADER_SIZE - gz::TRAILER_SIZE - COMPRESSION_LEVEL_0_OVERHEAD;
 
 const BGZF_FLG: u8 = 0x04; // FEXTRA
 const BGZF_XFL: u8 = 0x00; // none
@@ -242,14 +255,11 @@ where
     W: Write,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let max_write_len = cmp::min(
-            block::MAX_UNCOMPRESSED_DATA_LENGTH - self.buf.len(),
-            buf.len(),
-        );
+        let max_write_len = cmp::min(DEFAULT_BUF_SIZE - self.buf.len(), buf.len());
 
         self.buf.extend_from_slice(&buf[..max_write_len]);
 
-        if self.buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+        if self.buf.len() >= DEFAULT_BUF_SIZE {
             self.flush()?;
         }
 
@@ -388,7 +398,7 @@ mod tests {
         assert!(write_header(&mut writer, 8).is_ok());
 
         assert!(matches!(
-            write_header(&mut writer, block::MAX_UNCOMPRESSED_DATA_LENGTH),
+            write_header(&mut writer, (1 << 16) + 1),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
     }

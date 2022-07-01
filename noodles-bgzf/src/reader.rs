@@ -3,7 +3,7 @@ use std::io::{self, BufRead, Read, Seek, SeekFrom};
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use flate2::Crc;
 
-use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE};
+use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
 
 /// A BGZF reader.
 ///
@@ -164,12 +164,10 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        use super::block;
-
         // If a new block is about to be read and the given buffer is guaranteed to be larger than
         // next block, reading to the block buffer can be skipped. The uncompressed data is read
         // directly to the given buffer to avoid double copying.
-        if !self.block.data().has_remaining() && buf.len() >= block::MAX_UNCOMPRESSED_DATA_LENGTH {
+        if !self.block.data().has_remaining() && buf.len() >= BGZF_MAX_ISIZE {
             read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
             self.block.set_position(self.position);
             self.position += self.block.size();

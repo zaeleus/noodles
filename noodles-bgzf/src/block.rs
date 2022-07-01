@@ -3,8 +3,6 @@ mod data;
 use self::data::Data;
 use super::{virtual_position, VirtualPosition};
 
-pub(crate) const MAX_UNCOMPRESSED_DATA_LENGTH: usize = 1 << 16; // bytes
-
 /// A BGZF block.
 ///
 /// A BGZF block is a gzip stream less than 64 KiB and contains an extra field describing the size

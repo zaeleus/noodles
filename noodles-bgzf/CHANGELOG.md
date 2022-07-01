@@ -15,7 +15,14 @@
   * bgzf/async/block_codec: Avoid truncating the header block size (`BSIZE`)
     ([#96]).
 
+  * bgzf/async/writer: Compensate for gzip overhead ([#96]).
+
   * bgzf/writer: Avoid truncating the header block size (`BSIZE`) ([#96]).
+
+  * bgzf/writer: Compensate for gzip overhead ([#96]).
+
+    This reduces the max uncompressed data buffer to 65495 bytes and allows
+    the use of compression level 0.
 
 [#96]: https://github.com/zaeleus/noodles/issues/96
 

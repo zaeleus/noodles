@@ -143,14 +143,12 @@ mod tests {
 
     #[test]
     fn test_put_header() {
-        use crate::block::MAX_UNCOMPRESSED_DATA_LENGTH;
-
         let mut dst = BytesMut::new();
 
         assert!(put_header(&mut dst, 8).is_ok());
 
         assert!(matches!(
-            put_header(&mut dst, MAX_UNCOMPRESSED_DATA_LENGTH + 1),
+            put_header(&mut dst, (1 << 16) + 1),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
     }

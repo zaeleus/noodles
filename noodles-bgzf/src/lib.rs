@@ -56,6 +56,10 @@ const GZIP_XLEN_SIZE: usize = 2;
 // SI1 (1) + SI2 (1) + SLEN (2) + BSIZE (2)
 const BGZF_XLEN: usize = 6;
 
+// § 4.1 The BGZF compression format (2021-06-03): "Thus while `ISIZE` is stored as a `uint32_t` as
+// per the gzip format, in BGZF it is limited to the range [0, 65536]."
+const BGZF_MAX_ISIZE: usize = 1 << 16;
+
 pub(crate) const BGZF_HEADER_SIZE: usize = gz::HEADER_SIZE + GZIP_XLEN_SIZE + BGZF_XLEN;
 
 #[cfg(test)]

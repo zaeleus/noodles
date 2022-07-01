@@ -1,7 +1,6 @@
 use std::io::Write;
 
-use super::{CompressionLevel, Writer};
-use crate::block;
+use super::{CompressionLevel, Writer, DEFAULT_BUF_SIZE};
 
 /// A BGZF writer builder.
 #[derive(Debug)]
@@ -52,7 +51,7 @@ where
         Writer {
             inner: Some(self.inner),
             position: 0,
-            buf: Vec::with_capacity(block::MAX_UNCOMPRESSED_DATA_LENGTH),
+            buf: Vec::with_capacity(DEFAULT_BUF_SIZE),
             compression_level: compression_level.into(),
         }
     }
