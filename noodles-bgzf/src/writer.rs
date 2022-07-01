@@ -281,7 +281,8 @@ where
     writer.write_u8(BGZF_SI2)?;
     writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
 
-    let bsize = u16::try_from(cdata_len + BGZF_HEADER_SIZE + gz::TRAILER_SIZE - 1)
+    let block_size = BGZF_HEADER_SIZE + cdata_len + gz::TRAILER_SIZE;
+    let bsize = u16::try_from(block_size - 1)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u16::<LittleEndian>(bsize)?;
 
