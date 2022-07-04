@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * bgzf: Update to libdeflater 0.9.0 (libdeflate 1.10).
+  * bgzf: Update to libdeflater 0.10.0 (libdeflate 1.10) ([#98]).
 
     This also fixes the usage of compression level 0 (e.g.,
     `CompressionLevel::none`) when the `libdeflate` feature is enabled.
@@ -14,6 +14,7 @@
   * bgzf/reader: Verify BGZF block header values ([#93]).
 
 [#93]: https://github.com/zaeleus/noodles/issues/93
+[#98]: https://github.com/zaeleus/noodles/issues/98
 
 ### Fixed
 
