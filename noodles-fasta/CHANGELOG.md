@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0 - 2022-07-05
+
+### Changed
+
+  * fasta: Sync dependencies.
+
 ## 0.11.0 - 2022-06-08
 
 ### Added
