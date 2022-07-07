@@ -15,7 +15,7 @@ const IDX: &str = "IDX";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Contig {
     id: String,
-    len: Option<i32>,
+    len: Option<usize>,
     idx: Option<usize>,
     fields: IndexMap<String, String>,
 }
@@ -64,7 +64,7 @@ impl Contig {
     /// let contig = Contig::new("sq0");
     /// assert_eq!(contig.len(), None);
     /// ```
-    pub fn len(&self) -> Option<i32> {
+    pub fn len(&self) -> Option<usize> {
         self.len
     }
 
@@ -81,7 +81,7 @@ impl Contig {
     /// *contig.len_mut() = Some(8);
     /// assert_eq!(contig.len(), Some(8));
     /// ```
-    pub fn len_mut(&mut self) -> &mut Option<i32> {
+    pub fn len_mut(&mut self) -> &mut Option<usize> {
         &mut self.len
     }
 

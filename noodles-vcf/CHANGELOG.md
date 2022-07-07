@@ -9,6 +9,10 @@
 
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
+### Changed
+
+  * vcf/header/contig: Change length to `usize`.
+
 ## 0.17.0 - 2022-07-05
 
 ### Changed
