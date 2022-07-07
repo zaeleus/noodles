@@ -344,12 +344,13 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::Contig};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new("sq0"))
+    ///     .add_contig(Contig::new("sq0".parse()?))
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
-    /// assert_eq!(contigs[0], Contig::new("sq0"));
+    /// assert_eq!(contigs[0], Contig::new("sq0".parse()?));
+    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn contigs(&self) -> &Contigs {
         &self.contigs
@@ -364,12 +365,13 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let contig = Contig::new("sq0");
-    /// header.contigs_mut().insert(contig.id().into(), contig.clone());
+    /// let contig = Contig::new("sq0".parse()?);
+    /// header.contigs_mut().insert(contig.id().as_ref().into(), contig.clone());
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(contigs[0], contig);
+    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn contigs_mut(&mut self) -> &mut Contigs {
         &mut self.contigs

@@ -1,6 +1,9 @@
 //! VCF header contig record and key.
 
 mod builder;
+pub mod name;
+
+pub use self::name::Name;
 
 use std::{error, fmt, num};
 
@@ -8,7 +11,6 @@ use indexmap::IndexMap;
 
 use self::builder::Builder;
 use super::{record, Record};
-use crate::record::chromosome;
 
 const ID: &str = "ID";
 const LENGTH: &str = "length";
@@ -17,7 +19,7 @@ const IDX: &str = "IDX";
 /// A VCF header contig record (`contig`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Contig {
-    id: String,
+    id: Name,
     len: Option<usize>,
     idx: Option<usize>,
     fields: IndexMap<String, String>,
@@ -31,14 +33,12 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new("sq0");
+    /// let contig = Contig::new("sq0".parse()?);
+    /// Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
     /// ```
-    pub fn new<S>(id: S) -> Self
-    where
-        S: Into<String>,
-    {
+    pub fn new(id: Name) -> Self {
         Self {
-            id: id.into(),
+            id,
             len: None,
             idx: None,
             fields: IndexMap::new(),
@@ -50,11 +50,13 @@ impl Contig {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new("sq0");
-    /// assert_eq!(contig.id(), "sq0");
+    /// use noodles_vcf::header::{contig::Name, Contig};
+    /// let name: Name = "sq0".parse()?;
+    /// let contig = Contig::new(name.clone());
+    /// assert_eq!(contig.id(), &name);
+    /// Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
     /// ```
-    pub fn id(&self) -> &str {
+    pub fn id(&self) -> &Name {
         &self.id
     }
 
@@ -64,8 +66,9 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new("sq0");
+    /// let contig = Contig::new("sq0".parse()?);
     /// assert_eq!(contig.len(), None);
+    /// Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn len(&self) -> Option<usize> {
         self.len
@@ -78,11 +81,12 @@ impl Contig {
     /// ```
     /// use noodles_vcf::header::Contig;
     ///
-    /// let mut contig = Contig::new("sq0");
+    /// let mut contig = Contig::new("sq0".parse()?);
     /// assert!(contig.len().is_none());
     ///
     /// *contig.len_mut() = Some(8);
     /// assert_eq!(contig.len(), Some(8));
+    /// Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn len_mut(&mut self) -> &mut Option<usize> {
         &mut self.len
@@ -96,8 +100,9 @@ impl Contig {
     ///
     /// ```
     /// use noodles_vcf::header::Contig;
-    /// let contig = Contig::new("sq0");
+    /// let contig = Contig::new("sq0".parse()?);
     /// assert!(contig.idx().is_none());
+    /// Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn idx(&self) -> Option<usize> {
         self.idx
@@ -162,7 +167,7 @@ pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
     /// The ID is invalid.
-    InvalidId,
+    InvalidId(name::ParseError),
     /// The length is invalid.
     InvalidLength(num::ParseIntError),
     /// A required field is missing.
@@ -178,7 +183,7 @@ impl fmt::Display for TryFromRecordError {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
             Self::MissingField(key) => write!(f, "missing field: {}", key),
-            Self::InvalidId => f.write_str("invalid ID"),
+            Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
             Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
         }
@@ -202,11 +207,8 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
     for (key, value) in fields {
         builder = match key.as_ref() {
             ID => {
-                if !chromosome::is_valid_name(&value) {
-                    return Err(TryFromRecordError::InvalidId);
-                }
-
-                builder.set_id(value)
+                let id = value.parse().map_err(TryFromRecordError::InvalidId)?;
+                builder.set_id(id)
             }
             LENGTH => {
                 let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
@@ -255,13 +257,13 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_contig() {
+    fn test_try_from_record_for_contig() -> Result<(), name::ParseError> {
         let record = build_record();
 
         assert_eq!(
             Contig::try_from(record),
             Ok(Contig {
-                id: String::from("sq0"),
+                id: "sq0".parse()?,
                 len: Some(13),
                 idx: None,
                 fields: [(
@@ -272,10 +274,12 @@ mod tests {
                 .collect(),
             })
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_extra_fields() {
+    fn test_try_from_record_for_contig_with_extra_fields() -> Result<(), name::ParseError> {
         let record = Record::new(
             record::Key::Contig,
             record::Value::Struct(vec![
@@ -292,7 +296,7 @@ mod tests {
         assert_eq!(
             Contig::try_from(record),
             Ok(Contig {
-                id: String::from("sq0"),
+                id: "sq0".parse()?,
                 len: Some(13),
                 idx: Some(1),
                 fields: [(
@@ -303,6 +307,8 @@ mod tests {
                 .collect(),
             })
         );
+
+        Ok(())
     }
 
     #[test]
@@ -338,7 +344,10 @@ mod tests {
             record::Value::Struct(vec![(String::from("ID"), String::from("sq 0"))]),
         );
 
-        assert_eq!(Contig::try_from(record), Err(TryFromRecordError::InvalidId));
+        assert!(matches!(
+            Contig::try_from(record),
+            Err(TryFromRecordError::InvalidId(_))
+        ));
     }
 
     #[test]

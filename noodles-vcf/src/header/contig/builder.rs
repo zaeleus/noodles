@@ -1,17 +1,17 @@
 use indexmap::IndexMap;
 
-use super::{Contig, ID};
+use super::{Contig, Name, ID};
 
 #[derive(Default)]
 pub struct Builder {
-    id: Option<String>,
+    id: Option<Name>,
     len: Option<usize>,
     idx: Option<usize>,
     other_fields: IndexMap<String, String>,
 }
 
 impl Builder {
-    pub fn set_id(mut self, id: String) -> Self {
+    pub fn set_id(mut self, id: Name) -> Self {
         self.id = Some(id);
         self
     }

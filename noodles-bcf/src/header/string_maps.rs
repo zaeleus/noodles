@@ -44,7 +44,7 @@ impl StringMaps {
     ///     .add_info(Info::from(InfoKey::TotalDepth))
     ///     .add_filter(Filter::new("q10", "Quality below 10"))
     ///     .add_format(Format::from(FormatKey::ReadDepth))
-    ///     .add_contig(Contig::new("sq0"))
+    ///     .add_contig(Contig::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -54,7 +54,7 @@ impl StringMaps {
     /// assert_eq!(string_string_map.get_index(1), Some("DP"));
     /// assert_eq!(string_string_map.get_index(2), Some("q10"));
     /// assert!(string_string_map.get_index(3).is_none());
-    /// # Ok::<_, vcf::header::ParseError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn strings(&self) -> &StringStringMap {
         &self.string_string_map
@@ -79,7 +79,7 @@ impl StringMaps {
     ///     .add_info(Info::from(InfoKey::TotalDepth))
     ///     .add_filter(Filter::new("q10", "Quality below 10"))
     ///     .add_format(Format::from(FormatKey::ReadDepth))
-    ///     .add_contig(Contig::new("sq0"))
+    ///     .add_contig(Contig::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -87,7 +87,7 @@ impl StringMaps {
     ///
     /// assert_eq!(contig_string_map.get_index(0), Some("sq0"));
     /// assert!(contig_string_map.get_index(1).is_none());
-    /// # Ok::<_, vcf::header::ParseError>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn contigs(&self) -> &ContigStringMap {
         &self.contig_string_map
@@ -136,7 +136,11 @@ impl FromStr for StringMaps {
             match record.key() {
                 Key::Contig => {
                     let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
-                    insert(string_maps.contigs_mut(), contig.id(), contig.idx())?;
+                    insert(
+                        string_maps.contigs_mut(),
+                        contig.id().as_ref(),
+                        contig.idx(),
+                    )?;
                 }
                 Key::Filter => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
@@ -207,7 +211,9 @@ impl From<&vcf::Header> for StringMaps {
         let mut string_maps = StringMaps::default();
 
         for contig in header.contigs().values() {
-            string_maps.contigs_mut().insert(contig.id().into());
+            string_maps
+                .contigs_mut()
+                .insert(contig.id().as_ref().into());
         }
 
         for info in header.infos().values() {
@@ -382,7 +388,7 @@ mod tests {
     }
 
     #[test]
-    fn test_vcf_header_for_string_map() {
+    fn test_vcf_header_for_string_map() -> Result<(), vcf::header::contig::name::ParseError> {
         use vcf::{
             header::{format::Key as FormatKey, info::Key as InfoKey, AlternativeAllele, Contig},
             record::alternate_bases::allele::{
@@ -392,9 +398,9 @@ mod tests {
         };
 
         let header = vcf::Header::builder()
-            .add_contig(Contig::new("sq0"))
-            .add_contig(Contig::new("sq1"))
-            .add_contig(Contig::new("sq2"))
+            .add_contig(Contig::new("sq0".parse()?))
+            .add_contig(Contig::new("sq1".parse()?))
+            .add_contig(Contig::new("sq2".parse()?))
             .add_info(Info::from(InfoKey::SamplesWithDataCount))
             .add_info(Info::from(InfoKey::TotalDepth))
             .add_filter(Filter::pass())
@@ -449,6 +455,8 @@ mod tests {
         };
 
         assert_eq!(actual, expected);
+
+        Ok(())
     }
 
     #[test]

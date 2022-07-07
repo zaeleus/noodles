@@ -7,6 +7,8 @@
   * vcf/header/contig: Add mutable getter for length (`Contig::len_mut`)
     ([#99]).
 
+  * vcf/header/contig: Add name wrapper (`Name`).
+
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
 ### Changed

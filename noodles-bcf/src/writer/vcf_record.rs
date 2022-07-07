@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn test_write_vcf_record() -> Result<(), Box<dyn std::error::Error>> {
         let header = vcf::Header::builder()
-            .add_contig(vcf::header::Contig::new("sq0"))
+            .add_contig(vcf::header::Contig::new("sq0".parse()?))
             .build();
 
         let string_maps = StringMaps::from(&header);

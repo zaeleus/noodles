@@ -165,15 +165,16 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, header::Contig};
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new(String::from("sq0")))
+    ///     .add_contig(Contig::new("sq0".parse()?))
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
-    /// assert_eq!(contigs[0], Contig::new(String::from("sq0")));
+    /// assert_eq!(contigs[0], Contig::new("sq0".parse()?));
+    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn add_contig(mut self, contig: Contig) -> Self {
-        self.contigs.insert(contig.id().into(), contig);
+        self.contigs.insert(contig.id().as_ref().into(), contig);
         self
     }
 
@@ -400,7 +401,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build() {
+    fn test_build() -> Result<(), crate::header::contig::name::ParseError> {
         use crate::{
             header::{self, format::Key as FormatKey, info::Key as InfoKey},
             record::alternate_bases::allele,
@@ -423,8 +424,8 @@ mod tests {
                 "Deletion",
             ))
             .set_assembly("file:///assemblies.fasta")
-            .add_contig(Contig::new(String::from("sq0")))
-            .add_contig(Contig::new(String::from("sq1")))
+            .add_contig(Contig::new("sq0".parse()?))
+            .add_contig(Contig::new("sq1".parse()?))
             .add_meta(Meta::new(
                 String::from("Assay"),
                 vec![String::from("WholeGenome"), String::from("Exome")],
@@ -455,5 +456,7 @@ mod tests {
         assert_eq!(header.samples().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
         assert_eq!(header.get("fileDate"), Some(&[record.clone(), record][..]));
+
+        Ok(())
     }
 }
