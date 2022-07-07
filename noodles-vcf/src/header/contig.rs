@@ -68,6 +68,23 @@ impl Contig {
         self.len
     }
 
+    /// Returns a mutable reference to the length of the contig.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::Contig;
+    ///
+    /// let mut contig = Contig::new("sq0");
+    /// assert!(contig.len().is_none());
+    ///
+    /// *contig.len_mut() = Some(8);
+    /// assert_eq!(contig.len(), Some(8));
+    /// ```
+    pub fn len_mut(&mut self) -> &mut Option<i32> {
+        &mut self.len
+    }
+
     /// Returns the index of the ID in the dictionary of strings.
     ///
     /// This is typically used in BCF.

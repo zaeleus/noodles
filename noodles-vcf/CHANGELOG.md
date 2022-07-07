@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * vcf/header/contig: Add mutable getter for length (`Contig::len_mut`)
+    ([#99]).
+
+[#99]: https://github.com/zaeleus/noodles/issues/99
+
 ## 0.17.0 - 2022-07-05
 
 ### Changed
