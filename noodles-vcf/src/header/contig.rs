@@ -1,9 +1,12 @@
 //! VCF header contig record and key.
 
+mod builder;
+
 use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
+use self::builder::Builder;
 use super::{record, Record};
 use crate::record::chromosome;
 
@@ -194,44 +197,32 @@ impl TryFrom<Record> for Contig {
 }
 
 fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordError> {
-    let mut id = None;
-    let mut len = None;
-    let mut idx = None;
-    let mut other_fields = IndexMap::new();
+    let mut builder = Builder::default();
 
     for (key, value) in fields {
-        match key.as_ref() {
+        builder = match key.as_ref() {
             ID => {
                 if !chromosome::is_valid_name(&value) {
                     return Err(TryFromRecordError::InvalidId);
                 }
 
-                id = Some(value);
+                builder.set_id(value)
             }
             LENGTH => {
-                len = value
-                    .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidLength)?;
+                let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
+                builder.set_len(len)
             }
             IDX => {
-                idx = value
-                    .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidIdx)?;
+                let idx = value.parse().map_err(TryFromRecordError::InvalidIdx)?;
+                builder.set_idx(idx)
             }
-            _ => {
-                other_fields.insert(key, value);
-            }
+            _ => builder.insert(key, value),
         }
     }
 
-    Ok(Contig {
-        id: id.ok_or(TryFromRecordError::MissingField(ID))?,
-        len,
-        idx,
-        fields: other_fields,
-    })
+    builder
+        .build()
+        .map_err(|_| TryFromRecordError::InvalidRecord)
 }
 
 #[cfg(test)]
