@@ -1,5 +1,6 @@
 //! VCF header information record and components.
 
+mod builder;
 pub mod key;
 pub mod ty;
 
@@ -9,6 +10,7 @@ use std::{error, fmt, num};
 
 use indexmap::IndexMap;
 
+use self::builder::Builder;
 use super::{number, record, FileFormat, Number, Record};
 
 const ID: &str = "ID";
@@ -223,8 +225,6 @@ impl fmt::Display for Info {
 pub enum TryFromRecordError {
     /// The record is invalid.
     InvalidRecord,
-    /// A required field is missing.
-    MissingField(&'static str),
     /// The ID is invalid.
     InvalidId(key::ParseError),
     /// The number is invalid.
@@ -245,7 +245,6 @@ impl fmt::Display for TryFromRecordError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidRecord => f.write_str("invalid record"),
-            Self::MissingField(key) => write!(f, "missing field: {}", key),
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
@@ -272,77 +271,53 @@ fn parse_struct(
     file_format: FileFormat,
     fields: Vec<(String, String)>,
 ) -> Result<Info, TryFromRecordError> {
-    let mut it = fields.into_iter();
+    let mut builder = Builder::default();
 
-    let id = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(ID))
-        .and_then(|(k, v)| match k.as_ref() {
-            ID => v.parse().map_err(TryFromRecordError::InvalidId),
-            _ => Err(TryFromRecordError::MissingField(ID)),
-        })?;
+    for (key, value) in fields {
+        builder = match key.as_ref() {
+            ID => {
+                let id = value.parse().map_err(TryFromRecordError::InvalidId)?;
+                builder.set_id(id)
+            }
+            NUMBER => {
+                let number = value.parse().map_err(TryFromRecordError::InvalidNumber)?;
+                builder.set_number(number)
+            }
+            TYPE => {
+                let ty = value.parse().map_err(TryFromRecordError::InvalidType)?;
+                builder.set_type(ty)
+            }
+            DESCRIPTION => builder.set_description(value),
+            IDX => {
+                let idx = value.parse().map_err(TryFromRecordError::InvalidIdx)?;
+                builder.set_idx(idx)
+            }
+            _ => builder.insert(key, value),
+        }
+    }
 
-    let number = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(NUMBER))
-        .and_then(|(k, v)| match k.as_ref() {
-            NUMBER => v.parse().map_err(TryFromRecordError::InvalidNumber),
-            _ => Err(TryFromRecordError::MissingField(NUMBER)),
-        })?;
+    let info = builder
+        .build()
+        .map_err(|_| TryFromRecordError::InvalidRecord)?;
 
-    let ty = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(TYPE))
-        .and_then(|(k, v)| match k.as_ref() {
-            TYPE => v.parse().map_err(TryFromRecordError::InvalidType),
-            _ => Err(TryFromRecordError::MissingField(TYPE)),
-        })?;
+    let id = info.id();
 
     if file_format >= FileFormat::new(4, 3) && !matches!(id, Key::Other(..)) {
-        if let (Some(expected_number), Some(expected_type)) = (key::number(&id), key::ty(&id)) {
-            if number != expected_number {
-                return Err(TryFromRecordError::NumberMismatch(number, expected_number));
+        if let (Some(expected_number), Some(expected_type)) = (key::number(id), key::ty(id)) {
+            if info.number() != expected_number {
+                return Err(TryFromRecordError::NumberMismatch(
+                    info.number(),
+                    expected_number,
+                ));
             }
 
-            if ty != expected_type {
-                return Err(TryFromRecordError::TypeMismatch(ty, expected_type));
-            }
-        }
-    }
-
-    let description = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(DESCRIPTION))
-        .and_then(|(k, v)| match k.as_ref() {
-            DESCRIPTION => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(DESCRIPTION)),
-        })?;
-
-    let mut idx = None;
-    let mut fields = IndexMap::new();
-
-    for (key, value) in it {
-        match key.as_ref() {
-            IDX => {
-                idx = value
-                    .parse()
-                    .map(Some)
-                    .map_err(TryFromRecordError::InvalidIdx)?;
-            }
-            _ => {
-                fields.insert(key, value);
+            if info.ty() != expected_type {
+                return Err(TryFromRecordError::TypeMismatch(info.ty(), expected_type));
             }
         }
     }
 
-    Ok(Info {
-        id,
-        number,
-        ty,
-        description,
-        idx,
-        fields,
-    })
+    Ok(info)
 }
 
 #[cfg(test)]
@@ -505,10 +480,10 @@ mod tests {
     fn test_try_from_record_for_info_with_a_missing_field() {
         let record = Record::new(record::Key::Info, record::Value::Struct(Vec::new()));
 
-        assert!(matches!(
+        assert_eq!(
             Info::try_from(record),
-            Err(TryFromRecordError::MissingField(_))
-        ));
+            Err(TryFromRecordError::InvalidRecord)
+        );
     }
 
     #[test]
