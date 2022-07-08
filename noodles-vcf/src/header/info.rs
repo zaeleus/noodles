@@ -39,12 +39,12 @@ impl Info {
     /// ```
     /// use noodles_vcf::header::{
     ///     info::{Key as InfoKey, Type},
-    ///     record::{Key as RecordKey, Value},
+    ///     record::{self, Value},
     ///     FileFormat, Info, Number, Record,
     /// };
     ///
     /// let record = Record::new(
-    ///     RecordKey::Info,
+    ///     record::key::INFO,
     ///     Value::Struct(vec![
     ///         (String::from("ID"), String::from("NS")),
     ///         (String::from("Number"), String::from("1")),
@@ -71,7 +71,7 @@ impl Info {
         file_format: FileFormat,
     ) -> Result<Self, TryFromRecordError> {
         match record.into() {
-            (record::Key::Info, record::Value::Struct(fields)) => parse_struct(file_format, fields),
+            (record::key::INFO, record::Value::Struct(fields)) => parse_struct(file_format, fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -196,7 +196,7 @@ impl From<Key> for Info {
 impl fmt::Display for Info {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Info.as_ref())?;
+        f.write_str(record::key::INFO.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id)?;
@@ -329,7 +329,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
@@ -371,7 +371,7 @@ mod tests {
     #[test]
     fn test_try_from_record_file_format() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from(".")),
@@ -412,7 +412,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_extra_fields() -> Result<(), &'static str> {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
@@ -456,7 +456,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_record_key() {
         let record = Record::new(
-            record::Key::FileFormat,
+            record::key::FILE_FORMAT,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
@@ -477,7 +477,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_record_value() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::String(String::from("VCFv4.3")),
         );
 
@@ -489,7 +489,7 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_info_with_a_missing_field() {
-        let record = Record::new(record::Key::Info, record::Value::Struct(Vec::new()));
+        let record = Record::new(record::key::INFO, record::Value::Struct(Vec::new()));
 
         assert_eq!(
             Info::try_from(record),
@@ -500,7 +500,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_id() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("")),
                 (String::from("Number"), String::from("1")),
@@ -521,7 +521,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_number() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("NA")),
@@ -542,7 +542,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_type() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
@@ -563,7 +563,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_idx() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),
@@ -585,7 +585,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_a_number_mismatch() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from(".")),
@@ -609,7 +609,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_info_with_a_type_mismatch() {
         let record = Record::new(
-            record::Key::Info,
+            record::key::INFO,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("NS")),
                 (String::from("Number"), String::from("1")),

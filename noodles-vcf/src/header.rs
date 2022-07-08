@@ -609,7 +609,7 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
     /// let record = Record::new(
-    ///     Key::Other(String::from("fileDate")),
+    ///     Key::from("fileDate"),
     ///     Value::String(String::from("20200709")),
     /// );
     ///
@@ -639,7 +639,7 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let record = Record::new(
-    ///     Key::Other(String::from("fileDate")),
+    ///     Key::from("fileDate"),
     ///     Value::String(String::from("20200709")),
     /// );
     ///
@@ -665,7 +665,7 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
     /// let record = Record::new(
-    ///     Key::Other(String::from("fileDate")),
+    ///     Key::from("fileDate"),
     ///     Value::String(String::from("20200709")),
     /// );
     ///
@@ -686,7 +686,7 @@ impl Header {
     /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
     /// let record = Record::new(
-    ///     Key::Other(String::from("fileDate")),
+    ///     Key::from("fileDate"),
     ///     Value::String(String::from("20200709")),
     /// );
     ///
@@ -717,7 +717,7 @@ impl std::fmt::Display for Header {
             f,
             "{}{}={}",
             record::PREFIX,
-            record::Key::FileFormat,
+            record::key::FILE_FORMAT,
             self.file_format()
         )?;
 
@@ -742,7 +742,7 @@ impl std::fmt::Display for Header {
                 f,
                 "{}{}={}",
                 record::PREFIX,
-                record::Key::Assembly,
+                record::key::ASSEMBLY,
                 assembly
             )?;
         }
@@ -768,7 +768,7 @@ impl std::fmt::Display for Header {
                 f,
                 "{}{}={}",
                 record::PREFIX,
-                record::Key::PedigreeDb,
+                record::key::PEDIGREE_DB,
                 pedigree_db
             )?;
         }
@@ -839,7 +839,7 @@ mod tests {
                 .collect(),
             ))
             .insert(Record::new(
-                record::Key::Other(String::from("fileDate")),
+                record::Key::from("fileDate"),
                 record::Value::String(String::from("20200514")),
             ))
             .build();
@@ -883,11 +883,11 @@ mod tests {
     fn test_insert_with_duplicate_keys() {
         let records = [
             Record::new(
-                record::Key::Other(String::from("noodles")),
+                record::Key::from("noodles"),
                 record::Value::String(String::from("0")),
             ),
             Record::new(
-                record::Key::Other(String::from("noodles")),
+                record::Key::from("noodles"),
                 record::Value::String(String::from("1")),
             ),
         ];

@@ -336,7 +336,7 @@ impl Builder {
     /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
     ///
     /// let record = Record::new(
-    ///     Key::Other(String::from("fileDate")),
+    ///     Key::from("fileDate"),
     ///     Value::String(String::from("20200709")),
     /// );
     ///
@@ -408,7 +408,7 @@ mod tests {
         };
 
         let record = Record::new(
-            header::record::Key::Other(String::from("fileDate")),
+            header::record::Key::from("fileDate"),
             header::record::Value::String(String::from("20200709")),
         );
 

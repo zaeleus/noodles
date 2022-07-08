@@ -22,6 +22,9 @@
 
   * vcf/header/contig: Change length to `usize`.
 
+  * vcf/header/record/key: Split standard (`Standard`) and nonstandard
+    (`Other`) keys.
+
 ## 0.17.0 - 2022-07-05
 
 ### Changed

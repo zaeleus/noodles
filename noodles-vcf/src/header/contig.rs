@@ -117,7 +117,7 @@ impl Contig {
     /// use noodles_vcf::header::{contig, record, Record, Contig};
     ///
     /// let record = Record::new(
-    ///     record::Key::Contig,
+    ///     record::key::CONTIG,
     ///     record::Value::Struct(vec![
     ///         (String::from("ID"), String::from("sq0")),
     ///         (String::from("md5"), String::from("d7eba311421bbc9d3ada44709dd61534")),
@@ -138,7 +138,7 @@ impl Contig {
 impl fmt::Display for Contig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Contig.as_ref())?;
+        f.write_str(record::key::CONTIG.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id)?;
@@ -196,7 +196,7 @@ impl TryFrom<Record> for Contig {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::Contig, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::CONTIG, record::Value::Struct(fields)) => parse_struct(fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -236,7 +236,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("sq0")),
                 (String::from("length"), String::from("13")),
@@ -285,7 +285,7 @@ mod tests {
     fn test_try_from_record_for_contig_with_extra_fields() -> Result<(), Box<dyn std::error::Error>>
     {
         let record = Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("sq0")),
                 (String::from("length"), String::from("13")),
@@ -318,7 +318,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_contig_with_an_invalid_record_key() {
         let record = Record::new(
-            record::Key::FileFormat,
+            record::key::FILE_FORMAT,
             record::Value::Struct(vec![(String::from("ID"), String::from("sq0"))]),
         );
 
@@ -331,7 +331,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_contig_with_an_invalid_record_value() {
         let record = Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::String(String::from("VCF4.3")),
         );
 
@@ -344,7 +344,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_contig_with_an_invalid_id() {
         let record = Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::Struct(vec![(String::from("ID"), String::from("sq 0"))]),
         );
 
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_contig_with_an_invalid_length() {
         let record = Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("sq0")),
                 (String::from("length"), String::from("NA")),
@@ -373,7 +373,7 @@ mod tests {
     #[test]
     fn test() {
         let record = Record::new(
-            record::Key::Contig,
+            record::key::CONTIG,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("sq0")),
                 (String::from("length"), String::from("13")),

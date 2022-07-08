@@ -133,7 +133,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
         .ok_or(ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
-    if record.key() == &record::Key::FileFormat {
+    if record.key() == &record::key::FILE_FORMAT {
         match record.value() {
             record::Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
             _ => Err(ParseError::InvalidRecordValue),
@@ -148,54 +148,54 @@ fn parse_record(
     mut builder: Builder,
     line: &str,
 ) -> Result<Builder, ParseError> {
-    use record::Key;
+    use record::{key, Key};
 
     let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-    builder = match record.key() {
-        Key::FileFormat => {
+    builder = match *record.key() {
+        key::FILE_FORMAT => {
             return Err(ParseError::UnexpectedFileFormat);
         }
-        Key::Info => {
+        key::INFO => {
             let info = Info::try_from_record_file_format(record, file_format)
                 .map_err(ParseError::InvalidInfo)?;
             builder.add_info(info)
         }
-        Key::Filter => {
+        key::FILTER => {
             let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
             builder.add_filter(filter)
         }
-        Key::Format => {
+        key::FORMAT => {
             let format = Format::try_from_record_file_format(record, file_format)
                 .map_err(ParseError::InvalidFormat)?;
             builder.add_format(format)
         }
-        Key::AlternativeAllele => {
+        key::ALTERNATIVE_ALLELE => {
             let alternative_allele = AlternativeAllele::try_from(record)
                 .map_err(ParseError::InvalidAlternativeAllele)?;
             builder.add_alternative_allele(alternative_allele)
         }
-        Key::Assembly => match record.value() {
+        key::ASSEMBLY => match record.value() {
             record::Value::String(value) => builder.set_assembly(value),
             _ => return Err(ParseError::InvalidRecordValue),
         },
-        Key::Contig => {
+        key::CONTIG => {
             let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
             builder.add_contig(contig)
         }
-        Key::Meta => {
+        key::META => {
             let meta = Meta::try_from(record).map_err(ParseError::InvalidMeta)?;
             builder.add_meta(meta)
         }
-        Key::Sample => {
+        key::SAMPLE => {
             let sample = Sample::try_from(record).map_err(ParseError::InvalidSample)?;
             builder.add_sample(sample)
         }
-        Key::Pedigree => {
+        key::PEDIGREE => {
             let pedigree = Pedigree::try_from(record).map_err(ParseError::InvalidPedigree)?;
             builder.add_pedigree(pedigree)
         }
-        Key::PedigreeDb => match record.value() {
+        key::PEDIGREE_DB => match record.value() {
             record::Value::String(value) => builder.set_pedigree_db(value),
             _ => return Err(ParseError::InvalidRecordValue),
         },
@@ -286,7 +286,7 @@ mod tests {
             header.get("fileDate"),
             Some(
                 &[Record::new(
-                    record::Key::Other(String::from("fileDate")),
+                    record::Key::from("fileDate"),
                     record::Value::String(String::from("20200506")),
                 )][..]
             )
@@ -296,7 +296,7 @@ mod tests {
             header.get("source"),
             Some(
                 &[Record::new(
-                    record::Key::Other(String::from("source")),
+                    record::Key::from("source"),
                     record::Value::String(String::from("noodles-vcf")),
                 )][..]
             )

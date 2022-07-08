@@ -1,10 +1,43 @@
 //! VCF header record key.
 
-use std::{error, fmt, str::FromStr};
+use std::fmt;
 
-/// A VCF header record key.
+/// VCF header record file format key.
+pub const FILE_FORMAT: Key = Key::Standard(Standard::FileFormat);
+
+/// VCF header record info key.
+pub const INFO: Key = Key::Standard(Standard::Info);
+
+/// VCF header record filter key.
+pub const FILTER: Key = Key::Standard(Standard::Filter);
+
+/// VCF header record format key.
+pub const FORMAT: Key = Key::Standard(Standard::Format);
+
+/// VCF header record alternative allele key.
+pub const ALTERNATIVE_ALLELE: Key = Key::Standard(Standard::AlternativeAllele);
+
+/// VCF header record assembly key.
+pub const ASSEMBLY: Key = Key::Standard(Standard::Assembly);
+
+/// VCF header record contig key.
+pub const CONTIG: Key = Key::Standard(Standard::Contig);
+
+/// VCF header record meta key.
+pub const META: Key = Key::Standard(Standard::Meta);
+
+/// VCF header record sample key.
+pub const SAMPLE: Key = Key::Standard(Standard::Sample);
+
+/// VCF header record pedigree key.
+pub const PEDIGREE: Key = Key::Standard(Standard::Pedigree);
+
+/// VCF header record pedigree database key.
+pub const PEDIGREE_DB: Key = Key::Standard(Standard::PedigreeDb);
+
+/// A standard VCF record key.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Key {
+pub enum Standard {
     /// File format (`fileformat`).
     FileFormat,
     /// Information (`INFO`).
@@ -27,11 +60,28 @@ pub enum Key {
     Pedigree,
     /// Pedigree database URI (`pedigreeDB`).
     PedigreeDb,
-    /// Any other record key.
-    Other(String),
 }
 
-impl AsRef<str> for Key {
+impl Standard {
+    fn new(s: &str) -> Option<Self> {
+        match s {
+            "fileformat" => Some(Self::FileFormat),
+            "INFO" => Some(Self::Info),
+            "FILTER" => Some(Self::Filter),
+            "FORMAT" => Some(Self::Format),
+            "ALT" => Some(Self::AlternativeAllele),
+            "assembly" => Some(Self::Assembly),
+            "contig" => Some(Self::Contig),
+            "META" => Some(Self::Meta),
+            "SAMPLE" => Some(Self::Sample),
+            "PEDIGREE" => Some(Self::Pedigree),
+            "pedigreeDB" => Some(Self::PedigreeDb),
+            _ => None,
+        }
+    }
+}
+
+impl AsRef<str> for Standard {
     fn as_ref(&self) -> &str {
         match self {
             Self::FileFormat => "fileformat",
@@ -45,52 +95,88 @@ impl AsRef<str> for Key {
             Self::Sample => "SAMPLE",
             Self::Pedigree => "PEDIGREE",
             Self::PedigreeDb => "pedigreeDB",
-            Self::Other(s) => s,
+        }
+    }
+}
+
+impl fmt::Display for Standard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_ref().fmt(f)
+    }
+}
+
+/// A nonstandard VCF record key.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Other(String);
+
+impl AsRef<str> for Other {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for Other {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_ref().fmt(f)
+    }
+}
+
+/// A VCF header record key.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Key {
+    /// A standard key.
+    Standard(Standard),
+    /// Any nonstandard key.
+    Other(Other),
+}
+
+impl Key {
+    /// Creates a nonstandard key.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::header::record::Key;
+    /// assert!(Key::other("INFO").is_none());
+    /// assert!(Key::other("fileDate").is_some());
+    /// ```
+    pub fn other(s: &str) -> Option<Other> {
+        match Self::from(s) {
+            Self::Standard(_) => None,
+            Self::Other(tag) => Some(tag),
+        }
+    }
+}
+
+impl AsRef<str> for Key {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Standard(tag) => tag.as_ref(),
+            Self::Other(tag) => tag.as_ref(),
         }
     }
 }
 
 impl fmt::Display for Key {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_ref())
+        self.as_ref().fmt(f)
     }
 }
 
-/// An error returned when a raw VCF header record kind fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-}
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
+impl From<&str> for Key {
+    fn from(s: &str) -> Self {
+        match Standard::new(s) {
+            Some(tag) => Self::Standard(tag),
+            None => Self::Other(Other(s.into())),
         }
     }
 }
 
-impl FromStr for Key {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Err(ParseError::Empty),
-            "fileformat" => Ok(Self::FileFormat),
-            "INFO" => Ok(Self::Info),
-            "FILTER" => Ok(Self::Filter),
-            "FORMAT" => Ok(Self::Format),
-            "ALT" => Ok(Self::AlternativeAllele),
-            "assembly" => Ok(Self::Assembly),
-            "contig" => Ok(Self::Contig),
-            "META" => Ok(Self::Meta),
-            "SAMPLE" => Ok(Self::Sample),
-            "PEDIGREE" => Ok(Self::Pedigree),
-            "pedigreeDB" => Ok(Self::PedigreeDb),
-            _ => Ok(Self::Other(s.into())),
+impl From<String> for Key {
+    fn from(s: String) -> Self {
+        match Standard::new(&s) {
+            Some(tag) => Self::Standard(tag),
+            None => Self::Other(Other(s)),
         }
     }
 }
@@ -101,35 +187,39 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        assert_eq!(Key::FileFormat.to_string(), "fileformat");
-        assert_eq!(Key::Info.to_string(), "INFO");
-        assert_eq!(Key::Filter.to_string(), "FILTER");
-        assert_eq!(Key::Format.to_string(), "FORMAT");
-        assert_eq!(Key::AlternativeAllele.to_string(), "ALT");
-        assert_eq!(Key::Assembly.to_string(), "assembly");
-        assert_eq!(Key::Contig.to_string(), "contig");
-        assert_eq!(Key::Meta.to_string(), "META");
-        assert_eq!(Key::Sample.to_string(), "SAMPLE");
-        assert_eq!(Key::Pedigree.to_string(), "PEDIGREE");
-        assert_eq!(Key::PedigreeDb.to_string(), "pedigreeDB");
-        assert_eq!(Key::Other(String::from("fileDate")).to_string(), "fileDate");
+        assert_eq!(FILE_FORMAT.to_string(), "fileformat");
+        assert_eq!(INFO.to_string(), "INFO");
+        assert_eq!(FILTER.to_string(), "FILTER");
+        assert_eq!(FORMAT.to_string(), "FORMAT");
+        assert_eq!(ALTERNATIVE_ALLELE.to_string(), "ALT");
+        assert_eq!(ASSEMBLY.to_string(), "assembly");
+        assert_eq!(CONTIG.to_string(), "contig");
+        assert_eq!(META.to_string(), "META");
+        assert_eq!(SAMPLE.to_string(), "SAMPLE");
+        assert_eq!(PEDIGREE.to_string(), "PEDIGREE");
+        assert_eq!(PEDIGREE_DB.to_string(), "pedigreeDB");
+        assert_eq!(
+            Key::Other(Other(String::from("fileDate"))).to_string(),
+            "fileDate"
+        );
     }
 
     #[test]
-    fn test_from_str() {
-        assert_eq!("fileformat".parse(), Ok(Key::FileFormat));
-        assert_eq!("INFO".parse(), Ok(Key::Info));
-        assert_eq!("FILTER".parse(), Ok(Key::Filter));
-        assert_eq!("FORMAT".parse(), Ok(Key::Format));
-        assert_eq!("ALT".parse(), Ok(Key::AlternativeAllele));
-        assert_eq!("assembly".parse(), Ok(Key::Assembly));
-        assert_eq!("contig".parse(), Ok(Key::Contig));
-        assert_eq!("META".parse(), Ok(Key::Meta));
-        assert_eq!("SAMPLE".parse(), Ok(Key::Sample));
-        assert_eq!("PEDIGREE".parse(), Ok(Key::Pedigree));
-        assert_eq!("pedigreeDB".parse(), Ok(Key::PedigreeDb));
-        assert_eq!("fileDate".parse(), Ok(Key::Other(String::from("fileDate"))));
-
-        assert_eq!("".parse::<Key>(), Err(ParseError::Empty));
+    fn test_from() {
+        assert_eq!(Key::from("fileformat"), FILE_FORMAT);
+        assert_eq!(Key::from("INFO"), INFO);
+        assert_eq!(Key::from("FILTER"), FILTER);
+        assert_eq!(Key::from("FORMAT"), FORMAT);
+        assert_eq!(Key::from("ALT"), ALTERNATIVE_ALLELE);
+        assert_eq!(Key::from("assembly"), ASSEMBLY);
+        assert_eq!(Key::from("contig"), CONTIG);
+        assert_eq!(Key::from("META"), META);
+        assert_eq!(Key::from("SAMPLE"), SAMPLE);
+        assert_eq!(Key::from("PEDIGREE"), PEDIGREE);
+        assert_eq!(Key::from("pedigreeDB"), PEDIGREE_DB);
+        assert_eq!(
+            Key::from("fileDate"),
+            Key::Other(Other(String::from("fileDate")))
+        );
     }
 }

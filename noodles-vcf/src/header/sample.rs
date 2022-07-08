@@ -60,7 +60,7 @@ impl Sample {
 impl fmt::Display for Sample {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Sample.as_ref())?;
+        f.write_str(record::key::SAMPLE.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id())?;
@@ -100,7 +100,7 @@ impl TryFrom<Record> for Sample {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::Sample, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::SAMPLE, record::Value::Struct(fields)) => parse_struct(fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -128,7 +128,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Sample,
+            record::key::SAMPLE,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("sample0")),
                 (String::from("Assay"), String::from("WholeGenome")),

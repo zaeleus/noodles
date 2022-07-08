@@ -73,7 +73,7 @@ impl Meta {
 impl fmt::Display for Meta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Meta.as_ref())?;
+        f.write_str(record::key::META.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id)?;
@@ -132,7 +132,7 @@ impl TryFrom<Record> for Meta {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::Meta, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::META, record::Value::Struct(fields)) => parse_struct(fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -190,7 +190,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Meta,
+            record::key::META,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("Assay")),
                 (String::from("Type"), String::from("String")),

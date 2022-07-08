@@ -60,7 +60,7 @@ impl Pedigree {
 impl fmt::Display for Pedigree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Pedigree.as_ref())?;
+        f.write_str(record::key::PEDIGREE.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "ID={}", self.id())?;
@@ -100,7 +100,7 @@ impl TryFrom<Record> for Pedigree {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::Pedigree, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::PEDIGREE, record::Value::Struct(fields)) => parse_struct(fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -128,7 +128,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Pedigree,
+            record::key::PEDIGREE,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("cid")),
                 (String::from("Father"), String::from("fid")),

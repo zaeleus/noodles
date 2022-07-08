@@ -99,7 +99,7 @@ impl AlternativeAllele {
 impl fmt::Display for AlternativeAllele {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::AlternativeAllele.as_ref())?;
+        f.write_str(record::key::ALTERNATIVE_ALLELE.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id)?;
@@ -142,7 +142,9 @@ impl TryFrom<Record> for AlternativeAllele {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::AlternativeAllele, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::ALTERNATIVE_ALLELE, record::Value::Struct(fields)) => {
+                parse_struct(fields)
+            }
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -182,7 +184,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::AlternativeAllele,
+            record::key::ALTERNATIVE_ALLELE,
             record::Value::Struct(vec![
                 (String::from("ID"), del().to_string()),
                 (String::from("Description"), String::from("Deletion")),
@@ -210,7 +212,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_record_key() {
         let record = Record::new(
-            record::Key::FileFormat,
+            record::key::FILE_FORMAT,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("DEL")),
                 (String::from("Description"), String::from("Deletion")),
@@ -226,7 +228,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_record_value() {
         let record = Record::new(
-            record::Key::AlternativeAllele,
+            record::key::ALTERNATIVE_ALLELE,
             record::Value::String(String::from("VCFv4.3")),
         );
 
@@ -239,7 +241,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_a_missing_field() {
         let record = Record::new(
-            record::Key::AlternativeAllele,
+            record::key::ALTERNATIVE_ALLELE,
             record::Value::Struct(vec![(
                 String::from("Description"),
                 String::from("Deletion"),
@@ -255,7 +257,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_id() {
         let record = Record::new(
-            record::Key::AlternativeAllele,
+            record::key::ALTERNATIVE_ALLELE,
             record::Value::Struct(vec![
                 (String::from("ID"), String::new()),
                 (String::from("Description"), String::from("Deletion")),

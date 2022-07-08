@@ -23,8 +23,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::{record::{Key, Value}, Record};
-    /// let record = Record::new(Key::FileFormat, Value::String(String::from("VCFv4.3")));
+    /// use noodles_vcf::header::{record::{key, Value}, Record};
+    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
     /// ```
     pub fn new(key: Key, value: Value) -> Self {
         Self { key, value }
@@ -35,9 +35,9 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::{record::{Key, Value}, Record};
-    /// let record = Record::new(Key::FileFormat, Value::String(String::from("VCFv4.3")));
-    /// assert_eq!(record.key(), &Key::FileFormat);
+    /// use noodles_vcf::header::{record::{key, Value}, Record};
+    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
+    /// assert_eq!(record.key(), &key::FILE_FORMAT);
     /// ```
     pub fn key(&self) -> &Key {
         &self.key
@@ -48,8 +48,8 @@ impl Record {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::header::{record::{Key, Value}, Record};
-    /// let record = Record::new(Key::FileFormat, Value::String(String::from("VCFv4.3")));
+    /// use noodles_vcf::header::{record::{key, Value}, Record};
+    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
     /// assert_eq!(record.value(), &Value::String(String::from("VCFv4.3")));
     /// ```
     pub fn value(&self) -> &Value {
@@ -62,8 +62,6 @@ impl Record {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
-    /// The record key is invalid.
-    InvalidKey(key::ParseError),
 }
 
 impl error::Error for ParseError {}
@@ -72,7 +70,6 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => f.write_str("invalid input"),
-            Self::InvalidKey(e) => write!(f, "invalid kind: {}", e),
         }
     }
 }
@@ -82,7 +79,7 @@ impl FromStr for Record {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, (raw_key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
-        let key = raw_key.parse().map_err(ParseError::InvalidKey)?;
+        let key = Key::from(raw_key);
         Ok(Self::new(key, value))
     }
 }
@@ -104,7 +101,7 @@ mod tests {
         assert_eq!(
             line.parse(),
             Ok(Record::new(
-                Key::FileFormat,
+                key::FILE_FORMAT,
                 Value::String(String::from("VCFv4.3"))
             ))
         );
@@ -115,7 +112,7 @@ mod tests {
         assert_eq!(
             line.parse(),
             Ok(Record::new(
-                Key::Info,
+                key::INFO,
                 Value::Struct(vec![
                     (String::from("ID"), String::from("NS")),
                     (String::from("Number"), String::from("1")),

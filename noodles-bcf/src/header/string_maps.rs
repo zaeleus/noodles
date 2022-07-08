@@ -119,7 +119,7 @@ impl FromStr for StringMaps {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use vcf::header::record::Key;
+        use vcf::header::record::key;
 
         let mut string_maps = Self::default();
 
@@ -133,8 +133,8 @@ impl FromStr for StringMaps {
 
             let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            match record.key() {
-                Key::Contig => {
+            match *record.key() {
+                key::CONTIG => {
                     let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
                     insert(
                         string_maps.contigs_mut(),
@@ -142,11 +142,11 @@ impl FromStr for StringMaps {
                         contig.idx(),
                     )?;
                 }
-                Key::Filter => {
+                key::FILTER => {
                     let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
                     insert(string_maps.strings_mut(), filter.id(), filter.idx())?;
                 }
-                Key::Format => {
+                key::FORMAT => {
                     let format = Format::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidFormat)?;
 
@@ -156,7 +156,7 @@ impl FromStr for StringMaps {
                         format.idx(),
                     )?;
                 }
-                Key::Info => {
+                key::INFO => {
                     let info = Info::try_from_record_file_format(record, file_format)
                         .map_err(ParseError::InvalidInfo)?;
                     insert(string_maps.strings_mut(), info.id().as_ref(), info.idx())?;
@@ -170,14 +170,14 @@ impl FromStr for StringMaps {
 }
 
 fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, ParseError> {
-    use vcf::header::record::{Key, Value};
+    use vcf::header::record::{key, Value};
 
     let record: Record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
-    if record.key() == &Key::FileFormat {
+    if record.key() == &key::FILE_FORMAT {
         match record.value() {
             Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
             _ => Err(ParseError::InvalidRecordValue),

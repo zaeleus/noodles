@@ -115,7 +115,7 @@ impl Filter {
 impl fmt::Display for Filter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(record::PREFIX)?;
-        f.write_str(record::Key::Filter.as_ref())?;
+        f.write_str(record::key::FILTER.as_ref())?;
         f.write_str("=<")?;
 
         write!(f, "{}={}", ID, self.id)?;
@@ -166,7 +166,7 @@ impl TryFrom<Record> for Filter {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::Key::Filter, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::FILTER, record::Value::Struct(fields)) => parse_struct(fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
@@ -222,7 +222,7 @@ mod tests {
 
     fn build_record() -> Record {
         Record::new(
-            record::Key::Filter,
+            record::key::FILTER,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("q10")),
                 (
@@ -257,7 +257,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_extra_fields() {
         let record = Record::new(
-            record::Key::Filter,
+            record::key::FILTER,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("q10")),
                 (
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_record_key() {
         let record = Record::new(
-            record::Key::FileFormat,
+            record::key::FILE_FORMAT,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("q10")),
                 (
@@ -304,7 +304,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_record_value() {
         let record = Record::new(
-            record::Key::Filter,
+            record::key::FILTER,
             record::Value::String(String::from("VCFv4.3")),
         );
 
@@ -317,7 +317,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_a_missing_field() {
         let record = Record::new(
-            record::Key::Filter,
+            record::key::FILTER,
             record::Value::Struct(vec![(String::from("ID"), String::from("q10"))]),
         );
 
@@ -330,7 +330,7 @@ mod tests {
     #[test]
     fn test_try_from_record_for_filter_with_an_invalid_idx() {
         let record = Record::new(
-            record::Key::Filter,
+            record::key::FILTER,
             record::Value::Struct(vec![
                 (String::from("ID"), String::from("q10")),
                 (
