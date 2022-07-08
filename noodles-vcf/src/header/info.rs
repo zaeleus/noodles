@@ -2,9 +2,10 @@
 
 mod builder;
 pub mod key;
+mod tag;
 pub mod ty;
 
-pub use self::{key::Key, ty::Type};
+pub use self::{key::Key, tag::Tag, ty::Type};
 
 use std::{error, fmt, num};
 
@@ -27,7 +28,7 @@ pub struct Info {
     ty: Type,
     description: String,
     idx: Option<usize>,
-    fields: IndexMap<String, String>,
+    fields: IndexMap<tag::Other, String>,
 }
 
 impl Info {
@@ -178,7 +179,7 @@ impl Info {
     /// let info = Info::from(Key::SamplesWithDataCount);
     /// assert!(info.fields().is_empty());
     /// ```
-    pub fn fields(&self) -> &IndexMap<String, String> {
+    pub fn fields(&self) -> &IndexMap<tag::Other, String> {
         &self.fields
     }
 }
@@ -274,25 +275,27 @@ fn parse_struct(
     let mut builder = Builder::default();
 
     for (key, value) in fields {
-        builder = match key.as_ref() {
-            ID => {
+        let tag = Tag::from(key);
+
+        builder = match tag {
+            tag::ID => {
                 let id = value.parse().map_err(TryFromRecordError::InvalidId)?;
                 builder.set_id(id)
             }
-            NUMBER => {
+            tag::NUMBER => {
                 let number = value.parse().map_err(TryFromRecordError::InvalidNumber)?;
                 builder.set_number(number)
             }
-            TYPE => {
+            tag::TYPE => {
                 let ty = value.parse().map_err(TryFromRecordError::InvalidType)?;
                 builder.set_type(ty)
             }
-            DESCRIPTION => builder.set_description(value),
-            IDX => {
+            tag::DESCRIPTION => builder.set_description(value),
+            tag::IDX => {
                 let idx = value.parse().map_err(TryFromRecordError::InvalidIdx)?;
                 builder.set_idx(idx)
             }
-            _ => builder.insert(key, value),
+            Tag::Other(t) => builder.insert(t, value),
         }
     }
 
@@ -407,7 +410,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_extra_fields() {
+    fn test_try_from_record_for_info_with_extra_fields() -> Result<(), &'static str> {
         let record = Record::new(
             record::Key::Info,
             record::Value::Struct(vec![
@@ -433,13 +436,21 @@ mod tests {
                 description: String::from("Number of samples with data"),
                 idx: Some(1),
                 fields: [
-                    (String::from("Source"), String::from("dbsnp")),
-                    (String::from("Version"), String::from("138")),
+                    (
+                        Tag::other("Source").ok_or("invalid tag")?,
+                        String::from("dbsnp")
+                    ),
+                    (
+                        Tag::other("Version").ok_or("invalid tag")?,
+                        String::from("138")
+                    ),
                 ]
                 .into_iter()
                 .collect()
             })
         );
+
+        Ok(())
     }
 
     #[test]
