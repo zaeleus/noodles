@@ -4,23 +4,23 @@
 
 ### Added
 
+  * vcf/header: Add tag wrappers for `contig`, `FORMAT`, and `INFO` records.
+
+    This separates standard tags from nonstandard tags.
+
   * vcf/header/contig: Add mutable getter for length (`Contig::len_mut`)
     ([#99]).
 
   * vcf/header/contig: Add name wrapper (`Name`).
 
-  * vcf/header: Add tag wrappers for `contig`, `FORMAT`, and `INFO` records.
-
-    This separates standard tags from nonstandard tags.
-
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
 ### Changed
 
-  * vcf/header/contig: Change length to `usize`.
-
   * vcf/header: `contig`, `FORMAT`, and `INFO` records can only have
     nonstandard tags in their other fields.
+
+  * vcf/header/contig: Change length to `usize`.
 
 ## 0.17.0 - 2022-07-05
 
