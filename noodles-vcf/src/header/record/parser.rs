@@ -267,6 +267,10 @@ fn record_key(input: &str) -> IResult<&str, &str> {
     delimited(tag(PREFIX), take_until("="), tag("="))(input)
 }
 
+fn record_value(input: &str) -> IResult<&str, Value> {
+    alt((generic_structure, generic_value))(input)
+}
+
 fn record(input: &str) -> IResult<&str, (String, Value)> {
     let (input, key) = record_key(input)?;
 
@@ -276,7 +280,7 @@ fn record(input: &str) -> IResult<&str, (String, Value)> {
         "FORMAT" => format_structure(input)?,
         "ALT" => alternative_allele_structure(input)?,
         "META" => meta_structure(input)?,
-        _ => alt((generic_structure, generic_value))(input)?,
+        _ => record_value(input)?,
     };
 
     Ok((input, (key.into(), value)))
