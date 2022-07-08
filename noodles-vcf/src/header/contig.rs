@@ -2,8 +2,9 @@
 
 mod builder;
 pub mod name;
+mod tag;
 
-pub use self::name::Name;
+pub use self::{name::Name, tag::Tag};
 
 use std::{error, fmt, num};
 
@@ -22,7 +23,7 @@ pub struct Contig {
     id: Name,
     len: Option<usize>,
     idx: Option<usize>,
-    fields: IndexMap<String, String>,
+    fields: IndexMap<tag::Other, String>,
 }
 
 #[allow(clippy::len_without_is_empty)]
@@ -205,20 +206,22 @@ fn parse_struct(fields: Vec<(String, String)>) -> Result<Contig, TryFromRecordEr
     let mut builder = Builder::default();
 
     for (key, value) in fields {
-        builder = match key.as_ref() {
-            ID => {
+        let tag = Tag::from(key);
+
+        builder = match tag {
+            tag::ID => {
                 let id = value.parse().map_err(TryFromRecordError::InvalidId)?;
                 builder.set_id(id)
             }
-            LENGTH => {
+            tag::LENGTH => {
                 let len = value.parse().map_err(TryFromRecordError::InvalidLength)?;
                 builder.set_len(len)
             }
-            IDX => {
+            tag::IDX => {
                 let idx = value.parse().map_err(TryFromRecordError::InvalidIdx)?;
                 builder.set_idx(idx)
             }
-            _ => builder.insert(key, value),
+            Tag::Other(t) => builder.insert(t, value),
         }
     }
 
@@ -257,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_contig() -> Result<(), name::ParseError> {
+    fn test_try_from_record_for_contig() -> Result<(), Box<dyn std::error::Error>> {
         let record = build_record();
 
         assert_eq!(
@@ -267,7 +270,7 @@ mod tests {
                 len: Some(13),
                 idx: None,
                 fields: [(
-                    String::from("md5"),
+                    Tag::other("md5").ok_or("invalid tag")?,
                     String::from("d7eba311421bbc9d3ada44709dd61534")
                 )]
                 .into_iter()
@@ -279,7 +282,8 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_extra_fields() -> Result<(), name::ParseError> {
+    fn test_try_from_record_for_contig_with_extra_fields() -> Result<(), Box<dyn std::error::Error>>
+    {
         let record = Record::new(
             record::Key::Contig,
             record::Value::Struct(vec![
@@ -300,7 +304,7 @@ mod tests {
                 len: Some(13),
                 idx: Some(1),
                 fields: [(
-                    String::from("md5"),
+                    Tag::other("md5").ok_or("invalid tag")?,
                     String::from("d7eba311421bbc9d3ada44709dd61534")
                 )]
                 .into_iter()

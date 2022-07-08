@@ -1,13 +1,13 @@
 use indexmap::IndexMap;
 
-use super::{Contig, Name, ID};
+use super::{tag, Contig, Name, ID};
 
 #[derive(Default)]
 pub struct Builder {
     id: Option<Name>,
     len: Option<usize>,
     idx: Option<usize>,
-    other_fields: IndexMap<String, String>,
+    other_fields: IndexMap<tag::Other, String>,
 }
 
 impl Builder {
@@ -26,7 +26,7 @@ impl Builder {
         self
     }
 
-    pub fn insert(mut self, key: String, value: String) -> Self {
+    pub fn insert(mut self, key: tag::Other, value: String) -> Self {
         self.other_fields.insert(key, value);
         self
     }

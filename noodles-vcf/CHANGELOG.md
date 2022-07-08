@@ -9,11 +9,17 @@
 
   * vcf/header/contig: Add name wrapper (`Name`).
 
+  * vcf/header/contig: Add tag wrapper (`Tag`).
+
+    This separates standard tags from nonstandard tags.
+
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
 ### Changed
 
   * vcf/header/contig: Change length to `usize`.
+
+  * vcf/header/contig: The other fields can only have nonstandard tags.
 
 ## 0.17.0 - 2022-07-05
 
