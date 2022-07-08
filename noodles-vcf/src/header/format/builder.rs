@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use super::{Format, Key, Type};
+use super::{tag, Format, Key, Type};
 use crate::header::Number;
 
 #[derive(Default)]
@@ -10,7 +10,7 @@ pub struct Builder {
     ty: Option<Type>,
     description: Option<String>,
     idx: Option<usize>,
-    other_fields: IndexMap<String, String>,
+    other_fields: IndexMap<tag::Other, String>,
 }
 
 impl Builder {
@@ -42,7 +42,7 @@ impl Builder {
         self
     }
 
-    pub fn insert(mut self, key: String, value: String) -> Self {
+    pub fn insert(mut self, key: tag::Other, value: String) -> Self {
         self.other_fields.insert(key, value);
         self
     }

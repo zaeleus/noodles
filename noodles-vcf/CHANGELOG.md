@@ -9,7 +9,7 @@
 
   * vcf/header/contig: Add name wrapper (`Name`).
 
-  * vcf/header: Add tag wrappers for `contig` and `INFO` records.
+  * vcf/header: Add tag wrappers for `contig`, `FORMAT`, and `INFO` records.
 
     This separates standard tags from nonstandard tags.
 
@@ -19,8 +19,8 @@
 
   * vcf/header/contig: Change length to `usize`.
 
-  * vcf/header: `contig` and `INFO` records can only have nonstandard tags in
-    their other fields.
+  * vcf/header: `contig`, `FORMAT`, and `INFO` records can only have
+    nonstandard tags in their other fields.
 
 ## 0.17.0 - 2022-07-05
 
