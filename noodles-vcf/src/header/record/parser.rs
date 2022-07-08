@@ -263,8 +263,12 @@ fn generic_value(input: &str) -> IResult<&str, Value> {
     map(alt((string, value)), Value::String)(input)
 }
 
+fn record_key(input: &str) -> IResult<&str, &str> {
+    delimited(tag(PREFIX), take_until("="), tag("="))(input)
+}
+
 fn record(input: &str) -> IResult<&str, (String, Value)> {
-    let (input, key) = delimited(tag(PREFIX), take_until("="), tag("="))(input)?;
+    let (input, key) = record_key(input)?;
 
     let (input, value) = match key {
         "INFO" => info_structure(input)?,
