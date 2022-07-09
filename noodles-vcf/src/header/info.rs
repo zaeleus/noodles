@@ -76,6 +76,13 @@ impl Info {
         }
     }
 
+    pub(crate) fn try_from_fields(
+        fields: Vec<(String, String)>,
+        file_format: FileFormat,
+    ) -> Result<Self, TryFromRecordError> {
+        parse_struct(file_format, fields)
+    }
+
     /// Creates a VCF header information record.
     ///
     /// # Examples

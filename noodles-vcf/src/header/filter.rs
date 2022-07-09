@@ -34,6 +34,12 @@ impl Filter {
         Self::new(Filters::Pass.to_string(), "All filters passed")
     }
 
+    pub(crate) fn try_from_fields(
+        fields: Vec<(String, String)>,
+    ) -> Result<Self, TryFromRecordError> {
+        parse_struct(fields)
+    }
+
     /// Creates a VCF header filter record.
     ///
     /// # Examples

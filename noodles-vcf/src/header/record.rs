@@ -1,7 +1,7 @@
 //! VCF header record and components.
 
 pub mod key;
-mod parser;
+pub(crate) mod parser;
 mod value;
 
 pub use self::{key::Key, value::Value};

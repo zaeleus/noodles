@@ -16,6 +16,12 @@ pub struct Pedigree {
 }
 
 impl Pedigree {
+    pub(crate) fn try_from_fields(
+        fields: Vec<(String, String)>,
+    ) -> Result<Self, TryFromRecordError> {
+        parse_struct(fields)
+    }
+
     /// Creates a VCF header pedigree record.
     ///
     /// # Examples

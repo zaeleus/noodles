@@ -17,6 +17,12 @@ pub struct Meta {
 }
 
 impl Meta {
+    pub(crate) fn try_from_fields(
+        fields: Vec<(String, String)>,
+    ) -> Result<Self, TryFromRecordError> {
+        parse_struct(fields)
+    }
+
     /// Creates a VCF header meta record.
     ///
     /// # Examples
