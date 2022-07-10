@@ -1,3 +1,5 @@
+use std::vec;
+
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
@@ -5,10 +7,7 @@ use noodles_csi::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{
-    reader::query::{intersects, next_chunk},
-    Header, Record,
-};
+use crate::{reader::query::intersects, Header, Record};
 
 enum State {
     Seek,
@@ -22,8 +21,7 @@ where
 {
     reader: &'r mut Reader<bgzf::AsyncReader<R>>,
 
-    chunks: Vec<Chunk>,
-    i: usize,
+    chunks: vec::IntoIter<Chunk>,
 
     reference_sequence_name: String,
     interval: Interval,
@@ -46,8 +44,7 @@ where
     let ctx = Context {
         reader,
 
-        chunks,
-        i: 0,
+        chunks: chunks.into_iter(),
 
         reference_sequence_name,
         interval,
@@ -61,7 +58,7 @@ where
         loop {
             match ctx.state {
                 State::Seek => {
-                    ctx.state = match next_chunk(&ctx.chunks, &mut ctx.i) {
+                    ctx.state = match ctx.chunks.next() {
                         Some(chunk) => {
                             ctx.reader.seek(chunk.start()).await?;
                             State::Read(chunk.end())
