@@ -1,4 +1,7 @@
-use std::io::{self, Read, Seek};
+use std::{
+    io::{self, Read, Seek},
+    vec,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
@@ -22,8 +25,7 @@ where
 {
     reader: &'r mut Reader<bgzf::Reader<R>>,
 
-    chunks: Vec<Chunk>,
-    i: usize,
+    chunks: vec::IntoIter<Chunk>,
 
     reference_sequence_name: String,
     interval: Interval,
@@ -47,8 +49,7 @@ where
         Self {
             reader,
 
-            chunks,
-            i: 0,
+            chunks: chunks.into_iter(),
 
             reference_sequence_name,
             interval,
@@ -83,7 +84,7 @@ where
         loop {
             match self.state {
                 State::Seek => {
-                    self.state = match next_chunk(&self.chunks, &mut self.i) {
+                    self.state = match self.chunks.next() {
                         Some(chunk) => {
                             if let Err(e) = self.reader.seek(chunk.start()) {
                                 return Some(Err(e));
