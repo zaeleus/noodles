@@ -194,7 +194,7 @@ where
     /// let header = reader.read_header()?.parse()?;
     ///
     /// let mut records = reader.records(&header);
-    /// assert!(dbg!(records.next()).is_some());
+    /// assert!(records.next().is_some());
     /// assert!(records.next().is_none());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
