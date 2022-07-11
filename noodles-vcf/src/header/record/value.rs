@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self, Write};
 
 /// A VCF header record value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -14,6 +14,8 @@ impl fmt::Display for Value {
         match self {
             Self::String(value) => f.write_str(value),
             Self::Struct(fields) => {
+                f.write_char('<')?;
+
                 for (i, (key, value)) in fields.iter().enumerate() {
                     if i > 0 {
                         f.write_str(",")?;
@@ -21,6 +23,8 @@ impl fmt::Display for Value {
 
                     write!(f, "{}={}", key, value)?;
                 }
+
+                f.write_char('>')?;
 
                 Ok(())
             }
@@ -41,7 +45,7 @@ mod tests {
 
         assert_eq!(
             Value::Struct(vec![(String::from("ID"), String::from("sq0"))]).to_string(),
-            "ID=sq0"
+            "<ID=sq0>"
         );
 
         assert_eq!(
@@ -50,7 +54,7 @@ mod tests {
                 (String::from("length"), String::from("13"))
             ])
             .to_string(),
-            "ID=sq0,length=13"
+            "<ID=sq0,length=13>"
         );
     }
 }

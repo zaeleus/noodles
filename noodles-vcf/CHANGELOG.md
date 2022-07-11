@@ -25,6 +25,10 @@
   * vcf/header/record/key: Split standard (`Standard`) and nonstandard
     (`Other`) keys.
 
+### Fixed
+
+  * vcf/header/record/value: Write surrounding angle brackets for structs.
+
 ## 0.17.0 - 2022-07-05
 
 ### Changed
