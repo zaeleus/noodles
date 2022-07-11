@@ -13,10 +13,6 @@ use indexmap::IndexMap;
 use self::builder::Builder;
 use super::{record, Record};
 
-const ID: &str = "ID";
-const LENGTH: &str = "length";
-const IDX: &str = "IDX";
-
 /// A VCF header contig record (`contig`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Contig {
@@ -147,10 +143,10 @@ impl fmt::Display for Contig {
         f.write_str(record::key::CONTIG.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", ID, self.id)?;
+        write!(f, "{}={}", tag::ID, self.id)?;
 
         if let Some(len) = self.len {
-            write!(f, ",{}={}", LENGTH, len)?;
+            write!(f, ",{}={}", tag::LENGTH, len)?;
         }
 
         for (key, value) in &self.fields {
@@ -159,7 +155,7 @@ impl fmt::Display for Contig {
         }
 
         if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", IDX, idx)?;
+            write!(f, ",{}={}", tag::IDX, idx)?;
         }
 
         f.write_str(">")?;
@@ -192,7 +188,7 @@ impl fmt::Display for TryFromRecordError {
             Self::MissingField(key) => write!(f, "missing field: {}", key),
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidLength(e) => write!(f, "invalid length: {}", e),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", tag::IDX, e),
         }
     }
 }

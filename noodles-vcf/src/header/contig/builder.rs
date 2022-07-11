@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use super::{tag, Contig, Name, ID};
+use super::{tag, Contig, Name, Tag};
 
 #[derive(Default)]
 pub struct Builder {
@@ -33,7 +33,7 @@ impl Builder {
 
     pub fn build(self) -> Result<Contig, BuildError> {
         Ok(Contig {
-            id: self.id.ok_or(BuildError::MissingField(ID))?,
+            id: self.id.ok_or(BuildError::MissingField(tag::ID))?,
             len: self.len,
             idx: self.idx,
             fields: self.other_fields,
@@ -42,5 +42,5 @@ impl Builder {
 }
 
 pub enum BuildError {
-    MissingField(&'static str),
+    MissingField(Tag),
 }
