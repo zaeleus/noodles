@@ -14,12 +14,6 @@ use indexmap::IndexMap;
 use self::builder::Builder;
 use super::{number, record, FileFormat, Number, Record};
 
-const ID: &str = "ID";
-const NUMBER: &str = "Number";
-const TYPE: &str = "Type";
-const DESCRIPTION: &str = "Description";
-const IDX: &str = "IDX";
-
 /// A VCF header genotype format record (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Format {
@@ -205,11 +199,11 @@ impl fmt::Display for Format {
         f.write_str(record::key::FORMAT.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "{}={}", ID, self.id)?;
-        write!(f, ",{}={}", NUMBER, self.number)?;
-        write!(f, ",{}={}", TYPE, self.ty)?;
+        write!(f, "{}={}", tag::ID, self.id)?;
+        write!(f, ",{}={}", tag::NUMBER, self.number)?;
+        write!(f, ",{}={}", tag::TYPE, self.ty)?;
 
-        write!(f, ",{}=", DESCRIPTION)?;
+        write!(f, ",{}=", tag::DESCRIPTION)?;
         super::fmt::write_escaped_string(f, self.description())?;
 
         for (key, value) in &self.fields {
@@ -218,7 +212,7 @@ impl fmt::Display for Format {
         }
 
         if let Some(idx) = self.idx() {
-            write!(f, ",{}={}", IDX, idx)?;
+            write!(f, ",{}={}", tag::IDX, idx)?;
         }
 
         f.write_str(">")?;
@@ -256,7 +250,7 @@ impl fmt::Display for TryFromRecordError {
             Self::InvalidId(e) => write!(f, "invalid ID: {}", e),
             Self::InvalidNumber(e) => write!(f, "invalid number: {}", e),
             Self::InvalidType(e) => write!(f, "invalid type: {}", e),
-            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", IDX, e),
+            Self::InvalidIdx(e) => write!(f, "invalid index (`{}`): {}", tag::IDX, e),
             Self::NumberMismatch(actual, expected) => {
                 write!(f, "number mismatch: expected {}, got {}", expected, actual)
             }
