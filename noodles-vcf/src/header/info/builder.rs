@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use super::{tag, Info, Key, Type};
+use super::{tag, Info, Key, Tag, Type};
 use crate::header::Number;
 
 #[derive(Default)]
@@ -48,15 +48,13 @@ impl Builder {
     }
 
     pub fn build(self) -> Result<Info, BuildError> {
-        use super::{DESCRIPTION, ID, NUMBER, TYPE};
-
         Ok(Info {
-            id: self.id.ok_or(BuildError::MissingField(ID))?,
-            number: self.number.ok_or(BuildError::MissingField(NUMBER))?,
-            ty: self.ty.ok_or(BuildError::MissingField(TYPE))?,
+            id: self.id.ok_or(BuildError::MissingField(tag::ID))?,
+            number: self.number.ok_or(BuildError::MissingField(tag::NUMBER))?,
+            ty: self.ty.ok_or(BuildError::MissingField(tag::TYPE))?,
             description: self
                 .description
-                .ok_or(BuildError::MissingField(DESCRIPTION))?,
+                .ok_or(BuildError::MissingField(tag::DESCRIPTION))?,
             idx: self.idx,
             fields: self.other_fields,
         })
@@ -64,5 +62,5 @@ impl Builder {
 }
 
 pub enum BuildError {
-    MissingField(&'static str),
+    MissingField(Tag),
 }
