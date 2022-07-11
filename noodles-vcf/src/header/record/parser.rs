@@ -88,7 +88,7 @@ fn extra_fields<'a>(
     Ok((input, ()))
 }
 
-pub(crate) fn info_structure(input: &str) -> IResult<&str, Value> {
+fn info_structure(input: &str) -> IResult<&str, Value> {
     let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
@@ -126,7 +126,7 @@ pub(crate) fn info_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
-pub(crate) fn filter_structure(input: &str) -> IResult<&str, Value> {
+fn filter_structure(input: &str) -> IResult<&str, Value> {
     let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
@@ -154,7 +154,7 @@ pub(crate) fn filter_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
-pub(crate) fn format_structure(input: &str) -> IResult<&str, Value> {
+fn format_structure(input: &str) -> IResult<&str, Value> {
     let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
@@ -192,7 +192,7 @@ pub(crate) fn format_structure(input: &str) -> IResult<&str, Value> {
     Ok((input, Value::Struct(fields)))
 }
 
-pub(crate) fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
+fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
     let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
@@ -223,7 +223,7 @@ fn meta_values_field(input: &str) -> IResult<&str, (String, String)> {
     )(input)
 }
 
-pub(crate) fn meta_structure(input: &str) -> IResult<&str, Value> {
+fn meta_structure(input: &str) -> IResult<&str, Value> {
     let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
@@ -267,7 +267,7 @@ fn record_key(input: &str) -> IResult<&str, &str> {
     delimited(tag(PREFIX), take_until("="), tag("="))(input)
 }
 
-pub(crate) fn record_value(input: &str) -> IResult<&str, Value> {
+fn record_value(input: &str) -> IResult<&str, Value> {
     alt((generic_structure, generic_value))(input)
 }
 

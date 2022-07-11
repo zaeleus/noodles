@@ -131,7 +131,7 @@ impl FromStr for StringMaps {
                 break;
             }
 
-            let record: Record = line.parse().map_err(|_| ParseError::InvalidRecord)?;
+            let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
             match *record.key() {
                 key::CONTIG => {
@@ -175,7 +175,7 @@ fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, P
     let record: Record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
-        .and_then(|line| line.parse().map_err(|_| ParseError::InvalidRecord))?;
+        .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
     if record.key() == &key::FILE_FORMAT {
         match record.value() {
@@ -476,10 +476,10 @@ mod tests {
 
         let s = "fileformat=VCFv4.3";
         let mut lines = s.lines();
-        assert_eq!(
+        assert!(matches!(
             parse_file_format(&mut lines),
-            Err(ParseError::InvalidRecord)
-        );
+            Err(ParseError::InvalidRecord(_))
+        ));
 
         let s = "##fileformat=VCF43\n";
         let mut lines = s.lines();

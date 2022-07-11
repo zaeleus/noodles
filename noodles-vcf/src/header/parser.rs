@@ -11,7 +11,7 @@ use super::{
     info::{self, Info},
     meta::{self, Meta},
     pedigree::{self, Pedigree},
-    record::{self, parser, Record},
+    record::{self, Record},
     sample::{self, Sample},
     Builder, Header,
 };
@@ -26,7 +26,7 @@ pub enum ParseError {
     /// The file format (`fileformat`) is invalid.
     InvalidFileFormat(file_format::ParseError),
     /// A record is invalid.
-    InvalidRecord,
+    InvalidRecord(record::ParseError),
     /// A record has an invalid value.
     InvalidRecordValue,
     /// An information record (`INFO`) is invalid.
@@ -68,7 +68,7 @@ impl std::fmt::Display for ParseError {
             Self::MissingFileFormat => f.write_str("missing fileformat"),
             Self::UnexpectedFileFormat => f.write_str("unexpected file format"),
             Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
-            Self::InvalidRecord => f.write_str("invalid record"),
+            Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
             Self::InvalidRecordValue => f.write_str("invalid record value"),
             Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
             Self::InvalidFilter(e) => write!(f, "invalid filter: {}", e),
@@ -129,40 +129,14 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     Ok(builder.build())
 }
 
-fn split_record(s: &str) -> Result<(&str, &str), ParseError> {
-    use super::record::PREFIX;
-
-    s.strip_prefix(PREFIX)
-        .ok_or(ParseError::InvalidRecord)
-        .and_then(|t| t.split_once('=').ok_or(ParseError::InvalidRecord))
-}
-
-fn parse_parts(s: &str) -> Result<(record::Key, record::Value), ParseError> {
-    let (k, v) = split_record(s)?;
-    let key = record::Key::from(k);
-
-    let result = match key {
-        record::key::INFO => parser::info_structure(v),
-        record::key::FILTER => parser::filter_structure(v),
-        record::key::FORMAT => parser::format_structure(v),
-        record::key::ALTERNATIVE_ALLELE => parser::alternative_allele_structure(v),
-        record::key::META => parser::meta_structure(v),
-        _ => parser::record_value(v),
-    };
-
-    let (_, value) = result.map_err(|_| ParseError::InvalidRecordValue)?;
-
-    Ok((key, value))
-}
-
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
-    let (key, value) = parse_parts(s)?;
+    let record: Record = s.parse().map_err(ParseError::InvalidRecord)?;
 
-    if key != record::key::FILE_FORMAT {
+    if record.key() != &record::key::FILE_FORMAT {
         return Err(ParseError::MissingFileFormat);
     }
 
-    match value {
+    match record.value() {
         record::Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
         _ => Err(ParseError::InvalidRecordValue),
     }
@@ -175,7 +149,8 @@ fn parse_record(
 ) -> Result<Builder, ParseError> {
     use record::key;
 
-    let (key, value) = parse_parts(line)?;
+    let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+    let (key, value) = record.into();
 
     builder = match key {
         key::FILE_FORMAT => {
