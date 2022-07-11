@@ -1,4 +1,4 @@
-use std::{error, str::Lines};
+use std::error;
 
 use indexmap::IndexSet;
 
@@ -101,7 +101,9 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     let mut builder = Header::builder();
     let mut lines = s.lines();
 
-    let file_format = parse_file_format(&mut lines)?;
+    let line = lines.next().ok_or(ParseError::MissingFileFormat)?;
+    let file_format = parse_file_format(line)?;
+
     builder = builder.set_file_format(file_format);
 
     let mut has_header = false;
@@ -153,10 +155,8 @@ fn parse_parts(s: &str) -> Result<(record::Key, record::Value), ParseError> {
     Ok((key, value))
 }
 
-fn parse_file_format(lines: &mut Lines<'_>) -> Result<FileFormat, ParseError> {
-    let line = lines.next().ok_or(ParseError::MissingFileFormat)?;
-
-    let (key, value) = parse_parts(line)?;
+fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
+    let (key, value) = parse_parts(s)?;
 
     if key != record::key::FILE_FORMAT {
         return Err(ParseError::MissingFileFormat);
