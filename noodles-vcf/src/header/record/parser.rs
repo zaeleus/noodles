@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
@@ -68,13 +69,13 @@ fn idx_field(input: &str) -> IResult<&str, (String, String)> {
 
 fn extra_fields<'a>(
     mut input: &'a str,
-    fields: &mut Vec<(String, String)>,
+    fields: &mut IndexMap<String, String>,
 ) -> IResult<&'a str, ()> {
     loop {
         match tag(",")(input) {
             Ok((i, _)) => {
-                if let Ok((i, f)) = string_field(i) {
-                    fields.push(f);
+                if let Ok((i, (key, value))) = string_field(i) {
+                    fields.insert(key, value);
                     input = i;
                 } else {
                     break;
@@ -94,7 +95,7 @@ fn id(input: &str) -> IResult<&str, String> {
 }
 
 fn info_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = Vec::new();
+    let mut fields = IndexMap::new();
 
     let (input, _) = tag("<")(input)?;
 
@@ -103,25 +104,25 @@ fn info_structure(input: &str) -> IResult<&str, Value> {
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, f) = value_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = value_field(input)?;
+    fields.insert(key, value);
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, f) = value_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = value_field(input)?;
+    fields.insert(key, value);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, f) = string_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = string_field(input)?;
+    fields.insert(key, value);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, f) = idx_field(i)?;
-        fields.push(f);
+        let (i, (key, value)) = idx_field(i)?;
+        fields.insert(key, value);
         input = i;
     }
 
@@ -131,7 +132,7 @@ fn info_structure(input: &str) -> IResult<&str, Value> {
 }
 
 fn filter_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = Vec::new();
+    let mut fields = IndexMap::new();
 
     let (input, _) = tag("<")(input)?;
 
@@ -140,15 +141,15 @@ fn filter_structure(input: &str) -> IResult<&str, Value> {
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, f) = string_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = string_field(input)?;
+    fields.insert(key, value);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, f) = idx_field(i)?;
-        fields.push(f);
+        let (i, (key, value)) = idx_field(i)?;
+        fields.insert(key, value);
         input = i;
     }
 
@@ -158,7 +159,7 @@ fn filter_structure(input: &str) -> IResult<&str, Value> {
 }
 
 fn format_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = Vec::new();
+    let mut fields = IndexMap::new();
 
     let (input, _) = tag("<")(input)?;
 
@@ -167,25 +168,25 @@ fn format_structure(input: &str) -> IResult<&str, Value> {
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, f) = value_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = value_field(input)?;
+    fields.insert(key, value);
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, f) = value_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = value_field(input)?;
+    fields.insert(key, value);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, f) = string_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = string_field(input)?;
+    fields.insert(key, value);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, f) = idx_field(i)?;
-        fields.push(f);
+        let (i, (key, value)) = idx_field(i)?;
+        fields.insert(key, value);
         input = i;
     }
 
@@ -195,7 +196,7 @@ fn format_structure(input: &str) -> IResult<&str, Value> {
 }
 
 fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = Vec::new();
+    let mut fields = IndexMap::new();
 
     let (input, _) = tag("<")(input)?;
 
@@ -204,8 +205,8 @@ fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, f) = string_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = string_field(input)?;
+    fields.insert(key, value);
 
     let (input, _) = extra_fields(input, &mut fields)?;
     let (input, _) = tag(">")(input)?;
@@ -225,7 +226,7 @@ fn meta_values_field(input: &str) -> IResult<&str, (String, String)> {
 }
 
 fn meta_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = Vec::new();
+    let mut fields = IndexMap::new();
 
     let (input, _) = tag("<")(input)?;
 
@@ -234,18 +235,18 @@ fn meta_structure(input: &str) -> IResult<&str, Value> {
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, f) = field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = field(input)?;
+    fields.insert(key, value);
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, f) = field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = field(input)?;
+    fields.insert(key, value);
 
     // Values
     let (input, _) = tag(",")(input)?;
-    let (input, f) = meta_values_field(input)?;
-    fields.push(f);
+    let (input, (key, value)) = meta_values_field(input)?;
+    fields.insert(key, value);
 
     let (input, _) = tag(">")(input)?;
 
@@ -253,13 +254,11 @@ fn meta_structure(input: &str) -> IResult<&str, Value> {
 }
 
 fn generic_structure(input: &str) -> IResult<&str, Value> {
-    let (input, mut fields) =
-        delimited(tag("<"), separated_list1(tag(","), field), tag(">"))(input)?;
+    let (input, fields) = delimited(tag("<"), separated_list1(tag(","), field), tag(">"))(input)?;
+    let mut fields: IndexMap<_, _> = fields.into_iter().collect();
 
-    let id = match fields.iter().position(|(tag, _)| tag == "ID") {
-        Some(i) => fields.remove(i).1,
-        None => panic!(),
-    };
+    // TODO
+    let id = fields.remove("ID").expect("missing ID field");
 
     Ok((input, Value::Struct(id, fields)))
 }
@@ -334,7 +333,7 @@ mod tests {
             value,
             Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
@@ -342,6 +341,8 @@ mod tests {
                         String::from("Number of samples with data")
                     ),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -352,7 +353,9 @@ mod tests {
             value,
             Value::Struct(
                 String::from("PASS"),
-                vec![(String::from("Description"), String::from("")),]
+                [(String::from("Description"), String::from(""))]
+                    .into_iter()
+                    .collect()
             )
         );
 
@@ -364,11 +367,13 @@ mod tests {
             value,
             Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -379,7 +384,9 @@ mod tests {
             value,
             Value::Struct(
                 String::from("DEL"),
-                vec![(String::from("Description"), String::from("Deletion")),]
+                [(String::from("Description"), String::from("Deletion"))]
+                    .into_iter()
+                    .collect()
             )
         );
 
@@ -391,13 +398,15 @@ mod tests {
             value,
             Value::Struct(
                 String::from("sq0"),
-                vec![
+                [
                     (String::from("length"), String::from("13")),
                     (
                         String::from("md5"),
                         String::from("d7eba311421bbc9d3ada44709dd61534")
                     ),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -408,10 +417,12 @@ mod tests {
             value,
             Value::Struct(
                 String::from("pedigree0"),
-                vec![
+                [
                     (String::from("Name_0"), String::from("name0")),
                     (String::from("Name_1"), String::from("name1")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -430,7 +441,7 @@ mod tests {
             value,
             Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
@@ -439,6 +450,8 @@ mod tests {
                     ),
                     (String::from("IDX"), String::from("1")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -449,10 +462,12 @@ mod tests {
             value,
             Value::Struct(
                 String::from("PASS"),
-                vec![
+                [
                     (String::from("Description"), String::from("")),
                     (String::from("IDX"), String::from("0")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -464,12 +479,14 @@ mod tests {
             value,
             Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
                     (String::from("IDX"), String::from("2")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 
@@ -486,11 +503,13 @@ mod tests {
             value,
             Value::Struct(
                 String::from("Assay"),
-                vec![
+                [
                     (String::from("Type"), String::from("String")),
                     (String::from("Number"), String::from(".")),
                     (String::from("Values"), String::from("WholeGenome, Exome")),
                 ]
+                .into_iter()
+                .collect()
             )
         );
 

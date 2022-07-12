@@ -41,14 +41,16 @@ impl Info {
     ///     record::key::INFO,
     ///     Value::Struct(
     ///         String::from("NS"),
-    ///         vec![
+    ///         [
     ///             (String::from("Number"), String::from("1")),
     ///             (String::from("Type"), String::from("Integer")),
     ///             (
     ///                 String::from("Description"),
     ///                 String::from("Number of samples with data"),
     ///             ),
-    ///         ],
+    ///         ]
+    ///         .into_iter()
+    ///         .collect(),
     ///     ),
     /// );
     ///
@@ -76,7 +78,7 @@ impl Info {
 
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
         file_format: FileFormat,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(file_format, id, fields)
@@ -277,7 +279,7 @@ impl TryFrom<Record> for Info {
 fn parse_struct(
     file_format: FileFormat,
     raw_id: String,
-    fields: Vec<(String, String)>,
+    fields: IndexMap<String, String>,
 ) -> Result<Info, TryFromRecordError> {
     let mut builder = Builder::default();
 
@@ -339,14 +341,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         )
     }
@@ -383,14 +387,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from(".")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -426,7 +432,7 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
@@ -436,7 +442,9 @@ mod tests {
                     (String::from("Source"), String::from("dbsnp")),
                     (String::from("Version"), String::from("138")),
                     (String::from("IDX"), String::from("1")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -472,14 +480,16 @@ mod tests {
             record::key::FILE_FORMAT,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -506,7 +516,7 @@ mod tests {
     fn test_try_from_record_for_info_with_a_missing_field() {
         let record = Record::new(
             record::key::INFO,
-            record::Value::Struct(String::from("NS"), Vec::new()),
+            record::Value::Struct(String::from("NS"), Default::default()),
         );
 
         assert_eq!(
@@ -521,14 +531,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::new(),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -544,14 +556,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("NA")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -567,14 +581,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("int")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -590,7 +606,7 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (
@@ -598,7 +614,9 @@ mod tests {
                         String::from("Number of samples with data"),
                     ),
                     (String::from("IDX"), String::from("ndls")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -614,14 +632,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from(".")),
                     (String::from("Type"), String::from("Integer")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -640,14 +660,16 @@ mod tests {
             record::key::INFO,
             record::Value::Struct(
                 String::from("NS"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (
                         String::from("Description"),
                         String::from("Number of samples with data"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 

@@ -2,6 +2,8 @@
 
 use std::{error, fmt};
 
+use indexmap::IndexMap;
+
 use super::{record, Number, Record};
 
 const ID: &str = "ID";
@@ -19,7 +21,7 @@ pub struct Meta {
 impl Meta {
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -145,40 +147,28 @@ impl TryFrom<Record> for Meta {
     }
 }
 
-fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordError> {
-    let mut it = fields.into_iter();
-
-    let ty = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(TYPE))
-        .and_then(|(k, v)| match k.as_ref() {
-            TYPE => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(TYPE)),
-        })?;
+fn parse_struct(id: String, fields: IndexMap<String, String>) -> Result<Meta, TryFromRecordError> {
+    let ty = fields
+        .get(TYPE)
+        .ok_or(TryFromRecordError::MissingField(TYPE))?;
 
     if ty != "String" {
         return Err(TryFromRecordError::InvalidType);
     }
 
-    let number: Number = it
-        .next()
+    let number: Number = fields
+        .get(NUMBER)
         .ok_or(TryFromRecordError::MissingField(NUMBER))
-        .and_then(|(k, v)| match k.as_ref() {
-            NUMBER => v.parse().map_err(|_| TryFromRecordError::InvalidNumber),
-            _ => Err(TryFromRecordError::MissingField(NUMBER)),
-        })?;
+        .and_then(|v| v.parse().map_err(|_| TryFromRecordError::InvalidNumber))?;
 
     if number != Number::Unknown {
         return Err(TryFromRecordError::InvalidNumber);
     }
 
-    let values = it
-        .next()
+    let values = fields
+        .get(VALUES)
         .ok_or(TryFromRecordError::MissingField(VALUES))
-        .and_then(|(k, v)| match k.as_ref() {
-            VALUES => Ok(v.split(',').map(|s| s.trim().into()).collect()),
-            _ => Err(TryFromRecordError::MissingField(VALUES)),
-        })?;
+        .map(|v| v.split(',').map(|s| s.trim().into()).collect())?;
 
     Ok(Meta::new(id, values))
 }
@@ -192,11 +182,13 @@ mod tests {
             record::key::META,
             record::Value::Struct(
                 String::from("Assay"),
-                vec![
+                [
                     (String::from("Type"), String::from("String")),
                     (String::from("Number"), String::from(".")),
                     (String::from("Values"), String::from("WholeGenome, Exome")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         )
     }

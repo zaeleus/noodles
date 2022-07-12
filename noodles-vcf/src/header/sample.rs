@@ -18,7 +18,7 @@ pub struct Sample {
 impl Sample {
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -113,8 +113,10 @@ impl TryFrom<Record> for Sample {
     }
 }
 
-fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordError> {
-    let fields = fields.into_iter().collect();
+fn parse_struct(
+    id: String,
+    fields: IndexMap<String, String>,
+) -> Result<Sample, TryFromRecordError> {
     Ok(Sample::new(id, fields))
 }
 
@@ -127,7 +129,9 @@ mod tests {
             record::key::SAMPLE,
             record::Value::Struct(
                 String::from("sample0"),
-                vec![(String::from("Assay"), String::from("WholeGenome"))],
+                [(String::from("Assay"), String::from("WholeGenome"))]
+                    .into_iter()
+                    .collect(),
             ),
         )
     }

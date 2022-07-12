@@ -115,7 +115,7 @@ mod tests {
                 key::INFO,
                 Value::Struct(
                     String::from("NS"),
-                    vec![
+                    [
                         (String::from("Number"), String::from("1")),
                         (String::from("Type"), String::from("Integer")),
                         (
@@ -123,6 +123,8 @@ mod tests {
                             String::from("Number of samples with data"),
                         ),
                     ]
+                    .into_iter()
+                    .collect()
                 )
             ))
         );

@@ -1,12 +1,14 @@
 use std::fmt::{self, Write};
 
+use indexmap::IndexMap;
+
 /// A VCF header record value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
     /// A string.
     String(String),
     /// A structure.
-    Struct(String, Vec<(String, String)>),
+    Struct(String, IndexMap<String, String>),
 }
 
 impl fmt::Display for Value {
@@ -42,14 +44,16 @@ mod tests {
         );
 
         assert_eq!(
-            Value::Struct(String::from("sq0"), Vec::new()).to_string(),
+            Value::Struct(String::from("sq0"), IndexMap::new()).to_string(),
             "<ID=sq0>"
         );
 
         assert_eq!(
             Value::Struct(
                 String::from("sq0"),
-                vec![(String::from("length"), String::from("13"))]
+                [(String::from("length"), String::from("13"))]
+                    .into_iter()
+                    .collect(),
             )
             .to_string(),
             "<ID=sq0,length=13>"

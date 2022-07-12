@@ -26,7 +26,7 @@ pub struct Contig {
 impl Contig {
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -123,7 +123,9 @@ impl Contig {
     ///     record::key::CONTIG,
     ///     record::Value::Struct(
     ///         String::from("sq0"),
-    ///         vec![(String::from("md5"), String::from("d7eba311421bbc9d3ada44709dd61534"))],
+    ///         [(String::from("md5"), String::from("d7eba311421bbc9d3ada44709dd61534"))]
+    ///             .into_iter()
+    ///             .collect(),
     ///     ),
     /// );
     /// let contig = Contig::try_from(record)?;
@@ -207,7 +209,7 @@ impl TryFrom<Record> for Contig {
 
 fn parse_struct(
     raw_id: String,
-    fields: Vec<(String, String)>,
+    fields: IndexMap<String, String>,
 ) -> Result<Contig, TryFromRecordError> {
     let mut builder = Builder::default();
 
@@ -245,13 +247,15 @@ mod tests {
             record::key::CONTIG,
             record::Value::Struct(
                 String::from("sq0"),
-                vec![
+                [
                     (String::from("length"), String::from("13")),
                     (
                         String::from("md5"),
                         String::from("d7eba311421bbc9d3ada44709dd61534"),
                     ),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         )
     }
@@ -296,14 +300,16 @@ mod tests {
             record::key::CONTIG,
             record::Value::Struct(
                 String::from("sq0"),
-                vec![
+                [
                     (String::from("length"), String::from("13")),
                     (
                         String::from("md5"),
                         String::from("d7eba311421bbc9d3ada44709dd61534"),
                     ),
                     (String::from("IDX"), String::from("1")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -329,7 +335,7 @@ mod tests {
     fn test_try_from_record_for_contig_with_an_invalid_record_key() {
         let record = Record::new(
             record::key::FILE_FORMAT,
-            record::Value::Struct(String::from("sq0"), Vec::new()),
+            record::Value::Struct(String::from("sq0"), Default::default()),
         );
 
         assert_eq!(
@@ -355,7 +361,7 @@ mod tests {
     fn test_try_from_record_for_contig_with_an_invalid_id() {
         let record = Record::new(
             record::key::CONTIG,
-            record::Value::Struct(String::from("sq 0"), Vec::new()),
+            record::Value::Struct(String::from("sq 0"), Default::default()),
         );
 
         assert!(matches!(
@@ -370,7 +376,9 @@ mod tests {
             record::key::CONTIG,
             record::Value::Struct(
                 String::from("sq0"),
-                vec![(String::from("length"), String::from("NA"))],
+                [(String::from("length"), String::from("NA"))]
+                    .into_iter()
+                    .collect(),
             ),
         );
 
@@ -386,10 +394,12 @@ mod tests {
             record::key::CONTIG,
             record::Value::Struct(
                 String::from("sq0"),
-                vec![
+                [
                     (String::from("length"), String::from("13")),
                     (String::from("IDX"), String::from("ndls")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 

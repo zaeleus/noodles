@@ -2,6 +2,8 @@
 
 use std::{error, fmt};
 
+use indexmap::IndexMap;
+
 use super::{record, Record};
 use crate::record::alternate_bases::allele::{symbol, Symbol};
 
@@ -18,7 +20,7 @@ pub struct AlternativeAllele {
 impl AlternativeAllele {
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -159,7 +161,7 @@ impl TryFrom<Record> for AlternativeAllele {
 
 fn parse_struct(
     raw_id: String,
-    fields: Vec<(String, String)>,
+    fields: IndexMap<String, String>,
 ) -> Result<AlternativeAllele, TryFromRecordError> {
     let id = raw_id.parse().map_err(TryFromRecordError::InvalidId)?;
 
@@ -191,7 +193,9 @@ mod tests {
             record::key::ALTERNATIVE_ALLELE,
             record::Value::Struct(
                 String::from("DEL"),
-                vec![(String::from("Description"), String::from("Deletion"))],
+                [(String::from("Description"), String::from("Deletion"))]
+                    .into_iter()
+                    .collect(),
             ),
         )
     }
@@ -219,7 +223,9 @@ mod tests {
             record::key::FILE_FORMAT,
             record::Value::Struct(
                 String::from("DEL"),
-                vec![(String::from("Description"), String::from("Deletion"))],
+                [(String::from("Description"), String::from("Deletion"))]
+                    .into_iter()
+                    .collect(),
             ),
         );
 
@@ -246,7 +252,7 @@ mod tests {
     fn test_try_from_record_for_filter_with_a_missing_field() {
         let record = Record::new(
             record::key::ALTERNATIVE_ALLELE,
-            record::Value::Struct(String::from("DEL"), Vec::new()),
+            record::Value::Struct(String::from("DEL"), Default::default()),
         );
 
         assert_eq!(
@@ -261,7 +267,9 @@ mod tests {
             record::key::ALTERNATIVE_ALLELE,
             record::Value::Struct(
                 String::new(),
-                vec![(String::from("Description"), String::from("Deletion"))],
+                [(String::from("Description"), String::from("Deletion"))]
+                    .into_iter()
+                    .collect(),
             ),
         );
 

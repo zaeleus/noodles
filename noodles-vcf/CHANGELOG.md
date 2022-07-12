@@ -28,6 +28,9 @@
   * vcf/header/record/value: `Value::Struct` now holds the ID field separately
     from the other fields.
 
+  * vcf/header/record/value: Change `Value::Struct` other fields to an
+    `IndexMap<String, String>`.
+
 ### Fixed
 
   * vcf/header/record/value: Write surrounding angle brackets for structs.

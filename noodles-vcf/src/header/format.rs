@@ -41,11 +41,13 @@ impl Format {
     ///     record::key::FORMAT,
     ///     Value::Struct(
     ///         String::from("GT"),
-    ///         vec![
+    ///         [
     ///             (String::from("Number"), String::from("1")),
     ///             (String::from("Type"), String::from("String")),
     ///             (String::from("Description"), String::from("Genotype")),
-    ///         ],
+    ///         ]
+    ///         .into_iter()
+    ///         .collect(),
     ///     ),
     /// );
     ///
@@ -73,7 +75,7 @@ impl Format {
 
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
         file_format: FileFormat,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(file_format, id, fields)
@@ -275,7 +277,7 @@ impl TryFrom<Record> for Format {
 fn parse_struct(
     file_format: FileFormat,
     raw_id: String,
-    fields: Vec<(String, String)>,
+    fields: IndexMap<String, String>,
 ) -> Result<Format, TryFromRecordError> {
     let mut builder = Builder::default();
 
@@ -335,11 +337,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         )
     }
@@ -375,11 +379,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from(".")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -415,13 +421,15 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
                     (String::from("Comment"), String::from("noodles")),
                     (String::from("IDX"), String::from("1")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -451,11 +459,13 @@ mod tests {
             record::key::FILE_FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -482,7 +492,7 @@ mod tests {
     fn test_try_from_record_for_format_with_a_missing_field() {
         let record = Record::new(
             record::key::FORMAT,
-            record::Value::Struct(String::from("GT"), Vec::new()),
+            record::Value::Struct(String::from("GT"), Default::default()),
         );
 
         assert_eq!(
@@ -497,11 +507,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::new(),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -517,11 +529,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("NA")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -537,11 +551,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("str")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -557,12 +573,14 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
                     (String::from("IDX"), String::from("ndls")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -578,11 +596,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from(".")),
                     (String::from("Type"), String::from("String")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -601,11 +621,13 @@ mod tests {
             record::key::FORMAT,
             record::Value::Struct(
                 String::from("GT"),
-                vec![
+                [
                     (String::from("Number"), String::from("1")),
                     (String::from("Type"), String::from("Integer")),
                     (String::from("Description"), String::from("Genotype")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 

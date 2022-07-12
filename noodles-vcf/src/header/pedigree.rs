@@ -18,7 +18,7 @@ pub struct Pedigree {
 impl Pedigree {
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -113,8 +113,10 @@ impl TryFrom<Record> for Pedigree {
     }
 }
 
-fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecordError> {
-    let fields = fields.into_iter().collect();
+fn parse_struct(
+    id: String,
+    fields: IndexMap<String, String>,
+) -> Result<Pedigree, TryFromRecordError> {
     Ok(Pedigree::new(id, fields))
 }
 
@@ -127,10 +129,12 @@ mod tests {
             record::key::PEDIGREE,
             record::Value::Struct(
                 String::from("cid"),
-                vec![
+                [
                     (String::from("Father"), String::from("fid")),
                     (String::from("Mother"), String::from("mid")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         )
     }

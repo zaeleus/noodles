@@ -36,7 +36,7 @@ impl Filter {
 
     pub(crate) fn try_from_fields(
         id: String,
-        fields: Vec<(String, String)>,
+        fields: IndexMap<String, String>,
     ) -> Result<Self, TryFromRecordError> {
         parse_struct(id, fields)
     }
@@ -179,7 +179,10 @@ impl TryFrom<Record> for Filter {
     }
 }
 
-fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordError> {
+fn parse_struct(
+    id: String,
+    fields: IndexMap<String, String>,
+) -> Result<Filter, TryFromRecordError> {
     let mut it = fields.into_iter();
 
     let description = it
@@ -224,10 +227,12 @@ mod tests {
             record::key::FILTER,
             record::Value::Struct(
                 String::from("q10"),
-                vec![(
+                [(
                     String::from("Description"),
                     String::from("Quality below 10"),
-                )],
+                )]
+                .into_iter()
+                .collect(),
             ),
         )
     }
@@ -259,14 +264,16 @@ mod tests {
             record::key::FILTER,
             record::Value::Struct(
                 String::from("q10"),
-                vec![
+                [
                     (
                         String::from("Description"),
                         String::from("Quality below 10"),
                     ),
                     (String::from("Source"), String::from("noodles")),
                     (String::from("IDX"), String::from("1")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -289,10 +296,12 @@ mod tests {
             record::key::FILE_FORMAT,
             record::Value::Struct(
                 String::from("q10"),
-                vec![(
+                [(
                     String::from("Description"),
                     String::from("Quality below 10"),
-                )],
+                )]
+                .into_iter()
+                .collect(),
             ),
         );
 
@@ -319,7 +328,7 @@ mod tests {
     fn test_try_from_record_for_filter_with_a_missing_field() {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(String::from("q10"), Vec::new()),
+            record::Value::Struct(String::from("q10"), Default::default()),
         );
 
         assert!(matches!(
@@ -334,13 +343,15 @@ mod tests {
             record::key::FILTER,
             record::Value::Struct(
                 String::from("q10"),
-                vec![
+                [
                     (
                         String::from("Description"),
                         String::from("Quality below 10"),
                     ),
                     (String::from("IDX"), String::from("ndls")),
-                ],
+                ]
+                .into_iter()
+                .collect(),
             ),
         );
 
