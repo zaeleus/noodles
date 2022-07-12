@@ -35,9 +35,10 @@ impl Filter {
     }
 
     pub(crate) fn try_from_fields(
+        id: String,
         fields: Vec<(String, String)>,
     ) -> Result<Self, TryFromRecordError> {
-        parse_struct(fields)
+        parse_struct(id, fields)
     }
 
     /// Creates a VCF header filter record.
@@ -172,22 +173,14 @@ impl TryFrom<Record> for Filter {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::key::FILTER, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::FILTER, record::Value::Struct(id, fields)) => parse_struct(id, fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordError> {
+fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Filter, TryFromRecordError> {
     let mut it = fields.into_iter();
-
-    let id = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(ID))
-        .and_then(|(k, v)| match k.as_ref() {
-            ID => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(ID)),
-        })?;
 
     let description = it
         .next()
@@ -229,13 +222,13 @@ mod tests {
     fn build_record() -> Record {
         Record::new(
             record::key::FILTER,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("q10")),
-                (
+            record::Value::Struct(
+                String::from("q10"),
+                vec![(
                     String::from("Description"),
                     String::from("Quality below 10"),
-                ),
-            ]),
+                )],
+            ),
         )
     }
 
@@ -264,15 +257,17 @@ mod tests {
     fn test_try_from_record_for_filter_with_extra_fields() {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("q10")),
-                (
-                    String::from("Description"),
-                    String::from("Quality below 10"),
-                ),
-                (String::from("Source"), String::from("noodles")),
-                (String::from("IDX"), String::from("1")),
-            ]),
+            record::Value::Struct(
+                String::from("q10"),
+                vec![
+                    (
+                        String::from("Description"),
+                        String::from("Quality below 10"),
+                    ),
+                    (String::from("Source"), String::from("noodles")),
+                    (String::from("IDX"), String::from("1")),
+                ],
+            ),
         );
 
         assert_eq!(
@@ -292,13 +287,13 @@ mod tests {
     fn test_try_from_record_for_filter_with_an_invalid_record_key() {
         let record = Record::new(
             record::key::FILE_FORMAT,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("q10")),
-                (
+            record::Value::Struct(
+                String::from("q10"),
+                vec![(
                     String::from("Description"),
                     String::from("Quality below 10"),
-                ),
-            ]),
+                )],
+            ),
         );
 
         assert_eq!(
@@ -324,7 +319,7 @@ mod tests {
     fn test_try_from_record_for_filter_with_a_missing_field() {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(vec![(String::from("ID"), String::from("q10"))]),
+            record::Value::Struct(String::from("q10"), Vec::new()),
         );
 
         assert!(matches!(
@@ -337,14 +332,16 @@ mod tests {
     fn test_try_from_record_for_filter_with_an_invalid_idx() {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("q10")),
-                (
-                    String::from("Description"),
-                    String::from("Quality below 10"),
-                ),
-                (String::from("IDX"), String::from("ndls")),
-            ]),
+            record::Value::Struct(
+                String::from("q10"),
+                vec![
+                    (
+                        String::from("Description"),
+                        String::from("Quality below 10"),
+                    ),
+                    (String::from("IDX"), String::from("ndls")),
+                ],
+            ),
         );
 
         assert!(matches!(

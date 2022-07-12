@@ -17,9 +17,10 @@ pub struct Sample {
 
 impl Sample {
     pub(crate) fn try_from_fields(
+        id: String,
         fields: Vec<(String, String)>,
     ) -> Result<Self, TryFromRecordError> {
-        parse_struct(fields)
+        parse_struct(id, fields)
     }
 
     /// Creates a VCF header sample record.
@@ -106,25 +107,14 @@ impl TryFrom<Record> for Sample {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::key::SAMPLE, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::SAMPLE, record::Value::Struct(id, fields)) => parse_struct(id, fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordError> {
-    let mut it = fields.into_iter();
-
-    let id = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(ID))
-        .and_then(|(k, v)| match k.as_ref() {
-            ID => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(ID)),
-        })?;
-
-    let fields = it.collect();
-
+fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Sample, TryFromRecordError> {
+    let fields = fields.into_iter().collect();
     Ok(Sample::new(id, fields))
 }
 
@@ -135,10 +125,10 @@ mod tests {
     fn build_record() -> Record {
         Record::new(
             record::key::SAMPLE,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("sample0")),
-                (String::from("Assay"), String::from("WholeGenome")),
-            ]),
+            record::Value::Struct(
+                String::from("sample0"),
+                vec![(String::from("Assay"), String::from("WholeGenome"))],
+            ),
         )
     }
 

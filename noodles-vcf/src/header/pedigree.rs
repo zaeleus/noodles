@@ -17,9 +17,10 @@ pub struct Pedigree {
 
 impl Pedigree {
     pub(crate) fn try_from_fields(
+        id: String,
         fields: Vec<(String, String)>,
     ) -> Result<Self, TryFromRecordError> {
-        parse_struct(fields)
+        parse_struct(id, fields)
     }
 
     /// Creates a VCF header pedigree record.
@@ -69,7 +70,7 @@ impl fmt::Display for Pedigree {
         f.write_str(record::key::PEDIGREE.as_ref())?;
         f.write_str("=<")?;
 
-        write!(f, "ID={}", self.id())?;
+        write!(f, "{}={}", ID, self.id())?;
 
         for (key, value) in &self.fields {
             write!(f, r#",{}={}"#, key, value)?;
@@ -106,25 +107,14 @@ impl TryFrom<Record> for Pedigree {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::key::PEDIGREE, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::PEDIGREE, record::Value::Struct(id, fields)) => parse_struct(id, fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecordError> {
-    let mut it = fields.into_iter();
-
-    let id = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(ID))
-        .and_then(|(k, v)| match k.as_ref() {
-            ID => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(ID)),
-        })?;
-
-    let fields = it.collect();
-
+fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Pedigree, TryFromRecordError> {
+    let fields = fields.into_iter().collect();
     Ok(Pedigree::new(id, fields))
 }
 
@@ -135,11 +125,13 @@ mod tests {
     fn build_record() -> Record {
         Record::new(
             record::key::PEDIGREE,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("cid")),
-                (String::from("Father"), String::from("fid")),
-                (String::from("Mother"), String::from("mid")),
-            ]),
+            record::Value::Struct(
+                String::from("cid"),
+                vec![
+                    (String::from("Father"), String::from("fid")),
+                    (String::from("Mother"), String::from("mid")),
+                ],
+            ),
         )
     }
 

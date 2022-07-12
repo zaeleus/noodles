@@ -157,31 +157,32 @@ fn parse_record(
             return Err(ParseError::UnexpectedFileFormat);
         }
         key::INFO => match value {
-            record::Value::Struct(fields) => {
-                let info =
-                    Info::try_from_fields(fields, file_format).map_err(ParseError::InvalidInfo)?;
+            record::Value::Struct(id, fields) => {
+                let info = Info::try_from_fields(id, fields, file_format)
+                    .map_err(ParseError::InvalidInfo)?;
                 builder.add_info(info)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::FILTER => match value {
-            record::Value::Struct(fields) => {
-                let filter = Filter::try_from_fields(fields).map_err(ParseError::InvalidFilter)?;
+            record::Value::Struct(id, fields) => {
+                let filter =
+                    Filter::try_from_fields(id, fields).map_err(ParseError::InvalidFilter)?;
                 builder.add_filter(filter)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::FORMAT => match value {
-            record::Value::Struct(fields) => {
-                let format = Format::try_from_fields(fields, file_format)
+            record::Value::Struct(id, fields) => {
+                let format = Format::try_from_fields(id, fields, file_format)
                     .map_err(ParseError::InvalidFormat)?;
                 builder.add_format(format)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::ALTERNATIVE_ALLELE => match value {
-            record::Value::Struct(fields) => {
-                let alternative_allele = AlternativeAllele::try_from_fields(fields)
+            record::Value::Struct(id, fields) => {
+                let alternative_allele = AlternativeAllele::try_from_fields(id, fields)
                     .map_err(ParseError::InvalidAlternativeAllele)?;
                 builder.add_alternative_allele(alternative_allele)
             }
@@ -192,30 +193,32 @@ fn parse_record(
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::CONTIG => match value {
-            record::Value::Struct(fields) => {
-                let contig = Contig::try_from_fields(fields).map_err(ParseError::InvalidContig)?;
+            record::Value::Struct(id, fields) => {
+                let contig =
+                    Contig::try_from_fields(id, fields).map_err(ParseError::InvalidContig)?;
                 builder.add_contig(contig)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::META => match value {
-            record::Value::Struct(fields) => {
-                let meta = Meta::try_from_fields(fields).map_err(ParseError::InvalidMeta)?;
+            record::Value::Struct(id, fields) => {
+                let meta = Meta::try_from_fields(id, fields).map_err(ParseError::InvalidMeta)?;
                 builder.add_meta(meta)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::SAMPLE => match value {
-            record::Value::Struct(fields) => {
-                let sample = Sample::try_from_fields(fields).map_err(ParseError::InvalidSample)?;
+            record::Value::Struct(id, fields) => {
+                let sample =
+                    Sample::try_from_fields(id, fields).map_err(ParseError::InvalidSample)?;
                 builder.add_sample(sample)
             }
             _ => return Err(ParseError::InvalidRecordValue),
         },
         key::PEDIGREE => match value {
-            record::Value::Struct(fields) => {
+            record::Value::Struct(id, fields) => {
                 let pedigree =
-                    Pedigree::try_from_fields(fields).map_err(ParseError::InvalidPedigree)?;
+                    Pedigree::try_from_fields(id, fields).map_err(ParseError::InvalidPedigree)?;
                 builder.add_pedigree(pedigree)
             }
             _ => return Err(ParseError::InvalidRecordValue),

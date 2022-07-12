@@ -18,9 +18,10 @@ pub struct Meta {
 
 impl Meta {
     pub(crate) fn try_from_fields(
+        id: String,
         fields: Vec<(String, String)>,
     ) -> Result<Self, TryFromRecordError> {
-        parse_struct(fields)
+        parse_struct(id, fields)
     }
 
     /// Creates a VCF header meta record.
@@ -138,22 +139,14 @@ impl TryFrom<Record> for Meta {
 
     fn try_from(record: Record) -> Result<Self, Self::Error> {
         match record.into() {
-            (record::key::META, record::Value::Struct(fields)) => parse_struct(fields),
+            (record::key::META, record::Value::Struct(id, fields)) => parse_struct(id, fields),
             _ => Err(TryFromRecordError::InvalidRecord),
         }
     }
 }
 
-fn parse_struct(fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordError> {
+fn parse_struct(id: String, fields: Vec<(String, String)>) -> Result<Meta, TryFromRecordError> {
     let mut it = fields.into_iter();
-
-    let id = it
-        .next()
-        .ok_or(TryFromRecordError::MissingField(ID))
-        .and_then(|(k, v)| match k.as_ref() {
-            ID => Ok(v),
-            _ => Err(TryFromRecordError::MissingField(ID)),
-        })?;
 
     let ty = it
         .next()
@@ -197,12 +190,14 @@ mod tests {
     fn build_record() -> Record {
         Record::new(
             record::key::META,
-            record::Value::Struct(vec![
-                (String::from("ID"), String::from("Assay")),
-                (String::from("Type"), String::from("String")),
-                (String::from("Number"), String::from(".")),
-                (String::from("Values"), String::from("WholeGenome, Exome")),
-            ]),
+            record::Value::Struct(
+                String::from("Assay"),
+                vec![
+                    (String::from("Type"), String::from("String")),
+                    (String::from("Number"), String::from(".")),
+                    (String::from("Values"), String::from("WholeGenome, Exome")),
+                ],
+            ),
         )
     }
 

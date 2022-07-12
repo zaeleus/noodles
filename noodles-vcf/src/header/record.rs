@@ -113,15 +113,17 @@ mod tests {
             line.parse(),
             Ok(Record::new(
                 key::INFO,
-                Value::Struct(vec![
-                    (String::from("ID"), String::from("NS")),
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("Integer")),
-                    (
-                        String::from("Description"),
-                        String::from("Number of samples with data"),
-                    ),
-                ])
+                Value::Struct(
+                    String::from("NS"),
+                    vec![
+                        (String::from("Number"), String::from("1")),
+                        (String::from("Type"), String::from("Integer")),
+                        (
+                            String::from("Description"),
+                            String::from("Number of samples with data"),
+                        ),
+                    ]
+                )
             ))
         );
 

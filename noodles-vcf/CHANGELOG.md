@@ -25,6 +25,9 @@
   * vcf/header/record/key: Split standard (`Standard`) and nonstandard
     (`Other`) keys.
 
+  * vcf/header/record/value: `Value::Struct` now holds the ID field separately
+    from the other fields.
+
 ### Fixed
 
   * vcf/header/record/value: Write surrounding angle brackets for structs.
