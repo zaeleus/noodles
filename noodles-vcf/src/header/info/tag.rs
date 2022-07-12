@@ -38,15 +38,21 @@ impl Standard {
     }
 }
 
+impl AsRef<str> for Standard {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Id => "ID",
+            Self::Number => "Number",
+            Self::Type => "Type",
+            Self::Description => "Description",
+            Self::Idx => "IDX",
+        }
+    }
+}
+
 impl fmt::Display for Standard {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Id => "ID".fmt(f),
-            Self::Number => "Number".fmt(f),
-            Self::Type => "Type".fmt(f),
-            Self::Description => "Description".fmt(f),
-            Self::Idx => "IDX".fmt(f),
-        }
+        self.as_ref().fmt(f)
     }
 }
 
@@ -54,9 +60,15 @@ impl fmt::Display for Standard {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Other(String);
 
+impl AsRef<str> for Other {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl Borrow<str> for Other {
     fn borrow(&self) -> &str {
-        &self.0
+        self.as_ref()
     }
 }
 
@@ -89,6 +101,15 @@ impl Tag {
         match Self::from(s) {
             Self::Standard(_) => None,
             Self::Other(tag) => Some(tag),
+        }
+    }
+}
+
+impl AsRef<str> for Tag {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Standard(tag) => tag.as_ref(),
+            Self::Other(tag) => tag.as_ref(),
         }
     }
 }
