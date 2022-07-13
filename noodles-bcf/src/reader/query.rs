@@ -1,4 +1,7 @@
-use std::io::{self, Read, Seek};
+use std::{
+    io::{self, Read, Seek},
+    vec,
+};
 
 use noodles_bgzf as bgzf;
 use noodles_core::{region::Interval, Position};
@@ -23,8 +26,7 @@ where
 {
     reader: &'a mut Reader<bgzf::Reader<R>>,
 
-    chunks: Vec<Chunk>,
-    i: usize,
+    chunks: vec::IntoIter<Chunk>,
 
     chromosome_id: usize,
     interval: Interval,
@@ -46,8 +48,7 @@ where
         Self {
             reader,
 
-            chunks,
-            i: 0,
+            chunks: chunks.into_iter(),
 
             chromosome_id,
             interval,
@@ -75,7 +76,7 @@ where
         loop {
             match self.state {
                 State::Seek => {
-                    self.state = match next_chunk(&self.chunks, &mut self.i) {
+                    self.state = match self.chunks.next() {
                         Some(chunk) => {
                             if let Err(e) = self.reader.seek(chunk.start()) {
                                 return Some(Err(e));
