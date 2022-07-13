@@ -20,7 +20,7 @@ pub struct Builder {
     pedigrees: Pedigrees,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    map: IndexMap<String, Vec<Record>>,
+    other_records: IndexMap<String, Vec<Record>>,
 }
 
 impl Builder {
@@ -346,7 +346,7 @@ impl Builder {
     /// ```
     pub fn insert(mut self, record: Record) -> Self {
         let key = record.key().to_string();
-        let records = self.map.entry(key).or_default();
+        let records = self.other_records.entry(key).or_default();
         records.push(record);
         self
     }
@@ -373,7 +373,7 @@ impl Builder {
             pedigrees: self.pedigrees,
             pedigree_db: self.pedigree_db,
             sample_names: self.sample_names,
-            map: self.map,
+            other_records: self.other_records,
         }
     }
 }

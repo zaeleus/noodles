@@ -68,7 +68,7 @@ pub struct Header {
     pedigrees: Pedigrees,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    map: IndexMap<String, Vec<Record>>,
+    other_records: IndexMap<String, Vec<Record>>,
 }
 
 impl Header {
@@ -621,7 +621,7 @@ impl Header {
     /// );
     /// ```
     pub fn records(&self) -> &Records {
-        &self.map
+        &self.other_records
     }
 
     /// Returns a mutable reference to a map of the unstructured header records.
@@ -651,7 +651,7 @@ impl Header {
     /// );
     /// ```
     pub fn records_mut(&mut self) -> &mut Records {
-        &mut self.map
+        &mut self.other_records
     }
 
     /// Returns a header record with the given key.
@@ -675,7 +675,7 @@ impl Header {
     /// assert_eq!(header.get("reference"), None);
     /// ```
     pub fn get(&self, key: &str) -> Option<&[Record]> {
-        self.map.get(key).map(|r| &**r)
+        self.other_records.get(key).map(|r| &**r)
     }
 
     /// Inserts a key-value pair representing an unstructured record into the header.
@@ -700,7 +700,7 @@ impl Header {
     /// ```
     pub fn insert(&mut self, record: Record) {
         let key = record.key().to_string();
-        let records = self.map.entry(key).or_default();
+        let records = self.other_records.entry(key).or_default();
         records.push(record);
     }
 }
@@ -773,7 +773,7 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        for records in self.map.values() {
+        for records in self.other_records.values() {
             for record in records {
                 writeln!(f, "{}{}={}", record::PREFIX, record.key(), record.value())?;
             }
