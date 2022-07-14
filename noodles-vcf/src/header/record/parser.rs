@@ -11,6 +11,8 @@ use nom::{
 
 use super::{Value, PREFIX};
 
+type Field = (String, String);
+
 fn string(input: &str) -> IResult<&str, String> {
     delimited(
         tag("\""),
@@ -40,28 +42,26 @@ fn field_value(input: &str) -> IResult<&str, String> {
     alt((string, value))(input)
 }
 
-fn field(input: &str) -> IResult<&str, (String, String)> {
+fn field(input: &str) -> IResult<&str, Field> {
     map(
         separated_pair(field_key, tag("="), field_value),
-        |(k, v): (&str, String)| (k.into(), v),
+        |(k, v)| (k.into(), v),
     )(input)
 }
 
-fn string_field(input: &str) -> IResult<&str, (String, String)> {
-    map(
-        separated_pair(field_key, tag("="), string),
-        |(k, v): (&str, String)| (k.into(), v),
-    )(input)
+fn string_field(input: &str) -> IResult<&str, Field> {
+    map(separated_pair(field_key, tag("="), string), |(k, v)| {
+        (k.into(), v)
+    })(input)
 }
 
-fn value_field(input: &str) -> IResult<&str, (String, String)> {
-    map(
-        separated_pair(field_key, tag("="), value),
-        |(k, v): (&str, String)| (k.into(), v),
-    )(input)
+fn value_field(input: &str) -> IResult<&str, Field> {
+    map(separated_pair(field_key, tag("="), value), |(k, v)| {
+        (k.into(), v)
+    })(input)
 }
 
-fn idx_field(input: &str) -> IResult<&str, (String, String)> {
+fn idx_field(input: &str) -> IResult<&str, Field> {
     map(separated_pair(tag("IDX"), tag("="), value), |(k, v)| {
         (k.into(), v)
     })(input)
@@ -218,10 +218,10 @@ fn meta_list(input: &str) -> IResult<&str, &str> {
     delimited(tag("["), take_until("]"), tag("]"))(input)
 }
 
-fn meta_values_field(input: &str) -> IResult<&str, (String, String)> {
+fn meta_values_field(input: &str) -> IResult<&str, Field> {
     map(
         separated_pair(tag("Values"), tag("="), meta_list),
-        |(k, v): (&str, &str)| (k.into(), v.into()),
+        |(k, v)| (k.into(), v.into()),
     )(input)
 }
 
