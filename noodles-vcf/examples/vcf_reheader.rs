@@ -20,7 +20,7 @@ fn add_comment(header: &mut vcf::Header) {
 
     header.insert(Record::new(
         Key::from("comment"),
-        Value::String(String::from("a comment added by noodles-vcf")),
+        Value::from("a comment added by noodles-vcf"),
     ));
 }
 

@@ -24,7 +24,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
+    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
     /// ```
     pub fn new(key: Key, value: Value) -> Self {
         Self { key, value }
@@ -36,7 +36,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
+    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
     /// assert_eq!(record.key(), &key::FILE_FORMAT);
     /// ```
     pub fn key(&self) -> &Key {
@@ -49,8 +49,8 @@ impl Record {
     ///
     /// ```
     /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::String(String::from("VCFv4.3")));
-    /// assert_eq!(record.value(), &Value::String(String::from("VCFv4.3")));
+    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
+    /// assert_eq!(record.value(), &Value::from("VCFv4.3"));
     /// ```
     pub fn value(&self) -> &Value {
         &self.value
@@ -100,10 +100,7 @@ mod tests {
 
         assert_eq!(
             line.parse(),
-            Ok(Record::new(
-                key::FILE_FORMAT,
-                Value::String(String::from("VCFv4.3"))
-            ))
+            Ok(Record::new(key::FILE_FORMAT, Value::from("VCFv4.3")))
         );
 
         let line =

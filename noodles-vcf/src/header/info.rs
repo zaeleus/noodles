@@ -501,10 +501,7 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_info_with_an_invalid_record_value() {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::String(String::from("VCFv4.3")),
-        );
+        let record = Record::new(record::key::INFO, record::Value::from("VCFv4.3"));
 
         assert_eq!(
             Info::try_from(record),

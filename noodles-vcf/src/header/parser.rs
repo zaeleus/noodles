@@ -318,7 +318,7 @@ mod tests {
             Some(
                 &[Record::new(
                     record::Key::from("fileDate"),
-                    record::Value::String(String::from("20200506")),
+                    record::Value::from("20200506"),
                 )][..]
             )
         );
@@ -328,7 +328,7 @@ mod tests {
             Some(
                 &[Record::new(
                     record::Key::from("source"),
-                    record::Value::String(String::from("noodles-vcf")),
+                    record::Value::from("noodles-vcf"),
                 )][..]
             )
         );

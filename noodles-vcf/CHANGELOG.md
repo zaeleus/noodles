@@ -13,6 +13,9 @@
 
   * vcf/header/contig: Add name wrapper (`Name`).
 
+  * vcf/header/record/value: Add conversion from a string (`From<&str>` and
+    `From<String>`).
+
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
 ### Changed

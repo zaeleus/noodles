@@ -334,14 +334,8 @@ impl Builder {
     ///
     /// ```
     /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
-    ///
-    /// let record = Record::new(
-    ///     Key::from("fileDate"),
-    ///     Value::String(String::from("20200709")),
-    /// );
-    ///
+    /// let record = Record::new(Key::from("fileDate"), Value::from("20200709"));
     /// let header = vcf::Header::builder().insert(record.clone()).build();
-    ///
     /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
     /// ```
     pub fn insert(mut self, record: Record) -> Self {
@@ -409,7 +403,7 @@ mod tests {
 
         let record = Record::new(
             header::record::Key::from("fileDate"),
-            header::record::Value::String(String::from("20200709")),
+            header::record::Value::from("20200709"),
         );
 
         let header = Builder::default()

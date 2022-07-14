@@ -32,16 +32,25 @@ impl fmt::Display for Value {
     }
 }
 
+impl From<&str> for Value {
+    fn from(s: &str) -> Self {
+        Self::String(s.into())
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Self::String(s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_fmt() {
-        assert_eq!(
-            Value::String(String::from("VCFv4.3")).to_string(),
-            "VCFv4.3"
-        );
+        assert_eq!(Value::from("VCFv4.3").to_string(), "VCFv4.3");
 
         assert_eq!(
             Value::Struct(String::from("sq0"), IndexMap::new()).to_string(),
@@ -57,6 +66,22 @@ mod tests {
             )
             .to_string(),
             "<ID=sq0,length=13>"
+        );
+    }
+
+    #[test]
+    fn test_from_str_for_value() {
+        assert_eq!(
+            Value::from("VCFv4.3"),
+            Value::String(String::from("VCFv4.3"))
+        );
+    }
+
+    #[test]
+    fn test_from_string_for_value() {
+        assert_eq!(
+            Value::from(String::from("VCFv4.3")),
+            Value::String(String::from("VCFv4.3"))
         );
     }
 }

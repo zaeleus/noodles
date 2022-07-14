@@ -346,10 +346,7 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_contig_with_an_invalid_record_value() {
-        let record = Record::new(
-            record::key::CONTIG,
-            record::Value::String(String::from("VCF4.3")),
-        );
+        let record = Record::new(record::key::CONTIG, record::Value::from("VCF4.3"));
 
         assert_eq!(
             Contig::try_from(record),

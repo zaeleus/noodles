@@ -477,10 +477,7 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_format_with_an_invalid_record_value() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::String(String::from("VCFv4.3")),
-        );
+        let record = Record::new(record::key::FORMAT, record::Value::from("VCFv4.3"));
 
         assert_eq!(
             Format::try_from(record),

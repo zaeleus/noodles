@@ -309,15 +309,15 @@ mod tests {
     fn test_parse_with_record_string_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, (key, value)) = parse("##fileformat=VCFv4.3")?;
         assert_eq!(key, "fileformat");
-        assert_eq!(value, Value::String(String::from("VCFv4.3")));
+        assert_eq!(value, Value::from("VCFv4.3"));
 
         let (_, (key, value)) = parse("##fileDate=20200502")?;
         assert_eq!(key, "fileDate");
-        assert_eq!(value, Value::String(String::from("20200502")));
+        assert_eq!(value, Value::from("20200502"));
 
         let (_, (key, value)) = parse("##reference=file:///tmp/ref.fasta")?;
         assert_eq!(key, "reference");
-        assert_eq!(value, Value::String(String::from("file:///tmp/ref.fasta")));
+        assert_eq!(value, Value::from("file:///tmp/ref.fasta"));
 
         Ok(())
     }

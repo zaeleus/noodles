@@ -239,7 +239,7 @@ mod tests {
     fn test_try_from_record_for_filter_with_an_invalid_record_value() {
         let record = Record::new(
             record::key::ALTERNATIVE_ALLELE,
-            record::Value::String(String::from("VCFv4.3")),
+            record::Value::from("VCFv4.3"),
         );
 
         assert_eq!(
