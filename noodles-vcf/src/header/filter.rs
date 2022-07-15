@@ -222,59 +222,52 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::FILTER,
-            record::Value::Struct(
-                String::from("q10"),
-                [(
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("q10")),
+                (
                     String::from("Description"),
                     String::from("Quality below 10"),
-                )]
-                .into_iter()
-                .collect(),
-            ),
-        )
+                ),
+            ])?,
+        ))
     }
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromRecordError> {
-        let record = build_record();
-        let filter = Filter::try_from(record)?;
-
+    fn test_fmt() {
+        let filter = Filter::new("q10", "Quality below 10");
         let expected = r#"##FILTER=<ID=q10,Description="Quality below 10">"#;
         assert_eq!(filter.to_string(), expected);
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter() {
-        let record = build_record();
+    fn test_try_from_record_for_filter() -> Result<(), record::value::TryFromFieldsError> {
+        let record = build_record()?;
 
         assert_eq!(
             Filter::try_from(record),
             Ok(Filter::new("q10", "Quality below 10"))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_extra_fields() {
+    fn test_try_from_record_for_filter_with_extra_fields(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(
-                String::from("q10"),
-                [
-                    (
-                        String::from("Description"),
-                        String::from("Quality below 10"),
-                    ),
-                    (String::from("Source"), String::from("noodles")),
-                    (String::from("IDX"), String::from("1")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("q10")),
+                (
+                    String::from("Description"),
+                    String::from("Quality below 10"),
+                ),
+                (String::from("Source"), String::from("noodles")),
+                (String::from("IDX"), String::from("1")),
+            ])?,
         );
 
         assert_eq!(
@@ -288,27 +281,30 @@ mod tests {
                     .collect()
             })
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_an_invalid_record_key() {
+    fn test_try_from_record_for_filter_with_an_invalid_record_key(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILE_FORMAT,
-            record::Value::Struct(
-                String::from("q10"),
-                [(
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("q10")),
+                (
                     String::from("Description"),
                     String::from("Quality below 10"),
-                )]
-                .into_iter()
-                .collect(),
-            ),
+                ),
+            ])?,
         );
 
         assert_eq!(
             Filter::try_from(record),
             Err(TryFromRecordError::InvalidRecord)
         );
+
+        Ok(())
     }
 
     #[test]
@@ -322,39 +318,41 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_a_missing_field() {
+    fn test_try_from_record_for_filter_with_a_missing_field(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(String::from("q10"), Default::default()),
+            record::Value::try_from(vec![(String::from("ID"), String::from("q10"))])?,
         );
 
         assert!(matches!(
             Filter::try_from(record),
             Err(TryFromRecordError::MissingField(_))
         ));
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_an_invalid_idx() {
+    fn test_try_from_record_for_filter_with_an_invalid_idx(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILTER,
-            record::Value::Struct(
-                String::from("q10"),
-                [
-                    (
-                        String::from("Description"),
-                        String::from("Quality below 10"),
-                    ),
-                    (String::from("IDX"), String::from("ndls")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("q10")),
+                (
+                    String::from("Description"),
+                    String::from("Quality below 10"),
+                ),
+                (String::from("IDX"), String::from("ndls")),
+            ])?,
         );
 
         assert!(matches!(
             Filter::try_from(record),
             Err(TryFromRecordError::InvalidIdx(_))
         ));
+
+        Ok(())
     }
 }

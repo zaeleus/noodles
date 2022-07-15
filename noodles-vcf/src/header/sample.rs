@@ -124,16 +124,14 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::SAMPLE,
-            record::Value::Struct(
-                String::from("sample0"),
-                [(String::from("Assay"), String::from("WholeGenome"))]
-                    .into_iter()
-                    .collect(),
-            ),
-        )
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("sample0")),
+                (String::from("Assay"), String::from("WholeGenome")),
+            ])?,
+        ))
     }
 
     #[test]
@@ -141,9 +139,12 @@ mod tests {
         let sample = Sample::new(String::from("sample0"), IndexMap::new());
         assert_eq!(sample.to_string(), "##SAMPLE=<ID=sample0>");
 
-        let mut fields = IndexMap::new();
-        fields.insert(String::from("Assay"), String::from("WholeGenome"));
-        let sample = Sample::new(String::from("sample0"), fields);
+        let sample = Sample::new(
+            String::from("sample0"),
+            [(String::from("Assay"), String::from("WholeGenome"))]
+                .into_iter()
+                .collect(),
+        );
         assert_eq!(
             sample.to_string(),
             "##SAMPLE=<ID=sample0,Assay=WholeGenome>"
@@ -151,14 +152,19 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_sample() {
-        let record = build_record();
+    fn test_try_from_record_for_sample() -> Result<(), record::value::TryFromFieldsError> {
+        let record = build_record()?;
         let actual = Sample::try_from(record);
 
-        let mut fields = IndexMap::new();
-        fields.insert(String::from("Assay"), String::from("WholeGenome"));
-        let expected = Sample::new(String::from("sample0"), fields);
+        let expected = Sample::new(
+            String::from("sample0"),
+            [(String::from("Assay"), String::from("WholeGenome"))]
+                .into_iter()
+                .collect(),
+        );
 
         assert_eq!(actual, Ok(expected));
+
+        Ok(())
     }
 }

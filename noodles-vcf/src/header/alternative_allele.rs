@@ -188,16 +188,14 @@ mod tests {
         ))
     }
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::ALTERNATIVE_ALLELE,
-            record::Value::Struct(
-                String::from("DEL"),
-                [(String::from("Description"), String::from("Deletion"))]
-                    .into_iter()
-                    .collect(),
-            ),
-        )
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion")),
+            ])?,
+        ))
     }
 
     #[test]
@@ -208,31 +206,34 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_filter() {
-        let record = build_record();
+    fn test_try_from_record_for_filter() -> Result<(), record::value::TryFromFieldsError> {
+        let record = build_record()?;
 
         assert_eq!(
             AlternativeAllele::try_from(record),
             Ok(AlternativeAllele::new(del(), "Deletion"))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_an_invalid_record_key() {
+    fn test_try_from_record_for_filter_with_an_invalid_record_key(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILE_FORMAT,
-            record::Value::Struct(
-                String::from("DEL"),
-                [(String::from("Description"), String::from("Deletion"))]
-                    .into_iter()
-                    .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion")),
+            ])?,
         );
 
         assert_eq!(
             AlternativeAllele::try_from(record),
             Err(TryFromRecordError::InvalidRecord)
         );
+
+        Ok(())
     }
 
     #[test]
@@ -249,33 +250,37 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_a_missing_field() {
+    fn test_try_from_record_for_filter_with_a_missing_field(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::ALTERNATIVE_ALLELE,
-            record::Value::Struct(String::from("DEL"), Default::default()),
+            record::Value::try_from(vec![(String::from("ID"), String::from("DEL"))])?,
         );
 
         assert_eq!(
             AlternativeAllele::try_from(record),
             Err(TryFromRecordError::MissingField(DESCRIPTION))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_filter_with_an_invalid_id() {
+    fn test_try_from_record_for_filter_with_an_invalid_id(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::ALTERNATIVE_ALLELE,
-            record::Value::Struct(
-                String::new(),
-                [(String::from("Description"), String::from("Deletion"))]
-                    .into_iter()
-                    .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::new()),
+                (String::from("Description"), String::from("Deletion")),
+            ])?,
         );
 
         assert!(matches!(
             AlternativeAllele::try_from(record),
             Err(TryFromRecordError::InvalidId(_))
         ));
+
+        Ok(())
     }
 }

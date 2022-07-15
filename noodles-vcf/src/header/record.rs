@@ -2,7 +2,7 @@
 
 pub mod key;
 pub(crate) mod parser;
-mod value;
+pub mod value;
 
 use indexmap::IndexMap;
 
@@ -119,7 +119,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() {
+    fn test_from_str() -> Result<(), value::TryFromFieldsError> {
         let line = "##fileformat=VCFv4.3";
 
         assert_eq!(
@@ -134,22 +134,20 @@ mod tests {
             line.parse(),
             Ok(Record::new(
                 key::INFO,
-                Value::Struct(
-                    String::from("NS"),
-                    [
-                        (String::from("Number"), String::from("1")),
-                        (String::from("Type"), String::from("Integer")),
-                        (
-                            String::from("Description"),
-                            String::from("Number of samples with data"),
-                        ),
-                    ]
-                    .into_iter()
-                    .collect()
-                )
+                Value::try_from(vec![
+                    (String::from("ID"), String::from("NS")),
+                    (String::from("Number"), String::from("1")),
+                    (String::from("Type"), String::from("Integer")),
+                    (
+                        String::from("Description"),
+                        String::from("Number of samples with data"),
+                    ),
+                ])?
             ))
         );
 
         assert!("".parse::<Record>().is_err());
+
+        Ok(())
     }
 }

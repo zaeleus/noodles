@@ -177,36 +177,33 @@ fn parse_struct(id: String, fields: IndexMap<String, String>) -> Result<Meta, Tr
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::META,
-            record::Value::Struct(
-                String::from("Assay"),
-                [
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Number"), String::from(".")),
-                    (String::from("Values"), String::from("WholeGenome, Exome")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        )
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("Assay")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Values"), String::from("WholeGenome, Exome")),
+            ])?,
+        ))
     }
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromRecordError> {
-        let record = build_record();
-        let meta = Meta::try_from(record)?;
+    fn test_fmt() {
+        let meta = Meta::new(
+            String::from("Assay"),
+            vec![String::from("WholeGenome"), String::from("Exome")],
+        );
 
         let expected = "##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>";
-        assert_eq!(meta.to_string(), expected);
 
-        Ok(())
+        assert_eq!(meta.to_string(), expected);
     }
 
     #[test]
-    fn test_try_from_record_for_meta() {
-        let record = build_record();
+    fn test_try_from_record_for_meta() -> Result<(), record::value::TryFromFieldsError> {
+        let record = build_record()?;
         let actual = Meta::try_from(record);
 
         let expected = Meta::new(
@@ -215,5 +212,7 @@ mod tests {
         );
 
         assert_eq!(actual, Ok(expected));
+
+        Ok(())
     }
 }

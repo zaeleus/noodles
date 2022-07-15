@@ -242,27 +242,23 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::CONTIG,
-            record::Value::Struct(
-                String::from("sq0"),
-                [
-                    (String::from("length"), String::from("13")),
-                    (
-                        String::from("md5"),
-                        String::from("d7eba311421bbc9d3ada44709dd61534"),
-                    ),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        )
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+            ])?,
+        ))
     }
 
     #[test]
-    fn test_fmt() -> Result<(), TryFromRecordError> {
-        let record = build_record();
+    fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+        let record = build_record()?;
         let contig = Contig::try_from(record)?;
 
         let expected = r#"##contig=<ID=sq0,length=13,md5="d7eba311421bbc9d3ada44709dd61534">"#;
@@ -273,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_contig() -> Result<(), Box<dyn std::error::Error>> {
-        let record = build_record();
+        let record = build_record()?;
 
         assert_eq!(
             Contig::try_from(record),
@@ -298,19 +294,15 @@ mod tests {
     {
         let record = Record::new(
             record::key::CONTIG,
-            record::Value::Struct(
-                String::from("sq0"),
-                [
-                    (String::from("length"), String::from("13")),
-                    (
-                        String::from("md5"),
-                        String::from("d7eba311421bbc9d3ada44709dd61534"),
-                    ),
-                    (String::from("IDX"), String::from("1")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534"),
+                ),
+                (String::from("IDX"), String::from("1")),
+            ])?,
         );
 
         assert_eq!(
@@ -332,16 +324,19 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_an_invalid_record_key() {
+    fn test_try_from_record_for_contig_with_an_invalid_record_key(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::FILE_FORMAT,
-            record::Value::Struct(String::from("sq0"), Default::default()),
+            record::Value::try_from(vec![(String::from("ID"), String::from("sq0"))])?,
         );
 
         assert_eq!(
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidRecord)
         );
+
+        Ok(())
     }
 
     #[test]
@@ -355,54 +350,57 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_an_invalid_id() {
+    fn test_try_from_record_for_contig_with_an_invalid_id(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::CONTIG,
-            record::Value::Struct(String::from("sq 0"), Default::default()),
+            record::Value::try_from(vec![(String::from("ID"), String::from("sq 0"))])?,
         );
 
         assert!(matches!(
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidId(_))
         ));
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_an_invalid_length() {
+    fn test_try_from_record_for_contig_with_an_invalid_length(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::CONTIG,
-            record::Value::Struct(
-                String::from("sq0"),
-                [(String::from("length"), String::from("NA"))]
-                    .into_iter()
-                    .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("NA")),
+            ])?,
         );
 
         assert!(matches!(
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidLength(_))
         ));
+
+        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_contig_with_an_invalid_idx() {
+    fn test_try_from_record_for_contig_with_an_invalid_idx(
+    ) -> Result<(), record::value::TryFromFieldsError> {
         let record = Record::new(
             record::key::CONTIG,
-            record::Value::Struct(
-                String::from("sq0"),
-                [
-                    (String::from("length"), String::from("13")),
-                    (String::from("IDX"), String::from("ndls")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (String::from("IDX"), String::from("ndls")),
+            ])?,
         );
 
         assert!(matches!(
             Contig::try_from(record),
             Err(TryFromRecordError::InvalidIdx(_))
         ));
+
+        Ok(())
     }
 }

@@ -1,4 +1,9 @@
-use std::fmt::{self, Write};
+//! VCF header record value.
+
+use std::{
+    error,
+    fmt::{self, Write},
+};
 
 use indexmap::IndexMap;
 
@@ -44,6 +49,46 @@ impl From<String> for Value {
     }
 }
 
+/// An error returned when raw fields fail to convert.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TryFromFieldsError {
+    /// The ID field is missing.
+    MissingId,
+    /// A tag is duplicated.
+    DuplicateTag,
+}
+
+impl error::Error for TryFromFieldsError {}
+
+impl fmt::Display for TryFromFieldsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingId => "missing ID".fmt(f),
+            Self::DuplicateTag => "duplicate tag".fmt(f),
+        }
+    }
+}
+
+impl TryFrom<Vec<(String, String)>> for Value {
+    type Error = TryFromFieldsError;
+
+    fn try_from(fields: Vec<(String, String)>) -> Result<Self, Self::Error> {
+        let mut map = IndexMap::new();
+
+        for (key, value) in fields {
+            if map.insert(key, value).is_some() {
+                return Err(TryFromFieldsError::DuplicateTag);
+            }
+        }
+
+        let id = map
+            .shift_remove("ID")
+            .ok_or(TryFromFieldsError::MissingId)?;
+
+        Ok(Self::Struct(id, map))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,6 +127,40 @@ mod tests {
         assert_eq!(
             Value::from(String::from("VCFv4.3")),
             Value::String(String::from("VCFv4.3"))
+        );
+    }
+
+    #[test]
+    fn test_from_vec_string_string_for_value() {
+        assert_eq!(
+            Value::try_from(vec![(String::from("ID"), String::from("sq0"))]),
+            Ok(Value::Struct(String::from("sq0"), Default::default(),))
+        );
+
+        assert_eq!(
+            Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13"))
+            ]),
+            Ok(Value::Struct(
+                String::from("sq0"),
+                [(String::from("length"), String::from("13"))]
+                    .into_iter()
+                    .collect(),
+            ))
+        );
+
+        assert_eq!(
+            Value::try_from(vec![(String::from("length"), String::from("13"))]),
+            Err(TryFromFieldsError::MissingId),
+        );
+
+        assert_eq!(
+            Value::try_from(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("ID"), String::from("sq0")),
+            ]),
+            Err(TryFromFieldsError::DuplicateTag),
         );
     }
 }

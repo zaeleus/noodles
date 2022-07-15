@@ -14,7 +14,8 @@
   * vcf/header/contig: Add name wrapper (`Name`).
 
   * vcf/header/record/value: Add conversion from a string (`From<&str>` and
-    `From<String>`).
+    `From<String>`) and fallible conversion from fields (`TryFrom<Vec<(String,
+    String)>`).
 
 [#99]: https://github.com/zaeleus/noodles/issues/99
 

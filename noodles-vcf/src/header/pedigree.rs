@@ -124,46 +124,54 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
+    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
+        Ok(Record::new(
             record::key::PEDIGREE,
-            record::Value::Struct(
-                String::from("cid"),
-                [
-                    (String::from("Father"), String::from("fid")),
-                    (String::from("Mother"), String::from("mid")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        )
+            record::Value::try_from(vec![
+                (String::from("ID"), String::from("cid")),
+                (String::from("Father"), String::from("fid")),
+                (String::from("Mother"), String::from("mid")),
+            ])?,
+        ))
     }
 
     #[test]
     fn test_fmt() {
-        let sample = Pedigree::new(String::from("cid"), IndexMap::new());
-        assert_eq!(sample.to_string(), "##PEDIGREE=<ID=cid>");
+        let pedigree = Pedigree::new(String::from("cid"), IndexMap::new());
+        assert_eq!(pedigree.to_string(), "##PEDIGREE=<ID=cid>");
 
-        let mut fields = IndexMap::new();
-        fields.insert(String::from("Father"), String::from("fid"));
-        fields.insert(String::from("Mother"), String::from("mid"));
-        let sample = Pedigree::new(String::from("cid"), fields);
+        let pedigree = Pedigree::new(
+            String::from("cid"),
+            [
+                (String::from("Father"), String::from("fid")),
+                (String::from("Mother"), String::from("mid")),
+            ]
+            .into_iter()
+            .collect(),
+        );
         assert_eq!(
-            sample.to_string(),
+            pedigree.to_string(),
             "##PEDIGREE=<ID=cid,Father=fid,Mother=mid>"
         );
     }
 
     #[test]
-    fn test_try_from_record_for_pedigree() {
-        let record = build_record();
+    fn test_try_from_record_for_pedigree() -> Result<(), record::value::TryFromFieldsError> {
+        let record = build_record()?;
         let actual = Pedigree::try_from(record);
 
-        let mut fields = IndexMap::new();
-        fields.insert(String::from("Father"), String::from("fid"));
-        fields.insert(String::from("Mother"), String::from("mid"));
-        let expected = Pedigree::new(String::from("cid"), fields);
+        let expected = Pedigree::new(
+            String::from("cid"),
+            [
+                (String::from("Father"), String::from("fid")),
+                (String::from("Mother"), String::from("mid")),
+            ]
+            .into_iter()
+            .collect(),
+        );
 
         assert_eq!(actual, Ok(expected));
+
+        Ok(())
     }
 }
