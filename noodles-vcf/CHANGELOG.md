@@ -25,6 +25,9 @@
 
   * vcf/header/contig: Change length to `usize`.
 
+  * vcf/header/record: Structured lines can no longer have duplicate field
+    tags.
+
   * vcf/header/record/key: Split standard (`Standard`) and nonstandard
     (`Other`) keys.
 

@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag, take_till, take_until},
@@ -9,9 +8,15 @@ use nom::{
     IResult,
 };
 
-use super::{Value, PREFIX};
+use super::PREFIX;
 
 type Field = (String, String);
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Value {
+    String(String),
+    Struct(Vec<Field>),
+}
 
 fn string(input: &str) -> IResult<&str, String> {
     delimited(
@@ -69,13 +74,13 @@ fn idx_field(input: &str) -> IResult<&str, Field> {
 
 fn extra_fields<'a>(
     mut input: &'a str,
-    fields: &mut IndexMap<String, String>,
+    fields: &mut Vec<(String, String)>,
 ) -> IResult<&'a str, ()> {
     loop {
         match tag(",")(input) {
             Ok((i, _)) => {
-                if let Ok((i, (key, value))) = string_field(i) {
-                    fields.insert(key, value);
+                if let Ok((i, field)) = string_field(i) {
+                    fields.push(field);
                     input = i;
                 } else {
                     break;
@@ -89,129 +94,128 @@ fn extra_fields<'a>(
     Ok((input, ()))
 }
 
-fn id(input: &str) -> IResult<&str, String> {
-    let (input, _) = tag("ID=")(input)?;
-    value(input)
-}
-
 fn info_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = IndexMap::new();
+    let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
 
     // ID
-    let (input, id) = id(input)?;
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = value_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = value_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = string_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = string_field(input)?;
+    fields.push(field);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, (key, value)) = idx_field(i)?;
-        fields.insert(key, value);
+        let (i, field) = idx_field(i)?;
+        fields.push(field);
         input = i;
     }
 
     let (input, _) = tag(">")(input)?;
 
-    Ok((input, Value::Struct(id, fields)))
+    Ok((input, Value::Struct(fields)))
 }
 
 fn filter_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = IndexMap::new();
+    let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
 
     // ID
-    let (input, id) = id(input)?;
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = string_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = string_field(input)?;
+    fields.push(field);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, (key, value)) = idx_field(i)?;
-        fields.insert(key, value);
+        let (i, field) = idx_field(i)?;
+        fields.push(field);
         input = i;
     }
 
     let (input, _) = tag(">")(input)?;
 
-    Ok((input, Value::Struct(id, fields)))
+    Ok((input, Value::Struct(fields)))
 }
 
 fn format_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = IndexMap::new();
+    let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
 
     // ID
-    let (input, id) = id(input)?;
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = value_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = value_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = string_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = string_field(input)?;
+    fields.push(field);
 
     let (mut input, _) = extra_fields(input, &mut fields)?;
 
     // IDX
     if let (i, Some(_)) = opt(tag(","))(input)? {
-        let (i, (key, value)) = idx_field(i)?;
-        fields.insert(key, value);
+        let (i, field) = idx_field(i)?;
+        fields.push(field);
         input = i;
     }
 
     let (input, _) = tag(">")(input)?;
 
-    Ok((input, Value::Struct(id, fields)))
+    Ok((input, Value::Struct(fields)))
 }
 
 fn alternative_allele_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = IndexMap::new();
+    let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
 
     // ID
-    let (input, id) = id(input)?;
+    let (input, field) = value_field(input)?;
+    fields.push(field);
 
     // Description
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = string_field(input)?;
-    fields.insert(key, value);
+    let (input, field) = string_field(input)?;
+    fields.push(field);
 
     let (input, _) = extra_fields(input, &mut fields)?;
     let (input, _) = tag(">")(input)?;
 
-    Ok((input, Value::Struct(id, fields)))
+    Ok((input, Value::Struct(fields)))
 }
 
 fn meta_list(input: &str) -> IResult<&str, &str> {
@@ -226,41 +230,39 @@ fn meta_values_field(input: &str) -> IResult<&str, Field> {
 }
 
 fn meta_structure(input: &str) -> IResult<&str, Value> {
-    let mut fields = IndexMap::new();
+    let mut fields = Vec::new();
 
     let (input, _) = tag("<")(input)?;
 
     // ID
-    let (input, id) = id(input)?;
+    let (input, f) = value_field(input)?;
+    fields.push(f);
 
     // Type
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = field(input)?;
-    fields.insert(key, value);
+    let (input, f) = field(input)?;
+    fields.push(f);
 
     // Number
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = field(input)?;
-    fields.insert(key, value);
+    let (input, f) = field(input)?;
+    fields.push(f);
 
     // Values
     let (input, _) = tag(",")(input)?;
-    let (input, (key, value)) = meta_values_field(input)?;
-    fields.insert(key, value);
+    let (input, f) = meta_values_field(input)?;
+    fields.push(f);
 
     let (input, _) = tag(">")(input)?;
 
-    Ok((input, Value::Struct(id, fields)))
+    Ok((input, Value::Struct(fields)))
 }
 
 fn generic_structure(input: &str) -> IResult<&str, Value> {
-    let (input, fields) = delimited(tag("<"), separated_list1(tag(","), field), tag(">"))(input)?;
-    let mut fields: IndexMap<_, _> = fields.into_iter().collect();
-
-    // TODO
-    let id = fields.remove("ID").expect("missing ID field");
-
-    Ok((input, Value::Struct(id, fields)))
+    map(
+        delimited(tag("<"), separated_list1(tag(","), field), tag(">")),
+        Value::Struct,
+    )(input)
 }
 
 fn generic_value(input: &str) -> IResult<&str, Value> {
@@ -309,15 +311,15 @@ mod tests {
     fn test_parse_with_record_string_value() -> Result<(), Box<dyn std::error::Error>> {
         let (_, (key, value)) = parse("##fileformat=VCFv4.3")?;
         assert_eq!(key, "fileformat");
-        assert_eq!(value, Value::from("VCFv4.3"));
+        assert_eq!(value, Value::String(String::from("VCFv4.3")));
 
         let (_, (key, value)) = parse("##fileDate=20200502")?;
         assert_eq!(key, "fileDate");
-        assert_eq!(value, Value::from("20200502"));
+        assert_eq!(value, Value::String(String::from("20200502")));
 
         let (_, (key, value)) = parse("##reference=file:///tmp/ref.fasta")?;
         assert_eq!(key, "reference");
-        assert_eq!(value, Value::from("file:///tmp/ref.fasta"));
+        assert_eq!(value, Value::String(String::from("file:///tmp/ref.fasta")));
 
         Ok(())
     }
@@ -331,19 +333,15 @@ mod tests {
         assert_eq!(key, "INFO");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("NS"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("Integer")),
-                    (
-                        String::from("Description"),
-                        String::from("Number of samples with data")
-                    ),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data")
+                ),
+            ])
         );
 
         let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="">"#)?;
@@ -351,12 +349,10 @@ mod tests {
         assert_eq!(key, "FILTER");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("PASS"),
-                [(String::from("Description"), String::from(""))]
-                    .into_iter()
-                    .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("PASS")),
+                (String::from("Description"), String::from(""))
+            ])
         );
 
         let (_, (key, value)) =
@@ -365,16 +361,12 @@ mod tests {
         assert_eq!(key, "FORMAT");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+            ])
         );
 
         let (_, (key, value)) = parse(r#"##ALT=<ID=DEL,Description="Deletion">"#)?;
@@ -382,12 +374,10 @@ mod tests {
         assert_eq!(key, "ALT");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("DEL"),
-                [(String::from("Description"), String::from("Deletion"))]
-                    .into_iter()
-                    .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("DEL")),
+                (String::from("Description"), String::from("Deletion"))
+            ])
         );
 
         let (_, (key, value)) =
@@ -396,18 +386,14 @@ mod tests {
         assert_eq!(key, "contig");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("sq0"),
-                [
-                    (String::from("length"), String::from("13")),
-                    (
-                        String::from("md5"),
-                        String::from("d7eba311421bbc9d3ada44709dd61534")
-                    ),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("sq0")),
+                (String::from("length"), String::from("13")),
+                (
+                    String::from("md5"),
+                    String::from("d7eba311421bbc9d3ada44709dd61534")
+                ),
+            ])
         );
 
         let (_, (key, value)) = parse(r#"##PEDIGREE=<ID=pedigree0,Name_0=name0,Name_1=name1>"#)?;
@@ -415,15 +401,11 @@ mod tests {
         assert_eq!(key, "PEDIGREE");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("pedigree0"),
-                [
-                    (String::from("Name_0"), String::from("name0")),
-                    (String::from("Name_1"), String::from("name1")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("pedigree0")),
+                (String::from("Name_0"), String::from("name0")),
+                (String::from("Name_1"), String::from("name1")),
+            ])
         );
 
         Ok(())
@@ -439,20 +421,16 @@ mod tests {
         assert_eq!(key, "INFO");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("NS"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("Integer")),
-                    (
-                        String::from("Description"),
-                        String::from("Number of samples with data")
-                    ),
-                    (String::from("IDX"), String::from("1")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("NS")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("Integer")),
+                (
+                    String::from("Description"),
+                    String::from("Number of samples with data")
+                ),
+                (String::from("IDX"), String::from("1")),
+            ])
         );
 
         let (_, (key, value)) = parse(r#"##FILTER=<ID=PASS,Description="",IDX=0>"#)?;
@@ -460,15 +438,11 @@ mod tests {
         assert_eq!(key, "FILTER");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("PASS"),
-                [
-                    (String::from("Description"), String::from("")),
-                    (String::from("IDX"), String::from("0")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("PASS")),
+                (String::from("Description"), String::from("")),
+                (String::from("IDX"), String::from("0")),
+            ])
         );
 
         let (_, (key, value)) =
@@ -477,17 +451,13 @@ mod tests {
         assert_eq!(key, "FORMAT");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                    (String::from("IDX"), String::from("2")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("GT")),
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+                (String::from("IDX"), String::from("2")),
+            ])
         );
 
         Ok(())
@@ -501,16 +471,12 @@ mod tests {
         assert_eq!(key, "META");
         assert_eq!(
             value,
-            Value::Struct(
-                String::from("Assay"),
-                [
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Number"), String::from(".")),
-                    (String::from("Values"), String::from("WholeGenome, Exome")),
-                ]
-                .into_iter()
-                .collect()
-            )
+            Value::Struct(vec![
+                (String::from("ID"), String::from("Assay")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Number"), String::from(".")),
+                (String::from("Values"), String::from("WholeGenome, Exome")),
+            ])
         );
 
         Ok(())

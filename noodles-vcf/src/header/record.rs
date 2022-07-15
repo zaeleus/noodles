@@ -4,6 +4,8 @@ pub mod key;
 pub(crate) mod parser;
 mod value;
 
+use indexmap::IndexMap;
+
 pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
@@ -78,8 +80,30 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, (raw_key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
+        let (_, (raw_key, raw_value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
+
         let key = Key::from(raw_key);
+
+        let value = match raw_value {
+            parser::Value::String(s) => Value::String(s),
+            parser::Value::Struct(raw_fields) => {
+                let mut fields = IndexMap::new();
+
+                for (k, v) in raw_fields {
+                    if fields.insert(k, v).is_some() {
+                        return Err(ParseError::Invalid);
+                    }
+                }
+
+                let id = match fields.shift_remove("ID") {
+                    Some(value) => value,
+                    None => return Err(ParseError::Invalid),
+                };
+
+                Value::Struct(id, fields)
+            }
+        };
+
         Ok(Self::new(key, value))
     }
 }
