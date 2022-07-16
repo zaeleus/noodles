@@ -36,7 +36,7 @@ pub const PEDIGREE: Key = Key::Standard(Standard::Pedigree);
 pub const PEDIGREE_DB: Key = Key::Standard(Standard::PedigreeDb);
 
 /// A standard VCF record key.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Standard {
     /// File format (`fileformat`).
     FileFormat,
@@ -106,7 +106,7 @@ impl fmt::Display for Standard {
 }
 
 /// A nonstandard VCF record key.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Other(String);
 
 impl AsRef<str> for Other {
@@ -122,7 +122,7 @@ impl fmt::Display for Other {
 }
 
 /// A VCF header record key.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
     /// A standard key.
     Standard(Standard),
