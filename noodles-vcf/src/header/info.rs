@@ -12,7 +12,7 @@ use std::{error, fmt, num};
 use indexmap::IndexMap;
 
 use self::builder::Builder;
-use super::{number, record, FileFormat, Number, Record};
+use super::{number, record, FileFormat, Number};
 
 /// A VCF header information record (`INFO`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,56 +26,6 @@ pub struct Info {
 }
 
 impl Info {
-    /// Converts a generic VCF header record to a VCF header info record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{
-    ///     info::{Key as InfoKey, Type},
-    ///     record::{self, Value},
-    ///     FileFormat, Info, Number, Record,
-    /// };
-    ///
-    /// let record = Record::new(
-    ///     record::key::INFO,
-    ///     Value::Struct(
-    ///         String::from("NS"),
-    ///         [
-    ///             (String::from("Number"), String::from("1")),
-    ///             (String::from("Type"), String::from("Integer")),
-    ///             (
-    ///                 String::from("Description"),
-    ///                 String::from("Number of samples with data"),
-    ///             ),
-    ///         ]
-    ///         .into_iter()
-    ///         .collect(),
-    ///     ),
-    /// );
-    ///
-    /// assert_eq!(
-    ///     Info::try_from_record_file_format(record, FileFormat::new(4, 3)),
-    ///     Ok(Info::new(
-    ///         InfoKey::SamplesWithDataCount,
-    ///         Number::Count(1),
-    ///         Type::Integer,
-    ///         String::from("Number of samples with data"),
-    ///     ))
-    /// );
-    /// ```
-    pub fn try_from_record_file_format(
-        record: Record,
-        file_format: FileFormat,
-    ) -> Result<Self, TryFromRecordError> {
-        match record.into() {
-            (record::key::INFO, record::Value::Struct(id, fields)) => {
-                parse_struct(file_format, id, fields)
-            }
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
-    }
-
     pub(crate) fn try_from_fields(
         id: String,
         fields: IndexMap<String, String>,
@@ -268,14 +218,6 @@ impl fmt::Display for TryFromRecordError {
     }
 }
 
-impl TryFrom<Record> for Info {
-    type Error = TryFromRecordError;
-
-    fn try_from(record: Record) -> Result<Self, Self::Error> {
-        Self::try_from_record_file_format(record, FileFormat::default())
-    }
-}
-
 fn parse_struct(
     file_format: FileFormat,
     raw_id: String,
@@ -336,19 +278,20 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
-        Ok(Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
+    fn build_record() -> (String, IndexMap<String, String>) {
+        (
+            String::from("NS"),
+            [
                 (String::from("Number"), String::from("1")),
                 (String::from("Type"), String::from("Integer")),
                 (
                     String::from("Description"),
                     String::from("Number of samples with data"),
                 ),
-            ])?,
-        ))
+            ]
+            .into_iter()
+            .collect(),
+        )
     }
 
     #[test]
@@ -381,22 +324,21 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_file_format() -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from(".")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_file_format() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from(".")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(
-            Info::try_from_record_file_format(record, FileFormat::new(4, 2)),
+            Info::try_from_fields(id, fields, FileFormat::new(4, 2)),
             Ok(Info::new(
                 Key::SamplesWithDataCount,
                 Number::Unknown,
@@ -404,16 +346,14 @@ mod tests {
                 String::from("Number of samples with data"),
             ))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info() -> Result<(), record::value::TryFromFieldsError> {
-        let record = build_record()?;
+    fn test_try_from_record_for_info() {
+        let (id, fields) = build_record();
 
         assert_eq!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Ok(Info::new(
                 Key::SamplesWithDataCount,
                 Number::Count(1),
@@ -421,30 +361,27 @@ mod tests {
                 String::from("Number of samples with data"),
             ))
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_extra_fields() -> Result<(), Box<dyn std::error::Error>> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-                (String::from("Source"), String::from("dbsnp")),
-                (String::from("Version"), String::from("138")),
-                (String::from("IDX"), String::from("1")),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_extra_fields() -> Result<(), &'static str> {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+            (String::from("Source"), String::from("dbsnp")),
+            (String::from("Version"), String::from("138")),
+            (String::from("IDX"), String::from("1")),
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Ok(Info {
                 id: Key::SamplesWithDataCount,
                 number: Number::Count(1),
@@ -470,203 +407,137 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_an_invalid_record_key(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::FILE_FORMAT,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
-
+    fn test_try_from_record_for_info_with_a_missing_field() {
         assert_eq!(
-            Info::try_from(record),
-            Err(TryFromRecordError::InvalidRecord)
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_record_for_info_with_an_invalid_record_value() {
-        let record = Record::new(record::key::INFO, record::Value::from("VCFv4.3"));
-
-        assert_eq!(
-            Info::try_from(record),
+            Info::try_from_fields(String::from("NS"), IndexMap::new(), Default::default()),
             Err(TryFromRecordError::InvalidRecord)
         );
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_a_missing_field(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::Struct(String::from("NS"), Default::default()),
-        );
-
-        assert_eq!(
-            Info::try_from(record),
-            Err(TryFromRecordError::InvalidRecord)
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_try_from_record_for_info_with_an_invalid_id(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::new()),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_an_invalid_id() {
+        let id = String::new();
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidId(_))
         ));
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_an_invalid_number(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("NA")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_an_invalid_number() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from("one")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidNumber(_))
         ));
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_an_invalid_type(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("int")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_an_invalid_type() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("int")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidType(_))
         ));
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_an_invalid_idx(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-                (String::from("IDX"), String::from("ndls")),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_an_invalid_idx() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+            (String::from("IDX"), String::from("zero")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidIdx(_))
         ));
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_a_number_mismatch(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from(".")),
-                (String::from("Type"), String::from("Integer")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_a_number_mismatch() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from(".")),
+            (String::from("Type"), String::from("Integer")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::NumberMismatch(
                 Number::Unknown,
                 Number::Count(1)
             ))
         ));
-
-        Ok(())
     }
 
     #[test]
-    fn test_try_from_record_for_info_with_a_type_mismatch(
-    ) -> Result<(), record::value::TryFromFieldsError> {
-        let record = Record::new(
-            record::key::INFO,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("NS")),
-                (String::from("Number"), String::from("1")),
-                (String::from("Type"), String::from("String")),
-                (
-                    String::from("Description"),
-                    String::from("Number of samples with data"),
-                ),
-            ])?,
-        );
+    fn test_try_from_record_for_info_with_a_type_mismatch() {
+        let id = String::from("NS");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("String")),
+            (
+                String::from("Description"),
+                String::from("Number of samples with data"),
+            ),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Info::try_from(record),
+            Info::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::TypeMismatch(
                 Type::String,
                 Type::Integer
             ))
         ));
-
-        Ok(())
     }
 }

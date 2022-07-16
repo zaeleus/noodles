@@ -6,7 +6,7 @@ use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
-    header::{Contig, Filter, Format, Info, ParseError, Record},
+    header::{Filter, ParseError, Record},
 };
 
 pub use self::string_map::StringMap;
@@ -119,46 +119,37 @@ impl FromStr for StringMaps {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use vcf::header::record::key;
-
         let mut string_maps = Self::default();
 
         let mut lines = s.lines();
-        let file_format = parse_file_format(&mut lines)?;
+        let _file_format = parse_file_format(&mut lines)?;
 
         for line in &mut lines {
             if line.starts_with("#CHROM") {
                 break;
             }
 
-            let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
+            let record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-            match *record.key() {
-                key::CONTIG => {
-                    let contig = Contig::try_from(record).map_err(ParseError::InvalidContig)?;
+            match record {
+                Record::Contig(contig) => {
                     insert(
                         string_maps.contigs_mut(),
                         contig.id().as_ref(),
                         contig.idx(),
                     )?;
                 }
-                key::FILTER => {
-                    let filter = Filter::try_from(record).map_err(ParseError::InvalidFilter)?;
+                Record::Filter(filter) => {
                     insert(string_maps.strings_mut(), filter.id(), filter.idx())?;
                 }
-                key::FORMAT => {
-                    let format = Format::try_from_record_file_format(record, file_format)
-                        .map_err(ParseError::InvalidFormat)?;
-
+                Record::Format(format) => {
                     insert(
                         string_maps.strings_mut(),
                         format.id().as_ref(),
                         format.idx(),
                     )?;
                 }
-                key::INFO => {
-                    let info = Info::try_from_record_file_format(record, file_format)
-                        .map_err(ParseError::InvalidInfo)?;
+                Record::Info(info) => {
                     insert(string_maps.strings_mut(), info.id().as_ref(), info.idx())?;
                 }
                 _ => {}
@@ -170,20 +161,14 @@ impl FromStr for StringMaps {
 }
 
 fn parse_file_format(lines: &mut Lines<'_>) -> Result<vcf::header::FileFormat, ParseError> {
-    use vcf::header::record::{key, Value};
-
-    let record: Record = lines
+    let record = lines
         .next()
         .ok_or(ParseError::MissingFileFormat)
         .and_then(|line| line.parse().map_err(ParseError::InvalidRecord))?;
 
-    if record.key() == &key::FILE_FORMAT {
-        match record.value() {
-            Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
-            _ => Err(ParseError::InvalidRecordValue),
-        }
-    } else {
-        Err(ParseError::MissingFileFormat)
+    match record {
+        Record::FileFormat(file_format) => Ok(file_format),
+        _ => Err(ParseError::InvalidRecordValue),
     }
 }
 
@@ -236,6 +221,8 @@ impl From<&vcf::Header> for StringMaps {
 
 #[cfg(test)]
 mod tests {
+    use vcf::header::{Format, Info};
+
     use super::*;
 
     #[test]
@@ -485,14 +472,14 @@ mod tests {
         let mut lines = s.lines();
         assert!(matches!(
             parse_file_format(&mut lines),
-            Err(ParseError::InvalidFileFormat(_))
+            Err(ParseError::InvalidRecord(_))
         ));
 
         let s = "##fileDate=20211119";
         let mut lines = s.lines();
         assert_eq!(
             parse_file_format(&mut lines),
-            Err(ParseError::MissingFileFormat)
+            Err(ParseError::InvalidRecordValue)
         );
     }
 }

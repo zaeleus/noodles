@@ -29,6 +29,9 @@
   * vcf/header/record: Structured lines can no longer have duplicate field
     tags.
 
+  * vcf/header/record: Record holds a parsed record variant instead a key-value
+    pair.
+
   * vcf/header/record/key: Split standard (`Standard`) and nonstandard
     (`Other`) keys.
 
@@ -41,6 +44,13 @@
 ### Fixed
 
   * vcf/header/record/value: Write surrounding angle brackets for structs.
+
+### Removed
+
+  * vcf/header: Remove `TryFrom<Record>` for `AlternativeAllele`, `Contig`,
+    `Filter`, `Format`, `Info`, `Meta`, `Pedigree`, and `Sample`.
+
+    Use builders to create records.
 
 ## 0.17.0 - 2022-07-05
 

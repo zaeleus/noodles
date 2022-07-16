@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use indexmap::IndexMap;
 
-use super::{record, Number, Record};
+use super::{record, Number};
 
 const ID: &str = "ID";
 const TYPE: &str = "Type";
@@ -136,17 +136,6 @@ impl fmt::Display for TryFromRecordError {
     }
 }
 
-impl TryFrom<Record> for Meta {
-    type Error = TryFromRecordError;
-
-    fn try_from(record: Record) -> Result<Self, Self::Error> {
-        match record.into() {
-            (record::key::META, record::Value::Struct(id, fields)) => parse_struct(id, fields),
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
-    }
-}
-
 fn parse_struct(id: String, fields: IndexMap<String, String>) -> Result<Meta, TryFromRecordError> {
     let ty = fields
         .get(TYPE)
@@ -177,16 +166,17 @@ fn parse_struct(id: String, fields: IndexMap<String, String>) -> Result<Meta, Tr
 mod tests {
     use super::*;
 
-    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
-        Ok(Record::new(
-            record::key::META,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("Assay")),
+    fn build_record() -> (String, IndexMap<String, String>) {
+        (
+            String::from("Assay"),
+            [
                 (String::from("Type"), String::from("String")),
                 (String::from("Number"), String::from(".")),
                 (String::from("Values"), String::from("WholeGenome, Exome")),
-            ])?,
-        ))
+            ]
+            .into_iter()
+            .collect(),
+        )
     }
 
     #[test]
@@ -202,9 +192,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_meta() -> Result<(), record::value::TryFromFieldsError> {
-        let record = build_record()?;
-        let actual = Meta::try_from(record);
+    fn test_try_from_record_for_meta() {
+        let (id, fields) = build_record();
+        let actual = Meta::try_from_fields(id, fields);
 
         let expected = Meta::new(
             String::from("Assay"),
@@ -212,7 +202,5 @@ mod tests {
         );
 
         assert_eq!(actual, Ok(expected));
-
-        Ok(())
     }
 }

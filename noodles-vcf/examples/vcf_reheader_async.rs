@@ -14,15 +14,12 @@ use tokio::{
 };
 
 fn add_comment(header: &mut vcf::Header) {
-    use vcf::header::{
-        record::{Key, Value},
-        Record,
-    };
+    use vcf::header::record::{Key, Value};
 
-    header.insert(Record::new(
+    header.insert(
         Key::from("comment"),
-        Value::String(String::from("a comment added by noodles-vcf")),
-    ));
+        Value::from("a comment added by noodles-vcf"),
+    );
 }
 
 #[tokio::main]

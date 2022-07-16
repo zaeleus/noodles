@@ -1,6 +1,7 @@
 use super::{
-    AlternativeAllele, AlternativeAlleles, Contig, Contigs, FileFormat, Filter, Filters, Format,
-    Formats, Header, Info, Infos, Meta, Pedigree, Pedigrees, Record, Sample, SampleNames, Samples,
+    record, AlternativeAllele, AlternativeAlleles, Contig, Contigs, FileFormat, Filter, Filters,
+    Format, Formats, Header, Info, Infos, Meta, Pedigree, Pedigrees, Records, Sample, SampleNames,
+    Samples,
 };
 
 use indexmap::IndexMap;
@@ -20,7 +21,7 @@ pub struct Builder {
     pedigrees: Pedigrees,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    other_records: IndexMap<String, Vec<Record>>,
+    other_records: Records,
 }
 
 impl Builder {
@@ -333,15 +334,14 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
-    /// let record = Record::new(Key::from("fileDate"), Value::from("20200709"));
-    /// let header = vcf::Header::builder().insert(record.clone()).build();
-    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    /// let (key, value) = (Key::from("fileDate"), Value::from("20200709"));
+    /// let header = vcf::Header::builder().insert(key.clone(), value.clone()).build();
+    /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// ```
-    pub fn insert(mut self, record: Record) -> Self {
-        let key = record.key().to_string();
+    pub fn insert(mut self, key: record::Key, value: record::Value) -> Self {
         let records = self.other_records.entry(key).or_default();
-        records.push(record);
+        records.push(value);
         self
     }
 
@@ -401,7 +401,7 @@ mod tests {
             record::alternate_bases::allele,
         };
 
-        let record = Record::new(
+        let (key, value) = (
             header::record::Key::from("fileDate"),
             header::record::Value::from("20200709"),
         );
@@ -435,8 +435,8 @@ mod tests {
                 .into_iter()
                 .collect(),
             ))
-            .insert(record.clone())
-            .insert(record.clone())
+            .insert(key.clone(), value.clone())
+            .insert(key.clone(), value.clone())
             .build();
 
         assert_eq!(header.file_format(), FileFormat::new(4, 3));
@@ -449,7 +449,7 @@ mod tests {
         assert_eq!(header.meta().len(), 1);
         assert_eq!(header.samples().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
-        assert_eq!(header.get("fileDate"), Some(&[record.clone(), record][..]));
+        assert_eq!(header.get(&key), Some(&[value.clone(), value][..]));
 
         Ok(())
     }

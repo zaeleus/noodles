@@ -3,17 +3,11 @@ use std::error;
 use indexmap::IndexSet;
 
 use super::{
-    alternative_allele::{self, AlternativeAllele},
-    contig::{self, Contig},
+    alternative_allele, contig,
     file_format::{self, FileFormat},
-    filter::{self, Filter},
-    format::{self, Format},
-    info::{self, Info},
-    meta::{self, Meta},
-    pedigree::{self, Pedigree},
+    filter, format, info, meta, pedigree,
     record::{self, Record},
-    sample::{self, Sample},
-    Builder, Header,
+    sample, Builder, Header,
 };
 
 /// An error returned when a raw VCF header fails to parse.
@@ -132,105 +126,34 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 fn parse_file_format(s: &str) -> Result<FileFormat, ParseError> {
     let record: Record = s.parse().map_err(ParseError::InvalidRecord)?;
 
-    if record.key() != &record::key::FILE_FORMAT {
-        return Err(ParseError::MissingFileFormat);
-    }
-
-    match record.value() {
-        record::Value::String(value) => value.parse().map_err(ParseError::InvalidFileFormat),
-        _ => Err(ParseError::InvalidRecordValue),
+    match record {
+        Record::FileFormat(file_format) => Ok(file_format),
+        _ => Err(ParseError::MissingFileFormat),
     }
 }
 
 fn parse_record(
-    file_format: FileFormat,
+    _file_format: FileFormat,
     mut builder: Builder,
     line: &str,
 ) -> Result<Builder, ParseError> {
-    use record::key;
-
     let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
-    let (key, value) = record.into();
 
-    builder = match key {
-        key::FILE_FORMAT => {
-            return Err(ParseError::UnexpectedFileFormat);
+    builder = match record {
+        Record::FileFormat(_) => return Err(ParseError::UnexpectedFileFormat),
+        Record::Info(info) => builder.add_info(info),
+        Record::Filter(filter) => builder.add_filter(filter),
+        Record::Format(format) => builder.add_format(format),
+        Record::AlternativeAllele(alternative_allele) => {
+            builder.add_alternative_allele(alternative_allele)
         }
-        key::INFO => match value {
-            record::Value::Struct(id, fields) => {
-                let info = Info::try_from_fields(id, fields, file_format)
-                    .map_err(ParseError::InvalidInfo)?;
-                builder.add_info(info)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::FILTER => match value {
-            record::Value::Struct(id, fields) => {
-                let filter =
-                    Filter::try_from_fields(id, fields).map_err(ParseError::InvalidFilter)?;
-                builder.add_filter(filter)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::FORMAT => match value {
-            record::Value::Struct(id, fields) => {
-                let format = Format::try_from_fields(id, fields, file_format)
-                    .map_err(ParseError::InvalidFormat)?;
-                builder.add_format(format)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::ALTERNATIVE_ALLELE => match value {
-            record::Value::Struct(id, fields) => {
-                let alternative_allele = AlternativeAllele::try_from_fields(id, fields)
-                    .map_err(ParseError::InvalidAlternativeAllele)?;
-                builder.add_alternative_allele(alternative_allele)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::ASSEMBLY => match value {
-            record::Value::String(value) => builder.set_assembly(value),
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::CONTIG => match value {
-            record::Value::Struct(id, fields) => {
-                let contig =
-                    Contig::try_from_fields(id, fields).map_err(ParseError::InvalidContig)?;
-                builder.add_contig(contig)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::META => match value {
-            record::Value::Struct(id, fields) => {
-                let meta = Meta::try_from_fields(id, fields).map_err(ParseError::InvalidMeta)?;
-                builder.add_meta(meta)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::SAMPLE => match value {
-            record::Value::Struct(id, fields) => {
-                let sample =
-                    Sample::try_from_fields(id, fields).map_err(ParseError::InvalidSample)?;
-                builder.add_sample(sample)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::PEDIGREE => match value {
-            record::Value::Struct(id, fields) => {
-                let pedigree =
-                    Pedigree::try_from_fields(id, fields).map_err(ParseError::InvalidPedigree)?;
-                builder.add_pedigree(pedigree)
-            }
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        key::PEDIGREE_DB => match value {
-            record::Value::String(value) => builder.set_pedigree_db(value),
-            _ => return Err(ParseError::InvalidRecordValue),
-        },
-        record::Key::Other(_) => {
-            let record = Record::new(key, value);
-            builder.insert(record)
-        }
+        Record::Assembly(assembly) => builder.set_assembly(assembly),
+        Record::Contig(contig) => builder.add_contig(contig),
+        Record::Meta(meta) => builder.add_meta(meta),
+        Record::Sample(sample) => builder.add_sample(sample),
+        Record::Pedigree(pedigree) => builder.add_pedigree(pedigree),
+        Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
+        Record::Other(key, value) => builder.insert(key, value),
     };
 
     Ok(builder)
@@ -314,23 +237,13 @@ mod tests {
         assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(
-            header.get("fileDate"),
-            Some(
-                &[Record::new(
-                    record::Key::from("fileDate"),
-                    record::Value::from("20200506"),
-                )][..]
-            )
+            header.get(&record::Key::from("fileDate")),
+            Some(&[record::Value::from("20200506")][..])
         );
 
         assert_eq!(
-            header.get("source"),
-            Some(
-                &[Record::new(
-                    record::Key::from("source"),
-                    record::Value::from("noodles-vcf"),
-                )][..]
-            )
+            header.get(&record::Key::from("source")),
+            Some(&[record::Value::from("noodles-vcf")][..])
         );
 
         Ok(())

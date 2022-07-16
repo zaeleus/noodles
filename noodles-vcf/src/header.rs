@@ -51,7 +51,7 @@ pub type Pedigrees = IndexMap<String, Pedigree>;
 pub type SampleNames = IndexSet<String>;
 
 /// VCF header generic records.
-pub type Records = IndexMap<String, Vec<Record>>;
+pub type Records = IndexMap<record::Key, Vec<record::Value>>;
 
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -68,7 +68,7 @@ pub struct Header {
     pedigrees: Pedigrees,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    other_records: IndexMap<String, Vec<Record>>,
+    other_records: Records,
 }
 
 impl Header {
@@ -606,18 +606,18 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
     ///
-    /// let record = Record::new(
-    ///     Key::from("fileDate"),
-    ///     Value::String(String::from("20200709")),
-    /// );
+    /// let key = Key::from("fileDate");
+    /// let value = Value::from("20200709");
     ///
-    /// let header = vcf::Header::builder().insert(record.clone()).build();
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value.clone())
+    ///     .build();
     ///
     /// assert_eq!(
     ///     header.records().first(),
-    ///     Some((&String::from("fileDate"), &vec![record])),
+    ///     Some((&key, &vec![value])),
     /// );
     /// ```
     pub fn records(&self) -> &Records {
@@ -634,20 +634,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    ///
+    /// let key = Key::from("fileDate");
+    /// let value = Value::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
-    ///
-    /// let record = Record::new(
-    ///     Key::from("fileDate"),
-    ///     Value::String(String::from("20200709")),
-    /// );
-    ///
-    /// header.records_mut().insert(String::from("fileDate"), vec![record.clone()]);
+    /// header.records_mut().insert(key.clone(), vec![value.clone()]);
     ///
     /// assert_eq!(
     ///     header.records().first(),
-    ///     Some((&String::from("fileDate"), &vec![record])),
+    ///     Some((&key, &vec![value])),
     /// );
     /// ```
     pub fn records_mut(&mut self) -> &mut Records {
@@ -662,19 +659,19 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
     ///
-    /// let record = Record::new(
-    ///     Key::from("fileDate"),
-    ///     Value::String(String::from("20200709")),
-    /// );
+    /// let key = Key::from("fileDate");
+    /// let value = Value::from("20200709");
     ///
-    /// let header = vcf::Header::builder().insert(record.clone()).build();
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value.clone())
+    ///     .build();
     ///
-    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
-    /// assert_eq!(header.get("reference"), None);
+    /// assert_eq!(header.get(&key), Some(&[value][..]));
+    /// assert!(header.get(&Key::from("reference")).is_none());
     /// ```
-    pub fn get(&self, key: &str) -> Option<&[Record]> {
+    pub fn get(&self, key: &record::Key) -> Option<&[record::Value]> {
         self.other_records.get(key).map(|r| &**r)
     }
 
@@ -683,25 +680,20 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}, Record}};
+    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
     ///
-    /// let record = Record::new(
-    ///     Key::from("fileDate"),
-    ///     Value::String(String::from("20200709")),
-    /// );
+    /// let key = Key::from("fileDate");
+    /// let value = Value::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
+    /// assert!(header.get(&key).is_none());
     ///
-    /// assert!(header.get("fileDate").is_none());
-    ///
-    /// header.insert(record.clone());
-    ///
-    /// assert_eq!(header.get("fileDate"), Some(&[record][..]));
+    /// header.insert(key.clone(), value.clone());
+    /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// ```
-    pub fn insert(&mut self, record: Record) {
-        let key = record.key().to_string();
+    pub fn insert(&mut self, key: record::Key, value: record::Value) {
         let records = self.other_records.entry(key).or_default();
-        records.push(record);
+        records.push(value);
     }
 }
 
@@ -773,9 +765,9 @@ impl std::fmt::Display for Header {
             )?;
         }
 
-        for records in self.other_records.values() {
-            for record in records {
-                writeln!(f, "{}{}={}", record::PREFIX, record.key(), record.value())?;
+        for (key, values) in &self.other_records {
+            for value in values {
+                writeln!(f, "{}{}={}", record::PREFIX, key, value)?;
             }
         }
 
@@ -838,10 +830,10 @@ mod tests {
                 .into_iter()
                 .collect(),
             ))
-            .insert(Record::new(
+            .insert(
                 record::Key::from("fileDate"),
                 record::Value::String(String::from("20200514")),
-            ))
+            )
             .build();
 
         let expected = r#"##fileformat=VCFv4.3
@@ -881,23 +873,15 @@ mod tests {
 
     #[test]
     fn test_insert_with_duplicate_keys() {
-        let records = [
-            Record::new(
-                record::Key::from("noodles"),
-                record::Value::String(String::from("0")),
-            ),
-            Record::new(
-                record::Key::from("noodles"),
-                record::Value::String(String::from("1")),
-            ),
-        ];
+        let key = record::Key::from("noodles");
+        let values = [record::Value::from("0"), record::Value::from("1")];
 
         let mut header = Header::default();
 
-        for record in &records {
-            header.insert(record.clone());
+        for value in &values {
+            header.insert(key.clone(), value.clone());
         }
 
-        assert_eq!(header.get("noodles"), Some(&records[..]));
+        assert_eq!(header.get(&key), Some(&values[..]));
     }
 }

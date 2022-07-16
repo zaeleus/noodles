@@ -10,53 +10,37 @@ pub use self::{key::Key, value::Value};
 
 use std::{error, fmt, str::FromStr};
 
+use super::{AlternativeAllele, Contig, FileFormat, Filter, Format, Info, Meta, Pedigree, Sample};
+
 pub(crate) const PREFIX: &str = "##";
 
-/// A generic VCF header record.
+/// A VCF header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Record {
-    key: Key,
-    value: Value,
-}
-
-impl Record {
-    /// Creates a generic VCF header record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
-    /// ```
-    pub fn new(key: Key, value: Value) -> Self {
-        Self { key, value }
-    }
-
-    /// Returns the key of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
-    /// assert_eq!(record.key(), &key::FILE_FORMAT);
-    /// ```
-    pub fn key(&self) -> &Key {
-        &self.key
-    }
-
-    /// Returns the value of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{record::{key, Value}, Record};
-    /// let record = Record::new(key::FILE_FORMAT, Value::from("VCFv4.3"));
-    /// assert_eq!(record.value(), &Value::from("VCFv4.3"));
-    /// ```
-    pub fn value(&self) -> &Value {
-        &self.value
-    }
+pub enum Record {
+    /// An `ALT` record.
+    AlternativeAllele(AlternativeAllele),
+    /// An `assembly` record.
+    Assembly(String),
+    /// A `contig` record.
+    Contig(Contig),
+    /// A `fileformat` record.
+    FileFormat(FileFormat),
+    /// A `FILTER` record.
+    Filter(Filter),
+    /// A `FORMAT` record.
+    Format(Format),
+    /// An `INFO` record.
+    Info(Info),
+    /// A `META` record.
+    Meta(Meta),
+    /// A `PEDIGREE` record.
+    Pedigree(Pedigree),
+    /// A `pedigreeDB` record.
+    PedigreeDb(String),
+    /// A `SAMPLE` record.
+    Sample(Sample),
+    /// A nonstadard record.
+    Other(Key, Value),
 }
 
 /// An error returned when a raw VCF header record fails to parse.
@@ -82,8 +66,6 @@ impl FromStr for Record {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, (raw_key, raw_value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
-        let key = Key::from(raw_key);
-
         let value = match raw_value {
             parser::Value::String(s) => Value::String(s),
             parser::Value::Struct(raw_fields) => {
@@ -104,13 +86,90 @@ impl FromStr for Record {
             }
         };
 
-        Ok(Self::new(key, value))
-    }
-}
-
-impl From<Record> for (Key, Value) {
-    fn from(record: Record) -> Self {
-        (record.key, record.value)
+        match Key::from(raw_key) {
+            key::FILE_FORMAT => match value {
+                Value::String(s) => {
+                    let file_format = s.parse().map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::FileFormat(file_format))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::INFO => match value {
+                Value::Struct(id, fields) => {
+                    // FIXME
+                    let info = Info::try_from_fields(id, fields, Default::default())
+                        .map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Info(info))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::FILTER => match value {
+                Value::Struct(id, fields) => {
+                    let filter =
+                        Filter::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Filter(filter))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::FORMAT => match value {
+                Value::Struct(id, fields) => {
+                    // FIXME
+                    let format = Format::try_from_fields(id, fields, Default::default())
+                        .map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Format(format))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::ALTERNATIVE_ALLELE => match value {
+                Value::Struct(id, fields) => {
+                    let alternative_allele = AlternativeAllele::try_from_fields(id, fields)
+                        .map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::AlternativeAllele(alternative_allele))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::ASSEMBLY => match value {
+                Value::String(s) => Ok(Self::Assembly(s)),
+                _ => Err(ParseError::Invalid),
+            },
+            key::CONTIG => match value {
+                Value::Struct(id, fields) => {
+                    let contig =
+                        Contig::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Contig(contig))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::META => match value {
+                Value::Struct(id, fields) => {
+                    let meta =
+                        Meta::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Meta(meta))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::SAMPLE => match value {
+                Value::Struct(id, fields) => {
+                    let sample =
+                        Sample::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Sample(sample))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::PEDIGREE => match value {
+                Value::Struct(id, fields) => {
+                    let pedigree =
+                        Pedigree::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                    Ok(Self::Pedigree(pedigree))
+                }
+                _ => Err(ParseError::Invalid),
+            },
+            key::PEDIGREE_DB => match value {
+                Value::String(s) => Ok(Self::PedigreeDb(s)),
+                _ => Err(ParseError::Invalid),
+            },
+            key => Ok(Self::Other(key, value)),
+        }
     }
 }
 
@@ -122,29 +181,12 @@ mod tests {
     fn test_from_str() -> Result<(), value::TryFromFieldsError> {
         let line = "##fileformat=VCFv4.3";
 
-        assert_eq!(
-            line.parse(),
-            Ok(Record::new(key::FILE_FORMAT, Value::from("VCFv4.3")))
-        );
+        assert_eq!(line.parse(), Ok(Record::FileFormat(FileFormat::new(4, 3))));
 
         let line =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
 
-        assert_eq!(
-            line.parse(),
-            Ok(Record::new(
-                key::INFO,
-                Value::try_from(vec![
-                    (String::from("ID"), String::from("NS")),
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("Integer")),
-                    (
-                        String::from("Description"),
-                        String::from("Number of samples with data"),
-                    ),
-                ])?
-            ))
-        );
+        assert!(matches!(line.parse(), Ok(Record::Info(_))));
 
         assert!("".parse::<Record>().is_err());
 

@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use indexmap::IndexMap;
 
-use super::{record, Record};
+use super::record;
 
 const ID: &str = "ID";
 
@@ -102,17 +102,6 @@ impl fmt::Display for TryFromRecordError {
     }
 }
 
-impl TryFrom<Record> for Pedigree {
-    type Error = TryFromRecordError;
-
-    fn try_from(record: Record) -> Result<Self, Self::Error> {
-        match record.into() {
-            (record::key::PEDIGREE, record::Value::Struct(id, fields)) => parse_struct(id, fields),
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
-    }
-}
-
 fn parse_struct(
     id: String,
     fields: IndexMap<String, String>,
@@ -124,15 +113,16 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Result<Record, record::value::TryFromFieldsError> {
-        Ok(Record::new(
-            record::key::PEDIGREE,
-            record::Value::try_from(vec![
-                (String::from("ID"), String::from("cid")),
+    fn build_record() -> (String, IndexMap<String, String>) {
+        (
+            String::from("cid"),
+            [
                 (String::from("Father"), String::from("fid")),
                 (String::from("Mother"), String::from("mid")),
-            ])?,
-        ))
+            ]
+            .into_iter()
+            .collect(),
+        )
     }
 
     #[test]
@@ -156,9 +146,9 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_pedigree() -> Result<(), record::value::TryFromFieldsError> {
-        let record = build_record()?;
-        let actual = Pedigree::try_from(record);
+    fn test_try_from_record_for_pedigree() {
+        let (id, fields) = build_record();
+        let actual = Pedigree::try_from_fields(id, fields);
 
         let expected = Pedigree::new(
             String::from("cid"),
@@ -171,7 +161,5 @@ mod tests {
         );
 
         assert_eq!(actual, Ok(expected));
-
-        Ok(())
     }
 }

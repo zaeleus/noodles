@@ -12,7 +12,7 @@ use std::{error, fmt, num};
 use indexmap::IndexMap;
 
 use self::builder::Builder;
-use super::{number, record, FileFormat, Number, Record};
+use super::{number, record, FileFormat, Number};
 
 /// A VCF header genotype format record (`FORMAT`).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -26,53 +26,6 @@ pub struct Format {
 }
 
 impl Format {
-    /// Converts a generic VCF header record to a VCF header format record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::header::{
-    ///     format::{Key as FormatKey, Type},
-    ///     record::{self, Value},
-    ///     FileFormat, Format, Number, Record,
-    /// };
-    ///
-    /// let record = Record::new(
-    ///     record::key::FORMAT,
-    ///     Value::Struct(
-    ///         String::from("GT"),
-    ///         [
-    ///             (String::from("Number"), String::from("1")),
-    ///             (String::from("Type"), String::from("String")),
-    ///             (String::from("Description"), String::from("Genotype")),
-    ///         ]
-    ///         .into_iter()
-    ///         .collect(),
-    ///     ),
-    /// );
-    ///
-    /// assert_eq!(
-    ///     Format::try_from_record_file_format(record, FileFormat::new(4, 3)),
-    ///     Ok(Format::new(
-    ///         FormatKey::Genotype,
-    ///         Number::Count(1),
-    ///         Type::String,
-    ///         String::from("Genotype"),
-    ///     ))
-    /// );
-    /// ```
-    pub fn try_from_record_file_format(
-        record: Record,
-        file_format: FileFormat,
-    ) -> Result<Self, TryFromRecordError> {
-        match record.into() {
-            (record::key::FORMAT, record::Value::Struct(id, fields)) => {
-                parse_struct(file_format, id, fields)
-            }
-            _ => Err(TryFromRecordError::InvalidRecord),
-        }
-    }
-
     pub(crate) fn try_from_fields(
         id: String,
         fields: IndexMap<String, String>,
@@ -266,14 +219,6 @@ impl fmt::Display for TryFromRecordError {
     }
 }
 
-impl TryFrom<Record> for Format {
-    type Error = TryFromRecordError;
-
-    fn try_from(record: Record) -> Result<Self, Self::Error> {
-        Self::try_from_record_file_format(record, FileFormat::default())
-    }
-}
-
 fn parse_struct(
     file_format: FileFormat,
     raw_id: String,
@@ -332,19 +277,16 @@ fn parse_struct(
 mod tests {
     use super::*;
 
-    fn build_record() -> Record {
-        Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
+    fn build_record() -> (String, IndexMap<String, String>) {
+        (
+            String::from("GT"),
+            [
+                (String::from("Number"), String::from("1")),
+                (String::from("Type"), String::from("String")),
+                (String::from("Description"), String::from("Genotype")),
+            ]
+            .into_iter()
+            .collect(),
         )
     }
 
@@ -364,8 +306,8 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), TryFromRecordError> {
-        let record = build_record();
-        let format = Format::try_from(record)?;
+        let (id, fields) = build_record();
+        let format = Format::try_from_fields(id, fields, Default::default())?;
 
         let expected = r#"##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">"#;
         assert_eq!(format.to_string(), expected);
@@ -375,22 +317,17 @@ mod tests {
 
     #[test]
     fn test_try_from_record_file_format() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from(".")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from(".")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(
-            Format::try_from_record_file_format(record, FileFormat::new(4, 2)),
+            Format::try_from_fields(id, fields, FileFormat::new(4, 2)),
             Ok(Format::new(
                 Key::Genotype,
                 Number::Unknown,
@@ -402,10 +339,10 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_format() {
-        let record = build_record();
+        let (id, fields) = build_record();
 
         assert_eq!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Ok(Format::new(
                 Key::Genotype,
                 Number::Count(1),
@@ -417,24 +354,19 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_format_with_extra_fields() -> Result<(), &'static str> {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                    (String::from("Comment"), String::from("noodles")),
-                    (String::from("IDX"), String::from("1")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+            (String::from("Comment"), String::from("noodles")),
+            (String::from("IDX"), String::from("1")),
+        ]
+        .into_iter()
+        .collect();
 
         assert_eq!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Ok(Format {
                 id: Key::Genotype,
                 number: Number::Count(1),
@@ -454,157 +386,95 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_record_for_format_with_an_invalid_record_key() {
-        let record = Record::new(
-            record::key::FILE_FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
-
-        assert_eq!(
-            Format::try_from(record),
-            Err(TryFromRecordError::InvalidRecord)
-        );
-    }
-
-    #[test]
-    fn test_try_from_record_for_format_with_an_invalid_record_value() {
-        let record = Record::new(record::key::FORMAT, record::Value::from("VCFv4.3"));
-
-        assert_eq!(
-            Format::try_from(record),
-            Err(TryFromRecordError::InvalidRecord)
-        );
-    }
-
-    #[test]
     fn test_try_from_record_for_format_with_a_missing_field() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(String::from("GT"), Default::default()),
-        );
-
         assert_eq!(
-            Format::try_from(record),
+            Format::try_from_fields(String::from("GT"), IndexMap::new(), Default::default()),
             Err(TryFromRecordError::InvalidRecord)
         );
     }
 
     #[test]
     fn test_try_from_record_for_format_with_an_invalid_id() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::new(),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::new();
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidId(_))
         ));
     }
 
     #[test]
     fn test_try_from_record_for_format_with_an_invalid_number() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("NA")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from("one")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidNumber(_))
         ));
     }
 
     #[test]
     fn test_try_from_record_for_format_with_an_invalid_type() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("str")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("str")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidType(_))
         ));
     }
 
     #[test]
     fn test_try_from_record_for_format_with_an_invalid_idx() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                    (String::from("IDX"), String::from("ndls")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+            (String::from("IDX"), String::from("zero")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::InvalidIdx(_))
         ));
     }
 
     #[test]
     fn test_try_from_record_for_format_with_a_number_mismatch() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from(".")),
-                    (String::from("Type"), String::from("String")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from(".")),
+            (String::from("Type"), String::from("String")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::NumberMismatch(
                 Number::Unknown,
                 Number::Count(1)
@@ -614,22 +484,17 @@ mod tests {
 
     #[test]
     fn test_try_from_record_for_format_with_a_type_mismatch() {
-        let record = Record::new(
-            record::key::FORMAT,
-            record::Value::Struct(
-                String::from("GT"),
-                [
-                    (String::from("Number"), String::from("1")),
-                    (String::from("Type"), String::from("Integer")),
-                    (String::from("Description"), String::from("Genotype")),
-                ]
-                .into_iter()
-                .collect(),
-            ),
-        );
+        let id = String::from("GT");
+        let fields = [
+            (String::from("Number"), String::from("1")),
+            (String::from("Type"), String::from("Integer")),
+            (String::from("Description"), String::from("Genotype")),
+        ]
+        .into_iter()
+        .collect();
 
         assert!(matches!(
-            Format::try_from(record),
+            Format::try_from_fields(id, fields, Default::default()),
             Err(TryFromRecordError::TypeMismatch(
                 Type::Integer,
                 Type::String
