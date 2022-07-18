@@ -9,7 +9,8 @@ use std::{error, fmt, str::FromStr};
 use crate::header::{
     self,
     info::{Key, Type},
-    Info, Infos,
+    record::value::{map::Info, Map},
+    Infos,
 };
 
 const MISSING_VALUE: &str = ".";
@@ -154,14 +155,14 @@ fn parse(s: &str, infos: &Infos) -> Result<Field, ParseError> {
     let value = if let Some(info) = infos.get(&key) {
         parse_value(&mut components, info)?
     } else {
-        let info = header::Info::from(key.clone());
+        let info = Map::<Info>::from(key.clone());
         parse_value(&mut components, &info)?
     };
 
     Ok(Field::new(key, value))
 }
 
-fn parse_value<'a, I>(iter: &mut I, info: &Info) -> Result<Option<Value>, ParseError>
+fn parse_value<'a, I>(iter: &mut I, info: &Map<Info>) -> Result<Option<Value>, ParseError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -227,10 +228,10 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), crate::header::info::key::ParseError> {
         let header = crate::Header::builder()
-            .add_info(Info::from(Key::AlleleCount))
-            .add_info(Info::from(Key::SamplesWithDataCount))
-            .add_info(Info::from(Key::IsSomaticMutation))
-            .add_info(Info::from(Key::BreakendEventId))
+            .add_info(Map::<Info>::from(Key::AlleleCount))
+            .add_info(Map::<Info>::from(Key::SamplesWithDataCount))
+            .add_info(Map::<Info>::from(Key::IsSomaticMutation))
+            .add_info(Map::<Info>::from(Key::BreakendEventId))
             .build();
 
         assert_eq!(

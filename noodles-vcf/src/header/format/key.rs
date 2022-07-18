@@ -61,7 +61,7 @@ pub enum Key {
     Other(String),
 }
 
-pub(super) fn number(key: &Key) -> Option<Number> {
+pub(crate) fn number(key: &Key) -> Option<Number> {
     match key {
         Key::ReadDepths => Some(Number::R),
         Key::ForwardStrandReadDepths => Some(Number::R),
@@ -92,7 +92,7 @@ pub(super) fn number(key: &Key) -> Option<Number> {
     }
 }
 
-pub(super) fn ty(key: &Key) -> Option<Type> {
+pub(crate) fn ty(key: &Key) -> Option<Type> {
     match key {
         Key::ReadDepths => Some(Type::Integer),
         Key::ForwardStrandReadDepths => Some(Type::Integer),
@@ -123,7 +123,7 @@ pub(super) fn ty(key: &Key) -> Option<Type> {
     }
 }
 
-pub(super) fn description(key: &Key) -> Option<&str> {
+pub(crate) fn description(key: &Key) -> Option<&str> {
     match key {
         Key::ReadDepths => Some("Read depth for each allele"),
         Key::ForwardStrandReadDepths => Some("Read depth for each allele on the forward strand"),

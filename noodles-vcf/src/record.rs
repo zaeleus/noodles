@@ -510,13 +510,13 @@ impl Record {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, Format},
+    ///     header::{format::Key, record::value::{map::Format, Map}},
     ///     record::{genotypes::{Genotype, Keys}, Genotypes, Position},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::from(Key::Genotype))
-    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -819,13 +819,16 @@ mod tests {
     fn test_fmt_with_format() -> Result<(), Box<dyn std::error::Error>> {
         use super::genotypes::Genotype;
         use crate::{
-            header::{format::Key, Format},
+            header::{
+                format::Key,
+                record::value::{map::Format, Map},
+            },
             Header,
         };
 
         let header = Header::builder()
-            .add_format(Format::from(Key::Genotype))
-            .add_format(Format::from(Key::ConditionalGenotypeQuality))
+            .add_format(Map::<Format>::from(Key::Genotype))
+            .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
             .build();
 
         let keys: genotypes::Keys = "GT:GQ".parse()?;

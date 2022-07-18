@@ -6,7 +6,7 @@ use std::str::{FromStr, Lines};
 
 use noodles_vcf::{
     self as vcf,
-    header::{Filter, ParseError, Record},
+    header::{ParseError, Record},
 };
 
 pub use self::string_map::StringMap;
@@ -34,17 +34,17 @@ impl StringMaps {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key as FormatKey, info::Key as InfoKey, Contig, Filter, Format, Info},
+    ///     header::{format, info, record::value::{map::{Contig, Filter, Format, Info}, Map}},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::from(InfoKey::TotalDepth))
-    ///     .add_filter(Filter::new("q10", "Quality below 10"))
-    ///     .add_format(Format::from(FormatKey::ReadDepth))
-    ///     .add_contig(Contig::new("sq0".parse()?))
+    ///     .add_info(Map::<Info>::from(info::Key::TotalDepth))
+    ///     .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
+    ///     .add_format(Map::<Format>::from(format::Key::ReadDepth))
+    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -69,17 +69,17 @@ impl StringMaps {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bcf::{self as bcf, header::StringMaps};
+    /// use noodles_bcf::header::StringMaps;
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key as FormatKey, info::Key as InfoKey, Contig, Filter, Format, Info},
+    ///     header::{format, info, record::value::{map::{Contig, Filter, Format, Info}, Map}},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::from(InfoKey::TotalDepth))
-    ///     .add_filter(Filter::new("q10", "Quality below 10"))
-    ///     .add_format(Format::from(FormatKey::ReadDepth))
-    ///     .add_contig(Contig::new("sq0".parse()?))
+    ///     .add_info(Map::<Info>::from(info::Key::TotalDepth))
+    ///     .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
+    ///     .add_format(Map::<Format>::from(format::Key::ReadDepth))
+    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -103,8 +103,7 @@ impl Default for StringMaps {
         // § 6.2.1 Dictionary of strings (2021-01-13): "Note that 'PASS' is always implicitly
         // encoded as the first entry in the header dictionary."
         let mut string_string_map = StringMap::default();
-        let pass = Filter::pass().id().to_string();
-        string_string_map.insert(pass);
+        string_string_map.insert(String::from("PASS"));
 
         let contig_string_map = StringMap::default();
 
@@ -221,8 +220,6 @@ impl From<&vcf::Header> for StringMaps {
 
 #[cfg(test)]
 mod tests {
-    use vcf::header::{Format, Info};
-
     use super::*;
 
     #[test]
@@ -377,7 +374,13 @@ mod tests {
     #[test]
     fn test_vcf_header_for_string_map() -> Result<(), vcf::header::contig::name::ParseError> {
         use vcf::{
-            header::{format::Key as FormatKey, info::Key as InfoKey, AlternativeAllele, Contig},
+            header::{
+                format, info,
+                record::value::{
+                    map::{AlternativeAllele, Contig, Filter, Format, Info},
+                    Map,
+                },
+            },
             record::alternate_bases::allele::{
                 symbol::{structural_variant::Type, StructuralVariant},
                 Symbol,
@@ -385,16 +388,16 @@ mod tests {
         };
 
         let header = vcf::Header::builder()
-            .add_contig(Contig::new("sq0".parse()?))
-            .add_contig(Contig::new("sq1".parse()?))
-            .add_contig(Contig::new("sq2".parse()?))
-            .add_info(Info::from(InfoKey::SamplesWithDataCount))
-            .add_info(Info::from(InfoKey::TotalDepth))
-            .add_filter(Filter::pass())
-            .add_filter(Filter::new("q10", "Quality below 10"))
-            .add_format(Format::from(FormatKey::Genotype))
-            .add_format(Format::from(FormatKey::ReadDepth))
-            .add_alternative_allele(AlternativeAllele::new(
+            .add_contig(Map::<Contig>::new("sq0".parse()?))
+            .add_contig(Map::<Contig>::new("sq1".parse()?))
+            .add_contig(Map::<Contig>::new("sq2".parse()?))
+            .add_info(Map::<Info>::from(info::Key::SamplesWithDataCount))
+            .add_info(Map::<Info>::from(info::Key::TotalDepth))
+            .add_filter(Map::<Filter>::pass())
+            .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
+            .add_format(Map::<Format>::from(format::Key::Genotype))
+            .add_format(Map::<Format>::from(format::Key::ReadDepth))
+            .add_alternative_allele(Map::<AlternativeAllele>::new(
                 Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
                 "Deletion",
             ))

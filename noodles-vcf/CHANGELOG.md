@@ -8,26 +8,20 @@
 
     This separates standard tags from nonstandard tags.
 
-  * vcf/header/contig: Add mutable getter for length (`Contig::len_mut`)
-    ([#99]).
-
   * vcf/header/contig: Add name wrapper (`Name`).
 
-  * vcf/header/record/value: Add conversion from a string (`From<&str>` and
-    `From<String>`) and fallible conversion from fields (`TryFrom<Vec<(String,
-    String)>`).
+  * vcf/header/record/value/map/contig: Add mutable getter for length
+    (`Contig::length_mut`) ([#99]).
 
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
 ### Changed
 
-  * vcf/header: `contig`, `FORMAT`, and `INFO` records can only have
-    nonstandard tags in their other fields.
+  * vcf/header: VCF headers records parsed from structured lines are now map
+    values (`noodles_vcf::header::record::value::Map`).
 
-  * vcf/header/contig: Change length to `usize`.
-
-  * vcf/header/record: Structured lines can no longer have duplicate field
-    tags.
+    This means `AlternativeAllele`, `Contig`, `Filter`, `Format`, `Info`, and
+    `Meta` are specialized `Map<I>` values, e.g., `Map<Contig>`, etc.
 
   * vcf/header/record: Record holds a parsed record variant instead a key-value
     pair.
@@ -35,11 +29,13 @@
   * vcf/header/record/key: Split standard (`Standard`) and nonstandard
     (`Other`) keys.
 
-  * vcf/header/record/value: `Value::Struct` now holds the ID field separately
-    from the other fields.
+  * vcf/header/record/value/map: Structured lines can no longer have duplicate
+    field tags.
 
-  * vcf/header/record/value: Change `Value::Struct` other fields to an
-    `IndexMap<String, String>`.
+  * vcf/header/contig/value/map/contig: Change length to `usize`.
+
+  * vcf/header/record/value/map/contig: Rename `Contig::len` to
+    `Contig::length`.
 
 ### Fixed
 
@@ -47,10 +43,9 @@
 
 ### Removed
 
-  * vcf/header: Remove `TryFrom<Record>` for `AlternativeAllele`, `Contig`,
-    `Filter`, `Format`, `Info`, `Meta`, `Pedigree`, and `Sample`.
+  * vcf/header: Remove `Pedigree`, and `Sample`.
 
-    Use builders to create records.
+    Use `Map<Other>` instead.
 
 ## 0.17.0 - 2022-07-05
 

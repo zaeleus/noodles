@@ -1,6 +1,12 @@
 use std::io::{self, Read};
 
-use noodles_vcf::{self as vcf, header::info::Type};
+use noodles_vcf::{
+    self as vcf,
+    header::{
+        info::Type,
+        record::value::{map, Map},
+    },
+};
 
 use crate::{
     header::string_maps::StringStringMap,
@@ -85,7 +91,7 @@ where
 
 fn read_info_field_value<R>(
     reader: &mut R,
-    info: &vcf::header::Info,
+    info: &Map<map::Info>,
 ) -> io::Result<Option<vcf::record::info::field::Value>>
 where
     R: Read,
@@ -260,7 +266,7 @@ mod tests {
     fn test_read_info_field_value_with_integer_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<i32>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -269,7 +275,7 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::new(
+        let info = Map::<map::Info>::new(
             "I32".parse()?,
             Number::Count(1),
             Type::Integer,
@@ -308,7 +314,7 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<Vec<Option<i32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -317,7 +323,7 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::new(
+        let info = Map::<map::Info>::new(
             "I32".parse()?,
             Number::Count(2),
             Type::Integer,
@@ -360,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_read_info_field_value_with_flag_value() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(mut reader: &[u8], info: &vcf::header::Info) -> io::Result<()> {
+        fn t(mut reader: &[u8], info: &Map<map::Info>) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
             let expected = Some(vcf::record::info::field::Value::Flag);
             assert_eq!(actual, expected);
@@ -368,7 +374,7 @@ mod tests {
         }
 
         let info =
-            vcf::header::Info::new("BOOL".parse()?, Number::Count(1), Type::Flag, String::new());
+            Map::<map::Info>::new("BOOL".parse()?, Number::Count(1), Type::Flag, String::new());
 
         // None
         t(&[0x00], &info)?;
@@ -382,7 +388,7 @@ mod tests {
     fn test_read_info_field_value_with_float_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<f32>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -392,7 +398,7 @@ mod tests {
         }
 
         let info =
-            vcf::header::Info::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
+            Map::<map::Info>::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
 
         // None
         t(&[0x00], &info, None)?;
@@ -412,7 +418,7 @@ mod tests {
     {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<Vec<Option<f32>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -422,7 +428,7 @@ mod tests {
         }
 
         let info =
-            vcf::header::Info::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
+            Map::<map::Info>::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
 
         // Some(Value::FloatArray([0.0, 1.0]))
         t(
@@ -444,7 +450,7 @@ mod tests {
     fn test_read_info_field_value_with_character_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<char>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -453,7 +459,7 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::new(
+        let info = Map::<map::Info>::new(
             "CHAR".parse()?,
             Number::Count(1),
             Type::Character,
@@ -476,7 +482,7 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<Vec<Option<char>>>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -485,7 +491,7 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::new(
+        let info = Map::<map::Info>::new(
             "CHAR".parse()?,
             Number::Count(2),
             Type::Character,
@@ -515,7 +521,7 @@ mod tests {
     fn test_read_info_field_value_with_string_value() -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             mut reader: &[u8],
-            info: &vcf::header::Info,
+            info: &Map<map::Info>,
             expected_value: Option<&str>,
         ) -> io::Result<()> {
             let actual = read_info_field_value(&mut reader, info)?;
@@ -525,7 +531,7 @@ mod tests {
             Ok(())
         }
 
-        let info = vcf::header::Info::new(
+        let info = Map::<map::Info>::new(
             "STRING".parse()?,
             Number::Count(1),
             Type::String,

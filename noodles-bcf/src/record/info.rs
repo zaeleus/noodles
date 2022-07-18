@@ -107,11 +107,15 @@ impl Info {
     /// ```
     /// # use std::io;
     /// use noodles_bcf::{header::StringMaps, record::Info};
-    /// use noodles_vcf::{self as vcf, header::info::Key, record::info::{field::Value, Field}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Key, record::value::{map, Map}},
+    ///     record::info::{field::Value, Field},
+    /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(vcf::header::Info::from(Key::AlleleCount))
-    ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
+    ///     .add_info(Map::<map::Info>::from(Key::AlleleCount))
+    ///     .add_info(Map::<map::Info>::from(Key::TotalDepth))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);
@@ -158,11 +162,15 @@ impl Info {
     /// ```
     /// # use std::io;
     /// use noodles_bcf::{header::StringMaps, record::Info};
-    /// use noodles_vcf::{self as vcf, header::info::Key, record::info::{field::Value, Field}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Key, record::value::{map, Map}},
+    ///     record::info::{field::Value, Field},
+    /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(vcf::header::Info::from(Key::AlleleCount))
-    ///     .add_info(vcf::header::Info::from(Key::TotalDepth))
+    ///     .add_info(Map::<map::Info>::from(Key::AlleleCount))
+    ///     .add_info(Map::<map::Info>::from(Key::TotalDepth))
     ///     .build();
     ///
     /// let string_maps = StringMaps::from(&header);

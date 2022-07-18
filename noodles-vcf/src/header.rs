@@ -1,57 +1,49 @@
 //! VCF header and fields.
 
-pub mod alternative_allele;
 mod builder;
 pub mod contig;
 pub mod file_format;
-pub mod filter;
 mod fmt;
 pub mod format;
 pub mod info;
-pub mod meta;
 mod number;
 mod parser;
-pub mod pedigree;
 pub mod record;
-pub mod sample;
 
 pub use self::{
-    alternative_allele::AlternativeAllele, builder::Builder, contig::Contig,
-    file_format::FileFormat, filter::Filter, format::Format, info::Info, meta::Meta,
-    number::Number, parser::ParseError, pedigree::Pedigree, record::Record, sample::Sample,
+    builder::Builder, file_format::FileFormat, number::Number, parser::ParseError, record::Record,
 };
 
 use std::str::FromStr;
 
 use indexmap::{IndexMap, IndexSet};
 
+use self::record::value::{
+    map::{AlternativeAllele, Contig, Filter, Format, Info, Meta},
+    Map,
+};
+
 /// VCF header info records.
-pub type Infos = IndexMap<info::Key, Info>;
+pub type Infos = IndexMap<info::Key, Map<Info>>;
 
 /// VCF header filter records.
-pub type Filters = IndexMap<String, Filter>;
+pub type Filters = IndexMap<String, Map<Filter>>;
 
 /// VCF header format records.
-pub type Formats = IndexMap<format::Key, Format>;
+pub type Formats = IndexMap<format::Key, Map<Format>>;
 
 /// VCF header alternative allele records.
 pub type AlternativeAlleles =
-    IndexMap<crate::record::alternate_bases::allele::Symbol, AlternativeAllele>;
+    IndexMap<crate::record::alternate_bases::allele::Symbol, Map<AlternativeAllele>>;
 
 /// VCF header contig records.
-pub type Contigs = IndexMap<String, Contig>;
-
-/// VCF header sample records.
-pub type Samples = IndexMap<String, Sample>;
-
-/// VCF header pedigree records.
-pub type Pedigrees = IndexMap<String, Pedigree>;
+pub type Contigs = IndexMap<String, Map<Contig>>;
 
 /// VCF header sample names.
 pub type SampleNames = IndexSet<String>;
 
 /// VCF header generic records.
-pub type Records = IndexMap<record::Key, Vec<record::Value>>;
+pub type Records = IndexMap<record::Key, Vec<record::value::Other>>;
 
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -63,9 +55,7 @@ pub struct Header {
     alternative_alleles: AlternativeAlleles,
     assembly: Option<String>,
     contigs: Contigs,
-    meta: IndexMap<String, Meta>,
-    samples: Samples,
-    pedigrees: Pedigrees,
+    meta: IndexMap<String, Map<Meta>>,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
     other_records: Records,
@@ -128,15 +118,20 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{info::Key, Info}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Key, record::value::{map::Info, Map}},
+    /// };
+    ///
+    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_info(Info::from(Key::SamplesWithDataCount))
+    ///     .add_info(info.clone())
     ///     .build();
     ///
     /// let infos = header.infos();
     /// assert_eq!(infos.len(), 1);
-    /// assert_eq!(infos[0].id(), &Key::SamplesWithDataCount);
+    /// assert_eq!(&infos[0], &info);
     /// ```
     pub fn infos(&self) -> &Infos {
         &self.infos
@@ -147,11 +142,14 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{info::Key, Info}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{info::Key, record::value::{map::Info, Map}},
+    /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let info = Info::from(Key::SamplesWithDataCount);
+    /// let info = Map::<Info>::from(Key::SamplesWithDataCount);
     /// header.infos_mut().insert(info.id().clone(), info);
     ///
     /// let infos = header.infos();
@@ -167,15 +165,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Filter};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Filter, Map}};
+    ///
+    /// let filter = Map::<Filter>::new("q10", "Quality below 10");
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_filter(Filter::new("q10", "Quality below 10"))
+    ///     .add_filter(filter.clone())
     ///     .build();
     ///
     /// let filters = header.filters();
     /// assert_eq!(filters.len(), 1);
-    /// assert_eq!(filters[0].id(), "q10");
+    /// assert_eq!(&filters[0], &filter);
     /// ```
     pub fn filters(&self) -> &Filters {
         &self.filters
@@ -186,16 +186,16 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Filter};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Filter, Map}};
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let filter = Filter::new("q10", "Quality below 10");
-    /// header.filters_mut().insert(filter.id().into(), filter);
+    /// let filter = Map::<Filter>::new("q10", "Quality below 10");
+    /// header.filters_mut().insert(filter.id().into(), filter.clone());
     ///
     /// let filters = header.filters();
     /// assert_eq!(filters.len(), 1);
-    /// assert_eq!(filters[0].id(), "q10");
+    /// assert_eq!(&filters[0], &filter);
     /// ```
     pub fn filters_mut(&mut self) -> &mut Filters {
         &mut self.filters
@@ -206,15 +206,20 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{format::Key, Format}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{format::Key, record::value::{map::Format, Map}},
+    /// };
+    ///
+    /// let format = Map::<Format>::from(Key::Genotype);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::from(Key::Genotype))
+    ///     .add_format(format.clone())
     ///     .build();
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);
-    /// assert_eq!(formats[0].id(), &Key::Genotype);
+    /// assert_eq!(&formats[0], &format);
     /// ```
     pub fn formats(&self) -> &Formats {
         &self.formats
@@ -225,16 +230,19 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{format::Key, Format}};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{format::Key, record::value::{map::Format, Map}},
+    /// };
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let format = Format::from(Key::Genotype);
-    /// header.formats_mut().insert(format.id().clone(), format);
+    /// let format = Map::<Format>::from(Key::Genotype);
+    /// header.formats_mut().insert(format.id().clone(), format.clone());
     ///
     /// let formats = header.formats();
     /// assert_eq!(formats.len(), 1);
-    /// assert_eq!(formats[0].id(), &Key::Genotype);
+    /// assert_eq!(&formats[0], &format);
     /// ```
     pub fn formats_mut(&mut self) -> &mut Formats {
         &mut self.formats
@@ -247,26 +255,25 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::AlternativeAllele,
+    ///     header::record::value::{map::AlternativeAllele, Map},
     ///     record::alternate_bases::allele::{
     ///         symbol::{structural_variant::Type, StructuralVariant},
     ///         Symbol,
     ///     },
     /// };
     ///
+    /// let alt = Map::<AlternativeAllele>::new(
+    ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
+    ///     "Deletion",
+    /// );
+    ///
     /// let header = vcf::Header::builder()
-    ///     .add_alternative_allele(AlternativeAllele::new(
-    ///         Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
-    ///         "Deletion",
-    ///     ))
+    ///     .add_alternative_allele(alt.clone())
     ///     .build();
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);
-    /// assert_eq!(
-    ///     alternative_alleles[0].id(),
-    ///     &Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion))
-    /// );
+    /// assert_eq!(&alternative_alleles[0], &alt);
     /// ```
     pub fn alternative_alleles(&self) -> &AlternativeAlleles {
         &self.alternative_alleles
@@ -279,7 +286,7 @@ impl Header {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::AlternativeAllele,
+    ///     header::record::value::{map::AlternativeAllele, Map},
     ///     record::alternate_bases::allele::{
     ///         symbol::{structural_variant::Type, StructuralVariant},
     ///         Symbol,
@@ -288,17 +295,15 @@ impl Header {
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let alternative_allele = AlternativeAllele::new(
+    /// let alt = Map::<AlternativeAllele>::new(
     ///     Symbol::StructuralVariant(StructuralVariant::from(Type::Deletion)),
     ///     "Deletion",
     /// );
-    /// header
-    ///     .alternative_alleles_mut()
-    ///     .insert(alternative_allele.id().clone(), alternative_allele.clone());
+    /// header.alternative_alleles_mut().insert(alt.id().clone(), alt.clone());
     ///
     /// let alternative_alleles = header.alternative_alleles();
     /// assert_eq!(alternative_alleles.len(), 1);
-    /// assert_eq!(alternative_alleles[0], alternative_allele);
+    /// assert_eq!(&alternative_alleles[0], &alt);
     /// ```
     pub fn alternative_alleles_mut(&mut self) -> &mut AlternativeAlleles {
         &mut self.alternative_alleles
@@ -341,15 +346,17 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Contig};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
+    ///
+    /// let contig = Map::<Contig>::new("sq0".parse()?);
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new("sq0".parse()?))
+    ///     .add_contig(contig.clone())
     ///     .build();
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
-    /// assert_eq!(contigs[0], Contig::new("sq0".parse()?));
+    /// assert_eq!(&contigs[0], &contig);
     /// # Ok::<_, vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn contigs(&self) -> &Contigs {
@@ -361,16 +368,16 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Contig};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Contig, Map}};
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let contig = Contig::new("sq0".parse()?);
+    /// let contig = Map::<Contig>::new("sq0".parse()?);
     /// header.contigs_mut().insert(contig.id().as_ref().into(), contig.clone());
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
-    /// assert_eq!(contigs[0], contig);
+    /// assert_eq!(&contigs[0], &contig);
     /// # Ok::<_, vcf::header::contig::name::ParseError>(())
     /// ```
     pub fn contigs_mut(&mut self) -> &mut Contigs {
@@ -382,10 +389,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Meta};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
     ///
-    /// let meta = Meta::new(
-    ///     String::from("Assay"),
+    /// let meta = Map::<Meta>::new(
+    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
     ///
@@ -395,9 +402,9 @@ impl Header {
     ///
     /// let records = header.meta();
     /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], meta);
+    /// assert_eq!(&records[0], &meta);
     /// ```
-    pub fn meta(&self) -> &IndexMap<String, Meta> {
+    pub fn meta(&self) -> &IndexMap<String, Map<Meta>> {
         &self.meta
     }
 
@@ -406,120 +413,22 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::Meta};
+    /// use noodles_vcf::{self as vcf, header::record::value::{map::Meta, Map}};
     ///
     /// let mut header = vcf::Header::default();
     ///
-    /// let meta = Meta::new(
-    ///     String::from("Assay"),
+    /// let meta = Map::<Meta>::new(
+    ///     "Assay",
     ///     vec![String::from("WholeGenome"), String::from("Exome")],
     /// );
     /// header.meta_mut().insert(meta.id().into(), meta.clone());
     ///
     /// let records = header.meta();
     /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], meta);
+    /// assert_eq!(&records[0], &meta);
     /// ```
-    pub fn meta_mut(&mut self) -> &mut IndexMap<String, Meta> {
+    pub fn meta_mut(&mut self) -> &mut IndexMap<String, Map<Meta>> {
         &mut self.meta
-    }
-
-    /// Returns a map of sample records (`SAMPLE`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::Sample};
-    ///
-    /// let sample = Sample::new(String::from("sample0"), Default::default());
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .add_sample(sample.clone())
-    ///     .build();
-    ///
-    /// let records = header.samples();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], sample);
-    /// ```
-    pub fn samples(&self) -> &Samples {
-        &self.samples
-    }
-
-    /// Returns a mutable reference to a map of sample records (`SAMPLE`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::Sample};
-    ///
-    /// let mut header = vcf::Header::default();
-    ///
-    /// let sample = Sample::new(String::from("sample0"), Default::default());
-    /// header.samples_mut().insert(sample.id().into(), sample.clone());
-    ///
-    /// let records = header.samples();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], sample);
-    /// ```
-    pub fn samples_mut(&mut self) -> &mut Samples {
-        &mut self.samples
-    }
-
-    /// Returns a map of pedigree records (`PEDIGREE`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::Pedigree};
-    ///
-    /// let pedigree = Pedigree::new(
-    ///     String::from("cid"),
-    ///     [
-    ///         (String::from("Father"), String::from("fid")),
-    ///         (String::from("Mother"), String::from("mid")),
-    ///     ]
-    ///     .into_iter()
-    ///     .collect(),
-    /// );
-    ///
-    /// let header = vcf::Header::builder()
-    ///     .add_pedigree(pedigree.clone())
-    ///     .build();
-    ///
-    /// let records = header.pedigrees();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], pedigree);
-    /// ```
-    pub fn pedigrees(&self) -> &Pedigrees {
-        &self.pedigrees
-    }
-
-    /// Returns a mutable reference to a map of pedigree records (`PEDIGREE`).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_vcf::{self as vcf, header::Pedigree};
-    ///
-    /// let mut header = vcf::Header::default();
-    ///
-    /// let pedigree = Pedigree::new(
-    ///     String::from("cid"),
-    ///     [
-    ///         (String::from("Father"), String::from("fid")),
-    ///         (String::from("Mother"), String::from("mid")),
-    ///     ]
-    ///     .into_iter()
-    ///     .collect(),
-    /// );
-    /// header.pedigrees_mut().insert(pedigree.id().into(), pedigree.clone());
-    ///
-    /// let records = header.pedigrees();
-    /// assert_eq!(records.len(), 1);
-    /// assert_eq!(records[0], pedigree);
-    /// ```
-    pub fn pedigrees_mut(&mut self) -> &mut Pedigrees {
-        &mut self.pedigrees
     }
 
     /// Returns a URI to the relationships between genomes (`pedigreeDB`).
@@ -606,10 +515,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
     /// let key = Key::from("fileDate");
-    /// let value = Value::from("20200709");
+    /// let value = record::value::Other::from("20200709");
     ///
     /// let header = vcf::Header::builder()
     ///     .insert(key.clone(), value.clone())
@@ -634,10 +543,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
     /// let key = Key::from("fileDate");
-    /// let value = Value::from("20200709");
+    /// let value = record::value::Other::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
     /// header.records_mut().insert(key.clone(), vec![value.clone()]);
@@ -659,10 +568,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
     /// let key = Key::from("fileDate");
-    /// let value = Value::from("20200709");
+    /// let value = record::value::Other::from("20200709");
     ///
     /// let header = vcf::Header::builder()
     ///     .insert(key.clone(), value.clone())
@@ -671,7 +580,7 @@ impl Header {
     /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// assert!(header.get(&Key::from("reference")).is_none());
     /// ```
-    pub fn get(&self, key: &record::Key) -> Option<&[record::Value]> {
+    pub fn get(&self, key: &record::Key) -> Option<&[record::value::Other]> {
         self.other_records.get(key).map(|r| &**r)
     }
 
@@ -680,10 +589,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_vcf::{self as vcf, header::{record::{Key, Value}}};
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
     ///
     /// let key = Key::from("fileDate");
-    /// let value = Value::from("20200709");
+    /// let value = record::value::Other::from("20200709");
     ///
     /// let mut header = vcf::Header::default();
     /// assert!(header.get(&key).is_none());
@@ -691,7 +600,7 @@ impl Header {
     /// header.insert(key.clone(), value.clone());
     /// assert_eq!(header.get(&key), Some(&[value][..]));
     /// ```
-    pub fn insert(&mut self, key: record::Key, value: record::Value) {
+    pub fn insert(&mut self, key: record::Key, value: record::value::Other) {
         let records = self.other_records.entry(key).or_default();
         records.push(value);
     }
@@ -714,19 +623,25 @@ impl std::fmt::Display for Header {
         )?;
 
         for info in self.infos().values() {
-            writeln!(f, "{}", info)?;
+            writeln!(f, "{}{}={}", record::PREFIX, record::key::INFO, info)?;
         }
 
         for filter in self.filters().values() {
-            writeln!(f, "{}", filter)?;
+            writeln!(f, "{}{}={}", record::PREFIX, record::key::FILTER, filter)?;
         }
 
         for format in self.formats().values() {
-            writeln!(f, "{}", format)?;
+            writeln!(f, "{}{}={}", record::PREFIX, record::key::FORMAT, format)?;
         }
 
         for alternative_allele in self.alternative_alleles().values() {
-            writeln!(f, "{}", alternative_allele)?;
+            writeln!(
+                f,
+                "{}{}={}",
+                record::PREFIX,
+                record::key::ALTERNATIVE_ALLELE,
+                alternative_allele
+            )?;
         }
 
         if let Some(assembly) = self.assembly() {
@@ -740,19 +655,11 @@ impl std::fmt::Display for Header {
         }
 
         for contig in self.contigs().values() {
-            writeln!(f, "{}", contig)?;
+            writeln!(f, "{}{}={}", record::PREFIX, record::key::CONTIG, contig)?;
         }
 
         for meta in self.meta().values() {
-            writeln!(f, "{}", meta)?;
-        }
-
-        for sample in self.samples().values() {
-            writeln!(f, "{}", sample)?;
-        }
-
-        for pedigree in self.pedigrees().values() {
-            writeln!(f, "{}", pedigree)?;
+            writeln!(f, "{}{}={}", record::PREFIX, record::key::META, meta)?;
         }
 
         if let Some(pedigree_db) = self.pedigree_db() {
@@ -809,30 +716,15 @@ mod tests {
     fn test_fmt() {
         let header = Header::builder()
             .set_file_format(FileFormat::new(4, 3))
-            .add_filter(Filter::pass())
+            .add_filter(Map::<Filter>::pass())
             .set_assembly("file:///assemblies.fasta")
-            .add_meta(Meta::new(
-                String::from("Assay"),
+            .add_meta(Map::<Meta>::new(
+                "Assay",
                 vec![String::from("WholeGenome"), String::from("Exome")],
-            ))
-            .add_sample(Sample::new(
-                String::from("sample0"),
-                [(String::from("Assay"), String::from("WholeGenome"))]
-                    .into_iter()
-                    .collect(),
-            ))
-            .add_pedigree(Pedigree::new(
-                String::from("cid"),
-                [
-                    (String::from("Father"), String::from("fid")),
-                    (String::from("Mother"), String::from("mid")),
-                ]
-                .into_iter()
-                .collect(),
             ))
             .insert(
                 record::Key::from("fileDate"),
-                record::Value::String(String::from("20200514")),
+                record::value::Other::String(String::from("20200514")),
             )
             .build();
 
@@ -840,8 +732,6 @@ mod tests {
 ##FILTER=<ID=PASS,Description="All filters passed">
 ##assembly=file:///assemblies.fasta
 ##META=<ID=Assay,Type=String,Number=.,Values=[WholeGenome, Exome]>
-##SAMPLE=<ID=sample0,Assay=WholeGenome>
-##PEDIGREE=<ID=cid,Father=fid,Mother=mid>
 ##fileDate=20200514
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 "#;
@@ -874,7 +764,10 @@ mod tests {
     #[test]
     fn test_insert_with_duplicate_keys() {
         let key = record::Key::from("noodles");
-        let values = [record::Value::from("0"), record::Value::from("1")];
+        let values = [
+            record::value::Other::from("0"),
+            record::value::Other::from("1"),
+        ];
 
         let mut header = Header::default();
 

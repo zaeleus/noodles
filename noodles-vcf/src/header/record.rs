@@ -4,13 +4,15 @@ pub mod key;
 pub(crate) mod parser;
 pub mod value;
 
-use indexmap::IndexMap;
-
-pub use self::{key::Key, value::Value};
+pub use self::key::Key;
 
 use std::{error, fmt, str::FromStr};
 
-use super::{AlternativeAllele, Contig, FileFormat, Filter, Format, Info, Meta, Pedigree, Sample};
+use self::value::{
+    map::{AlternativeAllele, Contig, Filter, Format, Info, Meta, Other},
+    Map,
+};
+use super::FileFormat;
 
 pub(crate) const PREFIX: &str = "##";
 
@@ -18,29 +20,25 @@ pub(crate) const PREFIX: &str = "##";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Record {
     /// An `ALT` record.
-    AlternativeAllele(AlternativeAllele),
+    AlternativeAllele(Map<AlternativeAllele>),
     /// An `assembly` record.
     Assembly(String),
     /// A `contig` record.
-    Contig(Contig),
+    Contig(Map<Contig>),
     /// A `fileformat` record.
     FileFormat(FileFormat),
     /// A `FILTER` record.
-    Filter(Filter),
+    Filter(Map<Filter>),
     /// A `FORMAT` record.
-    Format(Format),
+    Format(Map<Format>),
     /// An `INFO` record.
-    Info(Info),
+    Info(Map<Info>),
     /// A `META` record.
-    Meta(Meta),
-    /// A `PEDIGREE` record.
-    Pedigree(Pedigree),
+    Meta(Map<Meta>),
     /// A `pedigreeDB` record.
     PedigreeDb(String),
-    /// A `SAMPLE` record.
-    Sample(Sample),
     /// A nonstadard record.
-    Other(Key, Value),
+    Other(Key, value::Other),
 }
 
 /// An error returned when a raw VCF header record fails to parse.
@@ -64,27 +62,17 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, (raw_key, raw_value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
+        Self::try_from((FileFormat::default(), s))
+    }
+}
 
-        let value = match raw_value {
-            parser::Value::String(s) => Value::String(s),
-            parser::Value::Struct(raw_fields) => {
-                let mut fields = IndexMap::new();
+impl TryFrom<(FileFormat, &str)> for Record {
+    type Error = ParseError;
 
-                for (k, v) in raw_fields {
-                    if fields.insert(k, v).is_some() {
-                        return Err(ParseError::Invalid);
-                    }
-                }
+    fn try_from((file_format, s): (FileFormat, &str)) -> Result<Self, Self::Error> {
+        use self::parser::Value;
 
-                let id = match fields.shift_remove("ID") {
-                    Some(value) => value,
-                    None => return Err(ParseError::Invalid),
-                };
-
-                Value::Struct(id, fields)
-            }
-        };
+        let (_, (raw_key, value)) = parser::parse(s).map_err(|_| ParseError::Invalid)?;
 
         match Key::from(raw_key) {
             key::FILE_FORMAT => match value {
@@ -95,34 +83,32 @@ impl FromStr for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::INFO => match value {
-                Value::Struct(id, fields) => {
-                    // FIXME
-                    let info = Info::try_from_fields(id, fields, Default::default())
+                Value::Struct(fields) => {
+                    let info = Map::<Info>::try_from((file_format, fields))
                         .map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Info(info))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::FILTER => match value {
-                Value::Struct(id, fields) => {
+                Value::Struct(fields) => {
                     let filter =
-                        Filter::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                        Map::<Filter>::try_from(fields).map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Filter(filter))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::FORMAT => match value {
-                Value::Struct(id, fields) => {
-                    // FIXME
-                    let format = Format::try_from_fields(id, fields, Default::default())
+                Value::Struct(fields) => {
+                    let format = Map::<Format>::try_from((file_format, fields))
                         .map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Format(format))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::ALTERNATIVE_ALLELE => match value {
-                Value::Struct(id, fields) => {
-                    let alternative_allele = AlternativeAllele::try_from_fields(id, fields)
+                Value::Struct(fields) => {
+                    let alternative_allele = Map::<AlternativeAllele>::try_from(fields)
                         .map_err(|_| ParseError::Invalid)?;
                     Ok(Self::AlternativeAllele(alternative_allele))
                 }
@@ -133,34 +119,17 @@ impl FromStr for Record {
                 _ => Err(ParseError::Invalid),
             },
             key::CONTIG => match value {
-                Value::Struct(id, fields) => {
+                Value::Struct(fields) => {
                     let contig =
-                        Contig::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                        Map::<Contig>::try_from(fields).map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Contig(contig))
                 }
                 _ => Err(ParseError::Invalid),
             },
             key::META => match value {
-                Value::Struct(id, fields) => {
-                    let meta =
-                        Meta::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
+                Value::Struct(fields) => {
+                    let meta = Map::<Meta>::try_from(fields).map_err(|_| ParseError::Invalid)?;
                     Ok(Self::Meta(meta))
-                }
-                _ => Err(ParseError::Invalid),
-            },
-            key::SAMPLE => match value {
-                Value::Struct(id, fields) => {
-                    let sample =
-                        Sample::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Sample(sample))
-                }
-                _ => Err(ParseError::Invalid),
-            },
-            key::PEDIGREE => match value {
-                Value::Struct(id, fields) => {
-                    let pedigree =
-                        Pedigree::try_from_fields(id, fields).map_err(|_| ParseError::Invalid)?;
-                    Ok(Self::Pedigree(pedigree))
                 }
                 _ => Err(ParseError::Invalid),
             },
@@ -168,7 +137,18 @@ impl FromStr for Record {
                 Value::String(s) => Ok(Self::PedigreeDb(s)),
                 _ => Err(ParseError::Invalid),
             },
-            key => Ok(Self::Other(key, value)),
+            k => {
+                let v = match value {
+                    Value::String(s) => value::Other::from(s),
+                    Value::Struct(fields) => {
+                        let map =
+                            Map::<Other>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                        value::Other::from(map)
+                    }
+                };
+
+                Ok(Self::Other(k, v))
+            }
         }
     }
 }
@@ -178,14 +158,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), value::TryFromFieldsError> {
+    fn test_from_str() -> Result<(), ParseError> {
         let line = "##fileformat=VCFv4.3";
-
         assert_eq!(line.parse(), Ok(Record::FileFormat(FileFormat::new(4, 3))));
 
         let line =
             r#"##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">"#;
-
         assert!(matches!(line.parse(), Ok(Record::Info(_))));
 
         assert!("".parse::<Record>().is_err());

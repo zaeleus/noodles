@@ -275,7 +275,7 @@ fn is_valid_name(s: &str) -> bool {
     chars.all(is_valid_name_char)
 }
 
-pub(super) fn number(key: &Key) -> Option<Number> {
+pub(crate) fn number(key: &Key) -> Option<Number> {
     match key {
         Key::AncestralAllele => Some(Number::Count(1)),
         Key::AlleleCount => Some(Number::A),
@@ -329,7 +329,7 @@ pub(super) fn number(key: &Key) -> Option<Number> {
     }
 }
 
-pub(super) fn ty(key: &Key) -> Option<Type> {
+pub(crate) fn ty(key: &Key) -> Option<Type> {
     match key {
         Key::AncestralAllele => Some(Type::String),
         Key::AlleleCount => Some(Type::Integer),
@@ -383,7 +383,7 @@ pub(super) fn ty(key: &Key) -> Option<Type> {
     }
 }
 
-pub(super) fn description(key: &Key) -> Option<&str> {
+pub(crate) fn description(key: &Key) -> Option<&str> {
     match key {
         Key::AncestralAllele => Some("Ancestral allele"),
         Key::AlleleCount => {

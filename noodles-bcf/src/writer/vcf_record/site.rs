@@ -509,7 +509,10 @@ mod tests {
 
     #[test]
     fn test_write_filter() -> Result<(), Box<dyn std::error::Error>> {
-        use vcf::{header::Filter, record::Filters};
+        use vcf::{
+            header::record::value::{map::Filter, Map},
+            record::Filters,
+        };
 
         fn t(
             buf: &mut Vec<u8>,
@@ -524,9 +527,12 @@ mod tests {
         }
 
         let header = vcf::Header::builder()
-            .add_filter(Filter::pass())
-            .add_filter(Filter::new("s50", "Less than 50% of samples have data"))
-            .add_filter(Filter::new("q10", "Quality below 10"))
+            .add_filter(Map::<Filter>::pass())
+            .add_filter(Map::<Filter>::new(
+                "s50",
+                "Less than 50% of samples have data",
+            ))
+            .add_filter(Map::<Filter>::new("q10", "Quality below 10"))
             .build();
 
         let string_maps = StringMaps::from(&header);

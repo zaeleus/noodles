@@ -4,7 +4,11 @@
 //!
 //! Verify the output by piping to `bcftools view --no-version`.
 
-use noodles_vcf::{self as vcf, header::Contig, record::Position};
+use noodles_vcf::{
+    self as vcf,
+    header::record::value::{map::Contig, Map},
+    record::Position,
+};
 use tokio::io;
 
 #[tokio::main]
@@ -12,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = vcf::AsyncWriter::new(io::stdout());
 
     let header = vcf::Header::builder()
-        .add_contig(Contig::new("sq0".parse()?))
+        .add_contig(Map::<Contig>::new("sq0".parse()?))
         .build();
 
     writer.write_header(&header).await?;

@@ -3,11 +3,9 @@ use std::error;
 use indexmap::IndexSet;
 
 use super::{
-    alternative_allele, contig,
     file_format::{self, FileFormat},
-    filter, format, info, meta, pedigree,
     record::{self, Record},
-    sample, Builder, Header,
+    Builder, Header,
 };
 
 /// An error returned when a raw VCF header fails to parse.
@@ -23,22 +21,6 @@ pub enum ParseError {
     InvalidRecord(record::ParseError),
     /// A record has an invalid value.
     InvalidRecordValue,
-    /// An information record (`INFO`) is invalid.
-    InvalidInfo(info::TryFromRecordError),
-    /// A filter record (`FILTER`) is invalid.
-    InvalidFilter(filter::TryFromRecordError),
-    /// A genotype format record (`FORMAT`) is invalid.
-    InvalidFormat(format::TryFromRecordError),
-    /// A symboloic alternate allele record (`ALT`) is invalid.
-    InvalidAlternativeAllele(alternative_allele::TryFromRecordError),
-    /// A contig record (`contig`) is invalid.
-    InvalidContig(contig::TryFromRecordError),
-    /// A meta record (`META`) is invalid.
-    InvalidMeta(meta::TryFromRecordError),
-    /// A sample record (`SAMPLE`) is invalid.
-    InvalidSample(sample::TryFromRecordError),
-    /// A pedigree record (`PEDIGREE`) is invalid.
-    InvalidPedigree(pedigree::TryFromRecordError),
     /// The header is missing.
     MissingHeader,
     /// The header is invalid.
@@ -64,16 +46,6 @@ impl std::fmt::Display for ParseError {
             Self::InvalidFileFormat(e) => write!(f, "invalid file format: {}", e),
             Self::InvalidRecord(e) => write!(f, "invalid record: {}", e),
             Self::InvalidRecordValue => f.write_str("invalid record value"),
-            Self::InvalidInfo(e) => write!(f, "invalid info: {}", e),
-            Self::InvalidFilter(e) => write!(f, "invalid filter: {}", e),
-            Self::InvalidFormat(e) => write!(f, "invalid format: {}", e),
-            Self::InvalidAlternativeAllele(e) => {
-                write!(f, "invalid alternative allele: {}", e)
-            }
-            Self::InvalidContig(e) => write!(f, "invalid contig: {}", e),
-            Self::InvalidMeta(e) => write!(f, "invalid meta: {}", e),
-            Self::InvalidSample(e) => write!(f, "invalid sample: {}", e),
-            Self::InvalidPedigree(e) => write!(f, "invalid pedigree: {}", e),
             Self::MissingHeader => f.write_str("missing header"),
             Self::InvalidHeader(actual, expected) => {
                 write!(f, "invalid header: expected {}, got {}", expected, actual)
@@ -150,8 +122,6 @@ fn parse_record(
         Record::Assembly(assembly) => builder.set_assembly(assembly),
         Record::Contig(contig) => builder.add_contig(contig),
         Record::Meta(meta) => builder.add_meta(meta),
-        Record::Sample(sample) => builder.add_sample(sample),
-        Record::Pedigree(pedigree) => builder.add_pedigree(pedigree),
         Record::PedigreeDb(pedigree_db) => builder.set_pedigree_db(pedigree_db),
         Record::Other(key, value) => builder.insert(key, value),
     };
@@ -232,18 +202,16 @@ mod tests {
         assert_eq!(header.assembly(), Some("file:///assemblies.fasta"));
         assert_eq!(header.contigs().len(), 3);
         assert_eq!(header.meta().len(), 1);
-        assert_eq!(header.samples().len(), 1);
-        assert_eq!(header.pedigrees().len(), 1);
         assert_eq!(header.sample_names().len(), 1);
 
         assert_eq!(
             header.get(&record::Key::from("fileDate")),
-            Some(&[record::Value::from("20200506")][..])
+            Some(&[record::value::Other::from("20200506")][..])
         );
 
         assert_eq!(
             header.get(&record::Key::from("source")),
-            Some(&[record::Value::from("noodles-vcf")][..])
+            Some(&[record::value::Other::from("noodles-vcf")][..])
         );
 
         Ok(())

@@ -6,7 +6,10 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
-    header::{format::Key, Format},
+    header::{
+        format::Key,
+        record::value::{map::Format, Map},
+    },
     record::genotypes::genotype::field::Value,
 };
 
@@ -77,7 +80,7 @@ where
 
 pub fn write_genotype_field_values<W>(
     writer: &mut W,
-    format: &Format,
+    format: &Map<Format>,
     values: &[Option<&Value>],
 ) -> io::Result<()>
 where
@@ -690,7 +693,7 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
-            format: &Format,
+            format: &Map<Format>,
             values: &[Option<&Value>],
             expected: &[u8],
         ) -> io::Result<()> {
@@ -700,7 +703,7 @@ mod tests {
             Ok(())
         }
 
-        let key = Format::new(
+        let key = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(1),
             format::Type::Integer,
@@ -865,7 +868,7 @@ mod tests {
     ) -> Result<(), Box<dyn std::error::Error>> {
         fn t(
             buf: &mut Vec<u8>,
-            format: &Format,
+            format: &Map<Format>,
             values: &[Option<&Value>],
             expected: &[u8],
         ) -> io::Result<()> {
@@ -875,7 +878,7 @@ mod tests {
             Ok(())
         }
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(2),
             format::Type::Integer,
@@ -1047,7 +1050,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_float_values() -> Result<(), Box<dyn std::error::Error>>
     {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "F32".parse()?,
             Number::Count(1),
             format::Type::Float,
@@ -1074,7 +1077,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_float_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "F32".parse()?,
             Number::Count(2),
             format::Type::Float,
@@ -1105,7 +1108,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_character_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(1),
             format::Type::Character,
@@ -1136,7 +1139,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_character_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(2),
             format::Type::Character,
@@ -1167,7 +1170,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_string_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "STRING".parse()?,
             Number::Count(1),
             format::Type::String,
@@ -1198,7 +1201,7 @@ mod tests {
     #[test]
     fn test_write_genotype_field_values_with_string_array_values(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "STRING".parse()?,
             Number::Count(2),
             format::Type::String,

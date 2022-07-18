@@ -13,7 +13,11 @@ use indexmap::IndexMap;
 
 use super::Keys;
 use crate::{
-    header::{format::Key, Format, Formats},
+    header::{
+        format::Key,
+        record::value::{map::Format, Map},
+        Formats,
+    },
     record::MISSING_FIELD,
 };
 
@@ -76,13 +80,13 @@ impl Genotype {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, Format},
+    ///     header::{format::Key, record::value::{map::Format, Map}},
     ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::from(Key::Genotype))
-    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -109,7 +113,7 @@ impl Genotype {
             let field = if let Some(format) = formats.get(key) {
                 Field::from_str_format(raw_field, format).map_err(ParseError::InvalidField)?
             } else {
-                let format = Format::from(key.clone());
+                let format = Map::<Format>::from(key.clone());
                 Field::from_str_format(raw_field, &format).map_err(ParseError::InvalidField)?
             };
 
@@ -129,13 +133,13 @@ impl Genotype {
     /// ```
     /// use noodles_vcf::{
     ///     self as vcf,
-    ///     header::{format::Key, Format},
+    ///     header::{format::Key, record::value::{map::Format, Map}},
     ///     record::genotypes::{genotype::{field::Value, Field}, Genotype},
     /// };
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_format(Format::from(Key::Genotype))
-    ///     .add_format(Format::from(Key::ConditionalGenotypeQuality))
+    ///     .add_format(Map::<Format>::from(Key::Genotype))
+    ///     .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
     ///     .build();
     ///
     /// let keys = "GT:GQ".parse()?;
@@ -243,8 +247,8 @@ mod tests {
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
         let header = crate::Header::builder()
-            .add_format(Format::from(Key::Genotype))
-            .add_format(Format::from(Key::ConditionalGenotypeQuality))
+            .add_format(Map::<Format>::from(Key::Genotype))
+            .add_format(Map::<Format>::from(Key::ConditionalGenotypeQuality))
             .build();
 
         let keys = "GT".parse()?;

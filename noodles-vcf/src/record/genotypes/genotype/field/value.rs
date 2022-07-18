@@ -7,7 +7,11 @@ pub use self::genotype::Genotype;
 use std::{error, fmt, num, str};
 
 use crate::{
-    header::{format::Type, Format, Number},
+    header::{
+        format::Type,
+        record::value::{map::Format, Map},
+        Number,
+    },
     record::value::{self, percent_decode},
 };
 
@@ -144,14 +148,14 @@ impl Value {
     ///
     /// ```
     /// use noodles_vcf::{
-    ///     header::{format::Key, Format},
+    ///     header::{format::Key, record::value::{map::Format, Map}},
     ///     record::genotypes::genotype::field::Value,
     /// };
     ///
-    /// let format = Format::from(Key::ConditionalGenotypeQuality);
+    /// let format = Map::<Format>::from(Key::ConditionalGenotypeQuality);
     /// assert_eq!(Value::from_str_format("13", &format), Ok(Value::Integer(13)));
     /// ```
-    pub fn from_str_format(s: &str, format: &Format) -> Result<Self, ParseError> {
+    pub fn from_str_format(s: &str, format: &Map<Format>) -> Result<Self, ParseError> {
         match format.ty() {
             Type::Integer => match format.number() {
                 Number::Count(0) => Err(ParseError::InvalidNumberForType(
@@ -339,7 +343,7 @@ mod tests {
 
     #[test]
     fn test_from_str_format_with_integer() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(0),
             Type::Integer,
@@ -353,7 +357,7 @@ mod tests {
             ))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(1),
             Type::Integer,
@@ -361,7 +365,7 @@ mod tests {
         );
         assert_eq!(Value::from_str_format("8", &format), Ok(Value::Integer(8)));
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(2),
             Type::Integer,
@@ -372,7 +376,7 @@ mod tests {
             Ok(Value::IntegerArray(vec![Some(8), Some(13)]))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "I32".parse()?,
             Number::Count(2),
             Type::Integer,
@@ -388,7 +392,8 @@ mod tests {
 
     #[test]
     fn test_from_str_format_with_float() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Format::new("F32".parse()?, Number::Count(0), Type::Float, String::new());
+        let format =
+            Map::<Format>::new("F32".parse()?, Number::Count(0), Type::Float, String::new());
         assert_eq!(
             Value::from_str_format("0.333", &format),
             Err(ParseError::InvalidNumberForType(
@@ -397,19 +402,22 @@ mod tests {
             ))
         );
 
-        let format = Format::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
+        let format =
+            Map::<Format>::new("F32".parse()?, Number::Count(1), Type::Float, String::new());
         assert_eq!(
             Value::from_str_format("0.333", &format),
             Ok(Value::Float(0.333))
         );
 
-        let format = Format::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
+        let format =
+            Map::<Format>::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
         assert_eq!(
             Value::from_str_format("0.333,0.667", &format),
             Ok(Value::FloatArray(vec![Some(0.333), Some(0.667)]))
         );
 
-        let format = Format::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
+        let format =
+            Map::<Format>::new("F32".parse()?, Number::Count(2), Type::Float, String::new());
         assert_eq!(
             Value::from_str_format("0.333,.", &format),
             Ok(Value::FloatArray(vec![Some(0.333), None]))
@@ -420,7 +428,7 @@ mod tests {
 
     #[test]
     fn test_from_str_format_with_character() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(0),
             Type::Character,
@@ -434,7 +442,7 @@ mod tests {
             ))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(1),
             Type::Character,
@@ -445,7 +453,7 @@ mod tests {
             Ok(Value::Character('n'))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(2),
             Type::Character,
@@ -461,7 +469,7 @@ mod tests {
             ]))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "CHAR".parse()?,
             Number::Count(2),
             Type::Character,
@@ -482,7 +490,7 @@ mod tests {
 
     #[test]
     fn test_from_str_format_with_string() -> Result<(), crate::header::format::key::ParseError> {
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "STRING".parse()?,
             Number::Count(0),
             Type::String,
@@ -496,7 +504,7 @@ mod tests {
             ))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "STRING".parse()?,
             Number::Count(1),
             Type::String,
@@ -511,7 +519,7 @@ mod tests {
             Ok(Value::String(String::from("8%")))
         );
 
-        let format = Format::new(
+        let format = Map::<Format>::new(
             "STRING".parse()?,
             Number::Count(2),
             Type::String,

@@ -26,12 +26,6 @@ pub const CONTIG: Key = Key::Standard(Standard::Contig);
 /// VCF header record meta key.
 pub const META: Key = Key::Standard(Standard::Meta);
 
-/// VCF header record sample key.
-pub const SAMPLE: Key = Key::Standard(Standard::Sample);
-
-/// VCF header record pedigree key.
-pub const PEDIGREE: Key = Key::Standard(Standard::Pedigree);
-
 /// VCF header record pedigree database key.
 pub const PEDIGREE_DB: Key = Key::Standard(Standard::PedigreeDb);
 
@@ -54,10 +48,6 @@ pub enum Standard {
     Contig,
     /// Meta (`META`).
     Meta,
-    /// Sample (`SAMPLE`).
-    Sample,
-    /// Pedigree (`PEDIGREE`).
-    Pedigree,
     /// Pedigree database URI (`pedigreeDB`).
     PedigreeDb,
 }
@@ -73,8 +63,6 @@ impl Standard {
             "assembly" => Some(Self::Assembly),
             "contig" => Some(Self::Contig),
             "META" => Some(Self::Meta),
-            "SAMPLE" => Some(Self::Sample),
-            "PEDIGREE" => Some(Self::Pedigree),
             "pedigreeDB" => Some(Self::PedigreeDb),
             _ => None,
         }
@@ -92,8 +80,6 @@ impl AsRef<str> for Standard {
             Self::Assembly => "assembly",
             Self::Contig => "contig",
             Self::Meta => "META",
-            Self::Sample => "SAMPLE",
-            Self::Pedigree => "PEDIGREE",
             Self::PedigreeDb => "pedigreeDB",
         }
     }
@@ -195,8 +181,6 @@ mod tests {
         assert_eq!(ASSEMBLY.to_string(), "assembly");
         assert_eq!(CONTIG.to_string(), "contig");
         assert_eq!(META.to_string(), "META");
-        assert_eq!(SAMPLE.to_string(), "SAMPLE");
-        assert_eq!(PEDIGREE.to_string(), "PEDIGREE");
         assert_eq!(PEDIGREE_DB.to_string(), "pedigreeDB");
         assert_eq!(
             Key::Other(Other(String::from("fileDate"))).to_string(),
@@ -214,8 +198,6 @@ mod tests {
         assert_eq!(Key::from("assembly"), ASSEMBLY);
         assert_eq!(Key::from("contig"), CONTIG);
         assert_eq!(Key::from("META"), META);
-        assert_eq!(Key::from("SAMPLE"), SAMPLE);
-        assert_eq!(Key::from("PEDIGREE"), PEDIGREE);
         assert_eq!(Key::from("pedigreeDB"), PEDIGREE_DB);
         assert_eq!(
             Key::from("fileDate"),

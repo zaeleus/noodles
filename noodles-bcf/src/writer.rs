@@ -121,12 +121,16 @@ where
     ///
     /// ```
     /// use noodles_bcf::{self as bcf, header::StringMaps};
-    /// use noodles_vcf::{self as vcf, header::Contig, record::Position};
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::record::value::{map::Contig, Map},
+    ///     record::Position,
+    /// };
     ///
     /// let mut writer = bcf::Writer::new(Vec::new());
     ///
     /// let header = vcf::Header::builder()
-    ///     .add_contig(Contig::new("sq0".parse()?))
+    ///     .add_contig(Map::<Contig>::new("sq0".parse()?))
     ///     .build();
     ///
     /// writer.write_header(&header)?;

@@ -7,7 +7,14 @@
 use std::io;
 
 use noodles_bcf::{self as bcf, header::StringMaps};
-use noodles_vcf::{self as vcf, header::Contig, record::Position};
+use noodles_vcf::{
+    self as vcf,
+    header::record::value::{
+        map::{Contig, Filter},
+        Map,
+    },
+    record::Position,
+};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout();
@@ -17,8 +24,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writer.write_file_format()?;
 
     let header = vcf::Header::builder()
-        .add_filter(vcf::header::Filter::pass())
-        .add_contig(Contig::new("sq0".parse()?))
+        .add_filter(Map::<Filter>::pass())
+        .add_contig(Map::<Contig>::new("sq0".parse()?))
         .build();
 
     writer.write_header(&header)?;

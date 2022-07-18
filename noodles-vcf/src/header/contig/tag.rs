@@ -1,13 +1,13 @@
 use std::{borrow::Borrow, fmt};
 
-/// VCF header contig record ID tag.
+/* /// VCF header contig record ID tag.
 pub const ID: Tag = Tag::Standard(Standard::Id);
 
 /// VCF header contig record length tag.
 pub const LENGTH: Tag = Tag::Standard(Standard::Length);
 
 /// VCF header contig record IDX tag.
-pub const IDX: Tag = Tag::Standard(Standard::Idx);
+pub const IDX: Tag = Tag::Standard(Standard::Idx); */
 
 /// A standard VCF header contig tag.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

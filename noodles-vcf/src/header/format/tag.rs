@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, fmt};
 
-/// A VCF header FORMAT record ID tag.
+/* /// A VCF header FORMAT record ID tag.
 pub const ID: Tag = Tag::Standard(Standard::Id);
 
 /// A VCF header FORMAT record number tag.
@@ -13,7 +13,7 @@ pub const TYPE: Tag = Tag::Standard(Standard::Type);
 pub const DESCRIPTION: Tag = Tag::Standard(Standard::Description);
 
 /// A VCF header FORMAT record IDX tag.
-pub const IDX: Tag = Tag::Standard(Standard::Idx);
+pub const IDX: Tag = Tag::Standard(Standard::Idx); */
 
 /// A standard VCF header FORMAT tag.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
