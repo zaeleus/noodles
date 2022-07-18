@@ -102,11 +102,10 @@ where
         read_header(&mut self.inner).await
     }
 
-    /// Reads a raw SAM record.
+    /// Reads a single SAM record.
     ///
-    /// This reads from the underlying stream until a newline is reached and appends it to the
-    /// given buffer, sans the final newline. The buffer does not necessarily represent a valid
-    /// record but can subsequently be parsed as a [`crate::Record`].
+    /// This reads a line from the underlying stream until a newline is reached and parses that
+    /// line into the given record.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///
