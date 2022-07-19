@@ -507,7 +507,7 @@ impl Header {
         &mut self.sample_names
     }
 
-    /// Returns a map of the unstructured header records.
+    /// Returns a map of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
     /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
@@ -529,7 +529,34 @@ impl Header {
     ///     Some((&key, &vec![value])),
     /// );
     /// ```
+    #[deprecated(since = "0.18.0", note = "Use `Header::other_records` instead.")]
     pub fn records(&self) -> &Records {
+        self.other_records()
+    }
+
+    /// Returns a map of records with nonstandard keys.
+    ///
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
+    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    ///
+    /// let key = Key::from("fileDate");
+    /// let value = record::value::Other::from("20200709");
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .insert(key.clone(), value.clone())
+    ///     .build();
+    ///
+    /// assert_eq!(
+    ///     header.other_records().first(),
+    ///     Some((&key, &vec![value])),
+    /// );
+    /// ```
+    pub fn other_records(&self) -> &Records {
         &self.other_records
     }
 

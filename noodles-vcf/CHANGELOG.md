@@ -37,6 +37,12 @@
   * vcf/header/record/value/map/contig: Rename `Contig::len` to
     `Contig::length`.
 
+### Deprecated
+
+  * vcf/header: Deprecate `Header::records`.
+
+    Use `Header::other_records` instead.
+
 ### Fixed
 
   * vcf/header/record/value: Write surrounding angle brackets for structs.
