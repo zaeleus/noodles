@@ -39,10 +39,11 @@
 
 ### Deprecated
 
-  * vcf/header: Deprecate `Header::records` and `Header::records_mut`.
+  * vcf/header: Deprecate `Header::records`, `Header::records_mut`,
+    `header::Records`.
 
-    Use `Header::other_records` and `Header::other_records_mut`,
-    respectively, instead.
+    Use `Header::other_records`, `Header::other_records_mut`,
+    `header::OtherRecords`, respectively, instead.
 
 ### Fixed
 

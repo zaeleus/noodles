@@ -6,7 +6,8 @@ use super::{
             Map,
         },
     },
-    AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, Records, SampleNames,
+    AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, OtherRecords,
+    SampleNames,
 };
 
 use indexmap::IndexMap;
@@ -24,7 +25,7 @@ pub struct Builder {
     meta: IndexMap<String, Map<Meta>>,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    other_records: Records,
+    other_records: OtherRecords,
 }
 
 impl Builder {

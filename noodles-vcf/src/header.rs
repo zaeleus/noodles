@@ -43,7 +43,11 @@ pub type Contigs = IndexMap<String, Map<Contig>>;
 pub type SampleNames = IndexSet<String>;
 
 /// VCF header generic records.
-pub type Records = IndexMap<record::Key, Vec<record::value::Other>>;
+pub type OtherRecords = IndexMap<record::Key, Vec<record::value::Other>>;
+
+/// VCF header generic records.
+#[deprecated(since = "0.18.0", note = "Use `OtherRecords` instead.")]
+pub type Records = OtherRecords;
 
 /// A VCF header.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -58,7 +62,7 @@ pub struct Header {
     meta: IndexMap<String, Map<Meta>>,
     pedigree_db: Option<String>,
     sample_names: SampleNames,
-    other_records: Records,
+    other_records: OtherRecords,
 }
 
 impl Header {
@@ -530,7 +534,7 @@ impl Header {
     /// );
     /// ```
     #[deprecated(since = "0.18.0", note = "Use `Header::other_records` instead.")]
-    pub fn records(&self) -> &Records {
+    pub fn records(&self) -> &OtherRecords {
         self.other_records()
     }
 
@@ -556,7 +560,7 @@ impl Header {
     ///     Some((&key, &vec![value])),
     /// );
     /// ```
-    pub fn other_records(&self) -> &Records {
+    pub fn other_records(&self) -> &OtherRecords {
         &self.other_records
     }
 
@@ -584,7 +588,7 @@ impl Header {
     /// );
     /// ```
     #[deprecated(since = "0.18.0", note = "Use `Header::other_records_mut` instead.")]
-    pub fn records_mut(&mut self) -> &mut Records {
+    pub fn records_mut(&mut self) -> &mut OtherRecords {
         self.other_records_mut()
     }
 
@@ -611,7 +615,7 @@ impl Header {
     ///     Some((&key, &vec![value])),
     /// );
     /// ```
-    pub fn other_records_mut(&mut self) -> &mut Records {
+    pub fn other_records_mut(&mut self) -> &mut OtherRecords {
         &mut self.other_records
     }
 
