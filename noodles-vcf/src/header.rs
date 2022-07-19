@@ -560,7 +560,7 @@ impl Header {
         &self.other_records
     }
 
-    /// Returns a mutable reference to a map of the unstructured header records.
+    /// Returns a mutable reference to a map of records with nonstandard keys.
     ///
     /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
     /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
@@ -583,7 +583,35 @@ impl Header {
     ///     Some((&key, &vec![value])),
     /// );
     /// ```
+    #[deprecated(since = "0.18.0", note = "Use `Header::other_records_mut` instead.")]
     pub fn records_mut(&mut self) -> &mut Records {
+        self.other_records_mut()
+    }
+
+    /// Returns a mutable reference to a map of records with nonstandard keys.
+    ///
+    /// This includes all records other than `fileformat`, `INFO`, `FILTER`, `FORMAT`, `ALT`,
+    /// `assembly`, `contig`, `META`, `SAMPLE`, and `pedigreeDB`.
+    ///
+    /// To simply add an unstructured record, consider using [`Self::insert`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{self as vcf, header::{record::{self, Key}}};
+    ///
+    /// let key = Key::from("fileDate");
+    /// let value = record::value::Other::from("20200709");
+    ///
+    /// let mut header = vcf::Header::default();
+    /// header.other_records_mut().insert(key.clone(), vec![value.clone()]);
+    ///
+    /// assert_eq!(
+    ///     header.other_records().first(),
+    ///     Some((&key, &vec![value])),
+    /// );
+    /// ```
+    pub fn other_records_mut(&mut self) -> &mut Records {
         &mut self.other_records
     }
 
