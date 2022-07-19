@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam: Raise minimum supported Rust version (MSRV) to 1.59.0.
+
 ## 0.20.0 - 2022-07-05
 
 ### Added

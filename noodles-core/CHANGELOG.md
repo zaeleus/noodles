@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * core: Raise minimum supported Rust version (MSRV) to 1.57.0.
+
 ## 0.7.0 - 2022-06-08
 
 ### Added

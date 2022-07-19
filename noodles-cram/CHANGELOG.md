@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Raise minimum supported Rust version (MSRV) to 1.59.0.
+
 ## 0.17.0 - 2022-07-05
 
 ### Changed

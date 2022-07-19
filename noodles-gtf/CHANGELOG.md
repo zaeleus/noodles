@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf: Raise minimum supported Rust version (MSRV) to 1.57.0.
+
 ## 0.3.1 - 2022-06-08
 
 ### Fixed

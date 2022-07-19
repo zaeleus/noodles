@@ -17,6 +17,8 @@
 
 ### Changed
 
+  * vcf: Raise minimum supported Rust version (MSRV) to 1.57.0.
+
   * vcf/header: VCF headers records parsed from structured lines are now map
     values (`noodles_vcf::header::record::value::Map`).
 

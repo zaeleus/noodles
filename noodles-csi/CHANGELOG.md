@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi: Raise minimum supported Rust version (MSRV) to 1.57.0.
+
 ## 0.8.0 - 2022-07-05
 
 ### Added

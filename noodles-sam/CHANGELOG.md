@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam: Raise minimum supported Rust version (MSRV) to 1.59.0.
+
+    This fixes `TryFrom<char> for u8` not being available before 1.59.0
+    ([#81]).
+
+[#81]: https://github.com/zaeleus/noodles/pull/81
+
 ## 0.17.0 - 2022-07-05
 
 ### Added
