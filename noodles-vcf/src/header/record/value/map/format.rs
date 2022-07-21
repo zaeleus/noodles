@@ -2,11 +2,14 @@ use core::fmt;
 
 use indexmap::IndexMap;
 
-use super::{Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
+use super::{tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
 use crate::header::{
     format::{Key, Type},
     FileFormat, Number,
 };
+
+type StandardTag = tag::TypedDescribedIndexed;
+type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header format map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,6 +22,7 @@ pub struct Format {
 
 impl Inner for Format {
     type Id = Key;
+    type StandardTag = StandardTag;
 }
 
 impl Typed for Format {
@@ -135,13 +139,15 @@ impl TryFrom<(FileFormat, Fields)> for Map<Format> {
         let mut idx = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                "Number" => super::parse_number(&value, &mut number)?,
-                "Type" => super::parse_type(&value, &mut ty)?,
-                "Description" => super::parse_description(value, &mut description)?,
-                "IDX" => super::parse_idx(&value, &mut idx)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
+                Tag::Standard(StandardTag::Type) => super::parse_type(&value, &mut ty)?,
+                Tag::Standard(StandardTag::Description) => {
+                    super::parse_description(value, &mut description)?
+                }
+                Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 

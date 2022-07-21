@@ -2,7 +2,10 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{Described, Fields, Indexed, Inner, Map, TryFromFieldsError};
+use super::{tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError};
+
+type StandardTag = tag::DescribedIndexed;
+type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header filter map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,6 +16,7 @@ pub struct Filter {
 
 impl Inner for Filter {
     type Id = String;
+    type StandardTag = StandardTag;
 }
 
 impl Described for Filter {
@@ -100,11 +104,13 @@ impl TryFrom<Fields> for Map<Filter> {
         let mut idx = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                "Description" => super::parse_description(value, &mut description)?,
-                "IDX" => super::parse_idx(&value, &mut idx)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Description) => {
+                    super::parse_description(value, &mut description)?
+                }
+                Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 

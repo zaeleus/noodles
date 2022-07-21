@@ -7,6 +7,7 @@ mod format;
 mod info;
 mod meta;
 mod other;
+mod tag;
 
 pub use self::{
     alternative_allele::AlternativeAllele, contig::Contig, filter::Filter, format::Format,
@@ -24,11 +25,15 @@ use indexmap::IndexMap;
 use crate::header::Number;
 
 type Fields = Vec<(String, String)>;
+type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.
 pub trait Inner {
     /// The ID type.
     type Id: Display;
+
+    /// The standard tag type.
+    type StandardTag: tag::Standard;
 }
 
 /// An inner VCF header map value with number and type fields.
@@ -63,7 +68,7 @@ where
 {
     id: I::Id,
     inner: I,
-    other_fields: IndexMap<String, String>,
+    other_fields: OtherFields<I::StandardTag>,
 }
 
 impl<I> Map<I>
@@ -76,7 +81,7 @@ where
     }
 
     /// Returns the nonstandard fields in the map.
-    pub fn other_fields(&self) -> &IndexMap<String, String> {
+    pub fn other_fields(&self) -> &OtherFields<I::StandardTag> {
         &self.other_fields
     }
 }
@@ -170,9 +175,9 @@ fn fmt_display_description_field(f: &mut fmt::Formatter<'_>, description: &str) 
     Ok(())
 }
 
-fn fmt_display_other_fields(
+fn fmt_display_other_fields<S>(
     f: &mut fmt::Formatter<'_>,
-    other_fields: &IndexMap<String, String>,
+    other_fields: &OtherFields<S>,
 ) -> fmt::Result {
     use crate::header::fmt::write_escaped_string;
 
@@ -192,7 +197,7 @@ fn fmt_display_suffix(f: &mut fmt::Formatter<'_>) -> fmt::Result {
     '>'.fmt(f)
 }
 
-fn init_other_fields(len: usize) -> IndexMap<String, String> {
+fn init_other_fields<S>(len: usize) -> OtherFields<S> {
     let len = len.checked_sub(1).unwrap_or_default();
     IndexMap::with_capacity(len)
 }
@@ -262,9 +267,9 @@ fn parse_idx(s: &str, idx: &mut Option<usize>) -> Result<(), TryFromFieldsError>
         })
 }
 
-fn insert_other_field(
-    other_fields: &mut IndexMap<String, String>,
-    key: String,
+fn insert_other_field<S>(
+    other_fields: &mut OtherFields<S>,
+    key: tag::Other<S>,
     value: String,
 ) -> Result<(), TryFromFieldsError> {
     if other_fields.insert(key, value).is_none() {

@@ -4,10 +4,6 @@
 
 ### Added
 
-  * vcf/header: Add tag wrappers for `contig`, `FORMAT`, and `INFO` records.
-
-    This separates standard tags from nonstandard tags.
-
   * vcf/header/contig: Add name wrapper (`Name`).
 
   * vcf/header/record/value/map/contig: Add mutable getter for length
@@ -22,8 +18,11 @@
   * vcf/header: VCF headers records parsed from structured lines are now map
     values (`noodles_vcf::header::record::value::Map`).
 
-    This means `AlternativeAllele`, `Contig`, `Filter`, `Format`, `Info`, and
-    `Meta` are specialized `Map<I>` values, e.g., `Map<Contig>`, etc.
+    This moves record types (`AlternativeAllele`, `Contig`, `Filter`, `Format`,
+    `Info`, and `Meta`) to map values `Map<I>`, where `I` is a specialized map
+    type. A map is required to have an `ID` field; an inner `I` type that can
+    have required standard fields; and can include optional fields, where the
+    key is a nonstandard tag (`tag::Other`).
 
   * vcf/header/record: Record holds a parsed record variant instead a key-value
     pair.

@@ -1,9 +1,14 @@
+mod tag;
+
 use std::fmt::{self, Display};
 
 use indexmap::IndexMap;
 
 use super::{Fields, Inner, Map, TryFromFieldsError};
 use crate::header::Number;
+
+type StandardTag = tag::Standard;
+type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header meta map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,6 +18,7 @@ pub struct Meta {
 
 impl Inner for Meta {
     type Id = String;
+    type StandardTag = StandardTag;
 }
 
 impl Map<Meta> {
@@ -93,12 +99,12 @@ impl TryFrom<Fields> for Map<Meta> {
         let mut values = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                "Type" => parse_type(value, &mut ty)?,
-                "Number" => super::parse_number(&value, &mut number)?,
-                "Values" => parse_values(&value, &mut values)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Type) => parse_type(value, &mut ty)?,
+                Tag::Standard(StandardTag::Number) => super::parse_number(&value, &mut number)?,
+                Tag::Standard(StandardTag::Values) => parse_values(&value, &mut values)?,
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 

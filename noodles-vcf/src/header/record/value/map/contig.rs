@@ -1,9 +1,14 @@
+mod tag;
+
 use std::fmt;
 
 use indexmap::IndexMap;
 
 use super::{Fields, Indexed, Inner, Map, TryFromFieldsError};
 use crate::header::contig::Name;
+
+type StandardTag = tag::Standard;
+type Tag = super::tag::Tag<StandardTag>;
 
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -14,6 +19,7 @@ pub struct Contig {
 
 impl Inner for Contig {
     type Id = Name;
+    type StandardTag = StandardTag;
 }
 
 impl Indexed for Contig {
@@ -107,13 +113,15 @@ impl TryFrom<Fields> for Map<Contig> {
         let mut idx = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                "length" => parse_length(&value, &mut len)?,
-                "IDX" => super::parse_idx(&value, &mut idx)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Length) => parse_length(&value, &mut len)?,
+                Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
+
+        other_fields.get("foo");
 
         let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
 

@@ -2,8 +2,11 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{Described, Fields, Inner, Map, TryFromFieldsError};
+use super::{tag, Described, Fields, Inner, Map, TryFromFieldsError};
 use crate::record::alternate_bases::allele::Symbol;
+
+type StandardTag = tag::Described;
+type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header alternative allele map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -13,6 +16,7 @@ pub struct AlternativeAllele {
 
 impl Inner for AlternativeAllele {
     type Id = Symbol;
+    type StandardTag = StandardTag;
 }
 
 impl Described for AlternativeAllele {
@@ -74,10 +78,12 @@ impl TryFrom<Fields> for Map<AlternativeAllele> {
         let mut description = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                "Description" => super::parse_description(value, &mut description)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Standard(StandardTag::Description) => {
+                    super::parse_description(value, &mut description)?
+                }
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 

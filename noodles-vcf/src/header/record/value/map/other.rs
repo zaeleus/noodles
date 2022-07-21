@@ -2,7 +2,10 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{Fields, Inner, Map, TryFromFieldsError};
+use super::{tag, Fields, Inner, Map, TryFromFieldsError};
+
+type StandardTag = tag::Identity;
+type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -10,6 +13,7 @@ pub struct Other;
 
 impl Inner for Other {
     type Id = String;
+    type StandardTag = StandardTag;
 }
 
 impl Map<Other> {
@@ -51,9 +55,9 @@ impl TryFrom<Fields> for Map<Other> {
         let mut id = None;
 
         for (key, value) in fields {
-            match key.as_str() {
-                "ID" => super::parse_id(&value, &mut id)?,
-                _ => super::insert_other_field(&mut other_fields, key, value)?,
+            match Tag::from(key) {
+                Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
+                Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
         }
 
