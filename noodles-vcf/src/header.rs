@@ -1,7 +1,6 @@
 //! VCF header and fields.
 
 mod builder;
-pub mod contig;
 pub mod file_format;
 mod fmt;
 pub mod format;
@@ -361,7 +360,7 @@ impl Header {
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn contigs(&self) -> &Contigs {
         &self.contigs
@@ -382,7 +381,7 @@ impl Header {
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn contigs_mut(&mut self) -> &mut Contigs {
         &mut self.contigs

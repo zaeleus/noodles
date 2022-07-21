@@ -189,7 +189,7 @@ impl Builder {
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
     /// assert_eq!(&contigs[0], &contig);
-    /// # Ok::<_, vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn add_contig(mut self, contig: Map<Contig>) -> Self {
         self.contigs.insert(contig.id().as_ref().into(), contig);
@@ -362,7 +362,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build() -> Result<(), crate::header::contig::name::ParseError> {
+    fn test_build() -> Result<(), crate::header::record::value::map::contig::name::ParseError> {
         use crate::{
             header::{self, format::Key as FormatKey, info::Key as InfoKey},
             record::alternate_bases::allele,

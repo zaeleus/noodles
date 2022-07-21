@@ -1,11 +1,15 @@
+//! Inner VCF header contig map value.
+
+pub mod name;
 mod tag;
+
+pub use self::name::Name;
 
 use std::fmt;
 
 use indexmap::IndexMap;
 
 use super::{Fields, Indexed, Inner, Map, TryFromFieldsError};
-use crate::header::contig::Name;
 
 type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
@@ -36,7 +40,7 @@ impl Map<Contig> {
     /// ```
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
     /// let map = Map::<Contig>::new("sq0".parse()?);
-    /// # Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn new(id: Name) -> Self {
         Self {
@@ -57,7 +61,7 @@ impl Map<Contig> {
     /// use noodles_vcf::header::record::value::{map::Contig, Map};
     /// let map = Map::<Contig>::new("sq0".parse()?);
     /// assert!(map.length().is_none());
-    /// # Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length(&self) -> Option<usize> {
         self.inner.len
@@ -75,7 +79,7 @@ impl Map<Contig> {
     ///
     /// *map.length_mut() = Some(8);
     /// assert_eq!(map.length(), Some(8));
-    /// # Ok::<_, noodles_vcf::header::contig::name::ParseError>(())
+    /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length_mut(&mut self) -> &mut Option<usize> {
         &mut self.inner.len

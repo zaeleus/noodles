@@ -372,7 +372,8 @@ mod tests {
     }
 
     #[test]
-    fn test_vcf_header_for_string_map() -> Result<(), vcf::header::contig::name::ParseError> {
+    fn test_vcf_header_for_string_map(
+    ) -> Result<(), vcf::header::record::value::map::contig::name::ParseError> {
         use vcf::{
             header::{
                 format, info,

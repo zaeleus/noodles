@@ -1,7 +1,7 @@
 //! VCF header map value.
 
 mod alternative_allele;
-mod contig;
+pub mod contig;
 mod filter;
 mod format;
 mod info;
