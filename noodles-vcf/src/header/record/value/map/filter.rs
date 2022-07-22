@@ -23,6 +23,10 @@ impl Described for Filter {
     fn description(&self) -> &str {
         &self.description
     }
+
+    fn description_mut(&mut self) -> &mut String {
+        &mut self.description
+    }
 }
 
 impl Indexed for Filter {

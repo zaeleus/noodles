@@ -41,6 +41,10 @@ impl Described for Format {
     fn description(&self) -> &str {
         &self.description
     }
+
+    fn description_mut(&mut self) -> &mut String {
+        &mut self.description
+    }
 }
 
 impl Indexed for Format {

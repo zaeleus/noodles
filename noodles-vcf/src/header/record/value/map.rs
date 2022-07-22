@@ -52,6 +52,9 @@ pub trait Typed: Inner {
 pub trait Described: Inner {
     /// Returns the description.
     fn description(&self) -> &str;
+
+    /// Returns a mutable reference to the description.
+    fn description_mut(&mut self) -> &mut String;
 }
 
 /// An inner VCF header map value with an IDX field.
@@ -108,6 +111,11 @@ where
     /// Returns the description.
     pub fn description(&self) -> &str {
         self.inner.description()
+    }
+
+    /// Returns a mutable reference to the description.
+    pub fn description_mut(&mut self) -> &mut String {
+        self.inner.description_mut()
     }
 }
 
