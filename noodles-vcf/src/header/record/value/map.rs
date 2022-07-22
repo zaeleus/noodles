@@ -83,6 +83,11 @@ where
         &self.id
     }
 
+    /// Returns a mutable reference to the ID.
+    pub fn id_mut(&mut self) -> &mut I::Id {
+        &mut self.id
+    }
+
     /// Returns the nonstandard fields in the map.
     pub fn other_fields(&self) -> &OtherFields<I::StandardTag> {
         &self.other_fields
