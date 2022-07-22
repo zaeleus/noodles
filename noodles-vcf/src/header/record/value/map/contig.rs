@@ -125,8 +125,6 @@ impl TryFrom<Fields> for Map<Contig> {
             }
         }
 
-        other_fields.get("foo");
-
         let id = id.ok_or(TryFromFieldsError::MissingField("ID"))?;
 
         Ok(Self {
