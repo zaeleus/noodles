@@ -44,8 +44,14 @@ pub trait Typed: Inner {
     /// Returns the cardinality of the field value.
     fn number(&self) -> Number;
 
+    /// Returns a mutable reference to the number.
+    fn number_mut(&mut self) -> &mut Number;
+
     /// Returns the type of the field value.
     fn ty(&self) -> Self::Type;
+
+    /// Returns a mutable reference to the type.
+    fn type_mut(&mut self) -> &mut Self::Type;
 }
 
 /// An inner VCF header map value with a description field.
@@ -103,9 +109,19 @@ where
         self.inner.number()
     }
 
+    /// Returns a mutable reference to the number.
+    pub fn number_mut(&mut self) -> &mut Number {
+        self.inner.number_mut()
+    }
+
     /// Returns the type of the field value.
     pub fn ty(&self) -> I::Type {
         self.inner.ty()
+    }
+
+    /// Returns a mutable reference to the type.
+    pub fn type_mut(&mut self) -> &mut I::Type {
+        self.inner.type_mut()
     }
 }
 

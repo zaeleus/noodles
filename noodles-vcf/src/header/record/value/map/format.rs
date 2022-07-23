@@ -32,8 +32,16 @@ impl Typed for Format {
         self.number
     }
 
+    fn number_mut(&mut self) -> &mut Number {
+        &mut self.number
+    }
+
     fn ty(&self) -> Self::Type {
         self.ty
+    }
+
+    fn type_mut(&mut self) -> &mut Self::Type {
+        &mut self.ty
     }
 }
 
