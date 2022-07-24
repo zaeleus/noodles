@@ -2,7 +2,7 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError};
+use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::DescribedIndexed;
 type Tag = tag::Tag<StandardTag>;
@@ -17,6 +17,7 @@ pub struct Filter {
 impl Inner for Filter {
     type Id = String;
     type StandardTag = StandardTag;
+    type Builder = builder::DescribedIndexed;
 }
 
 impl Described for Filter {
@@ -125,6 +126,19 @@ impl TryFrom<Fields> for Map<Filter> {
             id,
             inner: Filter { description, idx },
             other_fields,
+        })
+    }
+}
+
+impl builder::Inner<Filter> for builder::DescribedIndexed {
+    fn build(self) -> Result<Filter, builder::BuildError> {
+        let description = self
+            .description
+            .ok_or(builder::BuildError::MissingField("Description"))?;
+
+        Ok(Filter {
+            description,
+            idx: self.idx,
         })
     }
 }

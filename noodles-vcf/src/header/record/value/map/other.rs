@@ -2,18 +2,19 @@ use std::fmt;
 
 use indexmap::IndexMap;
 
-use super::{tag, Fields, Inner, Map, TryFromFieldsError};
+use super::{builder, tag, Fields, Inner, Map, TryFromFieldsError};
 
 type StandardTag = tag::Identity;
 type Tag = tag::Tag<StandardTag>;
 
 /// An inner VCF header other map value.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Other;
 
 impl Inner for Other {
     type Id = String;
     type StandardTag = StandardTag;
+    type Builder = builder::Identity;
 }
 
 impl Map<Other> {

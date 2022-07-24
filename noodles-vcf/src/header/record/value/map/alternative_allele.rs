@@ -1,3 +1,5 @@
+mod builder;
+
 use std::fmt;
 
 use indexmap::IndexMap;
@@ -17,6 +19,7 @@ pub struct AlternativeAllele {
 impl Inner for AlternativeAllele {
     type Id = Symbol;
     type StandardTag = StandardTag;
+    type Builder = builder::Builder;
 }
 
 impl Described for AlternativeAllele {

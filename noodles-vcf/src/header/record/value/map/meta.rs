@@ -1,3 +1,4 @@
+mod builder;
 mod tag;
 
 use std::fmt::{self, Display};
@@ -19,6 +20,7 @@ pub struct Meta {
 impl Inner for Meta {
     type Id = String;
     type StandardTag = StandardTag;
+    type Builder = builder::Builder;
 }
 
 impl Map<Meta> {

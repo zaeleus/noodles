@@ -1,6 +1,7 @@
 //! VCF header map value.
 
 mod alternative_allele;
+mod builder;
 pub mod contig;
 mod filter;
 mod format;
@@ -10,8 +11,8 @@ mod other;
 mod tag;
 
 pub use self::{
-    alternative_allele::AlternativeAllele, contig::Contig, filter::Filter, format::Format,
-    info::Info, meta::Meta, other::Other,
+    alternative_allele::AlternativeAllele, builder::Builder, contig::Contig, filter::Filter,
+    format::Format, info::Info, meta::Meta, other::Other,
 };
 
 use std::{
@@ -28,12 +29,15 @@ type Fields = Vec<(String, String)>;
 type OtherFields<S> = IndexMap<tag::Other<S>, String>;
 
 /// An inner VCF header map value.
-pub trait Inner {
+pub trait Inner: Sized {
     /// The ID type.
     type Id: Display;
 
     /// The standard tag type.
     type StandardTag: tag::Standard;
+
+    /// The builder type.
+    type Builder: builder::Inner<Self>;
 }
 
 /// An inner VCF header map value with number and type fields.
@@ -84,6 +88,11 @@ impl<I> Map<I>
 where
     I: Inner,
 {
+    /// Creates a VCF header map value builder.
+    pub fn builder() -> Builder<I> {
+        Builder::default()
+    }
+
     /// Returns the ID.
     pub fn id(&self) -> &I::Id {
         &self.id

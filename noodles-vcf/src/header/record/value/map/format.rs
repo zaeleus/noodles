@@ -2,7 +2,7 @@ use core::fmt;
 
 use indexmap::IndexMap;
 
-use super::{tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
+use super::{builder, tag, Described, Fields, Indexed, Inner, Map, TryFromFieldsError, Typed};
 use crate::header::{
     format::{Key, Type},
     FileFormat, Number,
@@ -23,6 +23,7 @@ pub struct Format {
 impl Inner for Format {
     type Id = Key;
     type StandardTag = StandardTag;
+    type Builder = builder::TypedDescribedIndexed<Self>;
 }
 
 impl Typed for Format {
@@ -205,6 +206,27 @@ fn validate_type_fields(
     }
 
     Ok(())
+}
+
+impl builder::Inner<Format> for builder::TypedDescribedIndexed<Format> {
+    fn build(self) -> Result<Format, builder::BuildError> {
+        let number = self
+            .number
+            .ok_or(builder::BuildError::MissingField("Number"))?;
+
+        let ty = self.ty.ok_or(builder::BuildError::MissingField("Type"))?;
+
+        let description = self
+            .description
+            .ok_or(builder::BuildError::MissingField("Description"))?;
+
+        Ok(Format {
+            number,
+            ty,
+            description,
+            idx: self.idx,
+        })
+    }
 }
 
 #[cfg(test)]

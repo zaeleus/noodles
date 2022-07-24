@@ -1,5 +1,6 @@
 //! Inner VCF header contig map value.
 
+mod builder;
 pub mod name;
 mod tag;
 
@@ -24,6 +25,7 @@ pub struct Contig {
 impl Inner for Contig {
     type Id = Name;
     type StandardTag = StandardTag;
+    type Builder = builder::Builder;
 }
 
 impl Indexed for Contig {
