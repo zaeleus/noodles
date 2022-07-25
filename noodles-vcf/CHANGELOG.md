@@ -26,6 +26,8 @@
     have required standard fields; and can include optional fields, where the
     key is a nonstandard tag (`tag::Other`).
 
+  * vcf/header: Change the key of `Contigs` to `contig::Name`.
+
   * vcf/header/record: Record holds a parsed record variant instead a key-value
     pair.
 

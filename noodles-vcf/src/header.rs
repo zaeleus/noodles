@@ -18,7 +18,7 @@ use std::str::FromStr;
 use indexmap::{IndexMap, IndexSet};
 
 use self::record::value::{
-    map::{AlternativeAllele, Contig, Filter, Format, Info, Meta},
+    map::{contig, AlternativeAllele, Contig, Filter, Format, Info, Meta},
     Map,
 };
 
@@ -36,7 +36,7 @@ pub type AlternativeAlleles =
     IndexMap<crate::record::alternate_bases::allele::Symbol, Map<AlternativeAllele>>;
 
 /// VCF header contig records.
-pub type Contigs = IndexMap<String, Map<Contig>>;
+pub type Contigs = IndexMap<contig::Name, Map<Contig>>;
 
 /// VCF header sample names.
 pub type SampleNames = IndexSet<String>;
@@ -376,7 +376,7 @@ impl Header {
     /// let mut header = vcf::Header::default();
     ///
     /// let contig = Map::<Contig>::new("sq0".parse()?);
-    /// header.contigs_mut().insert(contig.id().as_ref().into(), contig.clone());
+    /// header.contigs_mut().insert(contig.id().clone(), contig.clone());
     ///
     /// let contigs = header.contigs();
     /// assert_eq!(contigs.len(), 1);
