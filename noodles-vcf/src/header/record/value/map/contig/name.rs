@@ -3,7 +3,7 @@
 use std::{error, fmt, str::FromStr};
 
 /// A VCF header contig name.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Name(String);
 
 impl AsRef<str> for Name {
