@@ -1,9 +1,9 @@
 //! VCF header contig name.
 
-use std::{error, fmt, str::FromStr};
+use std::{borrow::Borrow, error, fmt, str::FromStr};
 
 /// A VCF header contig name.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash)]
 pub struct Name(String);
 
 impl AsRef<str> for Name {
@@ -12,9 +12,24 @@ impl AsRef<str> for Name {
     }
 }
 
+impl Borrow<str> for Name {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
 impl fmt::Display for Name {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+impl<S> PartialEq<S> for Name
+where
+    S: AsRef<str>,
+{
+    fn eq(&self, other: &S) -> bool {
+        self.0 == other.as_ref()
     }
 }
 
