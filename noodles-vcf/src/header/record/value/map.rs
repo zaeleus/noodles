@@ -71,6 +71,9 @@ pub trait Described: Inner {
 pub trait Indexed: Inner {
     /// Returns the index of the ID in the dictionary of strings.
     fn idx(&self) -> Option<usize>;
+
+    /// Returns a mutable reference to the index.
+    fn idx_mut(&mut self) -> &mut Option<usize>;
 }
 
 /// A VCF header map value.
@@ -156,6 +159,11 @@ where
     /// Returns the index of the ID in the dictionary of strings.
     pub fn idx(&self) -> Option<usize> {
         self.inner.idx()
+    }
+
+    /// Returns a mutable reference to the index.
+    pub fn idx_mut(&mut self) -> &mut Option<usize> {
+        self.inner.idx_mut()
     }
 }
 
