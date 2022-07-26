@@ -123,6 +123,15 @@ where
     pub fn virtual_position(&self) -> VirtualPosition {
         self.block.virtual_position()
     }
+
+    fn read_block(&mut self) -> io::Result<()> {
+        read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+
+        self.block.set_position(self.position);
+        self.position += self.block.size();
+
+        Ok(())
+    }
 }
 
 impl<R> Reader<R>
@@ -148,11 +157,10 @@ where
         let (cpos, upos) = pos.into();
 
         self.inner.seek(SeekFrom::Start(cpos))?;
+        self.position = cpos;
 
-        read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
-        self.position = cpos + self.block.size();
+        self.read_block()?;
 
-        self.block.set_position(cpos);
         self.block.data_mut().set_position(usize::from(upos));
 
         Ok(pos)
@@ -207,9 +215,7 @@ where
 
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
         if !self.block.data().has_remaining() {
-            read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
-            self.block.set_position(self.position);
-            self.position += self.block.size();
+            self.read_block()?;
         }
 
         Ok(self.block.data().as_ref())
