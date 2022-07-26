@@ -1,4 +1,4 @@
-mod block;
+pub(crate) mod block;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 

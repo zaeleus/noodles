@@ -3,7 +3,6 @@ use std::io::{self, Read};
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use flate2::Crc;
 
-use super::inflate_data;
 use crate::{gz, Block, BGZF_HEADER_SIZE};
 
 fn read_header<R>(reader: &mut R) -> io::Result<u32>
@@ -103,6 +102,24 @@ where
     Ok((clen, trailer))
 }
 
+pub(crate) fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
+    use super::inflate_data;
+
+    inflate_data(src, dst)?;
+
+    let mut crc = Crc::new();
+    crc.update(dst);
+
+    if crc.sum() == crc32 {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "block data checksum mismatch",
+        ))
+    }
+}
+
 pub(super) fn read_block<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
@@ -123,19 +140,9 @@ where
     data.set_position(0);
     data.resize(ulen);
 
-    inflate_data(buf, data.as_mut())?;
+    inflate(buf, crc32, data.as_mut())?;
 
-    let mut crc = Crc::new();
-    crc.update(data.as_ref());
-
-    if crc.sum() == crc32 {
-        Ok(clen)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "block data checksum mismatch",
-        ))
-    }
+    Ok(clen)
 }
 
 pub(super) fn read_block_into<R>(
@@ -159,19 +166,9 @@ where
     data.resize(ulen);
     data.set_position(ulen);
 
-    inflate_data(buf, &mut dst[..ulen])?;
+    inflate(buf, crc32, &mut dst[..ulen])?;
 
-    let mut crc = Crc::new();
-    crc.update(&dst[..ulen]);
-
-    if crc.sum() == crc32 {
-        Ok(clen)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "block data checksum mismatch",
-        ))
-    }
+    Ok(clen)
 }
 
 #[cfg(test)]

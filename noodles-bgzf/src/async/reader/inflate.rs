@@ -6,7 +6,6 @@ use std::{
 };
 
 use bytes::{Buf, Bytes};
-use flate2::Crc;
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
@@ -36,8 +35,6 @@ impl Future for Inflate {
 }
 
 fn inflate(mut src: Bytes) -> io::Result<Block> {
-    use crate::reader::inflate_data;
-
     if !is_valid_header(&mut src) {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -62,19 +59,9 @@ fn inflate(mut src: Bytes) -> io::Result<Block> {
     data.set_position(0);
     data.resize(r#isize);
 
-    inflate_data(&cdata, data.as_mut())?;
+    crate::reader::block::inflate(&cdata, crc32, data.as_mut())?;
 
-    let mut crc = Crc::new();
-    crc.update(data.as_ref());
-
-    if crc.sum() == crc32 {
-        Ok(block)
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "block data checksum mismatch",
-        ))
-    }
+    Ok(block)
 }
 
 fn is_valid_header(src: &mut Bytes) -> bool {
