@@ -28,7 +28,7 @@ use super::{gz, Block, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
 pub struct Reader<R> {
     inner: R,
     position: u64,
-    cdata: Vec<u8>,
+    buf: Vec<u8>,
     block: Block,
 }
 
@@ -49,7 +49,7 @@ where
         Self {
             inner,
             position: 0,
-            cdata: Vec::new(),
+            buf: Vec::new(),
             block: Block::default(),
         }
     }
@@ -125,7 +125,7 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<()> {
-        read_block(&mut self.inner, &mut self.cdata, &mut self.block)?;
+        read_block(&mut self.inner, &mut self.buf, &mut self.block)?;
 
         self.block.set_position(self.position);
         self.position += self.block.size();
@@ -176,7 +176,7 @@ where
         // next block, reading to the block buffer can be skipped. The uncompressed data is read
         // directly to the given buffer to avoid double copying.
         if !self.block.data().has_remaining() && buf.len() >= BGZF_MAX_ISIZE {
-            read_block_into(&mut self.inner, &mut self.cdata, &mut self.block, buf)?;
+            read_block_into(&mut self.inner, &mut self.buf, &mut self.block, buf)?;
             self.block.set_position(self.position);
             self.position += self.block.size();
             return Ok(self.block.data().len());
@@ -345,11 +345,11 @@ where
     Ok((clen, trailer))
 }
 
-fn read_block<R>(reader: &mut R, cdata: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
+fn read_block<R>(reader: &mut R, buf: &mut Vec<u8>, block: &mut Block) -> io::Result<usize>
 where
     R: Read,
 {
-    let (clen, crc32, ulen) = match read_compressed_block(reader, cdata) {
+    let (clen, crc32, ulen) = match read_compressed_block(reader, buf) {
         Ok((0, (_, 0))) => return Ok(0),
         Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
         Err(e) => return Err(e),
@@ -361,7 +361,7 @@ where
     data.set_position(0);
     data.resize(ulen);
 
-    inflate_data(cdata, data.as_mut())?;
+    inflate_data(buf, data.as_mut())?;
 
     let mut crc = Crc::new();
     crc.update(data.as_ref());
@@ -378,14 +378,14 @@ where
 
 fn read_block_into<R>(
     reader: &mut R,
-    cdata: &mut Vec<u8>,
+    buf: &mut Vec<u8>,
     block: &mut Block,
-    buf: &mut [u8],
+    dst: &mut [u8],
 ) -> io::Result<usize>
 where
     R: Read,
 {
-    let (clen, crc32, ulen) = match read_compressed_block(reader, cdata) {
+    let (clen, crc32, ulen) = match read_compressed_block(reader, buf) {
         Ok((0, (_, 0))) => return Ok(0),
         Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
         Err(e) => return Err(e),
@@ -397,10 +397,10 @@ where
     data.resize(ulen);
     data.set_position(ulen);
 
-    inflate_data(cdata, &mut buf[..ulen])?;
+    inflate_data(buf, &mut dst[..ulen])?;
 
     let mut crc = Crc::new();
-    crc.update(&buf[..ulen]);
+    crc.update(&dst[..ulen]);
 
     if crc.sum() == crc32 {
         Ok(clen)
