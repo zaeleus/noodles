@@ -42,6 +42,7 @@ mod gz;
 mod reader;
 pub mod virtual_position;
 pub mod writer;
+pub mod gzi;
 
 pub use self::{reader::Reader, virtual_position::VirtualPosition, writer::Writer};
 
