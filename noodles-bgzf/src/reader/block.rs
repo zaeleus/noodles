@@ -1,36 +1,68 @@
 use std::io::{self, Read};
 
-use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
+use byteorder::{ByteOrder, LittleEndian};
+use bytes::Buf;
 use flate2::Crc;
 
 use crate::{gz, Block, BGZF_HEADER_SIZE};
 
-fn read_header<R>(reader: &mut R) -> io::Result<u32>
+fn read_frame<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
 where
     R: Read,
 {
-    let mut header = [0; BGZF_HEADER_SIZE];
+    const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 
-    match reader.read_exact(&mut header) {
-        Ok(_) => {}
-        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(0),
+    buf.resize(BGZF_HEADER_SIZE, 0);
+
+    match reader.read_exact(buf) {
+        Ok(()) => {}
+        Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
         Err(e) => return Err(e),
     }
 
-    if !is_valid_header(&header) {
+    let block_size = usize::from(LittleEndian::read_u16(&buf[16..])) + 1;
+
+    if block_size < MIN_FRAME_SIZE {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "invalid BGZF header",
+            "invalid frame size",
         ));
     }
 
-    let bsize = LittleEndian::read_u16(&header[16..]);
+    buf.resize(block_size, 0);
+    reader.read_exact(&mut buf[BGZF_HEADER_SIZE..])?;
 
-    // Add 1 because BSIZE is "total Block SIZE minus 1".
-    Ok(u32::from(bsize) + 1)
+    Ok(Some(()))
 }
 
-fn is_valid_header(header: &[u8; BGZF_HEADER_SIZE]) -> bool {
+fn split_frame(buf: &[u8]) -> (&[u8], &[u8], &[u8]) {
+    let header = &buf[..BGZF_HEADER_SIZE];
+
+    let n = buf.len() - gz::TRAILER_SIZE;
+    let cdata = &buf[BGZF_HEADER_SIZE..n];
+
+    let trailer = &buf[n..];
+
+    (header, cdata, trailer)
+}
+
+fn parse_header(src: &[u8]) -> io::Result<()> {
+    if is_valid_header(src) {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BGZF header",
+        ))
+    }
+}
+
+fn is_valid_header<B>(mut src: B) -> bool
+where
+    B: Buf,
+{
+    use std::mem;
+
     const BGZF_CM: u8 = 0x08; // DEFLATE
     const BGZF_FLG: u8 = 0x04; // FEXTRA
     const BGZF_XLEN: u16 = 6;
@@ -38,71 +70,61 @@ fn is_valid_header(header: &[u8; BGZF_HEADER_SIZE]) -> bool {
     const BGZF_SI2: u8 = b'C';
     const BGZF_SLEN: u16 = 2;
 
-    let magic_number = &header[0..2];
-    let cm = header[2];
-    let flg = header[3];
-    let xlen = LittleEndian::read_u16(&header[10..]);
-    let subfield_id_1 = header[12];
-    let subfield_id_2 = header[13];
-    let bc_len = LittleEndian::read_u16(&header[14..]);
+    let id_1 = src.get_u8();
+    let id_2 = src.get_u8();
+    let cm = src.get_u8();
+    let flg = src.get_u8();
 
-    magic_number == gz::MAGIC_NUMBER
+    // 4 (MTIME) + 1 (XFL) + 1 (OS)
+    src.advance(mem::size_of::<u32>() + mem::size_of::<u8>() + mem::size_of::<u8>());
+
+    let xlen = src.get_u16_le();
+    let subfield_id_1 = src.get_u8();
+    let subfield_id_2 = src.get_u8();
+    let subfield_len = src.get_u16_le();
+
+    id_1 == gz::MAGIC_NUMBER[0]
+        && id_2 == gz::MAGIC_NUMBER[1]
         && cm == BGZF_CM
         && flg == BGZF_FLG
         && xlen == BGZF_XLEN
         && subfield_id_1 == BGZF_SI1
         && subfield_id_2 == BGZF_SI2
-        && bc_len == BGZF_SLEN
+        && subfield_len == BGZF_SLEN
 }
 
-/// Reads a BGZF block trailer.
-///
-/// The position of the stream is expected to be at the start of the block trailer, i.e., 8 bytes
-/// from the end of the block.
-fn read_trailer<R>(reader: &mut R) -> io::Result<(u32, usize)>
+fn parse_trailer<B>(mut src: B) -> io::Result<(u32, usize)>
 where
-    R: Read,
+    B: Buf,
 {
-    let crc32 = reader.read_u32::<LittleEndian>()?;
+    let crc32 = src.get_u32_le();
 
-    let r#isize = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let r#isize = usize::try_from(src.get_u32_le())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((crc32, r#isize))
 }
 
-fn read_compressed_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<(usize, (u32, usize))>
-where
-    R: Read,
-{
-    let clen = match read_header(reader) {
-        Ok(0) => return Ok((0, (0, 0))),
-        Ok(bs) => bs as usize,
-        Err(e) => return Err(e),
-    };
+pub(crate) fn parse_frame(src: &[u8], block: &mut Block) -> io::Result<()> {
+    let (header, cdata, trailer) = split_frame(src);
 
-    if clen < BGZF_HEADER_SIZE + gz::TRAILER_SIZE {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "expected clen >= {}, got {}",
-                BGZF_HEADER_SIZE + gz::TRAILER_SIZE,
-                clen
-            ),
-        ));
-    }
+    parse_header(header)?;
+    let (crc32, r#isize) = parse_trailer(trailer)?;
 
-    let cdata_len = clen - BGZF_HEADER_SIZE - gz::TRAILER_SIZE;
-    buf.resize(cdata_len, Default::default());
-    reader.read_exact(buf)?;
+    let block_size =
+        u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    block.set_size(block_size);
 
-    let trailer = read_trailer(reader)?;
+    let data = block.data_mut();
+    data.set_position(0);
+    data.resize(r#isize);
 
-    Ok((clen, trailer))
+    inflate(cdata, crc32, data.as_mut())?;
+
+    Ok(())
 }
 
-pub(crate) fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
+fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
     use super::inflate_data;
 
     inflate_data(src, dst)?;
@@ -128,21 +150,13 @@ pub(super) fn read_block<R>(
 where
     R: Read,
 {
-    let (clen, crc32, ulen) = match read_compressed_block(reader, buf) {
-        Ok((0, (_, 0))) => return Ok(0),
-        Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
-        Err(e) => return Err(e),
-    };
+    if read_frame(reader, buf)?.is_none() {
+        return Ok(0);
+    }
 
-    block.set_size(clen as u64);
+    parse_frame(buf, block)?;
 
-    let data = block.data_mut();
-    data.set_position(0);
-    data.resize(ulen);
-
-    inflate(buf, crc32, data.as_mut())?;
-
-    Ok(clen)
+    Ok(buf.len())
 }
 
 pub(super) fn read_block_into<R>(
@@ -154,21 +168,26 @@ pub(super) fn read_block_into<R>(
 where
     R: Read,
 {
-    let (clen, crc32, ulen) = match read_compressed_block(reader, buf) {
-        Ok((0, (_, 0))) => return Ok(0),
-        Ok((clen, (crc32, ulen))) => (clen, crc32, ulen),
-        Err(e) => return Err(e),
-    };
+    if read_frame(reader, buf)?.is_none() {
+        return Ok(0);
+    }
 
-    block.set_size(clen as u64);
+    let (header, cdata, trailer) = split_frame(buf);
+
+    parse_header(header)?;
+    let (crc32, r#isize) = parse_trailer(trailer)?;
+
+    let block_size =
+        u64::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    block.set_size(block_size);
 
     let data = block.data_mut();
-    data.resize(ulen);
-    data.set_position(ulen);
+    data.resize(r#isize);
+    data.set_position(r#isize);
 
-    inflate(buf, crc32, &mut dst[..ulen])?;
+    inflate(cdata, crc32, &mut dst[..r#isize])?;
 
-    Ok(clen)
+    Ok(buf.len())
 }
 
 #[cfg(test)]
@@ -177,10 +196,8 @@ mod tests {
     use crate::writer::BGZF_EOF;
 
     #[test]
-    fn test_read_header() -> io::Result<()> {
-        let mut reader = BGZF_EOF;
-        let block_size = read_header(&mut reader)?;
-        assert_eq!(block_size, BGZF_EOF.len() as u32);
+    fn test_parse_header() -> io::Result<()> {
+        parse_header(BGZF_EOF)?;
         Ok(())
     }
 
@@ -199,17 +216,19 @@ mod tests {
             0x1b, 0x00, // BSIZE = 27
         ];
 
-        assert!(is_valid_header(&src));
+        let mut reader = &src[..];
+        assert!(is_valid_header(&mut reader));
 
         src[0] = 0x00;
-        assert!(!is_valid_header(&src));
+        let mut reader = &src[..];
+        assert!(!is_valid_header(&mut reader));
     }
 
     #[test]
-    fn test_read_trailer() -> io::Result<()> {
-        let (_, mut reader) = BGZF_EOF.split_at(BGZF_EOF.len() - gz::TRAILER_SIZE);
+    fn test_parse_trailer() -> io::Result<()> {
+        let (_, mut src) = BGZF_EOF.split_at(BGZF_EOF.len() - gz::TRAILER_SIZE);
 
-        let (crc32, r#isize) = read_trailer(&mut reader)?;
+        let (crc32, r#isize) = parse_trailer(&mut src)?;
         assert_eq!(crc32, 0);
         assert_eq!(r#isize, 0);
 
@@ -217,19 +236,12 @@ mod tests {
     }
 
     #[test]
-    fn test_read_trailer_with_invalid_block_trailer() {
-        let data = [0, 0, 0, 0];
-        let mut reader = &data[..];
-        assert!(read_trailer(&mut reader).is_err());
-    }
-
-    #[test]
     fn test_read_block() -> io::Result<()> {
         let mut reader = BGZF_EOF;
-        let mut cdata = Vec::new();
+        let mut buf = Vec::new();
         let mut block = Block::default();
 
-        let block_size = read_block(&mut reader, &mut cdata, &mut block)?;
+        let block_size = read_block(&mut reader, &mut buf, &mut block)?;
         assert_eq!(block_size, BGZF_EOF.len());
 
         Ok(())
@@ -246,9 +258,9 @@ mod tests {
         };
 
         let mut reader = &data[..];
-        let mut cdata = Vec::new();
+        let mut buf = Vec::new();
         let mut block = Block::default();
 
-        assert!(read_block(&mut reader, &mut cdata, &mut block).is_err());
+        assert!(read_block(&mut reader, &mut buf, &mut block).is_err());
     }
 }
