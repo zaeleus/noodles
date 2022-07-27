@@ -1,5 +1,5 @@
 //! A module for the [GZI Index]. A GZI index contains pairs of compressed and uncompressed offsets
-//! in a BGZF file, where values are stored as little-endian 64-bit unsigned integers.
+//! in a BGZF file. Values in the index are stored as little-endian 64-bit unsigned integers.
 //!
 //! [GZI Index]: http://www.htslib.org/doc/bgzip.html#GZI_FORMAT
 
