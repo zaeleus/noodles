@@ -64,8 +64,11 @@ where
     I: super::Inner,
 {
     /// Sets the ID.
-    pub fn set_id(mut self, id: I::Id) -> Self {
-        self.id = Some(id);
+    pub fn set_id<J>(mut self, id: J) -> Self
+    where
+        J: Into<I::Id>,
+    {
+        self.id = Some(id.into());
         self
     }
 
