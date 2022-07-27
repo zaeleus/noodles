@@ -2,5 +2,8 @@
 
 mod reader;
 
-/// A GZI Index, representing pairs of compressed and uncompressed offsets in a BGZF file.
-pub type Index = Vec<(u64, u64)>;
+/// A GZI Index containing a number of entries, representing pairs of compressed and uncompressed offsets in a BGZF file.
+pub struct Index {
+  number_entries: u64,
+  offsets: Vec<(u64, u64)>
+}
