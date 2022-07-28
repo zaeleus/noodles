@@ -1,9 +1,9 @@
-use std::io;
-use std::io::Read;
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::io::{self, ErrorKind, Read};
 
 use super::Index;
 
-/// A GZI [`Index`](super::Index) reader.
+/// A GZ [`Index`](super::Index) reader.
 pub struct Reader<R> {
     inner: R,
 }
@@ -12,7 +12,7 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    /// Creates a GZI [`Index`](super::Index) reader.
+    /// Creates a GZ [`Index`](super::Index) reader.
     ///
     /// # Examples
     ///
@@ -26,13 +26,13 @@ where
         Self { inner }
     }
 
-    /// Reads a GZI [`Index`](super::Index).
+    /// Reads a GZ [`Index`](super::Index).
     ///
     /// The position of the [`Read`](std::io::Read) stream is expected to be at the start.
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use std::fs::File;
     /// use noodles_bgzf::gzi;
     ///
@@ -40,37 +40,26 @@ where
     /// let index = reader.read_index()?;
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
-        let number_entries = read_little_endian(&mut self.inner)?;
-        let mut offsets = Vec::with_capacity(number_entries as usize);
+        let len = self.inner.read_u64::<LittleEndian>().and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(ErrorKind::InvalidData, e))
+        })?;
+        let mut offsets = Vec::with_capacity(len);
 
-        for _ in 0..number_entries {
-            let compressed = read_little_endian(&mut self.inner)?;
-            let uncompressed = read_little_endian(&mut self.inner)?;
+        for _ in 0..len {
+            let compressed = self.inner.read_u64::<LittleEndian>()?;
+            let uncompressed = self.inner.read_u64::<LittleEndian>()?;
             offsets.push((compressed, uncompressed));
         }
 
-        if self.inner.read(&mut [0; 1])? > 0 {
-            Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!(
-                    "Trailing data remaining in read stream, expected {} entries.",
-                    number_entries
-                ),
-            ))
-        } else {
-            Ok(Index::new(offsets))
+        match self.inner.read_u8() {
+            Ok(_) => Err(io::Error::new(
+                ErrorKind::InvalidData,
+                "unexpected trailing data",
+            )),
+            Err(ref e) if e.kind() == ErrorKind::UnexpectedEof => Ok(offsets),
+            Err(e) => Err(e),
         }
     }
-}
-
-/// Reads a little endian u64 from the reader.
-fn read_little_endian<R>(reader: &mut R) -> io::Result<u64>
-where
-    R: Read,
-{
-    let mut buf = [0; 8];
-    reader.read_exact(&mut buf)?;
-    Ok(u64::from_le_bytes(buf))
 }
 
 #[cfg(test)]
@@ -78,7 +67,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_index() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_index() -> io::Result<()> {
         let data = [
             0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 2
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
@@ -88,37 +77,23 @@ mod tests {
         ];
 
         let mut reader = Reader::new(&data[..]);
-
-        let actual = reader.read_index()?;
-        let expected = Index {
-            number_entries: 2,
-            offsets: vec![(4668, 21294), (23810, 86529)],
-        };
-
-        assert_eq!(actual, expected);
+        assert_eq!(reader.read_index()?, vec![(4668, 21294), (23810, 86529)]);
 
         Ok(())
     }
 
     #[test]
-    fn test_no_entries() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_no_entries() -> io::Result<()> {
         let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]; // number_entries = 0
 
         let mut reader = Reader::new(&data[..]);
-
-        let actual = reader.read_index()?;
-        let expected = Index {
-            number_entries: 0,
-            offsets: vec![],
-        };
-
-        assert_eq!(actual, expected);
+        assert_eq!(reader.read_index()?, vec![]);
 
         Ok(())
     }
 
     #[test]
-    fn test_too_many_entries() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_too_many_entries() -> io::Result<()> {
         let data = [
             0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 3
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
@@ -128,17 +103,13 @@ mod tests {
         ];
 
         let mut reader = Reader::new(&data[..]);
-
-        let actual = reader.read_index().map_err(|err| err.kind());
-        let expected = Err(io::ErrorKind::UnexpectedEof);
-
-        assert_eq!(actual, expected);
+        assert!(matches!(reader.read_index(), Err(e) if e.kind() == ErrorKind::UnexpectedEof));
 
         Ok(())
     }
 
     #[test]
-    fn test_trailing_data() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_trailing_data() -> io::Result<()> {
         let data = [
             0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 1
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
@@ -147,11 +118,7 @@ mod tests {
         ];
 
         let mut reader = Reader::new(&data[..]);
-
-        let actual = reader.read_index().map_err(|err| err.kind());
-        let expected = Err(io::ErrorKind::InvalidData);
-
-        assert_eq!(actual, expected);
+        assert!(matches!(reader.read_index(), Err(e) if e.kind() == ErrorKind::InvalidData));
 
         Ok(())
     }
