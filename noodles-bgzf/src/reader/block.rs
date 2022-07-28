@@ -1,6 +1,5 @@
 use std::io::{self, Read};
 
-use byteorder::{ByteOrder, LittleEndian};
 use bytes::Buf;
 use flate2::Crc;
 
@@ -11,6 +10,7 @@ where
     R: Read,
 {
     const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
+    const BSIZE_POSITION: usize = 16;
 
     buf.resize(BGZF_HEADER_SIZE, 0);
 
@@ -20,7 +20,8 @@ where
         Err(e) => return Err(e),
     }
 
-    let block_size = usize::from(LittleEndian::read_u16(&buf[16..])) + 1;
+    let bsize = (&buf[BSIZE_POSITION..]).get_u16_le();
+    let block_size = usize::from(bsize) + 1;
 
     if block_size < MIN_FRAME_SIZE {
         return Err(io::Error::new(
