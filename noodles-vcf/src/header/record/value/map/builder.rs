@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use super::{Map, OtherFields};
+use super::{tag, Map, OtherFields};
 use crate::header::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -69,6 +69,12 @@ where
         J: Into<I::Id>,
     {
         self.id = Some(id.into());
+        self
+    }
+
+    /// Inserts a key-value pair into the other fields.
+    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
+        self.other_fields.insert(key, value);
         self
     }
 
