@@ -33,11 +33,13 @@ where
     /// # Examples
     ///
     /// ```no_run
+    /// # use std::io;
     /// use std::fs::File;
     /// use noodles_bgzf::gzi;
     ///
     /// let mut reader = File::open("sample.gzi").map(gzi::Reader::new)?;
     /// let index = reader.read_index()?;
+    /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let len = self.inner.read_u64::<LittleEndian>().and_then(|n| {
