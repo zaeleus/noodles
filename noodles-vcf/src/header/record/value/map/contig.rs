@@ -32,6 +32,10 @@ impl Indexed for Contig {
     fn idx(&self) -> Option<usize> {
         self.idx
     }
+
+    fn idx_mut(&mut self) -> &mut Option<usize> {
+        &mut self.idx
+    }
 }
 
 impl Map<Contig> {

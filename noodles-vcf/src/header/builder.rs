@@ -192,7 +192,7 @@ impl Builder {
     /// # Ok::<_, vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn add_contig(mut self, contig: Map<Contig>) -> Self {
-        self.contigs.insert(contig.id().as_ref().into(), contig);
+        self.contigs.insert(contig.id().clone(), contig);
         self
     }
 

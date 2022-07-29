@@ -60,6 +60,10 @@ impl Indexed for Format {
     fn idx(&self) -> Option<usize> {
         self.idx
     }
+
+    fn idx_mut(&mut self) -> &mut Option<usize> {
+        &mut self.idx
+    }
 }
 
 impl Map<Format> {

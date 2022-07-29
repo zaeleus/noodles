@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use super::{Map, OtherFields};
+use super::{tag, Map, OtherFields};
 use crate::header::Number;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -64,8 +64,17 @@ where
     I: super::Inner,
 {
     /// Sets the ID.
-    pub fn set_id(mut self, id: I::Id) -> Self {
-        self.id = Some(id);
+    pub fn set_id<J>(mut self, id: J) -> Self
+    where
+        J: Into<I::Id>,
+    {
+        self.id = Some(id.into());
+        self
+    }
+
+    /// Inserts a key-value pair into the other fields.
+    pub fn insert(mut self, key: tag::Other<I::StandardTag>, value: String) -> Self {
+        self.other_fields.insert(key, value);
         self
     }
 
