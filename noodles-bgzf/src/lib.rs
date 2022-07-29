@@ -39,6 +39,7 @@ mod r#async;
 
 mod block;
 mod gz;
+pub mod gzi;
 mod reader;
 pub mod virtual_position;
 pub mod writer;
