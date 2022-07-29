@@ -18,7 +18,7 @@ where
     /// ```
     /// use noodles_bgzf::gzi;
     /// let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    /// let reader = gzi::Reader::new(&data[..]);
+    /// let reader = gzi::AsyncReader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
