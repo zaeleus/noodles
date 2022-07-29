@@ -1,7 +1,8 @@
-//! A module for async [GZI]. A GZ index contains pairs of compressed and uncompressed offsets in a
-//! BGZF file. Values in the index are stored as little-endian 64-bit unsigned integers.
+//! Async gzip index.
 //!
-//! [GZI]: http://www.htslib.org/doc/bgzip.html#GZI_FORMAT
+//! A [gzip index] (GZI) is a list of compressed and uncompressed offset pairs for a gzipped file.
+//!
+//! [gzip index]: http://www.htslib.org/doc/bgzip.html#GZI_FORMAT
 
 mod reader;
 

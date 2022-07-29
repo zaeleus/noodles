@@ -1,10 +1,8 @@
-use std::io::ErrorKind;
-
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::gzi::Index;
 
-/// An async GZ [`Index`](super::Index) reader.
+/// A gzip index (GZI) reader.
 pub struct Reader<R> {
     inner: R,
 }
@@ -13,23 +11,22 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    /// Creates an async GZ [`Index`](super::Index) reader.
+    /// Creates an async gzip index (GZI) reader.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_bgzf::gzi;
-    ///
     /// let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    /// let reader = gzi::AsyncReader::new(&data[..]);
+    /// let reader = gzi::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
         Self { inner }
     }
 
-    /// Reads a GZ [`Index`](super::Index) asynchronously.
+    /// Reads a gzip index asynchronously.
     ///
-    /// The position of the [`Read`](std::io::Read) stream is expected to be at the start.
+    /// The position of the stream is expected to be at the start.
     ///
     /// # Examples
     ///
@@ -38,18 +35,22 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use tokio::fs::File;
     /// use noodles_bgzf::gzi;
+    /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.gzi").await.map(gzi::AsyncReader::new)?;
+    /// let mut reader = File::open("in.gzi")
+    ///     .await
+    ///     .map(gzi::AsyncReader::new)?;
+    ///
     /// let index = reader.read_index().await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
         let len = self.inner.read_u64_le().await.and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(ErrorKind::InvalidData, e))
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
+
         let mut offsets = Vec::with_capacity(len);
 
         for _ in 0..len {
@@ -60,10 +61,10 @@ where
 
         match self.inner.read_u8().await {
             Ok(_) => Err(io::Error::new(
-                ErrorKind::InvalidData,
+                io::ErrorKind::InvalidData,
                 "unexpected trailing data",
             )),
-            Err(ref e) if e.kind() == ErrorKind::UnexpectedEof => Ok(offsets),
+            Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(offsets),
             Err(e) => Err(e),
         }
     }
@@ -76,7 +77,7 @@ mod tests {
     #[tokio::test]
     async fn test_read_index() -> io::Result<()> {
         let data = [
-            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 2
+            0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // len = 2
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
             0x2e, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // uncompressed_offset = 21294
             0x02, 0x5d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 23810
@@ -93,19 +94,20 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_no_entries() -> io::Result<()> {
-        let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]; // number_entries = 0
+    async fn test_read_index_with_no_entries() -> io::Result<()> {
+        let data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]; // len = 0
 
         let mut reader = Reader::new(&data[..]);
-        assert_eq!(reader.read_index().await?, vec![]);
+        let index = reader.read_index().await?;
+        assert!(index.is_empty());
 
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_too_many_entries() -> io::Result<()> {
+    async fn test_read_index_with_fewer_than_len_entries() -> io::Result<()> {
         let data = [
-            0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 3
+            0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // len = 3
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
             0x2e, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // uncompressed_offset = 21294
             0x02, 0x5d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 23810
@@ -113,24 +115,30 @@ mod tests {
         ];
 
         let mut reader = Reader::new(&data[..]);
-        assert!(
-            matches!(reader.read_index().await, Err(e) if e.kind() == ErrorKind::UnexpectedEof)
-        );
+
+        assert!(matches!(
+            reader.read_index().await,
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_trailing_data() -> io::Result<()> {
+    async fn test_read_index_with_trailing_data() -> io::Result<()> {
         let data = [
-            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // number_entries = 1
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // len = 1
             0x3c, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressed_offset = 4668
             0x2e, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // uncompressed_offset = 21294
             0x00,
         ];
 
         let mut reader = Reader::new(&data[..]);
-        assert!(matches!(reader.read_index().await, Err(e) if e.kind() == ErrorKind::InvalidData));
+
+        assert!(matches!(
+            reader.read_index().await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
