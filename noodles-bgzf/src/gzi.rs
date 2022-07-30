@@ -5,7 +5,7 @@
 //! [gzip index]: http://www.htslib.org/doc/bgzip.html#GZI_FORMAT
 
 #[cfg(feature = "async")]
-pub mod r#async;
+mod r#async;
 
 mod reader;
 

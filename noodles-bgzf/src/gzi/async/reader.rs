@@ -2,7 +2,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::gzi::Index;
 
-/// A gzip index (GZI) reader.
+/// An async gzip index (GZI) reader.
 pub struct Reader<R> {
     inner: R,
 }
@@ -24,7 +24,7 @@ where
         Self { inner }
     }
 
-    /// Reads a gzip index asynchronously.
+    /// Reads a gzip index.
     ///
     /// The position of the stream is expected to be at the start.
     ///
@@ -85,6 +85,7 @@ mod tests {
         ];
 
         let mut reader = Reader::new(&data[..]);
+
         assert_eq!(
             reader.read_index().await?,
             vec![(4668, 21294), (23810, 86529)]
