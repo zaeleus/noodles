@@ -4,12 +4,12 @@
 
 ### Added
 
-  * vcf/header/contig: Add name wrapper (`Name`).
-
   * vcf/header/record/value/map: Add builder (`Builder<I>`).
 
   * vcf/header/record/value/map/contig: Add mutable getter for length
     (`Contig::length_mut`) ([#99]).
+
+  * vcf/header/contig/value/map/contig: Add name wrapper (`Name`).
 
 [#99]: https://github.com/zaeleus/noodles/issues/99
 
