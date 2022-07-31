@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/gzi: Add async reader (`gzi::AsyncReader`).
+
+  * bgzf/gzi: Add reader (`gzi::Reader`).
+
 ## 0.13.0 - 2022-07-05
 
 ### Changed
