@@ -18,7 +18,7 @@ type Tag = super::tag::Tag<StandardTag>;
 /// An inner VCF header contig map value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Contig {
-    len: Option<usize>,
+    length: Option<usize>,
     idx: Option<usize>,
 }
 
@@ -52,7 +52,7 @@ impl Map<Contig> {
         Self {
             id,
             inner: Contig {
-                len: None,
+                length: None,
                 idx: None,
             },
             other_fields: IndexMap::new(),
@@ -70,7 +70,7 @@ impl Map<Contig> {
     /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length(&self) -> Option<usize> {
-        self.inner.len
+        self.inner.length
     }
 
     /// Returns a mutable reference to the length.
@@ -88,7 +88,7 @@ impl Map<Contig> {
     /// # Ok::<_, noodles_vcf::header::record::value::map::contig::name::ParseError>(())
     /// ```
     pub fn length_mut(&mut self) -> &mut Option<usize> {
-        &mut self.inner.len
+        &mut self.inner.length
     }
 }
 
@@ -119,13 +119,13 @@ impl TryFrom<Fields> for Map<Contig> {
         let mut other_fields = super::init_other_fields(fields.len());
 
         let mut id = None;
-        let mut len = None;
+        let mut length = None;
         let mut idx = None;
 
         for (key, value) in fields {
             match Tag::from(key) {
                 Tag::Standard(StandardTag::Id) => super::parse_id(&value, &mut id)?,
-                Tag::Standard(StandardTag::Length) => parse_length(&value, &mut len)?,
+                Tag::Standard(StandardTag::Length) => parse_length(&value, &mut length)?,
                 Tag::Standard(StandardTag::Idx) => super::parse_idx(&value, &mut idx)?,
                 Tag::Other(t) => super::insert_other_field(&mut other_fields, t, value)?,
             }
@@ -135,7 +135,7 @@ impl TryFrom<Fields> for Map<Contig> {
 
         Ok(Self {
             id,
-            inner: Contig { len, idx },
+            inner: Contig { length, idx },
             other_fields,
         })
     }

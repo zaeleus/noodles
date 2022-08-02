@@ -10,7 +10,7 @@ pub struct Builder {
 impl map::builder::Inner<Contig> for Builder {
     fn build(self) -> Result<Contig, BuildError> {
         Ok(Contig {
-            len: self.length,
+            length: self.length,
             idx: self.idx,
         })
     }
