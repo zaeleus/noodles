@@ -2,7 +2,7 @@ pub(crate) mod block;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
-use super::{Block, VirtualPosition, BGZF_MAX_ISIZE};
+use super::{Block, VirtualPosition};
 
 /// A BGZF reader.
 ///
@@ -170,38 +170,10 @@ where
     R: Read,
 {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        use self::block::read_block_into;
-
-        // If a new block is about to be read and the given buffer is guaranteed to be larger than
-        // next block, reading to the block buffer can be skipped. The uncompressed data is read
-        // directly to the given buffer to avoid double copying.
-        if !self.block.data().has_remaining() && buf.len() >= BGZF_MAX_ISIZE {
-            read_block_into(&mut self.inner, &mut self.buf, &mut self.block, buf)?;
-            self.block.set_position(self.position);
-            self.position += self.block.size();
-            return Ok(self.block.data().len());
-        }
-
-        let bytes_read = {
-            let mut remaining = self.fill_buf()?;
-            remaining.read(buf)?
-        };
-
-        self.consume(bytes_read);
-
-        Ok(bytes_read)
-    }
-
-    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        let remaining = self.block.data().as_ref();
-
-        if buf.len() <= remaining.len() {
-            buf.copy_from_slice(&remaining[..buf.len()]);
-            self.consume(buf.len());
-            Ok(())
-        } else {
-            default_read_exact(self, buf)
-        }
+        let mut src = self.fill_buf()?;
+        let amt = src.read(buf)?;
+        self.consume(amt);
+        Ok(amt)
     }
 }
 
@@ -240,30 +212,6 @@ pub(crate) fn inflate_data(reader: &[u8], writer: &mut [u8]) -> io::Result<()> {
 
     let mut decoder = DeflateDecoder::new(reader);
     decoder.read_exact(writer)
-}
-
-/// This is effectively the same as `std::io::default_read_exact`.
-fn default_read_exact<R>(reader: &mut R, mut buf: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    while !buf.is_empty() {
-        match reader.read(buf) {
-            Ok(0) => break,
-            Ok(n) => buf = &mut buf[n..],
-            Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
-            Err(e) => return Err(e),
-        }
-    }
-
-    if buf.is_empty() {
-        Ok(())
-    } else {
-        Err(io::Error::new(
-            io::ErrorKind::UnexpectedEof,
-            "failed to fill whole buffer",
-        ))
-    }
 }
 
 #[cfg(test)]

@@ -160,37 +160,6 @@ where
     Ok(buf.len())
 }
 
-pub(super) fn read_block_into<R>(
-    reader: &mut R,
-    buf: &mut Vec<u8>,
-    block: &mut Block,
-    dst: &mut [u8],
-) -> io::Result<usize>
-where
-    R: Read,
-{
-    if read_frame(reader, buf)?.is_none() {
-        return Ok(0);
-    }
-
-    let (header, cdata, trailer) = split_frame(buf);
-
-    parse_header(header)?;
-    let (crc32, r#isize) = parse_trailer(trailer)?;
-
-    let block_size =
-        u64::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    block.set_size(block_size);
-
-    let data = block.data_mut();
-    data.resize(r#isize);
-    data.set_position(r#isize);
-
-    inflate(cdata, crc32, &mut dst[..r#isize])?;
-
-    Ok(buf.len())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
