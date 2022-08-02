@@ -6,9 +6,6 @@ use super::{Block, VirtualPosition, BGZF_MAX_ISIZE};
 
 /// A BGZF reader.
 ///
-/// Due to the static structure of a BGZF block, gzip headers are mostly discarded. CRC32
-/// validation is also disabled when decompressing data.
-///
 /// The reader implements both [`std::io::Read`] and [`std::io::BufRead`], consuming compressed
 /// data and emitting uncompressed data. It is internally buffered by a single block, and to
 /// correctly track (virtual) positions, the reader _cannot_ be double buffered (e.g., using
