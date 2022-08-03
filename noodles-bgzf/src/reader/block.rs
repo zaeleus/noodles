@@ -1,20 +1,146 @@
-use std::io::{self, Read};
+use std::{
+    collections::VecDeque,
+    io::{self, Read},
+    thread::{self, JoinHandle},
+};
 
 use bytes::Buf;
+use crossbeam_channel::{Receiver, Sender};
 use flate2::Crc;
 
 use crate::{gz, Block, BGZF_HEADER_SIZE};
 
-fn read_frame<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
+type BufferedTx = Sender<io::Result<Block>>;
+type BufferedRx = Receiver<io::Result<Block>>;
+type InflaterTx = Sender<(Vec<u8>, BufferedTx)>;
+type InflaterRx = Receiver<(Vec<u8>, BufferedTx)>;
+
+pub struct Reader<R> {
+    inner: Option<R>,
+    inflater_tx: Option<InflaterTx>,
+    inflater_handles: Vec<JoinHandle<()>>,
+    queue: VecDeque<BufferedRx>,
+    is_eof: bool,
+}
+
+impl<R> Reader<R> {
+    fn shutdown(&mut self) -> io::Result<()> {
+        self.inflater_tx.take();
+
+        for handle in self.inflater_handles.drain(..) {
+            handle.join().unwrap();
+        }
+
+        Ok(())
+    }
+}
+
+impl<R> Drop for Reader<R> {
+    fn drop(&mut self) {
+        let _ = self.shutdown();
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read,
+{
+    pub fn new(inner: R) -> Self {
+        let worker_count = num_cpus::get();
+
+        let (inflater_tx, inflater_rx) = crossbeam_channel::bounded(worker_count);
+        let inflater_handles = spawn_inflaters(worker_count, inflater_rx);
+
+        Self {
+            inner: Some(inner),
+            inflater_tx: Some(inflater_tx),
+            inflater_handles,
+            queue: VecDeque::with_capacity(worker_count),
+            is_eof: false,
+        }
+    }
+
+    pub fn get_ref(&self) -> &R {
+        self.inner.as_ref().unwrap()
+    }
+
+    pub fn get_mut(&mut self) -> &mut R {
+        self.is_eof = false;
+        self.inner.as_mut().unwrap()
+    }
+
+    pub fn into_inner(mut self) -> R {
+        self.inner.take().unwrap()
+    }
+
+    pub fn next_block(&mut self) -> io::Result<Option<Block>> {
+        self.fill_queue()?;
+
+        if let Some(buffered_rx) = self.queue.pop_front() {
+            if let Ok(result) = buffered_rx.recv() {
+                result.map(Some)
+            } else {
+                unreachable!();
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn fill_queue(&mut self) -> io::Result<()> {
+        let reader = self.inner.as_mut().unwrap();
+
+        while self.queue.len() < self.queue.capacity() && !self.is_eof {
+            match read_frame(reader)? {
+                Some(buf) => {
+                    let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
+
+                    self.inflater_tx
+                        .as_ref()
+                        .unwrap()
+                        .send((buf, buffered_tx))
+                        .unwrap();
+
+                    self.queue.push_back(buffered_rx);
+                }
+                None => self.is_eof = true,
+            }
+        }
+
+        Ok(())
+    }
+}
+
+fn spawn_inflaters(worker_count: usize, inflater_rx: InflaterRx) -> Vec<JoinHandle<()>> {
+    let mut handles = Vec::with_capacity(worker_count);
+
+    for _ in 0..worker_count {
+        let inflater_rx = inflater_rx.clone();
+
+        handles.push(thread::spawn(move || {
+            while let Ok((src, buffered_tx)) = inflater_rx.recv() {
+                let result = parse_frame(&src);
+
+                if buffered_tx.send(result).is_err() {
+                    continue;
+                }
+            }
+        }))
+    }
+
+    handles
+}
+
+fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
 where
     R: Read,
 {
     const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
     const BSIZE_POSITION: usize = 16;
 
-    buf.resize(BGZF_HEADER_SIZE, 0);
+    let mut buf = vec![0; BGZF_HEADER_SIZE];
 
-    match reader.read_exact(buf) {
+    match reader.read_exact(&mut buf) {
         Ok(()) => {}
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
         Err(e) => return Err(e),
@@ -33,7 +159,7 @@ where
     buf.resize(block_size, 0);
     reader.read_exact(&mut buf[BGZF_HEADER_SIZE..])?;
 
-    Ok(Some(()))
+    Ok(Some(buf))
 }
 
 fn split_frame(buf: &[u8]) -> (&[u8], &[u8], &[u8]) {
@@ -145,16 +271,6 @@ fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
     }
 }
 
-pub(super) fn read_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<Block>>
-where
-    R: Read,
-{
-    match read_frame(reader, buf)? {
-        Some(()) => parse_frame(buf).map(Some),
-        None => Ok(None),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,18 +317,15 @@ mod tests {
     }
 
     #[test]
-    fn test_read_block() -> Result<(), Box<dyn std::error::Error>> {
-        let mut reader = BGZF_EOF;
-        let mut buf = Vec::new();
-
-        read_block(&mut reader, &mut buf)?;
+    fn test_read_frame() -> Result<(), Box<dyn std::error::Error>> {
+        let mut src = BGZF_EOF;
+        let buf = read_frame(&mut src)?.ok_or("invalid frame")?;
         assert_eq!(buf, BGZF_EOF);
-
         Ok(())
     }
 
     #[test]
-    fn test_read_block_with_invalid_block_size() {
+    fn test_read_frame_with_invalid_block_size() {
         let data = {
             let mut eof = BGZF_EOF.to_vec();
             // BSIZE = 0
@@ -222,8 +335,6 @@ mod tests {
         };
 
         let mut reader = &data[..];
-        let mut buf = Vec::new();
-
-        assert!(read_block(&mut reader, &mut buf).is_err());
+        assert!(read_frame(&mut reader).is_err());
     }
 }

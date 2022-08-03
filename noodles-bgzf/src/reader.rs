@@ -22,9 +22,8 @@ use super::{Block, VirtualPosition};
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Reader<R> {
-    inner: R,
+    inner: block::Reader<R>,
     position: u64,
-    buf: Vec<u8>,
     block: Block,
 }
 
@@ -43,9 +42,8 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
-            inner,
+            inner: block::Reader::new(inner),
             position: 0,
-            buf: Vec::new(),
             block: Block::default(),
         }
     }
@@ -61,7 +59,7 @@ where
     /// assert!(reader.get_ref().is_empty());
     /// ```
     pub fn get_ref(&self) -> &R {
-        &self.inner
+        self.inner.get_ref()
     }
 
     /// Returns a mutable reference to the underlying reader.
@@ -75,7 +73,7 @@ where
     /// assert!(reader.get_mut().is_empty());
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
-        &mut self.inner
+        self.inner.get_mut()
     }
 
     /// Unwraps and returns the underlying writer.
@@ -89,7 +87,7 @@ where
     /// assert!(reader.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> R {
-        self.inner
+        self.inner.into_inner()
     }
 
     /// Returns the current position of the stream.
@@ -121,9 +119,7 @@ where
     }
 
     fn read_block(&mut self) -> io::Result<()> {
-        use self::block::read_block;
-
-        if let Some(mut block) = read_block(&mut self.inner, &mut self.buf)? {
+        if let Some(mut block) = self.inner.next_block()? {
             block.set_position(self.position);
             self.position += block.size();
             self.block = block;
@@ -155,7 +151,7 @@ where
     pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let (cpos, upos) = pos.into();
 
-        self.inner.seek(SeekFrom::Start(cpos))?;
+        self.inner.get_mut().seek(SeekFrom::Start(cpos))?;
         self.position = cpos;
 
         self.read_block()?;
