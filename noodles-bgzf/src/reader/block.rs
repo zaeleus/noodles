@@ -106,11 +106,13 @@ where
     Ok((crc32, r#isize))
 }
 
-pub(crate) fn parse_frame(src: &[u8], block: &mut Block) -> io::Result<()> {
+pub(crate) fn parse_frame(src: &[u8]) -> io::Result<Block> {
     let (header, cdata, trailer) = split_frame(src);
 
     parse_header(header)?;
     let (crc32, r#isize) = parse_trailer(trailer)?;
+
+    let mut block = Block::default();
 
     let block_size =
         u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -122,7 +124,7 @@ pub(crate) fn parse_frame(src: &[u8], block: &mut Block) -> io::Result<()> {
 
     inflate(cdata, crc32, data.as_mut())?;
 
-    Ok(())
+    Ok(block)
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
@@ -143,21 +145,14 @@ fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
     }
 }
 
-pub(super) fn read_block<R>(
-    reader: &mut R,
-    buf: &mut Vec<u8>,
-    block: &mut Block,
-) -> io::Result<usize>
+pub(super) fn read_block<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<Block>>
 where
     R: Read,
 {
-    if read_frame(reader, buf)?.is_none() {
-        return Ok(0);
+    match read_frame(reader, buf)? {
+        Some(()) => parse_frame(buf).map(Some),
+        None => Ok(None),
     }
-
-    parse_frame(buf, block)?;
-
-    Ok(buf.len())
 }
 
 #[cfg(test)]
@@ -206,13 +201,12 @@ mod tests {
     }
 
     #[test]
-    fn test_read_block() -> io::Result<()> {
+    fn test_read_block() -> Result<(), Box<dyn std::error::Error>> {
         let mut reader = BGZF_EOF;
         let mut buf = Vec::new();
-        let mut block = Block::default();
 
-        let block_size = read_block(&mut reader, &mut buf, &mut block)?;
-        assert_eq!(block_size, BGZF_EOF.len());
+        read_block(&mut reader, &mut buf)?;
+        assert_eq!(buf, BGZF_EOF);
 
         Ok(())
     }
@@ -229,8 +223,7 @@ mod tests {
 
         let mut reader = &data[..];
         let mut buf = Vec::new();
-        let mut block = Block::default();
 
-        assert!(read_block(&mut reader, &mut buf, &mut block).is_err());
+        assert!(read_block(&mut reader, &mut buf).is_err());
     }
 }

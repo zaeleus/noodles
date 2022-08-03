@@ -36,8 +36,5 @@ impl Future for Inflate {
 
 fn inflate(src: Bytes) -> io::Result<Block> {
     use crate::reader::block::parse_frame;
-
-    let mut block = Block::default();
-    parse_frame(&src, &mut block)?;
-    Ok(block)
+    parse_frame(&src)
 }

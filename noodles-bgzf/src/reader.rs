@@ -123,10 +123,11 @@ where
     fn read_block(&mut self) -> io::Result<()> {
         use self::block::read_block;
 
-        read_block(&mut self.inner, &mut self.buf, &mut self.block)?;
-
-        self.block.set_position(self.position);
-        self.position += self.block.size();
+        if let Some(mut block) = read_block(&mut self.inner, &mut self.buf)? {
+            block.set_position(self.position);
+            self.position += block.size();
+            self.block = block;
+        }
 
         Ok(())
     }
