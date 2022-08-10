@@ -45,9 +45,7 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    pub fn new(inner: R) -> Self {
-        let worker_count = num_cpus::get();
-
+    pub(crate) fn with_worker_count(worker_count: usize, inner: R) -> Self {
         let (inflater_tx, inflater_rx) = crossbeam_channel::bounded(worker_count);
         let inflater_handles = spawn_inflaters(worker_count, inflater_rx);
 
@@ -58,6 +56,11 @@ where
             queue: VecDeque::with_capacity(worker_count),
             is_eof: false,
         }
+    }
+
+    pub fn new(inner: R) -> Self {
+        let worker_count = num_cpus::get();
+        Self::with_worker_count(worker_count, inner)
     }
 
     pub fn get_ref(&self) -> &R {

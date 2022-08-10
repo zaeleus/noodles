@@ -1,4 +1,9 @@
+//! BGZF reader.
+
 pub(crate) mod block;
+mod builder;
+
+pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 

@@ -8,6 +8,8 @@
 
   * bgzf/gzi: Add reader (`gzi::Reader`).
 
+  * bgzf/reader: Add builder (`reader::Builder`).
+
 ## 0.13.0 - 2022-07-05
 
 ### Changed
