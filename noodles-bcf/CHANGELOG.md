@@ -6,6 +6,13 @@
 
   * bcf: Raise minimum supported Rust version (MSRV) to 1.57.0.
 
+### Removed
+
+  * bcf/async/reader: Remove `Builder` and `Reader::builder`.
+
+    Use `bgzf::async::reader::Builder` and construct with
+    `bcf::async::Reader::from` instead.
+
 ## 0.14.0 - 2022-07-05
 
 ### Changed

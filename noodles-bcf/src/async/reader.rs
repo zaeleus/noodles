@@ -1,8 +1,5 @@
-mod builder;
 mod query;
 mod record;
-
-pub use self::builder::Builder;
 
 use futures::{stream, Stream};
 use noodles_bgzf as bgzf;
@@ -222,20 +219,6 @@ impl<R> Reader<bgzf::AsyncReader<R>>
 where
     R: AsyncRead + Unpin,
 {
-    /// Creates an async BCF reader builder.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bcf as bcf;
-    /// let data = [];
-    /// let builder = bcf::AsyncReader::builder(&data[..]);
-    /// let reader = builder.build();
-    /// ```
-    pub fn builder(inner: R) -> Builder<R> {
-        Builder::new(inner)
-    }
-
     /// Creates an async BCF reader.
     ///
     /// # Examples
