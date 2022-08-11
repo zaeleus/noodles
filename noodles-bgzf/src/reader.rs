@@ -46,11 +46,7 @@ where
     /// let reader = bgzf::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self {
-            inner: block::Reader::new(inner),
-            position: 0,
-            block: Block::default(),
-        }
+        Builder::default().build_from_reader(inner)
     }
 
     /// Returns a reference to the underlying reader.

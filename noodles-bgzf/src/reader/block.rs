@@ -58,11 +58,6 @@ where
         }
     }
 
-    pub fn new(inner: R) -> Self {
-        let worker_count = num_cpus::get();
-        Self::with_worker_count(worker_count, inner)
-    }
-
     pub fn get_ref(&self) -> &R {
         self.inner.as_ref().unwrap()
     }
