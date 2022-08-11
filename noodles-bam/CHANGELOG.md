@@ -6,6 +6,13 @@
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.59.0.
 
+### Removed
+
+  * bam/async/reader: Remove `Builder` and `Reader::builder`.
+
+    Use `bgzf::async::reader::Builder` and construct with
+    `bam::async::Reader::from` instead.
+
 ## 0.20.0 - 2022-07-05
 
 ### Added
