@@ -10,6 +10,12 @@
 
   * bgzf/reader: Add builder (`reader::Builder`).
 
+### Changed
+
+  * bgzf/async/reader/builder: Change worker count to a `NonZeroUsize`.
+
+    The worker count can never be 0.
+
 ## 0.13.0 - 2022-07-05
 
 ### Changed

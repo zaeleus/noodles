@@ -1,3 +1,5 @@
+use std::num::NonZeroUsize;
+
 use noodles_bgzf as bgzf;
 use tokio::io::AsyncRead;
 
@@ -49,6 +51,7 @@ where
         let mut builder = bgzf::AsyncReader::builder(self.inner);
 
         if let Some(worker_count) = self.worker_count {
+            let worker_count = NonZeroUsize::new(worker_count).unwrap();
             builder = builder.set_worker_count(worker_count);
         }
 

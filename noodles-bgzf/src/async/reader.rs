@@ -6,6 +6,7 @@ pub use self::builder::Builder;
 
 use std::{
     cmp, io,
+    num::NonZeroUsize,
     pin::Pin,
     task::{Context, Poll},
 };
@@ -28,7 +29,7 @@ pin_project! {
         stream: Option<TryBuffered<Inflater<R>>>,
         block: Block,
         position: u64,
-        worker_count: usize,
+        worker_count: NonZeroUsize,
     }
 }
 
@@ -106,7 +107,7 @@ where
 
         blocks.seek(pos).await?;
 
-        let mut stream = blocks.try_buffered(self.worker_count);
+        let mut stream = blocks.try_buffered(self.worker_count.get());
 
         self.block = match stream.try_next().await? {
             Some(mut block) => {
