@@ -1,6 +1,7 @@
 use std::{
     collections::VecDeque,
     io::{self, Read},
+    num::NonZeroUsize,
     thread::{self, JoinHandle},
 };
 
@@ -45,7 +46,9 @@ impl<R> Reader<R>
 where
     R: Read,
 {
-    pub(crate) fn with_worker_count(worker_count: usize, inner: R) -> Self {
+    pub(crate) fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
+        let worker_count = worker_count.get();
+
         let (inflater_tx, inflater_rx) = crossbeam_channel::bounded(worker_count);
         let inflater_handles = spawn_inflaters(worker_count, inflater_rx);
 

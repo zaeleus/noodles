@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{io::Read, num::NonZeroUsize};
 
 use super::{block, Reader};
 use crate::Block;
@@ -6,7 +6,7 @@ use crate::Block;
 /// A BGZF reader builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    worker_count: Option<usize>,
+    worker_count: Option<NonZeroUsize>,
 }
 
 impl Builder {
@@ -17,10 +17,15 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZeroUsize;
+    ///
     /// use noodles_bgzf as bgzf;
-    /// let builder = bgzf::reader::Builder::default().set_worker_count(1);
+    ///
+    /// let worker_count = NonZeroUsize::try_from(1)?;
+    /// let builder = bgzf::reader::Builder::default().set_worker_count(worker_count);
+    /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
-    pub fn set_worker_count(mut self, worker_count: usize) -> Self {
+    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
         self.worker_count = Some(worker_count);
         self
     }
@@ -38,7 +43,11 @@ impl Builder {
     where
         R: Read,
     {
-        let worker_count = self.worker_count.unwrap_or_else(num_cpus::get);
+        let worker_count = self.worker_count.unwrap_or_else(|| {
+            // SAFETY: `num_cpus::get` is guaranteed to be non-zero.
+            NonZeroUsize::new(num_cpus::get()).unwrap()
+        });
+
         let block_reader = block::Reader::with_worker_count(worker_count, reader);
 
         Reader {
