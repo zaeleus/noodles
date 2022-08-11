@@ -117,12 +117,10 @@ where
             .map(Some)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e)),
         Float::Missing => Ok(None),
-        qual => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("invalid qual: {:?}", qual),
-            ));
-        }
+        qual => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid qual: {:?}", qual),
+        )),
     }
 }
 
