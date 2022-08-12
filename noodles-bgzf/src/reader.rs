@@ -27,7 +27,7 @@ use super::{Block, VirtualPosition};
 /// # Ok::<(), io::Error>(())
 /// ```
 pub struct Reader<R> {
-    inner: block::Reader<R>,
+    inner: block::multi::Reader<R>,
     position: u64,
     block: Block,
 }
