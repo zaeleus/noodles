@@ -1,4 +1,5 @@
-pub(crate) mod multi;
+pub mod multi;
+pub mod single;
 
 use std::io::{self, Read};
 
@@ -6,6 +7,44 @@ use bytes::Buf;
 use flate2::Crc;
 
 use crate::{gz, Block, BGZF_HEADER_SIZE};
+
+pub enum Inner<R> {
+    Single(single::Reader<R>),
+    Multi(multi::Reader<R>),
+}
+
+impl<R> Inner<R>
+where
+    R: Read,
+{
+    pub fn get_ref(&self) -> &R {
+        match self {
+            Self::Single(reader) => reader.get_ref(),
+            Self::Multi(reader) => reader.get_ref(),
+        }
+    }
+
+    pub fn get_mut(&mut self) -> &mut R {
+        match self {
+            Self::Single(reader) => reader.get_mut(),
+            Self::Multi(reader) => reader.get_mut(),
+        }
+    }
+
+    pub fn into_inner(self) -> R {
+        match self {
+            Self::Single(reader) => reader.into_inner(),
+            Self::Multi(reader) => reader.into_inner(),
+        }
+    }
+
+    pub fn next_block(&mut self) -> io::Result<Option<Block>> {
+        match self {
+            Self::Single(reader) => reader.next_block(),
+            Self::Multi(reader) => reader.next_block(),
+        }
+    }
+}
 
 fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
 where

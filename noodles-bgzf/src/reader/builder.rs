@@ -48,7 +48,14 @@ impl Builder {
             NonZeroUsize::new(num_cpus::get()).unwrap()
         });
 
-        let block_reader = block::multi::Reader::with_worker_count(worker_count, reader);
+        let block_reader = if worker_count.get() == 1 {
+            block::Inner::Single(block::single::Reader::new(reader))
+        } else {
+            block::Inner::Multi(block::multi::Reader::with_worker_count(
+                worker_count,
+                reader,
+            ))
+        };
 
         Reader {
             inner: block_reader,
