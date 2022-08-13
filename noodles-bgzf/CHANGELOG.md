@@ -10,6 +10,10 @@
 
   * bgzf/reader: Add builder (`reader::Builder`).
 
+  * bgzf/reader: Add multithreaded block reader.
+
+    The multithreaded `bgzf::Reader` is enabled when the worker count is > 1.
+
 ### Changed
 
   * bgzf/async/reader/builder: Change worker count to a `NonZeroUsize`.
