@@ -3,16 +3,21 @@ use std::{io::Read, num::NonZeroUsize};
 use super::{block, Reader};
 use crate::Block;
 
+const DEFAULT_WORKER_COUNT: NonZeroUsize = match NonZeroUsize::new(1) {
+    Some(worker_count) => worker_count,
+    None => unreachable!(),
+};
+
 /// A BGZF reader builder.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Builder {
-    worker_count: Option<NonZeroUsize>,
+    worker_count: NonZeroUsize,
 }
 
 impl Builder {
     /// Sets the worker count.
     ///
-    /// By default, the worker count is set to the number of available logical CPUs.
+    /// By default, the worker count is set to 1.
     ///
     /// # Examples
     ///
@@ -26,7 +31,7 @@ impl Builder {
     /// # Ok::<_, std::num::TryFromIntError>(())
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
-        self.worker_count = Some(worker_count);
+        self.worker_count = worker_count;
         self
     }
 
@@ -43,16 +48,11 @@ impl Builder {
     where
         R: Read,
     {
-        let worker_count = self.worker_count.unwrap_or_else(|| {
-            // SAFETY: `num_cpus::get` is guaranteed to be non-zero.
-            NonZeroUsize::new(num_cpus::get()).unwrap()
-        });
-
-        let block_reader = if worker_count.get() == 1 {
+        let block_reader = if self.worker_count.get() == 1 {
             block::Inner::Single(block::single::Reader::new(reader))
         } else {
             block::Inner::Multi(block::multi::Reader::with_worker_count(
-                worker_count,
+                self.worker_count,
                 reader,
             ))
         };
@@ -61,6 +61,14 @@ impl Builder {
             inner: block_reader,
             position: 0,
             block: Block::default(),
+        }
+    }
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        Self {
+            worker_count: DEFAULT_WORKER_COUNT,
         }
     }
 }
