@@ -50,12 +50,25 @@ fn read_frame<R>(reader: &mut R) -> io::Result<Option<Vec<u8>>>
 where
     R: Read,
 {
+    let mut buf = vec![0; BGZF_HEADER_SIZE];
+
+    if read_frame_into(reader, &mut buf)?.is_some() {
+        Ok(Some(buf))
+    } else {
+        Ok(None)
+    }
+}
+
+fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<Option<()>>
+where
+    R: Read,
+{
     const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
     const BSIZE_POSITION: usize = 16;
 
-    let mut buf = vec![0; BGZF_HEADER_SIZE];
+    buf.resize(BGZF_HEADER_SIZE, 0);
 
-    match reader.read_exact(&mut buf) {
+    match reader.read_exact(buf) {
         Ok(()) => {}
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => return Ok(None),
         Err(e) => return Err(e),
@@ -74,7 +87,7 @@ where
     buf.resize(block_size, 0);
     reader.read_exact(&mut buf[BGZF_HEADER_SIZE..])?;
 
-    Ok(Some(buf))
+    Ok(Some(()))
 }
 
 fn split_frame(buf: &[u8]) -> (&[u8], &[u8], &[u8]) {
