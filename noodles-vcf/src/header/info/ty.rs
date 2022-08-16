@@ -91,16 +91,17 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!("Integer".parse::<Type>()?, Type::Integer);
-        assert_eq!("Float".parse::<Type>()?, Type::Float);
-        assert_eq!("Flag".parse::<Type>()?, Type::Flag);
-        assert_eq!("Character".parse::<Type>()?, Type::Character);
-        assert_eq!("String".parse::<Type>()?, Type::String);
+    fn test_from_str() {
+        assert_eq!("Integer".parse::<Type>(), Ok(Type::Integer));
+        assert_eq!("Float".parse(), Ok(Type::Float));
+        assert_eq!("Flag".parse(), Ok(Type::Flag));
+        assert_eq!("Character".parse(), Ok(Type::Character));
+        assert_eq!("String".parse(), Ok(Type::String));
 
-        assert!("".parse::<Type>().is_err());
-        assert!("Noodles".parse::<Type>().is_err());
-
-        Ok(())
+        assert_eq!("".parse::<Type>(), Err(ParseError(String::new())));
+        assert_eq!(
+            "Noodles".parse::<Type>(),
+            Err(ParseError(String::from("Noodles")))
+        );
     }
 }
