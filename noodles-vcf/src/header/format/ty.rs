@@ -32,8 +32,7 @@ impl fmt::Display for Type {
     }
 }
 
-/// An error returned when a VCF header genotype format field type fails to
-/// parse.
+/// An error returned when a VCF header genotype format field type fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParseError(String);
 
