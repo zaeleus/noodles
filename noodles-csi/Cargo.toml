@@ -26,3 +26,7 @@ tokio = { version = "1.10.0", features = ["macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "csi_count_async"
+required-features = ["async"]

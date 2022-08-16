@@ -32,3 +32,31 @@ tokio = { version = "1.10.0", features = ["io-std", "macros", "rt-multi-thread"]
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "bam_count_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_idxstats_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_query_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_read_header_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_reheader_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_view_async"
+required-features = ["async"]
+
+[[example]]
+name = "bam_write_async"
+required-features = ["async"]

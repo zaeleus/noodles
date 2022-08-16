@@ -33,3 +33,11 @@ tokio = { version = "1.10.0", features = ["fs", "io-std", "macros", "rt-multi-th
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "bgzf_read_async"
+required-features = ["async"]
+
+[[example]]
+name = "bgzf_write_async"
+required-features = ["async"]

@@ -31,3 +31,27 @@ tokio = { version = "1.10.0", features = ["fs", "io-std", "macros", "rt-multi-th
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "vcf_count_async"
+required-features = ["async"]
+
+[[example]]
+name = "vcf_query_async"
+required-features = ["async"]
+
+[[example]]
+name = "vcf_read_header_async"
+required-features = ["async"]
+
+[[example]]
+name = "vcf_reheader_async"
+required-features = ["async"]
+
+[[example]]
+name = "vcf_view_async"
+required-features = ["async"]
+
+[[example]]
+name = "vcf_write_async"
+required-features = ["async"]

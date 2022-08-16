@@ -37,3 +37,15 @@ tokio = { version = "1.10.0", features = ["io-std", "macros", "rt-multi-thread"]
 
 [package.metadata.docs.rs]
 features = ["async"]
+
+[[example]]
+name = "cram_count_async"
+required-features = ["async"]
+
+[[example]]
+name = "cram_read_header_async"
+required-features = ["async"]
+
+[[example]]
+name = "cram_view_async"
+required-features = ["async"]
