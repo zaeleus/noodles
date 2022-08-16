@@ -13,6 +13,11 @@
     Use `bgzf::async::reader::Builder` and construct with
     `bam::async::Reader::from` instead.
 
+  * bam/async/writer: Remove `Builder` and `Writer::builder`.
+
+    Use `bgzf::async::writer::Builder` and construct with
+    `bam::async::Writer::from` instead.
+
 ## 0.20.0 - 2022-07-05
 
 ### Added
