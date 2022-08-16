@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gtf"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license = "MIT"
 edition = "2021"
@@ -11,4 +11,4 @@ repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gtf"
 
 [dependencies]
-noodles-core = { path = "../noodles-core", version = "0.7.0" }
+noodles-core = { path = "../noodles-core", version = "0.8.0" }
