@@ -43,7 +43,7 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::AsyncWriter::builder(Vec::new()).build();
+    /// let writer = bgzf::Writer::builder(Vec::new()).build();
     /// ```
     pub fn build(self) -> Writer<W> {
         let compression_level = self.compression_level.unwrap_or_default();
