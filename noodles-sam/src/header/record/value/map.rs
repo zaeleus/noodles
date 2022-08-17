@@ -2,9 +2,10 @@
 
 pub mod builder;
 mod header;
+mod program;
 mod tag;
 
-pub use self::{builder::Builder, header::Header};
+pub use self::{builder::Builder, header::Header, program::Program};
 
 use std::{error, fmt};
 

@@ -64,7 +64,6 @@ mod builder;
 #[allow(clippy::module_inception)]
 pub mod header;
 mod parser;
-pub mod program;
 pub mod read_group;
 pub mod record;
 pub mod reference_sequence;
@@ -74,13 +73,16 @@ use std::{fmt, str::FromStr};
 use indexmap::IndexMap;
 
 pub use self::{
-    builder::Builder, parser::ParseError, program::Program, read_group::ReadGroup,
+    builder::Builder, parser::ParseError, read_group::ReadGroup,
     reference_sequence::ReferenceSequence,
 };
 
 pub use self::record::Record;
 
-use self::record::value::{map, Map};
+use self::record::value::{
+    map::{self, Program},
+    Map,
+};
 
 /// A reference seqeuence dictionary.
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
@@ -89,7 +91,7 @@ pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
 pub type ReadGroups = IndexMap<String, ReadGroup>;
 
 /// An ordered map of programs.
-pub type Programs = IndexMap<String, Program>;
+pub type Programs = IndexMap<String, Map<Program>>;
 
 /// A SAM header.
 ///
@@ -255,11 +257,10 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::Program};
+    /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
-    /// let header = sam::Header::builder()
-    ///     .add_program(Program::new("noodles-sam"))
-    ///     .build();
+    /// let program = Map::<Program>::new("noodles-sam");
+    /// let header = sam::Header::builder().add_program(program).build();
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
@@ -274,14 +275,12 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::Program};
+    /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let mut header = sam::Header::default();
     ///
-    /// header.programs_mut().insert(
-    ///     String::from("noodles-sam"),
-    ///     Program::new("noodles-sam"),
-    /// );
+    /// let program = Map::<Program>::new("noodles-sam");
+    /// header.programs_mut().insert(program.id().into(), program);
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
@@ -407,7 +406,7 @@ impl fmt::Display for Header {
         }
 
         for program in self.programs.values() {
-            writeln!(f, "{}", program)?;
+            writeln!(f, "{}\t{}", Kind::Program, program)?;
         }
 
         for comment in &self.comments {
@@ -464,8 +463,8 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
-            .add_program(Program::new("pg0"))
-            .add_program(Program::new("pg1"))
+            .add_program(Map::<Program>::new("pg0"))
+            .add_program(Map::<Program>::new("pg1"))
             .add_comment("noodles")
             .add_comment("sam")
             .build();

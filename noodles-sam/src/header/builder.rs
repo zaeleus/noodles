@@ -1,6 +1,9 @@
 use super::{
-    record::value::{map, Map},
-    Header, Program, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
+    record::value::{
+        map::{self, Program},
+        Map,
+    },
+    Header, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
 };
 
 /// A SAM header builder.
@@ -123,17 +126,17 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::Program};
+    /// use noodles_sam::{self as sam, header::record::value::{map::Program, Map}};
     ///
     /// let header = sam::Header::builder()
-    ///     .add_program(Program::new("noodles-sam"))
+    ///     .add_program(Map::<Program>::new("noodles-sam"))
     ///     .build();
     ///
     /// let programs = header.programs();
     /// assert_eq!(programs.len(), 1);
     /// assert!(programs.contains_key("noodles-sam"));
     /// ```
-    pub fn add_program(mut self, program: Program) -> Self {
+    pub fn add_program(mut self, program: Map<Program>) -> Self {
         self.programs.insert(program.id().into(), program);
         self
     }
@@ -200,7 +203,7 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
             .add_read_group(ReadGroup::new("rg0"))
             .add_read_group(ReadGroup::new("rg1"))
-            .add_program(Program::new("noodles-sam"))
+            .add_program(Map::<Program>::new("noodles-sam"))
             .add_comment("written by noodles-sam")
             .build();
 

@@ -1,11 +1,10 @@
 use std::{collections::HashSet, error, fmt};
 
 use super::{
-    program::{self, Program},
     read_group::{self, ReadGroup},
     record::{
         self,
-        value::map::{self, Map},
+        value::map::{self, Map, Program},
     },
     reference_sequence::{self, ReferenceSequence},
     Header, Record,
@@ -29,7 +28,7 @@ pub enum ParseError {
     /// A read group ID is duplicated.
     DuplicateReadGroupId(String),
     /// A program record is invalid.
-    InvalidProgram(program::TryFromRecordError),
+    InvalidProgram(map::TryFromFieldsError),
     /// A program ID is duplicated.
     DuplicateProgramId(String),
     /// A comment record is invalid.
@@ -131,7 +130,13 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 builder.add_read_group(read_group)
             }
             Kind::Program => {
-                let program = Program::try_from(record).map_err(ParseError::InvalidProgram)?;
+                let program = match record.into() {
+                    (Kind::Program, Value::Map(map)) => {
+                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
+                        Map::<Program>::try_from(fields).map_err(ParseError::InvalidHeader)?
+                    }
+                    _ => panic!(),
+                };
 
                 if !program_ids.insert(program.id().into()) {
                     return Err(ParseError::DuplicateProgramId(program.id().into()));

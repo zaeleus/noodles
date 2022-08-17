@@ -9,7 +9,10 @@ use std::io;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{Program, ReferenceSequence},
+    header::{
+        record::value::{map::Program, Map},
+        ReferenceSequence,
+    },
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
         .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
         .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
-        .add_program(Program::new("noodles-sam"))
+        .add_program(Map::<Program>::new("noodles-sam"))
         .add_comment("an example SAM written by noodles-sam")
         .build();
 

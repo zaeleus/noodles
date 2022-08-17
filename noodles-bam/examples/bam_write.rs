@@ -7,7 +7,11 @@
 use std::io;
 
 use noodles_bam as bam;
-use noodles_sam::{self as sam, alignment::Record, header::Program};
+use noodles_sam::{
+    self as sam,
+    alignment::Record,
+    header::record::value::{map::Program, Map},
+};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout();
@@ -16,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(Default::default())
-        .add_program(Program::new("noodles-bam"))
+        .add_program(Map::<Program>::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();
 
