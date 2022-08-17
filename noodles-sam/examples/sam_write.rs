@@ -9,7 +9,7 @@ use std::io;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{header, Program, ReferenceSequence},
+    header::{Program, ReferenceSequence},
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = sam::Writer::new(handle);
 
     let header = sam::Header::builder()
-        .set_header(header::Header::default())
+        .set_header(Default::default())
         .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
         .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
         .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)

@@ -14,7 +14,7 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    header::{self, reference_sequence::Md5Checksum, Program, ReferenceSequence},
+    header::{reference_sequence::Md5Checksum, Program, ReferenceSequence},
 };
 use sam::{alignment::Record, AlignmentWriter};
 
@@ -41,7 +41,7 @@ fn build_header(
     reference_sequence_records: &[fasta::Record],
 ) -> Result<sam::Header, Box<dyn std::error::Error>> {
     let mut builder = sam::Header::builder()
-        .set_header(header::header::Header::default())
+        .set_header(Default::default())
         .add_program(Program::new("noodles-cram"))
         .add_comment("an example CRAM written by noodles-cram");
 

@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn test_write_header_container() -> io::Result<()> {
         let header = sam::Header::builder()
-            .set_header(sam::header::header::Header::default())
+            .set_header(Default::default())
             .build();
 
         let mut buf = Vec::new();

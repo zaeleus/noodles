@@ -1,11 +1,12 @@
 use super::{
-    header, Header, Program, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
+    record::value::{map, Map},
+    Header, Program, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
 };
 
 /// A SAM header builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    header: Option<header::Header>,
+    header: Option<Map<map::Header>>,
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
@@ -36,12 +37,12 @@ impl Builder {
     /// use noodles_sam as sam;
     ///
     /// let header = sam::Header::builder()
-    ///     .set_header(sam::header::header::Header::default())
+    ///     .set_header(Default::default())
     ///     .build();
     ///
     /// assert!(header.header().is_some());
     /// ```
-    pub fn set_header(mut self, header: header::Header) -> Self {
+    pub fn set_header(mut self, header: Map<map::Header>) -> Self {
         self.header = Some(header);
         self
     }

@@ -294,11 +294,14 @@ mod tests {
     use crate::Reader;
 
     #[test]
-    fn test_write_header() -> io::Result<()> {
-        use sam::header::header::{Header, Version};
+    fn test_write_header() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::header::{
+            header::Version,
+            record::value::{map, Map},
+        };
 
         let header = sam::Header::builder()
-            .set_header(Header::new(Version::new(1, 6)))
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .build();
 
         let mut buf = Vec::new();

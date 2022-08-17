@@ -44,10 +44,10 @@
 //! ## Create a SAM header
 //!
 //! ```
-//! use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
+//! use noodles_sam::{self as sam, header::ReferenceSequence};
 //!
 //! let header = sam::Header::builder()
-//!     .set_header(header::header::Header::default())
+//!     .set_header(Default::default())
 //!     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
 //!     .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
 //!     .build();
@@ -80,6 +80,8 @@ pub use self::{
 
 pub use self::record::Record;
 
+use self::record::value::{map, Map};
+
 /// A reference seqeuence dictionary.
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
 
@@ -95,7 +97,7 @@ pub type Programs = IndexMap<String, Program>;
 /// comment.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Header {
-    header: Option<header::Header>,
+    header: Option<Map<map::Header>>,
     reference_sequences: ReferenceSequences,
     read_groups: ReadGroups,
     programs: Programs,
@@ -120,18 +122,21 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::Header, Map},
+    /// };
     ///
     /// let header = sam::Header::default();
     /// assert!(header.header().is_none());
     ///
     /// let header = sam::Header::builder()
-    ///     .set_header(header::header::Header::default())
+    ///     .set_header(Map::<Header>::default())
     ///     .build();
     ///
     /// assert!(header.header().is_some());
     /// ```
-    pub fn header(&self) -> Option<&header::Header> {
+    pub fn header(&self) -> Option<&Map<map::Header>> {
         self.header.as_ref()
     }
 
@@ -140,22 +145,16 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::{self, header::Version}};
+    /// use noodles_sam::{self as sam, header::record::value::{map, Map}};
     ///
-    /// let mut header = sam::Header::builder()
-    ///     .set_header(header::header::Header::new(Version::new(1, 6)))
-    ///     .build();
-    /// assert_eq!(header.header().map(|h| h.version()), Some(Version::new(1, 6)));
-    ///
-    /// header.header_mut().as_mut().map(|h| {
-    ///     *h.version_mut() = Version::new(1, 5)
-    /// });
-    /// assert_eq!(header.header().map(|h| h.version()), Some(Version::new(1, 5)));
-    ///
-    /// *header.header_mut() = None;
+    /// let mut header = sam::Header::default();
     /// assert!(header.header().is_none());
+    ///
+    /// let hd = Map::<map::Header>::default();
+    /// *header.header_mut() = Some(hd.clone());
+    /// assert_eq!(header.header(), Some(&hd));
     /// ```
-    pub fn header_mut(&mut self) -> &mut Option<header::Header> {
+    pub fn header_mut(&mut self) -> &mut Option<Map<map::Header>> {
         &mut self.header
     }
 
@@ -392,31 +391,11 @@ impl Header {
 }
 
 impl fmt::Display for Header {
-    /// Formats the SAM header as a raw SAM header.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::{self as sam, header::{self, ReferenceSequence}};
-    ///
-    /// let header = sam::Header::builder()
-    ///     .set_header(header::header::Header::new(header::header::Version::new(1, 6)))
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
-    ///     .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
-    ///     .build();
-    ///
-    /// let expected = "\
-    /// @HD\tVN:1.6
-    /// @SQ\tSN:sq0\tLN:8
-    /// @SQ\tSN:sq1\tLN:13
-    /// ";
-    ///
-    /// assert_eq!(header.to_string(), expected);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::record::Kind;
+
         if let Some(header) = self.header() {
-            writeln!(f, "{}", header)?;
+            writeln!(f, "{}\t{}", Kind::Header, header)?;
         }
 
         for reference_sequence in self.reference_sequences.values() {
@@ -475,8 +454,12 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
+        let header = Map::<map::Header>::builder()
+            .set_version(header::Version::new(1, 6))
+            .build()?;
+
         let header = Header::builder()
-            .set_header(header::Header::new(header::Version::new(1, 6)))
+            .set_header(header)
             .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
             .add_read_group(ReadGroup::new("rg0"))

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/header: Rewrap `Header` as a record map value (`Map`).
+
 ## 0.18.0 - 2022-08-16
 
 ### Changed

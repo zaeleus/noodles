@@ -7,11 +7,7 @@
 use std::io;
 
 use noodles_bam as bam;
-use noodles_sam::{
-    self as sam,
-    alignment::Record,
-    header::{self, Program},
-};
+use noodles_sam::{self as sam, alignment::Record, header::Program};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout();
@@ -19,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = bam::Writer::new(handle);
 
     let header = sam::Header::builder()
-        .set_header(header::header::Header::default())
+        .set_header(Default::default())
         .add_program(Program::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();

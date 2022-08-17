@@ -653,6 +653,10 @@ mod tests {
     #[test]
     fn test_read_alignment_header() -> Result<(), Box<dyn std::error::Error>> {
         use bytes::BufMut;
+        use sam::header::{
+            header::Version,
+            record::value::map::{self, Map},
+        };
 
         let mut data = Vec::new();
         data.put_slice(MAGIC_NUMBER); // magic
@@ -667,9 +671,7 @@ mod tests {
         let actual = read_alignment_header(&mut reader)?;
 
         let expected = sam::Header::builder()
-            .set_header(sam::header::header::Header::new(
-                sam::header::header::Version::new(1, 6),
-            ))
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .build();
 
         assert_eq!(actual, expected);

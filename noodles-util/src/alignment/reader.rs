@@ -56,7 +56,10 @@ where
     ///
     /// ```
     /// # use std::io::{self, Cursor};
-    /// use noodles_sam::{self as sam, header::header::Version};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::{header::Version, record::value::{map, Map}},
+    /// };
     /// use noodles_util::alignment;
     ///
     /// let data = Cursor::new(b"@HD\tVN:1.6
@@ -67,7 +70,7 @@ where
     /// let actual = reader.read_header()?;
     ///
     /// let expected = sam::Header::builder()
-    ///     .set_header(sam::header::header::Header::new(Version::new(1, 6)))
+    ///     .set_header(Map::<map::Header>::new(Version::new(1, 6)))
     ///     .build();
     ///
     /// assert_eq!(actual, expected);

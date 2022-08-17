@@ -1,10 +1,12 @@
 use std::{collections::HashSet, error, fmt};
 
 use super::{
-    header,
     program::{self, Program},
     read_group::{self, ReadGroup},
-    record,
+    record::{
+        self,
+        value::map::{self, Map},
+    },
     reference_sequence::{self, ReferenceSequence},
     Header, Record,
 };
@@ -17,7 +19,7 @@ pub enum ParseError {
     /// The record is invalid.
     InvalidRecord(record::ParseError),
     /// A header record is invalid.
-    InvalidHeader(header::TryFromRecordError),
+    InvalidHeader(map::TryFromFieldsError),
     /// A reference sequence record is invalid.
     InvalidReferenceSequence(reference_sequence::TryFromRecordError),
     /// A reference sequence name is duplicated.
@@ -78,7 +80,7 @@ impl fmt::Display for ParseError {
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
-    use record::Kind;
+    use record::{Kind, Value};
 
     let mut builder = Header::builder();
 
@@ -92,9 +94,16 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
         builder = match record.kind() {
             Kind::Header => {
                 if i == 0 {
-                    builder.set_header(
-                        header::Header::try_from(record).map_err(ParseError::InvalidHeader)?,
-                    )
+                    let header = match record.into() {
+                        (Kind::Header, Value::Map(map)) => {
+                            let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
+                            Map::<map::Header>::try_from(fields)
+                                .map_err(ParseError::InvalidHeader)?
+                        }
+                        _ => panic!(),
+                    };
+
+                    builder.set_header(header)
                 } else {
                     return Err(ParseError::UnexpectedHeader);
                 }
