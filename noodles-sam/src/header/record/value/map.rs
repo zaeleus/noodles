@@ -1,7 +1,7 @@
 //! SAM header record map value.
 
 pub mod builder;
-mod header;
+pub mod header;
 mod program;
 pub mod read_group;
 mod tag;

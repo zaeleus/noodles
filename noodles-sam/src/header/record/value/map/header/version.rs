@@ -20,7 +20,7 @@ impl Version {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Version;
+    /// use noodles_sam::header::record::value::map::header::Version;
     /// let version = Version::new(1, 6);
     /// ```
     pub fn new(major: u32, minor: u32) -> Self {
@@ -32,7 +32,7 @@ impl Version {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Version;
+    /// use noodles_sam::header::record::value::map::header::Version;
     /// let version = Version::new(1, 6);
     /// assert_eq!(version.major(), 1);
     /// ```
@@ -45,7 +45,7 @@ impl Version {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::header::Version;
+    /// use noodles_sam::header::record::value::map::header::Version;
     /// let version = Version::new(1, 6);
     /// assert_eq!(version.minor(), 6);
     /// ```

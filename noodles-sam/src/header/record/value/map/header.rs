@@ -1,13 +1,20 @@
 //! SAM header record header map value.
 
 mod builder;
+pub mod group_order;
+pub mod sort_order;
+pub mod subsort_order;
 mod tag;
+pub mod version;
+
+pub use self::{
+    group_order::GroupOrder, sort_order::SortOrder, subsort_order::SubsortOrder, version::Version,
+};
 
 use std::fmt;
 
 use self::builder::Builder;
 use super::{Fields, Inner, Map, OtherFields, TryFromFieldsError};
-use crate::header::header::{GroupOrder, SortOrder, SubsortOrder, Version};
 
 type StandardTag = tag::Standard;
 type Tag = super::tag::Tag<StandardTag>;
@@ -34,7 +41,11 @@ impl Map<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::Version},
+    ///     Map,
+    /// };
+    ///
     /// let header = Map::<map::Header>::new(Version::new(1, 6));
     /// ```
     pub fn new(version: Version) -> Self {
@@ -52,7 +63,11 @@ impl Map<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::Version},
+    ///     Map,
+    /// };
+    ///
     /// let header = Map::<map::Header>::new(Version::new(1, 6));
     /// assert_eq!(header.version(), Version::new(1, 6));
     /// ```
@@ -65,7 +80,10 @@ impl Map<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::Version},
+    ///     Map,
+    /// };
     ///
     /// let mut header = Map::<map::Header>::new(Version::new(1, 6));
     /// assert_eq!(header.version(), Version::new(1, 6));

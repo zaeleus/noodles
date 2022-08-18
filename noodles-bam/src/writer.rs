@@ -295,9 +295,9 @@ mod tests {
 
     #[test]
     fn test_write_header() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::{
-            header::Version,
-            record::value::{map, Map},
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
         };
 
         let header = sam::Header::builder()

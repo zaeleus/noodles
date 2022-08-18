@@ -10,9 +10,11 @@ use std::{env, fs::File, io};
 
 use noodles_bam::{self as bam, bai};
 use noodles_csi::index::reference_sequence::bin::Chunk;
-use noodles_sam::{self as sam, alignment::Record, header::header::SortOrder};
+use noodles_sam::{self as sam, alignment::Record};
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {
+    use sam::header::record::value::map::header::SortOrder;
+
     if let Some(hdr) = header.header() {
         if let Some(sort_order) = hdr.sort_order() {
             return sort_order == SortOrder::Coordinate;

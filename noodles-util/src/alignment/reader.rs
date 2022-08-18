@@ -58,7 +58,7 @@ where
     /// # use std::io::{self, Cursor};
     /// use noodles_sam::{
     ///     self as sam,
-    ///     header::{header::Version, record::value::{map, Map}},
+    ///     header::record::value::{map::{self, header::Version}, Map},
     /// };
     /// use noodles_util::alignment;
     ///
@@ -90,7 +90,7 @@ where
     ///
     /// ```
     /// # use std::io::{self, Cursor};
-    /// use noodles_sam::{self as sam, header::header::Version};
+    /// use noodles_sam as sam;
     /// use noodles_util::alignment;
     ///
     /// let data = Cursor::new(b"@HD\tVN:1.6

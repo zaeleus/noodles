@@ -61,8 +61,6 @@
 //! ```
 
 mod builder;
-#[allow(clippy::module_inception)]
-pub mod header;
 mod parser;
 pub mod record;
 pub mod reference_sequence;
@@ -453,12 +451,10 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), Box<dyn std::error::Error>> {
-        let header = Map::<map::Header>::builder()
-            .set_version(header::Version::new(1, 6))
-            .build()?;
+        use super::record::value::map::header::Version;
 
         let header = Header::builder()
-            .set_header(header)
+            .set_header(Map::<map::Header>::new(Version::new(1, 6)))
             .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
             .add_read_group(Map::<ReadGroup>::new("rg0"))

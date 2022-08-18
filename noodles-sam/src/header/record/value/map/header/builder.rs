@@ -16,7 +16,10 @@ impl map::Builder<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::Version},
+    ///     Map,
+    /// };
     ///
     /// let version = Version::new(1, 6);
     ///
@@ -37,7 +40,10 @@ impl map::Builder<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::SortOrder, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::SortOrder},
+    ///     Map,
+    /// };
     ///
     /// let header = Map::<map::Header>::builder()
     ///     .set_sort_order(SortOrder::Coordinate)
@@ -56,7 +62,10 @@ impl map::Builder<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::GroupOrder, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::GroupOrder},
+    ///     Map,
+    /// };
     ///
     /// let header = Map::<map::Header>::builder()
     ///     .set_group_order(GroupOrder::Reference)
@@ -75,7 +84,10 @@ impl map::Builder<Header> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::SubsortOrder, record::value::{map, Map}};
+    /// use noodles_sam::header::record::value::{
+    ///     map::{self, header::SubsortOrder},
+    ///     Map,
+    /// };
     ///
     /// let subsort_order = SubsortOrder::Coordinate(vec![String::from("MI")]);
     ///

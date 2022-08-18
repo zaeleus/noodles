@@ -653,9 +653,9 @@ mod tests {
     #[test]
     fn test_read_alignment_header() -> Result<(), Box<dyn std::error::Error>> {
         use bytes::BufMut;
-        use sam::header::{
-            header::Version,
-            record::value::map::{self, Map},
+        use sam::header::record::value::{
+            map::{self, header::Version},
+            Map,
         };
 
         let mut data = Vec::new();
