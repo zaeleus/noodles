@@ -36,7 +36,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let program = Map::<Program>::new("pg0");
     /// ```
     pub fn new<I>(id: I) -> Self
@@ -61,7 +61,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let program = Map::<Program>::new("pg0");
     /// assert_eq!(program.id(), "pg0");
     /// ```
@@ -74,7 +74,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// *program.id_mut() = String::from("pg1");
     /// assert_eq!(program.id(), "pg1");
@@ -88,7 +88,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// assert!(program.name().is_none());
     /// ```
@@ -101,7 +101,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// assert!(program.command_line().is_none());
     /// ```
@@ -114,7 +114,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// assert!(program.previous_id().is_none());
     /// ```
@@ -127,7 +127,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// assert!(program.description().is_none());
     /// ```
@@ -140,7 +140,7 @@ impl Map<Program> {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::header::{header::Version, record::value::{map::Program, Map}};
+    /// use noodles_sam::header::record::value::{map::Program, Map};
     /// let mut program = Map::<Program>::new("pg0");
     /// assert!(program.version().is_none());
     /// ```
