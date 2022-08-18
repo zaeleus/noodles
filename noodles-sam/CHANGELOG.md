@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * sam/header: Rewrap `header::Header` and `Program` as a record map value
-    (`Map`).
+  * sam/header: Rewrap `header::Header`, `Program`, `ReadGroup` as a record map
+    value (`Map`).
 
 ## 0.18.0 - 2022-08-16
 

@@ -1,10 +1,9 @@
 use std::{collections::HashSet, error, fmt};
 
 use super::{
-    read_group::{self, ReadGroup},
     record::{
         self,
-        value::map::{self, Map, Program},
+        value::map::{self, Map, Program, ReadGroup},
     },
     reference_sequence::{self, ReferenceSequence},
     Header, Record,
@@ -24,7 +23,7 @@ pub enum ParseError {
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(reference_sequence::Name),
     /// A read group record is invalid.
-    InvalidReadGroup(read_group::TryFromRecordError),
+    InvalidReadGroup(map::TryFromFieldsError),
     /// A read group ID is duplicated.
     DuplicateReadGroupId(String),
     /// A program record is invalid.
@@ -120,8 +119,13 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 builder.add_reference_sequence(reference_sequence)
             }
             Kind::ReadGroup => {
-                let read_group =
-                    ReadGroup::try_from(record).map_err(ParseError::InvalidReadGroup)?;
+                let read_group = match record.into() {
+                    (Kind::ReadGroup, Value::Map(map)) => {
+                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
+                        Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidHeader)?
+                    }
+                    _ => panic!(),
+                };
 
                 if !read_group_ids.insert(read_group.id().into()) {
                     return Err(ParseError::DuplicateReadGroupId(read_group.id().into()));

@@ -64,7 +64,6 @@ mod builder;
 #[allow(clippy::module_inception)]
 pub mod header;
 mod parser;
-pub mod read_group;
 pub mod record;
 pub mod reference_sequence;
 
@@ -72,15 +71,12 @@ use std::{fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
-pub use self::{
-    builder::Builder, parser::ParseError, read_group::ReadGroup,
-    reference_sequence::ReferenceSequence,
-};
+pub use self::{builder::Builder, parser::ParseError, reference_sequence::ReferenceSequence};
 
 pub use self::record::Record;
 
 use self::record::value::{
-    map::{self, Program},
+    map::{self, Program, ReadGroup},
     Map,
 };
 
@@ -88,7 +84,7 @@ use self::record::value::{
 pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
 
 /// An ordered map of read groups.
-pub type ReadGroups = IndexMap<String, ReadGroup>;
+pub type ReadGroups = IndexMap<String, Map<ReadGroup>>;
 
 /// An ordered map of programs.
 pub type Programs = IndexMap<String, Map<Program>>;
@@ -215,10 +211,13 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReadGroup};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReadGroup, Map},
+    /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new("rg0"))
+    ///     .add_read_group(Map::<ReadGroup>::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
@@ -234,15 +233,16 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReadGroup};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReadGroup, Map},
+    /// };
     ///
     /// let mut header = sam::Header::default();
     /// assert!(header.read_groups().is_empty());
     ///
-    /// header.read_groups_mut().insert(
-    ///     String::from("rg0"),
-    ///     ReadGroup::new("rg0"),
-    /// );
+    /// let read_group = Map::<ReadGroup>::new("rg0");
+    /// header.read_groups_mut().insert(read_group.id().into(), read_group);
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
@@ -402,7 +402,7 @@ impl fmt::Display for Header {
         }
 
         for read_group in self.read_groups.values() {
-            writeln!(f, "{}", read_group)?;
+            writeln!(f, "{}\t{}", Kind::ReadGroup, read_group)?;
         }
 
         for program in self.programs.values() {
@@ -461,8 +461,8 @@ mod tests {
             .set_header(header)
             .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
-            .add_read_group(ReadGroup::new("rg0"))
-            .add_read_group(ReadGroup::new("rg1"))
+            .add_read_group(Map::<ReadGroup>::new("rg0"))
+            .add_read_group(Map::<ReadGroup>::new("rg1"))
             .add_program(Map::<Program>::new("pg0"))
             .add_program(Map::<Program>::new("pg1"))
             .add_comment("noodles")

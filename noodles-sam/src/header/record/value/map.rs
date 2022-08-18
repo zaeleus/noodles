@@ -3,9 +3,10 @@
 pub mod builder;
 mod header;
 mod program;
+pub mod read_group;
 mod tag;
 
-pub use self::{builder::Builder, header::Header, program::Program};
+pub use self::{builder::Builder, header::Header, program::Program, read_group::ReadGroup};
 
 use std::{error, fmt};
 

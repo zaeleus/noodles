@@ -1,9 +1,9 @@
 use super::{
     record::value::{
-        map::{self, Program},
+        map::{self, Program, ReadGroup},
         Map,
     },
-    Header, Programs, ReadGroup, ReadGroups, ReferenceSequence, ReferenceSequences,
+    Header, Programs, ReadGroups, ReferenceSequence, ReferenceSequences,
 };
 
 /// A SAM header builder.
@@ -106,17 +106,20 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReadGroup};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReadGroup, Map},
+    /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_read_group(ReadGroup::new("rg0"))
+    ///     .add_read_group(Map::<ReadGroup>::new("rg0"))
     ///     .build();
     ///
     /// let read_groups = header.read_groups();
     /// assert_eq!(read_groups.len(), 1);
     /// assert!(read_groups.contains_key("rg0"));
     /// ```
-    pub fn add_read_group(mut self, read_group: ReadGroup) -> Self {
+    pub fn add_read_group(mut self, read_group: Map<ReadGroup>) -> Self {
         self.read_groups.insert(read_group.id().into(), read_group);
         self
     }
@@ -201,8 +204,8 @@ mod tests {
             .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
             .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
             .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
-            .add_read_group(ReadGroup::new("rg0"))
-            .add_read_group(ReadGroup::new("rg1"))
+            .add_read_group(Map::<ReadGroup>::new("rg0"))
+            .add_read_group(Map::<ReadGroup>::new("rg1"))
             .add_program(Map::<Program>::new("noodles-sam"))
             .add_comment("written by noodles-sam")
             .build();
