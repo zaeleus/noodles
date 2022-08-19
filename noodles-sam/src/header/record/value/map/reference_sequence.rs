@@ -30,7 +30,7 @@ type Tag = super::tag::Tag<StandardTag>;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence {
     name: Name,
-    len: NonZeroUsize,
+    length: NonZeroUsize,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
@@ -61,12 +61,11 @@ impl fmt::Display for NewError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidName => f.write_str("invalid name"),
-            Self::InvalidLength(len) => write!(f, "invalid length: {}", len),
+            Self::InvalidLength(length) => write!(f, "invalid length: {}", length),
         }
     }
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl Map<ReferenceSequence> {
     /// Creates a reference sequence with a name and length.
     ///
@@ -77,13 +76,13 @@ impl Map<ReferenceSequence> {
     /// let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn new(name: Name, len: usize) -> Result<Self, NewError> {
-        let len = NonZeroUsize::new(len).ok_or(NewError::InvalidLength(len))?;
+    pub fn new(name: Name, length: usize) -> Result<Self, NewError> {
+        let length = NonZeroUsize::new(length).ok_or(NewError::InvalidLength(length))?;
 
         Ok(Self {
             inner: ReferenceSequence {
                 name,
-                len,
+                length,
                 alternative_locus: None,
                 alternative_names: None,
                 assembly_id: None,
@@ -136,11 +135,11 @@ impl Map<ReferenceSequence> {
     /// ```
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// assert_eq!(usize::from(reference_sequence.len()), 13);
+    /// assert_eq!(usize::from(reference_sequence.length()), 13);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn len(&self) -> NonZeroUsize {
-        self.inner.len
+    pub fn length(&self) -> NonZeroUsize {
+        self.inner.length
     }
 
     /// Returns a mutable reference to the reference sequence length.
@@ -153,14 +152,14 @@ impl Map<ReferenceSequence> {
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
     /// let mut reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
-    /// assert_eq!(usize::from(reference_sequence.len()), 13);
+    /// assert_eq!(usize::from(reference_sequence.length()), 13);
     ///
-    /// *reference_sequence.len_mut() = NonZeroUsize::try_from(8)?;
-    /// assert_eq!(usize::from(reference_sequence.len()), 8);
+    /// *reference_sequence.length_mut() = NonZeroUsize::try_from(8)?;
+    /// assert_eq!(usize::from(reference_sequence.length()), 8);
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn len_mut(&mut self) -> &mut NonZeroUsize {
-        &mut self.inner.len
+    pub fn length_mut(&mut self) -> &mut NonZeroUsize {
+        &mut self.inner.length
     }
 
     /// Returns the alternative locus.
@@ -301,7 +300,7 @@ impl Map<ReferenceSequence> {
 impl fmt::Display for Map<ReferenceSequence> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "SN:{}", self.name())?;
-        write!(f, "\tLN:{}", self.len())?;
+        write!(f, "\tLN:{}", self.length())?;
 
         if let Some(alternative_locus) = self.alternative_locus() {
             write!(f, "\tAH:{}", alternative_locus)?;
@@ -348,7 +347,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
         let mut other_fields = super::init_other_fields(fields.len());
 
         let mut name = None;
-        let mut len = None;
+        let mut length = None;
         let mut alternative_locus = None;
         let mut alternative_names = None;
         let mut assembly_id = None;
@@ -369,7 +368,7 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
                         .map_err(|_| TryFromFieldsError::InvalidValue("SN"))?;
                 }
                 Tag::Standard(StandardTag::Length) => {
-                    len = value
+                    length = value
                         .parse()
                         .map(Some)
                         .map_err(|_| TryFromFieldsError::InvalidValue("LN"))?;
@@ -407,12 +406,12 @@ impl TryFrom<Fields> for Map<ReferenceSequence> {
         }
 
         let name = name.ok_or(TryFromFieldsError::MissingField("SN"))?;
-        let len = len.ok_or(TryFromFieldsError::MissingField("LN"))?;
+        let length = length.ok_or(TryFromFieldsError::MissingField("LN"))?;
 
         Ok(Self {
             inner: ReferenceSequence {
                 name,
-                len,
+                length,
                 alternative_locus,
                 alternative_names,
                 assembly_id,

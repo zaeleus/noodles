@@ -11,7 +11,7 @@ use crate::header::record::value::map::{self, builder::BuildError};
 #[derive(Debug, Default)]
 pub struct Builder {
     name: Option<Name>,
-    len: Option<usize>,
+    length: Option<usize>,
     alternative_locus: Option<AlternativeLocus>,
     alternative_names: Option<AlternativeNames>,
     assembly_id: Option<String>,
@@ -55,11 +55,11 @@ impl map::Builder<ReferenceSequence> {
     ///     .set_length(13)
     ///     .build()?;
     ///
-    /// assert_eq!(usize::from(reference_sequence.len()), 13);
+    /// assert_eq!(usize::from(reference_sequence.length()), 13);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_length(mut self, len: usize) -> Self {
-        self.inner.len = Some(len);
+    pub fn set_length(mut self, length: usize) -> Self {
+        self.inner.length = Some(length);
         self
     }
 
@@ -271,14 +271,14 @@ impl map::builder::Inner<ReferenceSequence> for Builder {
     fn build(self) -> Result<ReferenceSequence, BuildError> {
         let name = self.name.ok_or(BuildError::MissingField("SN"))?;
 
-        let len = self
-            .len
+        let length = self
+            .length
             .ok_or(BuildError::MissingField("LN"))
             .and_then(|n| NonZeroUsize::new(n).ok_or(BuildError::InvalidValue("LN")))?;
 
         Ok(ReferenceSequence {
             name,
-            len,
+            length,
             alternative_locus: self.alternative_locus,
             alternative_names: self.alternative_names,
             assembly_id: self.assembly_id,
@@ -300,7 +300,7 @@ mod tests {
         let builder = Builder::default();
 
         assert!(builder.name.is_none());
-        assert!(builder.len.is_none());
+        assert!(builder.length.is_none());
         assert!(builder.alternative_locus.is_none());
         assert!(builder.alternative_names.is_none());
         assert!(builder.assembly_id.is_none());

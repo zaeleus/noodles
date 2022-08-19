@@ -13,6 +13,9 @@
     standard fields and can include optional fields, where the key is a
     nonstandard tag (`tag::Other`).
 
+  * sam/header/record/value/map/reference_sequence: Rename
+   `ReferenceSequence::len` to `ReferenceSequence::length`.
+
 ### Removed
 
   * sam/header/record: Remove `Value`.

@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!(
             "{}\t{}\t{}\t{}",
             reference_sequence.name(),
-            reference_sequence.len(),
+            reference_sequence.length(),
             mapped_record_count,
             unmapped_record_count
         );

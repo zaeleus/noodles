@@ -285,7 +285,7 @@ where
     writer.write_u32::<LittleEndian>(l_name)?;
     writer.write_all(name)?;
 
-    let l_ref = i32::try_from(usize::from(reference_sequence.len()))
+    let l_ref = i32::try_from(usize::from(reference_sequence.length()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(l_ref)?;
 
