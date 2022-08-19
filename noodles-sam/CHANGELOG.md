@@ -4,8 +4,14 @@
 
 ### Changed
 
-  * sam/header: Rewrap `header::Header`, `Program`, `ReadGroup` as a record map
-    value (`Map`).
+  * sam/header: SAM header records parsed from maps are now map values
+    (`noodles_sam::header::record::value::Map`).
+
+    This rewraps `header::Header`, `Program`, `ReadGroup`, and
+    `ReferenceSequence` as map values `Map<I>`, where `I` is a specialized map
+    type. A map is required to have an inner `I` type that can have required
+    standard fields and can include optional fields, where the key is a
+    nonstandard tag (`tag::Other`).
 
 ### Removed
 
