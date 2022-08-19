@@ -7,6 +7,13 @@
   * sam/header: Rewrap `header::Header`, `Program`, `ReadGroup` as a record map
     value (`Map`).
 
+### Removed
+
+  * sam/header/record: Remove `Value`.
+
+    Records are fully parsed rather than returning a raw value. Use
+    `header::Record` instead.
+
 ## 0.18.0 - 2022-08-16
 
 ### Changed

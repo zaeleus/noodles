@@ -3,7 +3,7 @@ use std::{collections::HashSet, error, fmt};
 use super::{
     record::{
         self,
-        value::map::{self, reference_sequence, Map, Program, ReadGroup, ReferenceSequence},
+        value::map::{self, reference_sequence},
     },
     Header, Record,
 };
@@ -77,8 +77,6 @@ impl fmt::Display for ParseError {
 /// # Ok::<(), sam::header::ParseError>(())
 /// ```
 pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
-    use record::{Kind, Value};
-
     let mut builder = Header::builder();
 
     let mut read_group_ids: HashSet<String> = HashSet::new();
@@ -88,33 +86,15 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
     for (i, line) in s.lines().enumerate() {
         let record: Record = line.parse().map_err(ParseError::InvalidRecord)?;
 
-        builder = match record.kind() {
-            Kind::Header => {
+        builder = match record {
+            Record::Header(header) => {
                 if i == 0 {
-                    let header = match record.into() {
-                        (Kind::Header, Value::Map(map)) => {
-                            let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
-                            Map::<map::Header>::try_from(fields)
-                                .map_err(ParseError::InvalidHeader)?
-                        }
-                        _ => panic!(),
-                    };
-
                     builder.set_header(header)
                 } else {
                     return Err(ParseError::UnexpectedHeader);
                 }
             }
-            Kind::ReferenceSequence => {
-                let reference_sequence = match record.into() {
-                    (Kind::ReferenceSequence, Value::Map(map)) => {
-                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
-                        Map::<ReferenceSequence>::try_from(fields)
-                            .map_err(ParseError::InvalidHeader)?
-                    }
-                    _ => panic!(),
-                };
-
+            Record::ReferenceSequence(reference_sequence) => {
                 if !reference_sequence_names.insert(reference_sequence.name().clone()) {
                     return Err(ParseError::DuplicateReferenceSequenceName(
                         reference_sequence.name().clone(),
@@ -123,40 +103,21 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
 
                 builder.add_reference_sequence(reference_sequence)
             }
-            Kind::ReadGroup => {
-                let read_group = match record.into() {
-                    (Kind::ReadGroup, Value::Map(map)) => {
-                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
-                        Map::<ReadGroup>::try_from(fields).map_err(ParseError::InvalidHeader)?
-                    }
-                    _ => panic!(),
-                };
-
+            Record::ReadGroup(read_group) => {
                 if !read_group_ids.insert(read_group.id().into()) {
                     return Err(ParseError::DuplicateReadGroupId(read_group.id().into()));
                 }
 
                 builder.add_read_group(read_group)
             }
-            Kind::Program => {
-                let program = match record.into() {
-                    (Kind::Program, Value::Map(map)) => {
-                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
-                        Map::<Program>::try_from(fields).map_err(ParseError::InvalidHeader)?
-                    }
-                    _ => panic!(),
-                };
-
+            Record::Program(program) => {
                 if !program_ids.insert(program.id().into()) {
                     return Err(ParseError::DuplicateProgramId(program.id().into()));
                 }
 
                 builder.add_program(program)
             }
-            Kind::Comment => match record.value() {
-                record::Value::String(comment) => builder.add_comment(comment),
-                _ => return Err(ParseError::InvalidComment),
-            },
+            Record::Comment(comment) => builder.add_comment(comment),
         };
     }
 

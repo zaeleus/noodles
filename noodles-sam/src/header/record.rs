@@ -1,69 +1,33 @@
-//! SAM header record and components.
+//! SAM header record.
 
 pub mod kind;
 pub mod value;
 
 use std::{error, fmt, str::FromStr};
 
-pub use self::{kind::Kind, value::Value};
+pub use self::kind::Kind;
 
-use self::value::Fields;
+use self::value::{
+    map::{self, Program, ReadGroup, ReferenceSequence},
+    Map,
+};
 
 const DELIMITER: char = '\t';
-const DATA_FIELD_DELIMITER: char = ':';
 const TAG_LENGTH: usize = 2;
 
-/// A generic SAM header record.
+/// A SAM header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Record {
-    kind: Kind,
-    value: Value,
-}
-
-impl Record {
-    /// Creates a generic SAM header record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{record::{Kind, Value}, Record};
-    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
-    /// ```
-    pub fn new(kind: Kind, value: Value) -> Self {
-        Self { kind, value }
-    }
-
-    /// Returns the kind of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{record::{Kind, Value}, Record};
-    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
-    /// assert_eq!(record.kind(), Kind::Comment);
-    /// ```
-    pub fn kind(&self) -> Kind {
-        self.kind
-    }
-
-    /// Returns the value of the record.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::header::{record::{Kind, Value}, Record};
-    /// let record = Record::new(Kind::Comment, Value::String(String::from("noodles-sam")));
-    /// assert_eq!(record.value(), &Value::String(String::from("noodles-sam")));
-    /// ```
-    pub fn value(&self) -> &Value {
-        &self.value
-    }
-}
-
-impl From<Record> for (Kind, Value) {
-    fn from(record: Record) -> Self {
-        (record.kind, record.value)
-    }
+pub enum Record {
+    /// A header (`HD`) record.
+    Header(Map<map::Header>),
+    /// A reference sequence (`SQ`) record.
+    ReferenceSequence(Map<ReferenceSequence>),
+    /// A read group (`RG`) record.
+    ReadGroup(Map<ReadGroup>),
+    /// A program (`PG`) record.
+    Program(Map<Program>),
+    /// A comment (`CO`) record.
+    Comment(String),
 }
 
 /// An error returned when a raw SAM header record fails to parse.
@@ -71,8 +35,6 @@ impl From<Record> for (Kind, Value) {
 pub enum ParseError {
     /// The input is invalid.
     Invalid,
-    /// The kind is missing.
-    MissingKind,
     /// The kind is invalid.
     InvalidKind(kind::ParseError),
     /// A field is invalid.
@@ -81,8 +43,6 @@ pub enum ParseError {
     InvalidTag,
     /// A value is invalid.
     InvalidValue,
-    /// A tag is duplicated.
-    DuplicateTag(String),
 }
 
 impl error::Error for ParseError {}
@@ -91,12 +51,10 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Invalid => write!(f, "invalid input"),
-            Self::MissingKind => write!(f, "missing kind"),
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
             Self::InvalidField => write!(f, "invalid field"),
             Self::InvalidTag => write!(f, "invalid tag"),
             Self::InvalidValue => write!(f, "invalid value"),
-            Self::DuplicateTag(tag) => write!(f, "duplicate tag: {}", tag),
         }
     }
 }
@@ -105,43 +63,46 @@ impl FromStr for Record {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.split_once(DELIMITER) {
-            Some((k, v)) => {
-                let kind = k.parse().map_err(ParseError::InvalidKind)?;
+        let (k, v) = s.split_once(DELIMITER).ok_or(ParseError::Invalid)?;
+        let kind = k.parse().map_err(ParseError::InvalidKind)?;
 
-                let value = match kind {
-                    Kind::Comment => parse_comment(v),
-                    _ => parse_map(v)?,
-                };
-
-                Ok(Self::new(kind, value))
+        match kind {
+            Kind::Header => {
+                let fields = split_fields(v)?;
+                let header =
+                    Map::<map::Header>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                Ok(Self::Header(header))
             }
-            None => Err(ParseError::Invalid),
+            Kind::ReferenceSequence => {
+                let fields = split_fields(v)?;
+                let reference_sequence =
+                    Map::<ReferenceSequence>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                Ok(Self::ReferenceSequence(reference_sequence))
+            }
+            Kind::ReadGroup => {
+                let fields = split_fields(v)?;
+                let read_group =
+                    Map::<ReadGroup>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                Ok(Self::ReadGroup(read_group))
+            }
+            Kind::Program => {
+                let fields = split_fields(v)?;
+                let program = Map::<Program>::try_from(fields).map_err(|_| ParseError::Invalid)?;
+                Ok(Self::Program(program))
+            }
+            Kind::Comment => Ok(Self::Comment(v.into())),
         }
     }
 }
 
-fn parse_comment(s: &str) -> Value {
-    Value::String(s.into())
+fn split_fields(s: &str) -> Result<Vec<(String, String)>, ParseError> {
+    s.split(DELIMITER).map(split_field).collect()
 }
 
-fn parse_map(s: &str) -> Result<Value, ParseError> {
-    let raw_fields = s.split(DELIMITER);
-    let mut fields = Fields::new();
+fn split_field(s: &str) -> Result<(String, String), ParseError> {
+    const FIELD_DELIMITER: char = ':';
 
-    for raw_field in raw_fields {
-        let (tag, value) = parse_field(raw_field)?;
-
-        if fields.insert(tag.clone(), value).is_some() {
-            return Err(ParseError::DuplicateTag(tag));
-        }
-    }
-
-    Ok(Value::Map(fields))
-}
-
-fn parse_field(s: &str) -> Result<(String, String), ParseError> {
-    match s.split_once(DATA_FIELD_DELIMITER) {
+    match s.split_once(FIELD_DELIMITER) {
         Some((tag, value)) => {
             if !is_valid_tag(tag) {
                 return Err(ParseError::InvalidTag);
@@ -188,51 +149,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_str() -> Result<(), value::TryFromIteratorError> {
-        assert_eq!(
-            "@HD\tVN:1.6".parse(),
-            Ok(Record::new(
-                Kind::Header,
-                Value::try_from_iter([("VN", "1.6")])?,
-            ))
-        );
+    fn test_from_str() {
+        assert!(matches!("@HD\tVN:1.6".parse(), Ok(Record::Header(_))));
 
-        assert_eq!(
+        assert!(matches!(
             "@SQ\tSN:sq0\tLN:8".parse(),
-            Ok(Record::new(
-                Kind::ReferenceSequence,
-                Value::try_from_iter([("SN", "sq0"), ("LN", "8"),])?
-            ))
-        );
+            Ok(Record::ReferenceSequence(_))
+        ));
+
+        assert!(matches!("@RG\tID:rg0".parse(), Ok(Record::ReadGroup(_))));
+        assert!(matches!("@PG\tID:pg0".parse(), Ok(Record::Program(_))));
 
         assert_eq!(
-            "@RG\tID:rg0".parse(),
-            Ok(Record::new(
-                Kind::ReadGroup,
-                Value::try_from_iter([("ID", "rg0")])?
-            ))
+            "@CO\tnoodles".parse(),
+            Ok(Record::Comment(String::from("noodles")))
         );
 
-        assert_eq!(
-            "@PG\tID:pg0".parse(),
-            Ok(Record::new(
-                Kind::Program,
-                Value::try_from_iter([("ID", "pg0")])?
-            ))
-        );
-
-        assert_eq!(
-            "@CO\tnoodles-sam".parse(),
-            Ok(Record::new(
-                Kind::Comment,
-                Value::String(String::from("noodles-sam"))
-            ))
-        );
-
-        assert_eq!(
-            "@CO\t".parse(),
-            Ok(Record::new(Kind::Comment, Value::String(String::from(""))))
-        );
+        assert_eq!("@CO\t".parse(), Ok(Record::Comment(String::new())));
 
         assert!(matches!(
             "@ND\t".parse::<Record>(),
@@ -255,13 +188,6 @@ mod tests {
             Err(ParseError::InvalidValue)
         );
 
-        assert_eq!(
-            "@HD\tVN:1.6\tVN:1.6".parse::<Record>(),
-            Err(ParseError::DuplicateTag(String::from("VN")))
-        );
-
         assert_eq!("@CO".parse::<Record>(), Err(ParseError::Invalid));
-
-        Ok(())
     }
 }
