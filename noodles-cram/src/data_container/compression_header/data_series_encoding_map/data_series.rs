@@ -58,13 +58,13 @@ pub enum DataSeries {
     Bases,
     /// Quality scores (`QS`).
     QualityScores,
-    /// (`TC`).
+    /// Read tag counts (`TC`).
     ///
-    /// Legacy CRAM 1.0 data series.
+    /// This is a legacy CRAM 1.0 data series.
     ReservedTc,
-    /// (`TN`).
+    /// Read tag names and types (`TN`).
     ///
-    /// Legacy CRAM 1.0 data series.
+    /// This is a legacy CRAM 1.0 data series.
     ReservedTn,
 }
 
