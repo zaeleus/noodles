@@ -14,10 +14,9 @@ use noodles_cram as cram;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    header::{
-        record::value::{map::Program, Map},
-        reference_sequence::Md5Checksum,
-        ReferenceSequence,
+    header::record::value::{
+        map::{reference_sequence::Md5Checksum, Program, ReferenceSequence},
+        Map,
     },
 };
 use sam::{alignment::Record, AlignmentWriter};
@@ -59,7 +58,7 @@ fn build_header(
         hasher.update(&sequence);
         let md5_checksum = Md5Checksum::from(<[u8; 16]>::from(hasher.finalize()));
 
-        let reference_sequence = ReferenceSequence::builder()
+        let reference_sequence = Map::<ReferenceSequence>::builder()
             .set_name(name)
             .set_length(len)
             .set_md5_checksum(md5_checksum)

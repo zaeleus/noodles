@@ -8,7 +8,10 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use noodles_sam::{
     alignment::Record,
-    header::{ReferenceSequence, ReferenceSequences},
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
 };
 use tokio::io::{self, AsyncRead, AsyncReadExt, AsyncSeek};
 
@@ -504,7 +507,7 @@ where
     Ok(reference_sequences)
 }
 
-async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
+async fn read_reference_sequence<R>(reader: &mut R) -> io::Result<Map<ReferenceSequence>>
 where
     R: AsyncRead + Unpin,
 {
@@ -524,7 +527,8 @@ where
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Map::<ReferenceSequence>::new(name, l_ref)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 #[cfg(test)]
@@ -572,7 +576,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::reference_sequence;
+        use sam::header::record::value::map::reference_sequence::Name;
 
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
@@ -586,9 +590,9 @@ mod tests {
 
         let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len): (reference_sequence::Name, usize)| {
+            .map(|(name, len): (Name, usize)| {
                 let sn = name.to_string();
-                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+                Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
             })
             .collect::<Result<_, _>>()?;
 

@@ -257,15 +257,15 @@ mod tests {
     #[test]
     fn test_write_record_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            header::ReferenceSequence,
+            header::record::value::{map::ReferenceSequence, Map},
             record::{Flags, MappingQuality},
         };
 
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
             .build();
 
         let record = Record::builder()

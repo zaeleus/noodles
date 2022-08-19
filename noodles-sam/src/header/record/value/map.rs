@@ -4,9 +4,13 @@ pub mod builder;
 pub mod header;
 mod program;
 pub mod read_group;
+pub mod reference_sequence;
 mod tag;
 
-pub use self::{builder::Builder, header::Header, program::Program, read_group::ReadGroup};
+pub use self::{
+    builder::Builder, header::Header, program::Program, read_group::ReadGroup,
+    reference_sequence::ReferenceSequence,
+};
 
 use std::{error, fmt};
 

@@ -1,9 +1,9 @@
 use super::{
     record::value::{
-        map::{self, Program, ReadGroup},
+        map::{self, Program, ReadGroup, ReferenceSequence},
         Map,
     },
-    Header, Programs, ReadGroups, ReferenceSequence, ReferenceSequences,
+    Header, Programs, ReadGroups, ReferenceSequences,
 };
 
 /// A SAM header builder.
@@ -55,13 +55,19 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::{reference_sequence, ReferenceSequence}};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{
+    ///         map::{reference_sequence::Name, ReferenceSequence},
+    ///         Map,
+    ///     }
+    /// };
     ///
     /// let reference_sequences = [("sq0".parse()?, 13)]
     ///     .into_iter()
-    ///     .map(|(name, len): (reference_sequence::Name, usize)| {
+    ///     .map(|(name, len): (Name, usize)| {
     ///         let sn = name.to_string();
-    ///         ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+    ///         Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
     ///     })
     ///     .collect::<Result<_, _>>()?;
     ///
@@ -84,10 +90,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReferenceSequence, Map},
+    /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 13)?)
+    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -95,7 +104,7 @@ impl Builder {
     /// assert!(reference_sequences.contains_key("sq0"));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_reference_sequence(mut self, reference_sequence: ReferenceSequence) -> Self {
+    pub fn add_reference_sequence(mut self, reference_sequence: Map<ReferenceSequence>) -> Self {
         let name = reference_sequence.name().to_string();
         self.reference_sequences.insert(name, reference_sequence);
         self
@@ -201,9 +210,9 @@ mod tests {
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
         let header = Builder::default()
-            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
-            .add_reference_sequence(ReferenceSequence::new("sq2".parse()?, 21)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq2".parse()?, 21)?)
             .add_read_group(Map::<ReadGroup>::new("rg0"))
             .add_read_group(Map::<ReadGroup>::new("rg1"))
             .add_program(Map::<Program>::new("noodles-sam"))

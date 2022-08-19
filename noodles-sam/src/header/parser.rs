@@ -3,9 +3,8 @@ use std::{collections::HashSet, error, fmt};
 use super::{
     record::{
         self,
-        value::map::{self, Map, Program, ReadGroup},
+        value::map::{self, reference_sequence, Map, Program, ReadGroup, ReferenceSequence},
     },
-    reference_sequence::{self, ReferenceSequence},
     Header, Record,
 };
 
@@ -19,7 +18,7 @@ pub enum ParseError {
     /// A header record is invalid.
     InvalidHeader(map::TryFromFieldsError),
     /// A reference sequence record is invalid.
-    InvalidReferenceSequence(reference_sequence::TryFromRecordError),
+    InvalidReferenceSequence(map::TryFromFieldsError),
     /// A reference sequence name is duplicated.
     DuplicateReferenceSequenceName(reference_sequence::Name),
     /// A read group record is invalid.
@@ -107,8 +106,14 @@ pub(super) fn parse(s: &str) -> Result<Header, ParseError> {
                 }
             }
             Kind::ReferenceSequence => {
-                let reference_sequence = ReferenceSequence::try_from(record)
-                    .map_err(ParseError::InvalidReferenceSequence)?;
+                let reference_sequence = match record.into() {
+                    (Kind::ReferenceSequence, Value::Map(map)) => {
+                        let fields: Vec<_> = map.into_iter().map(|(k, v)| (k, v)).collect();
+                        Map::<ReferenceSequence>::try_from(fields)
+                            .map_err(ParseError::InvalidHeader)?
+                    }
+                    _ => panic!(),
+                };
 
                 if !reference_sequence_names.insert(reference_sequence.name().clone()) {
                     return Err(ParseError::DuplicateReferenceSequenceName(

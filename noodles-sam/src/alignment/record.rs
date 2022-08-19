@@ -9,7 +9,10 @@ use std::io;
 use noodles_core::Position;
 
 use crate::{
-    header::{ReferenceSequence, ReferenceSequences},
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
     record::{Cigar, Data, Flags, MappingQuality, QualityScores, ReadName, Sequence},
     Header,
 };
@@ -161,7 +164,7 @@ impl Record {
     pub fn reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<io::Result<&'a ReferenceSequence>> {
+    ) -> Option<io::Result<&'a Map<ReferenceSequence>>> {
         get_reference_sequence(header.reference_sequences(), self.reference_sequence_id())
     }
 
@@ -169,7 +172,7 @@ impl Record {
     pub fn mate_reference_sequence<'a>(
         &self,
         header: &'a Header,
-    ) -> Option<io::Result<&'a ReferenceSequence>> {
+    ) -> Option<io::Result<&'a Map<ReferenceSequence>>> {
         get_reference_sequence(
             header.reference_sequences(),
             self.mate_reference_sequence_id(),
@@ -214,7 +217,7 @@ impl Default for Record {
 fn get_reference_sequence(
     reference_sequences: &ReferenceSequences,
     reference_sequence_id: Option<usize>,
-) -> Option<io::Result<&ReferenceSequence>> {
+) -> Option<io::Result<&Map<ReferenceSequence>>> {
     reference_sequence_id.map(|id| {
         reference_sequences
             .get_index(id)

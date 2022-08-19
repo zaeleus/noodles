@@ -1,7 +1,11 @@
 use std::ffi::CString;
 
 use noodles_bgzf as bgzf;
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_sam::{
+    self as sam,
+    alignment::Record,
+    header::record::value::{map::ReferenceSequence, Map},
+};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use crate::writer::record::encode_record;
@@ -105,12 +109,15 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReferenceSequence, Map},
+    /// };
     ///
     /// let mut writer = bam::AsyncWriter::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -252,7 +259,7 @@ where
 
 async fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &sam::header::ReferenceSequence,
+    reference_sequence: &Map<ReferenceSequence>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
@@ -280,7 +287,7 @@ mod tests {
     #[tokio::test]
     async fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = sam::header::ReferenceSequence::new("sq0".parse()?, 8)?;
+        let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 8)?;
         write_reference_sequence(&mut buf, &reference_sequence).await?;
 
         let expected = [

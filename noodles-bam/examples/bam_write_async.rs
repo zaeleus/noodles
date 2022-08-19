@@ -8,9 +8,9 @@ use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{
-        record::value::{map::Program, Map},
-        ReferenceSequence,
+    header::record::value::{
+        map::{Program, ReferenceSequence},
+        Map,
     },
 };
 use tokio::io;
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = sam::Header::builder()
         .set_header(Default::default())
-        .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+        .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
         .add_program(Map::<Program>::new("noodles-bam"))
         .add_comment("an example BAM written by noodles-bam")
         .build();

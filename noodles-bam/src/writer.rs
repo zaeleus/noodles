@@ -12,7 +12,10 @@ use noodles_bgzf as bgzf;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{ReferenceSequence, ReferenceSequences},
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
 };
 
 use self::record::encode_record;
@@ -112,12 +115,15 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReferenceSequence, Map},
+    /// };
     ///
     /// let mut writer = bam::Writer::new(Vec::new());
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
+    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
     ///     .add_comment("noodles-bam")
     ///     .build();
     ///
@@ -265,7 +271,7 @@ where
 
 fn write_reference_sequence<W>(
     writer: &mut W,
-    reference_sequence: &ReferenceSequence,
+    reference_sequence: &Map<ReferenceSequence>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -320,13 +326,13 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::reference_sequence;
+        use sam::header::record::value::map::reference_sequence::Name;
 
         let reference_sequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len): (reference_sequence::Name, usize)| {
+            .map(|(name, len): (Name, usize)| {
                 let sn = name.to_string();
-                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+                Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
             })
             .collect::<Result<_, _>>()?;
 
@@ -519,7 +525,7 @@ mod tests {
     #[test]
     fn test_write_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let reference_sequence = ReferenceSequence::new("sq0".parse()?, 8)?;
+        let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 8)?;
         write_reference_sequence(&mut buf, &reference_sequence)?;
 
         let expected = [

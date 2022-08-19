@@ -44,12 +44,15 @@
 //! ## Create a SAM header
 //!
 //! ```
-//! use noodles_sam::{self as sam, header::ReferenceSequence};
+//! use noodles_sam::{
+//!     self as sam,
+//!     header::record::value::{map::ReferenceSequence, Map},
+//! };
 //!
 //! let header = sam::Header::builder()
 //!     .set_header(Default::default())
-//!     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
-//!     .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+//!     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+//!     .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
 //!     .build();
 //!
 //! assert!(header.header().is_some());
@@ -63,23 +66,22 @@
 mod builder;
 mod parser;
 pub mod record;
-pub mod reference_sequence;
 
 use std::{fmt, str::FromStr};
 
 use indexmap::IndexMap;
 
-pub use self::{builder::Builder, parser::ParseError, reference_sequence::ReferenceSequence};
+pub use self::{builder::Builder, parser::ParseError};
 
 pub use self::record::Record;
 
 use self::record::value::{
-    map::{self, Program, ReadGroup},
+    map::{self, Program, ReadGroup, ReferenceSequence},
     Map,
 };
 
 /// A reference seqeuence dictionary.
-pub type ReferenceSequences = IndexMap<String, ReferenceSequence>;
+pub type ReferenceSequences = IndexMap<String, Map<ReferenceSequence>>;
 
 /// An ordered map of read groups.
 pub type ReadGroups = IndexMap<String, Map<ReadGroup>>;
@@ -161,10 +163,13 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReferenceSequence, Map},
+    /// };
     ///
     /// let header = sam::Header::builder()
-    ///     .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 13)?)
+    ///     .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 13)?)
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
@@ -183,13 +188,14 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use noodles_sam::{self as sam, header::ReferenceSequence};
+    /// use noodles_sam::{
+    ///     self as sam,
+    ///     header::record::value::{map::ReferenceSequence, Map},
+    /// };
     ///
     /// let mut header = sam::Header::default();
-    /// assert!(header.reference_sequences().is_empty());
     ///
-    /// let reference_sequence = ReferenceSequence::new("sq0".parse()?, 13)?;
-    ///
+    /// let reference_sequence = Map::<ReferenceSequence>::new("sq0".parse()?, 13)?;
     /// header.reference_sequences_mut().insert(
     ///     reference_sequence.name().to_string(),
     ///     reference_sequence,
@@ -396,7 +402,7 @@ impl fmt::Display for Header {
         }
 
         for reference_sequence in self.reference_sequences.values() {
-            writeln!(f, "{}", reference_sequence)?;
+            writeln!(f, "{}\t{}", Kind::ReferenceSequence, reference_sequence)?;
         }
 
         for read_group in self.read_groups.values() {
@@ -455,8 +461,8 @@ mod tests {
 
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence(ReferenceSequence::new("sq0".parse()?, 8)?)
-            .add_reference_sequence(ReferenceSequence::new("sq1".parse()?, 13)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq0".parse()?, 8)?)
+            .add_reference_sequence(Map::<ReferenceSequence>::new("sq1".parse()?, 13)?)
             .add_read_group(Map::<ReadGroup>::new("rg0"))
             .add_read_group(Map::<ReadGroup>::new("rg1"))
             .add_program(Map::<Program>::new("pg0"))

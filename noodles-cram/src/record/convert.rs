@@ -1,6 +1,12 @@
 use std::io;
 
-use noodles_sam as sam;
+use noodles_sam::{
+    self as sam,
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
+};
 
 use super::{Features, Flags, Record};
 
@@ -149,8 +155,8 @@ impl Record {
 }
 
 fn get_reference_sequence_id(
-    reference_sequences: &sam::header::ReferenceSequences,
-    reference_sequence: &sam::header::ReferenceSequence,
+    reference_sequences: &ReferenceSequences,
+    reference_sequence: &Map<ReferenceSequence>,
 ) -> io::Result<usize> {
     reference_sequences
         .get_index_of(reference_sequence.name().as_str())

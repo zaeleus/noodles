@@ -23,7 +23,10 @@ use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::Record,
-    header::{ReferenceSequence, ReferenceSequences},
+    header::{
+        record::value::{map::ReferenceSequence, Map},
+        ReferenceSequences,
+    },
 };
 
 use super::{bai, lazy, MAGIC_NUMBER};
@@ -511,7 +514,7 @@ where
     Ok(reference_sequences)
 }
 
-fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence>
+fn read_reference_sequence<R>(reader: &mut R) -> io::Result<Map<ReferenceSequence>>
 where
     R: Read,
 {
@@ -531,7 +534,8 @@ where
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    ReferenceSequence::new(name, l_ref).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Map::<ReferenceSequence>::new(name, l_ref)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn read_alignment_header<R>(reader: &mut R) -> io::Result<sam::Header>
@@ -625,7 +629,7 @@ mod tests {
 
     #[test]
     fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use sam::header::reference_sequence;
+        use sam::header::record::value::map::reference_sequence::Name;
 
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
@@ -639,9 +643,9 @@ mod tests {
 
         let expected: ReferenceSequences = [("sq0".parse()?, 8)]
             .into_iter()
-            .map(|(name, len): (reference_sequence::Name, usize)| {
+            .map(|(name, len): (Name, usize)| {
                 let sn = name.to_string();
-                ReferenceSequence::new(name, len).map(|rs| (sn, rs))
+                Map::<ReferenceSequence>::new(name, len).map(|rs| (sn, rs))
             })
             .collect::<Result<_, _>>()?;
 
