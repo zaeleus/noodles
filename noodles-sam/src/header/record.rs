@@ -13,7 +13,6 @@ use self::value::{
 };
 
 const DELIMITER: char = '\t';
-const TAG_LENGTH: usize = 2;
 
 /// A SAM header record.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -39,8 +38,6 @@ pub enum ParseError {
     InvalidKind(kind::ParseError),
     /// A field is invalid.
     InvalidField,
-    /// A tag is invalid.
-    InvalidTag,
     /// A value is invalid.
     InvalidValue,
 }
@@ -53,7 +50,6 @@ impl fmt::Display for ParseError {
             Self::Invalid => write!(f, "invalid input"),
             Self::InvalidKind(e) => write!(f, "invalid kind: {}", e),
             Self::InvalidField => write!(f, "invalid field"),
-            Self::InvalidTag => write!(f, "invalid tag"),
             Self::InvalidValue => write!(f, "invalid value"),
         }
     }
@@ -104,10 +100,6 @@ fn split_field(s: &str) -> Result<(String, String), ParseError> {
 
     match s.split_once(FIELD_DELIMITER) {
         Some((tag, value)) => {
-            if !is_valid_tag(tag) {
-                return Err(ParseError::InvalidTag);
-            }
-
             if !is_valid_value(value) {
                 return Err(ParseError::InvalidValue);
             }
@@ -116,28 +108,6 @@ fn split_field(s: &str) -> Result<(String, String), ParseError> {
         }
         None => Err(ParseError::InvalidField),
     }
-}
-
-fn is_valid_tag(s: &str) -> bool {
-    if s.len() != TAG_LENGTH {
-        return false;
-    }
-
-    let mut chars = s.chars();
-
-    if let Some(c) = chars.next() {
-        if !c.is_ascii_alphabetic() {
-            return false;
-        }
-    }
-
-    if let Some(c) = chars.next() {
-        if !c.is_ascii_alphanumeric() {
-            return false;
-        }
-    }
-
-    true
 }
 
 fn is_valid_value(s: &str) -> bool {
@@ -174,13 +144,6 @@ mod tests {
 
         assert_eq!("@HD\t".parse::<Record>(), Err(ParseError::InvalidField));
         assert_eq!("@HD\tVN".parse::<Record>(), Err(ParseError::InvalidField));
-
-        assert_eq!("@HD\tV:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
-        assert_eq!("@HD\t0V:1.6".parse::<Record>(), Err(ParseError::InvalidTag));
-        assert_eq!(
-            "@HD\tVER:1.6".parse::<Record>(),
-            Err(ParseError::InvalidTag)
-        );
 
         assert_eq!("@PG\tID:".parse::<Record>(), Err(ParseError::InvalidValue));
         assert_eq!(

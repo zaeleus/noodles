@@ -70,6 +70,50 @@ where
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let b: [u8; 2] = s.as_bytes().try_into().map_err(|_| ())?;
-        Ok(Self::from(b))
+
+        if is_valid_tag(b) {
+            Ok(Self::from(b))
+        } else {
+            Err(())
+        }
+    }
+}
+
+fn is_valid_tag(b: [u8; LENGTH]) -> bool {
+    b[0].is_ascii_alphabetic() && b[1].is_ascii_alphanumeric()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_for_tag() {
+        enum TestTag {
+            Id,
+        }
+
+        impl Standard for TestTag {}
+
+        impl TryFrom<[u8; LENGTH]> for TestTag {
+            type Error = ();
+
+            fn try_from(b: [u8; LENGTH]) -> Result<Self, Self::Error> {
+                match &b {
+                    b"ID" => Ok(Self::Id),
+                    _ => Err(()),
+                }
+            }
+        }
+
+        assert!(matches!("ID".parse(), Ok(Tag::Standard(TestTag::Id))));
+        assert!(matches!(
+            "VN".parse(),
+            Ok(Tag::<TestTag>::Other(Other([b'V', b'N'], PhantomData)))
+        ));
+
+        assert!("V".parse::<Tag<TestTag>>().is_err());
+        assert!("0V".parse::<Tag<TestTag>>().is_err());
+        assert!("VER".parse::<Tag<TestTag>>().is_err());
     }
 }
