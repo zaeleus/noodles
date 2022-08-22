@@ -61,6 +61,8 @@ impl Builder {
             inner: block_reader,
             position: 0,
             block: Block::default(),
+            gzi: None,
+            uncompressed_position: None,
         }
     }
 }
