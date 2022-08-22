@@ -9,7 +9,7 @@ use std::io::{self, Read};
 use byteorder::ReadBytesExt;
 
 use self::flags::Flags;
-use super::rans_nx16::{decode_pack, decode_pack_meta};
+use super::rans_nx16::decode::{decode_pack, decode_pack_meta};
 use crate::reader::num::read_uint7;
 
 pub fn arith_decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
