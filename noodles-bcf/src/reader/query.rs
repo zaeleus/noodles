@@ -78,7 +78,7 @@ where
                 State::Seek => {
                     self.state = match self.chunks.next() {
                         Some(chunk) => {
-                            if let Err(e) = self.reader.seek(chunk.start()) {
+                            if let Err(e) = self.reader.seek_virtual_position(chunk.start()) {
                                 return Some(Err(e));
                             }
 

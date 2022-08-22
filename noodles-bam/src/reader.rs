@@ -344,17 +344,17 @@ where
     /// use noodles_bgzf as bgzf;
     /// let mut reader = bam::Reader::new(Cursor::new(Vec::new()));
     /// let virtual_position = bgzf::VirtualPosition::default();
-    /// reader.seek(virtual_position)?;
+    /// reader.seek_virtual_position(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
+    pub fn seek_virtual_position(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek_virtual_position(pos)
     }
 
     // Seeks to the first record by setting the cursor to the beginning of the stream and
     // (re)reading the header and binary reference sequences.
     fn seek_to_first_record(&mut self) -> io::Result<bgzf::VirtualPosition> {
-        self.seek(bgzf::VirtualPosition::default())?;
+        self.seek_virtual_position(bgzf::VirtualPosition::default())?;
         self.read_header()?;
         self.read_reference_sequences()?;
         Ok(self.virtual_position())
@@ -425,7 +425,7 @@ where
     /// ```
     pub fn query_unmapped(&mut self, index: &bai::Index) -> io::Result<UnmappedRecords<'_, R>> {
         if let Some(pos) = index.first_record_in_last_linear_bin_start_position() {
-            self.seek(pos)?;
+            self.seek_virtual_position(pos)?;
         } else {
             self.seek_to_first_record()?;
         }

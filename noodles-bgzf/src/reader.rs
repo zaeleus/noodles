@@ -146,10 +146,10 @@ where
     /// use noodles_bgzf as bgzf;
     /// let mut reader = bgzf::Reader::new(Cursor::new(Vec::new()));
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position)?;
+    /// reader.seek_virtual_position(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+    pub fn seek_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let (cpos, upos) = pos.into();
 
         self.inner.get_mut().seek(SeekFrom::Start(cpos))?;
@@ -219,7 +219,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_seek_virtual_position() -> Result<(), Box<dyn std::error::Error>> {
         #[rustfmt::skip]
         let data = [
             // block 0
@@ -240,7 +240,7 @@ mod tests {
 
         assert_eq!(reader.virtual_position(), eof);
 
-        reader.seek(VirtualPosition::try_from((0, 3))?)?;
+        reader.seek_virtual_position(VirtualPosition::try_from((0, 3))?)?;
 
         buf.clear();
         reader.read_to_end(&mut buf)?;

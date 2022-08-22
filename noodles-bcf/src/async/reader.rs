@@ -273,12 +273,12 @@ where
     /// let mut reader = bcf::AsyncReader::new(Cursor::new(data));
     ///
     /// let virtual_position = bgzf::VirtualPosition::default();
-    /// reader.seek(virtual_position).await?;
+    /// reader.seek_virtual_position(virtual_position).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos).await
+    pub async fn seek_virtual_position(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek_virtual_position(pos).await
     }
 
     /// Returns a stream over records that intersect the given region.

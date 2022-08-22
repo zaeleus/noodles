@@ -97,15 +97,15 @@ where
     /// use noodles_bgzf as bgzf;
     /// let mut reader = bgzf::AsyncReader::new(Cursor::new(Vec::new()));
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position).await?;
+    /// reader.seek_virtual_position(virtual_position).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+    pub async fn seek_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let stream = self.stream.take().expect("missing stream");
         let mut blocks = stream.into_inner();
 
-        blocks.seek(pos).await?;
+        blocks.seek_virtual_position(pos).await?;
 
         let mut stream = blocks.try_buffered(self.worker_count.get());
 
@@ -188,7 +188,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_seek() -> Result<(), Box<dyn std::error::Error>> {
+    async fn test_seek_virtual_position() -> Result<(), Box<dyn std::error::Error>> {
         #[rustfmt::skip]
         let data = [
             // block 0, udata = b"noodles"
@@ -209,7 +209,7 @@ mod tests {
         assert_eq!(reader.virtual_position(), eof);
 
         let position = VirtualPosition::try_from((0, 3))?;
-        reader.seek(position).await?;
+        reader.seek_virtual_position(position).await?;
 
         assert_eq!(reader.virtual_position(), position);
 

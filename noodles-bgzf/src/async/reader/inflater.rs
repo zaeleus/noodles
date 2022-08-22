@@ -34,7 +34,7 @@ impl<R> Inflater<R>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+    pub async fn seek_virtual_position(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let cpos = pos.compressed();
         self.inner.get_mut().seek(SeekFrom::Start(cpos)).await?;
 

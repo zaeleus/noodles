@@ -227,11 +227,11 @@ where
     /// let mut reader = File::open("sample.bcf").map(bcf::Reader::new)?;
     ///
     /// let virtual_position = bgzf::VirtualPosition::from(102334155);
-    /// reader.seek(virtual_position)?;
+    /// reader.seek_virtual_position(virtual_position)?;
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn seek(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
-        self.inner.seek(pos)
+    pub fn seek_virtual_position(&mut self, pos: bgzf::VirtualPosition) -> io::Result<bgzf::VirtualPosition> {
+        self.inner.seek_virtual_position(pos)
     }
 
     /// Returns an iterator over records that intersects the given region.

@@ -60,7 +60,7 @@ where
                 State::Seek => {
                     ctx.state = match ctx.chunks.next() {
                         Some(chunk) => {
-                            ctx.reader.seek(chunk.start()).await?;
+                            ctx.reader.seek_virtual_position(chunk.start()).await?;
                             State::Read(chunk.end())
                         }
                         None => State::Done,
