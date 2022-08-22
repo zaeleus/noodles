@@ -1,6 +1,5 @@
 use std::io::{self, Write};
 
-#[allow(dead_code)]
 pub fn write_uint7<W>(writer: &mut W, mut n: u32) -> io::Result<()>
 where
     W: Write,
