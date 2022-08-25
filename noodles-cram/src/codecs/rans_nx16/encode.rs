@@ -1,3 +1,5 @@
+mod order_1;
+
 use std::{
     io::{self, Write},
     mem,
@@ -37,7 +39,9 @@ pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.contains(Flags::CAT) {
         dst.write_all(src)?;
     } else if flags.contains(Flags::ORDER) {
-        todo!("rans_encode_nx16_1");
+        let (normalized_frequencies, compressed_data) = order_1::encode(src, n)?;
+        order_1::write_frequencies(&mut dst, &normalized_frequencies)?;
+        dst.write_all(&compressed_data)?;
     } else {
         let (normalized_frequencies, compressed_data) = rans_encode_nx16_0(src, n)?;
         write_frequencies_0(&mut dst, &normalized_frequencies)?;
