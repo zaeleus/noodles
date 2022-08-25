@@ -35,11 +35,11 @@ fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
 }
 
 fn normalize_contexts(contexts: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
-    use super::normalize_frequencies_nx16_0;
+    use super::normalize_frequencies;
 
     contexts
         .into_iter()
-        .map(|frequencies| normalize_frequencies_nx16_0(&frequencies))
+        .map(|frequencies| normalize_frequencies(&frequencies))
         .collect()
 }
 

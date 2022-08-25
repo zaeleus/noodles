@@ -1,11 +1,9 @@
+mod order_0;
 mod order_1;
 
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::WriteBytesExt;
 
 use super::Flags;
 use crate::writer::num::write_uint7;
@@ -43,45 +41,12 @@ pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         order_1::write_frequencies(&mut dst, &normalized_frequencies)?;
         dst.write_all(&compressed_data)?;
     } else {
-        let (normalized_frequencies, compressed_data) = rans_encode_nx16_0(src, n)?;
-        write_frequencies_0(&mut dst, &normalized_frequencies)?;
+        let (normalized_frequencies, compressed_data) = order_0::encode(src, n)?;
+        order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
         dst.write_all(&compressed_data)?;
     }
 
     Ok(dst)
-}
-
-fn rans_encode_nx16_0(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
-    const LOWER_BOUND: u32 = 0x8000;
-
-    let frequencies = build_frequencies(src);
-
-    let freq = normalize_frequencies_nx16_0(&frequencies);
-    let cfreq = build_cumulative_frequencies(&freq);
-
-    let mut buf = Vec::new();
-    let mut states = vec![LOWER_BOUND; n];
-
-    for (i, &sym) in src.iter().enumerate().rev() {
-        let j = i % states.len();
-
-        let mut x = states[j];
-        let freq_i = freq[usize::from(sym)];
-        let cfreq_i = cfreq[usize::from(sym)];
-
-        x = rans_renorm_nx16(&mut buf, x, freq_i, 12)?;
-        states[j] = update(x, cfreq_i, freq_i, 12);
-    }
-
-    let mut dst = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
-
-    for &state in &states {
-        dst.write_u32::<LittleEndian>(state)?;
-    }
-
-    dst.extend(buf.iter().rev());
-
-    Ok((freq, dst))
 }
 
 fn build_frequencies(src: &[u8]) -> Vec<u32> {
@@ -95,7 +60,7 @@ fn build_frequencies(src: &[u8]) -> Vec<u32> {
     frequencies
 }
 
-fn normalize_frequencies_nx16_0(frequencies: &[u32]) -> Vec<u32> {
+fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     const SCALE: u32 = 4096;
 
     let mut sum = 0;
@@ -173,22 +138,7 @@ where
     Ok(())
 }
 
-fn write_frequencies_0<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
-where
-    W: Write,
-{
-    write_alphabet(writer, frequencies)?;
-
-    for &f in frequencies {
-        if f > 0 {
-            write_uint7(writer, f)?;
-        }
-    }
-
-    Ok(())
-}
-
-pub fn rans_renorm_nx16<W>(writer: &mut W, mut r: u32, freq_i: u32, bits: u32) -> io::Result<u32>
+pub fn normalize<W>(writer: &mut W, mut r: u32, freq_i: u32, bits: u32) -> io::Result<u32>
 where
     W: Write,
 {
