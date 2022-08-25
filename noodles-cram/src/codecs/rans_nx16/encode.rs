@@ -37,8 +37,8 @@ pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.contains(Flags::CAT) {
         dst.write_all(src)?;
     } else if flags.contains(Flags::ORDER) {
-        let (normalized_frequencies, compressed_data) = order_1::encode(src, n)?;
-        order_1::write_frequencies(&mut dst, &normalized_frequencies)?;
+        let (normalized_contexts, compressed_data) = order_1::encode(src, n)?;
+        order_1::write_contexts(&mut dst, &normalized_contexts)?;
         dst.write_all(&compressed_data)?;
     } else {
         let (normalized_frequencies, compressed_data) = order_0::encode(src, n)?;
