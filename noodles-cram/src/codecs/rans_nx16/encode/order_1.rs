@@ -1,15 +1,71 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    mem,
+};
 
-use byteorder::WriteBytesExt;
+use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::writer::num::write_uint7;
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
+    use super::{normalize, update};
+
+    const LOWER_BOUND: u32 = 0x8000;
+
     let contexts = build_contexts(src, n);
     let freq = normalize_contexts(contexts);
-    let _cfreq = build_cumulative_contexts(&freq);
+    let cfreq = build_cumulative_contexts(&freq);
 
-    Ok((freq, Vec::new()))
+    let mut buf = Vec::new();
+    let mut states = vec![LOWER_BOUND; n];
+
+    let fraction = src.len() / n;
+
+    if src.len() > n * fraction {
+        let remainder = &src[n * fraction - 1..];
+
+        for syms in remainder.windows(2).rev() {
+            let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
+            let freq_i = freq[sym_0][sym_1];
+            let cfreq_i = cfreq[sym_0][sym_1];
+            let x = normalize(&mut buf, states[n - 1], freq_i, 12)?;
+            states[n - 1] = update(x, cfreq_i, freq_i, 12);
+        }
+    }
+
+    let chunks: Vec<_> = (0..n)
+        .map(|i| &src[i * fraction..(i + 1) * fraction])
+        .collect();
+
+    let windows: Vec<_> = chunks.iter().map(|chunk| chunk.windows(2).rev()).collect();
+
+    for ws in windows {
+        for (state, syms) in states.iter_mut().zip(ws) {
+            let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
+            let freq_i = freq[sym_0][sym_1];
+            let cfreq_i = cfreq[sym_0][sym_1];
+            let x = normalize(&mut buf, *state, freq_i, 12)?;
+            *state = update(x, cfreq_i, freq_i, 12);
+        }
+    }
+
+    for (state, chunk) in states.iter_mut().zip(chunks.iter()) {
+        let sym = usize::from(chunk[0]);
+        let freq_i = freq[0][sym];
+        let cfreq_i = cfreq[0][sym];
+        let x = normalize(&mut buf, *state, freq_i, 12)?;
+        *state = update(x, cfreq_i, freq_i, 12);
+    }
+
+    let mut dst = Vec::with_capacity(n * mem::size_of::<u32>() + buf.len());
+
+    for &state in &states {
+        dst.write_u32::<LittleEndian>(state)?;
+    }
+
+    dst.extend(buf.iter().rev());
+
+    Ok((freq, dst))
 }
 
 pub fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>

@@ -38,6 +38,8 @@ pub fn rans_encode_nx16(flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         dst.write_all(src)?;
     } else if flags.contains(Flags::ORDER) {
         let (normalized_contexts, compressed_data) = order_1::encode(src, n)?;
+        // bits = 12, no compression (0)
+        dst.write_u8(12 << 4)?;
         order_1::write_contexts(&mut dst, &normalized_contexts)?;
         dst.write_all(&compressed_data)?;
     } else {
@@ -74,6 +76,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         }
 
         sum += f;
+    }
+
+    if sum == 0 {
+        return vec![0; frequencies.len()];
     }
 
     let mut normalize_frequencies = vec![0; frequencies.len()];
