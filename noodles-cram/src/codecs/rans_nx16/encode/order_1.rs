@@ -144,6 +144,9 @@ fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
         frequencies[sym_0][sym_1] += 1;
     }
 
+    let sym = src.last().copied().map(usize::from).unwrap();
+    frequencies[sym][0] += 1;
+
     frequencies
 }
 
