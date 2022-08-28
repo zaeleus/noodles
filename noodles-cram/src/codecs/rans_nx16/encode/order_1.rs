@@ -123,10 +123,10 @@ where
 fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
     let mut frequencies = vec![vec![0; 256]; 256];
 
-    let quarter = src.len() / n;
+    let fraction = src.len() / n;
 
     for i in 0..n {
-        let sym = usize::from(src[i * quarter]);
+        let sym = usize::from(src[i * fraction]);
         frequencies[0][sym] += 1;
     }
 
