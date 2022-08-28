@@ -74,22 +74,30 @@ where
 {
     use super::write_alphabet;
 
-    let sums: Vec<u32> = contexts
-        .iter()
-        .map(|frequencies| frequencies.iter().sum())
-        .collect();
+    let mut frequencies = vec![0; 256];
+    frequencies[0] = 1;
 
-    write_alphabet(writer, &sums)?;
+    for (i, f) in frequencies.iter_mut().enumerate() {
+        for context in contexts {
+            let g = context[i];
+
+            if g > 0 {
+                *f += g;
+            }
+        }
+    }
+
+    write_alphabet(writer, &frequencies)?;
 
     for (sym_0, context) in contexts.iter().enumerate() {
-        if sums[sym_0] == 0 {
+        if frequencies[sym_0] == 0 {
             continue;
         }
 
         let mut rle = 0;
 
         for (sym_1, &f) in context.iter().enumerate() {
-            if sums[sym_1] == 0 {
+            if frequencies[sym_1] == 0 {
                 continue;
             }
 
@@ -99,8 +107,8 @@ where
                 write_uint7(writer, f)?;
 
                 if f == 0 {
-                    for (sym, &sum) in sums.iter().enumerate().skip(sym_1 + 1) {
-                        if sum == 0 {
+                    for (sym, &g) in frequencies.iter().enumerate().skip(sym_1 + 1) {
+                        if g == 0 {
                             continue;
                         }
 
